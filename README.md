@@ -35,6 +35,7 @@ The VBA Standard Library aims to give users a set of common libraries, maintaine
 | Class  |Automation |stdWindows       | Standard functions for handling Windows
 | Class  |Automation |stdKernel        | Low level but useful APIs. Won't be loading Kernel32.dll entirely, but will try to expose static methods to common useful functions.
 | Class  |Processing |stdThread        | Multithreading in VBA? [src](http://www.freevbcode.com/ShowCode.asp?ID=1287#A%20Quick%20Review%20Of%20Multithreading)
+| Class | Application | stdEvents | More events for VBA.
 
 ## Structure
 
