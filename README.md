@@ -29,6 +29,7 @@ The VBA Standard Library aims to give users a set of common libraries, maintaine
 | Class  |Runtimes   |stdCLR           | Host common language runtime with VBA. This allows compilation and execution of C#.NET and VB.NET scripts in-process.
 | Class  |Runtimes   |stdPowershell    | Programmatic access to Powershell from VBA.
 | Class  |Runtimes   |stdJSBridge      | A VbaJsBridge module allowing applications to open and close programmatic access to VBA from OfficeJS.
+| Class  |Runtimes   |stdJavaScript    | A module allowing applications to host [Edge and IE Javascript engine](https://docs.microsoft.com/en-us/microsoft-edge/hosting/chakra-hosting/hosting-the-javascript-runtime)
 | Class  |Runtimes   |stdVBR           | [Hidden functions from VB VirtualMachine library](http://www.freevbcode.com/ShowCode.asp?ID=7520)
 | Class  |Runtimes   |stdExecLib       | Execute external applications in-memory. [src](https://github.com/itm4n/VBA-RunPE)
 | Class  |Automation |stdAccessibility | Use Microsoft Active Accessibility framework within VBA - Very useful for automation.
