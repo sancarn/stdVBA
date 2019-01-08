@@ -26,10 +26,10 @@ The VBA Standard Library aims to give users a set of common libraries, maintaine
 | Class  |Type       |stdArray         | A library designed to re-create the Javascript dynamic array object.
 | Class  |Type       |stdDictionary    | A drop in replacement for VBScript's dictionary.
 | Module |Type       |stdIniVariantEnum| Initialising [IEnumVARIANT](http://www.vbforums.com/showthread.php?854963-VB6-IEnumVARIANT-For-Each-support-without-a-typelib) by recreating vtable. Used to overcome pitfalls of VB collections.
-| Class  |Runtimes   |stdCLR           | Host common language runtime with VBA. This allows compilation and execution of C#.NET and VB.NET scripts in-process.
-| Class  |Runtimes   |stdPowershell    | Programmatic access to Powershell from VBA.
+| Class  |Runtimes   |stdCLR           | Host CLR (Common Language Runtime). Allows execution of C#.NET and VB.NET scripts in-process.
+| Class  |Runtimes   |stdPowershell    | Host [Powershell](https://docs.microsoft.com/en-us/powershell/developer/hosting/windows-powershell-host-quickstart)
+| Class  |Runtimes   |stdJavaScript    | Host [Edge and IE Javascript engine](https://docs.microsoft.com/en-us/microsoft-edge/hosting/chakra-hosting/hosting-the-javascript-runtime)
 | Class  |Runtimes   |stdJSBridge      | A VbaJsBridge module allowing applications to open and close programmatic access to VBA from OfficeJS.
-| Class  |Runtimes   |stdJavaScript    | A module allowing applications to host [Edge and IE Javascript engine](https://docs.microsoft.com/en-us/microsoft-edge/hosting/chakra-hosting/hosting-the-javascript-runtime)
 | Class  |Runtimes   |stdVBR           | [Hidden functions from VB VirtualMachine library](http://www.freevbcode.com/ShowCode.asp?ID=7520)
 | Class  |Runtimes   |stdExecLib       | Execute external applications in-memory. [src](https://github.com/itm4n/VBA-RunPE)
 | Class  |Automation |stdAccessibility | Use Microsoft Active Accessibility framework within VBA - Very useful for automation.
