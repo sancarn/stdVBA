@@ -16,15 +16,15 @@ The VBA Standard Library aims to give users a set of common libraries, maintaine
 |--------|-----------|-----------------|--------------|
 | Class  |EntryPoint |STD              | Entry point for all APIs. Mainly build for intellisense to the rest of the API.
 | Class  |File       |stdFileSystem    | A wrapper around Shell's and FSO's file system APIs.
-| Class  |Data       |stdDate          | A standard date parsing library. No more will you have to rely on Excel's interpreter. State the format, get the data.
-| Class  |Data       |stdRegex         | A wrapper around `VBScript.RegExp` but with more features e.g. named capture groups and free-spaces.
+| Class  |File       |stdZip           | A wrapper around shell's Zip functionality.
+| Class  |Debug      |stdDebug         | A wrapper around `Debug` while adding new options like styling messages and printing to an external html console.
 | Class  |Data       |stdJSON          | [Tim Hall's fantastic JSON library](https://github.com/VBA-tools/VBA-JSON)
 | Class  |Data       |stdHTTP          | A wrapper around HTTP COM libraries.
 | Class  |Data       |stdOXML          | A library to assist in the modification of Office documents via Open XML format.
-| Class  |File       |stdZip           | A wrapper around shell's Zip functionality.
-| Class  |Debug      |stdDebug         | A wrapper around `Debug` while adding new options like styling messages and printing to an external html console.
 | Class  |Type       |stdArray         | A library designed to re-create the Javascript dynamic array object.
 | Class  |Type       |stdDictionary    | A drop in replacement for VBScript's dictionary.
+| Class  |Type       |stdDate          | A standard date parsing library. No more will you have to rely on Excel's interpreter. State the format, get the data.
+| Class  |Type       |stdRegex         | A wrapper around `VBScript.RegExp` but with more features e.g. named capture groups and free-spaces.
 | Module |Type       |stdIniVariantEnum| Initialising [IEnumVARIANT](http://www.vbforums.com/showthread.php?854963-VB6-IEnumVARIANT-For-Each-support-without-a-typelib) by recreating vtable. Used to overcome pitfalls of VB collections.
 | Class  |Runtimes   |stdCLR           | Host CLR (Common Language Runtime). Allows execution of C#.NET and VB.NET scripts in-process.
 | Class  |Runtimes   |stdPowershell    | Host [Powershell](https://docs.microsoft.com/en-us/powershell/developer/hosting/windows-powershell-host-quickstart)
@@ -32,6 +32,7 @@ The VBA Standard Library aims to give users a set of common libraries, maintaine
 | Class  |Runtimes   |stdJSBridge      | A VbaJsBridge module allowing applications to open and close programmatic access to VBA from OfficeJS.
 | Class  |Runtimes   |stdVBR           | [Hidden functions from VB VirtualMachine library](http://www.freevbcode.com/ShowCode.asp?ID=7520)
 | Class  |Runtimes   |stdExecLib       | Execute external applications in-memory. [src](https://github.com/itm4n/VBA-RunPE)
+| Class  |Automation |stdCOM           | Low level COM APIs.
 | Class  |Automation |stdAccessibility | Use Microsoft Active Accessibility framework within VBA - Very useful for automation.
 | Class  |Automation |stdWindows       | Standard functions for handling Windows
 | Class  |Automation |stdKernel        | Low level but useful APIs. Won't be loading Kernel32.dll entirely, but will try to expose static methods to common useful functions.
