@@ -28,7 +28,7 @@ The VBA Standard Library aims to give users a set of common libraries, maintaine
 | Module |Type       |stdIniVariantEnum| Initialising [IEnumVARIANT](http://www.vbforums.com/showthread.php?854963-VB6-IEnumVARIANT-For-Each-support-without-a-typelib) by recreating vtable. Used to overcome pitfalls of VB collections.
 | Class  |Runtimes   |stdCLR           | Host CLR (Common Language Runtime). Allows execution of C#.NET and VB.NET scripts in-process.
 | Class  |Runtimes   |stdPowershell    | Host [Powershell](https://docs.microsoft.com/en-us/powershell/developer/hosting/windows-powershell-host-quickstart)
-| Class  |Runtimes   |stdJavaScript    | Host [Edge and IE Javascript engine](https://docs.microsoft.com/en-us/microsoft-edge/hosting/chakra-hosting/hosting-the-javascript-runtime)
+| Class  |Runtimes   |stdJavaScript    | Host [Edge and IE Javascript engine](https://docs.microsoft.com/en-us/microsoft-edge/hosting/chakra-hosting/hosting-the-javascript-runtime). [IE11 Hosting](https://docs.microsoft.com/en-us/microsoft-edge/hosting/chakra-hosting/targeting-edge-vs-legacy-engines-in-jsrt-apis)
 | Class  |Runtimes   |stdJSBridge      | A VbaJsBridge module allowing applications to open and close programmatic access to VBA from OfficeJS.
 | Class  |Runtimes   |stdVBR           | [Hidden functions from VB VirtualMachine library](http://www.freevbcode.com/ShowCode.asp?ID=7520)
 | Class  |Runtimes   |stdSerialisedVBA | Custom engine for executing VBA from a serialised JSON string.
