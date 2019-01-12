@@ -13,21 +13,21 @@ Attribute VB_Exposed = False
 'Instead of code like this:
 '
 '    Dim str as string
-'    str = str & "<div className=""MarkdownEditor"">" & vbCrLf & _
-'    str = str & "  <h3>Input</h3>" & vbCrLf & _
-'    str = str & "  <label htmlFor=""markdown-content"">" & vbCrLf & _
-'    str = str & "    Enter some markdown" & vbCrLf & _
-'    str = str & "  </label>" & vbCrLf & _
-'    str = str & "  <textarea" & vbCrLf & _
-'    str = str & "    id=""markdown-content""" & vbCrLf & _
-'    str = str & "    onChange=""" & handleChange & """" & vbCrLf & _ " & vbCrLf & _
-'    str = str & "    defaultValue=""" & state.value & """" & vbCrLf & _
-'    str = str & "  />" & vbCrLf & _
-'    str = str & "  <h3>Output</h3>" & vbCrLf & _
-'    str = str & "  <div" & vbCrLf & _
-'    str = str & "    className=""content""" & vbCrLf & _
-'    str = str & "    dangerouslySetInnerHTML=" & getRawMarkup() & vbCrLf & _
-'    str = str & "  />" & vbCrLf & _
+'    str = str & "<div className=""MarkdownEditor"">" & vbCrLf
+'    str = str & "  <h3>Input</h3>" & vbCrLf
+'    str = str & "  <label htmlFor=""markdown-content"">" & vbCrLf
+'    str = str & "    Enter some markdown" & vbCrLf
+'    str = str & "  </label>" & vbCrLf
+'    str = str & "  <textarea" & vbCrLf
+'    str = str & "    id=""markdown-content""" & vbCrLf
+'    str = str & "    onChange=""" & handleChange & """" & vbCrLf & _ " & vbCrLf
+'    str = str & "    defaultValue=""" & state.value & """" & vbCrLf
+'    str = str & "  />" & vbCrLf
+'    str = str & "  <h3>Output</h3>" & vbCrLf
+'    str = str & "  <div" & vbCrLf
+'    str = str & "    className=""content""" & vbCrLf
+'    str = str & "    dangerouslySetInnerHTML=" & getRawMarkup() & vbCrLf
+'    str = str & "  />" & vbCrLf
 '    str = str & "</div>"
 '    renderHTML(str)
 '
