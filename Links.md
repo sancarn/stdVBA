@@ -2,6 +2,10 @@
 
 Links containing useful
 
+# General Random
+
+* [Tips and Tricks](http://www.devx.com/tips/multimedia/visual-basic/)
+
 # General Advanced
 
 * [New style blog - Excel Development Platform](http://exceldevelopmentplatform.blogspot.com/)
