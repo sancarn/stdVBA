@@ -33,6 +33,7 @@ Links containing useful
 
 ## COM Talk:
 
+* [DLL / COM object generalised function caller](http://www.vbforums.com/showthread.php?781595-VB6-Call-Functions-By-Pointer-(Universall-DLL-Calls))
 * [Introduction to COM for VB programmers](http://www1.idc.ac.il/ed/An%20introduction%20to%20COM%20for%20VB%20programmers.htm)
 * [DISP IDs i.e. VB_UserMemID](https://docs.microsoft.com/en-us/previous-versions/windows/embedded/ms864423(v%3Dmsdn.10))
 * [DISPID_EVALUATE](http://www.vbforums.com/showthread.php?862105-FYI-How-to-impl-DISPID_EVALUATE-in-VB6)
@@ -40,6 +41,6 @@ Links containing useful
 * [Analysis of type library2](http://www.vbforums.com/showthread.php?799593) 
 * [Serializing COM objects](http://exceldevelopmentplatform.blogspot.com/2018/12/vba-persistence-use-lset-to-serialise.html)
 
-# Machine Code:
+## Machine Code:
 
 * [Execute MCode (OPCodes) from VB6](http://www.freevbcode.com/ShowCode.asp?ID=1863)
