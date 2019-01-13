@@ -49,3 +49,9 @@ Links containing useful
 ## Machine Code:
 
 * [Execute MCode (OPCodes) from VB6](http://www.freevbcode.com/ShowCode.asp?ID=1863)
+
+
+# Non VBA Resources:
+
+## Excel C API
+* [Could be useful for working with type libraries](https://docs.microsoft.com/en-us/office/client-developer/excel/programming-with-the-c-api-in-excel)
