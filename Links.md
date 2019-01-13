@@ -2,6 +2,8 @@
 
 Links containing useful
 
+
+
 # General Random
 
 * [Tips and Tricks](http://www.devx.com/tips/multimedia/visual-basic/)
@@ -14,6 +16,9 @@ Links containing useful
 ## Books
 
 * [McKinney's - Hardcore vba](http://vb.mvps.org/hardweb/mckinney.htm)
+
+## Excel 4.0 Macro Language
+* [Reference](https://d13ot9o61jdzpp.cloudfront.net/files/Excel%204.0%20Macro%20Functions%20Reference.pdf)
 
 ## VB6 Attributes
 
