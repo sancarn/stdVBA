@@ -104,14 +104,14 @@ Attribute Append.VB_UserMemId = -5
   Tainted = True
 End Function
 
-'Creates an instance of StringBuilder
-Public Function Create() As StringBuilder
-  Set Create = New StringBuilder
+'Creates an instance of STD_Types_StringBuilder
+Public Function Create() As STD_Types_StringBuilder
+  Set Create = New STD_Types_StringBuilder
 End Function
 
 Public Function Test()
   Dim sb As Object
-  Set sb = StringBuilder.Create()
+  Set sb = STD_Types_StringBuilder.Create()
   sb.JoinStr = "-"
   sb.Str = "Start"
   sb.TrimBehaviour = RTrim
