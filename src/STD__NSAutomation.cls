@@ -7,8 +7,9 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
-Public COM As STD_Automation_COM
+
+'Public COM As STD_Automation_COM
 
 Private Sub Class_Initialize()
-  Set COM = STD_Automation_COM
+  'Set COM = STD_Automation_COM
 End Sub

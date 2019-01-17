@@ -7,10 +7,15 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
+
 Public tArray As STD_Types_Array
-Public tDate As STD_Types_Date
+Public tStringBuilder As STD_Types_StringBuilder
+
+'Public tDate As STD_Types_Date
 
 Private Sub Class_Initialize()
   Set tArray = STD_Types_Array
-  Set tDate = STD_Types_Date
+  Set tStringBuilder = STD_Types_StringBuilder
+
+  'Set tDate = STD_Types_Date
 End Sub

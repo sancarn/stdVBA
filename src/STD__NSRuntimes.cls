@@ -10,5 +10,5 @@ Attribute VB_Exposed = False
 Public CLR As STD_Runtimes_CLR
 '...
 Private Sub Class_Initialize()
-  Set CLR = STD_Runtimes_CLR
+  'Set CLR = STD_Runtimes_CLR
 End Sub
