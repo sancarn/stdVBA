@@ -27,6 +27,15 @@ Attribute VB_Exposed = False
 
 Dim pInitialised As Boolean
 Dim pCallback As Collection
+Dim pCompiledLambda as Collection
+Dim pLambdaData as Collection
+
+'Token for Lambda
+Private Type TToken
+  pType as String
+  pValue as String
+End Type
+
 
 Property Set Callback(val As Collection)
 Attribute Callback.VB_Description = "Defines the specified callback."
@@ -99,6 +108,22 @@ Attribute Create.VB_Description = "Creates an instance of this class."
   Create.Init
 End Function
 
+'Examples:
+'******************
+'Callback.[(a,b,c) => a + b * c].Call(1,2,3) ' ==> 7
+'Callback.[obj => obj.id].Call(row)  ' ==> row.id
+'...
+Public Function Lambda(ByVal lambda as string)
+Attribute Lambda.VB_UserMemId = -5
+  set Lambda = New STD_Types_Callback
+  Lambda.Callback = new Collection
+  Lambda.Callback.Add "Lambda", "Type"
+  Dim sLambda() as String
+  sLambda = Split(lambda,"=>",1)
+  Lambda.Callback.Add sLambda(0), "args"
+  Lambda.Callback.Add sLambda(1), "lambda"
+End Function
+
 'CALLBACK STRUCTURE:
 'Type   = Module|Object
 'Parent = ModuleName or ParentObject
@@ -144,7 +169,7 @@ Private Function CallCallback(args() As Variant) As Variant
     'Call function directly
     CallCallback = VBA.CallByName(Callback("Parent"), Callback("Name"), Callback("cType"), args)
   Else
-    Err.Raise 0, "STD.Types.Callback::Call", "Cannot call callback. Invalid type assigned."
+    Err.Raise 0, "STD.Types.Callback::Call", "Cannot call callback. Invalid type """ & Callback("Type") & """assigned."
   End If
 End Function
 
@@ -152,3 +177,53 @@ Private Function GetMissing(Optional arg As Variant) As Variant
   GetMissing = arg
 End Function
 
+
+
+
+
+
+Private Function TokeniseLambda(ByRef Tokens() as TToken)
+  Dim Lambda() as Byte
+  Lambda = Callback("lambda")
+  
+  Redim Tokens(0 to UBound(Lambda) - LBound(Lambda))
+  
+  Dim TokenHash(255) as Boolean, i as integer
+  For i = 32 to 47: TokenHash(i)=True: Next
+  For i = 58 to 64: TokenHash(i)=True: Next
+  For i = 91 to 96: TokenHash(i)=True: Next
+  For i = 123 to 126: TokenHash(i)=True: Next
+  
+  Dim s as string, sToken as string, ch as integer
+  Dim token as TToken
+  For i = 0 to UBound(Lambda) step 2
+    ch = Lambda(i+1)
+    if ch=10 then ch=58 'Assume vbLf = ":"
+    'Do not pass any disallow all control characters
+    if ch < 32 then Continue For
+    if TokenHash(ch)
+      'Previous token
+      token.pType = "Literal"
+      token.pValue = s
+      TokeniseLambda.add token
+      
+      'Current Token
+      token.pType = "Symbol"
+      token.pValue = Asc(ch)
+      TokeniseLambda.add token
+      
+      'Next token
+      s = ""
+    else
+      'Concatenate string literal
+      s = s & Asc(ch)
+    end if
+  Next
+  
+  'Add final token
+  if s <> "" then
+    token.pType = "Literal"
+    token.pValue = s
+    TokeniseLambda.add token
+  end if
+End Function
