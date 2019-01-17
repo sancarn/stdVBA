@@ -7,97 +7,283 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
+
+'@TODO:
+'* Implement Exceptions throughout all Array functions.
+'* Fully implement pInitialised where necessary.
+'* Build Methods Slice; Splice; Sort
+'* Add methods from ruby
+'* Documentation of methods
+
 Public Enum SortDirection
     Ascending = 1
     Descending = 2
 End Enum
 
-Public arr As Variant
+Private pArr As Variant
+Private pInitialised as Boolean
 
-Private Sub Class_Initialize()
-    'init array
-    arr = Array()
+Public Function Create(ParamArray params() As Variant) As clsDynamicArray
+    set Create = New clsDynamicArray
+    Create.Arr = params
+    Create.Init
+End Function
+
+Property Get Arr() as variant
+  Arr = pArr
+End Property
+
+Property set Arr(val as variant)
+  if not pInitialised then
+    pArr = val
+  else
+    Err.Raise 0, "STD.Types.Array::setArr()", "Cannot set array of already initialised array."
+  end if
+End Property
+
+Friend Sub Init()
+  if not pInitialised then
+    pInitialised = true
+  End If
 End Sub
 
 Public Sub push(ByVal el As Variant)
-    ReDim Preserve arr(UBound(arr) + 1)
-    arr(UBound(arr)) = el
+  If pInitialised then
+    If IsArrayAllocated(pArr) then
+      ReDim Preserve pArr(UBound(pArr) + 1)
+      pArr(UBound(pArr)) = el
+    Else
+      ReDim Preserve pArr(0)
+      pArr(0) = e
+    End if
+  Else
+    'Error
+  End If
 End Sub
 
-Public Function From(ParamArray params() As Variant) As clsDynamicArray
-    Dim obj As New clsDynamicArray
-    obj.arr = params
-    From = arr
+Public Function pop() as variant
+  If pInitialised then
+    If IsArrayAllocated(pArr) then
+      pop = pArr(UBound(pArr))
+      ReDim Preserve pArr(UBound(pArr) - 1)
+    End If
+  Else
+    'Error
+  End If  
 End Function
 
-Public Function DropLastElement()
-    DropLastElement = arr(UBound(arr))
-    ReDim Preserve arr(UBound(arr) - 1)
+Public Function shift() as variant
+  If pInitialised then
+    If IsArrayAllocated(pArr) then
+      shift = pArr(LBound(pArr))
+      ReDim Preserve pArr(LBound(pArr) + 1, UBound(pArr)) 'This may not work?
+    End If
+  Else
+    'Error
+  End If
+End Function
+Public Function unshift(val as variant) as STD_Types_Array
+  If pInitialised then
+    If IsArrayAllocated(pArr) then
+      ReDim Preserve pArr(LBound(pArr) - 1, UBound(pArr)) 'This may not work?
+      pArr(LBound(pArr)) = val
+    End If
+  Else
+    'Error
+  End If
+  set unshift = Me
+End Function
+
+Public Function Slice() as STD_Types_Array
+
+End Function
+
+Public Function Splice() as STD_Types_Array
+
 End Function
 
 Public Function Join(Optional ByVal delimeter As String = ",") As String
-    If Me.Length() > 0 Then
+  If pInitialised then
+    If IsArrayAllocated(pArr) then
+      If Length() > 0 Then
         Dim sOutput As String
-        sOutput = Me.arr(LBound(Me.arr))
+        sOutput = pArr(LBound(pArr))
         
         Dim i As Long
-        For i = LBound(Me.arr) + 1 To UBound(Me.arr)
-            sOutput = sOutput & delimeter & Me.arr(i)
+        For i = LBound(pArr) + 1 To UBound(pArr)
+          sOutput = sOutput & delimeter & pArr(i)
         Next
         Join = sOutput
-    Else
+      Else
         Join = ""
+      End If
     End If
+  Else
+    'Error
+  End If
 End Function
 
-Public Sub ForEach(ByVal subToRun As String)
-    Dim i As Integer
-    For i = LBound(arr) To UBound(arr)
-        On Error GoTo NoSub
-            Application.Run subToRun, arr(i)
-        On Error GoTo 0
-    Next
-    Exit Sub
-NoSub:
-    MsgBox "Cannot find sub """ & subToRun & """."
+Public Function Clone() as STD_Types_Array
+  If pInitialised then
+    set Clone = new STD_Types_Array
+    Clone.Arr = pArr
+    Clone.Init()
+  Else
+    'Error
+  End If
+End Function
+
+
+'Iterative Functions (All require STD_Types_Callback):
+Public Function every(ByVal cb As STD_Types_Callback) as Boolean
+  If pInitialised then
+    If IsArrayAllocated(pArr) then
+      Dim i As Integer
+      For i = LBound(pArr) To UBound(pArr)
+        If Not cb.call(pArr(i)) then
+          every = false
+          Exit Function
+        End If
+      Next
+      evert = true
+    Else
+      every = false
+    End if
+  Else
+    'Error
+  End If
+End Function
+
+Public Function some(ByVal cb As STD_Types_Callback) as Boolean
+  If pInitialised then
+    If IsArrayAllocated(pArr) then
+      Dim i As Integer, test as boolean
+      For i = LBound(pArr) To UBound(pArr)
+        If cb.call(pArr(i)) then
+          some = true
+          Exit Function
+        End If
+      Next
+      some = false
+    Else
+      some = false
+    End if
+  Else
+    'Error
+  End If
+End Function
+
+Public Sub forEach(ByVal cb As STD_Types_Callback)
+  If pInitialised then
+    If IsArrayAllocated(pArr) then
+      Dim i As Integer
+      For i = LBound(pArr) To UBound(pArr)
+        Call cb.call(pArr(i))
+      Next
+    End If
+  Else
+    'Error
+  End If
 End Sub
 
-Public Sub Sort(Optional ByVal direction As SortDirection = Ascending, Optional ByVal compareMode As VbCompareMethod = vbTextCompare, Optional ByVal NoAlerts As Boolean = False, Optional ByRef ErrorLevel As Boolean)
-    ErrorLevel = QSortInPlace(arr, -1, -1, direction = Descending, compareMethod, NoAlerts)
+Public Function Map(ByVal cb as STD_Types_Callback) as STD_Types_Array
+  If pInitialised then
+    Dim pMap as STD_Types_Array
+    set pMap = Me.Clone()
+    If IsArrayAllocated(pArr) then
+      Dim i As Integer
+      For i = LBound(pArr) To UBound(pArr)
+        pMap(i) = cb.call(pArr(i))
+      Next
+    End If
+    set Map = pMap
+  Else
+    'Error
+  End If
+End Function
+
+Public Function Reduce(ByVal cb as STD_Types_Callback, Optional ByVal initialValue as Variant) as variant
+  If pInitialised then
+    If IsArrayAllocated(pArr) then
+      Reduce = initialValue
+      Dim i As Integer
+      For i = LBound(pArr) To UBound(pArr)
+        Reduce = cb.call(Reduce,pArr(i))
+      Next
+    Else
+      Reduce = initialValue
+    End If
+  Else
+    'Error
+  End If
+End Function
+
+Public Function Sort(ByVal cb as STD_Types_Callback) as STD_Types_Array
+  Msgbox "NOT IMPLEMENTED"
+  Debug.Assert False
+End Function
+
+
+
+
+Public Sub SortInPlace(Optional ByVal direction As SortDirection = Ascending, Optional ByVal compareMode As VbCompareMethod = vbTextCompare, Optional ByVal NoAlerts As Boolean = False, Optional ByRef ErrorLevel As Boolean)
+  ErrorLevel = QSortInPlace(pArr, -1, -1, direction = Descending, compareMethod, NoAlerts)
 End Sub
 
 Public Sub Resize(Optional ByVal LowerBound As Integer = -1, Optional ByVal UpperBound As Integer = -1)
-    If LowerBound = -1 Then LowerBound = LBound(arr)
-    If UpperBound = -1 Then UpperBound = UBound(arr)
-    ReDim Preserve arr(LowerBound To UpperBound)
+    If LowerBound = -1 Then LowerBound = LBound(pArr)
+    If UpperBound = -1 Then UpperBound = UBound(pArr)
+    ReDim Preserve pArr(LowerBound To UpperBound)
 End Sub
 
 Public Sub Reverse()
-    ReverseArrayInPlace2 arr
+    ReverseArrayInPlace2 pArr
 End Sub
 
-Public Function indexOf(ByVal el As Variant)
-    'find the index of an item in the array. If array doesn't contain item, return -1
-    Dim i As Integer
-    For i = LBound(arr) To UBound(arr)
-        If arr(i) = el Then
-            indexOf = i
-            Exit Function
-        End If
-    Next
-    indexOf = -1
+Public Function indexOf(ByVal el As Variant,Optional ByVal start as integer)
+  If not start then start = UBound(pArr)
+  if start < 0 then start = UBound(pArr) - start + 1
+  
+  'find the index of an item in the array. If array doesn't contain item, return -1
+  Dim i As Integer
+  For i = start To UBound(pArr)
+    If pArr(i) = el Then
+      indexOf = i
+      Exit Function
+    End If
+  Next
+  indexOf = -1
+End Function
+
+Public Function lastIndexOf(ByVal el as Variant,Optional ByVal start as integer)
+  If not start then start = UBound(pArr)
+  if start < 0 then start = UBound(pArr) - start + 1
+  
+  'find the index of an item in the array. If array doesn't contain item, return -1
+  Dim i As Integer
+  For i = start to LBound(pArr) step -1
+    If pArr(i) = el Then
+      indexOf = i
+      Exit Function
+    End If
+  Next
+  indexOf = -1
+End Function
+
+Public Function includes(ByVal el as variant, Optional ByVal startFrom as Integer = -1) as boolean
+  includes = indexOf(el) >= startFrom
 End Function
 
 Public Function Length()
     'get the total number of elements in the array
-    Length = UBound(arr) - LBound(arr) + 1
+    Length = UBound(pArr) - LBound(pArr) + 1
 End Function
 
 Public Function item(ByVal i As Integer)
     'item(1) = 1st element
     'item(2) = 2nd element
     'etc.
-    item = arr(LBound(arr) + i - 1)
+    item = pArr(LBound(pArr) + i - 1)
 End Function
 
 
