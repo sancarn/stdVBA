@@ -10,6 +10,19 @@ Over time I have been building my own libraries and have gradually build my own 
 
 The VBA Standard Library aims to give users a set of common libraries, maintained by the community, which aid in the building of VBA Applications.
 
+## Road map
+
+Progress on this project is likely to be slow, as this is community led and currently maintained by very few contributers.
+
+* Finish off core WIP classes (e.g. `Date`, `Debug`, `Regex`).
+* Port Accessibility to STD convention.
+* Finish `Callback.Lambda()`
+* Other core classes need implementing (e.g. `String`, `Math`, `COM`, `Pointer`, `Dictionary`, `VBR`, `Kernel`, `Windows`, `FileSystem` ...)
+* Can start to implement `JSON`, `HTTP`, `XML`, `OXML`, `Zip` etc ... now.
+* Runtimes! `CLR`, `Powershell`, `JavaScript`,`SerialisedVBA`
+* Threading
+* Events
+
 ## Planned Global Objects:
 
 | VBType |Type       |Name             | Description  |
@@ -73,3 +86,29 @@ End Class
 
 With the above example, the File class can only have it's Path property changed when the class is uninitialized. After initialized it will throw an error.
 Typically the class will be initialized through `File::Open()`. We will try to keep this structure across all VBA files.
+
+# Contributing
+
+If you are looking to contribute to the VBA standard library codebase, the best place to start is the [GitHub "issues" tab](https://github.com/sancarn/VBA-STD-Library/issues). This is also a great place for filing bug reports and making suggestions for ways in which we can improve the code and documentation. A list of options of different ways to contribute are listed below:
+
+* If you have a Feature Request - Create a new issue
+* If you have found a bug - Create a new issue
+* If you have written some code which you want to contribute see the Contributing Code section below.
+
+## Contributing Code
+
+There are several ways to contribute code to the project:
+
+* Opening pull requests is the easiest way to get code intergrated with the standard library.
+* Create a new issue and providing the code in a code block - Bare in mind, it will take us a lot longer to pick this up than a standard pull request.
+
+Please make sure code contributions follow the following guidelines:
+
+* `MyClass.cls` should have `Attribute VB_PredeclaredId = True`. 
+* `Attribute VB_Name` should follow the STD convention e.g. `"STD_SomeNamespace_MyClass"`
+* Follow the STD constructor convention `MyClass.Create(...)`.
+* Ensure there are plenty of comments where required.
+
+As long as these standard conventions are met, the rest is up to you! Just try to be as general as possible! We're not necessarily looking for optimised code, at the moment we're just looking for code that works!
+
+> Note: Ensure that all code is written by you. If the code is not written by you, you will be responsible for any repercussions!
