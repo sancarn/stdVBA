@@ -41,6 +41,10 @@ Attribute VB_Exposed = False
 'Serialise COM object:
 '  http://exceldevelopmentplatform.blogspot.com/2018/12/vba-persistence-use-lset-to-serialise.html
 
+'ToDo
+'  STD functions:
+'    zDependenciesGet
+'    zDependenciesGraphBuild
 
 Public Automation As STD__NSAutomation
 Public Runtimes As STD__NSRuntimes
