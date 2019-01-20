@@ -7,15 +7,6 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
-'?clsDate.Parse("  ABC:01-02-2018","  ABC:dd-mm-yyyy").ToString()
-
-
-
-Private daysPerMonth As Object
-Private TimeZones As Object
-Private TimeZoneDescs As Object
-Private Months As Object
-Private MonthsShort As Object
 
 'FUTURE SYSTEM:
 '=======================
@@ -26,46 +17,160 @@ Private MonthsShort As Object
 'Public Property Let Day(val as Integer)
 '  pCoreTime = foo(pCoreTime,val)
 'End Property
+'?clsDate.Parse("  ABC:01-02-2018","  ABC:dd-mm-yyyy").ToString()
 
+'Used to get country
+Private PtrSafe Function lib "Kernel32.dll" GetUserDefaultGeoName(ByRef geoName as String,geoNameCount as Integer) as Integer
 
-Private initialised As Boolean
+' ???  Private daysPerMonth As Object
+' ???  Private TimeZones As Object
+' ???  Private TimeZoneDescs As Object
+' ???  Private Months As Object
+' ???  Private MonthsShort As Object
 
-Public day As Integer
-Public month As Integer
-Public year As Integer
-Public Hour As Integer
-Public Minute As Integer
-Public Second As Integer
-Public Millisecond As Long
+Private pInitialised As Boolean
+Private pValue as Date
+Private pCountry as String
+Private pFirstDayOfWeek as VbDayOfWeek
+
+Friend Sub Init(val as Date)
+  if not pInitialised then
+    Country = getGeoCode()
+    pValue = val
+    pInitialised = true
+  else
+    'Call STD.Errors.Raise("STD.Class",1)
+  end if
+End Sub
+
+Public Function Create(Optional val as Date) as STD_Types_Date
+  if not pInitialised then
+    set Create = new STD_Types_Date
+    Create.Init(val)
+  else
+    'Call STD.Errors.Raise("STD.Class",2)
+  end if
+End Function
+
+Public Function CreateFromInts(Optional Year as Integer = 0, Optional Month as Integer = 0, Optional Day as Integer = 0, Optional Hour as Integer = 0, Optional Minute as Integer = 0, Optional Second as Integer = 0) as STD_Types_Date
+  if not pInitialised then
+    set CreateFromInts = Create(DateSerial(Year,Month,Day) + TimeSerial(Hour,Minute,Second))
+  else
+    'Call STD.Errors.Raise("STD.Class",2)
+  end if
+End Function
+
+Public Property Get Value() as Double
+Attribute Value.Vb_UserMemId = 0
+  if pInitialised then
+    Value = pValue
+  else
+    'Call STD.Errors.Raise("STD.Class",4)
+  end if
+End Property
+Public Property Set Value(v as Double)
+  if pInitialised then
+    pValue = v
+  else
+    'Call STD.Errors.Raise("STD.Class",5)
+  end if
+End Property
+
+'Common properties getters - Not sure if these need setters yet...:
+Public Property Get Seconds() as Long
+  If pInitialised then
+    Seconds = VBA.Second(pValue)
+  Else
+    'Call STD.Errors.Raise("STD.Class",4)
+  End if
+End Property
+Public Property Get Minutes() as Long
+  If pInitialised then
+    Minutes = VBA.Minute(pValue)
+  Else
+    'Call STD.Errors.Raise("STD.Class",4)
+  End if
+End Property
+Public Property Get Hours() as Long
+  If pInitialised then
+    Hours = VBA.Hour(pValue)
+  Else
+    'Call STD.Errors.Raise("STD.Class",4)
+  End if
+End Property
+Public Property Get Days() as Long
+  If pInitialised then
+    Day = VBA.Day(pValue)
+  Else
+    'Call STD.Errors.Raise("STD.Class",4)
+  End if
+End Property
+Public Property Get Months() as Long
+  If pInitialised then
+    Months = VBA.Month(pValue)
+  Else
+    'Call STD.Errors.Raise("STD.Class",4)
+  End if
+End Property
+Public Property Get Years() as Long
+  If pInitialised then
+    Years = VBA.Year(pValue)
+  Else
+    'Call STD.Errors.Raise("STD.Class",4)
+  End if
+End Property
+
+'Get integer position of day within week. E.G. 1-Monday, 2-Tuesday, 3-Wednesday, ...
+Public Property Get Weekday(Optional ByVal FirstDayOfWeek as VbDayOfWeek) as Long
+  If pInitialised then
+    If Not FirstDayOfWeek then FirstDayOfWeek = pFirstDayOfWeek
+    Weekday = VBA.Weekday(pValue,FirstDayOfWeek)
+  Else
+    'Call STD.Errors.Raise("STD.Class",4)
+  End If
+End Property
+Public Property Get WeekdayName(Optional ByVal Abbreviate as Boolean = false,Optional ByVal FirstDayOfWeek as VbDayOfWeek) as Long
+  If pInitialised then
+    If Not FirstDayOfWeek then FirstDayOfWeek = pFirstDayOfWeek
+    WeekdayName = VBA.WeekdayName(Weekday,Abbreviate,FirstDayOfWeek)
+  Else
+    'Call STD.Errors.Raise("STD.Class",4)
+  End If
+End Property
+Public Property Get MonthName(Optional Abbreviate as boolean = false)
+  if pInitialised then
+    MonthName = VBA.MonthName(VBA.Month(pValue),Abbreviate)
+  Else
+    'Call STD.Errors.Raise("STD.Class",4)
+  End If
+End Property
+
+'Set and Get country used in Getters for Weekday and Weekname
+Public Property Get Country() as string
+  Country = pCountry
+End Property
+Public Property Set Country(s as string)
+  pCountry = s
+  select case s
+    case "US":
+      pFirstDayOfWeek = vbSunday
+    case "UK":
+      pFirstDayOfWeek = vbMonday
+  end select
+End Property
+
 
 Public Function ToString()
-  If initialised Then
-    Dim sd, sm, sy As String
-    sd = String(2 - Len(CStr(Me.day)), "0") & CStr(Me.day)
-    sm = String(2 - Len(CStr(Me.month)), "0") & CStr(Me.month)
-    sy = String(4 - Len(CStr(Me.year)), "0") & CStr(Me.year)
-    ToString = sd & "/" & sm & "/" & sy
+  If pInitialised then
+    ToString = VBA.Format(pValue,"yyyymmddhhmmss")
   Else
-    Err.Raise 0, "Cannot stringify uninitialised date"
+    'Call STD.Errors.Raise("STD.Class",3)
   End If
 End Function
 
-'Get Excel Time
-Public Property Get Value() As Double
-  If initialised Then
-    Value = CDbl(DateSerial(Me.year, Me.month, Me.day)) + CDbl(TimeSerial(Me.Hour, Me.Minute, Me.Second))
-  Else
-    Err.Raise 0, "Cannot get value of uninitialised date"
-  End If
-End Property
 
-Public Property Get BaseDate() As clsDate
-  Set BaseDate = New clsDate
-  BaseDate.day = 0
-  BaseDate.month = 1
-  BaseDate.year = 1900
-  BaseDate.initialize
-End Property
+
+
 
 Public Property Get isLeap() As Boolean
   isLeap = p_isLeap(Me.year)
@@ -78,7 +183,7 @@ End Property
 'mm/dd/yyyy          --> 02/01/2019
 'DD D MMMM yyyy      --> Monday 1st February 2019
 'dd/mm/yyyy hh:MM:ss --> 01/02/2019 12:01:00
-Public Function sFormat(strFormat As String) As String
+Public Function Format(strFormat As String) As String
   If initialised Then
     Format = "...todo..."
   Else
@@ -522,15 +627,15 @@ Private Sub iniTimezones()
   TimeZoneDescs("Australian Central Standard Time") = 9.5
   TimeZoneDescs("Acre Time") = -5
   TimeZoneDescs("ASEAN Common Time") = 6.5
-  TimeZoneDescs("Australian Central Western Standard Time (unofficial)") = 8.75
+  TimeZoneDescs("Australian Central Western Standard Timeï¿½(unofficial)") = 8.75
   TimeZoneDescs("Atlantic Daylight Time") = -3
   TimeZoneDescs("Australian Eastern Daylight Savings Time") = 11
   TimeZoneDescs("Australian Eastern Standard Time") = 10
   TimeZoneDescs("Afghanistan Time") = 4.5
   TimeZoneDescs("Alaska Daylight Time") = -8
   TimeZoneDescs("Alaska Standard Time") = -9
-  TimeZoneDescs("Amazon Summer Time (Brazil)[1]") = -3
-  TimeZoneDescs("Amazon Time (Brazil)[2]") = -4
+  TimeZoneDescs("Amazon Summer Timeï¿½(Brazil)[1]") = -3
+  TimeZoneDescs("Amazon Timeï¿½(Brazil)[2]") = -4
   TimeZoneDescs("Armenia Time") = 4
   TimeZoneDescs("Argentina Time") = -3
   TimeZoneDescs("Arabia Standard Time") = 3
@@ -543,17 +648,17 @@ Private Sub iniTimezones()
   TimeZoneDescs("British Indian Ocean Time") = 6
   TimeZoneDescs("Baker Island Time") = -12
   TimeZoneDescs("Bolivia Time") = -4
-  TimeZoneDescs("Brasília Summer Time") = -2
+  TimeZoneDescs("Brasï¿½lia Summer Time") = -2
   TimeZoneDescs("Brasilia Time") = -3
   TimeZoneDescs("Bangladesh Standard Time") = 6
   TimeZoneDescs("Bougainville Standard Time[3]") = 11
-  TimeZoneDescs("British Summer Time (British Standard Time from Feb 1968 to Oct 1971)") = 1
+  TimeZoneDescs("British Summer Timeï¿½(British Standard Timeï¿½from Feb 1968 to Oct 1971)") = 1
   TimeZoneDescs("Bhutan Time") = 6
   TimeZoneDescs("Central Africa Time") = 2
   TimeZoneDescs("Cocos Islands Time") = 6.5
-  TimeZoneDescs("Central Daylight Time (North America)") = -5
+  TimeZoneDescs("Central Daylight Timeï¿½(North America)") = -5
   TimeZoneDescs("Cuba Daylight Time[4]") = -4
-  TimeZoneDescs("Central European Summer Time (Cf. HAEC)") = 2
+  TimeZoneDescs("Central European Summer Timeï¿½(Cf. HAEC)") = 2
   TimeZoneDescs("Central European Time") = 1
   TimeZoneDescs("Chatham Daylight Time") = 13.75
   TimeZoneDescs("Chatham Standard Time") = 12.75
@@ -568,22 +673,22 @@ Private Sub iniTimezones()
   TimeZoneDescs("Chile Standard Time") = -4
   TimeZoneDescs("Colombia Summer Time") = -4
   TimeZoneDescs("Colombia Time") = -5
-  TimeZoneDescs("Central Standard Time (North America)") = -6
+  TimeZoneDescs("Central Standard Timeï¿½(North America)") = -6
   TimeZoneDescs("China Standard Time") = 8
   TimeZoneDescs("Cuba Standard Time") = -5
   TimeZoneDescs("China Time") = 8
   TimeZoneDescs("Cape Verde Time") = -1
-  TimeZoneDescs("Central Western Standard Time (Australia) unofficial") = 8.75
+  TimeZoneDescs("Central Western Standard Timeï¿½(Australia) unofficial") = 8.75
   TimeZoneDescs("Christmas Island Time") = 7
   TimeZoneDescs("Davis Time") = 7
   TimeZoneDescs("Dumont d'Urville Time") = 10
-  TimeZoneDescs("AIX-specific equivalent of Central European Time[NB 1]") = 1
+  TimeZoneDescs("AIX-specific equivalent ofï¿½Central European Time[NB 1]") = 1
   TimeZoneDescs("Easter Island Summer Time") = -5
   TimeZoneDescs("Easter Island Standard Time") = -6
   TimeZoneDescs("East Africa Time") = 3
-  TimeZoneDescs("Eastern Caribbean Time (does not recognise DST)") = -4
+  TimeZoneDescs("Eastern Caribbean Timeï¿½(does not recognise DST)") = -4
   TimeZoneDescs("Ecuador Time") = -5
-  TimeZoneDescs("Eastern Daylight Time (North America)") = -4
+  TimeZoneDescs("Eastern Daylight Timeï¿½(North America)") = -4
   TimeZoneDescs("Eastern European Summer Time") = 3
   TimeZoneDescs("Eastern European Time") = 2
   TimeZoneDescs("Eastern Greenland Summer Time") = 0
@@ -595,7 +700,7 @@ Private Sub iniTimezones()
   TimeZoneDescs("Falkland Islands Summer Time") = -3
   TimeZoneDescs("Falkland Islands Time") = -4
   TimeZoneDescs("Fernando de Noronha Time") = -2
-  TimeZoneDescs("Galápagos Time") = -6
+  TimeZoneDescs("Galï¿½pagos Time") = -6
   TimeZoneDescs("Gambier Islands Time") = -9
   TimeZoneDescs("Georgia Standard Time") = 4
   TimeZoneDescs("French Guiana Time") = -3
@@ -605,11 +710,11 @@ Private Sub iniTimezones()
   TimeZoneDescs("South Georgia and the South Sandwich Islands Time") = -2
   TimeZoneDescs("Gulf Standard Time") = 4
   TimeZoneDescs("Guyana Time") = -4
-  TimeZoneDescs("Hawaii–Aleutian Daylight Time") = -9
-  TimeZoneDescs("Heure Avancée d'Europe Centrale French-language name for CEST") = 2
-  TimeZoneDescs("Hawaii–Aleutian Standard Time") = -10
+  TimeZoneDescs("Hawaiiï¿½Aleutian Daylight Time") = -9
+  TimeZoneDescs("Heure Avancï¿½e d'Europe Centraleï¿½French-language name for CEST") = 2
+  TimeZoneDescs("Hawaiiï¿½Aleutian Standard Time") = -10
   TimeZoneDescs("Hong Kong Time") = 8
-  TimeZoneDescs("Heard and McDonald Islands Time") = 5
+  TimeZoneDescs("Heard and McDonald Islandsï¿½Time") = 5
   TimeZoneDescs("Khovd Summer Time") = 8
   TimeZoneDescs("Khovd Standard Time") = 7
   TimeZoneDescs("Indochina Time") = 7
@@ -630,20 +735,20 @@ Private Sub iniTimezones()
   TimeZoneDescs("Korea Standard Time") = 9
   TimeZoneDescs("Lord Howe Standard Time") = 10.5
   TimeZoneDescs("Lord Howe Summer Time") = 11
-  TimeZoneDescs("Line Islands Time") = 14
+  TimeZoneDescs("Line Islandsï¿½Time") = 14
   TimeZoneDescs("Magadan Time") = 12
   TimeZoneDescs("Marquesas Islands Time") = -8.5
   TimeZoneDescs("Mawson Station Time") = 5
-  TimeZoneDescs("Mountain Daylight Time (North America)") = -6
-  TimeZoneDescs("Middle European Time Same zone as CET") = 1
-  TimeZoneDescs("Middle European Summer Time Same zone as CEST") = 2
+  TimeZoneDescs("Mountain Daylight Timeï¿½(North America)") = -6
+  TimeZoneDescs("Middle European Timeï¿½Same zone as CET") = 1
+  TimeZoneDescs("Middle European Summer Timeï¿½Same zone as CEST") = 2
   TimeZoneDescs("Marshall Islands Time") = 12
   TimeZoneDescs("Macquarie Island Station Time") = 11
   TimeZoneDescs("Marquesas Islands Time") = -8.5
   TimeZoneDescs("Myanmar Standard Time") = 6.5
   TimeZoneDescs("Moscow Time") = 3
   TimeZoneDescs("Malaysia Standard Time") = 8
-  TimeZoneDescs("Mountain Standard Time (North America)") = -7
+  TimeZoneDescs("Mountain Standard Timeï¿½(North America)") = -7
   TimeZoneDescs("Mauritius Time") = 4
   TimeZoneDescs("Maldives Time") = 5
   TimeZoneDescs("Malaysia Time") = 8
@@ -658,7 +763,7 @@ Private Sub iniTimezones()
   TimeZoneDescs("New Zealand Standard Time") = 12
   TimeZoneDescs("Omsk Time") = 6
   TimeZoneDescs("Oral Time") = 5
-  TimeZoneDescs("Pacific Daylight Time (North America)") = -7
+  TimeZoneDescs("Pacific Daylight Timeï¿½(North America)") = -7
   TimeZoneDescs("Peru Time") = -5
   TimeZoneDescs("Kamchatka Time") = 12
   TimeZoneDescs("Papua New Guinea Time") = 10
@@ -668,11 +773,11 @@ Private Sub iniTimezones()
   TimeZoneDescs("Saint Pierre and Miquelon Daylight Time") = -2
   TimeZoneDescs("Saint Pierre and Miquelon Standard Time") = -3
   TimeZoneDescs("Pohnpei Standard Time") = 11
-  TimeZoneDescs("Pacific Standard Time (North America)") = -8
+  TimeZoneDescs("Pacific Standard Timeï¿½(North America)") = -8
   TimeZoneDescs("Philippine Standard Time") = 8
   TimeZoneDescs("Paraguay Summer Time[6]") = -3
   TimeZoneDescs("Paraguay Time[7]") = -4
-  TimeZoneDescs("Réunion Time") = 4
+  TimeZoneDescs("Rï¿½union Time") = 4
   TimeZoneDescs("Rothera Research Station Time") = -3
   TimeZoneDescs("Sakhalin Island Time") = 11
   TimeZoneDescs("Samara Time") = 4
@@ -707,7 +812,7 @@ Private Sub iniTimezones()
   TimeZoneDescs("Vladivostok Time") = 10
   TimeZoneDescs("Volgograd Time") = 4
   TimeZoneDescs("Vostok Station Time") = 6
-  TimeZoneDescs("Vanuatu Time") = 11
+  TimeZoneDescs("Vanuatuï¿½Time") = 11
   TimeZoneDescs("Wake Island Time") = 12
   TimeZoneDescs("West Africa Summer Time") = 2
   TimeZoneDescs("West Africa Time") = 1
@@ -835,5 +940,12 @@ Private Function dd_mm_yyyy_2_value(str As String)
   year = CInt(Mid(Value, 7, 4))
   
   dd_mm_yyyy_2_value = CDbl(DateSerial(year, month, day))
+End Function
+
+'Get the GeoCode from the Windows API
+Private Function getGeoCode() as String
+  Dim s as string: s = "  "
+  Call GetUserDefaultGeoName(s,0)
+  getGeoCode = s
 End Function
 
