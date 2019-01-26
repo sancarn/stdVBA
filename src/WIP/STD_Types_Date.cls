@@ -17,7 +17,7 @@ Attribute VB_Exposed = False
 'Public Property Let Day(val as Integer)
 '  pCoreTime = foo(pCoreTime,val)
 'End Property
-'?clsDate.Parse("  ABC:01-02-2018","  ABC:dd-mm-yyyy").ToString()
+'?STD_Types_Date.Parse("  ABC:01-02-2018","  ABC:dd-mm-yyyy").ToString()
 
 'Used to get country
 Private PtrSafe Function lib "Kernel32.dll" GetUserDefaultGeoName(ByRef geoName as String,geoNameCount as Integer) as Integer
@@ -173,7 +173,14 @@ End Function
 
 
 Public Property Get isLeap() As Boolean
-  isLeap = p_isLeap(Me.year)
+  Dim yr as long
+  yr = Year
+
+  'Excel incorrectly treats 1900 as a leap year. See https://en.wikipedia.org/wiki/Leap_year_bug
+  If yr = 1900 Then p_isLeap = True: Exit Function
+  
+  'Regular leap years:
+  p_isLeap = ((yr Mod 4 = 0 And yr Mod 100 <> 0) Or yr Mod 400 = 0)
 End Property
 
 'Example format strings:
@@ -211,63 +218,54 @@ End Function
 'zzzz = Grenich Mean Time (?<Z4>Grenich Mean Time|Pacific Standard Time|...)
 'zzz  = GMT      (?<Z3>GMT|PST|...)
 'All other values in java are unsupported
-Public Function parse(Value As Variant, Optional strFormat As String = "") As clsDate
-  Set parse = New clsDate
+Public Function parse(Value As Variant, Optional strFormat As String = "") As STD_Types_Date
+  Dim d,m,y,h,mn,s as long
   
+
+
   'Common formats:
   If strFormat = "" Or strFormat = "dd/mm/yyyy" Then
     'Parse assuming dd/mm/yyyy
-    parse.day = CInt(Mid(Value, 1, 2))
-    parse.month = CInt(Mid(Value, 4, 2))
-    parse.year = CInt(Mid(Value, 7, 4))
+    d = CInt(Mid(Value, 1, 2))
+    m = CInt(Mid(Value, 4, 2))
+    y = CInt(Mid(Value, 7, 4))
   ElseIf strFormat = "mm/dd/yyyy" Then
-    parse.day = CInt(Mid(Value, 4, 2))
-    parse.month = CInt(Mid(Value, 1, 2))
-    parse.year = CInt(Mid(Value, 7, 4))
+    d = CInt(Mid(Value, 4, 2))
+    m = CInt(Mid(Value, 1, 2))
+    y = CInt(Mid(Value, 7, 4))
   ElseIf strFormat = "POSIX" Then 'EPOCH: 00:00:00 01/01/1970
-    Err.Raise 0, "clsDate::Parse", "Currently WIP not yet functional"
+    Err.Raise 0, "STD_Types_Date::Parse", "Currently WIP not yet functional"
     
     'Get value as double
     Dim dbl As Double
     dbl = CDbl(Value)
     
     
-    parse.Millisecond = Int(dmod(dbl * 1000, 1000))
-    parse.Second = Int(dmod(dbl, 60))
-    parse.Minute = Int(dmod(dbl / 60, 60))
-    
-    parse.Hour = Int(dmod(dbl / 60 / 60, 24))
-    parse.day = Int(dmod(dbl / 60 / 60 / 24, 365))
-    'Parse.Month '=...?
-    'Parse.Year '=...
+    ms = Int(dmod(dbl * 1000, 1000))
+    s = Int(dmod(dbl, 60))
+    mn = Int(dmod(dbl / 60, 60))
+    h = Int(dmod(dbl / 60 / 60, 24))
+    d = Int(dmod(dbl / 60 / 60 / 24, 365))
+    'm '=...?
+    'y '=...
     
   ElseIf strFormat = "UTC" Then
     'yyyy-MM-ddThh:mm:ss.llll  (llll = milliseconds, T = "T")
-    parse.Millisecond = CInt(Mid(Value, InStr(1, Value, ".")))
-    parse.Second = CInt(Mid(Value, 18, 2))
-    parse.Minute = CInt(Mid(Value, 15, 2))
-    parse.Hour = CInt(Mid(Value, 12, 2))
-    parse.day = CInt(Mid(Value, 9, 2))
-    parse.month = CInt(Mid(Value, 6, 2))
-    parse.year = CInt(Mid(Value, 1, 4))
+    ms = CInt(Mid(Value, InStr(1, Value, ".")))
+    s  = CInt(Mid(Value, 18, 2))
+    mn = CInt(Mid(Value, 15, 2))
+    h  = CInt(Mid(Value, 12, 2))
+    d  = CInt(Mid(Value, 9, 2))
+    m  = CInt(Mid(Value, 6, 2))
+    y  = CInt(Mid(Value, 1, 4))
     
-  ElseIf strFormat = "XL" Then
-    Dim d As Date
-    d = CDate(Value)
-    parse.Millisecond = 0
-    parse.Second = VBA.Second(d)
-    parse.Minute = VBA.Minute(d)
-    parse.Hour = VBA.Hour(d)
-    parse.day = VBA.day(d)
-    parse.month = VBA.month(d)
-    parse.year = VBA.year(d)
   ElseIf strFormat = "dd/mm/yyyy hh:mm:ss" Then
-    parse.day = CInt(Mid(Value, 1, 2))
-    parse.month = CInt(Mid(Value, 4, 2))
-    parse.year = CInt(Mid(Value, 7, 4))
-    parse.Hour = CInt(Mid(Value, 12, 2))
-    parse.Minute = CInt(Mid(Value, 15, 2))
-    parse.Second = CInt(Mid(Value, 18, 2))
+    d = CInt(Mid(Value, 1, 2))
+    m = CInt(Mid(Value, 4, 2))
+    y = CInt(Mid(Value, 7, 4))
+    h   = CInt(Mid(Value, 12, 2))
+    mn = CInt(Mid(Value, 15, 2))
+    s = CInt(Mid(Value, 18, 2))
   Else
     
     'USE REGEX:
@@ -328,7 +326,7 @@ Public Function parse(Value As Variant, Optional strFormat As String = "") As cl
     If match("kk") And match("aa") Then parse.Hour = IIf(match("aa") = "am", 0, 12) + CInt(match("kk"))
     
     If hasTZs Then
-      Err.Raise 0, "clsDate::Parse", "Error: Timezones Unimplemented. Waiting for swith to CoreTime"
+      Err.Raise 0, "STD_Types_Date::Parse", "Error: Timezones Unimplemented. Waiting for swith to CoreTime"
       'Call iniTimezones
       'Dim offsetCoreTime As Double
       'If match("zzzz") Then offsetCoreTime = match("zzzz") * foo
@@ -349,7 +347,7 @@ Private Function p_isLeap(ByVal yr As Integer) As Boolean
   p_isLeap = ((yr Mod 4 = 0 And yr Mod 100 <> 0) Or yr Mod 400 = 0)
 End Function
 
-Private Function DaysBetween(d1 As clsDate, d2 As clsDate) As Long
+Private Function DaysBetween(d1 As STD_Types_Date, d2 As STD_Types_Date) As Long
   'Subtract d2 from d1. I.E. D1-D2
   Dim Days1, Days2 As Double
   Dim Factor As Double
@@ -824,7 +822,7 @@ Private Sub iniTimezones()
   TimeZoneDescs("Yekaterinburg Time") = 5
 End Sub
 
-'?clsDate.RegexMatch("asdf","(?<a>.)(.)((?<b>.)(.))")
+'?STD_Types_Date.RegexMatch("asdf","(?<a>.)(.)((?<b>.)(.))")
 Function RegexMatch(ByVal haystack As String, ByVal pattern As String, Optional ByVal options As String) As Object
   'Cache regexes for optimisation
   Static CachedRegex As Object
