@@ -5,7 +5,7 @@ END
 Attribute VB_Name = "STD_Types_Array"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
-Attribute VB_PredeclaredId = False
+Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 '@TODO:
