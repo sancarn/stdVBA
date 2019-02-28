@@ -8,6 +8,17 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
+'Adds new features:
+'* Named capturing groups
+'* Modern symbols e.g. \A and \Z symbols
+'* ...?+ --> (?:...?)+
+'
+'The class works as follows:
+'  * Input regex is transpiled to ES6 convention
+'  * Regex is executed using VBScript
+'  * Regex object returned with new features.
+
+
 private p_initialised as boolean
 private p_pattern as string
 private p_namesDict as object
