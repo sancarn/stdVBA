@@ -42,3 +42,15 @@ GetActiveObjects(Prefix:="", CaseSensitive:=false) {
     return objects
 }
 ```
+
+## [Loading external assemblies?](https://docs.microsoft.com/en-us/windows/desktop/SbsCs/microsoft-windows-actctx-object)
+
+VBScript example:
+
+```vbs
+var actCtx = WScript.CreateObject("Microsoft.Windows.ActCtx");
+actCtx.Manifest = "myregfree.manifest";
+var obj =  actCtx.CreateObject("MyObj");   
+```
+
+Not sure if this is possible to use or not...?
