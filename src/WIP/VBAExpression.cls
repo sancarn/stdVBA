@@ -7,6 +7,7 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+
 'A VBA wrapper for Excel formulae
 'Allows accessing of registered object data
 
@@ -39,6 +40,85 @@ Attribute VB_Exposed = False
 '    ...
 '    f_x.Formula = "MyModule.SomeFunc(#obj)"
 
+
+' SPEC:
+'----------------------------
+'
+'**************
+'* WHITESPACE *
+'**************
+' Represents /\s/
+' Any whitespace including spaces, tabs and new lines
+'
+'
+'***********
+'* KEYWORD *
+'***********
+' A keyword is a word or phrase which represents a constant or value
+'
+'************
+'* WRAPPERS *
+'************
+'Wrappers declare a start and an end which produce their own AST.
+'Wrappers can declare escape characters also
+'  Standard wrappers:
+'    " ... "" ... " --> String
+'    / ... \/ ... / --> Regex
+'    ( ... )        --> Brackets
+'  Non-standard wrappers:
+'     [ ... ] --> Array
+'     { ... } --> Dictionary
+'    @{ ... } --> Callback
+'    [@ ... ] --> Field in current table (only makes sense in specific context (caller has to be set))
+'
+'Wrappers need to be registered before lexing/compiling can begin.
+
+'*************
+'* OPERATORS *
+'*************
+'Operators are keywords which alias to existing functions:
+'  Standard Operators:
+'     . --> Access(obj,acc)
+'     + --> Sum(a,b)
+'     - --> Subtract(a,b)
+'     * --> Multiply(a,b)
+'     / --> Divide(a,b)
+'     % --> Mod(a,b)
+'     & --> Concatenate(a,b)
+'    >= --> IsLThanE(a,b)
+'    <= --> IsGThanE(a,b)
+'     > --> IsGThan(a,b)
+'     < --> IsLThan(a,b)
+'    <> --> IsNEqual(a,b)
+'     = --> IsEqual(a,b)
+'  Non Standard Operators:
+'    && --> AND(a,b)
+'    || --> OR(a,b)
+'    ~= --> Regex(haystack,pattern)
+'Operators need to be registered before lexing/compiling can begin.
+'
+'*************
+'* FUNCTIONS *
+'*************
+'Functions are named executables
+'  like --> NOTKEYWORD\( ... params ... \)
+'Functions can be registered after lexing/compiling.
+'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 Const ChildrenProperty = "Children"
 
 Public RegisteredObjects As Object
@@ -47,7 +127,6 @@ Private pInitialised As Boolean
 'Compilation variables
 Private isCompiled As Boolean
 Private AST As Object
-Public sCompiled As String
 
 Private pFormula As String
 
@@ -64,7 +143,7 @@ Public Function Create(Optional formula As String, Optional RegisteredObjects As
   Call Create.init(formula, RegisteredObjects)
 End Function
 Public Function Evaluate() As Variant
-Attribute Evaluate.VB_UserMemId = 0
+Attribute Evaluate.UserMemId=0
   If Not isCompiled Then
     Me.Compile False
   End If
@@ -77,25 +156,12 @@ End Function
 Public Sub Compile(Optional setCompiled As Boolean = True)
   Set AST = CompileToAST(pFormula)
   isCompiled = setCompiled
-  Dim part As Object, expression As String
-  
-  'Serialise
-  For Each part In AST("Children")
-    Select Case part("Type")
-      Case "Literal"
-        expression = expression & part("Value")
-      Case "Macro"
-        'get initial object from name
-        expression = expression & SerialiseMacro(part)
-    End Select
-  Next
-  sCompiled = expression
 End Sub
 
 
 'New compile is going to do the following:
 '    Imagine the following formula:
-'        IF("hel""lo #world""",True,#do.diddle,#do.something.cool("a#sdf",1))
+'        IF("hel""lo #world""",True,$("do").diddle & " hello!",$("do").something.cool("a#sdf",1))
 '    In this case we want to scan all the way up to #do
 '    Parse previous into a literal
 '    Continue parsed #do until we find a "," (or function boundary) while at iBracketScope = 0
@@ -104,24 +170,43 @@ End Sub
 '  {
 '    Type: "AST",
 '    Children: [
-'      {Type:"Literal",Value:"IF("},
-'      {Type:"Literal",Value:"\"hel\"\"lo #world\"\""},
-'      {Type:"Literal",Value:",True,"},
-'      {Type:"Macro",  Children:[
-'        {Type:"EntryPoint", Value:"do"},
-'        {Type:"Getter", Value:"diddle", Params:[]}
-'      ]},
-'      {Type:"Literal",Value:","},
-'      {Type:"Macro",  Children:[
-'        {Type:"EntryPoint", Value:"do"},
-'        {Type:"Getter", Value:"something", Params:[]},
-'        {Type:"Getter", Value:"cool", Params:[
-'          {Type:"Literal", Value:"\"a#sdf\",1"}
-'        ]}
+'      {Type: "Method", Value: "IF", Children: [
+'        {Type: "Wrapper", Value: """",Children: [
+'          {Type: "Literal", Value: "hel\"\"lo #world\""}
+'        ]},
+'        {Type: "Literal", Value: True}
+'        {Type: "Operator", Value: "&", Children: [
+'          {Type: "Operator", Value: ".", Children: [
+'            {Type: "Method", Value: "$", Children: [
+'              {Type: "Wrapper", Value: """", Children: [
+'                {Type: "Literal", Value: "do"}
+'              ]},
+'            ]},
+'            {Type: "Literal", Value: "diddle"}
+'          ]},
+'          {Type: "Wrapper", Value: """", Children: [
+'            {Type: "Literal", Value: " hello"}
+'          ]}
+'        ]},
+'      {Type: "Operator", Value: ".", Children: [
+'        {Type: "Operator", Value: ".", Children: [
+'          {Type: "Method", Value: "$", Children: [
+'            {Type: "Wrapper", Value: """", Children: [
+'              {Type: "Literal", Value: "do"}
+'            ]},
+'          ]},
+'          {Type: "Accessor", Value: "something", Children:[]}
+'        ]},
+'      {Type: "Accessor", Value: "cool", Children:[
+'        {Type: "Wrapper", Value: """", Children: [
+'          {Type: "Literal", Value: "a#sdf"}
+'        ]},
+'        {Type: "Literal", Value: "1"}
 '      ]}
-'      {Type:"Literal",Value:")"},
 '    ]
 '  }
+'
+
 'Example:
 '?VBAExpression.CompileToAST("IF(""hel""""lo #world"""""",True,#do.diddle,#do.something.cool(""a#sdf"",1))")("Children").Count
 Function CompileToAST(formula As String) As Object
