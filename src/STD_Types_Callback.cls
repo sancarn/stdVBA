@@ -2,11 +2,11 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "STD_Types_Callback"
+Attribute VB_Name = "stdCallback"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = False
+Attribute VB_Exposed = True
 'TODO:
 '* Full implementation of Pointer
 
@@ -27,39 +27,46 @@ Attribute VB_Exposed = False
 
 Dim pInitialised As Boolean
 Dim pCallback As Collection
-Dim pCompiledLambda as Collection
-Dim pLambdaData as Collection
+Dim pCompiledLambda As Collection
+Dim pLambdaData As Collection
 
 'Token for Lambda
 Private Type TToken
-  pType as String
-  pValue as String
+  pType As String
+  pValue As String
 End Type
 
 
-Property Set Callback(val As Collection)
+Public Property Get Callback() As Collection
+  Set Callback = pCallback
+End Property
+
+Public Property Set Callback(val As Collection)
 Attribute Callback.VB_Description = "Defines the specified callback."
   If pInitialised Then
-    Err.Raise 0, "STD_Types_Callback::ctor", "Cannot initialise initialised Callback"
+    Err.Raise 0, "stdCallback::ctor", "Cannot initialise initialised Callback"
   Else
-    pCallback = val
+    Set pCallback = val
   End If
 End Property
 
 'Default Property:
-Property Get Run(ParamArray args() As Variant) As Variant
+Public Property Get Run(ParamArray args() As Variant) As Variant
 Attribute Run.VB_Description = "Runs the specified callback."
 Attribute Run.VB_UserMemId = 0
   If pInitialised And Not pCallback Is Nothing Then
+    Dim vvArgs() As Variant
+    vvArgs = args
+    
     Dim vRet As Variant
-    vRet = CallCallback(args)
-    If VarType(vRet) = "Object" Then
+    vRet = CallCallback(vvArgs)
+    If VarType(vRet) = vbObject Then
       Set Run = vRet
     Else
       Run = vRet
     End If
   Else
-    Err.Raise 0, "STD_Types_Callback::Run", "No callback specified. Please initialise with Create()."
+    Err.Raise 0, "stdCallback::Run", "No callback specified. Please initialise with Create()."
   End If
 End Property
 
@@ -74,7 +81,7 @@ Attribute StdRun.VB_Description = "Run method for Win32APIs."
       StdRun = vRet
     End If
   Else
-    Err.Raise 0, "STD_Types_Callback::Run", "No callback specified. Please initialise with Create()."
+    Err.Raise 0, "stdCallback::Run", "No callback specified. Please initialise with Create()."
   End If
 End Function
 
@@ -91,21 +98,21 @@ Attribute Pointer.VB_Description = "Gets the pointer to the Run function propert
   End If
 End Property
 
-Friend Sub Init()
-Attribute Init.VB_Description = "Initialises this object. This should not be called directly unless building a ctor routine e.g. Create()."
+Friend Sub init()
+Attribute init.VB_Description = "Initialises this object. This should not be called directly unless building a ctor routine e.g. Create()."
   pInitialised = True
 End Sub
 
 'Create a callback object:
-Public Function Create(mType As String, Parent As Variant, Name As String, Optional cType As Integer = VbCallType.VbMethod) As STD_Types_Callback
+Public Function Create(mType As String, Parent As Variant, Name As String, Optional cType As Integer = VbCallType.VbMethod) As stdCallback
 Attribute Create.VB_Description = "Creates an instance of this class."
-  Set Create = New STD_Types_Callback
-  Create.Callback = New Collection
-  Create.Callback.Add mType, "Type"
-  Create.Callback.Add Parent, "Parent"
-  Create.Callback.Add Name, "Name"
-  Create.Callback.Add cType, "cType"
-  Create.Init
+  Set Create = New stdCallback
+  Set Create.Callback = New Collection
+  Create.Callback.add mType, "Type"
+  Create.Callback.add Parent, "Parent"
+  Create.Callback.add Name, "Name"
+  Create.Callback.add cType, "cType"
+  Create.init
 End Function
 
 'Examples:
@@ -113,15 +120,15 @@ End Function
 'Callback.[(a,b,c) => a + b * c].Call(1,2,3) ' ==> 7
 'Callback.[obj => obj.id].Call(row)  ' ==> row.id
 '...
-Public Function Lambda(ByVal lambda as string)
+Public Function Lambda(ByVal Lambda As String)
 Attribute Lambda.VB_UserMemId = -5
-  set Lambda = New STD_Types_Callback
-  Lambda.Callback = new Collection
-  Lambda.Callback.Add "Lambda", "Type"
-  Dim sLambda() as String
-  sLambda = Split(lambda,"=>",1)
-  Lambda.Callback.Add sLambda(0), "args"
-  Lambda.Callback.Add sLambda(1), "lambda"
+  Set Lambda = New stdCallback
+  Lambda.Callback = New Collection
+  Lambda.Callback.add "Lambda", "Type"
+  Dim sLambda() As String
+  sLambda = Split(Lambda, "=>", 1)
+  Lambda.Callback.add sLambda(0), "args"
+  Lambda.Callback.add sLambda(1), "lambda"
 End Function
 
 'CALLBACK STRUCTURE:
@@ -149,7 +156,7 @@ Private Function CallCallback(args() As Variant) As Variant
     
     'Call callback on module function
     CallCallback = Application.Run( _
-      Callback("Parent") & "." * Callback("Name"), _
+      Callback("Parent") & "." & Callback("Name"), _
       args(0), args(1), _
       args(2), args(3), _
       args(4), args(5), _
@@ -167,7 +174,11 @@ Private Function CallCallback(args() As Variant) As Variant
       args(28), args(29))
   ElseIf Callback("Type") = "Object" Then
     'Call function directly
-    CallCallback = VBA.CallByName(Callback("Parent"), Callback("Name"), Callback("cType"), args)
+    If UBound(args, 1) - LBound(args, 1) + 1 = 1 Then
+      CallCallback = VBA.CallByName(Callback("Parent"), Callback("Name"), Callback("cType"), args(0))
+    Else
+      CallCallback = VBA.CallByName(Callback("Parent"), Callback("Name"), Callback("cType"), args)
+    End If
   Else
     Err.Raise 0, "STD.Types.Callback::Call", "Cannot call callback. Invalid type """ & Callback("Type") & """assigned."
   End If
@@ -182,23 +193,23 @@ End Function
 
 
 
-Private Function TokeniseLambda(ByRef Tokens() as TToken)
-  Dim Lambda() as Byte
+Private Function TokeniseLambda(ByRef Tokens() As TToken)
+  Dim Lambda() As Byte
   Lambda = Callback("lambda")
   
-  Redim Tokens(0 to UBound(Lambda) - LBound(Lambda))
+  ReDim Tokens(0 To UBound(Lambda) - LBound(Lambda))
   
-  Dim TokenHash(255) as Boolean, i as integer
-  For i = 32 to 47: TokenHash(i)=True: Next
-  For i = 58 to 64: TokenHash(i)=True: Next
-  For i = 91 to 96: TokenHash(i)=True: Next
-  For i = 123 to 126: TokenHash(i)=True: Next
+  Dim TokenHash(255) As Boolean, i As Integer
+  For i = 32 To 47: TokenHash(i) = True: Next
+  For i = 58 To 64: TokenHash(i) = True: Next
+  For i = 91 To 96: TokenHash(i) = True: Next
+  For i = 123 To 126: TokenHash(i) = True: Next
   
-  Dim s as string, sToken as string, ch as integer
-  Dim token as TToken
-  For i = 0 to UBound(Lambda) step 2
-    ch = Lambda(i+1)
-    if ch=10 then ch=58 'Assume vbLf = ":"
+  Dim s As String, sToken As String, ch As Integer
+  Dim token As TToken
+  For i = 0 To UBound(Lambda) Step 2
+    ch = Lambda(i + 1)
+    If ch = 10 Then ch = 58 'Assume vbLf = ":"
     'Do not pass any disallow all control characters
     if ch < 32 then Continue For
     if TokenHash(ch)
@@ -214,16 +225,16 @@ Private Function TokeniseLambda(ByRef Tokens() as TToken)
       
       'Next token
       s = ""
-    else
+    Else
       'Concatenate string literal
       s = s & Asc(ch)
-    end if
+    End If
   Next
   
   'Add final token
-  if s <> "" then
+  If s <> "" Then
     token.pType = "Literal"
     token.pValue = s
     TokeniseLambda.add token
-  end if
+  End If
 End Function
