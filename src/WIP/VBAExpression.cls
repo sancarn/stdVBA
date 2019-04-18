@@ -59,7 +59,9 @@ Attribute VB_Exposed = False
 '************
 '* WRAPPERS *
 '************
-'Wrappers declare a start and an end which produce their own AST.
+'Wrappers declare a start and an end.
+'All characters between the start and end point will be consumed and passed to the build AST callback
+'Wrappers can declare whether they allow wrappers withing themselves (allowing "(a*(b+c))" to be parse correctly vs "hello","world")
 'Wrappers can declare escape characters also
 '  Standard wrappers:
 '    " ... "" ... " --> String
@@ -72,6 +74,7 @@ Attribute VB_Exposed = False
 '    [@ ... ] --> Field in current table (only makes sense in specific context (caller has to be set))
 '
 'Wrappers need to be registered before lexing/compiling can begin.
+
 
 '*************
 '* OPERATORS *
@@ -104,6 +107,16 @@ Attribute VB_Exposed = False
 '  like --> NOTKEYWORD\( ... params ... \)
 'Functions can be registered after lexing/compiling.
 '
+
+'THE REAL POWER:
+'   ALL OF THE ABOVE IS OVERRIDABLE!!
+
+
+'Parsing process
+'* Isolate wrappers - These handle themselves
+'* Convert operators to function call convention
+'* Identify functions
+'* Identify Keywords
 
 
 
