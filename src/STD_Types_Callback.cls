@@ -9,6 +9,62 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
 'TODO:
 '* Full implementation of Pointer
+'* Full implementation of Lambda (Will likely require stdVBAExpression library)
+'* StdRun
+'* CallCallback module function calling - is there a better way than application.run?
+
+'OBJECT TESTING:
+'   Sub main()
+'     Dim cb As stdCallback
+'     Set cb = stdCallback.Create("Object", Me, "f")
+'     
+'     Dim x As Variant
+'     Set x = cb()
+'     Debug.Print x.Count
+'     
+'     '---------------------------------------
+'     
+'     Dim cbv As stdCallback
+'     Set cbv = stdCallback.Create("Object", Me, "g")
+'     
+'     Dim v As Variant
+'     v = cbv()
+'     Debug.Print v
+'   End Sub
+'   
+'   Function f() As Variant
+'     Set f = New Collection
+'   End Function
+'   Function g() As Variant
+'     g = 101
+'   End Function
+'
+'MODULE TESTING:
+'   Sub main()
+'     Dim cb As stdCallback
+'     Set cb = stdCallback.Create("Module", "MyModuleName", "f")
+'     
+'     Dim x As Variant
+'     Set x = cb()
+'     Debug.Print x.Count
+'     
+'     '---------------------------------------
+'     
+'     Dim cbv As stdCallback
+'     Set cbv = stdCallback.Create("Module", "MyModuleName", "g")
+'     
+'     Dim v As Variant
+'     v = cbv()
+'     Debug.Print v
+'   End Sub
+'   
+'   Function f() As Variant
+'     Set f = New Collection
+'   End Function
+'   Function g() As Variant
+'     g = 101
+'   End Function
+
 
 
 'FYI
@@ -26,11 +82,11 @@ Attribute VB_Exposed = True
 
 #If VBA6 Then
   Private Declare PtrSafe Function rtcCallByName Lib "msvbvm60" (ByRef vRet As Variant, ByVal cObj As Object, ByVal sMethod As LongPtr, ByVal eCallType As VbCallType, ByRef pArgs() As Variant, ByVal lcid As Long) As Long
-  Private Declare PtrSafe Function GetMem4 Lib "msvbvm60.dll" (ByVal Addr As Long, ByRef RetVal As Any) As Long
+  Private Declare PtrSafe Sub VariantCopy Lib "oleaut32.dll" (ByRef pvargDest As Variant, ByRef pvargSrc As Variant)
  
 #Else
   Private Declare Function rtcCallByName Lib "msvbvm60" (ByRef vRet As Variant, ByVal cObj As Object, ByVal sMethod As LongPtr, ByVal eCallType As VbCallType, ByRef pArgs() As Variant, ByVal lcid As Long) As Long
-  Private Declare Function GetMem4 Lib "msvbvm60.dll" (ByVal Addr As Long, ByRef RetVal As Any) As Long
+  Private Declare Sub VariantCopy Lib "oleaut32.dll" (ByRef pvargDest As Variant, ByRef pvargSrc As Variant)
 #End If
 
 Dim pInitialised As Boolean
@@ -66,13 +122,8 @@ Attribute Run.VB_UserMemId = 0
     Dim vvArgs() As Variant
     vvArgs = args
     
-    Dim vRet As Variant
-    vRet = CallCallback(vvArgs)
-    If VarType(vRet) = vbObject Then
-      Set Run = vRet
-    Else
-      Run = vRet
-    End If
+    'Call and return
+    VariantCopy Run, CallCallback(vvArgs)
   Else
     Err.Raise 0, "stdCallback::Run", "No callback specified. Please initialise with Create()."
   End If
@@ -80,23 +131,15 @@ End Property
 
 Private Function StdRun(ParamArray args() As Variant) As Variant
 Attribute StdRun.VB_Description = "Run method for Win32APIs."
-  If pInitialised And Not pCallback Is Nothing Then
-    Dim vRet As Variant
-    vRet = CallCallback(args)
-    If VarType(vRet) = "Object" Then
-      Set StdRun = vRet
-    Else
-      StdRun = vRet
-    End If
-  Else
-    Err.Raise 0, "stdCallback::Run", "No callback specified. Please initialise with Create()."
-  End If
+Attribute StdRun.VB_UserMemId = 99
+  'TODO:
 End Function
 
 '0 = StdCall
 '1 = Get call
 Property Get Pointer(Optional cType As Integer = 0) As LongPtr
 Attribute Pointer.VB_Description = "Gets the pointer to the Run function property of the current Callback for usage in Win32 API calls."
+  'TODO:
   Dim MePtr As LongPtr
   'MePtr = STD.Automation.COM.Deref(Me)
   If cType = 0 Then
@@ -106,21 +149,29 @@ Attribute Pointer.VB_Description = "Gets the pointer to the Run function propert
   End If
 End Property
 
-Friend Sub init()
+Friend Sub init(mType As String, Parent As Variant, Name As String, cType As Integer)
 Attribute init.VB_Description = "Initialises this object. This should not be called directly unless building a ctor routine e.g. Create()."
+  if not pInitialised then
+    set Me.Callback = new Collection
+    Me.Callback.add mType, "Type"
+    Me.Callback.add Parent, "Parent"
+    Me.Callback.add Name, "Name"
+    Me.Callback.add cType, "cType"
+  else
+    Err.Raise 1, "stdCallback::init()", "Class is already initialised"
+  end if
   pInitialised = True
 End Sub
 
 'Create a callback object:
 Public Function Create(mType As String, Parent As Variant, Name As String, Optional cType As Integer = VbCallType.VbMethod) As stdCallback
 Attribute Create.VB_Description = "Creates an instance of this class."
-  Set Create = New stdCallback
-  Set Create.Callback = New Collection
-  Create.Callback.add mType, "Type"
-  Create.Callback.add Parent, "Parent"
-  Create.Callback.add Name, "Name"
-  Create.Callback.add cType, "cType"
-  Create.init
+  if mType = "Module" or mType = "Object" then
+    Set Create = New stdCallback
+    Call Create.init(mType,Parent,Name,cType)
+  else
+    Err.Raise 1, "stdCallback::create()", "Incorrect module type supplied"
+  end if
 End Function
 
 'Examples:
@@ -130,13 +181,14 @@ End Function
 '...
 Public Function Lambda(ByVal Lambda As String)
 Attribute Lambda.VB_UserMemId = -5
-  Set Lambda = New stdCallback
-  Lambda.Callback = New Collection
-  Lambda.Callback.add "Lambda", "Type"
-  Dim sLambda() As String
-  sLambda = Split(Lambda, "=>", 1)
-  Lambda.Callback.add sLambda(0), "args"
-  Lambda.Callback.add sLambda(1), "lambda"
+  'TODO:
+  '  Set Lambda = New stdCallback
+  '  Lambda.Callback = New Collection
+  '  Lambda.Callback.add "Lambda", "Type"
+  '  Dim sLambda() As String
+  '  sLambda = Split(Lambda, "=>", 1)
+  '  Lambda.Callback.add sLambda(0), "args"
+  '  Lambda.Callback.add sLambda(1), "lambda"
 End Function
 
 'CALLBACK STRUCTURE:
@@ -168,7 +220,7 @@ Private Function CallCallback(args() As Variant) As Variant
     'vp = VarPtr(Application.Run(Callback("Parent") & "." & Callback("Name"), args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15), args(16), args(17), args(18), args(19), args(20), args(21), args(22), args(23), args(24), args(25), args(26), args(27), args(28), args(29)))
     'Call GetMem4(vp, vRet)
     
-    CallCallback = Application.Run( _
+    VariantCopy CallCallback, Application.Run( _
       Callback("Parent") & "." & Callback("Name"), _
       args(0), args(1), _
       args(2), args(3), _
