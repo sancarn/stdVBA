@@ -2,7 +2,7 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "STD_Types_Array"
+Attribute VB_Name = "stdArray"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
@@ -82,7 +82,7 @@ Public Function shift() as variant
     'Error
   End If
 End Function
-Public Function unshift(val as variant) as STD_Types_Array
+Public Function unshift(val as variant) as stdArray
   If pInitialised then
     If IsArrayAllocated(pArr) then
       ReDim Preserve pArr(LBound(pArr) - 1, UBound(pArr)) 'This may not work?
@@ -94,11 +94,11 @@ Public Function unshift(val as variant) as STD_Types_Array
   set unshift = Me
 End Function
 
-Public Function Slice() as STD_Types_Array
+Public Function Slice() as stdArray
 
 End Function
 
-Public Function Splice() as STD_Types_Array
+Public Function Splice() as stdArray
 
 End Function
 
@@ -123,9 +123,9 @@ Public Function Join(Optional ByVal delimeter As String = ",") As String
   End If
 End Function
 
-Public Function Clone() as STD_Types_Array
+Public Function Clone() as stdArray
   If pInitialised then
-    set Clone = new STD_Types_Array
+    set Clone = new stdArray
     Clone.Arr = pArr
     Clone.Init()
   Else
@@ -186,9 +186,9 @@ Public Sub forEach(ByVal cb As STD_Types_Callback)
   End If
 End Sub
 
-Public Function Map(ByVal cb as STD_Types_Callback) as STD_Types_Array
+Public Function Map(ByVal cb as STD_Types_Callback) as stdArray
   If pInitialised then
-    Dim pMap as STD_Types_Array
+    Dim pMap as stdArray
     set pMap = Me.Clone()
     If IsArrayAllocated(pArr) then
       Dim i As Integer
@@ -218,7 +218,7 @@ Public Function Reduce(ByVal cb as STD_Types_Callback, Optional ByVal initialVal
   End If
 End Function
 
-Public Function Sort(ByVal cb as STD_Types_Callback) as STD_Types_Array
+Public Function Sort(ByVal cb as STD_Types_Callback) as stdArray
   Msgbox "NOT IMPLEMENTED"
   Debug.Assert False
 End Function

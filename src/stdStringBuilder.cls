@@ -2,7 +2,7 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "STD_Types_StringBuilder"
+Attribute VB_Name = "stdStringBuilder"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
@@ -104,14 +104,14 @@ Attribute Append.VB_UserMemId = -5
   Tainted = True
 End Function
 
-'Creates an instance of STD_Types_StringBuilder
-Public Function Create() As STD_Types_StringBuilder
-  Set Create = New STD_Types_StringBuilder
+'Creates an instance of stdStringBuilder
+Public Function Create() As stdStringBuilder
+  Set Create = New stdStringBuilder
 End Function
 
 Public Function Test()
   Dim sb As Object
-  Set sb = STD_Types_StringBuilder.Create()
+  Set sb = stdStringBuilder.Create()
   sb.JoinStr = "-"
   sb.Str = "Start"
   sb.TrimBehaviour = RTrim

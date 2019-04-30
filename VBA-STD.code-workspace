@@ -3,5 +3,9 @@
 		{
 			"path": "."
 		}
-	]
+	],
+	"settings": {
+		"editor.tabSize": 2,
+		"editor.formatOnPaste": true
+	}
 }
