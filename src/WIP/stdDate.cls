@@ -2,22 +2,38 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "STD_Types_Date"
+Attribute VB_Name = "stdDate"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
-'FUTURE SYSTEM:
-'=======================
-'Private pCoreTime
-'Public Property Get Day() As Integer
-'  Day = foo(pCoreTime)
-'End Property
-'Public Property Let Day(val as Integer)
-'  pCoreTime = foo(pCoreTime,val)
-'End Property
-'?STD_Types_Date.Parse("  ABC:01-02-2018","  ABC:dd-mm-yyyy").ToString()
+'Class that wraps standard VBA DateTime functionality:
+'* Create from double
+'* Create from Year, Month, Day, Hour, Min, Second
+'* [DEFAULT PROP] Value; get and let as Double.
+'* [PROP] Seconds; get
+'* [PROP] Minutes; get
+'* [PROP] Hours; get
+'* [PROP] Days; get
+'* [PROP] Months; get
+'* [PROP] Years; get
+'* [PROP] Weekday; get
+'* [PROP] WeekdayName; get
+'* [PROP] MonthName; get
+'* [PROP] Country; get and let   - Timezone - Still not sure whether this will work well enough.
+'* [METHOD] Parse(sVal, sFormat) - For user defined parsing
+'* [METHOD] Format(sFormat)      - For user defined parsing
+'* [METHOD] ToString()           - Do yyyymmddThhMMss format
+'* [METHOD] isLeap()             - Is this date a leap year?
+'
+'Usage examples:
+'  Format cell A1 in dd-mm-yyyy format.
+'    Debug.Print stdDate.Create(Range("A1")).Format("dd-mm-yyyy")
+'
+'  Format yyyy-mm-dd hh-mm-ss as dd/mm/yy hh:mm:ss 
+'    Debug.Print stdDate.Parse("2012-02-01 10-11-35","yyyy-mm-dd hh-mm-ss").Format("dd/mm/yy hh:mm:ss")
+'
 
 'Used to get country
 Private PtrSafe Function lib "Kernel32.dll" GetUserDefaultGeoName(ByRef geoName as String,geoNameCount as Integer) as Integer
@@ -43,18 +59,18 @@ Friend Sub Init(val as Date)
   end if
 End Sub
 
-Public Function Create(Optional val as Date) as STD_Types_Date
+Public Function Create(Optional val as Date) as stdDate
   if not pInitialised then
-    set Create = new STD_Types_Date
+    set Create = new stdDate
     Create.Init(val)
   else
     'Call STD.Errors.Raise("STD.Class",2)
   end if
 End Function
 
-Public Function CreateFromInts(Optional Year as Integer = 0, Optional Month as Integer = 0, Optional Day as Integer = 0, Optional Hour as Integer = 0, Optional Minute as Integer = 0, Optional Second as Integer = 0) as STD_Types_Date
+Public Function Create2(Optional Year as Integer = 0, Optional Month as Integer = 0, Optional Day as Integer = 0, Optional Hour as Integer = 0, Optional Minute as Integer = 0, Optional Second as Integer = 0) as stdDate
   if not pInitialised then
-    set CreateFromInts = Create(DateSerial(Year,Month,Day) + TimeSerial(Hour,Minute,Second))
+    set Create2 = Create(DateSerial(Year,Month,Day) + TimeSerial(Hour,Minute,Second))
   else
     'Call STD.Errors.Raise("STD.Class",2)
   end if
@@ -218,7 +234,7 @@ End Function
 'zzzz = Grenich Mean Time (?<Z4>Grenich Mean Time|Pacific Standard Time|...)
 'zzz  = GMT      (?<Z3>GMT|PST|...)
 'All other values in java are unsupported
-Public Function parse(Value As Variant, Optional strFormat As String = "") As STD_Types_Date
+Public Function parse(Value As Variant, Optional strFormat As String = "") As stdDate
   Dim d,m,y,h,mn,s as long
   
 
@@ -234,7 +250,7 @@ Public Function parse(Value As Variant, Optional strFormat As String = "") As ST
     m = CInt(Mid(Value, 1, 2))
     y = CInt(Mid(Value, 7, 4))
   ElseIf strFormat = "POSIX" Then 'EPOCH: 00:00:00 01/01/1970
-    Err.Raise 0, "STD_Types_Date::Parse", "Currently WIP not yet functional"
+    Err.Raise 0, "stdDate::Parse", "Currently WIP not yet functional"
     
     'Get value as double
     Dim dbl As Double
@@ -326,7 +342,7 @@ Public Function parse(Value As Variant, Optional strFormat As String = "") As ST
     If match("kk") And match("aa") Then parse.Hour = IIf(match("aa") = "am", 0, 12) + CInt(match("kk"))
     
     If hasTZs Then
-      Err.Raise 0, "STD_Types_Date::Parse", "Error: Timezones Unimplemented. Waiting for swith to CoreTime"
+      Err.Raise 0, "stdDate::Parse", "Error: Timezones Unimplemented. Waiting for swith to CoreTime"
       'Call iniTimezones
       'Dim offsetCoreTime As Double
       'If match("zzzz") Then offsetCoreTime = match("zzzz") * foo
@@ -347,7 +363,7 @@ Private Function p_isLeap(ByVal yr As Integer) As Boolean
   p_isLeap = ((yr Mod 4 = 0 And yr Mod 100 <> 0) Or yr Mod 400 = 0)
 End Function
 
-Private Function DaysBetween(d1 As STD_Types_Date, d2 As STD_Types_Date) As Long
+Private Function DaysBetween(d1 As stdDate, d2 As stdDate) As Long
   'Subtract d2 from d1. I.E. D1-D2
   Dim Days1, Days2 As Double
   Dim Factor As Double
@@ -822,7 +838,7 @@ Private Sub iniTimezones()
   TimeZoneDescs("Yekaterinburg Time") = 5
 End Sub
 
-'?STD_Types_Date.RegexMatch("asdf","(?<a>.)(.)((?<b>.)(.))")
+'?stdDate.RegexMatch("asdf","(?<a>.)(.)((?<b>.)(.))")
 Function RegexMatch(ByVal haystack As String, ByVal pattern As String, Optional ByVal options As String) As Object
   'Cache regexes for optimisation
   Static CachedRegex As Object
