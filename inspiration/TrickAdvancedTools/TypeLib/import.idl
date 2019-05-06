@@ -1,0 +1,202 @@
+[
+	uuid(6cef3a98-4e29-6434-91ab-57f32a00cede),
+	helpstring("TrickTool type library"),
+	version(1.00)
+]
+
+library TrickTool_import
+{
+	importlib("stdole2.tlb");
+
+	typedef struct{
+		int					cbSize;
+		int					fMask;
+		int					hWnd;
+		BSTR				lpVerb;
+		BSTR				lpFile;
+		BSTR				lpParameters;
+		BSTR				lpDirectory;
+		int					nShow;
+		int					hInstApp;
+		int					lpIDList;
+		BSTR				lpClass;
+		int					hkeyClass;
+		int					dwHotKey;
+		int					hIconhMonitor;
+		int					hProcess;
+	} SHELLEXECUTEINFO;
+
+	[dllname("kernel32.dll")] 
+	module kernel32
+	{ 
+
+			const int INFINITE						= 0xffffffff;
+			const int WAIT_OBJECT_0					= 0x00000000;
+			const int FORMAT_MESSAGE_FROM_SYSTEM	= 0x00001000;
+			const int FORMAT_MESSAGE_IGNORE_INSERTS	= 0x00000200;
+			const int PAGE_EXECUTE_READWRITE		= 0x00000040;
+			const int MEM_COMMIT					= 0x00001000;
+			const int MEM_RESERVE					= 0x00002000;
+			const int MEM_RELEASE					= 0x00008000;
+
+    		[entry("WaitForSingleObject")]
+			int WaitForSingleObject (
+			int	hHandle, 
+			int dwMilliseconds);
+
+    		[entry("CloseHandle")]
+			int CloseHandle (
+			int	hObject);
+
+    		[entry("GetModuleHandleW")]
+			int GetModuleHandle (
+			LPWSTR lpModuleName);
+
+    		[entry("GetProcAddress")]
+			int GetProcAddress (
+			int	hModule, 
+			LPSTR lpProcName);
+
+    		[entry("VirtualProtect")]
+			int VirtualProtect (
+			int	lpAddress, 
+			int dwSize,
+			int flNewProtect, 
+			int* lpflOldProtect);
+
+			[entry("VirtualAlloc")]
+			int VirtualAlloc(
+				void* lpAddress, 
+				int dwSize, 
+				int flAllocationType, 
+				int flProtect); 
+
+			[entry("VirtualFree")]
+			int VirtualFree(
+				void* lpAddress, 
+				int dwSize, 
+				int dwFreeType); 
+
+			[entry("RtlMoveMemory")]
+			void memcpy(
+				void* Dst, 
+				void* Src,
+				int Length);
+
+    		[entry("FormatMessageW")]
+			int FormatMessage (
+			int	dwFlags, 
+			void* lpSource,
+			int dwMessageId,
+			int dwLanguageId, 
+			[out] LPwSTR lpBuffer,
+			int nSize,
+			void* Arguments);
+
+	}
+
+	[dllname("msvbvm60.dll")] 
+	module msvbvm60
+	{ 
+
+    		[entry("GetMem4")]
+			int GetMem4 (
+			void*	Src,
+			void*   Function);
+
+    		[entry("GetMem1")]
+			int GetMem1 (
+			void*	Src,
+			void*   Function);
+
+    		[entry("VarPtr")]
+			int ArrPtr (
+			SAFEARRAY(void)* pSA);
+
+	}
+
+	[dllname("vba6.dll")] 
+	module vba6
+	{ 
+
+    		[entry("TipGetProjName")]
+			int TipGetProjName (
+			int		hProj,
+			BSTR*   bstrName);
+
+    		[entry("TipSetConstantValues")]
+			int TipSetConstantValues (
+			int		hProj,
+			BSTR    bstrValue);
+
+    		[entry("TipGetConstantValues")]
+			int TipGetConstantValues (
+			int		hProj,
+			BSTR*   pbstrOut);
+
+	}
+
+	[dllname("user32.dll")] 
+	module user32
+	{ 
+			
+			const int SM_CXSMICON						= 0x00000031;
+			const int SM_CYSMICON						= 0x00000032;
+			const int WM_SETICON						= 0x00000080;
+			const int ICON_SMALL						= 0x00000000;
+			const int ICRESVER							= 0x00030000;
+			const int LR_DEFAULTSIZE					= 0x00000040;
+			
+    		[entry("GetSystemMetrics")]
+			int GetSystemMetrics (
+			int	nIndex);
+
+    		[entry("CreateIconFromResourceEx")]
+			int CreateIconFromResourceEx (
+			void*	pbIconBits, 
+			int	    cbIconBits,
+			int		fIcon,
+			int		dwVersion,
+			int		cxDesired,
+			int		cyDesired,
+			int		uFlags);
+
+    		[entry("SendMessageW")]
+			int SendMessage (
+			int		hWnd, 
+			int	    wMsg,
+			int		wParam,
+			void*	lParam);
+
+	}
+
+	[dllname("shell32.dll")]
+	module shell32
+	{
+			const int SW_SHOWDEFAULT			= 10;
+			const int SEE_MASK_NOCLOSEPROCESS	= 0x00000040;
+			const int SEE_MASK_FLAG_NO_UI		= 0x00000400;
+
+			[entry("ShellExecuteExW")]
+			int ShellExecuteEx(
+			SHELLEXECUTEINFO* pExecInfo);
+
+
+	}
+
+	[dllname("oleaut32.dll")] 
+	module oleaut32
+	{ 
+			[entry("DispCallFunc")]
+			int DispCallFunc(
+			void	*pvInstance,
+			int		oVft,
+			int		cc,
+			int		vtReturn,
+			int     cActuals,
+			void	*prgvt,
+			void	*prgpvarg,
+			void    *pvargResult);
+	}
+
+}
