@@ -91,3 +91,35 @@ This creates an optimised 1st class function which can be called directly.
 SetWindowLong(hWnd, nIndex, dwNewLong)
 ```
 
+## Extension (`struct` and `enum` will make use of this!)
+
+```vb
+
+'class MyClass.cls
+'=================================
+Implements IDLLTypeInferral 'You can now implement your own callable DLLs
+
+Dim myStruct as stdStruct
+
+Function MyClass_GetSize() as Long
+  'E.G. delegating to a struct:
+  Dim ti as IDLLTypeInferral
+  set ti = myStruct
+  MyClass_GetSize = ti.GetSize()
+End Function
+
+Function MyClass_DLLCast() as Byte()
+  'E.G. delegating to a struct:
+  Dim ti as IDLLTypeInferral
+  set ti = myStruct
+  MyClass_DLLCast = ti.DLLCast()
+End Function
+```
+
+In simple terms:
+* `GetSize()` is used in compiling type information. 
+* `DLLCast()` is used in execution and actually contains the data to pass to the dll, but the data is to be stored in byte arrays.
+
+
+
+
