@@ -18,7 +18,7 @@ with stdDLL
     .type("HWND", hWnd), _ 
     .type("int", nIndex), _ 
     .type("LONG", dwNewLong), _ 
-    .rtype("LONG")
+    .type("LONG") _  'Return type
   )
 end with
 ```
@@ -38,7 +38,7 @@ With stdDLL
   Debug.Print .call("User32", "GetWindowRect", _ 
     .type("HWND", hWnd), _ 
     .type("LPRECT", lpRect), _
-    .rtype("BOOL")
+    .type("BOOL") _ 'Return type
   )
 End With
 ```
@@ -60,7 +60,23 @@ with stdDLL
     .type("HWND", hWnd), _ 
     .type("int", GWL), _ 
     .type("LONG", dwNewLong), _ 
-    .rtype("LONG")
+    .type("LONG") _  'Return type
   )
 end with
+```
+
+## Optimisation
+
+```vb
+with stdDLL
+  Dim SetWindowLong as stdCallback
+  set SetWindowLong = .function( "User32","SetWindowLongA", _ 
+    .type("HWND"), _ 
+    .type("int"), _ 
+    .type("LONG"), _ 
+    .type("LONG") _  'Return type
+  )   
+end with
+
+SetWindowLong(hWnd, nIndex, dwNewLong)
 ```
