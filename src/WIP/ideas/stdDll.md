@@ -1,6 +1,12 @@
 This file will probably have a lot of cross over to other files, but will remain as a dumping ground for ideas of features for DLL related calls.
 
-## Paramater type and struct
+## `Call` call convention
+
+```vb
+stdDLL.call(dll, funcName, ...params..., returnParam)
+```
+
+## Type parsing with `type` function
 
 DLL calls are easy once you've called them a few times, but what really is frustrating is the unknown definition of [Win32 datatypes](https://docs.microsoft.com/en-us/windows/desktop/winprog/windows-data-types) e.g. `DWORD`,`DWORD32`,`DWORD64`,`DWORDLONG`, ... , `HANDLE`, `HBITMAP`, `HCURSOR`, `HDC`, `LONGLONG`, ... In all cases these are representable in VBA using Byte Arrays `Byte()`, but you still need to know the size of each parameter.
 
@@ -18,7 +24,7 @@ with stdDLL
     .type("HWND", hWnd), _ 
     .type("int", nIndex), _ 
     .type("LONG", dwNewLong), _ 
-    .type("LONG") _  'Return type
+    .type("LONG") _
   )
 end with
 ```
@@ -38,7 +44,7 @@ With stdDLL
   Debug.Print .call("User32", "GetWindowRect", _ 
     .type("HWND", hWnd), _ 
     .type("LPRECT", lpRect), _
-    .type("BOOL") _ 'Return type
+    .type("BOOL") _
   )
 End With
 ```
@@ -65,18 +71,23 @@ with stdDLL
 end with
 ```
 
-## Optimisation
+## Optimisation with `func`
 
 ```vb
 with stdDLL
   Dim SetWindowLong as stdCallback
-  set SetWindowLong = .function( "User32","SetWindowLongA", _ 
+  set SetWindowLong = .func( "User32","SetWindowLongA", _ 
     .type("HWND"), _ 
     .type("int"), _ 
     .type("LONG"), _ 
-    .type("LONG") _  'Return type
+    .type("LONG") _
   )   
 end with
+```
 
+This creates an optimised 1st class function which can be called directly.
+
+```vb
 SetWindowLong(hWnd, nIndex, dwNewLong)
 ```
+
