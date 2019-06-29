@@ -54,3 +54,31 @@ var obj =  actCtx.CreateObject("MyObj");
 ```
 
 Not sure if this is possible to use or not...?
+
+## Registering objects for COM interrop:
+
+A register and unregister method which allows registering active COM servers.
+
+```vb
+Declare Private Function RegisterActiveObject lib "oleaut32.dll" (obj as any, clsid as string, dwFlags as long, handle as long)
+Declare Private Function RevokeActiveObject   lib "oleaut32.dll" (handle as long, pvReserved as long)
+
+Private COMDictionary As Object
+Private Sub Class_Initialize()
+  Set COMDictionary = CreateObject("Scripting.Dictionary")
+End Sub
+
+Sub Register(ByRef obj As Object, ByVal CLSID As String)
+  Dim iHandle As Long
+  RegisterActiveObject obj,CLSID, 0, iHandle
+  COMDictionary(CLSID) = iHandle
+End Sub
+
+'Revoke active objects
+Private Sub Class_Terminate()
+  Dim key As Variant
+  For Each key In COMDictionary.keys()
+    Call RevokeActiveObject(COMDictionary(iHandle),0)
+  Next
+End Sub
+```
