@@ -238,4 +238,36 @@ Function CallCallback(ptr as long, arg1, arg2, arg3, ...)
 End Function
 ```
 
+What we will do:
+
+
+
+```vb
+'UserDefined
+sub Main
+  stdCallback.Create("Ptr", stdWrap(AddressOf theCallback))
+end sub
+
+Function theCallback(arg1, arg2, arg3, ...)
+
+End Function
+
+'MODULE DEFINED
+'Returns the address of a passed function
+Function stdWrap(ByVal ptr as long) as long
+  stdWrap = ptr
+End Function
+
+
+'CLASS DEFINED
+Function doSomething(ByVal callback as long)
+  Call PatchFunc(AddressOf CallCallback)
+  '...
+  doSomething = CallCallback(callback, arg1, arg2, arg3, ...)
+End Function
+
+Function CallCallback(ptr as long, arg1, arg2, arg3, ...)
+
+End Function
+```
 
