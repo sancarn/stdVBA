@@ -215,7 +215,8 @@ End Function
 
 ### Core pattern:
 
-```
+```vb
+'USER DEFINED
 sub Main
   Debug.Print doSomething(AddressOf theCallback)
 end sub
@@ -224,6 +225,8 @@ Function theCallback(arg1, arg2, arg3, ...)
 
 End Function
 
+
+'APPLICATION DEFINED
 Function doSomething(ByVal callback as long)
   Call PatchFunc(AddressOf CallCallback)
   '...
