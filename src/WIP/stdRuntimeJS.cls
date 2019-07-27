@@ -86,33 +86,33 @@ Private Const DLL_CHAKRA = "chakra.dll"
 
 
 'Core
-Private Declare Function FreeLibrary Lib "kernel32" (ByVal hLibModule As Long) As Long
-Private Declare Function LoadLibrary Lib "kernel32" Alias "LoadLibraryA" (ByVal lpLibFileName As String) As LongPtr
-Private Declare Function GetProcAddress Lib "kernel32" (ByVal hModule As Long, ByVal lpProcName As String) As Long
-Private Declare Function CallWindowProc Lib "user32" Alias "CallWindowProcA" (ByVal lpPrevWndFunc As Long, ByVal hWnd As Long, ByVal Msg As Any, ByVal wParam As Any, ByVal lParam As Any) As Long
-Private Declare Function GetLastError Lib "kernel32" () As Long
+Private Declare PtrSafe Function FreeLibrary Lib "kernel32" (ByVal hLibModule As Long) As Long
+Private Declare PtrSafe Function LoadLibrary Lib "kernel32" Alias "LoadLibraryA" (ByVal lpLibFileName As String) As LongPtr
+Private Declare PtrSafe Function GetProcAddress Lib "kernel32" (ByVal hModule As Long, ByVal lpProcName As String) As Long
+Private Declare PtrSafe Function CallWindowProc Lib "user32" Alias "CallWindowProcA" (ByVal lpPrevWndFunc As Long, ByVal hWnd As Long, ByVal Msg As Any, ByVal wParam As Any, ByVal lParam As Any) As Long
+Private Declare PtrSafe Function GetLastError Lib "kernel32" () As Long
 
 'FOR IE
 '----------------------------------------
 'For initialisation:
 'Private Declare Function IECreateRuntime Lib "jscript9.dll" Alias "JsCreateRuntime" (jsRuntimeAttributes As Integer, jsRuntimeVersion As Long, JsThreadServiceCallback As LongPtr, jsRuntimeHandle As LongPtr) As Long
-Private Declare Function IECreateRuntime Lib "jscript9.dll" Alias "JsCreateRuntime" (jsRuntimeAttributes As Integer, jsRuntimeVersion As Long, JsThreadServiceCallback As LongPtr, jsRuntimeHandle As Any) As Long
-Private Declare Function IECreateContext Lib "jscript9.dll" Alias "JsCreateContext" (jsRuntimeHandle As LongPtr, IDebugApplication As LongPtr, jsContextRef As LongPtr) As Long
-Private Declare Function IESetCurrentContext Lib "jscript9.dll" Alias "JsSetCurrentContext" (jsContextRef As LongPtr) As Long
-Private Declare Function IEGetGlobalObject Lib "jscript9.dll" Alias "JsGetGlobalObject" (jsGlobalValueRef As LongPtr) As Long
+Private Declare PtrSafe Function IECreateRuntime Lib "jscript9.dll" Alias "JsCreateRuntime" (ByVal jsRuntimeAttributes As Integer, ByVal jsRuntimeVersion As Long, ByVal JsThreadServiceCallback As LongPtr, ByVal jsRuntimeHandle As LongPtr) As Long
+Private Declare PtrSafe Function IECreateContext Lib "jscript9.dll" Alias "JsCreateContext" (ByVal jsRuntimeHandle As LongPtr, ByVal IDebugApplication As LongPtr, ByVal jsContextRef As LongPtr) As Long
+Private Declare PtrSafe Function IESetCurrentContext Lib "jscript9.dll" Alias "JsSetCurrentContext" (ByVal jsContextRef As LongPtr) As Long
+Private Declare PtrSafe Function IEGetGlobalObject Lib "jscript9.dll" Alias "JsGetGlobalObject" (ByVal jsGlobalValueRef As LongPtr) As Long
 
 'For uninitialisation:
-Private Declare Function IEDisposeRuntime Lib "jscript9.dll" Alias "JsDisposeRuntime" (jsRuntimeHandle As LongPtr) As Long
+Private Declare PtrSafe Function IEDisposeRuntime Lib "jscript9.dll" Alias "JsDisposeRuntime" (ByVal jsRuntimeHandle As LongPtr) As Long
 
 'Getting/Setting values:
-Private Declare Function IEVariantToValue Lib "jscript9.dll" Alias "JsVariantToValue" (src As LongPtr, dest As LongPtr) As Long
-Private Declare Function IEValueToVariant Lib "jscript9.dll" Alias "JsValueToVariant" (src As LongPtr, dest As LongPtr) As Long
+Private Declare PtrSafe Function IEVariantToValue Lib "jscript9.dll" Alias "JsVariantToValue" (ByVal src As LongPtr, ByVal dest As LongPtr) As Long
+Private Declare PtrSafe Function IEValueToVariant Lib "jscript9.dll" Alias "JsValueToVariant" (ByVal src As LongPtr, ByVal dest As LongPtr) As Long
 
 'Executing JavaScript
-Private Declare Function IERunScript Lib "jscript9.dll" Alias "JsRunScript" (ByVal code As String, JsSourceContext As Integer, JsSourceURL As String, JsValueRef As LongPtr) As Long
+Private Declare PtrSafe Function IERunScript Lib "jscript9.dll" Alias "JsRunScript" (ByVal code As String, ByVal JsSourceContext As Integer, ByVal JsSourceURL As String, ByVal JsValueRef As LongPtr) As Long
 
 'Getting exception information
-Private Declare Function IEGetAndClearException Lib "jscript9.dll" Alias "JsGetAndClearException" (JsValueRef As LongPtr) As Long
+Private Declare PtrSafe Function IEGetAndClearException Lib "jscript9.dll" Alias "JsGetAndClearException" (ByVal JsValueRef As LongPtr) As Long
 
 
 '----------------------------------------
@@ -120,26 +120,26 @@ Private Declare Function IEGetAndClearException Lib "jscript9.dll" Alias "JsGetA
 'FOR Edge
 '----------------------------------------
 'For initialisation:
-Private Declare Function EdgeCreateRuntime Lib "chakra.dll" Alias "JsCreateRuntime" (jsRuntimeAttributes As Integer, JsThreadServiceCallback As LongPtr, jsRuntimeHandle As LongPtr) As Long 'Note: ThreadServiceCallback seems pointless in VBA
-Private Declare Function EdgeCreateContext Lib "chakra.dll" Alias "JsCreateContext" (jsRuntimeHandle As LongPtr, jsContextRef As LongPtr) As Long
-Private Declare Function EdgeSetCurrentContext Lib "chakra.dll" Alias "JsSetCurrentContext" (jsContextRef As LongPtr) As Long
-Private Declare Function EdgeGetGlobalObject Lib "chakra.dll" Alias "JsGetGlobalObject" (jsGlobalValueRef As LongPtr) As Long
+Private Declare PtrSafe Function EdgeCreateRuntime Lib "chakra.dll" Alias "JsCreateRuntime" (ByVal jsRuntimeAttributes As Integer, ByVal JsThreadServiceCallback As LongPtr, ByVal jsRuntimeHandle As LongPtr) As Long 'Note: ThreadServiceCallback seems pointless in VBA
+Private Declare PtrSafe Function EdgeCreateContext Lib "chakra.dll" Alias "JsCreateContext" (ByVal jsRuntimeHandle As LongPtr, ByVal jsContextRef As LongPtr) As Long
+Private Declare PtrSafe Function EdgeSetCurrentContext Lib "chakra.dll" Alias "JsSetCurrentContext" (ByVal jsContextRef As LongPtr) As Long
+Private Declare PtrSafe Function EdgeGetGlobalObject Lib "chakra.dll" Alias "JsGetGlobalObject" (ByVal jsGlobalValueRef As LongPtr) As Long
 
 'For uninitialisation:
-Private Declare Function EdgeDisposeRuntime Lib "chakra.dll" Alias "JsDisposeRuntime" (jsRuntimeHandle As LongPtr) As Long
+Private Declare PtrSafe Function EdgeDisposeRuntime Lib "chakra.dll" Alias "JsDisposeRuntime" (ByVal jsRuntimeHandle As LongPtr) As Long
 
 'Getting/Setting values:
-Private Declare Function EdgeVariantToValue Lib "chakra.dll" Alias "JsVariantToValue" (src As LongPtr, dest As LongPtr) As Long
-Private Declare Function EdgeValueToVariant Lib "chakra.dll" Alias "JsValueToVariant" (src As LongPtr, dest As LongPtr) As Long
+Private Declare PtrSafe Function EdgeVariantToValue Lib "chakra.dll" Alias "JsVariantToValue" (ByVal src As LongPtr, ByVal dest As LongPtr) As Long
+Private Declare PtrSafe Function EdgeValueToVariant Lib "chakra.dll" Alias "JsValueToVariant" (ByVal src As LongPtr, ByVal dest As LongPtr) As Long
 
 'Executing JavaScript
-Private Declare Function EdgeRunScript Lib "chakra.dll" Alias "JsRunScript" (ByVal code As String, JsSourceContext As Integer, JsSourceURL As String, JsValueRef As LongPtr) As Long
+Private Declare PtrSafe Function EdgeRunScript Lib "chakra.dll" Alias "JsRunScript" (ByVal code As String, ByVal JsSourceContext As Integer, ByVal JsSourceURL As String, ByVal JsValueRef As LongPtr) As Long
 
 'Getting exception information
-Private Declare Function EdgeGetAndClearException Lib "chakra.dll" Alias "JsGetAndClearException" (JsValueRef As LongPtr) As Long
+Private Declare PtrSafe Function EdgeGetAndClearException Lib "chakra.dll" Alias "JsGetAndClearException" (ByVal JsValueRef As LongPtr) As Long
 
 'Extra function - project WinRT namespaces to JS runtime:
-Private Declare Function EdgeProjectWinRTNamespace Lib "chakra.dll" Alias "JsProjectWinRTNamespace" (sNamespace As String) As Long
+Private Declare PtrSafe Function EdgeProjectWinRTNamespace Lib "chakra.dll" Alias "JsProjectWinRTNamespace" (ByVal sNamespace As String) As Long
 
 '----------------------------------------
 
@@ -173,8 +173,8 @@ Private Const S_OK = 0
 Private initialised As Boolean
 Private pVersion As String
 Private pHModule As LongPtr
-Private pRuntime As LongPtr
-Private pContext As LongPtr
+Private pRuntime As Variant
+Private pContext As Variant
 Public Window As Object      'Global object (even though no actual window available)
 
 Public Function Create(Optional ByVal version As String = "IE") As stdRuntimeJS
@@ -223,12 +223,15 @@ Private Function initVersion(version As String) As String
       If pHModule <> 0 Then
         'Create the javascript runtime...
         Dim var
-        retl = IECreateRuntime(0, -1, 0, VarPtr(pRuntime)) 'KEEP GETTING ERRORS?
+        retl = IECreateRuntime(0, -1, 0, VarPtr(pRuntime))
         If retl = S_OK Then
           'Create an execution context
-          If IECreateContext(pRuntime, 0, VarPtr(pContext)) = S_OK Then
+          Dim ctxt As LongPtr
+          retl = IECreateContext(VarPtr(pRuntime), 0, VarPtr(ctxt))
+          If retl = S_OK Then
+            Debug.Print "Got here!"
             'Set current execution context
-            Call IESetCurrentContext(pContext)
+            Call IESetCurrentContext(VarPtr(pContext))
             
             'Get global variable as COM object
             Call IEGetGlobalObject(hGlobal)
@@ -236,13 +239,13 @@ Private Function initVersion(version As String) As String
             
             sError = ""
           Else
-            sError = "Cannot create IE runtime context": GoTo Error
+            sError = "Cannot create IE runtime context. Error (0x" & Hex(retl) & ")": GoTo Error
           End If
         Else
-          sError = "Cannot create IE runtime": GoTo Error
+          sError = "Cannot create IE runtime. Error (0x" & Hex(retl) & ")": GoTo Error
         End If
       Else
-        sError = "Couldn't load JScript9 DLL.": GoTo Error
+        sError = "Couldn't load JScript9 DLL. Error (0x" & Hex(retl) & ")": GoTo Error
       End If
     Case "Edge"
       pHModule = LoadLibrary(DLL_CHAKRA)
@@ -251,9 +254,9 @@ Private Function initVersion(version As String) As String
         retl = EdgeCreateRuntime(0, 0, VarPtr(pRuntime)) 'KEEP GETTING ERRORS?
         If retl = S_OK Then
           'Create an execution context
-          If EdgeCreateContext(pRuntime, VarPtr(pContext)) = S_OK Then
+          If EdgeCreateContext(VarPtr(pRuntime), VarPtr(pContext)) = S_OK Then
             'Set current execution context
-            Call EdgeSetCurrentContext(pContext)
+            Call EdgeSetCurrentContext(VarPtr(pContext))
             
             'Get global variable as COM object
             Call EdgeGetGlobalObject(hGlobal)
@@ -261,19 +264,21 @@ Private Function initVersion(version As String) As String
             
             sError = ""
           Else
-            sError = "Cannot create Edge runtime context": GoTo Error
+            sError = "Cannot create Edge runtime context. Error (0x" & Hex(retl) & ")": GoTo Error
           End If
         Else
-          sError = "Cannot create Edge runtime": GoTo Error   '& getJsError(retl)
+          sError = "Cannot create Edge runtime. Error (0x" & Hex(retl) & ")": GoTo Error   '& getJsError(retl)
         End If
       Else
-        sError = "Couldn't load Chakra DLL. Maybe Edge isn't installed?": GoTo Error
+        sError = "Couldn't load Chakra DLL. Maybe Edge isn't installed? Error (0x" & Hex(retl) & ")": GoTo Error
       End If
     Case Else
-      sError = "Error incompatible version": GoTo Error
+      sError = "Error incompatible version. Error (0x" & Hex(retl) & ")": GoTo Error
   End Select
   Exit Function
 Error:
+  Debug.Print sError
+  Call Terminate
   initVersion = sError
   'Debug.Assert False
 End Function
@@ -364,12 +369,18 @@ Error:
 End Function
 
 Private Sub Class_Terminate()
-  If pRuntime <> 0 Then
+  Call Terminate
+End Sub
+
+Public Sub Terminate()
+  If Not IsEmpty(pRuntime) Then
     Select Case pVersion
       Case "IE"
-        Call IEDisposeRuntime(pRuntime)
+        Call IEDisposeRuntime(VarPtr(pRuntime))
+        pRuntime = Empty
       Case "Edge"
-        Call EdgeDisposeRuntime(pRuntime)
+        Call EdgeDisposeRuntime(VarPtr(pRuntime))
+        pRuntime = Empty
       Case Else
         'Do nothing?
     End Select
@@ -398,8 +409,9 @@ End Function
 
 
 
-
+'stdRuntimeJs.test
 Public Sub test()
+  Debug.Assert False
   Dim edge As stdRuntimeJS
   Set edge = stdRuntimeJS.Create()
   

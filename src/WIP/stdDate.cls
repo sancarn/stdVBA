@@ -36,18 +36,23 @@ Attribute VB_Exposed = False
 '
 
 'Used to get country
-Private PtrSafe Function lib "Kernel32.dll" GetUserDefaultGeoName(ByRef geoName as String,geoNameCount as Integer) as Integer
-
-' ???  Private daysPerMonth As Object
-' ???  Private TimeZones As Object
-' ???  Private TimeZoneDescs As Object
-' ???  Private Months As Object
-' ???  Private MonthsShort As Object
+#If VBA7 Then
+  Private Declare PtrSafe Function GetUserDefaultGeoName Lib "Kernel32.dll" (ByRef geoName As String, geoNameCount As Integer) As Integer
+#Else
+  Private Declare Function GetUserDefaultGeoName Lib "Kernel32.dll" (ByRef geoName As String, geoNameCount As Integer) As Integer
+#End If
 
 Private pInitialised As Boolean
 Private pValue as Date
 Private pCountry as String
 Private pFirstDayOfWeek as VbDayOfWeek
+
+'TODO: Determine whether these are actually useful or not
+Private daysPerMonth As Object
+Private TimeZones As Object
+Private TimeZoneDescs As Object
+Private MonthsDict As Object
+Private MonthsShortDict As Object
 
 Friend Sub Init(val as Date)
   if not pInitialised then
@@ -84,7 +89,7 @@ Attribute Value.Vb_UserMemId = 0
     'Call STD.Errors.Raise("STD.Class",4)
   end if
 End Property
-Public Property Set Value(v as Double)
+Public Property Let Value(v as Double)
   if pInitialised then
     pValue = v
   else
@@ -165,7 +170,7 @@ End Property
 Public Property Get Country() as string
   Country = pCountry
 End Property
-Public Property Set Country(s as string)
+Public Property Let Country(s as string)
   pCountry = s
   select case s
     case "US":
@@ -175,7 +180,6 @@ Public Property Set Country(s as string)
   end select
 End Property
 
-
 Public Function ToString()
   If pInitialised then
     ToString = VBA.Format(pValue,"yyyymmddhhmmss")
@@ -183,10 +187,6 @@ Public Function ToString()
     'Call STD.Errors.Raise("STD.Class",3)
   End If
 End Function
-
-
-
-
 
 Public Property Get isLeap() As Boolean
   Dim yr as long
@@ -399,34 +399,34 @@ Private Sub iniDictionary()
   daysPerMonth("CumulativeLeap") = Array(0, 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366)
   
   'Months hash table
-  Set Months = CreateObject("Scripting.Dictionary")
-  Months("January") = 1
-  Months("February") = 2
-  Months("March") = 3
-  Months("April") = 4
-  Months("May") = 5
-  Months("June") = 6
-  Months("July") = 7
-  Months("August") = 8
-  Months("September") = 9
-  Months("October") = 10
-  Months("November") = 11
-  Months("December") = 12
+  Set MonthsDict = CreateObject("Scripting.Dictionary")
+  MonthsDict("January") = 1
+  MonthsDict("February") = 2
+  MonthsDict("March") = 3
+  MonthsDict("April") = 4
+  MonthsDict("May") = 5
+  MonthsDict("June") = 6
+  MonthsDict("July") = 7
+  MonthsDict("August") = 8
+  MonthsDict("September") = 9
+  MonthsDict("October") = 10
+  MonthsDict("November") = 11
+  MonthsDict("December") = 12
   
   'Short months hash table
-  Set MonthsShort = CreateObject("Scripting.Dictionary")
-  MonthsShort("Jan") = 1
-  MonthsShort("Feb") = 2
-  MonthsShort("Mar") = 3
-  MonthsShort("Apr") = 4
-  MonthsShort("May") = 5
-  MonthsShort("Jun") = 6
-  MonthsShort("Jul") = 7
-  MonthsShort("Aug") = 8
-  MonthsShort("Sep") = 9
-  MonthsShort("Oct") = 10
-  MonthsShort("Nov") = 11
-  MonthsShort("Dec") = 12
+  Set MonthsShortDict = CreateObject("Scripting.Dictionary")
+  MonthsShortDict("Jan") = 1
+  MonthsShortDict("Feb") = 2
+  MonthsShortDict("Mar") = 3
+  MonthsShortDict("Apr") = 4
+  MonthsShortDict("May") = 5
+  MonthsShortDict("Jun") = 6
+  MonthsShortDict("Jul") = 7
+  MonthsShortDict("Aug") = 8
+  MonthsShortDict("Sep") = 9
+  MonthsShortDict("Oct") = 10
+  MonthsShortDict("Nov") = 11
+  MonthsShortDict("Dec") = 12
 End Sub
 
 
