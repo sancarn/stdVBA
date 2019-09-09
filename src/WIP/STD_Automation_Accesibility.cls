@@ -2,14 +2,14 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "STD_Automation_Accesibility"
+Attribute VB_Name = "stdAcc"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Private Declare PtrSafe Function AccessibleObjectFromPoint Lib "oleacc" (ByVal x As Long, ByVal y As Long, ppoleAcc As IAccessible, pvarElement As Variant) As Long
-Private Declare PtrSafe Function AccessibleObjectFromWindow Lib "oleacc" (ByVal hwnd As Long, ByVal dwId As Long, riid As tGUID, ppvObject As Object) As Long
-Private Declare PtrSafe Function AccessibleObjectFromEvent Lib "oleacc.dll" (hwnd As LongPtr, dwObjectId As Integer, dwChildID As Integer, ppacc As IAccessible, pVarChild As Object) As Long
+Private Declare PtrSafe Function AccessibleObjectFromWindow Lib "oleacc" (ByVal hWnd As Long, ByVal dwId As Long, riid As tGUID, ppvObject As Object) As Long
+Private Declare PtrSafe Function AccessibleObjectFromEvent Lib "oleacc.dll" (hWnd As LongPtr, dwObjectId As Integer, dwChildID As Integer, ppacc As IAccessible, pVarChild As Object) As Long
 Private Declare PtrSafe Function AccessibleChildren Lib "oleacc" (ByVal paccContainer As IAccessible, ByVal iChildStart As Long, ByVal cChildren As Long, rgvarChildren As Variant, pcObtained As Long) As Long
 Private Declare PtrSafe Function WindowFromAccessibleObject Lib "oleacc" (ByVal pacc As IAccessible, ByRef pHwnd As LongPtr) As LongPtr
 Private Declare PtrSafe Function GetCursorPos Lib "user32" (lpPoint As tPOINT) As Long 'For FromMouse()
@@ -18,7 +18,7 @@ Private Declare PtrSafe Function GetCursorPos Lib "user32" (lpPoint As tPOINT) A
 Public ACC_STATES As Object
 Public ACC_ROLES As Object
 Public proxy As Boolean
-Public proxyParent As IAcc
+Public proxyParent As Object 'IAcc
 Public proxyInfo As Object
 Public proxyIndex As Long
 
@@ -40,47 +40,47 @@ Const CHILDID_SELF = 0&
 Private oAcc As Object
 
 'Constructors:
-Public Function FromPoint(x As Long, y As Long) As STD_Automation_Accesibility
-    Set FromPoint = New STD_Automation_Accesibility
+Public Function FromPoint(x As Long, y As Long) As stdAcc
+    Set FromPoint = New stdAcc
     Dim obj As IAccessible
     Dim v As Variant
     Call AccessibleObjectFromPoint(x, y, obj, v)
-    Call FromPoint.SetOAcc(obj)
+    Call FromPoint.SetIAccessible(obj)
 End Function
-Public Function FromHwnd(hwnd As LongPtr) As STD_Automation_Accesibility
-    Dim acc As New STD_Automation_Accesibility
+Public Function FromHwnd(hWnd As LongPtr) As stdAcc
+    Dim acc As New stdAcc
     Dim obj As IAccessible
-    Set obj = IAccessibleFromHwnd(hwnd)
-    Call acc.SetOAcc(obj)
+    Set obj = IAccessibleFromHwnd(hWnd)
+    Call acc.SetIAccessible(obj)
     Set FromHwnd = acc
 End Function
-Public Function FromExcel() As STD_Automation_Accesibility
-    Set FromExcel = FromHwnd(Application.hwnd)
+Public Function FromExcel() As stdAcc
+    Set FromExcel = FromHwnd(Application.hWnd)
 End Function
-Public Function FromDesktop() As STD_Automation_Accesibility
+Public Function FromDesktop() As stdAcc
     'Get this application's accessibility object
     Dim accThis As IAccessible
-    Set accThis = IAccessibleFromHwnd(Application.hwnd)
+    Set accThis = IAccessibleFromHwnd(Application.hWnd)
     
     'Set desktop
     Dim accDesktop As IAccessible
     Set accDesktop = accThis.accParent
     
-    Dim acc As New STD_Automation_Accesibility
-    Call acc.SetOAcc(accDesktop)
+    Dim acc As New stdAcc
+    Call acc.SetIAccessible(accDesktop)
     Set FromDesktop = acc
 End Function
-Public Function FromIAccessible(ByRef obj As IAccessible) As STD_Automation_Accesibility
-    Set FromIAccessible = New STD_Automation_Accesibility
-    Call FromIAccessible.SetOAcc(obj)
+Public Function FromIAccessible(ByRef obj As IAccessible) As stdAcc
+    Set FromIAccessible = New stdAcc
+    Call FromIAccessible.SetIAccessible(obj)
 End Function
-Public Function FromMouse() As STD_Automation_Accesibility
+Public Function FromMouse() As stdAcc
     Dim pt As tPOINT
     Dim success As Long
     success = GetCursorPos(pt)
     Set FromMouse = Me.FromPoint(pt.x, pt.y)
 End Function
-Public Function FromPath(ByVal sPath As String) As STD_Automation_Accesibility
+Public Function FromPath(ByVal sPath As String) As stdAcc
     'If starting with "." remove it
     If Left(sPath, 1) = "." Then sPath = Mid(sPath, 2)
     
@@ -89,7 +89,7 @@ Public Function FromPath(ByVal sPath As String) As STD_Automation_Accesibility
     descendants = Split(sPath, ".")
     
     'Initiate acc (used for tracing through descendants)
-    Dim acc As STD_Automation_Accesibility
+    Dim acc As stdAcc
     Set acc = Me
     
     'Loop over descendants
@@ -102,19 +102,122 @@ Public Function FromPath(ByVal sPath As String) As STD_Automation_Accesibility
     Set FromPath = acc
 End Function
 
+Public Function GetDescendents() As Collection
+    'Create collection which will be returned
+    Dim c As Collection
+    Set c = New Collection
+    
+    'Loop over all children...
+    Dim accChild As stdAcc, accDesc As stdAcc
+    For Each accChild In children
+        'Add children to collection
+        c.Add accChild
+        
+        'Loop over descendents and add these to collection also (recurse)
+        For Each accDesc In accChild.GetDescendents
+            c.Add accDesc
+        Next
+    Next
+    
+    'Return descendents
+    Set GetDescendents = c
+End Function
+
+Private Function QueryTest(ByRef acc As stdAcc, ByVal sQuery As String) As Boolean
+    'Optimisation - only split once!
+    Static sOldQuery As String, oldQuery As Variant
+    If sOldQuery <> sQuery Then
+        sOldQuery = sQuery
+        oldQuery = Split(sQuery, "&")
+    End If
+    
+    Dim b As Boolean: b = True
+    For i = 0 To UBound(oldQuery)
+        'Test various conditions
+        Dim sField As String, sValue As String
+        If UBound(Split(oldQuery(i), "=")) = 0 Then
+            Debug.Print "Invalid syntax: Field=Value required"
+            Exit Function
+        End If
+        sField = UCase(Trim(Split(oldQuery(i), "=")(0)))
+        sValue = UCase(Trim(Split(oldQuery(i), "=")(1)))
+        Select Case sField
+            Case "NAME"
+                b = b And UCase(acc.Name) Like sValue
+            Case "DESCRIPTION"
+                b = b And UCase(acc.Description) Like sValue
+            Case "VALUE"
+                b = b And UCase(acc.Value) Like sValue
+            Case "KEYBOARDSHORTCUT", "SHORTCUT"
+                b = b And UCase(acc.KeyboardShortcut) Like sValue
+            Case "HELP"
+                b = b And UCase(acc.Help) Like sValue
+            Case "ROLE"
+                b = b And UCase(acc.Role) Like sValue
+            Case "HELPTOPIC"
+                b = b And UCase(acc.HelpTopic) Like sValue
+        End Select
+    Next
+    
+    QueryTest = b
+End Function
+
+'Syntax: FindFirst("Name=*hello*&role=*WINDOW")
+Public Function FindFirst(ByVal sQuery As String) As stdAcc
+    'Test this object...
+    Dim accChild As stdAcc
+    If QueryTest(Me, sQuery) Then
+        Set FindFirst = Me
+        Exit Function
+    End If
+    
+    'Recursively call on children
+    Dim vDesc As stdAcc
+    For Each accChild In children
+        Set vDesc = accChild.FindFirst(sQuery)
+        If Not vDesc Is Nothing Then
+            Set FindFirst = vDesc
+            Exit Function
+        End If
+    Next
+    
+    'Just make sure no freezing occurs
+    DoEvents
+    
+    'Else set to nothing
+    Set FindFirst = Nothing
+End Function
+
+'Syntax: FindAll("Name=*hello*&role=*WINDOW")
+Public Function FindAll(ByVal sQuery As String) As Collection
+    Dim ret As Collection
+    Set ret = New Collection
+    
+    'Loop through all descendents
+    Dim desc As stdAcc
+    For Each desc In Me.GetDescendents()
+        'If all conditions match, return desc
+        If QueryTest(desc, sQuery) Then
+            ret.Add desc
+        End If
+    Next
+    
+    'return all found matches
+    Set FindAll = ret
+End Function
 
 'Complex properties
-Public Property Get parent() As STD_Automation_Accesibility
+Public Property Get Parent() As stdAcc
     If Me.proxy Then
-        Set parent = Me.proxyParent
+        Set Parent = Me.proxyParent
     End If
     On Error GoTo handle_error
-        Set parent = New STD_Automation_Accesibility
-        Call parent.SetOAcc(oAcc.accParent)
+        Set Parent = New stdAcc
+        Call Parent.SetIAccessible(oAcc.accParent)
     On Error GoTo 0
     Exit Property
 handle_error:
-    Set parent = Nothing
+    Set Parent = Nothing
 End Property
 
 Public Property Get children() As Collection
@@ -126,15 +229,15 @@ ErrorHandler:
     Set children = New Collection
 End Property
 
-Public Property Get hwnd()
+Public Property Get hWnd()
     On Error GoTo handle_error
         Dim lHwnd As Long
         WindowFromAccessibleObject oAcc, lHwnd
-        hwnd = lHwnd
+        hWnd = lHwnd
     On Error GoTo 0
     Exit Property
 handle_error:
-    hwnd = 0
+    hWnd = 0
 End Property
 
 Public Property Get Location() As Collection
@@ -159,9 +262,11 @@ ErrorHandler:
     Set Location = Nothing
 End Property
 
-Public Property Get HitTest() As STD_Automation_Accesibility
-    Set HitTest = New STD_Automation_Accesibility
-    Call HitTest.SetOAcc(oAcc.accHitTest())
+Public Property Get HitTest(x As Long, y As Long) As stdAcc
+    Set HitTest = New stdAcc
+    Dim NewAcc As Object
+    Call oAcc.accHitTest(x, y, NewAcc)
+    Call HitTest.SetIAccessible(NewAcc)
 End Property
 
 Public Property Get Selection() As Object
@@ -230,6 +335,13 @@ Public Property Get HelpTopic() As String
     HelpTopic = oAcc.accHelpTopic
 End Property
 
+Public Property Get Text() As String
+    If Len(Me.Name & Me.Value & Me.DefaultAction & Me.Description & Me.Help & Me.HelpTopic & Me.KeyboardShortcut) > 0 Then
+        Text = Me.Name & ":" & Me.Value & "@" & Me.DefaultAction & "-" & Me.Description & ";" & Me.Help & ";" & Me.HelpTopic & ";" & Me.KeyboardShortcut
+    Else
+        Text = ""
+    End If
+End Property
 
 Public Function DoDefaultAction()
     If Me.proxy Then
@@ -257,14 +369,14 @@ End Function
 '  accHelpTopic         - Get help file if provided
 
 'Retrieve the IAccessible interface from a window handle
-Private Function IAccessibleFromHwnd(hwnd As Long) As IAccessible
+Private Function IAccessibleFromHwnd(hWnd As Long) As IAccessible
     ' Define the GUID for the IAccessible object {618736E0-3C3D-11CF-810C-00AA00389B71}
     Dim Guid As tGUID
     Guid = convertGUID("618736E0-3C3D-11CF-810C-00AA00389B71")
    
     ' Retrieve the IAccessible object from the window
     Dim oIA As IAccessible, lReturn As Long
-    lReturn = AccessibleObjectFromWindow(hwnd, 0, Guid, oIA)
+    lReturn = AccessibleObjectFromWindow(hWnd, 0, Guid, oIA)
     Set IAccessibleFromHwnd = oIA
 End Function
 
@@ -305,7 +417,7 @@ End Function
 Private Function accDesktop() As IAccessible
     'Get this application's accessibility object
     Dim accThis As IAccessible
-    Set accThis = IAccessibleFromHwnd(Application.hwnd)
+    Set accThis = IAccessibleFromHwnd(Application.hWnd)
     
     'Set desktop
     Set accDesktop = accThis.accParent
@@ -317,9 +429,11 @@ Private Function getChildrenAsIAcc() As Collection
     
     Set getChildrenAsIAcc = New Collection
     Dim child As Variant
-    For Each child In children
+    For iChildID = 1 To Me.GetIAccessible().accChildCount
+        
+        Set child = children(iChildID)
         If VarType(child) = vbLong Then 'creates a proxy child to proxy all requests.
-            getChildrenAsIAcc.Add createProxyChild(child)
+            getChildrenAsIAcc.Add createProxyChild(iChildID)
         Else
             Dim oAccessible As IAccessible
             Set oAccessible = child
@@ -345,12 +459,13 @@ End Function
 '  accSelect            - Modify selection of objects
 '  accHelp              - Get help text if provided
 '  accHelpTopic         - Get help file if provided
-Private Function createProxyChild(ByVal childID As Long) As STD_Automation_Accesibility
-    Dim acc As New STD_Automation_Accesibility
+Private Function createProxyChild(ByVal childID As Long) As stdAcc
+    Dim acc As stdAcc
+    Set acc = New stdAcc
     acc.proxy = True
     
     On Error Resume Next
-    Set acc.parent = Me
+    Set acc.Parent = Me
     acc.proxyIndex = childID
     acc.proxyInfo = CreateObject("Scripting.Dictionary")
     acc.proxyInfo.Add "Name", oAcc.accName(childID - 1)
@@ -376,7 +491,7 @@ Private Function getAccChildren(obj As IAccessible) As Collection
     ReDim arr(1 To obj.accChildCount)
     
     Dim d
-    Call MSAA.AccessibleChildren(obj, 0, obj.accChildCount, arr(1), d)
+    Call AccessibleChildren(obj, 0, obj.accChildCount, arr(1), d)
     
     Dim col As New Collection
     Dim i As Integer
@@ -587,9 +702,9 @@ Private Sub SetupDicts()
     ACC_ROLES.Add &H3D&, "ROLE_CLOCK"
 End Sub
 
-Public Function getPath(Optional toAccessible As STD_Automation_Accesibility = Nothing) As String
+Public Function getPath(Optional toAccessible As stdAcc = Nothing) As String
     'Initialise trace
-    Dim acc As STD_Automation_Accesibility
+    Dim acc As stdAcc
     Set acc = Me
     
     'Collection to store path
@@ -597,13 +712,13 @@ Public Function getPath(Optional toAccessible As STD_Automation_Accesibility = N
     
     
     'Collect parents
-    While Not acc.parent.Name = "Desktop"
-        Dim child As STD_Automation_Accesibility
+    While Not acc.Parent.Name = "Desktop"
+        Dim child As stdAcc
         Dim index As Long
         index = 0
-        For Each child In acc.parent.children
+        For Each child In acc.Parent.children
             index = index + 1
-            If child.hwnd = acc.hwnd And child.Role = acc.Role Then
+            If child.hWnd = acc.hWnd And child.Role = acc.Role Then
                 Exit For
             End If
         Next
@@ -612,7 +727,7 @@ Public Function getPath(Optional toAccessible As STD_Automation_Accesibility = N
         col.Add index
                 
         'Elevate parent
-        Set acc = acc.parent
+        Set acc = acc.Parent
     Wend
     
     'Create path
@@ -647,7 +762,7 @@ Function toJSON() As String
     'Get children string
     Dim sChildren As String
     sChildren = ""
-    Dim acc As STD_Automation_Accesibility
+    Dim acc As stdAcc
     For Each acc In Me.children
         sChildren = sChildren & "," & acc.toJSON()
     Next
@@ -674,9 +789,13 @@ Private Function jsonEscape(ByVal s As String) As String
     jsonEscape = s
 End Function
 
-Friend Sub SetOAcc(ByRef acc As Object)
+Friend Sub SetIAccessible(ByRef acc As Object)
     Set oAcc = acc
 End Sub
+Public Function GetIAccessible() As Object
+    Set GetIAccessible = oAcc
+End Function
+
 
 Public Sub AssertFalse()
     Debug.Assert False
@@ -685,5 +804,4 @@ End Sub
 Private Sub Class_Initialize()
     Call SetupDicts
 End Sub
-
 
