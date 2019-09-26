@@ -11,6 +11,7 @@ Attribute VB_Exposed = False
 '   C:\Windows\Microsoft.NET\Framework\v4.0.30319\mscoree.tlb    "Common language runtime execution engine"
 'and
 '   C:\Windows\Microsoft.NET\Framework\v4.0.30319\mscorlib.tlb
+'TODO Look at: '   https://forum.powerbasic.com/forum/user-to-user-discussions/programming-with-objects/47869-passing-interface-to-function-to-be-created/page2
 
 Const CLR$ = "v4.0.30319"
 Public AppDomain As mscorlib.AppDomain
