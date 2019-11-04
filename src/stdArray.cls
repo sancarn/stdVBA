@@ -15,66 +15,96 @@ Attribute VB_Exposed = False
 '* Add methods from ruby
 '* Documentation of methods
 
+#If VBA6 Then
+  Private Declare PtrSafe Sub VariantCopy Lib "oleaut32.dll" (ByRef pvargDest As Variant, ByRef pvargSrc As Variant)
+ 
+#Else
+  Private Declare Sub VariantCopy Lib "oleaut32.dll" (ByRef pvargDest As Variant, ByRef pvargSrc As Variant)
+#End If
+
 Public Enum SortDirection
     Ascending = 1
     Descending = 2
 End Enum
 
 Private pArr As Variant
-Private pInitialised as Boolean
+Private pInitialised As Boolean
 
-Public Function Create(ParamArray params() As Variant) As clsDynamicArray
-    set Create = New clsDynamicArray
-    Create.Arr = params
+Public Function Create(ParamArray params() As Variant) As stdArray
+    Set Create = New stdArray
+    Dim v() As Variant
+    If UBound(params) = -1 And LBound(params) = 0 Then
+        Create.arr = v
+    Else
+      ReDim v(0 To UBound(params))
+      v = params
+      Create.arr = v
+    End If
+    
     Create.Init
 End Function
 
-Property Get Arr() as variant
-  Arr = pArr
+Public Function FromArray(ByVal arr As Variant) As stdArray
+    Set FromArray = New stdArray
+    FromArray.arr = arr
+    FromArray.Init
+End Function
+
+Property Get arr() As Variant
+  arr = pArr
 End Property
 
-Property set Arr(val as variant)
-  if not pInitialised then
+Property Let arr(val As Variant)
+  If Not pInitialised Then
     pArr = val
-  else
-    Err.Raise 0, "STD.Types.Array::setArr()", "Cannot set array of already initialised array."
-  end if
+    
+  Else
+    Err.Raise 0, "STD.Types.Array::letArr()", "Cannot set array of already initialised array."
+  End If
 End Property
 
 Friend Sub Init()
-  if not pInitialised then
-    pInitialised = true
+  If Not pInitialised Then
+    pInitialised = True
   End If
 End Sub
 
 Public Sub push(ByVal el As Variant)
-  If pInitialised then
-    If IsArrayAllocated(pArr) then
+  If pInitialised Then
+    If IsArrayAllocated(pArr) Then
       ReDim Preserve pArr(UBound(pArr) + 1)
-      pArr(UBound(pArr)) = el
+      If IsObject(el) Then
+        Set pArr(UBound(pArr)) = el
+      Else
+        pArr(UBound(pArr)) = el
+      End If
     Else
       ReDim Preserve pArr(0)
-      pArr(0) = e
-    End if
+      If IsObject(el) Then
+        Set pArr(0) = el
+      Else
+        pArr(0) = el
+      End If
+    End If
   Else
     'Error
   End If
 End Sub
 
-Public Function pop() as variant
-  If pInitialised then
-    If IsArrayAllocated(pArr) then
+Public Function pop() As Variant
+  If pInitialised Then
+    If IsArrayAllocated(pArr) Then
       pop = pArr(UBound(pArr))
       ReDim Preserve pArr(UBound(pArr) - 1)
     End If
   Else
     'Error
-  End If  
+  End If
 End Function
 
-Public Function shift() as variant
-  If pInitialised then
-    If IsArrayAllocated(pArr) then
+Public Function shift() As Variant
+  If pInitialised Then
+    If IsArrayAllocated(pArr) Then
       shift = pArr(LBound(pArr))
       ReDim Preserve pArr(LBound(pArr) + 1, UBound(pArr)) 'This may not work?
     End If
@@ -82,29 +112,29 @@ Public Function shift() as variant
     'Error
   End If
 End Function
-Public Function unshift(val as variant) as stdArray
-  If pInitialised then
-    If IsArrayAllocated(pArr) then
+Public Function unshift(val As Variant) As stdArray
+  If pInitialised Then
+    If IsArrayAllocated(pArr) Then
       ReDim Preserve pArr(LBound(pArr) - 1, UBound(pArr)) 'This may not work?
       pArr(LBound(pArr)) = val
     End If
   Else
     'Error
   End If
-  set unshift = Me
+  Set unshift = Me
 End Function
 
-Public Function Slice() as stdArray
+Public Function Slice() As stdArray
 
 End Function
 
-Public Function Splice() as stdArray
+Public Function Splice() As stdArray
 
 End Function
 
 Public Function Join(Optional ByVal delimeter As String = ",") As String
-  If pInitialised then
-    If IsArrayAllocated(pArr) then
+  If pInitialised Then
+    If IsArrayAllocated(pArr) Then
       If Length() > 0 Then
         Dim sOutput As String
         sOutput = pArr(LBound(pArr))
@@ -123,62 +153,66 @@ Public Function Join(Optional ByVal delimeter As String = ",") As String
   End If
 End Function
 
-Public Function Clone() as stdArray
-  If pInitialised then
-    set Clone = new stdArray
-    Clone.Arr = pArr
-    Clone.Init()
+Public Function Clone() As stdArray
+  If pInitialised Then
+    Set Clone = New stdArray
+    Clone.arr = pArr
+    Call Clone.Init
   Else
     'Error
   End If
 End Function
 
 
-'Iterative Functions (All require STD_Types_Callback):
-Public Function every(ByVal cb As STD_Types_Callback) as Boolean
-  If pInitialised then
-    If IsArrayAllocated(pArr) then
+'Iterative Functions (All require stdCallback):
+Public Function every(ByVal cb As stdCallback, Optional ByVal metadata As Object = Nothing) As Boolean
+  If pInitialised Then
+    If IsArrayAllocated(pArr) Then
       Dim i As Integer
       For i = LBound(pArr) To UBound(pArr)
-        If Not cb.call(pArr(i)) then
-          every = false
+        If Not IIf(metadata Is Nothing, cb(pArr(i)), cb(metadata, pArr(i))) Then
+          every = False
           Exit Function
         End If
       Next
-      evert = true
+      evert = True
     Else
-      every = false
-    End if
+      every = False
+    End If
   Else
     'Error
   End If
 End Function
 
-Public Function some(ByVal cb As STD_Types_Callback) as Boolean
-  If pInitialised then
-    If IsArrayAllocated(pArr) then
-      Dim i As Integer, test as boolean
+Public Function some(ByVal cb As stdCallback, Optional ByVal metadata As Object = Nothing) As Boolean
+  If pInitialised Then
+    If IsArrayAllocated(pArr) Then
+      Dim i As Integer, test As Boolean
       For i = LBound(pArr) To UBound(pArr)
-        If cb.call(pArr(i)) then
-          some = true
+        If IIf(metadata Is Nothing, cb(pArr(i)), cb(metadata, pArr(i))) Then
+          some = True
           Exit Function
         End If
       Next
-      some = false
+      some = False
     Else
-      some = false
-    End if
+      some = False
+    End If
   Else
     'Error
   End If
 End Function
 
-Public Sub forEach(ByVal cb As STD_Types_Callback)
-  If pInitialised then
-    If IsArrayAllocated(pArr) then
+Public Sub forEach(ByVal cb As stdCallback, Optional ByVal metadata As Object = Nothing)
+  If pInitialised Then
+    If IsArrayAllocated(pArr) Then
       Dim i As Integer
       For i = LBound(pArr) To UBound(pArr)
-        Call cb.call(pArr(i))
+        If metadata Is Nothing Then
+            Call cb(pArr(i))
+        Else
+            Call cb(metadata, pArr(i))
+        End If
       Next
     End If
   Else
@@ -186,29 +220,93 @@ Public Sub forEach(ByVal cb As STD_Types_Callback)
   End If
 End Sub
 
-Public Function Map(ByVal cb as STD_Types_Callback) as stdArray
-  If pInitialised then
-    Dim pMap as stdArray
-    set pMap = Me.Clone()
-    If IsArrayAllocated(pArr) then
+Public Function Map(ByVal cb As stdCallback, Optional ByVal metadata As Object = Nothing) As stdArray
+  If pInitialised Then
+    Dim pMap As stdArray
+    Set pMap = Me.Clone()
+    If IsArrayAllocated(pArr) Then
       Dim i As Integer
       For i = LBound(pArr) To UBound(pArr)
-        pMap(i) = cb.call(pArr(i))
+        'BUGFIX: Sometimes required, not sure when
+        Dim v As Variant
+        If IsObject(pArr(i)) Then
+            Set v = pArr(i)
+        Else
+            v = pArr(i)
+        End If
+        
+        'Call callback based on metadata
+        If metadata Is Nothing Then
+            pMap(i) = cb(v)
+        Else
+            pMap(i) = cb(metadata, v)
+        End If
       Next
     End If
-    set Map = pMap
+    Set Map = pMap
   Else
     'Error
   End If
 End Function
 
-Public Function Reduce(ByVal cb as STD_Types_Callback, Optional ByVal initialValue as Variant) as variant
-  If pInitialised then
-    If IsArrayAllocated(pArr) then
+'OPTIMISE: Needs optimisation. Currently very sub-optimal
+Public Function Unique(Optional ByVal cb As stdCallback = Nothing, Optional ByVal metadata As Variant) As stdArray
+  Dim ret As stdArray
+  Set ret = New stdArray
+  
+  Dim o As Object
+  Set o = CreateObject("Scripting.Dictionary")
+  Dim vKey As Variant
+  
+  'If cb is nothing then we can optimise this a bit further...
+  If cb Is Nothing Then
+    For i = 1 To Length
+      VariantCopy vKey, Me.item(i)
+      If IsEmpty(o(vKey)) Then
+        VariantCopy o(vKey), Me.item(i)
+      End If
+    Next
+  Else
+    For i = 1 To Length
+      'Filter based on key whose content's comes from callback
+      If metadata Is Nothing Then
+        VariantCopy vKey, cb(Me.item(i))
+      Else
+        VariantCopy vKey, cb(metadata, Me.item(i))
+      End If
+      
+      'Get unique
+      If IsEmpty(o(vKey)) Then
+        VariantCopy o(vKey), Me.item(i)
+      End If
+    Next
+  End If
+  
+  'Loop return objects and return
+  For Each vKey In o.keys()
+    ret.push o(vKey)
+  Next
+  
+  'Return data
+  Set Unique = ret
+End Function
+
+Public Function Reduce(ByVal cb As stdCallback, Optional ByVal initialValue As Variant) As Variant
+  If pInitialised Then
+    If IsArrayAllocated(pArr) Then
       Reduce = initialValue
       Dim i As Integer
       For i = LBound(pArr) To UBound(pArr)
-        Reduce = cb.call(Reduce,pArr(i))
+        'BUGFIX: Sometimes required, not sure when
+        Dim el As Variant
+        If IsObject(pArr(i)) Then
+            Set el = pArr(i)
+        Else
+            el = pArr(i)
+        End If
+        
+        'Reduce
+        Reduce = cb(Reduce, el)
       Next
     Else
       Reduce = initialValue
@@ -218,8 +316,95 @@ Public Function Reduce(ByVal cb as STD_Types_Callback, Optional ByVal initialVal
   End If
 End Function
 
-Public Function Sort(ByVal cb as STD_Types_Callback) as stdArray
-  Msgbox "NOT IMPLEMENTED"
+Public Function Filter(ByVal cb As stdCallback, Optional ByVal metadata As Object = Nothing) As stdArray
+    Dim ret As stdArray
+    Set ret = stdArray.Create()
+    Set Filter = ret
+    
+    'If initialised...
+    If pInitialised Then
+        Dim i As Long, v As Variant
+        'Loop over array
+        For i = 1 To Me.Length
+            'If callback succeeds (include metadata if given)
+            If metadata Is Nothing Then
+                If cb(Me.item(i)) Then
+                    Call ret.push(Me.item(i))
+                End If
+            Else
+                If cb(metadata, Me.item(i)) Then
+                    Call ret.push(Me.item(i))
+                End If
+            End If
+        Next i
+    Else
+        'error
+    End If
+End Function
+
+Public Function Count(Optional ByVal v As Variant, Optional ByVal metadata As Object = Nothing) As Long
+    Dim i As Long, lCount As Long
+    lCount = 0
+    'Count by stdCallback condition
+    If TypeName(v) = "stdCallback" Then
+        For i = 1 To Me.Length
+            If IIf(metadata Is Nothing, v(Me.item(i)), v(metadata, Me.item(i))) Then
+                lCount = lCount + 1
+            End If
+        Next i
+    
+    'Count value in an array
+    ElseIf Not IsEmpty(v) Then
+        For i = 1 To Me.Length
+            If IsObject(Me.item(i)) Then
+                If Me.item(i) Is v Then
+                    lCount = lCount + 1
+                End If
+            Else
+                If Me.item(i) = v Then
+                    lCount = lCount + 1
+                End If
+            End If
+        Next i
+    
+    'Return count of all items
+    Else
+        lCount = Me.Length
+    End If
+    
+    'Return count
+    Count = lCount
+End Function
+
+Public Function groupBy(ByVal cb As stdCallback, Optional ByVal metadata As Object) As Object
+    'Array to store result in
+    Dim result As Object
+    Set result = CreateObject("Scripting.Dictionary")
+    
+    'Loop over items
+    Dim i As Long
+    For i = 1 To Me.Length
+        'Get grouping key
+        Dim key As Variant
+        If metadata Is Nothing Then
+          key = cb(Me.item(i))
+        Else
+          key = cb(metadata, Me.item(i))
+        End If
+        
+        'If key is not set then set it
+        If IsEmpty(result(key)) Then Set result(key) = stdArray.Create()
+        
+        'Push item to key
+        result(key).push Me.item(i)
+    Next
+    
+    'Return result
+    Set groupBy = result
+End Function
+
+Public Function Sort(ByVal cb As stdCallback) As stdArray
+  MsgBox "NOT IMPLEMENTED"
   Debug.Assert False
 End Function
 
@@ -240,9 +425,9 @@ Public Sub Reverse()
     ReverseArrayInPlace2 pArr
 End Sub
 
-Public Function indexOf(ByVal el As Variant,Optional ByVal start as integer)
-  If not start then start = UBound(pArr)
-  if start < 0 then start = UBound(pArr) - start + 1
+Public Function indexOf(ByVal el As Variant, Optional ByVal start As Integer)
+  If Not start Then start = UBound(pArr)
+  If start < 0 Then start = UBound(pArr) - start + 1
   
   'find the index of an item in the array. If array doesn't contain item, return -1
   Dim i As Integer
@@ -255,13 +440,13 @@ Public Function indexOf(ByVal el As Variant,Optional ByVal start as integer)
   indexOf = -1
 End Function
 
-Public Function lastIndexOf(ByVal el as Variant,Optional ByVal start as integer)
-  If not start then start = UBound(pArr)
-  if start < 0 then start = UBound(pArr) - start + 1
+Public Function lastIndexOf(ByVal el As Variant, Optional ByVal start As Integer)
+  If Not start Then start = UBound(pArr)
+  If start < 0 Then start = UBound(pArr) - start + 1
   
   'find the index of an item in the array. If array doesn't contain item, return -1
   Dim i As Integer
-  For i = start to LBound(pArr) step -1
+  For i = start To LBound(pArr) Step -1
     If pArr(i) = el Then
       indexOf = i
       Exit Function
@@ -270,25 +455,62 @@ Public Function lastIndexOf(ByVal el as Variant,Optional ByVal start as integer)
   indexOf = -1
 End Function
 
-Public Function includes(ByVal el as variant, Optional ByVal startFrom as Integer = -1) as boolean
+Public Function includes(ByVal el As Variant, Optional ByVal startFrom As Integer = -1) As Boolean
   includes = indexOf(el) >= startFrom
 End Function
 
-Public Function Length()
+Public Function Length() As Long
     'get the total number of elements in the array
-    Length = UBound(pArr) - LBound(pArr) + 1
+    If pInitialised Then
+      On Error Resume Next
+        Length = UBound(pArr) - LBound(pArr) + 1
+      On Error GoTo 0
+    Else
+      'STD.Error.Raise(...)
+    End If
 End Function
 
 Public Function item(ByVal i As Integer)
     'item(1) = 1st element
     'item(2) = 2nd element
     'etc.
-    item = pArr(LBound(pArr) + i - 1)
+    If IsObject(pArr(LBound(pArr) + i - 1)) Then
+      Set item = pArr(LBound(pArr) + i - 1)
+    Else
+      item = pArr(LBound(pArr) + i - 1)
+    End If
 End Function
 
 
-
-
+Public Sub test()
+  On Error Resume Next
+  
+  Debug.Print "1-Generic tests:"
+  Dim v As stdArray:
+  Set v = stdArray.Create(1)
+  Debug.Print "1-1:" & (v.item(0) = 1)
+  Call v.push(2)
+  Debug.Print "1-2:" & (v.item(0) = 1)
+  Debug.Print "1-3:" & (v.item(1) = 2)
+  
+  'Test object pushing and access
+  Dim o As Object
+  Set o = CreateObject("Scripting.Dictionary")
+  o("hello") = "world"
+  Call v.push(o)
+  Debug.Print "1-4:" & (v.item(2)("hello") = "world")
+  
+  Debug.Print "2-Length tests:"
+  Debug.Print "2-1:" & (stdArray.Create().Length = 0)
+  Debug.Print "2-2:" & (stdArray.Create(1).Length = 1)
+  Debug.Print "2-3:" & (stdArray.Create(1, 2).Length = 2)
+  
+  
+  If Not IsEmpty(stdCallback) Then
+    Debug.Print "9-stdCallback tests"
+    
+  End If
+End Sub
 
 
 
@@ -706,14 +928,14 @@ Private Function NumberOfArrayDimensions(arr As Variant) As Integer
     ' has 0 dimensions. This condition can also be tested with IsArrayEmpty.
     '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
     Dim Ndx As Integer
-    Dim Res As Integer
+    Dim res As Integer
     On Error Resume Next
     ' Loop, increasing the dimension index Ndx, until an error occurs.
     ' An error will occur when Ndx exceeds the number of dimension
     ' in the array. Return Ndx - 1.
     Do
         Ndx = Ndx + 1
-        Res = UBound(arr, Ndx)
+        res = UBound(arr, Ndx)
     Loop Until Err.Number <> 0
     
     NumberOfArrayDimensions = Ndx - 1

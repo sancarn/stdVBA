@@ -17,21 +17,21 @@ Attribute VB_Exposed = True
 '   Sub main()
 '     Dim cb As stdCallback
 '     Set cb = stdCallback.Create("Object", Me, "f")
-'     
+'
 '     Dim x As Variant
 '     Set x = cb()
 '     Debug.Print x.Count
-'     
+'
 '     '---------------------------------------
-'     
+'
 '     Dim cbv As stdCallback
 '     Set cbv = stdCallback.Create("Object", Me, "g")
-'     
+'
 '     Dim v As Variant
 '     v = cbv()
 '     Debug.Print v
 '   End Sub
-'   
+'
 '   Function f() As Variant
 '     Set f = New Collection
 '   End Function
@@ -43,21 +43,21 @@ Attribute VB_Exposed = True
 '   Sub main()
 '     Dim cb As stdCallback
 '     Set cb = stdCallback.Create("Module", "MyModuleName", "f")
-'     
+'
 '     Dim x As Variant
 '     Set x = cb()
 '     Debug.Print x.Count
-'     
+'
 '     '---------------------------------------
-'     
+'
 '     Dim cbv As stdCallback
 '     Set cbv = stdCallback.Create("Module", "MyModuleName", "g")
-'     
+'
 '     Dim v As Variant
 '     v = cbv()
 '     Debug.Print v
 '   End Sub
-'   
+'
 '   Function f() As Variant
 '     Set f = New Collection
 '   End Function
@@ -131,7 +131,6 @@ End Property
 
 Private Function StdRun(ParamArray args() As Variant) As Variant
 Attribute StdRun.VB_Description = "Run method for Win32APIs."
-Attribute StdRun.VB_UserMemId = 99
   'TODO:
 End Function
 
@@ -149,29 +148,29 @@ Attribute Pointer.VB_Description = "Gets the pointer to the Run function propert
   End If
 End Property
 
-Friend Sub init(mType As String, Parent As Variant, Name As String, cType As Integer)
-Attribute init.VB_Description = "Initialises this object. This should not be called directly unless building a ctor routine e.g. Create()."
-  if not pInitialised then
-    set Me.Callback = new Collection
+Friend Sub Init(mType As String, Parent As Variant, Name As String, cType As Integer)
+Attribute Init.VB_Description = "Initialises this object. This should not be called directly unless building a ctor routine e.g. Create()."
+  If Not pInitialised Then
+    Set Me.Callback = New Collection
     Me.Callback.add mType, "Type"
     Me.Callback.add Parent, "Parent"
     Me.Callback.add Name, "Name"
     Me.Callback.add cType, "cType"
-  else
+  Else
     Err.Raise 1, "stdCallback::init()", "Class is already initialised"
-  end if
+  End If
   pInitialised = True
 End Sub
 
 'Create a callback object:
 Public Function Create(mType As String, Parent As Variant, Name As String, Optional cType As Integer = VbCallType.VbMethod) As stdCallback
 Attribute Create.VB_Description = "Creates an instance of this class."
-  if mType = "Module" or mType = "Object" then
+  If mType = "Module" Or mType = "Object" Then
     Set Create = New stdCallback
-    Call Create.init(mType,Parent,Name,cType)
-  else
+    Call Create.Init(mType, Parent, Name, cType)
+  Else
     Err.Raise 1, "stdCallback::create()", "Incorrect module type supplied"
-  end if
+  End If
 End Function
 
 'Examples:
@@ -221,22 +220,23 @@ Private Function CallCallback(args() As Variant) As Variant
     'Call GetMem4(vp, vRet)
     
     VariantCopy CallCallback, Application.Run( _
-      Callback("Parent") & "." & Callback("Name"), _
-      args(0), args(1), _
-      args(2), args(3), _
-      args(4), args(5), _
-      args(6), args(7), _
-      args(8), args(9), _
-      args(10), args(11), _
-      args(12), args(13), _
-      args(14), args(15), _
-      args(16), args(17), _
-      args(18), args(19), _
-      args(20), args(21), _
-      args(22), args(23), _
-      args(24), args(25), _
-      args(26), args(27), _
-      args(28), args(29))
+        pCallback("Parent") & "." & pCallback("Name"), _
+        args(0), args(1), _
+        args(2), args(3), _
+        args(4), args(5), _
+        args(6), args(7), _
+        args(8), args(9), _
+        args(10), args(11), _
+        args(12), args(13), _
+        args(14), args(15), _
+        args(16), args(17), _
+        args(18), args(19), _
+        args(20), args(21), _
+        args(22), args(23), _
+        args(24), args(25), _
+        args(26), args(27), _
+        args(28), args(29))
+
   ElseIf Callback("Type") = "Object" Then
     'Call function directly
     'Use rtcCallByName to avoid type errors from argument array
