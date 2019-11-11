@@ -105,7 +105,7 @@ There are several ways to contribute code to the project:
 Please make sure code contributions follow the following guidelines:
 
 * `MyClass.cls` should have `Attribute VB_PredeclaredId = True`. 
-* `Attribute VB_Name` should follow the STD convention e.g. `"STD_SomeNamespace_MyClass"`
+* `Attribute VB_Name` should follow the STD convention e.g. `"stdMyClass"`
 * Follow the STD constructor convention `MyClass.Create(...)`.
 * Ensure there are plenty of comments where required.
 
