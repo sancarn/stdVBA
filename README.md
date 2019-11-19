@@ -112,3 +112,9 @@ Please make sure code contributions follow the following guidelines:
 As long as these standard conventions are met, the rest is up to you! Just try to be as general as possible! We're not necessarily looking for optimised code, at the moment we're just looking for code that works!
 
 > Note: Ensure that all code is written by you. If the code is not written by you, you will be responsible for any repercussions!
+
+## Inspiration documents
+
+Inspiration was initially stored in this repository, however the vast swathes of examples, knowledge and data became too big for this repository, therefore it was move to:
+
+https://github.com/sancarn/VBA-STD-Lib-Inspiration
