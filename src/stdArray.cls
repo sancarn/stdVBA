@@ -426,7 +426,7 @@ Public Sub Reverse()
 End Sub
 
 Public Function indexOf(ByVal el As Variant, Optional ByVal start As Integer)
-  If Not start Then start = UBound(pArr)
+  If Not start Then start = LBound(pArr)
   If start < 0 Then start = UBound(pArr) - start + 1
   
   'find the index of an item in the array. If array doesn't contain item, return -1
