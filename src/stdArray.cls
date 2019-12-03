@@ -7,16 +7,13 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
-
-
-
 '@TODO:
 '* Implement Exceptions throughout all Array functions.
 '* Fully implement pInitialised where necessary.
 '* Build Methods Slice; Splice; Sort
 '* Add methods from ruby
 '* Documentation of methods
-'* Optimisation require e.g. Variant arrays are slow!
+'* Optimisation: E.G. Variant arrays are slow
 
 #If VBA6 Then
   Private Declare PtrSafe Sub VariantCopy Lib "oleaut32.dll" (ByRef pvargDest As Variant, ByRef pvargSrc As Variant)
