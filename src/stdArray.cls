@@ -1,13 +1,3 @@
-VERSION 1.0 CLASS
-BEGIN
-  MultiUse = -1  'True
-END
-Attribute VB_Name = "stdArray"
-Attribute VB_GlobalNameSpace = False
-Attribute VB_Creatable = False
-Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = False
-
 '@TODO:
 '* Implement Exceptions throughout all Array functions.
 '* Fully implement pInitialised where necessary.
@@ -26,7 +16,13 @@ Public Enum SortDirection
     Ascending = 1
     Descending = 2
 End Enum
+Private Enum AllocationEnum
+    isNotCalculated = 0
+    isTrue = 1
+    isFalse = 2
+End Enum
 
+Private pAlloc As AllocationEnum
 Private pArr As Variant
 Private pInitialised As Boolean
 
@@ -71,20 +67,14 @@ End Sub
 
 Public Sub push(ByVal el As Variant)
   If pInitialised Then
-    If IsArrayAllocated(pArr) Then
+    If pAlloc = isNotCalculated Then pAlloc = AllocationCheck(pArr)
+    If pAlloc = isTrue Then
       ReDim Preserve pArr(UBound(pArr) + 1)
-      If IsObject(el) Then
-        Set pArr(UBound(pArr)) = el
-      Else
-        pArr(UBound(pArr)) = el
-      End If
+      VariantCopy pArr(UBound(pArr)), el
     Else
-      ReDim Preserve pArr(0)
-      If IsObject(el) Then
-        Set pArr(0) = el
-      Else
-        pArr(0) = el
-      End If
+      ReDim pArr(0)
+      VariantCopy pArr(0), el
+      pAlloc = isTrue
     End If
   Else
     'Error
@@ -102,10 +92,10 @@ Public Function pop() As Variant
   End If
 End Function
 
-Public Function shift() As Variant
+Public Function Shift() As Variant
   If pInitialised Then
     If IsArrayAllocated(pArr) Then
-      shift = pArr(LBound(pArr))
+      Shift = pArr(LBound(pArr))
       ReDim Preserve pArr(LBound(pArr) + 1, UBound(pArr)) 'This may not work?
     End If
   Else
@@ -130,6 +120,20 @@ End Function
 
 Public Function Splice() As stdArray
 
+End Function
+
+Public Function Concat(arr As stdArray) As stdArray
+  Dim x As stdArray
+  Set x = Me.Clone()
+  
+  If Not arr Is Nothing Then
+    Dim i As Long
+    For i = 1 To arr.Length
+      Call x.push(arr.item(i))
+    Next
+  End If
+  
+  Set Concat = x
 End Function
 
 Public Function Join(Optional ByVal delimeter As String = ",") As String
@@ -209,9 +213,10 @@ Public Sub forEach(ByVal cb As stdCallback, Optional ByVal metadata As Object = 
       Dim i As Integer
       For i = LBound(pArr) To UBound(pArr)
         If metadata Is Nothing Then
-            Call cb(pArr(i))
+            'TODO:
+            'cb pArr(i)
         Else
-            Call cb(metadata, pArr(i))
+            'cb metadata, pArr(i)
         End If
       Next
     End If
@@ -226,20 +231,20 @@ Public Function Map(ByVal cb As stdCallback, Optional ByVal metadata As Object =
     Set pMap = Me.Clone()
     If IsArrayAllocated(pArr) Then
       Dim i As Integer
-      For i = LBound(pArr) To UBound(pArr)
+      For i = 1 To Length
         'BUGFIX: Sometimes required, not sure when
         Dim v As Variant
-        If IsObject(pArr(i)) Then
-            Set v = pArr(i)
+        If IsObject(item(i)) Then
+            Set v = item(i)
         Else
-            v = pArr(i)
+            v = item(i)
         End If
         
         'Call callback based on metadata
         If metadata Is Nothing Then
-            pMap(i) = cb(v)
+            pMap.item(i) = cb(v)
         Else
-            pMap(i) = cb(metadata, v)
+            pMap.item(i) = cb.Run(metadata, v)
         End If
       Next
     End If
@@ -252,7 +257,7 @@ End Function
 'OPTIMISE: Needs optimisation. Currently very sub-optimal
 Public Function Unique(Optional ByVal cb As stdCallback = Nothing, Optional ByVal metadata As Variant) As stdArray
   Dim ret As stdArray
-  Set ret = New stdArray
+  Set ret = stdArray.Create()
   
   Dim o As Object
   Set o = CreateObject("Scripting.Dictionary")
@@ -284,7 +289,7 @@ Public Function Unique(Optional ByVal cb As stdCallback = Nothing, Optional ByVa
   
   'Loop return objects and return
   For Each vKey In o.keys()
-    ret.push o(vKey)
+    ret.push vKey
   Next
   
   'Return data
@@ -426,17 +431,20 @@ Public Sub Reverse()
 End Sub
 
 Public Function indexOf(ByVal el As Variant, Optional ByVal start As Integer)
-  If Not start Then start = LBound(pArr)
-  If start < 0 Then start = UBound(pArr) - start + 1
+  If IsArrayAllocated(pArr) Then
+    If Not start Then start = LBound(pArr)
+    If start < 0 Then start = UBound(pArr) - start + 1
+    
+    'find the index of an item in the array. If array doesn't contain item, return -1
+    Dim i As Integer
+    For i = start To UBound(pArr)
+      If pArr(i) = el Then
+        indexOf = i
+        Exit Function
+      End If
+    Next
+  End If
   
-  'find the index of an item in the array. If array doesn't contain item, return -1
-  Dim i As Integer
-  For i = start To UBound(pArr)
-    If pArr(i) = el Then
-      indexOf = i
-      Exit Function
-    End If
-  Next
   indexOf = -1
 End Function
 
@@ -448,15 +456,15 @@ Public Function lastIndexOf(ByVal el As Variant, Optional ByVal start As Integer
   Dim i As Integer
   For i = start To LBound(pArr) Step -1
     If pArr(i) = el Then
-      indexOf = i
+      lastIndexOf = i
       Exit Function
     End If
   Next
-  indexOf = -1
+  lastIndexOf = -1
 End Function
 
 Public Function includes(ByVal el As Variant, Optional ByVal startFrom As Integer = -1) As Boolean
-  includes = indexOf(el) >= startFrom
+  includes = indexOf(el) > startFrom
 End Function
 
 Public Function Length() As Long
@@ -470,7 +478,7 @@ Public Function Length() As Long
     End If
 End Function
 
-Public Function item(ByVal i As Integer)
+Public Property Get item(ByVal i As Integer) As Variant
     'item(1) = 1st element
     'item(2) = 2nd element
     'etc.
@@ -479,7 +487,13 @@ Public Function item(ByVal i As Integer)
     Else
       item = pArr(LBound(pArr) + i - 1)
     End If
-End Function
+End Property
+Public Property Set item(ByVal i As Integer, v As Object)
+  Set pArr(LBound(pArr) + i - 1) = v
+End Property
+Public Property Let item(ByVal i As Integer, v As Variant)
+  pArr(LBound(pArr) + i - 1) = v
+End Property
 
 
 Public Sub test()
@@ -1266,6 +1280,7 @@ Private Function IsSimpleDataType(v As Variant) As Boolean
 End Function
 
 Private Function IsArrayAllocated(arr As Variant) As Boolean
+    
     ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
     ' IsArrayAllocated
     ' Returns TRUE if the array is allocated (either a static array or a dynamic array that has been
@@ -1299,6 +1314,45 @@ Private Function IsArrayAllocated(arr As Variant) As Boolean
         ' Error. Unallocated array.
         '''''''''''''''''''''''''''''''''''''
         IsArrayAllocated = False
+    End If
+
+End Function
+
+Private Function AllocationCheck(arr As Variant) As AllocationEnum
+    
+    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    ' IsArrayAllocated
+    ' Returns TRUE if the array is allocated (either a static array or a dynamic array that has been
+    ' sized with Redim) or FALSE if the array has not been allocated (a dynamic that has not yet
+    ' been sized with Redim, or a dynamic array that has been Erased).
+    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    Dim n As Long
+    
+    '''''''''''''''''''''''''''''''''''''''''''''''''''
+    ' If Arr is not an array, return FALSE and get out.
+    '''''''''''''''''''''''''''''''''''''''''''''''''''
+    If IsArray(arr) = False Then
+        AllocationCheck = isFalse
+        Exit Function
+    End If
+    
+    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    ' Try to get the UBound of the array. If the array has not been allocated,
+    ' an error will occur. Test Err.Number to see if an error occured.
+    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    On Error Resume Next
+    n = UBound(arr, 1)
+    If Err.Number = 0 Then
+        '''''''''''''''''''''''''''''''''''''
+        ' No error. Array has been allocated.
+        '''''''''''''''''''''''''''''''''''''
+        AllocationCheck = isTrue
+    Else
+        '''''''''''''''''''''''''''''''''''''
+        ' Error. Unallocated array.
+        '''''''''''''''''''''''''''''''''''''
+        AllocationCheck = isFalse
     End If
 
 End Function
