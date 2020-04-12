@@ -15,6 +15,7 @@ Public Sub RefreshStack()
     Set stack = stdArray.Create()
 End Sub
 
+'TODO: It'd be cool if we could look backwards at the stack in order to get the calling object name, instead of providing it in sMethodName.
 Public Sub AddStack(ByVal sMethodName As String)
     If stack Is Nothing Then Set stack = stdArray.Create()
     stack.Push sMethodName
@@ -32,14 +33,7 @@ End Sub
 Public Function Raise(Optional ByVal sMessage As String = "", Optional ByVal Criticality As VBA.VbMsgBoxStyle = VBA.VbMsgBoxStyle.vbExclamation, Optional ByVal Title As String = "VBA Error", Optional ByVal isCritical As Boolean = True) As VBA.VbMsgBoxResult
     'Build stack trace if available
     Dim sStackTrace As String
-    If Not stack Is Nothing Then
-        sStackTrace = "Trace:" & vbCrLf
-        
-        Dim i As Long
-        For i = 1 To stack.Length
-            sStackTrace = sStackTrace & Space((i - 1) * 3) & "|- " & stack.item(i) & vbCrLf
-        Next
-    End If
+    sStackTrace = GetTrace()
     
     '
     If RaiseClient Is Nothing Then
@@ -70,6 +64,23 @@ ErrorOccurred:
     Me.AddStack "stdError::Raise()"
         Raise = Raise("stdError::Raise() Error in oMsgClient::Raise() " & Err.Description)
     Me.PopStack
+End Function
+
+
+'TODO: If we can get the stack trace directly by walking the VBA stack this would be amazing... Instead we currently have to manually add and remove method names to the stack.
+Public Function GetTrace() as String
+    'Build stack trace if available
+    Dim sStackTrace As String
+    If Not stack Is Nothing Then
+        sStackTrace = "Trace:" & vbCrLf
+        
+        Dim i As Long
+        For i = 1 To stack.Length
+            sStackTrace = sStackTrace & Space((i - 1) * 3) & "|- " & stack.item(i) & vbCrLf
+        Next
+    End If
+
+    GetTrace = sStackTrace
 End Function
 
 
