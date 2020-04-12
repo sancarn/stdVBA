@@ -44,7 +44,7 @@ Public Function Create(ParamArray params() As Variant) As stdArray
     Dim lb As Long: lb = LBound(params)
     Dim ub As Long: ub = UBound(params)
     
-    Call Create.Init(ub - lb + 1, 10)
+    Call Create.init(ub - lb + 1, 10)
     
     For i = lb To ub
         Call Create.Push(params(i))
@@ -59,7 +59,7 @@ Public Function CreateWithOptions(ByVal iInitialLength As Long, ByVal iChunking 
     Dim lb As Long: lb = LBound(params)
     Dim ub As Long: ub = UBound(params)
     
-    Call CreateWithOptions.Init(iInitialLength, iChunking)
+    Call CreateWithOptions.init(iInitialLength, iChunking)
     For i = lb To ub
         Call CreateWithOptions.Push(params(i))
     Next
@@ -72,7 +72,7 @@ Public Function CreateFromArray(ByVal arr As Variant) As stdArray
     Dim i As Long
     Dim lb As Long: lb = LBound(arr)
     Dim ub As Long: ub = UBound(arr)
-    Call CreateFromArray.Init(ub - lb + 1, 10)
+    Call CreateFromArray.init(ub - lb + 1, 10)
     
     For i = lb To ub
         Call CreateFromArray.Push(arr(i))
@@ -80,7 +80,7 @@ Public Function CreateFromArray(ByVal arr As Variant) As stdArray
 End Function
 
 
-Friend Sub Init(iInitialLength As Long, iChunking As Long)
+Friend Sub init(iInitialLength As Long, iChunking As Long)
   If iChunking > iInitialLength Then iInitialLength = iChunking
   If Not pInitialised Then
     pProxyLength = iInitialLength
@@ -557,7 +557,7 @@ End Function
 
 
 
-Public Sub test()
+Public Sub Test()
   'New stdArray tests
   Dim i As Long
   Dim x As stdArray
