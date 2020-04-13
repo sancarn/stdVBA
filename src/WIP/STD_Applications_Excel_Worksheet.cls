@@ -24,7 +24,7 @@ Public Property Set Value(obj as Worksheet)
 End Property
 
 Public Property Get ValueRange() as STD_Applications_Excel_
-    'Get used range
+  'Get used range
   Dim ur As Range
   Set ur = sht.UsedRange
 
