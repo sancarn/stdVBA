@@ -118,17 +118,20 @@ Attribute VB_Exposed = False
 '* Identify functions
 '* Identify Keywords
 
-
-
-
-
-
-
-
-
-
-
-
+'1*5+[1,2,3,{a:"hello"}]
+'
+'Literal Op(*) Literal Op(+) Wrapper([, Literal Sep Literal Sep Literal Sep Wrapper({, Key Sep Wrapper(", Literal  ,")   ,})     ,])
+'
+'General parsing process is:
+'* All all letters and numbers (i.e. \w+) are classified as literals
+'* When we come across an operator we simply mark it an move on
+'* When we come across a Wrapper:
+'  * We hand over parsing to the Wrapper (allows e.g. string wrappers to assume .+ as string literals)
+'  * Depth of wrapping effects evaluation order. 
+'  * Evaluation of wrappers is handled by the wrapper also.
+'
+'
+'TODO: Suggested Parsing algorithm  =   Shunting-yard algorithm   (https://en.wikipedia.org/wiki/Shunting-yard_algorithm)
 
 
 
