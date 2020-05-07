@@ -1,5 +1,14 @@
 'Pre requisites:
 
+'Revolution in pointers:
+'http://www.vbforums.com/showthread.php?886203-vb6-Getting-AddressOf-for-VB-Class-Object-Modules
+'
+
+
+
+
+
+
 
 
 Private Declare Sub CopyMemory Lib "Kernel32" Alias "RtlMoveMemory" (dest As Any, Source As Any, ByVal bytes As Long)
