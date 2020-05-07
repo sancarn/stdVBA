@@ -2,7 +2,7 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "STD_Applications_Excel_Worksheet"  'stdXLWorksheet
+Attribute VB_Name = "stdExcelWorksheet"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
@@ -11,7 +11,7 @@ Attribute VB_Exposed = False
 Private Initialised as Boolean
 Private pWorksheet as Worksheet
 
-Public Function Create(sht as worksheet) as STD_Applications_Excel_Worksheet
+Public Function Create(sht as worksheet) as stdExcelWorksheet
   set pWorksheet = sht
 End FUnction
 
@@ -23,7 +23,7 @@ Public Property Set Value(obj as Worksheet)
   set pWorksheet = Value
 End Property
 
-Public Property Get ValueRange() as STD_Applications_Excel_
+Public Property Get ValueRange() as stdExcelRange
   'Get used range
   Dim ur As Range
   Set ur = sht.UsedRange
