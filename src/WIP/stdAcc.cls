@@ -196,7 +196,8 @@ Public Function FindAll(ByVal sQuery As String) As Collection
     
     'Loop through all descendents
     Dim desc As stdAcc
-    For Each desc In Me.GetDescendents()
+    Dim descendents as collection: set descendents = Me.GetDescendents()
+    For Each desc In descendents
         'If all conditions match, return desc
         If QueryTest(desc, sQuery) Then
             ret.Add desc
@@ -439,9 +440,15 @@ Private Function getChildrenAsIAcc() As Collection
     Set getChildrenAsIAcc = New Collection
     Dim child As Variant
     For iChildID = 1 To Me.GetIAccessible().accChildCount
-        
-        Set child = children(iChildID)
-        If VarType(child) = vbLong Then 'creates a proxy child to proxy all requests.
+        'Check if child is an object, if it is set it, otherwise let it
+        if vartype(children(iChildID)) = vbObject Then
+            Set child = children(iChildID)
+        Else
+            child = children(iChildID)
+        end if
+
+        'Create proxy as required
+        If VarType(child) = vbLong
             getChildrenAsIAcc.Add createProxyChild(iChildID)
         Else
             Dim oAccessible As IAccessible
@@ -504,7 +511,7 @@ Private Function getAccChildren(obj As IAccessible) As Collection
     
     Dim col As New Collection
     Dim i As Integer
-    For i = 1 To obj.accChildCount
+    For i = 1 To d    'note d is used not accChildCount, because sometimes AccessibleChildren does not return all children (no explanation for this?)
         col.Add arr(i)
     Next
     
