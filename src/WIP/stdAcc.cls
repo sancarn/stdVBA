@@ -360,6 +360,11 @@ Public Function SendMessage(ByVal Msg As Long, ByVal wParam As Long, ByVal lPara
     End If
 End Function
 
+'TODO: Highlight() - Creates a userform with transparent background and red border
+'Public Function Highlight() as stdUserform
+'
+'End Function
+
 'IAccessible:
 '  accName              - Get name of control or window
 '  accDefaultAction     - Get default action
