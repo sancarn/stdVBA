@@ -15,6 +15,8 @@ Attribute Value.VB_UserMemId = 0
 'Initial pictures implementation by Stephen Bullen (Office Automation Ltd) on 30/10/1998
 '----------
 
+'TODO: Implement as per:
+'https://stackoverflow.com/a/35512118/6302131
 
 
 'API DEFINITIONS:
@@ -112,10 +114,10 @@ Private pValue as Variant
 Private pType as String
 
 Public Property Get Value() as Variant
-  
+    
 End Property
 Public Property Let Value(v as variant)
-
+    
 End Property
 
 Public Property Get Photo() as IPhoto
