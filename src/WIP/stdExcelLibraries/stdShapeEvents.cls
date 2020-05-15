@@ -31,7 +31,10 @@ Attribute VB_Exposed = False
 'run latchEvents and observe the hooked events in the immediate window.
 
 
-
+'TODO: 
+' * Add Delete(ByVal shName as string) event
+' * Add Created(shape as Shape)
+' * Add Moved(shape as Shape)
 
 
 
