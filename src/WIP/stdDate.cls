@@ -35,24 +35,17 @@ Attribute VB_Exposed = False
 '    Debug.Print stdDate.Parse("2012-02-01 10-11-35","yyyy-mm-dd hh-mm-ss").Format("dd/mm/yy hh:mm:ss")
 '
 
-'Used to get country
-#If VBA7 Then
-  Private Declare PtrSafe Function GetUserDefaultGeoName Lib "Kernel32.dll" (ByRef geoName As String, geoNameCount As Integer) As Integer
-#Else
-  Private Declare Function GetUserDefaultGeoName Lib "Kernel32.dll" (ByRef geoName As String, geoNameCount As Integer) As Integer
-#End If
-
 Private pInitialised As Boolean
 Private pValue as Date
 Private pCountry as String
 Private pFirstDayOfWeek as VbDayOfWeek
 
 'TODO: Determine whether these are actually useful or not
-Private daysPerMonth As Object
-Private TimeZones As Object
-Private TimeZoneDescs As Object
-Private MonthsDict As Object
-Private MonthsShortDict As Object
+Public daysPerMonth As Object
+Public TimeZones As Object
+Public TimeZoneDescs As Object
+Public MonthsDict As Object
+Public MonthsShortDict As Object
 
 Friend Sub Init(val as Date)
   if not pInitialised then
@@ -67,15 +60,15 @@ End Sub
 Public Function Create(Optional val as Date) as stdDate
   if not pInitialised then
     set Create = new stdDate
-    Create.Init(val)
+    Call Create.Init(val)
   else
     'Call STD.Errors.Raise("STD.Class",2)
   end if
 End Function
 
-Public Function Create2(Optional Year as Integer = 0, Optional Month as Integer = 0, Optional Day as Integer = 0, Optional Hour as Integer = 0, Optional Minute as Integer = 0, Optional Second as Integer = 0) as stdDate
+Public Function CreateFromUnits(Optional ByVal year As Integer = 0, Optional ByVal month As Integer = 0, Optional ByVal day As Integer = 0, Optional ByVal Hour As Integer = 0, Optional ByVal Minute As Integer = 0, Optional ByVal Second As Integer = 0) As stdDate
   if not pInitialised then
-    set Create2 = Create(DateSerial(Year,Month,Day) + TimeSerial(Hour,Minute,Second))
+    set CreateFromUnits = Create(DateSerial(Year,Month,Day) + TimeSerial(Hour,Minute,Second))
   else
     'Call STD.Errors.Raise("STD.Class",2)
   end if
@@ -234,18 +227,18 @@ End Function
 'zzzz = Grenich Mean Time (?<Z4>Grenich Mean Time|Pacific Standard Time|...)
 'zzz  = GMT      (?<Z3>GMT|PST|...)
 'All other values in java are unsupported
-Public Function parse(Value As Variant, Optional strFormat As String = "") As stdDate
+Public Function CreateFromParse(Value As Variant, Optional strFormat As String = "") As stdDate
   Dim d,m,y,h,mn,s as long
   
 
 
   'Common formats:
-  If strFormat = "" Or strFormat = "dd/mm/yyyy" Then
+  If strFormat = "" Or strFormat like "dd[./-_]mm[./-_]yyyy" Then
     'Parse assuming dd/mm/yyyy
     d = CInt(Mid(Value, 1, 2))
     m = CInt(Mid(Value, 4, 2))
     y = CInt(Mid(Value, 7, 4))
-  ElseIf strFormat = "mm/dd/yyyy" Then
+  ElseIf strFormat like "mm[./-_]dd[./-_]yyyy" Then
     d = CInt(Mid(Value, 4, 2))
     m = CInt(Mid(Value, 1, 2))
     y = CInt(Mid(Value, 7, 4))
@@ -327,19 +320,28 @@ Public Function parse(Value As Variant, Optional strFormat As String = "") As st
     Dim match As Object
     Set match = Me.RegexMatch(Value, strFormat, "i")
     
+    Dim century As Long: century = CInt(year(Now()) / 100) * 100
+    
+    'Y2 is an odd format, e.g. If the current year is 2020 and you see 01-01-21 written down,
+    'you will likely thing this is the 1st Jan 2021. But if you see 01-01-91, you are more likely
+    'to see this as 1991 than 01-01-2091.
+    'The y2Error allows us to detect all dates whos year is less than the current decade + y2Error
+    'as belonging to that century.
+    Dim y2Error As Long: y2Error = 5
+    
     'Parse datetime
-    If match("Y4") Then parse.year = CInt(match("Y4"))
-    If match("Y2") Then parse.year = CInt(match("Y2"))
-    If match("M4") Then parse.month = Months(match("M4"))
-    If match("M3") Then parse.month = MonthsShort(match("M3"))
-    If match("M2") Then parse.month = CInt(match("M2"))
-    If match("D2") Then parse.day = CInt(match("D2"))
-    If match("hh") Then parse.Hour = CInt(match("hh"))
-    If match("MM") Then parse.Minute = CInt(match("MM"))
-    If match("ss") Then parse.Second = CInt(match("ss"))
+    If match("Y4") Then y = CInt(match("Y4"))
+    If match("Y2") Then y = IIf(CInt(match("Y2")) < (year(Now()) - century + y2Error), century + CInt(match("Y2")), century - 100 + CInt(match("Y2")))
+    If match("M4") Then m = stdDate.MonthsDict(match("M4"))
+    If match("M3") Then m = stdDate.MonthsShortDict(match("M3"))
+    If match("M2") Then m = CInt(match("M2"))
+    If match("D2") Then d = CInt(match("D2"))
+    If match("hh") Then h = CInt(match("hh"))
+    If match("MM") Then mn = CInt(match("MM"))
+    If match("ss") Then s = CInt(match("ss"))
     
     'Special:
-    If match("kk") And match("aa") Then parse.Hour = IIf(match("aa") = "am", 0, 12) + CInt(match("kk"))
+    If match("kk") And match("aa") Then h = IIf(match("aa") = "am", 0, 12) + CInt(match("kk"))
     
     If hasTZs Then
       Err.Raise 0, "stdDate::Parse", "Error: Timezones Unimplemented. Waiting for swith to CoreTime"
@@ -351,8 +353,8 @@ Public Function parse(Value As Variant, Optional strFormat As String = "") As st
     End If
   End If
   
-  'Initialise parse object
-  parse.initialize
+  'Create return value from CreateFromUnits
+  set CreateFromParse = stdDate.CreateFromUnits(y, m, d, h, mn, s)
 End Function
 
 'Private date funcs
@@ -371,8 +373,8 @@ Private Function DaysBetween(d1 As stdDate, d2 As stdDate) As Long
   
   'Calculate total days in d1 and d2.
   'Note: In February, 31 days (January have gone by) Thus daysPerMonth("Cumulative") has 2 zeros at the start of the array
-  Days1 = d1.day + daysPerMonth("Cumulative" & IIf(d1.isLeap, "Leap", ""))(d1.month) + d1.year * Factor
-  Days2 = d2.day + daysPerMonth("Cumulative" & IIf(d2.isLeap, "Leap", ""))(d2.month) + d2.year * Factor
+  Days1 = d1.day + stdDate.daysPerMonth("Cumulative" & IIf(d1.isLeap, "Leap", ""))(d1.month) + d1.year * Factor
+  Days2 = d2.day + stdDate.daysPerMonth("Cumulative" & IIf(d2.isLeap, "Leap", ""))(d2.month) + d2.year * Factor
   
   'Subtract the 2 day counts. Also include the fake leap year in 1900 created by Excel
   DaysBetween = Days1 - Days2 + IIf(d2.year = 1900 And d1.year <> 1900, 1, 0)
@@ -392,450 +394,455 @@ Private Sub Class_Initialize()
 End Sub
 
 Private Sub iniDictionary()
-  Set daysPerMonth = CreateObject("Scripting.Dictionary")
-  daysPerMonth(False) = Array(0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
-  daysPerMonth(True) = Array(0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
-  daysPerMonth("Cumulative") = Array(0, 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365)
-  daysPerMonth("CumulativeLeap") = Array(0, 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366)
-  
-  'Months hash table
-  Set MonthsDict = CreateObject("Scripting.Dictionary")
-  MonthsDict("January") = 1
-  MonthsDict("February") = 2
-  MonthsDict("March") = 3
-  MonthsDict("April") = 4
-  MonthsDict("May") = 5
-  MonthsDict("June") = 6
-  MonthsDict("July") = 7
-  MonthsDict("August") = 8
-  MonthsDict("September") = 9
-  MonthsDict("October") = 10
-  MonthsDict("November") = 11
-  MonthsDict("December") = 12
-  
-  'Short months hash table
-  Set MonthsShortDict = CreateObject("Scripting.Dictionary")
-  MonthsShortDict("Jan") = 1
-  MonthsShortDict("Feb") = 2
-  MonthsShortDict("Mar") = 3
-  MonthsShortDict("Apr") = 4
-  MonthsShortDict("May") = 5
-  MonthsShortDict("Jun") = 6
-  MonthsShortDict("Jul") = 7
-  MonthsShortDict("Aug") = 8
-  MonthsShortDict("Sep") = 9
-  MonthsShortDict("Oct") = 10
-  MonthsShortDict("Nov") = 11
-  MonthsShortDict("Dec") = 12
+  if me is stdDate then
+    Set daysPerMonth = CreateObject("Scripting.Dictionary")
+    daysPerMonth(False) = Array(0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
+    daysPerMonth(True) = Array(0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
+    daysPerMonth("Cumulative") = Array(0, 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365)
+    daysPerMonth("CumulativeLeap") = Array(0, 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366)
+    
+    'Months hash table
+    Set MonthsDict = CreateObject("Scripting.Dictionary")
+    MonthsDict("January") = 1
+    MonthsDict("February") = 2
+    MonthsDict("March") = 3
+    MonthsDict("April") = 4
+    MonthsDict("May") = 5
+    MonthsDict("June") = 6
+    MonthsDict("July") = 7
+    MonthsDict("August") = 8
+    MonthsDict("September") = 9
+    MonthsDict("October") = 10
+    MonthsDict("November") = 11
+    MonthsDict("December") = 12
+    
+    'Short months hash table
+    Set MonthsShortDict = CreateObject("Scripting.Dictionary")
+    MonthsShortDict("Jan") = 1
+    MonthsShortDict("Feb") = 2
+    MonthsShortDict("Mar") = 3
+    MonthsShortDict("Apr") = 4
+    MonthsShortDict("May") = 5
+    MonthsShortDict("Jun") = 6
+    MonthsShortDict("Jul") = 7
+    MonthsShortDict("Aug") = 8
+    MonthsShortDict("Sep") = 9
+    MonthsShortDict("Oct") = 10
+    MonthsShortDict("Nov") = 11
+    MonthsShortDict("Dec") = 12
+  end if
 End Sub
 
 
 Private Sub iniTimezones()
-'Timezones:
-  Set TimeZones = CreateObject("Scripting.Dictionary")
-  Set TimeZoneDescs = CreateObject("Scripting.Dictionary")
-  
-  'Time zone codes
-  TimeZones("ACDT") = 10.5
-  TimeZones("ACST") = 9.5
-  TimeZones("ACT") = -5
-  TimeZones("ACT") = 6.5
-  TimeZones("ACWST") = 8.75
-  TimeZones("ADT") = -3
-  TimeZones("AEDT") = 11
-  TimeZones("AEST") = 10
-  TimeZones("AFT") = 4.5
-  TimeZones("AKDT") = -8
-  TimeZones("AKST") = -9
-  TimeZones("AMST") = -3
-  TimeZones("AMT") = -4
-  TimeZones("AMT") = 4
-  TimeZones("ART") = -3
-  TimeZones("AST") = 3
-  TimeZones("AST") = -4
-  TimeZones("AWST") = 8
-  TimeZones("AZOST") = 0
-  TimeZones("AZOT") = -1
-  TimeZones("AZT") = 4
-  TimeZones("BDT") = 8
-  TimeZones("BIOT") = 6
-  TimeZones("BIT") = -12
-  TimeZones("BOT") = -4
-  TimeZones("BRST") = -2
-  TimeZones("BRT") = -3
-  TimeZones("BST") = 6
-  TimeZones("BST") = 11
-  TimeZones("BST") = 1
-  TimeZones("BTT") = 6
-  TimeZones("CAT") = 2
-  TimeZones("CCT") = 6.5
-  TimeZones("CDT") = -5
-  TimeZones("CDT") = -4
-  TimeZones("CEST") = 2
-  TimeZones("CET") = 1
-  TimeZones("CHADT") = 13.75
-  TimeZones("CHAST") = 12.75
-  TimeZones("CHOT") = 8
-  TimeZones("CHOST") = 9
-  TimeZones("CHST") = 10
-  TimeZones("CHUT") = 10
-  TimeZones("CIST") = -8
-  TimeZones("CIT") = 8
-  TimeZones("CKT") = -10
-  TimeZones("CLST") = -3
-  TimeZones("CLT") = -4
-  TimeZones("COST") = -4
-  TimeZones("COT") = -5
-  TimeZones("CST") = -6
-  TimeZones("CST") = 8
-  TimeZones("CST") = -5
-  TimeZones("CT") = 8
-  TimeZones("CVT") = -1
-  TimeZones("CWST") = 8.75
-  TimeZones("CXT") = 7
-  TimeZones("DAVT") = 7
-  TimeZones("DDUT") = 10
-  TimeZones("DFT") = 1
-  TimeZones("EASST") = -5
-  TimeZones("EAST") = -6
-  TimeZones("EAT") = 3
-  TimeZones("ECT") = -4
-  TimeZones("ECT") = -5
-  TimeZones("EDT") = -4
-  TimeZones("EEST") = 3
-  TimeZones("EET") = 2
-  TimeZones("EGST") = 0
-  TimeZones("EGT") = -1
-  TimeZones("EIT") = 9
-  TimeZones("EST") = -5
-  TimeZones("FET") = 3
-  TimeZones("FJT") = 12
-  TimeZones("FKST") = -3
-  TimeZones("FKT") = -4
-  TimeZones("FNT") = -2
-  TimeZones("GALT") = -6
-  TimeZones("GAMT") = -9
-  TimeZones("GET") = 4
-  TimeZones("GFT") = -3
-  TimeZones("GILT") = 12
-  TimeZones("GIT") = -9
-  TimeZones("GMT") = 0
-  TimeZones("GST") = -2
-  TimeZones("GST") = 4
-  TimeZones("GYT") = -4
-  TimeZones("HDT") = -9
-  TimeZones("HAEC") = 2
-  TimeZones("HST") = -10
-  TimeZones("HKT") = 8
-  TimeZones("HMT") = 5
-  TimeZones("HOVST") = 8
-  TimeZones("HOVT") = 7
-  TimeZones("ICT") = 7
-  TimeZones("IDLW") = -12
-  TimeZones("IDT") = 3
-  TimeZones("IOT") = 3
-  TimeZones("IRDT") = 4.5
-  TimeZones("IRKT") = 8
-  TimeZones("IRST") = 3.5
-  TimeZones("IST") = 5.5
-  TimeZones("IST") = 1
-  TimeZones("IST") = 2
-  TimeZones("JST") = 9
-  TimeZones("KALT") = 2
-  TimeZones("KGT") = 6
-  TimeZones("KOST") = 11
-  TimeZones("KRAT") = 7
-  TimeZones("KST") = 9
-  TimeZones("LHST") = 10.5
-  TimeZones("LHST") = 11
-  TimeZones("LINT") = 14
-  TimeZones("MAGT") = 12
-  TimeZones("MART") = -8.5
-  TimeZones("MAWT") = 5
-  TimeZones("MDT") = -6
-  TimeZones("MET") = 1
-  TimeZones("MEST") = 2
-  TimeZones("MHT") = 12
-  TimeZones("MIST") = 11
-  TimeZones("MIT") = -8.5
-  TimeZones("MMT") = 6.5
-  TimeZones("MSK") = 3
-  TimeZones("MST") = 8
-  TimeZones("MST") = -7
-  TimeZones("MUT") = 4
-  TimeZones("MVT") = 5
-  TimeZones("MYT") = 8
-  TimeZones("NCT") = 11
-  TimeZones("NDT") = -1.5
-  TimeZones("NFT") = 11
-  TimeZones("NPT") = 5.75
-  TimeZones("NST") = -2.5
-  TimeZones("NT") = -2.5
-  TimeZones("NUT") = -11
-  TimeZones("NZDT") = 13
-  TimeZones("NZST") = 12
-  TimeZones("OMST") = 6
-  TimeZones("ORAT") = 5
-  TimeZones("PDT") = -7
-  TimeZones("PET") = -5
-  TimeZones("PETT") = 12
-  TimeZones("PGT") = 10
-  TimeZones("PHOT") = 13
-  TimeZones("PHT") = 8
-  TimeZones("PKT") = 5
-  TimeZones("PMDT") = -2
-  TimeZones("PMST") = -3
-  TimeZones("PONT") = 11
-  TimeZones("PST") = -8
-  TimeZones("PST") = 8
-  TimeZones("PYST") = -3
-  TimeZones("PYT") = -4
-  TimeZones("RET") = 4
-  TimeZones("ROTT") = -3
-  TimeZones("SAKT") = 11
-  TimeZones("SAMT") = 4
-  TimeZones("SAST") = 2
-  TimeZones("SBT") = 11
-  TimeZones("SCT") = 4
-  TimeZones("SDT") = -10
-  TimeZones("SGT") = 8
-  TimeZones("SLST") = 5.5
-  TimeZones("SRET") = 11
-  TimeZones("SRT") = -3
-  TimeZones("SST") = -11
-  TimeZones("SST") = 8
-  TimeZones("SYOT") = 3
-  TimeZones("TAHT") = -10
-  TimeZones("THA") = 7
-  TimeZones("TFT") = 5
-  TimeZones("TJT") = 5
-  TimeZones("TKT") = 13
-  TimeZones("TLT") = 9
-  TimeZones("TMT") = 5
-  TimeZones("TRT") = 3
-  TimeZones("TOT") = 13
-  TimeZones("TVT") = 12
-  TimeZones("ULAST") = 9
-  TimeZones("ULAT") = 8
-  TimeZones("UTC") = 0
-  TimeZones("UYST") = -2
-  TimeZones("UYT") = -3
-  TimeZones("UZT") = 5
-  TimeZones("VET") = -4
-  TimeZones("VLAT") = 10
-  TimeZones("VOLT") = 4
-  TimeZones("VOST") = 6
-  TimeZones("VUT") = 11
-  TimeZones("WAKT") = 12
-  TimeZones("WAST") = 2
-  TimeZones("WAT") = 1
-  TimeZones("WEST") = 1
-  TimeZones("WET") = 0
-  TimeZones("WIT") = 7
-  TimeZones("WST") = 8
-  TimeZones("YAKT") = 9
-  TimeZones("YEKT") = 5
-  
-  'Time zone descriptions
-  TimeZoneDescs("Australian Central Daylight Savings Time") = 10.5
-  TimeZoneDescs("Australian Central Standard Time") = 9.5
-  TimeZoneDescs("Acre Time") = -5
-  TimeZoneDescs("ASEAN Common Time") = 6.5
-  TimeZoneDescs("Australian Central Western Standard Time�(unofficial)") = 8.75
-  TimeZoneDescs("Atlantic Daylight Time") = -3
-  TimeZoneDescs("Australian Eastern Daylight Savings Time") = 11
-  TimeZoneDescs("Australian Eastern Standard Time") = 10
-  TimeZoneDescs("Afghanistan Time") = 4.5
-  TimeZoneDescs("Alaska Daylight Time") = -8
-  TimeZoneDescs("Alaska Standard Time") = -9
-  TimeZoneDescs("Amazon Summer Time�(Brazil)[1]") = -3
-  TimeZoneDescs("Amazon Time�(Brazil)[2]") = -4
-  TimeZoneDescs("Armenia Time") = 4
-  TimeZoneDescs("Argentina Time") = -3
-  TimeZoneDescs("Arabia Standard Time") = 3
-  TimeZoneDescs("Atlantic Standard Time") = -4
-  TimeZoneDescs("Australian Western Standard Time") = 8
-  TimeZoneDescs("Azores Summer Time") = 0
-  TimeZoneDescs("Azores Standard Time") = -1
-  TimeZoneDescs("Azerbaijan Time") = 4
-  TimeZoneDescs("Brunei Time") = 8
-  TimeZoneDescs("British Indian Ocean Time") = 6
-  TimeZoneDescs("Baker Island Time") = -12
-  TimeZoneDescs("Bolivia Time") = -4
-  TimeZoneDescs("Bras�lia Summer Time") = -2
-  TimeZoneDescs("Brasilia Time") = -3
-  TimeZoneDescs("Bangladesh Standard Time") = 6
-  TimeZoneDescs("Bougainville Standard Time[3]") = 11
-  TimeZoneDescs("British Summer Time�(British Standard Time�from Feb 1968 to Oct 1971)") = 1
-  TimeZoneDescs("Bhutan Time") = 6
-  TimeZoneDescs("Central Africa Time") = 2
-  TimeZoneDescs("Cocos Islands Time") = 6.5
-  TimeZoneDescs("Central Daylight Time�(North America)") = -5
-  TimeZoneDescs("Cuba Daylight Time[4]") = -4
-  TimeZoneDescs("Central European Summer Time�(Cf. HAEC)") = 2
-  TimeZoneDescs("Central European Time") = 1
-  TimeZoneDescs("Chatham Daylight Time") = 13.75
-  TimeZoneDescs("Chatham Standard Time") = 12.75
-  TimeZoneDescs("Choibalsan Standard Time") = 8
-  TimeZoneDescs("Choibalsan Summer Time") = 9
-  TimeZoneDescs("Chamorro Standard Time") = 10
-  TimeZoneDescs("Chuuk Time") = 10
-  TimeZoneDescs("Clipperton Island Standard Time") = -8
-  TimeZoneDescs("Central Indonesia Time") = 8
-  TimeZoneDescs("Cook Island Time") = -10
-  TimeZoneDescs("Chile Summer Time") = -3
-  TimeZoneDescs("Chile Standard Time") = -4
-  TimeZoneDescs("Colombia Summer Time") = -4
-  TimeZoneDescs("Colombia Time") = -5
-  TimeZoneDescs("Central Standard Time�(North America)") = -6
-  TimeZoneDescs("China Standard Time") = 8
-  TimeZoneDescs("Cuba Standard Time") = -5
-  TimeZoneDescs("China Time") = 8
-  TimeZoneDescs("Cape Verde Time") = -1
-  TimeZoneDescs("Central Western Standard Time�(Australia) unofficial") = 8.75
-  TimeZoneDescs("Christmas Island Time") = 7
-  TimeZoneDescs("Davis Time") = 7
-  TimeZoneDescs("Dumont d'Urville Time") = 10
-  TimeZoneDescs("AIX-specific equivalent of�Central European Time[NB 1]") = 1
-  TimeZoneDescs("Easter Island Summer Time") = -5
-  TimeZoneDescs("Easter Island Standard Time") = -6
-  TimeZoneDescs("East Africa Time") = 3
-  TimeZoneDescs("Eastern Caribbean Time�(does not recognise DST)") = -4
-  TimeZoneDescs("Ecuador Time") = -5
-  TimeZoneDescs("Eastern Daylight Time�(North America)") = -4
-  TimeZoneDescs("Eastern European Summer Time") = 3
-  TimeZoneDescs("Eastern European Time") = 2
-  TimeZoneDescs("Eastern Greenland Summer Time") = 0
-  TimeZoneDescs("Eastern Greenland Time") = -1
-  TimeZoneDescs("Eastern Indonesian Time") = 9
-  TimeZoneDescs("Eastern Standard Time (North America)") = -5
-  TimeZoneDescs("Further-eastern European Time") = 3
-  TimeZoneDescs("Fiji Time") = 12
-  TimeZoneDescs("Falkland Islands Summer Time") = -3
-  TimeZoneDescs("Falkland Islands Time") = -4
-  TimeZoneDescs("Fernando de Noronha Time") = -2
-  TimeZoneDescs("Gal�pagos Time") = -6
-  TimeZoneDescs("Gambier Islands Time") = -9
-  TimeZoneDescs("Georgia Standard Time") = 4
-  TimeZoneDescs("French Guiana Time") = -3
-  TimeZoneDescs("Gilbert Island Time") = 12
-  TimeZoneDescs("Gambier Island Time") = -9
-  TimeZoneDescs("Greenwich Mean Time") = 0
-  TimeZoneDescs("South Georgia and the South Sandwich Islands Time") = -2
-  TimeZoneDescs("Gulf Standard Time") = 4
-  TimeZoneDescs("Guyana Time") = -4
-  TimeZoneDescs("Hawaii�Aleutian Daylight Time") = -9
-  TimeZoneDescs("Heure Avanc�e d'Europe Centrale�French-language name for CEST") = 2
-  TimeZoneDescs("Hawaii�Aleutian Standard Time") = -10
-  TimeZoneDescs("Hong Kong Time") = 8
-  TimeZoneDescs("Heard and McDonald Islands�Time") = 5
-  TimeZoneDescs("Khovd Summer Time") = 8
-  TimeZoneDescs("Khovd Standard Time") = 7
-  TimeZoneDescs("Indochina Time") = 7
-  TimeZoneDescs("International Day Line West time zone") = -12
-  TimeZoneDescs("Israel Daylight Time") = 3
-  TimeZoneDescs("Indian Ocean Time") = 3
-  TimeZoneDescs("Iran Daylight Time") = 4.5
-  TimeZoneDescs("Irkutsk Time") = 8
-  TimeZoneDescs("Iran Standard Time") = 3.5
-  TimeZoneDescs("Indian Standard Time") = 5.5
-  TimeZoneDescs("Irish Standard Time[5]") = 1
-  TimeZoneDescs("Israel Standard Time") = 2
-  TimeZoneDescs("Japan Standard Time") = 9
-  TimeZoneDescs("Kaliningrad Time") = 2
-  TimeZoneDescs("Kyrgyzstan Time") = 6
-  TimeZoneDescs("Kosrae Time") = 11
-  TimeZoneDescs("Krasnoyarsk Time") = 7
-  TimeZoneDescs("Korea Standard Time") = 9
-  TimeZoneDescs("Lord Howe Standard Time") = 10.5
-  TimeZoneDescs("Lord Howe Summer Time") = 11
-  TimeZoneDescs("Line Islands�Time") = 14
-  TimeZoneDescs("Magadan Time") = 12
-  TimeZoneDescs("Marquesas Islands Time") = -8.5
-  TimeZoneDescs("Mawson Station Time") = 5
-  TimeZoneDescs("Mountain Daylight Time�(North America)") = -6
-  TimeZoneDescs("Middle European Time�Same zone as CET") = 1
-  TimeZoneDescs("Middle European Summer Time�Same zone as CEST") = 2
-  TimeZoneDescs("Marshall Islands Time") = 12
-  TimeZoneDescs("Macquarie Island Station Time") = 11
-  TimeZoneDescs("Marquesas Islands Time") = -8.5
-  TimeZoneDescs("Myanmar Standard Time") = 6.5
-  TimeZoneDescs("Moscow Time") = 3
-  TimeZoneDescs("Malaysia Standard Time") = 8
-  TimeZoneDescs("Mountain Standard Time�(North America)") = -7
-  TimeZoneDescs("Mauritius Time") = 4
-  TimeZoneDescs("Maldives Time") = 5
-  TimeZoneDescs("Malaysia Time") = 8
-  TimeZoneDescs("New Caledonia Time") = 11
-  TimeZoneDescs("Newfoundland Daylight Time") = -1.5
-  TimeZoneDescs("Norfolk Island Time") = 11
-  TimeZoneDescs("Nepal Time") = 5.75
-  TimeZoneDescs("Newfoundland Standard Time") = -2.5
-  TimeZoneDescs("Newfoundland Time") = -2.5
-  TimeZoneDescs("Niue Time") = -11
-  TimeZoneDescs("New Zealand Daylight Time") = 13
-  TimeZoneDescs("New Zealand Standard Time") = 12
-  TimeZoneDescs("Omsk Time") = 6
-  TimeZoneDescs("Oral Time") = 5
-  TimeZoneDescs("Pacific Daylight Time�(North America)") = -7
-  TimeZoneDescs("Peru Time") = -5
-  TimeZoneDescs("Kamchatka Time") = 12
-  TimeZoneDescs("Papua New Guinea Time") = 10
-  TimeZoneDescs("Phoenix Island Time") = 13
-  TimeZoneDescs("Philippine Time") = 8
-  TimeZoneDescs("Pakistan Standard Time") = 5
-  TimeZoneDescs("Saint Pierre and Miquelon Daylight Time") = -2
-  TimeZoneDescs("Saint Pierre and Miquelon Standard Time") = -3
-  TimeZoneDescs("Pohnpei Standard Time") = 11
-  TimeZoneDescs("Pacific Standard Time�(North America)") = -8
-  TimeZoneDescs("Philippine Standard Time") = 8
-  TimeZoneDescs("Paraguay Summer Time[6]") = -3
-  TimeZoneDescs("Paraguay Time[7]") = -4
-  TimeZoneDescs("R�union Time") = 4
-  TimeZoneDescs("Rothera Research Station Time") = -3
-  TimeZoneDescs("Sakhalin Island Time") = 11
-  TimeZoneDescs("Samara Time") = 4
-  TimeZoneDescs("South African Standard Time") = 2
-  TimeZoneDescs("Solomon Islands Time") = 11
-  TimeZoneDescs("Seychelles Time") = 4
-  TimeZoneDescs("Samoa Daylight Time") = -10
-  TimeZoneDescs("Singapore Time") = 8
-  TimeZoneDescs("Sri Lanka Standard Time") = 5.5
-  TimeZoneDescs("Srednekolymsk Time") = 11
-  TimeZoneDescs("Suriname Time") = -3
-  TimeZoneDescs("Samoa Standard Time") = -11
-  TimeZoneDescs("Singapore Standard Time") = 8
-  TimeZoneDescs("Showa Station Time") = 3
-  TimeZoneDescs("Tahiti Time") = -10
-  TimeZoneDescs("Thailand Standard Time") = 7
-  TimeZoneDescs("Indian/Kerguelen") = 5
-  TimeZoneDescs("Tajikistan Time") = 5
-  TimeZoneDescs("Tokelau Time") = 13
-  TimeZoneDescs("Timor Leste Time") = 9
-  TimeZoneDescs("Turkmenistan Time") = 5
-  TimeZoneDescs("Turkey Time") = 3
-  TimeZoneDescs("Tonga Time") = 13
-  TimeZoneDescs("Tuvalu Time") = 12
-  TimeZoneDescs("Ulaanbaatar Summer Time") = 9
-  TimeZoneDescs("Ulaanbaatar Standard Time") = 8
-  TimeZoneDescs("Coordinated Universal Time") = 0
-  TimeZoneDescs("Uruguay Summer Time") = -2
-  TimeZoneDescs("Uruguay Standard Time") = -3
-  TimeZoneDescs("Uzbekistan Time") = 5
-  TimeZoneDescs("Venezuelan Standard Time") = -4
-  TimeZoneDescs("Vladivostok Time") = 10
-  TimeZoneDescs("Volgograd Time") = 4
-  TimeZoneDescs("Vostok Station Time") = 6
-  TimeZoneDescs("Vanuatu�Time") = 11
-  TimeZoneDescs("Wake Island Time") = 12
-  TimeZoneDescs("West Africa Summer Time") = 2
-  TimeZoneDescs("West Africa Time") = 1
-  TimeZoneDescs("Western European Summer Time") = 1
-  TimeZoneDescs("Western European Time") = 0
-  TimeZoneDescs("Western Indonesian Time") = 7
-  TimeZoneDescs("Western Standard Time") = 8
-  TimeZoneDescs("Yakutsk Time") = 9
-  TimeZoneDescs("Yekaterinburg Time") = 5
+  'This slows down a lot of stuff so make sure it only runs on the static class
+  if Me is stdDate then
+    'Timezones:
+    Set TimeZones = CreateObject("Scripting.Dictionary")
+    Set TimeZoneDescs = CreateObject("Scripting.Dictionary")
+    
+    'Time zone codes
+    TimeZones("ACDT") = 10.5
+    TimeZones("ACST") = 9.5
+    TimeZones("ACT") = -5
+    TimeZones("ACT") = 6.5
+    TimeZones("ACWST") = 8.75
+    TimeZones("ADT") = -3
+    TimeZones("AEDT") = 11
+    TimeZones("AEST") = 10
+    TimeZones("AFT") = 4.5
+    TimeZones("AKDT") = -8
+    TimeZones("AKST") = -9
+    TimeZones("AMST") = -3
+    TimeZones("AMT") = -4
+    TimeZones("AMT") = 4
+    TimeZones("ART") = -3
+    TimeZones("AST") = 3
+    TimeZones("AST") = -4
+    TimeZones("AWST") = 8
+    TimeZones("AZOST") = 0
+    TimeZones("AZOT") = -1
+    TimeZones("AZT") = 4
+    TimeZones("BDT") = 8
+    TimeZones("BIOT") = 6
+    TimeZones("BIT") = -12
+    TimeZones("BOT") = -4
+    TimeZones("BRST") = -2
+    TimeZones("BRT") = -3
+    TimeZones("BST") = 6
+    TimeZones("BST") = 11
+    TimeZones("BST") = 1
+    TimeZones("BTT") = 6
+    TimeZones("CAT") = 2
+    TimeZones("CCT") = 6.5
+    TimeZones("CDT") = -5
+    TimeZones("CDT") = -4
+    TimeZones("CEST") = 2
+    TimeZones("CET") = 1
+    TimeZones("CHADT") = 13.75
+    TimeZones("CHAST") = 12.75
+    TimeZones("CHOT") = 8
+    TimeZones("CHOST") = 9
+    TimeZones("CHST") = 10
+    TimeZones("CHUT") = 10
+    TimeZones("CIST") = -8
+    TimeZones("CIT") = 8
+    TimeZones("CKT") = -10
+    TimeZones("CLST") = -3
+    TimeZones("CLT") = -4
+    TimeZones("COST") = -4
+    TimeZones("COT") = -5
+    TimeZones("CST") = -6
+    TimeZones("CST") = 8
+    TimeZones("CST") = -5
+    TimeZones("CT") = 8
+    TimeZones("CVT") = -1
+    TimeZones("CWST") = 8.75
+    TimeZones("CXT") = 7
+    TimeZones("DAVT") = 7
+    TimeZones("DDUT") = 10
+    TimeZones("DFT") = 1
+    TimeZones("EASST") = -5
+    TimeZones("EAST") = -6
+    TimeZones("EAT") = 3
+    TimeZones("ECT") = -4
+    TimeZones("ECT") = -5
+    TimeZones("EDT") = -4
+    TimeZones("EEST") = 3
+    TimeZones("EET") = 2
+    TimeZones("EGST") = 0
+    TimeZones("EGT") = -1
+    TimeZones("EIT") = 9
+    TimeZones("EST") = -5
+    TimeZones("FET") = 3
+    TimeZones("FJT") = 12
+    TimeZones("FKST") = -3
+    TimeZones("FKT") = -4
+    TimeZones("FNT") = -2
+    TimeZones("GALT") = -6
+    TimeZones("GAMT") = -9
+    TimeZones("GET") = 4
+    TimeZones("GFT") = -3
+    TimeZones("GILT") = 12
+    TimeZones("GIT") = -9
+    TimeZones("GMT") = 0
+    TimeZones("GST") = -2
+    TimeZones("GST") = 4
+    TimeZones("GYT") = -4
+    TimeZones("HDT") = -9
+    TimeZones("HAEC") = 2
+    TimeZones("HST") = -10
+    TimeZones("HKT") = 8
+    TimeZones("HMT") = 5
+    TimeZones("HOVST") = 8
+    TimeZones("HOVT") = 7
+    TimeZones("ICT") = 7
+    TimeZones("IDLW") = -12
+    TimeZones("IDT") = 3
+    TimeZones("IOT") = 3
+    TimeZones("IRDT") = 4.5
+    TimeZones("IRKT") = 8
+    TimeZones("IRST") = 3.5
+    TimeZones("IST") = 5.5
+    TimeZones("IST") = 1
+    TimeZones("IST") = 2
+    TimeZones("JST") = 9
+    TimeZones("KALT") = 2
+    TimeZones("KGT") = 6
+    TimeZones("KOST") = 11
+    TimeZones("KRAT") = 7
+    TimeZones("KST") = 9
+    TimeZones("LHST") = 10.5
+    TimeZones("LHST") = 11
+    TimeZones("LINT") = 14
+    TimeZones("MAGT") = 12
+    TimeZones("MART") = -8.5
+    TimeZones("MAWT") = 5
+    TimeZones("MDT") = -6
+    TimeZones("MET") = 1
+    TimeZones("MEST") = 2
+    TimeZones("MHT") = 12
+    TimeZones("MIST") = 11
+    TimeZones("MIT") = -8.5
+    TimeZones("MMT") = 6.5
+    TimeZones("MSK") = 3
+    TimeZones("MST") = 8
+    TimeZones("MST") = -7
+    TimeZones("MUT") = 4
+    TimeZones("MVT") = 5
+    TimeZones("MYT") = 8
+    TimeZones("NCT") = 11
+    TimeZones("NDT") = -1.5
+    TimeZones("NFT") = 11
+    TimeZones("NPT") = 5.75
+    TimeZones("NST") = -2.5
+    TimeZones("NT") = -2.5
+    TimeZones("NUT") = -11
+    TimeZones("NZDT") = 13
+    TimeZones("NZST") = 12
+    TimeZones("OMST") = 6
+    TimeZones("ORAT") = 5
+    TimeZones("PDT") = -7
+    TimeZones("PET") = -5
+    TimeZones("PETT") = 12
+    TimeZones("PGT") = 10
+    TimeZones("PHOT") = 13
+    TimeZones("PHT") = 8
+    TimeZones("PKT") = 5
+    TimeZones("PMDT") = -2
+    TimeZones("PMST") = -3
+    TimeZones("PONT") = 11
+    TimeZones("PST") = -8
+    TimeZones("PST") = 8
+    TimeZones("PYST") = -3
+    TimeZones("PYT") = -4
+    TimeZones("RET") = 4
+    TimeZones("ROTT") = -3
+    TimeZones("SAKT") = 11
+    TimeZones("SAMT") = 4
+    TimeZones("SAST") = 2
+    TimeZones("SBT") = 11
+    TimeZones("SCT") = 4
+    TimeZones("SDT") = -10
+    TimeZones("SGT") = 8
+    TimeZones("SLST") = 5.5
+    TimeZones("SRET") = 11
+    TimeZones("SRT") = -3
+    TimeZones("SST") = -11
+    TimeZones("SST") = 8
+    TimeZones("SYOT") = 3
+    TimeZones("TAHT") = -10
+    TimeZones("THA") = 7
+    TimeZones("TFT") = 5
+    TimeZones("TJT") = 5
+    TimeZones("TKT") = 13
+    TimeZones("TLT") = 9
+    TimeZones("TMT") = 5
+    TimeZones("TRT") = 3
+    TimeZones("TOT") = 13
+    TimeZones("TVT") = 12
+    TimeZones("ULAST") = 9
+    TimeZones("ULAT") = 8
+    TimeZones("UTC") = 0
+    TimeZones("UYST") = -2
+    TimeZones("UYT") = -3
+    TimeZones("UZT") = 5
+    TimeZones("VET") = -4
+    TimeZones("VLAT") = 10
+    TimeZones("VOLT") = 4
+    TimeZones("VOST") = 6
+    TimeZones("VUT") = 11
+    TimeZones("WAKT") = 12
+    TimeZones("WAST") = 2
+    TimeZones("WAT") = 1
+    TimeZones("WEST") = 1
+    TimeZones("WET") = 0
+    TimeZones("WIT") = 7
+    TimeZones("WST") = 8
+    TimeZones("YAKT") = 9
+    TimeZones("YEKT") = 5
+    
+    'Time zone descriptions
+    TimeZoneDescs("Australian Central Daylight Savings Time") = 10.5
+    TimeZoneDescs("Australian Central Standard Time") = 9.5
+    TimeZoneDescs("Acre Time") = -5
+    TimeZoneDescs("ASEAN Common Time") = 6.5
+    TimeZoneDescs("Australian Central Western Standard Time�(unofficial)") = 8.75
+    TimeZoneDescs("Atlantic Daylight Time") = -3
+    TimeZoneDescs("Australian Eastern Daylight Savings Time") = 11
+    TimeZoneDescs("Australian Eastern Standard Time") = 10
+    TimeZoneDescs("Afghanistan Time") = 4.5
+    TimeZoneDescs("Alaska Daylight Time") = -8
+    TimeZoneDescs("Alaska Standard Time") = -9
+    TimeZoneDescs("Amazon Summer Time�(Brazil)[1]") = -3
+    TimeZoneDescs("Amazon Time�(Brazil)[2]") = -4
+    TimeZoneDescs("Armenia Time") = 4
+    TimeZoneDescs("Argentina Time") = -3
+    TimeZoneDescs("Arabia Standard Time") = 3
+    TimeZoneDescs("Atlantic Standard Time") = -4
+    TimeZoneDescs("Australian Western Standard Time") = 8
+    TimeZoneDescs("Azores Summer Time") = 0
+    TimeZoneDescs("Azores Standard Time") = -1
+    TimeZoneDescs("Azerbaijan Time") = 4
+    TimeZoneDescs("Brunei Time") = 8
+    TimeZoneDescs("British Indian Ocean Time") = 6
+    TimeZoneDescs("Baker Island Time") = -12
+    TimeZoneDescs("Bolivia Time") = -4
+    TimeZoneDescs("Bras�lia Summer Time") = -2
+    TimeZoneDescs("Brasilia Time") = -3
+    TimeZoneDescs("Bangladesh Standard Time") = 6
+    TimeZoneDescs("Bougainville Standard Time[3]") = 11
+    TimeZoneDescs("British Summer Time�(British Standard Time�from Feb 1968 to Oct 1971)") = 1
+    TimeZoneDescs("Bhutan Time") = 6
+    TimeZoneDescs("Central Africa Time") = 2
+    TimeZoneDescs("Cocos Islands Time") = 6.5
+    TimeZoneDescs("Central Daylight Time�(North America)") = -5
+    TimeZoneDescs("Cuba Daylight Time[4]") = -4
+    TimeZoneDescs("Central European Summer Time�(Cf. HAEC)") = 2
+    TimeZoneDescs("Central European Time") = 1
+    TimeZoneDescs("Chatham Daylight Time") = 13.75
+    TimeZoneDescs("Chatham Standard Time") = 12.75
+    TimeZoneDescs("Choibalsan Standard Time") = 8
+    TimeZoneDescs("Choibalsan Summer Time") = 9
+    TimeZoneDescs("Chamorro Standard Time") = 10
+    TimeZoneDescs("Chuuk Time") = 10
+    TimeZoneDescs("Clipperton Island Standard Time") = -8
+    TimeZoneDescs("Central Indonesia Time") = 8
+    TimeZoneDescs("Cook Island Time") = -10
+    TimeZoneDescs("Chile Summer Time") = -3
+    TimeZoneDescs("Chile Standard Time") = -4
+    TimeZoneDescs("Colombia Summer Time") = -4
+    TimeZoneDescs("Colombia Time") = -5
+    TimeZoneDescs("Central Standard Time�(North America)") = -6
+    TimeZoneDescs("China Standard Time") = 8
+    TimeZoneDescs("Cuba Standard Time") = -5
+    TimeZoneDescs("China Time") = 8
+    TimeZoneDescs("Cape Verde Time") = -1
+    TimeZoneDescs("Central Western Standard Time�(Australia) unofficial") = 8.75
+    TimeZoneDescs("Christmas Island Time") = 7
+    TimeZoneDescs("Davis Time") = 7
+    TimeZoneDescs("Dumont d'Urville Time") = 10
+    TimeZoneDescs("AIX-specific equivalent of�Central European Time[NB 1]") = 1
+    TimeZoneDescs("Easter Island Summer Time") = -5
+    TimeZoneDescs("Easter Island Standard Time") = -6
+    TimeZoneDescs("East Africa Time") = 3
+    TimeZoneDescs("Eastern Caribbean Time�(does not recognise DST)") = -4
+    TimeZoneDescs("Ecuador Time") = -5
+    TimeZoneDescs("Eastern Daylight Time�(North America)") = -4
+    TimeZoneDescs("Eastern European Summer Time") = 3
+    TimeZoneDescs("Eastern European Time") = 2
+    TimeZoneDescs("Eastern Greenland Summer Time") = 0
+    TimeZoneDescs("Eastern Greenland Time") = -1
+    TimeZoneDescs("Eastern Indonesian Time") = 9
+    TimeZoneDescs("Eastern Standard Time (North America)") = -5
+    TimeZoneDescs("Further-eastern European Time") = 3
+    TimeZoneDescs("Fiji Time") = 12
+    TimeZoneDescs("Falkland Islands Summer Time") = -3
+    TimeZoneDescs("Falkland Islands Time") = -4
+    TimeZoneDescs("Fernando de Noronha Time") = -2
+    TimeZoneDescs("Gal�pagos Time") = -6
+    TimeZoneDescs("Gambier Islands Time") = -9
+    TimeZoneDescs("Georgia Standard Time") = 4
+    TimeZoneDescs("French Guiana Time") = -3
+    TimeZoneDescs("Gilbert Island Time") = 12
+    TimeZoneDescs("Gambier Island Time") = -9
+    TimeZoneDescs("Greenwich Mean Time") = 0
+    TimeZoneDescs("South Georgia and the South Sandwich Islands Time") = -2
+    TimeZoneDescs("Gulf Standard Time") = 4
+    TimeZoneDescs("Guyana Time") = -4
+    TimeZoneDescs("Hawaii�Aleutian Daylight Time") = -9
+    TimeZoneDescs("Heure Avanc�e d'Europe Centrale�French-language name for CEST") = 2
+    TimeZoneDescs("Hawaii�Aleutian Standard Time") = -10
+    TimeZoneDescs("Hong Kong Time") = 8
+    TimeZoneDescs("Heard and McDonald Islands�Time") = 5
+    TimeZoneDescs("Khovd Summer Time") = 8
+    TimeZoneDescs("Khovd Standard Time") = 7
+    TimeZoneDescs("Indochina Time") = 7
+    TimeZoneDescs("International Day Line West time zone") = -12
+    TimeZoneDescs("Israel Daylight Time") = 3
+    TimeZoneDescs("Indian Ocean Time") = 3
+    TimeZoneDescs("Iran Daylight Time") = 4.5
+    TimeZoneDescs("Irkutsk Time") = 8
+    TimeZoneDescs("Iran Standard Time") = 3.5
+    TimeZoneDescs("Indian Standard Time") = 5.5
+    TimeZoneDescs("Irish Standard Time[5]") = 1
+    TimeZoneDescs("Israel Standard Time") = 2
+    TimeZoneDescs("Japan Standard Time") = 9
+    TimeZoneDescs("Kaliningrad Time") = 2
+    TimeZoneDescs("Kyrgyzstan Time") = 6
+    TimeZoneDescs("Kosrae Time") = 11
+    TimeZoneDescs("Krasnoyarsk Time") = 7
+    TimeZoneDescs("Korea Standard Time") = 9
+    TimeZoneDescs("Lord Howe Standard Time") = 10.5
+    TimeZoneDescs("Lord Howe Summer Time") = 11
+    TimeZoneDescs("Line Islands�Time") = 14
+    TimeZoneDescs("Magadan Time") = 12
+    TimeZoneDescs("Marquesas Islands Time") = -8.5
+    TimeZoneDescs("Mawson Station Time") = 5
+    TimeZoneDescs("Mountain Daylight Time�(North America)") = -6
+    TimeZoneDescs("Middle European Time�Same zone as CET") = 1
+    TimeZoneDescs("Middle European Summer Time�Same zone as CEST") = 2
+    TimeZoneDescs("Marshall Islands Time") = 12
+    TimeZoneDescs("Macquarie Island Station Time") = 11
+    TimeZoneDescs("Marquesas Islands Time") = -8.5
+    TimeZoneDescs("Myanmar Standard Time") = 6.5
+    TimeZoneDescs("Moscow Time") = 3
+    TimeZoneDescs("Malaysia Standard Time") = 8
+    TimeZoneDescs("Mountain Standard Time�(North America)") = -7
+    TimeZoneDescs("Mauritius Time") = 4
+    TimeZoneDescs("Maldives Time") = 5
+    TimeZoneDescs("Malaysia Time") = 8
+    TimeZoneDescs("New Caledonia Time") = 11
+    TimeZoneDescs("Newfoundland Daylight Time") = -1.5
+    TimeZoneDescs("Norfolk Island Time") = 11
+    TimeZoneDescs("Nepal Time") = 5.75
+    TimeZoneDescs("Newfoundland Standard Time") = -2.5
+    TimeZoneDescs("Newfoundland Time") = -2.5
+    TimeZoneDescs("Niue Time") = -11
+    TimeZoneDescs("New Zealand Daylight Time") = 13
+    TimeZoneDescs("New Zealand Standard Time") = 12
+    TimeZoneDescs("Omsk Time") = 6
+    TimeZoneDescs("Oral Time") = 5
+    TimeZoneDescs("Pacific Daylight Time�(North America)") = -7
+    TimeZoneDescs("Peru Time") = -5
+    TimeZoneDescs("Kamchatka Time") = 12
+    TimeZoneDescs("Papua New Guinea Time") = 10
+    TimeZoneDescs("Phoenix Island Time") = 13
+    TimeZoneDescs("Philippine Time") = 8
+    TimeZoneDescs("Pakistan Standard Time") = 5
+    TimeZoneDescs("Saint Pierre and Miquelon Daylight Time") = -2
+    TimeZoneDescs("Saint Pierre and Miquelon Standard Time") = -3
+    TimeZoneDescs("Pohnpei Standard Time") = 11
+    TimeZoneDescs("Pacific Standard Time�(North America)") = -8
+    TimeZoneDescs("Philippine Standard Time") = 8
+    TimeZoneDescs("Paraguay Summer Time[6]") = -3
+    TimeZoneDescs("Paraguay Time[7]") = -4
+    TimeZoneDescs("R�union Time") = 4
+    TimeZoneDescs("Rothera Research Station Time") = -3
+    TimeZoneDescs("Sakhalin Island Time") = 11
+    TimeZoneDescs("Samara Time") = 4
+    TimeZoneDescs("South African Standard Time") = 2
+    TimeZoneDescs("Solomon Islands Time") = 11
+    TimeZoneDescs("Seychelles Time") = 4
+    TimeZoneDescs("Samoa Daylight Time") = -10
+    TimeZoneDescs("Singapore Time") = 8
+    TimeZoneDescs("Sri Lanka Standard Time") = 5.5
+    TimeZoneDescs("Srednekolymsk Time") = 11
+    TimeZoneDescs("Suriname Time") = -3
+    TimeZoneDescs("Samoa Standard Time") = -11
+    TimeZoneDescs("Singapore Standard Time") = 8
+    TimeZoneDescs("Showa Station Time") = 3
+    TimeZoneDescs("Tahiti Time") = -10
+    TimeZoneDescs("Thailand Standard Time") = 7
+    TimeZoneDescs("Indian/Kerguelen") = 5
+    TimeZoneDescs("Tajikistan Time") = 5
+    TimeZoneDescs("Tokelau Time") = 13
+    TimeZoneDescs("Timor Leste Time") = 9
+    TimeZoneDescs("Turkmenistan Time") = 5
+    TimeZoneDescs("Turkey Time") = 3
+    TimeZoneDescs("Tonga Time") = 13
+    TimeZoneDescs("Tuvalu Time") = 12
+    TimeZoneDescs("Ulaanbaatar Summer Time") = 9
+    TimeZoneDescs("Ulaanbaatar Standard Time") = 8
+    TimeZoneDescs("Coordinated Universal Time") = 0
+    TimeZoneDescs("Uruguay Summer Time") = -2
+    TimeZoneDescs("Uruguay Standard Time") = -3
+    TimeZoneDescs("Uzbekistan Time") = 5
+    TimeZoneDescs("Venezuelan Standard Time") = -4
+    TimeZoneDescs("Vladivostok Time") = 10
+    TimeZoneDescs("Volgograd Time") = 4
+    TimeZoneDescs("Vostok Station Time") = 6
+    TimeZoneDescs("Vanuatu�Time") = 11
+    TimeZoneDescs("Wake Island Time") = 12
+    TimeZoneDescs("West Africa Summer Time") = 2
+    TimeZoneDescs("West Africa Time") = 1
+    TimeZoneDescs("Western European Summer Time") = 1
+    TimeZoneDescs("Western European Time") = 0
+    TimeZoneDescs("Western Indonesian Time") = 7
+    TimeZoneDescs("Western Standard Time") = 8
+    TimeZoneDescs("Yakutsk Time") = 9
+    TimeZoneDescs("Yekaterinburg Time") = 5
+  end if
 End Sub
 
 '?stdDate.RegexMatch("asdf","(?<a>.)(.)((?<b>.)(.))")
@@ -957,9 +964,12 @@ Private Function dd_mm_yyyy_2_value(str As String)
 End Function
 
 'Get the GeoCode from the Windows API
-Private Function getGeoCode() as String
-  Dim s as string: s = "  "
-  Call GetUserDefaultGeoName(s,0)
-  getGeoCode = s
+'http://vbcity.com/forums/t/118955.aspx
+Private Function getGeoCode() As String
+  'See here for a better implementation:
+  'http://vbcity.com/forums/t/118955.aspx
+  
+  'Assume UK
+  getGeoCode = "UK"
 End Function
 
