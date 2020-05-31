@@ -199,6 +199,28 @@ Private Function isShape(ByVal obj As Object) As Boolean
   End Select
 End Function
 
+Function ShapeData(shp As shape) As String
+  Dim s As String
+  
+  With shp
+    s = .Top & "," & .Left & "," & .Height & "," & .Width & "," & .AlternativeText & "," & .Name
+    With .Fill
+      s = s & "," & .BackColor.RGB & "," & .ForeColor.RGB
+    End With
+    With .Line
+      s = s & "," & .BackColor.RGB & "," & .ForeColor.RGB
+    End With
+    s = s & "," & .Glow.Color.RGB
+    With .TextFrame2.TextRange
+      With .Font.Fill
+        s = s & "," & .BackColor.RGB & "," & .ForeColor.RGB
+      End With
+      s = s & "," & .Text
+    End With
+  End With
+  
+  ShapeData = s
+End Function
 
 Private Sub Class_Initialize()
   Set bars = Application.CommandBars
