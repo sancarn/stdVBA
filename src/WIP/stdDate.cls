@@ -32,7 +32,7 @@ Attribute VB_Exposed = False
 '    Debug.Print stdDate.Create(Range("A1")).Format("dd-mm-yyyy")
 '
 '  Format yyyy-mm-dd hh-mm-ss as dd/mm/yy hh:mm:ss 
-'    Debug.Print stdDate.Parse("2012-02-01 10-11-35","yyyy-mm-dd hh-mm-ss").Format("dd/mm/yy hh:mm:ss")
+'    Debug.Print stdDate.CreateFromParse("2012-02-01 10-11-35","yyyy-mm-dd hh-mm-ss").Format("dd/mm/yy hh:mm:ss")
 '
 
 Private pInitialised As Boolean
