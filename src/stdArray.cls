@@ -310,20 +310,20 @@ Public Function lastIndexOf(ByVal el As Variant, Optional ByVal start As Integer
     'If both item and el are objects     (must be the same type in order to be the same data)
     If itemIsObj And elIsObj Then
       If item Is el Then 'check items equal
-        indexOf = i 'return item index
+        lastIndexOf = i 'return item index
         Exit Function
       End If
     'If both item and el are not objects (must be the same type in order to be the same data)
     ElseIf Not itemIsObj And Not elIsObj Then
       If item = el Then 'check items equal
-        indexOf = i 'return item index
+        lastIndexOf = i 'return item index
         Exit Function
       End If
     End If
   Next
 
   'Return -1 i.e. no match found
-  indexOf = -1
+  lastIndexOf = -1
 End Function
 
 Public Function includes(ByVal el As Variant, Optional ByVal startFrom As Integer = 1) As Boolean
