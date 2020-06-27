@@ -80,7 +80,7 @@ Public Function CreateFromArray(ByVal arr As Variant) As stdArray
 End Function
 
 
-Friend Sub init(iInitialLength As Long, iChunking As Long)
+Friend Sub init(ByVal iInitialLength As Long, ByVal iChunking As Long)
   If iChunking > iInitialLength Then iInitialLength = iChunking
   If Not pInitialised Then
     pProxyLength = iInitialLength
@@ -193,7 +193,19 @@ End Function
 
 Public Function Clone() As stdArray
   If pInitialised Then
-    Set Clone = stdArray.CreateFromArray(pArr)
+      If pInitialised Then
+        'Similar to CreateFromArray() but passing length through also:
+        Set Clone = New stdArray
+        
+        Call Clone.init(pLength, 10)
+        
+        Dim i As Long
+        For i = 1 To pLength
+            Call Clone.Push(pArr(i))
+        Next
+      Else
+        'Error
+      End If
   Else
     'Error
   End If
@@ -459,7 +471,7 @@ Public Function Unique(Optional ByVal cb As stdCallback = Nothing, Optional ByVa
 End Function
 
 
-Public Function Reduce(ByVal cb As stdCallback, Optional ByVal initialValue As Variant, Optional ByVal metadata As Variant) As Variant
+Public Function Reduce(ByVal cb As stdCallback, Optional ByVal initialValue As Variant=0, Optional ByVal metadata As Variant) As Variant
   If pInitialised Then
     Reduce = initialValue
     
@@ -470,7 +482,7 @@ Public Function Reduce(ByVal cb As stdCallback, Optional ByVal initialValue As V
       VariantCopy el, pArr(i)
 
       'Reduce
-      If metadata Is Nothing Then
+      If isMissing(metadata) Then
         Reduce = cb(Reduce, el)
       Else
         Reduce = cb(metadata, Reduce, el)
