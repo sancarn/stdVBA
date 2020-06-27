@@ -77,237 +77,254 @@ Attribute VB_Exposed = True
 'Const DISPID_DESTRUCTOR  = -7
 'Const DISPID_COLLECT     = -8
 
+'TODO:
+'* Implementation of Pointer
+'* CreateLambda()
+'* stdCallback.CreateFromAddress(AddressOf Main.Podrick)
+
+'TODO: Lambda Expressions:
+'******************
+'Callback.[(a,b,c) => a + b * c].Call(1,2,3) ' ==> 7
+'Callback.[obj => obj.id].Call(row)  ' ==> row.id
+
 
 'Direct call convention of VBA.CallByName
-
 #If VBA6 Then
   Private Declare PtrSafe Function rtcCallByName Lib "msvbvm60" (ByRef vRet As Variant, ByVal cObj As Object, ByVal sMethod As LongPtr, ByVal eCallType As VbCallType, ByRef pArgs() As Variant, ByVal lcid As Long) As Long
   Private Declare PtrSafe Sub VariantCopy Lib "oleaut32.dll" (ByRef pvargDest As Variant, ByRef pvargSrc As Variant)
- 
 #Else
   Private Declare Function rtcCallByName Lib "msvbvm60" (ByRef vRet As Variant, ByVal cObj As Object, ByVal sMethod As LongPtr, ByVal eCallType As VbCallType, ByRef pArgs() As Variant, ByVal lcid As Long) As Long
   Private Declare Sub VariantCopy Lib "oleaut32.dll" (ByRef pvargDest As Variant, ByRef pvargSrc As Variant)
 #End If
 
 Dim pInitialised As Boolean
-Dim pCallback As Collection
-Dim pCompiledLambda As Collection
-Dim pLambdaData As Collection
+' Dim pCallback As Collection
+' Dim pCompiledLambda As Collection
+' Dim pLambdaData As Collection
 
-'Token for Lambda
-Private Type TToken
-  pType As String
-  pValue As String
+Private Enum ParentType
+  Module = 1
+  Object = 2
+  Formula = 3
+End Enum
+Private Type CallbackStruct
+  iType as ParentType
+  sModuleName as string
+  oObject as object
+  sMethodName as string
+  iCallType as VbCallType
+  sFormula as string
 End Type
+Private pCallback as CallbackStruct
+
+Public Event BeforeRun(ByRef callback as stdCallback, ByRef args as variant)
+Public Event AfterRun(ByRef callback as stdCallback, ByRef sResult as variant)
 
 
-Public Property Get Callback() As Collection
-  Set Callback = pCallback
-End Property
 
-Public Property Set Callback(val As Collection)
-Attribute Callback.VB_Description = "Defines the specified callback."
-  If pInitialised Then
-    Err.Raise 0, "stdCallback::ctor", "Cannot initialise initialised Callback"
-  Else
-    Set pCallback = val
-  End If
-End Property
-
-'Default Property:
-Public Property Get Run(ParamArray args() As Variant) As Variant
-Attribute Run.VB_Description = "Runs the specified callback."
-Attribute Run.VB_UserMemId = 0
-  If pInitialised And Not pCallback Is Nothing Then
-    Dim vvArgs() As Variant
-    vvArgs = args
-    
-    'Call and return
-    VariantCopy Run, CallCallback(vvArgs)
-  Else
-    Err.Raise 0, "stdCallback::Run", "No callback specified. Please initialise with Create()."
-  End If
-End Property
-
-Private Function StdRun(ParamArray args() As Variant) As Variant
-Attribute StdRun.VB_Description = "Run method for Win32APIs."
-  'TODO:
+'Create a callback object from module type string, translate to enum and initialise callback
+Public Function Create(mType As String, Parent As Variant, Name As String, Optional cType As Integer = VbCallType.VbMethod) As stdCallback
+Attribute Create.VB_Description = "Creates an instance of this class."
+  Dim iType as ParentType
+  if mType = "Module" then
+    iType = ParentType.Module
+  elseif mType = "Object" then
+    iType = ParentType.Object
+  else
+    CritialRaise  "Incorrect module type supplied"
+  end if
+  
+  Set Create = New stdCallback
+  Call Create.Init(itype, cType, Parent, Name)
+  
 End Function
 
-'0 = StdCall
-'1 = Get call
-Property Get Pointer(Optional cType As Integer = 0) As LongPtr
-Attribute Pointer.VB_Description = "Gets the pointer to the Run function property of the current Callback for usage in Win32 API calls."
-  'TODO:
-  Dim MePtr As LongPtr
-  'MePtr = STD.Automation.COM.Deref(Me)
-  If cType = 0 Then
-    'Navigate to VB_UserMemId 99
-  Else
-    'Navigate to VB_UserMemId 0
-  End If
-End Property
+'Create callback from Module function directly
+Public Function CreateFromModule(ByVal sParentName as string, ByVal sMethodName as string) as stdCallback
+Attribute CreateFromModule.VB_Description = "Create callback from module method."
+  Set CreateFromModule = New stdCallback
+  Call CreateFromModule.Init(ParentType.Module, sParentName, sMethodName)
+End Function
 
-Friend Sub Init(mType As String, Parent As Variant, Name As String, cType As Integer)
+'Create callback from object and method name
+Public Function CreateFromObjectMethod(ByRef object as object, ByVal sMethodName as string) as stdCallback
+Attribute CreateFromObjectMethod.VB_Description = "Create callback from object method."
+  Set CreateFromObjectMethod = new stdCallback
+  Call CreateFromObjectMethod.Init(ParentType.Object, object, sMethodName, VbCallType.VbMethod)
+End Function
+
+'Create callback from object and property name
+Public Function CreateFromObjectProperty(ByRef object as object, ByVal sPropName as string, ByVal cType as VbCallType) as stdCallback
+Attribute CreateFromObjectProperty.VB_Description = "Create callback from object property."
+  Set CreateFromObjectProperty = new stdCallback
+  Call CreateFromObjectProperty.Init(ParentType.Object, object, sPropName, cType)
+End Function
+
+'CreateEvaluator from 
+Public Function CreateEvaluator(ByVal sFormula as string, Optional ByRef evalFunc as stdCallback = nothing) as stdCallback
+Attribute CreateEvaluator.VB_Description = "Create callback from Excel formula. This method is VBA Only"
+  if Application.Name = "Microsoft Excel" then
+    set CreateEvaluator = new stdCallback
+    Call CreateEvaluator.Init(ParentType.Formula, sFormula, evalFunc)
+  Else
+    CriticalRaise "Can only create evaluators in Excel as they rely on Application.Evaluate()"
+  end if
+End Function
+
+Friend Sub Init(iParentType As Long, ParamArray params() as variant) 'Parent As Variant, Name As String
 Attribute Init.VB_Description = "Initialises this object. This should not be called directly unless building a ctor routine e.g. Create()."
   If Not pInitialised Then
-    Set Me.Callback = New Collection
-    Me.Callback.add mType, "Type"
-    Me.Callback.add Parent, "Parent"
-    Me.Callback.add Name, "Name"
-    Me.Callback.add cType, "cType"
+    Select Case iParentType
+      Case ParentType.Module
+        pCallback.iType = iParentType
+        pCallback.sModuleName = params(0)
+        pCallback.sMethodName = params(1)
+      Case ParentType.Object
+        pCallback.iType = iParentType
+        set pCallback.oObject = params(0)
+        pCallback.sMethodName = params(1)
+        pCallback.iCallType = params(2)
+      Case ParentType.Formula
+        pCallback.iType = iParentType
+        pCallback.sFormula = params(0)
+        set pCallback.oObject = params(1)
+      Case Else
+        CriticalRaise "Invalid module type submitted"    
+    End Select
   Else
-    Err.Raise 1, "stdCallback::init()", "Class is already initialised"
+    CriticalRaise "Class is already initialised"
   End If
   pInitialised = True
 End Sub
 
-'Create a callback object:
-Public Function Create(mType As String, Parent As Variant, Name As String, Optional cType As Integer = VbCallType.VbMethod) As stdCallback
-Attribute Create.VB_Description = "Creates an instance of this class."
-  If mType = "Module" Or mType = "Object" Then
-    Set Create = New stdCallback
-    Call Create.Init(mType, Parent, Name, cType)
-  Else
-    Err.Raise 1, "stdCallback::create()", "Incorrect module type supplied"
-  End If
-End Function
-
-'Examples:
-'******************
-'Callback.[(a,b,c) => a + b * c].Call(1,2,3) ' ==> 7
-'Callback.[obj => obj.id].Call(row)  ' ==> row.id
-'...
-Public Function Lambda(ByVal Lambda As String)
-Attribute Lambda.VB_UserMemId = -5
-  'TODO:
-  '  Set Lambda = New stdCallback
-  '  Lambda.Callback = New Collection
-  '  Lambda.Callback.add "Lambda", "Type"
-  '  Dim sLambda() As String
-  '  sLambda = Split(Lambda, "=>", 1)
-  '  Lambda.Callback.add sLambda(0), "args"
-  '  Lambda.Callback.add sLambda(1), "lambda"
-End Function
-
-'CALLBACK STRUCTURE:
-'Type   = Module|Object
-'Parent = ModuleName or ParentObject
-'Name   = Name of method to call
-'cType  = Call type (for Objects)
-Private Function CallCallback(args() As Variant) As Variant
-  Dim vRet As Variant
-  If Callback("Type") = "Module" Then
-    'TODO: Investigate whether we can call these directly via GetModuleHandleA(), GetProcAddress() and CallWindowProcW()
-    'Get currentLength
-    Dim currentLength As Integer
-    currentLength = UBound(args) - LBound(args) + 1
-    
-    'Preserve array but make it 29 args long
-    ReDim Preserve args(0 To 29)
-    
-    'Loop over args and bind missing to args not present in initial array
-    Dim i As Integer
-    For i = 0 To 29
-      If i > currentLength - 1 Then
-        args(i) = GetMissing
-      End If
-    Next
-    
-    'Call callback on module function
-    'Dim vp As LongPtr
-    'vp = VarPtr(Application.Run(Callback("Parent") & "." & Callback("Name"), args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15), args(16), args(17), args(18), args(19), args(20), args(21), args(22), args(23), args(24), args(25), args(26), args(27), args(28), args(29)))
-    'Call GetMem4(vp, vRet)
-    
-    VariantCopy CallCallback, Application.Run( _
-        pCallback("Parent") & "." & pCallback("Name"), _
-        args(0), args(1), _
-        args(2), args(3), _
-        args(4), args(5), _
-        args(6), args(7), _
-        args(8), args(9), _
-        args(10), args(11), _
-        args(12), args(13), _
-        args(14), args(15), _
-        args(16), args(17), _
-        args(18), args(19), _
-        args(20), args(21), _
-        args(22), args(23), _
-        args(24), args(25), _
-        args(26), args(27), _
-        args(28), args(29))
-
-  ElseIf Callback("Type") = "Object" Then
-    'Call function directly
-    'Use rtcCallByName to avoid type errors from argument array
-    'Src: http://www.vbforums.com/showthread.php?866039-RESOLVED-Store-CallByName-Arguments-list
-    
+'Default Property:
+Public Function Run(ParamArray args() As Variant) As Variant
+Attribute Run.VB_Description = "Runs the specified callback."
+Attribute Run.VB_UserMemId = 0
+  If pInitialised And pCallback.iType Then
+    'store args as different array otherwise crash occurs
     Dim vArr() As Variant
     vArr = args
     
-    Dim hr As Long
-    hr = rtcCallByName(CallCallback, Callback("Parent"), StrPtr(Callback("Name")), Callback("cType"), vArr, &H409)
+    'Raise event for listeners
+    RaiseEvent BeforeRun(Me, vArr)
     
-    'If error then raise
-    If hr < 0 Then
-      Err.Raise hr, "stdCallback::CallCallback"
-    End If
+    'Select procedure based on parent type, as each requires different call conventions
+    Dim vRet As Variant
+    Select Case pCallback.iType
+      Case ParentType.Module
+        'TODO: Investigate whether we can call these directly via GetModuleHandleA(), GetProcAddress() and CallWindowProcW()
+        'Get currentLength
+        Dim currentLength As Integer
+        currentLength = UBound(vArr) - LBound(vArr) + 1
+        
+        'Preserve array but make it 29 args long
+        ReDim Preserve vArr(0 To 29)
+        
+        'Loop over args and bind missing to args not present in initial array
+        Dim i As Integer
+        For i = 0 To 29
+          If i > currentLength - 1 Then
+            vArr(i) = GetMissing
+          End If
+        Next
+        
+        'Copy results of Application.Run into vRet
+        VariantCopy vRet, Application.Run( _
+            pCallback.sModuleName & "." & pCallback.sMethodName, _
+            vArr(0), vArr(1), _
+            vArr(2), vArr(3), _
+            vArr(4), vArr(5), _
+            vArr(6), vArr(7), _
+            vArr(8), vArr(9), _
+            vArr(10), vArr(11), _
+            vArr(12), vArr(13), _
+            vArr(14), vArr(15), _
+            vArr(16), vArr(17), _
+            vArr(18), vArr(19), _
+            vArr(20), vArr(21), _
+            vArr(22), vArr(23), _
+            vArr(24), vArr(25), _
+            vArr(26), vArr(27), _
+            vArr(28), vArr(29))
+      Case ParentType.object
+        'Call function directly
+        'Use rtcCallByName to avoid type errors from argument array
+        'Src: http://www.vbforums.com/showthread.php?866039-RESOLVED-Store-CallByName-Arguments-list
+        
+        'Call rtcCallByName
+        Dim hr As Long
+        hr = rtcCallByName(vRet, pCallback.oObject, StrPtr(pCallback.sMethodName), pCallback.iCallType, vArr, &H409)
+        
+        'If error then raise
+        If hr < 0 Then
+          CriticalRaise "Error in rtcCallByName. Error number: " & hr
+        End If
+      Case ParentType.Formula
+        'Yes this is obscenely hacky, but here it goes anyway. The objective is to create an evaluatable formula. This will simply be done by:
+        '1) Loop through all arguments and replace $index with the serialized value
+        '2) Evaluate with Application.Evaluate (or with evalFunc)
+        Dim sEqn As String: sEqn = pCallback.sFormula
+        For i = 0 To UBound(vArr)
+          If InStr(1, sEqn, "$") Then
+            If InStr(1, sEqn, "$" & (i + 1)) Then sEqn = Replace(sEqn, "$" & (i + 1), Serialize(vArr(i)))
+          Else
+            Exit For
+          End If
+        Next
+
+        'If evalFunc provided then evaluate with evalFunc, else use Application.Evaluate()
+        If pCallback.oObject Is Nothing Then
+          VariantCopy vRet, Application.Evaluate(sEqn)
+        Else
+          VariantCopy vRet, pCallback.oObject.Run(sEqn)
+        End If
+      Case Else
+        CriticalRaise "Cannot call callback. Invalid parent type assigned (" & iParentType & ")."
+      End Select
+
+      
+      'Allow events to modify result prior to submitting to return
+      RaiseEvent AfterRun(Me, vRet)
+      
+      'Return result
+      VariantCopy Run, vRet
   Else
-    Err.Raise 0, "STD.Types.Callback::Call", "Cannot call callback. Invalid type """ & Callback("Type") & """assigned."
+    CriticalRaise "No callback specified. Please initialise with a Create function."
   End If
 End Function
+
+
+
+
+
+Private Function Serialize(data As Variant) As String
+  Select Case TypeName(data)
+    Case "Integer", "Double", "Float", "Date"
+      Serialize = CDbl(data)
+    Case "String"
+      Serialize = """" & data & """"
+    Case Else
+      if VarType(data) = vbObject then
+        'allows for stuff like --> CreateEvaluator("@(@(@($1,""Workbooks""),""Item"",1),""Name"")")(Application)
+        'Assuming @() calls 
+        Serialize = ObjPtr(data)
+      else
+        Serialize = data
+      end if
+  End Select
+End Function
+
+Private Sub CriticalRaise(ByVal sMessage as string)
+  'If stdError exists
+    if vartype(stdError) then
+      Call stdError.Raise("Can only create evaluators in Excel as they rely on Application.Evaluate()")
+    Else
+      Call Err.Raise(1,"stdCallback", sMessage)
+    End If
+    End
+End Sub
 
 Private Function GetMissing(Optional arg As Variant) As Variant
   GetMissing = arg
-End Function
-
-
-
-
-
-
-Private Function TokeniseLambda(ByRef Tokens() As TToken)
-  Dim Lambda() As Byte
-  Lambda = Callback("lambda")
-  
-  ReDim Tokens(0 To UBound(Lambda) - LBound(Lambda))
-  
-  Dim TokenHash(255) As Boolean, i As Integer
-  For i = 32 To 47: TokenHash(i) = True: Next
-  For i = 58 To 64: TokenHash(i) = True: Next
-  For i = 91 To 96: TokenHash(i) = True: Next
-  For i = 123 To 126: TokenHash(i) = True: Next
-  
-  Dim s As String, sToken As String, ch As Integer
-  Dim token As TToken
-  For i = 0 To UBound(Lambda) Step 2
-    ch = Lambda(i + 1)
-    If ch = 10 Then ch = 58 'Assume vbLf = ":"
-    'Do not pass any disallow all control characters
-    'TODO: if ch < 32 then Continue For
-    If TokenHash(ch) Then
-      'Previous token
-      token.pType = "Literal"
-      token.pValue = s
-      TokeniseLambda.add token
-      
-      'Current Token
-      token.pType = "Symbol"
-      token.pValue = Asc(ch)
-      TokeniseLambda.add token
-      
-      'Next token
-      s = ""
-    Else
-      'Concatenate string literal
-      s = s & Asc(ch)
-    End If
-  Next
-  
-  'Add final token
-  If s <> "" Then
-    token.pType = "Literal"
-    token.pValue = s
-    TokeniseLambda.add token
-  End If
 End Function
