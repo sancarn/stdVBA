@@ -2,6 +2,66 @@
 
 A Collection of libraries to form a common standard layer for modern VBA applications.
 
+## Benefits
+
+* Code faster!
+* Improve code maintainability.
+* Let the library handle the complicated stuff, you focus on the process 
+* Heavily inspired of JavaScript APIs - More standard
+* Open Source - Means the libraries are continually maintained by the community. Want something added, help us make it!
+
+## Short example
+
+```vb
+sub Main()
+  'Create an array
+  Dim arr as stdArray
+  set arr = stdArray.Create(1,2,3,4,5,6,7,8,9,10) 'Can also call CreateFromArray
+
+  'Demonstrating join, join will be used in most of the below functions
+  Debug.Print arr.join()                                                 '1,2,3,4,5,6,7,8,9,10
+  Debug.Print arr.join("|")                                              '1|2|3|4|5|6|7|8|9|10
+
+  'Basic operations
+  arr.push 3
+  Debug.Print arr.join()                                                 '1,2,3,4,5,6,7,8,9,10,3
+  Debug.Print arr.pop()                                                  '3
+  Debug.Print arr.join()                                                 '1,2,3,4,5,6,7,8,9,10
+  Debug.Print arr.concat(stdArray.Create(11,12,13)).join                 '1,2,3,4,5,6,7,8,9,10,11,12,13
+  Debug.Print arr.join()                                                 '1,2,3,4,5,6,7,8,9,10 'Unlike JS, concat doesn't modify the initial array
+  Debug.Print arr.includes(3)                                            'True
+  Debug.Print arr.includes(34)                                           'False
+
+  'More advanced behaviour when including callbacks!
+  Debug.Print arr.Map(stdCallback.CreateEvaluator("$1+1")).join          '2,3,4,5,6,7,8,9,10,11
+  Debug.Print arr.Reduce(stdCallback.CreateEvaluator("$1+$2"))           '55 ' I.E. Calculate the sum
+  Debug.Print arr.Reduce(stdCallback.CreateEvaluator("Max($1,$2)"))      '10 ' I.E. Calculate the maximum
+  Debug.Print arr.Filter(stdCallback.CreateEvaluator("$1>=5")).join      '5,6,7,8,9,10
+
+  'Execute custom functions
+  Debug.Print arr.Map(stdCallback.CreateFromModule("ModuleMain","CalcArea")).join  '3.14159,12.56636,28.274309999999996,50.26544,78.53975,113.09723999999999,153.93791,201.06176,254.46879,314.159
+
+  'Let's move onto regex:
+  Dim oRegex as stdRegex
+  set oRegex = stdRegex.Create("(?<county>[A-Z])-(?<city>\d+)-(?<street>\d+)","i")
+
+  Dim oRegResult as object
+  set oRegResult = oRegex.Match("D-040-1425")
+  Debug.Print oRegResult("county") 'D
+  Debug.Print oRegResult("city")   '040
+  
+  'And getting all the matches....
+  Debug.Print oRegex.MatchAll("D-040-1425;D-029-0055;A-100-1351").map(stdCallback.CreateFromModule("ModuleMain","GetCountry")).join 'D,D,A
+End Sub
+
+Public Function CalcArea(ByVal radius as Double) as Double
+  CalcArea = 3.14159*radius*radius
+End Function
+Public Function GetCounty(obj as object) as string
+  GetCountry = obj("county")
+End Function
+```
+
 ## Motivation
 
 VBA first appeared in 1993 (over 25 years ago) and the language's age is definitely noticable. VBA has a lot of specific libraries for controlling Word, Excel, Powerpoint etc. However the language massively lacks in generic modern libraries for accomplishing common programming tasks. VBA projects ultimately become a mish mash of many different technologies and programming styles. Commonly for me that means calls to Win32 DLLs, COM libraries via late-binding, calls to command line applications and calls to .NET assemblies.
