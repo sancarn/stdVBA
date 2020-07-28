@@ -131,7 +131,7 @@ Attribute Create.VB_Description = "Creates an instance of this class."
   elseif mType = "Object" then
     iType = ParentType.Object
   else
-    CritialRaise  "Incorrect module type supplied"
+    CriticalRaise  "Incorrect module type supplied"
   end if
   
   Set Create = New stdCallback
