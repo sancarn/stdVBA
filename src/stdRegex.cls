@@ -301,7 +301,9 @@ Public Function Match(ByVal sHaystack As String) As Object
   Dim i As Long
   For i = 1 To p_namesDict.Count
     oRet(i) = oMatches(0).Submatches(i - 1)
-    If Not IsEmpty(p_namesDict(i - 1).Submatches(0)) Then oRet(p_namesDict(i - 1).Submatches(0)) = oMatches(0).Submatches(i - 1)
+    If Not IsEmpty(oMatches(i - 1).Submatches(j - 1)) then
+      If Not IsEmpty(p_namesDict(i - 1).Submatches(0)) Then oRet(p_namesDict(i - 1).Submatches(0)) = oMatches(0).Submatches(i - 1)
+    End If
   Next i
   
   'Return data
@@ -361,7 +363,9 @@ Public Function MatchAll(ByVal sHaystack As String) As stdArray
     'Loop over submatches and apply to dict
     For j = 1 To p_namesDict.Count
       oDict(j) = oMatches(i - 1).Submatches(j - 1)
-      If Not IsEmpty(p_namesDict(j - 1).Submatches(0)) Then oDict(p_namesDict(j - 1).Submatches(0)) = oMatches(i - 1).Submatches(j - 1)
+      If Not IsEmpty(oMatches(i - 1).Submatches(j - 1)) then
+        If Not IsEmpty(p_namesDict(j - 1).Submatches(0)) Then oDict(p_namesDict(j - 1).Submatches(0)) = oMatches(i - 1).Submatches(j - 1)
+      end if
     Next
 
     'Push dictionary to array
