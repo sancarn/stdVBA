@@ -158,6 +158,36 @@ Public Function Pop() As Variant
     End If
 End Function
 
+Public Function Remove(ByVal index As Long) As Variant
+  'Ensure initialised
+  If pInitialised Then
+    'Ensure length > 0
+    If pLength > 0 Then
+      'Ensure index < length
+      If index <= pLength Then
+        'Copy party we are removing to return variable
+        VariantCopy Remove, pArr(index)
+        
+        'Loop through array from removal, set i-1th element to ith element
+        Dim i As Long
+        For i = index + 1 To pLength
+            pArr(i - 1) = pArr(i)
+        Next
+
+        'Set last element length and subtract total length by 1
+        pArr(pLength) = Empty
+        pLength = pLength - 1
+      Else
+        'Error
+      End If
+    Else
+      'Error
+    End If
+  Else
+      'Error
+  End If
+End Function
+
 Public Function Shift() As Variant
   'Would be good to use CopyMemory here
   
@@ -220,7 +250,7 @@ Public Function Reverse() As stdArray
     Set Reverse = ret
 End Function
 
-Public Function Concat(arr As stdArray) As stdArray
+Public Function Concat(ByVal arr As stdArray) As stdArray
   Dim x As stdArray
   Set x = Clone()
   
