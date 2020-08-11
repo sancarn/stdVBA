@@ -98,7 +98,7 @@ Public Function GetListItems(ByVal listName As String, Optional ByVal query As S
         "query", query, _
         "viewFields", viewFields, _
         "rowLimit", rowLimit, _
-        "queryOptions", queryOptions, _
+        "QueryOptions", queryOptions, _
         "webID", webID _
     ))
     GetListItems = LastReq.Status = 200
