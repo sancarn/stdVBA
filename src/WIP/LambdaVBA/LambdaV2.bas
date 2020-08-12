@@ -13,7 +13,7 @@ Private tokens() As token
 Private iTokenIndex As Long
 
 Sub Test
-  Debug.Print EvaluateEx("1+3*8/2*(2+2+3)")
+  Debug.Print EvaluateEx("1+3*8/2*(2+2+3)",Array(vbNull))
 End Sub
 
 
@@ -31,8 +31,9 @@ Function ShiftTokens() As token
     iTokenIndex = iTokenIndex + 1
 End Function
 
+'Throws an error
 Sub Throw(ByVal sMessage As String)
-    Debug.Print "Unexpected token, found: " & firstToken.Type.Name & " but expected: " & sType
+    Debug.Print sMessage
     End
 End Sub
 
@@ -45,8 +46,7 @@ Function consume(ByVal sType As String) As String
     Dim firstToken As token
     firstToken = ShiftTokens()
     If firstToken.Type.Name <> sType Then
-        Debug.Print "Unexpected token, found: " & firstToken.Type.Name & " but expected: " & sType
-        End
+        Throw("Unexpected token, found: " & firstToken.Type.Name & " but expected: " & sType)
     Else
         consume = firstToken.Value
     End If
@@ -79,14 +79,14 @@ End Function
 '------------------------------------------------------
 
 
-Function EvaluateEx(ByVal sExpression As String)
+Function EvaluateEx(ByVal sExpression As String, ByVal args as variant)
     tokens = Tokenise(sExpression)
     iTokenIndex = 1
-    EvaluateEx = expression()
+    EvaluateEx = expression(args)
 End Function
 
 'Evaluate an expression
-Function expression() As Variant
+Function expression(ByRef args as variant) As Variant
     Dim res As Variant: res = term()
     Dim bLoop As Boolean: bLoop = True
     Do
@@ -101,7 +101,7 @@ Function expression() As Variant
     expression = res
 End Function
 
-Function term() As Variant
+Function term(ByRef args as variant) As Variant
     Dim res As Variant: res = factor()
     Dim bLoop As Boolean: bLoop = True
     Do
@@ -116,10 +116,12 @@ Function term() As Variant
     term = res
 End Function
 
-Function factor() As Variant
+Function factor(ByRef args as variant) As Variant
     Dim res As Variant
     If peek("literalNumber") Then
         res = CDbl(consume("literalNumber"))
+    elseif peek("var") then
+        Call CopyVariant(res, EvaluateVarName(consume("var")))
     Else
         Call consume("lBracket")
         res = expression()
@@ -128,7 +130,24 @@ Function factor() As Variant
     factor = res
 End Function
 
+'Helper
+'Evaluates Variable name
+Private Function EvaluateVarName(ByRef args as variant) As Variant
+    Dim iArgIndex As Long: iArgIndex = Val(Mid(tok.Value, 2))
+    
+    'Evaluate varname, allow for object values...
+    Call CopyVariant(EvaluateVarName, args(iArgIndex))
+End Function
 
+'Helper
+'Copies one variant to a destination
+Private Function CopyVariant(ByRef dest as variant, ByVal value as variant)
+  If VarType(value) = vbObject then
+    set CopyVariant = value
+  else
+    CopyVariant = value
+  End if
+End Function
 
 
 Function Tokenise(ByVal sInput As String) As token()
@@ -140,9 +159,6 @@ Function Tokenise(ByVal sInput As String) As token()
     
     Dim sInputOld As String
     sInputOld = sInput
-    
-    Dim iBracketDepth As Long
-    iBracketDepth = 0
     
     Dim iNumTokens As Long
     iNumTokens = 0
@@ -163,23 +179,9 @@ Function Tokenise(ByVal sInput As String) As token()
                 'Tokenise
                 tokens(iNumTokens).Type = defs(iTokenDef)
                 tokens(iNumTokens).Value = oMatch(0)
-                tokens(iNumTokens).BracketDepth = iBracketDepth
                 
                 'Trim string to unmatched range
                 sInput = Mid(sInput, Len(oMatch(0)) + 1)
-                
-                'Mark bracket depth as we tokenise
-                Select Case defs(iTokenDef).Name
-                    Case "LParen"
-                        iBracketDepth = iBracketDepth + 1
-                    Case "RParen"
-                        iBracketDepth = iBracketDepth - 1
-                        
-                        'Overwrite bracket depth
-                        tokens(iNumTokens).BracketDepth = iBracketDepth
-                    Case Else
-                        'No change to bracket depth
-                End Select
                 
                 'Flag that a match was made
                 bMatched = True
@@ -199,32 +201,42 @@ End Function
 
 'Tokeniser helpers
 Private Function getTokenDefinitions() As TokenDefinition()
-    Dim arr(1 To 17) As TokenDefinition
+    Dim arr() As TokenDefinition
+    ReDim arr(1 To 99)
+    
+    Dim i as long: i=0
     'Literal
-    arr(1) = getTokenDefinition("literalString", """(?:""""|[^""])*""") 'String
-    arr(2) = getTokenDefinition("literalNumber", "\d+(?:\.\d+)?")       'Number
-    arr(3) = getTokenDefinition("literalBoolean", "True|False")
+    i=i+1: arr(i) = getTokenDefinition("literalString", """(?:""""|[^""])*""") 'String
+    i=i+1: arr(i) = getTokenDefinition("literalNumber", "\d+(?:\.\d+)?")       'Number
+    i=i+1: arr(i) = getTokenDefinition("literalBoolean", "True|False")
     
     'Structural
-    arr(4) = getTokenDefinition("lBracket", "\(")
-    arr(5) = getTokenDefinition("rBracket", "\)")
-    arr(6) = getTokenDefinition("zzFuncDelim", ",")
-    arr(7) = getTokenDefinition("zzIfStatement", "if")
-    arr(8) = getTokenDefinition("zzFuncName", "[a-zA-Z][a-zA-Z0-9_]+")
+    i=i+1: arr(i) = getTokenDefinition("lBracket", "\(")
+    i=i+1: arr(i) = getTokenDefinition("rBracket", "\)")
+    i=i+1: arr(i) = getTokenDefinition("zzFuncDelim", ",")
+    i=i+1: arr(i) = getTokenDefinition("zzIfStatement", "if")
+    i=i+1: arr(i) = getTokenDefinition("zzFuncName", "[a-zA-Z][a-zA-Z0-9_]+")
     
     'VarName
-    arr(9) = getTokenDefinition("zzVarName", "\$\d+")
+    i=i+1: arr(i) = getTokenDefinition("var", "\$\d+")
     
     'Operators
-    arr(10) = getTokenDefinition("zzPropertyAccess", "\.")
-    arr(11) = getTokenDefinition("zzMethodAccess", "\.")
-    arr(12) = getTokenDefinition("mul", "\*")
-    arr(13) = getTokenDefinition("div", "\/")
-    arr(14) = getTokenDefinition("add", "\+")
-    arr(15) = getTokenDefinition("sub", "\-")
-    arr(16) = getTokenDefinition("zzBooleanOp", "(?:\=|\>\=|\>|\<|\<\=|\<\>)")
-    arr(17) = getTokenDefinition("zzConcatenate", "\&")
+    i=i+1: arr(i) = getTokenDefinition("zzPropertyAccess", "\.")
+    i=i+1: arr(i) = getTokenDefinition("zzMethodAccess", "\#")
+    i=i+1: arr(i) = getTokenDefinition("mul", "\*")
+    i=i+1: arr(i) = getTokenDefinition("div", "\/")
+    i=i+1: arr(i) = getTokenDefinition("add", "\+")
+    i=i+1: arr(i) = getTokenDefinition("sub", "\-")
+    i=i+1: arr(i) = getTokenDefinition("eq", "\=")
+    i=i+1: arr(i) = getTokenDefinition("neq", "\<\>")
+    i=i+1: arr(i) = getTokenDefinition("gt", "\>")
+    i=i+1: arr(i) = getTokenDefinition("gte", "\>\=")
+    i=i+1: arr(i) = getTokenDefinition("lt", "\<")
+    i=i+1: arr(i) = getTokenDefinition("lte", "\<\=")
+    i=i+1: arr(i) = getTokenDefinition("concat", "\&")
     
+    Redim Preserve arr(1 to i)
+
     getTokenDefinitions = arr
 End Function
 Private Function getTokenDefinition(ByVal sName As String, ByVal sRegex As String, Optional ByVal ignoreCase As Boolean = True) As TokenDefinition
@@ -303,21 +315,6 @@ Function zzEvaluateLiteral(ByRef tok As token) As token
     End If
     
     zzEvaluateLiteral = tRet
-End Function
-Function zzEvaluateVarName(ByRef tok As token, ByRef args As Variant) As token
-    Dim tRet As token
-    tRet.Type.Name = "RESULT"
-    
-    Dim iArgIndex As Long: iArgIndex = Val(Mid(tok.Value, 2))
-    
-    'Evaluate varname, allow for object values...
-    If VarType(args(iArgIndex)) = vbObject Then
-        Set tRet.Value = args(iArgIndex)
-    Else
-        tRet.Value = args(iArgIndex)
-    End If
-    
-    zzEvaluateVarName = tRet
 End Function
 Function zzDeSerialize(ByVal sData As String) As String
     sData = Mid(sData, 2, Len(sData) - 2)
