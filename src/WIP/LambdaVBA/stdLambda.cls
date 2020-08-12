@@ -117,9 +117,9 @@ Function expression() As Variant
     Dim res As Variant: Call CopyVariant(res, term())
     Dim bLoop As Boolean: bLoop = True
     Do
-        If optConsume("add") <> vbNullString Then
+        If optConsume("add") Then
             res = res + term()
-        ElseIf optConsume("sub") <> vbNullString Then
+        ElseIf optConsume("sub") Then
             res = res - term()
         Else
             bLoop = False
@@ -132,9 +132,9 @@ Function term() As Variant
     Dim res As Variant: Call CopyVariant(res, factor())
     Dim bLoop As Boolean: bLoop = True
     Do
-        If optConsume("mul") <> vbNullString Then
+        If optConsume("mul") Then
             res = res * factor()
-        ElseIf optConsume("div") <> vbNullString Then
+        ElseIf optConsume("div") Then
             res = res / factor()
         Else
             bLoop = False
@@ -148,7 +148,7 @@ Function factor() As Variant
     
     'Deal with not unary operator
     Dim invert As Variant: invert = vbNull
-    While optConsume("not") <> vbNullString
+    While optConsume("not")
         If invert = vbNull Then invert = False
         invert = Not invert
     Wend
@@ -203,7 +203,7 @@ End Function
 
 Function optObjectProperty(ByRef value As Variant)
     If IsObject(value) Then
-        If optConsume("propertyAccess") <> vbNullString Then
+        If optConsume("propertyAccess") Then
             Dim sFuncName As String: sFuncName = consume("funcName")
             Dim args() As Variant: args = optConsumeParameters()
             
@@ -223,9 +223,10 @@ Function optObjectProperty(ByRef value As Variant)
     
     optObjectProperty = UniqueConst
 End Function
+
 Function optObjectMethod(ByRef value As Variant) As Variant
     If IsObject(value) Then
-        If optConsume("methodAccess") <> vbNullString Then
+        If optConsume("methodAccess") Then
             Dim sFuncName As String: sFuncName = consume("funcName")
             Dim args() As Variant: args = optConsumeParameters()
             
@@ -247,7 +248,7 @@ Function optObjectMethod(ByRef value As Variant) As Variant
 End Function
 
 Function optConsumeParameters() As Variant
-    If optConsume("lBracket") <> vbNullString Then
+    If optConsume("lBracket") Then
         Dim args() As Variant
         args = Array()
 
@@ -271,7 +272,7 @@ Function consumeString() As String
     consumeString = sRes
 End Function
 
-'Helper
+
 'Evaluates Variable name
 Private Function EvaluateVarName(ByVal sValueName As String) As Variant
     Dim iArgIndex As Long: iArgIndex = Val(Mid(sValueName, 2))
@@ -336,15 +337,6 @@ Private Function Tokenise(ByVal sInput As String) As token()
     Tokenise = tokens
 End Function
 
-'Copies one variant to a destination
-Private Sub CopyVariant(ByRef dest As Variant, ByVal value As Variant)
-  If IsObject(value) Then
-    Set dest = value
-  Else
-    dest = value
-  End If
-End Sub
-
 'Tokeniser helpers
 Private Function getTokenDefinitions() As TokenDefinition()
     Dim arr() As TokenDefinition
@@ -399,7 +391,16 @@ End Function
 '
 '==============================================================================================================================
 
-
+'Copies one variant to a destination
+'@param {ByRef Variant} dest Destination to copy variant to
+'@param {Variant} value Source to copy variant from.
+Private Sub CopyVariant(ByRef dest As Variant, ByVal value As Variant)
+  If IsObject(value) Then
+    Set dest = value
+  Else
+    dest = value
+  End If
+End Sub
 
 'Shifts the Tokens array (uses an index)
 '@returns {token} The token at the tokenIndex
@@ -451,13 +452,12 @@ End Function
 ' Combines peek and consume, consuming a token only if matched, without throwing an error if not
 ' @param {string} token The token that is expected
 ' @returns {vbNullString|string} Whether the expected token was found
-Private Function optConsume(ByVal sTokenType As String) As String
+Private Function optConsume(ByVal sTokenType As String) As Boolean
     Dim matched As Boolean: matched = peek(sTokenType)
     If matched Then
-        optConsume = consume(sTokenType)
-    Else
-        optConsume = vbNullString
+        consume(sTokenType)
     End If
+    optConsume = matched
 End Function
 
 'Checks the value of the passed parameter, to check if it is the unique constant
