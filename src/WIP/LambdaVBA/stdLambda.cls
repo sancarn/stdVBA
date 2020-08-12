@@ -99,6 +99,10 @@ Public Sub test()
     Debug.Print stdLambda.Create("$1.Range(""A1"")").Execute(Sheets(1)).Address(True, True, xlA1, True)
     
     'Evaluate method access
+    Range("A1").value = 1
+    Range("A2").value = 2
+    Range("A3").value = 3
+    Range("A4").value = 4
     Debug.Print stdLambda.Create("$1#Find(4)").Execute(Range("A:A")).Address(True, True, xlA1, True)
 
     'TODO:
@@ -254,7 +258,7 @@ Function optConsumeParameters() As Variant
 
         While Not peek("rBracket")
             If UBound(args) - LBound(args) + 1 > 0 Then Call consume("comma")
-            ReDim args(0 To UBound(args) + 1)
+            ReDim Preserve args(0 To UBound(args) + 1)
             args(UBound(args)) = expression()
         Wend
 
