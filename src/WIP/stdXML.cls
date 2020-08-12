@@ -73,7 +73,7 @@ Public Function Create(ByVal sTagName as string) as stdXML
 
 End Function
 Public Function CreateTextNode(ByVal sValue as string) as stdXML
-
+  'for use in cases like <A><B/>hello<C/>world</A>
 End Function
 Public Function CreateFromString(ByVal sXML as string) as stdXML
 
