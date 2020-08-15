@@ -35,7 +35,7 @@ Private tokens() As token
 Private iTokenIndex As Long
 Private vLastArgs As Variant
 
-
+Public oFunctExt as object 'Dictionary<string => stdCallback>
 
 
 
@@ -48,15 +48,20 @@ Private vLastArgs As Variant
 'End With
 'Debug.Print stdLambda.Create("$1.Range(""A1"")").Execute(Sheets(1)).Address(True, True, xlA1, True)
 'Debug.Print stdLambda.Create("$1#join("","")").Execute(stdArray.Create(1,2))
-Public Function Create(ByVal sEquation As String) As stdLambda
+Public Function Create(ByVal sEquation As String, Optional ByVal bSandboxExtras as Boolean = false) As stdLambda
     Set Create = New stdLambda
-    Call Create.Init(sEquation)
+    Call Create.Init(sEquation,bSandboxExtras)
 End Function
-Public Sub Init(ByVal sEquation As String)
+Public Sub Init(ByVal sEquation As String, ByVal bSandboxExtras as Boolean)
+    if not bSandboxExtras then 
+        set Me.oFunctExt = stdLambda.oFunctExt
+    end if
     tokens = Tokenise(sEquation)
 End Sub
 
-Function Execute(ParamArray args() As Variant) As Variant
+
+Function Run(ParamArray args() As Variant) As Variant
+Attribute Run.VB_UserMemId = 0
     'Convert arguments to array (vLastArgs)
     Dim i As Long
     If UBound(args) - LBound(args) + 1 = 0 Then
@@ -72,7 +77,7 @@ Function Execute(ParamArray args() As Variant) As Variant
     iTokenIndex = 1
     
     'Execute top-down parser
-    Call CopyVariant(Execute, expression())
+    Call CopyVariant(Run, expression())
 End Function
 
 
@@ -107,7 +112,7 @@ Public Sub test()
 
     'TODO:
     'Evaluate pure function
-    'Debug.Print stdLambda.Create("cos($1)").Execute(PI)
+    Debug.Print round(stdLambda.Create("cos($1)").Execute(3.14159))
     Debug.Assert False
 End Sub
 
@@ -166,6 +171,8 @@ Function factor() As Variant
         res = consumeString()
     ElseIf peek("literalBoolean") Then
         res = consume("literalBoolean") = "true"
+    Elseif peek("funcName") then
+        res = consumeFunction()
     Else
         Call consume("lBracket")
         res = expression()
@@ -182,6 +189,12 @@ Function factor() As Variant
     End If
     
     Call CopyVariant(factor, manyAccessors(res))
+End Function
+
+Function consumeFunction() as variant
+    Dim sFuncName as string: sFuncName = consume("funcName")
+    Dim args() As Variant: args = optConsumeParameters()
+    consumeFunction = evaluateFunc(sFuncName,args)
 End Function
 
 Function manyAccessors(value As Variant) As Variant
@@ -278,6 +291,7 @@ End Function
 
 
 'Evaluates Variable name
+'@param {string} sValueName Value like $\d+ to be interpreted as argument
 Private Function EvaluateVarName(ByVal sValueName As String) As Variant
     Dim iArgIndex As Long: iArgIndex = Val(Mid(sValueName, 2))
     
@@ -338,7 +352,7 @@ Private Function Tokenise(ByVal sInput As String) As token()
         End If
     Wend
     
-    Tokenise = tokens
+    Tokenise = removeTokens(tokens,"space")
 End Function
 
 'Tokeniser helpers
@@ -347,6 +361,9 @@ Private Function getTokenDefinitions() As TokenDefinition()
     ReDim arr(1 To 99)
     
     Dim i As Long: i = 0
+    'Whitespace
+    i = i + 1: arr(i) = getTokenDefinition("space", "\s+") 'String
+
     'Literal
     i = i + 1: arr(i) = getTokenDefinition("literalString", """(?:""""|[^""])*""") 'String
     i = i + 1: arr(i) = getTokenDefinition("literalNumber", "\d+(?:\.\d+)?")   'Number
@@ -387,13 +404,147 @@ Private Function getTokenDefinition(ByVal sName As String, ByVal sRegex As Strin
     getTokenDefinition.RegexObj.Pattern = "^(?:" & sRegex & ")"
     getTokenDefinition.RegexObj.ignoreCase = ignoreCase
 End Function
+Private Function evaluateFunc(ByVal sFuncName as string,ByVal args as variant) as variant
+    Dim iArgStart as Long: iArgStart = lbound(args)
+    if typename(stdLambda.oFunctExt) = "Dictionary" then
+        if Me.oFunctExt.exists(sFuncName) then
+            evaluateFunc = Me.oFunctExt(sFuncName).RunEx(args)
+            Exit Function
+        end if
+    end if
+    
+    Select Case LCase(sFuncName)
+        Case "eval": evaluateFunc = stdLambda.create(args(iArgStart)).Evaluate()
 
+        'MATH:
+        '-----
+        Case "abs": evaluateFunc = VBA.Math.Abs(args(iArgStart))
+        Case "int": evaluateFunc = VBA.Math.Int(args(iArgStart))
+        Case "fix": evaluateFunc = VBA.Math.Fix(args(iArgStart))
+        Case "exp": evaluateFunc = VBA.Math.Exp(args(iArgStart))
+        Case "log": evaluateFunc = VBA.Math.Log(args(iArgStart))
+        Case "sqr": evaluateFunc = VBA.Math.Sqr(args(iArgStart))
+        Case "sgn": evaluateFunc = VBA.Math.Sgn(args(iArgStart))
+        Case "rnd": evaluateFunc = VBA.Math.Rnd(args(iArgStart))
+
+        'Trigonometry
+        Case "cos":  evaluateFunc = VBA.Math.Cos(args(iArgStart))
+        Case "sin":  evaluateFunc = VBA.Math.Sin(args(iArgStart))
+        Case "tan":  evaluateFunc = VBA.Math.Tan(args(iArgStart))
+        Case "atn":  evaluateFunc = VBA.Math.Atn(args(iArgStart))
+        Case "asin": evaluateFunc = VBA.Math.Atn(args(iArgStart)/VBA.Math.Sqr(-1*args(iArgStart) * args(iArgStart) + 1))
+        Case "acos": evaluateFunc = VBA.Math.Atn(-1*args(iArgStart)/VBA.Math.Sqr(-1*args(iArgStart) * args(iArgStart) + 1)) + 2 * Atn(1)
+
+        'VBA Constants:
+        Case "vbcrlf":          evaluateFunc = vbCrLf
+        Case "vbcr":            evaluateFunc = vbCr
+        Case "vblf":            evaluateFunc = vbLf
+        Case "vbnewline":       evaluateFunc = vbNewLine
+        Case "vbnullchar":      evaluateFunc = vbNullChar
+        Case "vbnullstring":    evaluateFunc = vbNullString
+        Case "vbobjecterror":   evaluateFunc = vbObjectError
+        Case "vbtab":           evaluateFunc = vbTab
+        Case "vbback":          evaluateFunc = vbBack
+        Case "vbformfeed":      evaluateFunc = vbFormFeed
+        Case "vbverticaltab":   evaluateFunc = vbVerticalTab
+
+
+        'VBA Structure
+        Case "array": evaluateFunc = args
+        'TODO: Case "CallByName": evaluateFunc = CallByName(args(iArgStart))
+        Case "createobject"
+            select case ubound(args)
+                Case iArgStart
+                    set evaluateFunc = CreateObject(args(iArgStart))
+                Case iArgStart + 1
+                    set evaluateFunc = CreateObject(args(iArgStart),args(iArgStart+1))
+            end select
+        Case "getobject"
+            select case ubound(args)
+                Case iArgStart
+                    set evaluateFunc = CreateObject(args(iArgStart))
+                Case iArgStart + 1
+                    set evaluateFunc = CreateObject(args(iArgStart),args(iArgStart+1))
+            end select
+        Case "iff"
+            If CBool(args(iArgStart)) then
+                evaluateFunc = args(iArgStart+1)
+            Else
+                evaluateFunc = args(iArgStart+2)
+            End If
+
+        'VBA Casting
+        Case "cbool": evaluateFunc = VBA.CBool(args(iArgStart))
+        Case "cbyte": evaluateFunc = VBA.CByte(args(iArgStart))
+        Case "ccur":  evaluateFunc = VBA.CCur(args(iArgStart))
+        Case "cdate": evaluateFunc = VBA.CDate(args(iArgStart))
+        Case "csng":  evaluateFunc = VBA.CSng(args(iArgStart))
+        Case "cdbl":  evaluateFunc = VBA.CDbl(args(iArgStart))
+        Case "cint":  evaluateFunc = VBA.CInt(args(iArgStart))
+        Case "clng":  evaluateFunc = VBA.Clng(args(iArgStart))
+        Case "cstr":  evaluateFunc = VBA.CStr(args(iArgStart))
+        Case "cvar":  evaluateFunc = VBA.CVar(args(iArgStart))
+
+        'Conversion
+        Case "asc":     evaluateFunc = VBA.Conversion.Asc(args(iArgStart))
+        Case "chr":     evaluateFunc = VBA.Conversion.Chr(args(iArgStart))
+        Case "cverr":   evaluateFunc = VBA.Conversion.CVErr(args(iArgStart))
+        Case "format"
+            select case ubound(args)
+                Case iArgStart
+                    evaluateFunc = Format(args(iArgStart))
+                Case iArgStart+1
+                    evaluateFunc = Format(args(iArgStart),args(iArgStart+1))
+                Case iArgStart+2
+                    evaluateFunc = Format(args(iArgStart),args(iArgStart+1),args(iArgStart+2))
+                Case iArgStart+3
+                    evaluateFunc = Format(args(iArgStart),args(iArgStart+1),args(iArgStart+2),args(iArgStart+3))
+            End Select
+        Case "hex":     evaluateFunc = VBA.Conversion.Hex(args(iArgStart))
+        Case "oct":     evaluateFunc = VBA.Conversion.Oct(args(iArgStart))
+        Case "str":     evaluateFunc = VBA.Conversion.Str(args(iArgStart))
+        Case "val":     evaluateFunc = VBA.Conversion.Val(args(iArgStart))
+        
+        'String functions
+        Case "Trim": evaluateFunc = VBA.Trim(args(iArgStart))
+        Case "LCase": evaluateFunc = VBA.LCase(args(iArgStart))
+        Case "UCase": evaluateFunc = VBA.UCase(args(iArgStart))
+        Case "Right": evaluateFunc = VBA.Right(args(iArgStart))
+        Case "Left": evaluateFunc = VBA.Left(args(iArgStart))
+        Case "Mid": evaluateFunc = VBA.Mid(args(iArgStart))
+
+        'Misc
+        Case "now": evaluateFunc = VBA.DateTime.Now()
+
+        Case Else
+            Throw("No such function: " & sFuncName)
+    End Select
+End Function
 
 '==============================================================================================================================
 '
 'Helper Methods:
 '
 '==============================================================================================================================
+
+'Copies one variant to a destination
+'@param {ByRef Token()} tokens Tokens to remove the specified type from
+'@param {string} sRemoveType   Token type to remove.
+'@returns {Token()} The modified token array.
+Private Function removeTokens(ByRef tokens() as Token, ByVal sRemoveType as string) as token()
+    Dim iCountRemoved as long: iCountRemoved=0
+    Dim iToken as Long
+    For iToken = lbound(tokens) to ubound(tokens)
+        if tokens(iToken).Type.Name <> sRemoveType then
+            tokens(iToken-iCountRemoved) = tokens(iToken)
+        else
+            iCountRemoved = iCountRemoved + 1
+        end if
+    Next
+    Redim Preserve Tokens(Lbound(tokens) to (ubound(tokens)-iCountRemoved))
+    removeTokens = Tokens
+End Function
+
 
 'Copies one variant to a destination
 '@param {ByRef Variant} dest Destination to copy variant to
