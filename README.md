@@ -32,12 +32,25 @@ sub Main()
   Debug.Print arr.includes(3)                                            'True
   Debug.Print arr.includes(34)                                           'False
 
-  'More advanced behaviour when including callbacks!
-  Debug.Print arr.Map(stdCallback.CreateEvaluator("$1+1")).join          '2,3,4,5,6,7,8,9,10,11
-  Debug.Print arr.Reduce(stdCallback.CreateEvaluator("$1+$2"))           '55 ' I.E. Calculate the sum
-  Debug.Print arr.Reduce(stdCallback.CreateEvaluator("Max($1,$2)"))      '10 ' I.E. Calculate the maximum
-  Debug.Print arr.Filter(stdCallback.CreateEvaluator("$1>=5")).join      '5,6,7,8,9,10
-
+  'More advanced behaviour when including callbacks! And VBA Lamdas!!
+  Debug.Print arr.Map(stdLambda.Create("$1+1")).join          '2,3,4,5,6,7,8,9,10,11
+  Debug.Print arr.Reduce(stdLambda.Create("$1+$2"))           '55 ' I.E. Calculate the sum
+  Debug.Print arr.Reduce(stdLambda.Create("Max($1,$2)"))      '10 ' I.E. Calculate the maximum
+  Debug.Print arr.Filter(stdLambda.Create("$1>=5")).join      '5,6,7,8,9,10
+  
+  'Execute property accessors with Lambda syntax
+  Debug.Print arr.Map(stdLambda.Create("ThisWorkbook.Sheets($1)")) _ 
+                 .Map(stdLambda.Create("$1.Name")).join(",")            'Sheet1,Sheet2,Sheet3,...,Sheet10
+  
+  'Execute methods with lambda:
+  Call stdArray.Create(Workbooks(1),Workbooks(2)).forEach(stdLambda.Create("$1#Save")
+  
+  'We even have if statement!
+  With stdLambda.Create("if $1 then ""lisa"" else ""bart"")
+    Debug.Print .Run(true)                                              'lisa
+    Debug.Print .Run(false)                                             'bart
+  End With
+  
   'Execute custom functions
   Debug.Print arr.Map(stdCallback.CreateFromModule("ModuleMain","CalcArea")).join  '3.14159,12.56636,28.274309999999996,50.26544,78.53975,113.09723999999999,153.93791,201.06176,254.46879,314.159
 
