@@ -28,7 +28,7 @@ sub Main()
   Debug.Print arr.pop()                                                  '3
   Debug.Print arr.join()                                                 '1,2,3,4,5,6,7,8,9,10
   Debug.Print arr.concat(stdArray.Create(11,12,13)).join                 '1,2,3,4,5,6,7,8,9,10,11,12,13
-  Debug.Print arr.join()                                                 '1,2,3,4,5,6,7,8,9,10 'Unlike JS, concat doesn't modify the initial array
+  Debug.Print arr.join()                                                 '1,2,3,4,5,6,7,8,9,10 'concat doesn't mutate object
   Debug.Print arr.includes(3)                                            'True
   Debug.Print arr.includes(34)                                           'False
 
