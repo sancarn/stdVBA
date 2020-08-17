@@ -7,6 +7,9 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
+
+Implements stdICallable
+
 'TODO:
 '* Full implementation of Pointer
 '* Full implementation of Lambda (Will likely require stdVBAExpression library)
@@ -161,13 +164,12 @@ Attribute CreateFromObjectProperty.VB_Description = "Create callback from object
 End Function
 
 'CreateEvaluator from 
-Public Function CreateEvaluator(ByVal sFormula as string, Optional ByRef evalFunc as stdCallback = nothing) as stdCallback
+Public Function CreateEvaluator(ByVal sFormula as string) as stdICallable
 Attribute CreateEvaluator.VB_Description = "Create callback from Excel formula. This method is VBA Only"
-  if Application.Name = "Microsoft Excel" then
-    set CreateEvaluator = new stdCallback
-    Call CreateEvaluator.Init(ParentType.Formula, sFormula, evalFunc)
+  if IsObject(stdLambda) = "Empty" then
+    set CreateEvaluator = stdLambda.Create(sFormula)
   Else
-    CriticalRaise "Can only create evaluators in Excel as they rely on Application.Evaluate()"
+    CriticalRaise "Cannot find stdLambda library, required for Evaluator creation"
   end if
 End Function
 
@@ -184,10 +186,6 @@ Attribute Init.VB_Description = "Initialises this object. This should not be cal
         set pCallback.oObject = params(0)
         pCallback.sMethodName = params(1)
         pCallback.iCallType = params(2)
-      Case ParentType.Formula
-        pCallback.iType = iParentType
-        pCallback.sFormula = params(0)
-        set pCallback.oObject = params(1)
       Case Else
         CriticalRaise "Invalid module type submitted"    
     End Select
@@ -197,15 +195,35 @@ Attribute Init.VB_Description = "Initialises this object. This should not be cal
   pInitialised = True
 End Sub
 
-'Default Property:
-Public Function Run(ParamArray args() As Variant) As Variant
+Private Function stdICallable_Run(ParamArray params() as variant) As Variant
+  'store args as different array otherwise crash occurs
+  Dim vArr() As Variant
+  vArr = args
+  
+  Call VariantCopy(stdICallable_Run,RunEx(vArr))
+End Property
+Private Function stdICallable_RunEx(params() as variant) As Variant
+  'store args as different array otherwise crash occurs
+  Dim vArr() As Variant
+  vArr = args
+  
+  Call VariantCopy(stdICallable_RunEx,RunEx(vArr))
+End Property
+
+
+Public Function Run(ParamArray args() As Variant)
 Attribute Run.VB_Description = "Runs the specified callback."
 Attribute Run.VB_UserMemId = 0
+  'store args as different array otherwise crash occurs
+  Dim vArr() As Variant
+  vArr = args
+  
+  Call VariantCopy(Run,RunEx(vArr))
+End Function
+
+'Default Property:
+Public Function RunEx(vArr() as variant) As Variant
   If pInitialised And pCallback.iType Then
-    'store args as different array otherwise crash occurs
-    Dim vArr() As Variant
-    vArr = args
-    
     'Raise event for listeners
     RaiseEvent BeforeRun(Me, vArr)
     
@@ -259,25 +277,6 @@ Attribute Run.VB_UserMemId = 0
         'If error then raise
         If hr < 0 Then
           CriticalRaise "Error in rtcCallByName. Error number: " & hr
-        End If
-      Case ParentType.Formula
-        'Yes this is obscenely hacky, but here it goes anyway. The objective is to create an evaluatable formula. This will simply be done by:
-        '1) Loop through all arguments and replace $index with the serialized value
-        '2) Evaluate with Application.Evaluate (or with evalFunc)
-        Dim sEqn As String: sEqn = pCallback.sFormula
-        For i = 0 To UBound(vArr)
-          If InStr(1, sEqn, "$") Then
-            If InStr(1, sEqn, "$" & (i + 1)) Then sEqn = Replace(sEqn, "$" & (i + 1), Serialize(vArr(i)))
-          Else
-            Exit For
-          End If
-        Next
-
-        'If evalFunc provided then evaluate with evalFunc, else use Application.Evaluate()
-        If pCallback.oObject Is Nothing Then
-          VariantCopy vRet, Application.Evaluate(sEqn)
-        Else
-          VariantCopy vRet, pCallback.oObject.Run(sEqn)
         End If
       Case Else
         CriticalRaise "Cannot call callback. Invalid parent type assigned (" & iParentType & ")."

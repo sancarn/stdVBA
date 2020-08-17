@@ -398,10 +398,10 @@ End Function
 
 
 
-'Iterative Functions (All require stdCallback):
+'Iterative Functions (All require stdICallable):
 
 'Example: if incidents.IsEvery(cbValid) then ...
-Public Function IsEvery(ByVal cb As stdCallback, Optional ByVal metadata As Object = Nothing) As Boolean
+Public Function IsEvery(ByVal cb As stdICallable, Optional ByVal metadata As Object = Nothing) As Boolean
   If pInitialised Then
     Dim i As Long
     For i = 1 To pLength
@@ -417,7 +417,7 @@ Public Function IsEvery(ByVal cb As stdCallback, Optional ByVal metadata As Obje
   End If
 End Function
 
-Public Function IsSome(ByVal cb As stdCallback, Optional ByVal metadata As Object = Nothing) As Boolean
+Public Function IsSome(ByVal cb As stdICallable, Optional ByVal metadata As Object = Nothing) As Boolean
   If pInitialised Then
     Dim i As Integer
     For i = LBound(pArr) To UBound(pArr)
@@ -432,7 +432,7 @@ Public Function IsSome(ByVal cb As stdCallback, Optional ByVal metadata As Objec
   End If
 End Function
 
-Public Sub ForEach(ByVal cb As stdCallback, Optional ByVal metadata As Object = Nothing)
+Public Sub ForEach(ByVal cb As stdICallable, Optional ByVal metadata As Object = Nothing)
   If pInitialised Then
     Dim i As Integer
     For i = 1 To pLength
@@ -447,7 +447,7 @@ Public Sub ForEach(ByVal cb As stdCallback, Optional ByVal metadata As Object = 
   End If
 End Sub
 
-Public Function Map(ByVal cb As stdCallback, Optional ByVal metadata As Object = Nothing) As stdArray
+Public Function Map(ByVal cb As stdICallable, Optional ByVal metadata As Object = Nothing) As stdArray
   If pInitialised Then
     Dim pMap As stdArray
     Set pMap = Me.Clone()
@@ -474,7 +474,7 @@ End Function
 
 
 'OPTIMISE: Needs optimisation. Currently very sub-optimal
-Public Function Unique(Optional ByVal cb As stdCallback = Nothing, Optional ByVal metadata As Variant) As stdArray
+Public Function Unique(Optional ByVal cb As stdICallable = Nothing, Optional ByVal metadata As Variant) As stdArray
   Dim ret As stdArray
   Set ret = stdArray.CreateWithOptions(pLength, pChunking)
   
@@ -501,7 +501,7 @@ Public Function Unique(Optional ByVal cb As stdCallback = Nothing, Optional ByVa
 End Function
 
 
-Public Function Reduce(ByVal cb As stdCallback, Optional ByVal initialValue As Variant=0, Optional ByVal metadata As Variant) As Variant
+Public Function Reduce(ByVal cb As stdICallable, Optional ByVal initialValue As Variant=0, Optional ByVal metadata As Variant) As Variant
   If pInitialised Then
     Reduce = initialValue
     
@@ -523,7 +523,7 @@ Public Function Reduce(ByVal cb As stdCallback, Optional ByVal initialValue As V
   End If
 End Function
 
-Public Function Filter(ByVal cb As stdCallback, Optional ByVal metadata As Object = Nothing) As stdArray
+Public Function Filter(ByVal cb As stdICallable, Optional ByVal metadata As Object = Nothing) As stdArray
     Dim ret As stdArray
     Set ret = stdArray.CreateWithOptions(pLength, pChunking)
     Set Filter = ret
@@ -551,7 +551,7 @@ Public Function Filter(ByVal cb As stdCallback, Optional ByVal metadata As Objec
     End If
 End Function
 
-Public Function Count_By(cb As stdCallback, Optional ByVal metadata As Object = Nothing) As Long
+Public Function Count_By(cb As stdICallable, Optional ByVal metadata As Object = Nothing) As Long
   Dim i As Long, lCount As Long
   lCount = 0
   For i = 1 To pLength
@@ -568,7 +568,7 @@ Public Function Count_By(cb As stdCallback, Optional ByVal metadata As Object = 
   Count_By = lCount
 End Function
 
-Public Function groupBy(ByVal cb As stdCallback, Optional ByVal metadata As Object) As Object
+Public Function groupBy(ByVal cb As stdICallable, Optional ByVal metadata As Object) As Object
     'Array to store result in
     Dim result As Object
     Set result = CreateObject("Scripting.Dictionary")
@@ -662,8 +662,8 @@ Public Sub Test()
     Debug.Print "2-3:" & (stdArray.Create(1, 2).Length = 2)
     
     
-    'If stdCallback Then
-    '  Debug.Print "9-stdCallback tests"
+    'If stdICallable Then
+    '  Debug.Print "9-stdICallable tests"
     'End If
     
     
