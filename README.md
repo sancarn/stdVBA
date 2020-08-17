@@ -1,3 +1,8 @@
+# My contribution
+
+I am attempting to improve stdLambda's performance, by compiling the input to an operation array.
+This array can be evaluator at high speeds in repetition.
+
 # VBA-STD-Library
 
 A Collection of libraries to form a common standard layer for modern VBA applications.
