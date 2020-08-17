@@ -566,6 +566,10 @@ Private Function evaluateFunc(ByVal sFuncName As String, ByVal args As Variant) 
     Select Case LCase(sFuncName)
         Case "eval": evaluateFunc = stdLambda.Create(args(iArgStart)).Run()
 
+        'Useful OOP constants
+        Case "thisworkbook": set evaluateFunc = ThisWorkbook
+        Case "application":  set evaluateFunc = Application
+
         'MATH:
         '-----
         Case "abs": evaluateFunc = VBA.Math.Abs(args(iArgStart))
