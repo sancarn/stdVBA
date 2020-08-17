@@ -303,7 +303,7 @@ Private Function factor() As Variant
     ElseIf peek("literalBoolean") Then
         res = consume("literalBoolean") = "true"
     ElseIf peek("funcName") Then
-        res = consumeFunction()
+        Call CopyVariant(res , consumeFunction())
     Else
         Call consume("lBracket")
         res = expression()
@@ -325,7 +325,7 @@ End Function
 Private Function consumeFunction() As Variant
     Dim sFuncName As String: sFuncName = consume("funcName")
     Dim args() As Variant: args = optConsumeParameters()
-    consumeFunction = evaluateFunc(sFuncName, args)
+    Call CopyVariant(consumeFunction, evaluateFunc(sFuncName, args))
 End Function
 
 Private Function manyAccessors(value As Variant) As Variant
