@@ -661,12 +661,12 @@ Private Function evaluateFunc(ByVal sFuncName As String, ByVal args As Variant) 
         Case "val":     evaluateFunc = VBA.Conversion.Val(args(iArgStart))
         
         'String functions
-        Case "Trim": evaluateFunc = VBA.Trim(args(iArgStart))
-        Case "LCase": evaluateFunc = VBA.LCase(args(iArgStart))
-        Case "UCase": evaluateFunc = VBA.UCase(args(iArgStart))
-        Case "Right": evaluateFunc = VBA.Right(args(iArgStart), args(iArgStart + 1))
-        Case "Left": evaluateFunc = VBA.Left(args(iArgStart), args(iArgStart + 1))
-        Case "Mid"
+        Case "trim": evaluateFunc = VBA.Trim(args(iArgStart))
+        Case "lcase": evaluateFunc = VBA.LCase(args(iArgStart))
+        Case "ucase": evaluateFunc = VBA.UCase(args(iArgStart))
+        Case "right": evaluateFunc = VBA.Right(args(iArgStart), args(iArgStart + 1))
+        Case "left": evaluateFunc = VBA.Left(args(iArgStart), args(iArgStart + 1))
+        Case "mid"
             Select Case UBound(args)
                 Case iArgStart + 1
                     evaluateFunc = VBA.Mid(args(iArgStart), args(iArgStart + 1))
