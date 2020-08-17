@@ -405,7 +405,14 @@ Public Function IsEvery(ByVal cb As stdICallable, Optional ByVal metadata As Obj
   If pInitialised Then
     Dim i As Long
     For i = 1 To pLength
-      If Not IIf(metadata Is Nothing, cb(pArr(i)), cb(metadata, pArr(i))) Then
+      Dim bFlag as Boolean
+      if metadata is nothing then
+        bFlag = cb.run(pArr(i))
+      else
+        bFlag = cb.run(metadata,pArr(i))
+      end if
+      
+      If Not bFlag Then
         IsEvery = False
         Exit Function
       End If
@@ -421,10 +428,17 @@ Public Function IsSome(ByVal cb As stdICallable, Optional ByVal metadata As Obje
   If pInitialised Then
     Dim i As Integer
     For i = LBound(pArr) To UBound(pArr)
-      If IIf(metadata Is Nothing, cb(pArr(i)), cb(metadata, pArr(i))) Then
-        IsSome = True
-        Exit Function
+      Dim bFlag as Boolean
+      If metadata is nothing then
+        bFlag = cb.Run(pArr(i))
+      else
+        bFlag = cb.Run(metadata,pArr(i))
       End If
+      
+      if bFlag then
+        IsSome = true
+        Exit Function
+      end if
     Next
     IsSome = False
   Else
@@ -513,9 +527,9 @@ Public Function Reduce(ByVal cb As stdICallable, Optional ByVal initialValue As 
 
       'Reduce
       If isMissing(metadata) Then
-        Reduce = cb(Reduce, el)
+        Reduce = cb.Run(Reduce, el)
       Else
-        Reduce = cb(metadata, Reduce, el)
+        Reduce = cb.Run(metadata, Reduce, el)
       End If
     Next
   Else
@@ -537,11 +551,11 @@ Public Function Filter(ByVal cb As stdICallable, Optional ByVal metadata As Obje
           
             'If callback succeeds (include metadata if given)
             If metadata Is Nothing Then
-                If cb(pArr(i)) Then
+                If cb.Run(pArr(i)) Then
                     Call ret.Push(pArr(i))
                 End If
             Else
-                If cb(metadata, pArr(i)) Then
+                If cb.Run(metadata, pArr(i)) Then
                     Call ret.Push(pArr(i))
                 End If
             End If
@@ -556,11 +570,11 @@ Public Function Count_By(cb As stdICallable, Optional ByVal metadata As Object =
   lCount = 0
   For i = 1 To pLength
     If metadata Is Nothing Then
-      If cb(pArr(i)) Then
+      If cb.Run(pArr(i)) Then
         lCount = lCount + 1
       End If
     Else
-      If cb(metadata, pArr(i)) Then
+      If cb.Run(metadata, pArr(i)) Then
         lCount = lCount + 1
       End If
     End If
@@ -579,9 +593,9 @@ Public Function groupBy(ByVal cb As stdICallable, Optional ByVal metadata As Obj
         'Get grouping key
         Dim key As Variant
         If metadata Is Nothing Then
-          key = cb(pArr(i))
+          key = cb.Run(pArr(i))
         Else
-          key = cb(metadata, pArr(i))
+          key = cb.Run(metadata, pArr(i))
         End If
 
         'If key is not set then set it
