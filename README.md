@@ -105,11 +105,14 @@ Progress on this project is likely to be slow, as this is community led and curr
 | READY  | Class  |Debug      |stdError         | Better error handling, including stack trace and error handling diversion and events.
 | WIP    | Class  |Data       |stdJSON          | [Tim Hall's fantastic JSON library](https://github.com/VBA-tools/VBA-JSON)
 | HOLD   | Class  |Data       |stdHTTP          | A wrapper around HTTP COM libraries.
+| WIP    | Class  |Data       |stdXML           | A library to manipulate XML documents.
 | HOLD   | Class  |Data       |stdOXML          | A library to assist in the modification of Office documents via Open XML format.
 | READY  | Class  |Type       |stdArray         | A library designed to re-create the Javascript dynamic array object.
 | WIP    | Class  |Type       |stdDictionary    | A drop in replacement for VBScript's dictionary.
 | READY  | Class  |Type       |stdDate          | A standard date parsing library. No more will you have to rely on Excel's interpreter. State the format, get the data.
 | READY  | Class  |Type       |stdRegex         | A wrapper around `VBScript.RegExp` but with more features e.g. named capture groups and free-spaces.
+| READY  | Class  |Type       |stdLambda        | Build and create in-line functions. Execute them at a later stage.
+| READY  | Class  |Type       |stdCallback      | Link to existing functions defined in VBA code, call them at a later stage.
 | READY  | Class  |Type       |stdStringBuilder | A better way of creating large strings.
 | UNK    | Module |Type       |stdIniVariantEnum| Initialising [IEnumVARIANT](http://www.vbforums.com/showthread.php?854963-VB6-IEnumVARIANT-For-Each-support-without-a-typelib) by recreating vtable. Used to overcome pitfalls of VB collections. Alternatively will implement an IFxEnumVariant interface
 | WIP    | Class  |Runtimes   |stdCLR           | Host CLR (Common Language Runtime). Allows execution of C#.NET and VB.NET scripts in-process.
