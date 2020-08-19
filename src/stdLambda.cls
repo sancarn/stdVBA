@@ -7,18 +7,18 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
-Implements stdICallable
-
 'Direct call convention of VBA.CallByName
-#If VBA6 Then
-  Private Declare PtrSafe Function rtcCallByName Lib "msvbvm60" (ByRef vRet As Variant, ByVal cObj As Object, ByVal sMethod As LongPtr, ByVal eCallType As VbCallType, ByRef pArgs() As Variant, ByVal lcid As Long) As Long
+#If VBA7 Then
+  'VBE7 is interchangable with msvbvm60.dll    however VBE7.dll appears to always be present where as msvbvm60 is only occasionally present.
+  Private Declare PtrSafe Function rtcCallByName Lib "VBE7.dll" (ByRef vRet As Variant, ByVal cObj As Object, ByVal sMethod As LongPtr, ByVal eCallType As VbCallType, ByRef pArgs() As Variant, ByVal lcid As Long) As Long
   Private Declare PtrSafe Sub VariantCopy Lib "oleaut32.dll" (ByRef pvargDest As Variant, ByRef pvargSrc As Variant)
 #Else
   Private Declare Function rtcCallByName Lib "msvbvm60" (ByRef vRet As Variant, ByVal cObj As Object, ByVal sMethod As LongPtr, ByVal eCallType As VbCallType, ByRef pArgs() As Variant, ByVal lcid As Long) As Long
   Private Declare Sub VariantCopy Lib "oleaut32.dll" (ByRef pvargDest As Variant, ByRef pvargSrc As Variant)
 #End If
+#Const devMode = True 'Used for enabling some debugging features
 
-'Tokens and definitions
+'Tokens, token definitions and operations
 Private Type TokenDefinition
     Name As String
     Regex As String
@@ -29,15 +29,79 @@ Private Type token
     value As Variant
     BracketDepth As Long
 End Type
+Private Type Operation
+    Type As iType
+    subType As ISubType
+    value As Variant
+End Type
+
+'Evaluation operation types
+Private Enum iType
+    oPush = 1
+    oPop = 2
+    oMerge = 3
+    oAccess = 4
+    oSet = 5
+    oArithmetic = 6
+    oLogic = 7
+    oComparison = 8
+    oMisc = 9
+    oJump = 10
+    oReturn = 11
+    oObject = 12
+End Enum
+Private Enum ISubType
+    'Arithmetic
+    oAdd = 1
+    oSub = 2
+    oMul = 3
+    oDiv = 4
+    oPow = 5
+    oNeg = 6
+    oMod = 7
+    'Logic
+    oAnd = 8
+    oOr = 9
+    oNot = 10
+    oXor = 11
+    'comparison
+    oEql = 12
+    oNeq = 13
+    oLt = 14
+    oLte = 15
+    oGt = 16
+    oGte = 17
+    oIs = 18
+    'misc operators
+    oCat = 19
+    oLike = 20
+    'misc
+    ifTrue = 21
+    ifFalse = 22
+    withValue = 23
+    argument = 24
+    'object
+    oPropGet = 25
+    oPropLet = 26
+    oPropSet = 27
+    oMethodCall = 28
+    oEquality = 29    'Yet to be implemented
+    oIsOperator = 30  'Yet to be implemented
+    oEnum = 31        'Yet to be implemented
+End Enum
 
 'Special constant used in parsing:
 Const UniqueConst As String = "3207af79-30df-4890-ade1-640f9f28f309"
 
 Private tokens() As token
 Private iTokenIndex As Long
+Private operations() As Operation
+Private iOperationIndex As Long
+
+Const minStackSize = 30 'note that the stack size may become smaller than this
+Public oFunctExt As Object 'Dictionary<string => stdCallback>
 Private vLastArgs As Variant
 
-Public oFunctExt As Object 'Dictionary<string => stdCallback>
 Private oCache As Object
 
 
@@ -67,428 +131,51 @@ Public Sub Init(ByVal sEquation As String, ByVal bSandboxExtras As Boolean)
         Set Me.oFunctExt = stdLambda.oFunctExt
     End If
     tokens = Tokenise(sEquation)
+    iTokenIndex = 1
+    iOperationIndex = 0
+    Call finishOperations
+    Call parseExpressionPriority1
 End Sub
 
 Private Function stdICallable_Run(ParamArray params() As Variant) As Variant
     'Bind args
     vLastArgs = params
 
-    'Ensure iTokenIndex = 1 for evaluation
-    iTokenIndex = 1
-
     'Execute top-down parser
-    Call CopyVariant(stdICallable_Run, expression())
+    Call CopyVariant(stdICallable_Run, evaluate(operations))
 End Function
 Private Function stdICallable_RunEx(params() As Variant) As Variant
     'Bind args
     vLastArgs = params
 
-    'Ensure iTokenIndex = 1 for evaluation
-    iTokenIndex = 1
-
     'Execute top-down parser
-    Call CopyVariant(stdICallable_RunEx, expression())
+    Call CopyVariant(stdICallable_RunEx, evaluate(operations))
 End Function
 
 Function Run(ParamArray params() As Variant) As Variant
     'Bind args
     vLastArgs = params
 
-    'Ensure iTokenIndex = 1 for evaluation
-    iTokenIndex = 1
-    
     'Execute top-down parser
-    Call CopyVariant(Run, expression())
+    Call CopyVariant(Run, evaluate(operations))
 End Function
 
 Function RunEx(params() As Variant) As Variant
     'Bind args
     vLastArgs = params
     
-    'Ensure iTokenIndex = 1 for evaluation
-    iTokenIndex = 1
-    
     'Execute top-down parser
-    Call CopyVariant(Run, expression())
+    Call CopyVariant(RunEx, evaluate(operations))
 End Function
 
 
 
+'================
+'
+'  TOKENISATION
+'
+'================
 
-
-
-
-
-
-
-Public Sub zTest()
-    'Evaluate expresssion
-    Debug.Print stdLambda.Create("1+3*8/2*(2+2+3)").Run()
-
-    'Evaluate a expression with variables
-    With stdLambda.Create("$1+1+3*8/2*(2+2+3)")
-        Debug.Print .Run(10)
-        Debug.Print .Run(15)
-        Debug.Print .Run(20)
-    End With
-    
-    'Evaluate property access
-    Debug.Print stdLambda.Create("$1.Range(""A1"")").Run(Sheets(1)).Address(True, True, xlA1, True)
-    
-    'Evaluate method access
-    Range("A1").value = 1
-    Range("A2").value = 2
-    Range("A3").value = 3
-    Range("A4").value = 4
-    Debug.Print stdLambda.Create("$1#Find(4)").Run(Range("A:A")).Address(True, True, xlA1, True)
-
-    'TODO:
-    'Evaluate pure function
-    Debug.Print round(stdLambda.Create("cos($1)").Run(3.14159))
-    
-    With stdLambda.Create("if $1=1 and $2=""hello world"" then ""bart"" else ""lisa""")
-        Debug.Print .Run(1, "hello world")
-        Debug.Print .Run(1, 0)
-    End With
-    
-    Debug.Assert False
-End Sub
-Public Sub zTestPerf()
-    Dim i As Long, iStart As Double
-    
-    Dim lambda As stdLambda: Set lambda = stdLambda.Create("1+3*8/2*(2+2+3)+1+3*8/2*(2+2+3)+1+3*8/2*(2+2+3)+1+3*8/2*(2+2+3)+1+3*8/2*(2+2+3)+1+3*8/2*(2+2+3)")
-    
-    iStart = Timer
-    For i = 1 To 10 ^ 2
-        Call lambda.Run
-    Next
-    Debug.Print "Lambda: " & (Timer - iStart)
-    
-    iStart = Timer
-    For i = 1 To 10 ^ 2
-        Call Application.Evaluate("1+3*8/2*(2+2+3)+1+3*8/2*(2+2+3)+1+3*8/2*(2+2+3)+1+3*8/2*(2+2+3)+1+3*8/2*(2+2+3)+1+3*8/2*(2+2+3)")
-    Next
-    Debug.Print "Application.Evaluate: " & (Timer - iStart)
-    
-End Sub
-
-
-
-Private Function expression() As Variant
-    Dim res As Variant
-    If optConsume("if") Then
-        Dim condition As Variant: Call CopyVariant(condition, logic())
-        consume ("then")
-        Dim ifTrue As Variant: Call CopyVariant(ifTrue, expression())
-        consume ("else")
-        Dim ifFalse As Variant: Call CopyVariant(ifFalse, expression())
-        If condition Then
-            Call CopyVariant(res, ifTrue)
-        Else
-            Call CopyVariant(res, ifFalse)
-        End If
-    Else
-        Call CopyVariant(res, logic())
-    End If
-    
-    Call CopyVariant(expression, res)
-End Function
-
-Private Function logic()
-    Dim res As Variant: Call CopyVariant(res, clause())
-    Dim bLoop As Boolean: bLoop = True
-    Do
-        If optConsume("or") Then
-            res = res And subClause() 'Can't break out if value is truthy unless we return an ast and execute from there...
-        Else
-            bLoop = False
-        End If
-    Loop While bLoop
-    Call CopyVariant(logic, res)
-End Function
-
-Private Function clause()
-    Dim res As Variant: Call CopyVariant(res, subClause())
-    Dim bLoop As Boolean: bLoop = True
-    Do
-        If optConsume("and") Then
-            res = res And subClause() 'Can't break out if value is falsy unless we return an ast and execute from there...
-        Else
-            bLoop = False
-        End If
-    Loop While bLoop
-    Call CopyVariant(clause, res)
-End Function
-
-Private Function subClause()
-    Dim res As Variant: Call CopyVariant(res, comparee())
-    Dim bLoop As Boolean: bLoop = True
-    Do
-        If optConsume("lessThan") Then
-            res = res < comparee()
-        ElseIf optConsume("lessThanEqual") Then
-            res = res <= comparee()
-        ElseIf optConsume("greaterThan") Then
-            res = res > comparee()
-        ElseIf optConsume("greaterThanEqual") Then
-            res = res >= comparee()
-        ElseIf optConsume("equal") Then
-            res = res = comparee()
-        ElseIf optConsume("notEqual") Then
-            res = res <> comparee()
-        ElseIf optConsume("is") Then
-            res = res Is comparee()
-        ElseIf optConsume("like") Then
-            res = res Like comparee()
-        Else
-            bLoop = False
-        End If
-    Loop While bLoop
-    Call CopyVariant(subClause, res)
-End Function
-
-Private Function comparee() As Variant
-    Dim res As Variant: Call CopyVariant(res, term())
-    Dim bLoop As Boolean: bLoop = True
-    Do
-        If optConsume("add") Then
-            res = res + term()
-        ElseIf optConsume("subtract") Then
-            res = res - term()
-        Else
-            bLoop = False
-        End If
-    Loop While bLoop
-    Call CopyVariant(comparee, res)
-End Function
-
-Private Function term() As Variant
-    Dim res As Variant: Call CopyVariant(res, factor())
-    Dim bLoop As Boolean: bLoop = True
-    Do
-        If optConsume("power") Then
-            res = res ^ factor()
-        ElseIf optConsume("multiply") Then
-            res = res * factor()
-        ElseIf optConsume("divide") Then
-            res = res / factor()
-        ElseIf optConsume("concatenate") Then
-            res = res & factor()
-        ElseIf optConsume("modulus") Then
-            res = res Mod factor()
-        Else
-            bLoop = False
-        End If
-    Loop While bLoop
-    Call CopyVariant(term, res)
-End Function
-
-Private Function factor() As Variant
-    Dim res As Variant
-    
-    'Deal with not unary operator
-    Dim invert As Variant: invert = vbNull
-    While optConsume("not")
-        If invert = vbNull Then invert = False
-        invert = Not invert
-    Wend
-    
-    'Deal with numbers, vars, strings, booleans and brackets
-    If peek("literalNumber") Then
-        res = CDbl(consume("literalNumber"))
-    ElseIf peek("var") Then
-        Call CopyVariant(res, EvaluateVarName(consume("var")))
-    ElseIf peek("literalString") Then
-        res = consumeString()
-    ElseIf peek("literalBoolean") Then
-        res = consume("literalBoolean") = "true"
-    ElseIf peek("funcName") Then
-        Call CopyVariant(res , consumeFunction())
-    Else
-        Call consume("lBracket")
-        res = expression()
-        Call consume("rBracket")
-    End If
-    
-    'Execute invert
-    If invert <> vbNull Then
-        If invert = True Then
-            res = Not CBool(res)
-        Else
-            res = CBool(res)
-        End If
-    End If
-    
-    Call CopyVariant(factor, manyAccessors(res))
-End Function
-
-Private Function consumeFunction() As Variant
-    Dim sFuncName As String: sFuncName = consume("funcName")
-    Dim args() As Variant: args = optConsumeParameters()
-    Call CopyVariant(consumeFunction, evaluateFunc(sFuncName, args))
-End Function
-
-Private Function manyAccessors(value As Variant) As Variant
-    'Copy value into res
-    Dim res As Variant
-    Call CopyVariant(res, value)
-
-    Dim bLoop As Boolean: bLoop = True
-    Do
-        Dim newRes As Variant: newRes = UniqueConst
-        If isUniqueConst(newRes) Then Call CopyVariant(newRes, optObjectProperty(res))
-        If isUniqueConst(newRes) Then Call CopyVariant(newRes, optObjectMethod(res))
-
-        If Not isUniqueConst(newRes) Then
-            Call CopyVariant(res, newRes)
-        Else
-            bLoop = False
-        End If
-    Loop While bLoop
-
-    Call CopyVariant(manyAccessors, res)
-End Function
-
-Private Function optObjectProperty(ByRef value As Variant)
-    If IsObject(value) Then
-        If optConsume("propertyAccess") Then
-            Dim sFuncName As String: sFuncName = consume("funcName")
-            Dim args() As Variant: args = optConsumeParameters()
-            
-            'Call rtcCallByName
-            Dim hr As Long, res As Variant
-            hr = rtcCallByName(res, value, StrPtr(sFuncName), VbCallType.VbGet, args, &H409)
-            
-            'If error then raise
-            If hr < 0 Then
-                Call Throw("Error in calling " & sFuncName & " property of " & typename(value) & " object.")
-            Else
-                Call CopyVariant(optObjectProperty, res)
-            End If
-            Exit Function
-        End If
-    End If
-    
-    optObjectProperty = UniqueConst
-End Function
-
-Private Function optObjectMethod(ByRef value As Variant) As Variant
-    If IsObject(value) Then
-        If optConsume("methodAccess") Then
-            Dim sFuncName As String: sFuncName = consume("funcName")
-            Dim args() As Variant: args = optConsumeParameters()
-            
-            'Call rtcCallByName
-            Dim hr As Long, res As Variant
-            hr = rtcCallByName(res, value, StrPtr(sFuncName), VbCallType.VbMethod, args, &H409)
-            
-            'If error then raise
-            If hr < 0 Then
-                Call Throw("Error in calling " & sFuncName & " method of " & typename(value) & " object.")
-            Else
-                Call CopyVariant(optObjectMethod, res)
-            End If
-            Exit Function
-        End If
-    End If
-    
-    optObjectMethod = UniqueConst
-End Function
-
-Private Function optConsumeParameters() As Variant
-    If optConsume("lBracket") Then
-        Dim arguments() As Variant
-        arguments = Array()
-
-        While Not peek("rBracket")
-            If UBound(arguments) - LBound(arguments) + 1 > 0 Then
-                Call consume("comma")
-                ReDim Preserve arguments(0 To UBound(arguments) + 1)
-            Else
-                ReDim arguments(0 To 0)
-            End If
-            arguments(UBound(arguments)) = expression()
-        Wend
-
-        Call consume("rBracket")
-        optConsumeParameters = arguments
-    Else
-        optConsumeParameters = Array()
-    End If
-End Function
-
-Private Function consumeString() As String
-    Dim sRes As String: sRes = consume("literalString")
-    sRes = Mid(sRes, 2, Len(sRes) - 2)
-    sRes = Replace(sRes, """""", """")
-    consumeString = sRes
-End Function
-
-
-'Evaluates Variable name
-'@param {string} sValueName Value like $\d+ to be interpreted as argument
-Private Function EvaluateVarName(ByVal sValueName As String) As Variant
-    Dim iArgIndex As Long: iArgIndex = Val(Mid(sValueName, 2)) + LBound(vLastArgs) - 1
-    
-    If iArgIndex <= UBound(vLastArgs) Then
-        'Evaluate varname, allow for object values...
-        Call CopyVariant(EvaluateVarName, vLastArgs(iArgIndex))
-    Else
-        Call Throw("Argument " & iArgIndex & " not supplied to Lambda.")
-    End If
-End Function
-
-
-'Tokenise the input string
-'@param {string} sInput String to tokenise
-'@return {token[]} A list of Token structs
-Private Function Tokenise(ByVal sInput As String) As token()
-    Dim defs() As TokenDefinition
-    defs = getTokenDefinitions()
-    
-    Dim tokens() As token, iTokenDef As Long
-    ReDim tokens(1 To 1)
-    
-    Dim sInputOld As String
-    sInputOld = sInput
-    
-    Dim iNumTokens As Long
-    iNumTokens = 0
-    While Len(sInput) > 0
-        Dim bMatched As Boolean
-        bMatched = False
-        
-        For iTokenDef = 1 To UBound(defs)
-            'Test match, if matched then add token
-            If defs(iTokenDef).RegexObj.test(sInput) Then
-                'Get match details
-                Dim oMatch As Object: Set oMatch = defs(iTokenDef).RegexObj.Execute(sInput)
-                
-                'Create new token
-                iNumTokens = iNumTokens + 1
-                ReDim Preserve tokens(1 To iNumTokens)
-                
-                'Tokenise
-                tokens(iNumTokens).Type = defs(iTokenDef)
-                tokens(iNumTokens).value = oMatch(0)
-                
-                'Trim string to unmatched range
-                sInput = Mid(sInput, Len(oMatch(0)) + 1)
-                
-                'Flag that a match was made
-                bMatched = True
-                Exit For
-            End If
-        Next
-        
-        'If no match made then syntax error
-        If Not bMatched Then
-            Call Throw("Syntax Error - Lexer Error")
-        End If
-    Wend
-    
-    Tokenise = removeTokens(tokens, "space")
-End Function
 
 'Tokeniser helpers
 Private Function getTokenDefinitions() As TokenDefinition()
@@ -537,23 +224,285 @@ Private Function getTokenDefinitions() As TokenDefinition()
     i = i + 1: arr(i) = getTokenDefinition("subtract", "\-")
     i = i + 1: arr(i) = getTokenDefinition("equal", "\=")
     i = i + 1: arr(i) = getTokenDefinition("notEqual", "\<\>")
-    i = i + 1: arr(i) = getTokenDefinition("greaterThan", "\>")
     i = i + 1: arr(i) = getTokenDefinition("greaterThanEqual", "\>\=")
-    i = i + 1: arr(i) = getTokenDefinition("lessThan", "\<")
+    i = i + 1: arr(i) = getTokenDefinition("greaterThan", "\>")
     i = i + 1: arr(i) = getTokenDefinition("lessThanEqual", "\<\=")
+    i = i + 1: arr(i) = getTokenDefinition("lessThan", "\<")
     i = i + 1: arr(i) = getTokenDefinition("concatenate", "\&")
     
     ReDim Preserve arr(1 To i)
 
     getTokenDefinitions = arr
 End Function
-Private Function getTokenDefinition(ByVal sName As String, ByVal sRegex As String, Optional ByVal ignoreCase As Boolean = True) As TokenDefinition
-    getTokenDefinition.Name = sName
-    getTokenDefinition.Regex = sRegex
-    Set getTokenDefinition.RegexObj = CreateObject("VBScript.Regexp")
-    getTokenDefinition.RegexObj.Pattern = "^(?:" & sRegex & ")"
-    getTokenDefinition.RegexObj.ignoreCase = ignoreCase
+
+'===========
+'
+'  PARSING
+'
+'===========
+
+Private Sub parseExpressionPriority1()
+    Call parseLogicPriority1
+    'todo:
+'    If optConsume("if") Then
+'        Dim condition As Variant: Call CopyVariant(condition, expression())
+'        consume ("then")
+'        Dim ifTrue As Variant: Call CopyVariant(ifTrue, expression())
+'        consume ("else")
+'        Dim ifFalse As Variant: Call CopyVariant(ifFalse, expression())
+'        If condition Then
+'            Call CopyVariant(res, ifTrue)
+'        Else
+'            Call CopyVariant(res, ifFalse)
+'        End If
+'    Else
+'        Call CopyVariant(res, logic())
+'    End If
+End Sub
+
+Private Sub parseLogicPriority1() 'and
+    Call parseLogicPriority2
+    Dim bLoop As Boolean: bLoop = True
+    Do
+        If optConsume("xor") Then
+            Call parseLogicPriority2
+            Call addOperation(oLogic, oXor)
+        Else
+            bLoop = False
+        End If
+    Loop While bLoop
+End Sub
+
+Private Sub parseLogicPriority2() 'or
+    Call parseLogicPriority3
+    Dim bLoop As Boolean: bLoop = True
+    Do
+        If optConsume("or") Then
+            Call parseLogicPriority3
+            Call addOperation(oLogic, oOr)
+        Else
+            bLoop = False
+        End If
+    Loop While bLoop
+End Sub
+
+Private Sub parseLogicPriority3() 'and
+    Call parseLogicPriority4
+    Dim bLoop As Boolean: bLoop = True
+    Do
+        If optConsume("and") Then
+            Call parseLogicPriority4
+            Call addOperation(oLogic, oOr)
+        Else
+            bLoop = False
+        End If
+    Loop While bLoop
+End Sub
+
+Private Sub parseLogicPriority4() 'not
+    Dim invert As Variant: invert = vbNull
+    While optConsume("not")
+        If invert = vbNull Then invert = False
+        invert = Not invert
+    Wend
+    
+    Call parseComparisonPriority1
+    
+    If invert <> vbNull Then
+        Call addOperation(oLogic, oNot)
+        If invert = False Then
+            Call addOperation(oLogic, oNot)
+        End If
+    End If
+End Sub
+
+Private Sub parseComparisonPriority1() '=, <>, <, <=, >, >=, is, Like
+    Call parseArithmeticPriority1
+    Dim bLoop As Boolean: bLoop = True
+    Do
+        If optConsume("lessThan") Then
+            Call parseArithmeticPriority1
+            Call addOperation(oComparison, oLt)
+        ElseIf optConsume("lessThanEqual") Then
+            Call parseArithmeticPriority1
+            Call addOperation(oComparison, oLte)
+        ElseIf optConsume("greaterThan") Then
+            Call parseArithmeticPriority1
+            Call addOperation(oComparison, oGt)
+        ElseIf optConsume("greaterThanEqual") Then
+            Call parseArithmeticPriority1
+            Call addOperation(oComparison, oGte)
+        ElseIf optConsume("equal") Then
+            Call parseArithmeticPriority1
+            Call addOperation(oComparison, oEql)
+        ElseIf optConsume("notEqual") Then
+            Call parseArithmeticPriority1
+            Call addOperation(oComparison, oNeq)
+        ElseIf optConsume("is") Then
+            Call parseArithmeticPriority1
+            Call addOperation(oComparison, oIs)
+        ElseIf optConsume("like") Then
+            Call parseArithmeticPriority1
+            Call addOperation(oComparison, oLike)
+        Else
+            bLoop = False
+        End If
+    Loop While bLoop
+End Sub
+
+Private Sub parseArithmeticPriority1() '&
+    Call parseArithmeticPriority2
+    Dim bLoop As Boolean: bLoop = True
+    Do
+        If optConsume("concatenate") Then
+            Call parseArithmeticPriority2
+            Call addOperation(oMisc, oCat)
+        Else
+            bLoop = False
+        End If
+    Loop While bLoop
+End Sub
+
+Private Sub parseArithmeticPriority2() '+, -
+    Call parseArithmeticPriority3
+    Dim bLoop As Boolean: bLoop = True
+    Do
+        If optConsume("add") Then
+            Call parseArithmeticPriority3
+            Call addOperation(oArithmetic, oAdd)
+        ElseIf optConsume("subtract") Then
+            Call parseArithmeticPriority3
+            Call addOperation(oArithmetic, oSub)
+        Else
+            bLoop = False
+        End If
+    Loop While bLoop
+End Sub
+
+
+Private Sub parseArithmeticPriority3() 'mod
+    Call parseArithmeticPriority4
+    Dim bLoop As Boolean: bLoop = True
+    Do
+        If optConsume("modulus") Then
+            Call parseArithmeticPriority4
+            Call addOperation(oArithmetic, oMod)
+        Else
+            bLoop = False
+        End If
+    Loop While bLoop
+End Sub
+
+Private Sub parseArithmeticPriority4() '*, /
+    Call parseArithmeticPriority5
+    Dim bLoop As Boolean: bLoop = True
+    Do
+        If optConsume("multiply") Then
+            Call parseArithmeticPriority4
+            Call addOperation(oArithmetic, oMul)
+        ElseIf optConsume("divide") Then
+            Call parseArithmeticPriority4
+            Call addOperation(oArithmetic, oDiv)
+        Else
+            bLoop = False
+        End If
+    Loop While bLoop
+End Sub
+
+Private Sub parseArithmeticPriority5() '^
+    Call parseValuePriority1
+    Do
+        If optConsume("power") Then
+            Call parseValuePriority1
+            Call addOperation(oArithmetic, oPow)
+        Else
+            bLoop = False
+        End If
+    Loop While bLoop
+End Sub
+
+Private Sub parseValuePriority1() 'numbers, $vars, strings, booleans, (expressions)
+    If peek("literalNumber") Then
+        Call addOperation(oPush, , CDbl(consume("literalNumber")))
+    ElseIf peek("var") Then
+        Call addOperation(oAccess, argument, consume("var"))
+        Call parseManyAccessors
+    ElseIf peek("literalString") Then
+        Call parseString
+    ElseIf peek("literalBoolean") Then
+        Call addOperation(oPush, , consume("literalBoolean") = "true")
+    ElseIf peek("funcName") Then
+        'todo:
+        'Call CopyVariant(res, consumeFunction())
+        Call parseManyAccessors
+    Else
+        Call consume("lBracket")
+        Call parseExpressionPriority1
+        Call consume("rBracket")
+        Call parseManyAccessors
+    End If
+End Sub
+
+Private Function consumeFunction() As Variant
+    Dim sFuncName As String: sFuncName = consume("funcName")
+    Dim args() As Variant: args = optConsumeParameters()
+    Call CopyVariant(consumeFunction, evaluateFunc(sFuncName, args))
 End Function
+
+Private Sub parseManyAccessors()
+    Dim bLoop As Boolean: bLoop = True
+    Do
+        bLoop = False
+        If parseOptObjectProperty() Then bLoop = True
+        If parseOptObjectMethod() Then bLoop = True
+    Loop While bLoop
+End Sub
+
+Private Function parseOptObjectProperty() As Boolean
+    parseOptObjectProperty = False
+    If optConsume("propertyAccess") Then
+        Call addOperation(oPush, , consume("funcName"))
+        Call parseOptParameters
+        Call addOperation(oObject, oPropGet)
+        parseOptObjectProperty = True
+    End If
+End Function
+
+Private Function parseOptObjectMethod() As Boolean
+    parseOptObjectMethod = False
+    If optConsume("methodAccess") Then
+        Call addOperation(oPush, , consume("funcName"))
+        Call parseOptParameters
+        Call addOperation(oObject, oMethodCall)
+        parseOptObjectMethod = True
+    End If
+End Function
+
+Private Function parseOptParameters() As Boolean
+    parseOptParameters = False
+    If optConsume("lBracket") Then
+        Dim iArgCount As Integer
+        While Not peek("rBracket")
+            If iArgCount > 0 Then
+                Call consume("comma")
+            End If
+            Call parseExpressionPriority1
+            iArgCount = iArgCount + 1
+        Wend
+        Call consume("rBracket")
+        Call addOperation(oPush, , iArgCount)
+        parseOptParameters = True
+    End If
+End Function
+
+Private Sub parseString()
+    Dim sRes As String: sRes = consume("literalString")
+    sRes = Mid(sRes, 2, Len(sRes) - 2)
+    sRes = Replace(sRes, """""", """")
+    Call addOperation(oPush, , sRes)
+End Sub
+
+'todo: add to evaluation method
 Private Function evaluateFunc(ByVal sFuncName As String, ByVal args As Variant) As Variant
     Dim iArgStart As Long: iArgStart = LBound(args)
     If typename(stdLambda.oFunctExt) = "Dictionary" Then
@@ -567,8 +516,8 @@ Private Function evaluateFunc(ByVal sFuncName As String, ByVal args As Variant) 
         Case "eval": evaluateFunc = stdLambda.Create(args(iArgStart)).Run()
 
         'Useful OOP constants
-        Case "thisworkbook": set evaluateFunc = ThisWorkbook
-        Case "application":  set evaluateFunc = Application
+        Case "thisworkbook": Set evaluateFunc = ThisWorkbook
+        Case "application":  Set evaluateFunc = Application
 
         'MATH:
         '-----
@@ -635,7 +584,7 @@ Private Function evaluateFunc(ByVal sFuncName As String, ByVal args As Variant) 
         Case "csng":  evaluateFunc = VBA.Conversion.CSng(args(iArgStart))
         Case "cdbl":  evaluateFunc = VBA.Conversion.CDbl(args(iArgStart))
         Case "cint":  evaluateFunc = VBA.Conversion.CInt(args(iArgStart))
-        Case "clng":  evaluateFunc = VBA.Conversion.Clng(args(iArgStart))
+        Case "clng":  evaluateFunc = VBA.Conversion.CLng(args(iArgStart))
         Case "cstr":  evaluateFunc = VBA.Conversion.CStr(args(iArgStart))
         Case "cvar":  evaluateFunc = VBA.Conversion.CVar(args(iArgStart))
         Case "cverr":   evaluateFunc = VBA.Conversion.CVErr(args(iArgStart))
@@ -658,7 +607,7 @@ Private Function evaluateFunc(ByVal sFuncName As String, ByVal args As Variant) 
         Case "hex":     evaluateFunc = VBA.Conversion.Hex(args(iArgStart))
         Case "oct":     evaluateFunc = VBA.Conversion.Oct(args(iArgStart))
         Case "str":     evaluateFunc = VBA.Conversion.Str(args(iArgStart))
-        Case "val":     evaluateFunc = VBA.Conversion.Val(args(iArgStart))
+        Case "val":     evaluateFunc = VBA.Conversion.val(args(iArgStart))
         
         'String functions
         Case "Trim": evaluateFunc = VBA.Trim(args(iArgStart))
@@ -681,11 +630,288 @@ Private Function evaluateFunc(ByVal sFuncName As String, ByVal args As Variant) 
     End Select
 End Function
 
-'==============================================================================================================================
+'==============
 '
-'Helper Methods:
+'  EVALUATION
 '
-'==============================================================================================================================
+'==============
+
+'Evaluates the given list of operations
+'@param {Operation()} operations  The operations to evaluate
+'@returns {Variant} The result of the operations
+Private Function evaluate(ByRef ops() As Operation) As Variant
+    Dim stack() As Variant
+    ReDim stack(0 To 5)
+    Dim stackPtr As Long: stackPtr = 0
+    
+    Dim op As Operation
+    Dim v1 As Variant
+    Dim v2 As Variant
+    Dim v3 As Variant
+    Dim opIndex As Long: opIndex = 0
+    Dim opCount As Long: opCount = UBound(ops)
+    
+    While opIndex <= opCount
+        op = operations(opIndex)
+        opIndex = opIndex + 1
+        Select Case op.Type
+            Case iType.oPush
+                Call pushV(stack, stackPtr, op.value)
+            'Arithmetic
+            Case iType.oArithmetic
+                v2 = popV(stack, stackPtr)
+                Select Case op.subType
+                    Case ISubType.oAdd
+                        v1 = popV(stack, stackPtr)
+                        v3 = v1 + v2
+                    Case ISubType.oSub
+                        v1 = popV(stack, stackPtr)
+                        v3 = v1 - v2
+                    Case ISubType.oMul
+                        v1 = popV(stack, stackPtr)
+                        v3 = v1 * v2
+                    Case ISubType.oDiv
+                        v1 = popV(stack, stackPtr)
+                        v3 = v1 / v2
+                    Case ISubType.oPow
+                        v1 = popV(stack, stackPtr)
+                        v3 = v1 ^ v2
+                    Case ISubType.oMod
+                        v1 = popV(stack, stackPtr)
+                        v3 = v1 Mod v2
+                    Case ISubType.oNeg
+                        v3 = -v2
+                    Case Else
+                        v3 = Empty
+                End Select
+                Call pushV(stack, stackPtr, v3)
+            'Comparison
+            Case iType.oComparison
+                v2 = popV(stack, stackPtr)
+                v1 = popV(stack, stackPtr)
+                Select Case op.subType
+                    Case ISubType.oEql
+                        v3 = v1 = v2
+                    Case ISubType.oNeq
+                        v3 = v1 <> v2
+                    Case ISubType.oGt
+                        v3 = v1 > v2
+                    Case ISubType.oGte
+                        v3 = v1 >= v2
+                    Case ISubType.oLt
+                        v3 = v1 < v2
+                    Case ISubType.oLte
+                        v3 = v1 <= v2
+                    Case Else
+                        v3 = Empty
+                End Select
+                Call pushV(stack, stackPtr, v3)
+            'Logic
+            Case iType.oLogic
+                v2 = popV(stack, stackPtr)
+                Select Case op.subType
+                    Case ISubType.oAnd
+                        v1 = popV(stack, stackPtr)
+                        v3 = v1 And v2
+                    Case ISubType.oOr
+                        v1 = popV(stack, stackPtr)
+                        v3 = v1 Or v2
+                    Case ISubType.oNot
+                        v3 = Not v2
+                    Case ISubType.oXor
+                        v1 = popV(stack, stackPtr)
+                        v3 = v1 Xor v2
+                    Case Else
+                        v3 = Empty
+                End Select
+                Call pushV(stack, stackPtr, v3)
+            'Object
+            Case iType.oObject
+                Call objectCaller(stack, stackPtr, op)
+            'Misc
+            Case iType.oMisc
+                v2 = popV(stack, stackPtr)
+                v1 = popV(stack, stackPtr)
+                Select Case op.subType
+                    Case ISubType.oCat
+                        v3 = v1 & v2
+                    Case ISubType.oLike
+                        v3 = v1 Like v2
+                    Case Else
+                        v3 = Empty
+                End Select
+                Call pushV(stack, stackPtr, v3)
+            'Variable
+            Case iType.oAccess
+                Select Case op.subType
+                    Case ISubType.argument
+                        Dim iArgIndex As Long: iArgIndex = val(Mid(op.value, 2)) + LBound(vLastArgs) - 1
+                        If iArgIndex <= UBound(vLastArgs) Then
+                            Call pushV(stack, stackPtr, vLastArgs(iArgIndex))
+                        Else
+                            Call Throw("Argument " & iArgIndex & " not supplied to Lambda.")
+                        End If
+                    Case Else
+                        Call pushV(stack, stackPtr, stack(stackPtr - op.value))
+                End Select
+            Case iType.oSet
+                v1 = popV(stack, stackPtr)
+                stack(stackPtr - op.value) = v1
+            'Flow
+            Case iType.oJump
+                Select Case op.subType
+                    Case ISubType.ifTrue
+                        v1 = popV(stack, stackPtr)
+                        If v1 Then
+                            opIndex = op.value
+                        End If
+                    Case ISubType.ifFalse
+                        v1 = popV(stack, stackPtr)
+                        If Not v1 Then
+                            opIndex = op.value
+                        End If
+                    Case Else
+                        opIndex = op.value
+                End Select
+            Case iType.oReturn
+                Select Case op.subType
+                    Case ISubType.withValue
+                        v1 = popV(stack, stackPtr)
+                        opIndex = stack(stackPtr - 1)
+                        stack(stackPtr - 1) = v1
+                    Case Else
+                        opIndex = popV(stack, stackPtr)
+                End Select
+            'Data
+            Case iType.oMerge
+                Call CopyVariant(v1, popV(stack, stackPtr))
+                Call CopyVariant(stack(stackPtr - 1), v1)
+            Case iType.oPop
+                Call popV(stack, stackPtr)
+            Case Else
+                opIndex = 10 ^ 6 'TODO: replace by infinity or something
+        End Select
+    Wend
+    Call CopyVariant(evaluate, stack(0))
+End Function
+
+
+'Calls an object method/setter/getter/letter
+'@param {ByRef Variant()} stack     The stack to get the data from and add the result to
+'@param {ByRef Long} stackPtr       The pointer that indicates the position of the top of the stack
+'@param {ByRef Operation} op        The operation to execute
+'@returns {void}
+Private Sub objectCaller(ByRef stack() As Variant, ByRef stackPtr As Long, ByRef op As Operation)
+    'Get the arguments
+    Dim funcName As Variant: funcName = popV(stack, stackPtr)
+    Dim argCount As Variant
+    Dim args() As Variant
+    If VarType(funcName) = vbString Then
+        'If no argument count is specified, there are no arguments
+        argCount = 0
+        args = Array()
+    Else
+        'If an argument count is provided, extract all arguments into an array
+        argCount = funcName
+        ReDim args(1 To argCount)
+        For i = 1 To argCount
+            Call CopyVariant(args(i), popV(stack, stackPtr))
+        Next
+        funcName = popV(stack, stackPtr)
+    End If
+    
+    'Get caller type
+    Dim callerType As VbCallType
+    Select Case op.subType
+        Case ISubType.oPropGet:     callerType = VbGet
+        Case ISubType.oMethodCall:  callerType = VbMethod
+        Case ISubType.oPropLet:     callerType = VbLet
+        Case ISubType.oPropSet:     callerType = VbSet
+    End Select
+                
+    'Call rtcCallByName
+    Dim hr As Long, res As Variant, obj As Object
+    Set obj = popV(stack, stackPtr)
+    hr = rtcCallByName(res, obj, StrPtr(funcName), callerType, args, &H409)
+    
+    'If error then raise, otherwise push stack
+    If hr < 0 Then
+        Call Throw("Error in calling " & sFuncName & " property of " & typename(value) & " object.")
+    Else
+        If op.subType = ISubType.oPropGet Or op.subType = ISubType.oMethodCall Then
+            Call pushV(stack, stackPtr, res)
+        End If
+    End If
+End Sub
+
+'==========================
+'
+'  General helper methods
+'
+'==========================
+
+'------------
+'tokenisation
+'------------
+
+'Tokenise the input string
+'@param {string} sInput String to tokenise
+'@return {token[]} A list of Token structs
+Private Function Tokenise(ByVal sInput As String) As token()
+    Dim defs() As TokenDefinition
+    defs = getTokenDefinitions()
+    
+    Dim tokens() As token, iTokenDef As Long
+    ReDim tokens(1 To 1)
+    
+    Dim sInputOld As String
+    sInputOld = sInput
+    
+    Dim iNumTokens As Long
+    iNumTokens = 0
+    While Len(sInput) > 0
+        Dim bMatched As Boolean
+        bMatched = False
+        
+        For iTokenDef = 1 To UBound(defs)
+            'Test match, if matched then add token
+            If defs(iTokenDef).RegexObj.test(sInput) Then
+                'Get match details
+                Dim oMatch As Object: Set oMatch = defs(iTokenDef).RegexObj.execute(sInput)
+                
+                'Create new token
+                iNumTokens = iNumTokens + 1
+                ReDim Preserve tokens(1 To iNumTokens)
+                
+                'Tokenise
+                tokens(iNumTokens).Type = defs(iTokenDef)
+                tokens(iNumTokens).value = oMatch(0)
+                
+                'Trim string to unmatched range
+                sInput = Mid(sInput, Len(oMatch(0)) + 1)
+                
+                'Flag that a match was made
+                bMatched = True
+                Exit For
+            End If
+        Next
+        
+        'If no match made then syntax error
+        If Not bMatched Then
+            Call Throw("Syntax Error - Lexer Error")
+        End If
+    Wend
+    
+    Tokenise = removeTokens(tokens, "space")
+End Function
+
+Private Function getTokenDefinition(ByVal sName As String, ByVal sRegex As String, Optional ByVal ignoreCase As Boolean = True) As TokenDefinition
+    getTokenDefinition.Name = sName
+    getTokenDefinition.Regex = sRegex
+    Set getTokenDefinition.RegexObj = CreateObject("VBScript.Regexp")
+    getTokenDefinition.RegexObj.Pattern = "^(?:" & sRegex & ")"
+    getTokenDefinition.RegexObj.ignoreCase = ignoreCase
+End Function
 
 'Copies one variant to a destination
 '@param {ByRef Token()} tokens Tokens to remove the specified type from
@@ -705,17 +931,9 @@ Private Function removeTokens(ByRef tokens() As token, ByVal sRemoveType As Stri
     removeTokens = tokens
 End Function
 
-
-'Copies one variant to a destination
-'@param {ByRef Variant} dest Destination to copy variant to
-'@param {Variant} value Source to copy variant from.
-Private Sub CopyVariant(ByRef dest As Variant, ByVal value As Variant)
-  If IsObject(value) Then
-    Set dest = value
-  Else
-    dest = value
-  End If
-End Sub
+'-------
+'parsing
+'-------
 
 'Shifts the Tokens array (uses an index)
 '@returns {token} The token at the tokenIndex
@@ -728,15 +946,6 @@ Private Function ShiftTokens() As token
     'Increment token index
     iTokenIndex = iTokenIndex + 1
 End Function
-
-'Throws an error
-'@param {string} The error message to be thrown
-'@returns {void}
-Private Sub Throw(ByVal sMessage As String)
-    MsgBox sMessage, vbCritical
-    End
-End Sub
-
 
 ' Consumes a token
 ' @param {string} token The token type name to consume
@@ -789,6 +998,92 @@ Private Function isUniqueConst(ByRef test As Variant) As Boolean
     End If
     isUniqueConst = False
 End Function
+ 
+'Adds an operation to the instance operations list
+'@param {IType} kType       The main type of the operation
+'@param {ISubType} subType  The sub type of the operation
+'@param {Variant} value     The value associated with the operation
+'@returns {Operation} Returns the created operation
+Private Function addOperation(kType As iType, Optional subType As ISubType, Optional value As Variant) As Operation
+    Dim size As Long: size = UBound(operations)
+    If size = 0 Then
+        ReDim Preserve operations(0 To 1)
+    ElseIf iOperationIndex > size Then
+        ReDim Preserve operations(0 To size * 2)
+    End If
+    
+    With operations(iOperationIndex)
+        .Type = kType
+        .subType = subType
+        Call CopyVariant(.value, value)
+    End With
+    addOperation = operations(iOperationIndex)
+    
+    iOperationIndex = iOperationIndex + 1
+End Function
+
+'Resizes the operations list so there are no more empty operations
+Private Sub finishOperations()
+    ReDim Preserve operations(0 To iOperationsIndex)
+End Sub
+
+'----------
+'evaluation
+'----------
+
+Private Sub pushV(ByRef stack() As Variant, ByRef index As Long, ByVal item As Variant)
+    Dim size As Long: size = UBound(stack)
+    If index > size Then
+        ReDim Preserve stack(0 To size * 2)
+    End If
+    If IsObject(item) Then
+        Set stack(index) = item
+    Else
+        stack(index) = item
+    End If
+    index = index + 1
+End Sub
+
+Private Function popV(ByRef stack() As Variant, ByRef index As Variant) As Variant
+    Dim size As Long: size = UBound(stack)
+    If index < size / 3 And index > minStackSize Then
+        ReDim Preserve stack(0 To CLng(size / 2))
+    End If
+    index = index - 1
+    If IsObject(stack(index)) Then
+        Set popV = stack(index)
+    Else
+        popV = stack(index)
+    End If
+    #If devMode Then
+        stack(index) = Empty
+    #End If
+End Function
+
+'-------
+'general
+'-------
+
+'Copies one variant to a destination
+'@param {ByRef Variant} dest Destination to copy variant to
+'@param {Variant} value Source to copy variant from.
+Private Sub CopyVariant(ByRef dest As Variant, ByVal value As Variant)
+  If IsObject(value) Then
+    Set dest = value
+  Else
+    dest = value
+  End If
+End Sub
+
+
+'Throws an error
+'@param {string} The error message to be thrown
+'@returns {void}
+Private Sub Throw(ByVal sMessage As String)
+    MsgBox sMessage, vbCritical
+    End
+End Sub
+
 
 
 
