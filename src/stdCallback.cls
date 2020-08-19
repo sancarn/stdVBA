@@ -6,7 +6,7 @@ Attribute VB_Name = "stdCallback"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = True
+Attribute VB_Exposed = False
 
 Implements stdICallable
 
@@ -198,17 +198,17 @@ End Sub
 Private Function stdICallable_Run(ParamArray params() as variant) As Variant
   'store args as different array otherwise crash occurs
   Dim vArr() As Variant
-  vArr = args
+  vArr = params
   
   Call VariantCopy(stdICallable_Run,RunEx(vArr))
-End Property
+End Function
 Private Function stdICallable_RunEx(params() as variant) As Variant
   'store args as different array otherwise crash occurs
   Dim vArr() As Variant
-  vArr = args
+  vArr = params
   
   Call VariantCopy(stdICallable_RunEx,RunEx(vArr))
-End Property
+End Function
 
 
 Public Function Run(ParamArray args() As Variant)
