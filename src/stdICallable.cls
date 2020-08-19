@@ -9,10 +9,10 @@ Attribute VB_PredeclaredId = false
 Attribute VB_Exposed = False
 
 'Call will call the passed function with param array
-Public Function Run(ParamArray params() as variant) as variant
+Public Function Run(ParamArray params() as variant) as variant: End Function
 
 'Call function with supplied array of params
-Public Function RunEx(params() as variant) as variant
+Public Function RunEx(params() as variant) as variant: End Function
 
 'Ideally we would want to get a pointer to the function... However, getting a pointer to an object method is
 'going to be defficult, partly due to the first parameter sent to the function is `Me`! We'll likely have to
