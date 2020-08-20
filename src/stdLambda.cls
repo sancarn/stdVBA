@@ -10,10 +10,10 @@ Attribute VB_Exposed = False
 'Direct call convention of VBA.CallByName
 #If VBA7 Then
   'VBE7 is interchangable with msvbvm60.dll    however VBE7.dll appears to always be present where as msvbvm60 is only occasionally present.
-  Private Declare PtrSafe Function rtcCallByName Lib "VBE7.dll" (ByRef vRet As Variant, ByVal cObj As Object, ByVal sMethod As LongPtr, ByVal eCallType As VbCallType, ByRef pArgs() As Variant, ByVal lcid As Long) As Long
+  Private Declare PtrSafe Function rtcCallByName Lib "VBE7.dll" (ByVal cObj As Object, ByVal sMethod As LongPtr, ByVal eCallType As VbCallType, ByRef pArgs() As Variant, ByVal lcid As Long) As Variant
   Private Declare PtrSafe Sub VariantCopy Lib "oleaut32.dll" (ByRef pvargDest As Variant, ByRef pvargSrc As Variant)
 #Else
-  Private Declare Function rtcCallByName Lib "msvbvm60" (ByRef vRet As Variant, ByVal cObj As Object, ByVal sMethod As LongPtr, ByVal eCallType As VbCallType, ByRef pArgs() As Variant, ByVal lcid As Long) As Long
+  Private Declare Function rtcCallByName Lib "msvbvm60" (ByVal cObj As Object, ByVal sMethod As LongPtr, ByVal eCallType As VbCallType, ByRef pArgs() As Variant, ByVal lcid As Long) As Variant
   Private Declare Sub VariantCopy Lib "oleaut32.dll" (ByRef pvargDest As Variant, ByRef pvargSrc As Variant)
 #End If
 #Const devMode = True 'Used for enabling some debugging features
@@ -505,7 +505,7 @@ End Sub
 'todo: add to evaluation method
 Private Function evaluateFunc(ByVal sFuncName As String, ByVal args As Variant) As Variant
     Dim iArgStart As Long: iArgStart = LBound(args)
-    If typename(stdLambda.oFunctExt) = "Dictionary" Then
+    If TypeName(stdLambda.oFunctExt) = "Dictionary" Then
         If Me.oFunctExt.exists(sFuncName) Then
             evaluateFunc = Me.oFunctExt(sFuncName).RunEx(args)
             Exit Function
@@ -652,7 +652,7 @@ Private Function evaluate(ByRef ops() As Operation) As Variant
     Dim opCount As Long: opCount = UBound(ops)
     
     While opIndex <= opCount
-        op = operations(opIndex)
+        op = ops(opIndex)
         opIndex = opIndex + 1
         Select Case op.Type
             Case iType.oPush
@@ -830,18 +830,9 @@ Private Sub objectCaller(ByRef stack() As Variant, ByRef stackPtr As Long, ByRef
     End Select
                 
     'Call rtcCallByName
-    Dim hr As Long, res As Variant, obj As Object
+    Dim obj As Object
     Set obj = popV(stack, stackPtr)
-    hr = rtcCallByName(res, obj, StrPtr(funcName), callerType, args, &H409)
-    
-    'If error then raise, otherwise push stack
-    If hr < 0 Then
-        Call Throw("Error in calling " & sFuncName & " property of " & typename(value) & " object.")
-    Else
-        If op.subType = ISubType.oPropGet Or op.subType = ISubType.oMethodCall Then
-            Call pushV(stack, stackPtr, res)
-        End If
-    End If
+    Call pushV(stack, stackPtr, rtcCallByName(obj, StrPtr(funcName), callerType, args, &H409))
 End Sub
 
 '==========================
