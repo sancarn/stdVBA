@@ -44,11 +44,12 @@ Private Enum iType
     oSet = 5
     oArithmetic = 6
     oLogic = 7
-    oComparison = 8
-    oMisc = 9
-    oJump = 10
-    oReturn = 11
-    oObject = 12
+    oFunc = 8
+    oComparison = 9
+    oMisc = 10
+    oJump = 11
+    oReturn = 12
+    oObject = 13
 End Enum
 Private Enum ISubType
     'Arithmetic
@@ -134,7 +135,7 @@ Public Sub Init(ByVal sEquation As String, ByVal bSandboxExtras As Boolean)
     iTokenIndex = 1
     iOperationIndex = 0
     Call finishOperations
-    Call parseExpressionPriority1
+    Call parseExpression
 End Sub
 
 Private Function stdICallable_Run(ParamArray params() As Variant) As Variant
@@ -241,23 +242,8 @@ End Function
 '
 '===========
 
-Private Sub parseExpressionPriority1()
+Private Sub parseExpression()
     Call parseLogicPriority1
-    'todo:
-'    If optConsume("if") Then
-'        Dim condition As Variant: Call CopyVariant(condition, expression())
-'        consume ("then")
-'        Dim ifTrue As Variant: Call CopyVariant(ifTrue, expression())
-'        consume ("else")
-'        Dim ifFalse As Variant: Call CopyVariant(ifFalse, expression())
-'        If condition Then
-'            Call CopyVariant(res, ifTrue)
-'        Else
-'            Call CopyVariant(res, ifFalse)
-'        End If
-'    Else
-'        Call CopyVariant(res, logic())
-'    End If
 End Sub
 
 Private Sub parseLogicPriority1() 'and
@@ -409,11 +395,22 @@ Private Sub parseArithmeticPriority4() '*, /
     Loop While bLoop
 End Sub
 
-Private Sub parseArithmeticPriority5() '^
-    Call parseValuePriority1
+Private Sub parseArithmeticPriority5() '-, +
+    If optConsume("subtract") Then
+        Call parseArithmeticPriority5 'recurse
+        Call addOperation(oArithmetic, oNeg)
+    ElseIf optConsume("add") Then
+        Call parseArithmeticPriority5 'recurse
+    Else
+        Call parseArithmeticPriority6
+    End If
+End Sub
+
+Private Sub parseArithmeticPriority6() '^
+    Call parseFlowPriority1
     Do
         If optConsume("power") Then
-            Call parseValuePriority1
+            Call parseArithmeticPriority6andahalf '- and + are still identity operators
             Call addOperation(oArithmetic, oPow)
         Else
             bLoop = False
@@ -421,7 +418,37 @@ Private Sub parseArithmeticPriority5() '^
     Loop While bLoop
 End Sub
 
+Private Sub parseArithmeticPriority6andahalf() '-, +
+    If optConsume("subtract") Then
+        Call parseArithmeticPriority6andahalf 'recurse
+        Call addOperation(oArithmetic, oNeg)
+    ElseIf optConsume("add") Then
+        Call parseArithmeticPriority6andahalf 'recurse
+    Else
+        Call parseFlowPriority1
+    End If
+End Sub
+
+Private Sub parseFlowPriority1() 'if then else
+    If optConsume("if") Then
+        Call parseExpression
+        Dim skipThenJumpIndex As Integer: skipThenJumpIndex = addOperation(oJump, ifFalse)
+        
+        consume ("then")
+        Call parseExpression
+        Dim skipElseJumpIndex As Integer: skipElseJumpIndex = addOperation(oJump)
+        operations(skipThenJumpIndex).value = iOperationIndex
+        
+        consume ("else")
+        Call parseExpression
+        operations(skipElseJumpIndex).value = iOperationIndex
+    Else
+        Call parseValuePriority1
+    End If
+End Sub
+
 Private Sub parseValuePriority1() 'numbers, $vars, strings, booleans, (expressions)
+
     If peek("literalNumber") Then
         Call addOperation(oPush, , CDbl(consume("literalNumber")))
     ElseIf peek("var") Then
@@ -432,21 +459,20 @@ Private Sub parseValuePriority1() 'numbers, $vars, strings, booleans, (expressio
     ElseIf peek("literalBoolean") Then
         Call addOperation(oPush, , consume("literalBoolean") = "true")
     ElseIf peek("funcName") Then
-        'todo:
-        'Call CopyVariant(res, consumeFunction())
+        Call parseFunction
         Call parseManyAccessors
     Else
         Call consume("lBracket")
-        Call parseExpressionPriority1
+        Call parseExpression
         Call consume("rBracket")
         Call parseManyAccessors
     End If
 End Sub
 
-Private Function consumeFunction() As Variant
-    Dim sFuncName As String: sFuncName = consume("funcName")
-    Dim args() As Variant: args = optConsumeParameters()
-    Call CopyVariant(consumeFunction, evaluateFunc(sFuncName, args))
+Private Function parseFunction() As Variant
+    Call addOperation(oPush, , consume("funcName"))
+    Call parseOptParameters
+    Call addOperation(oFunc)
 End Function
 
 Private Sub parseManyAccessors()
@@ -486,7 +512,7 @@ Private Function parseOptParameters() As Boolean
             If iArgCount > 0 Then
                 Call consume("comma")
             End If
-            Call parseExpressionPriority1
+            Call parseExpression
             iArgCount = iArgCount + 1
         Wend
         Call consume("rBracket")
@@ -502,7 +528,230 @@ Private Sub parseString()
     Call addOperation(oPush, , sRes)
 End Sub
 
-'todo: add to evaluation method
+
+'==============
+'
+'  EVALUATION
+'
+'==============
+
+'Evaluates the given list of operations
+'@param {Operation()} operations  The operations to evaluate
+'@returns {Variant} The result of the operations
+Private Function evaluate(ByRef ops() As Operation) As Variant
+    Dim stack() As Variant
+    ReDim stack(0 To 5)
+    Dim stackPtr As Long: stackPtr = 0
+    
+    Dim op As Operation
+    Dim v1 As Variant
+    Dim v2 As Variant
+    Dim v3 As Variant
+    Dim opIndex As Long: opIndex = 0
+    Dim opCount As Long: opCount = UBound(ops)
+    
+    While opIndex <= opCount
+        op = ops(opIndex)
+        opIndex = opIndex + 1
+        Select Case op.Type
+            Case iType.oPush
+                Call pushV(stack, stackPtr, op.value)
+            'Arithmetic
+            Case iType.oArithmetic
+                v2 = popV(stack, stackPtr)
+                Select Case op.subType
+                    Case ISubType.oAdd
+                        v1 = popV(stack, stackPtr)
+                        v3 = v1 + v2
+                    Case ISubType.oSub
+                        v1 = popV(stack, stackPtr)
+                        v3 = v1 - v2
+                    Case ISubType.oMul
+                        v1 = popV(stack, stackPtr)
+                        v3 = v1 * v2
+                    Case ISubType.oDiv
+                        v1 = popV(stack, stackPtr)
+                        v3 = v1 / v2
+                    Case ISubType.oPow
+                        v1 = popV(stack, stackPtr)
+                        v3 = v1 ^ v2
+                    Case ISubType.oMod
+                        v1 = popV(stack, stackPtr)
+                        v3 = v1 Mod v2
+                    Case ISubType.oNeg
+                        v3 = -v2
+                    Case Else
+                        v3 = Empty
+                End Select
+                Call pushV(stack, stackPtr, v3)
+            'Comparison
+            Case iType.oComparison
+                v2 = popV(stack, stackPtr)
+                v1 = popV(stack, stackPtr)
+                Select Case op.subType
+                    Case ISubType.oEql
+                        v3 = v1 = v2
+                    Case ISubType.oNeq
+                        v3 = v1 <> v2
+                    Case ISubType.oGt
+                        v3 = v1 > v2
+                    Case ISubType.oGte
+                        v3 = v1 >= v2
+                    Case ISubType.oLt
+                        v3 = v1 < v2
+                    Case ISubType.oLte
+                        v3 = v1 <= v2
+                    Case Else
+                        v3 = Empty
+                End Select
+                Call pushV(stack, stackPtr, v3)
+            'Logic
+            Case iType.oLogic
+                v2 = popV(stack, stackPtr)
+                Select Case op.subType
+                    Case ISubType.oAnd
+                        v1 = popV(stack, stackPtr)
+                        v3 = v1 And v2
+                    Case ISubType.oOr
+                        v1 = popV(stack, stackPtr)
+                        v3 = v1 Or v2
+                    Case ISubType.oNot
+                        v3 = Not v2
+                    Case ISubType.oXor
+                        v1 = popV(stack, stackPtr)
+                        v3 = v1 Xor v2
+                    Case Else
+                        v3 = Empty
+                End Select
+                Call pushV(stack, stackPtr, v3)
+            'Object
+            Case iType.oObject
+                Call objectCaller(stack, stackPtr, op)
+            'Func
+            Case iType.oFunc
+                Dim args() As Variant
+                args = getArgs(stack, stackPtr)
+                v1 = popV(stack, stackPtr)
+                v3 = evaluateFunc(v1, args)
+                Call pushV(stack, stackPtr, v3)
+            'Misc
+            Case iType.oMisc
+                v2 = popV(stack, stackPtr)
+                v1 = popV(stack, stackPtr)
+                Select Case op.subType
+                    Case ISubType.oCat
+                        v3 = v1 & v2
+                    Case ISubType.oLike
+                        v3 = v1 Like v2
+                    Case Else
+                        v3 = Empty
+                End Select
+                Call pushV(stack, stackPtr, v3)
+            'Variable
+            Case iType.oAccess
+                Select Case op.subType
+                    Case ISubType.argument
+                        Dim iArgIndex As Long: iArgIndex = val(Mid(op.value, 2)) + LBound(vLastArgs) - 1
+                        If iArgIndex <= UBound(vLastArgs) Then
+                            Call pushV(stack, stackPtr, vLastArgs(iArgIndex))
+                        Else
+                            Call Throw("Argument " & iArgIndex & " not supplied to Lambda.")
+                        End If
+                    Case Else
+                        Call pushV(stack, stackPtr, stack(stackPtr - op.value))
+                End Select
+            Case iType.oSet
+                v1 = popV(stack, stackPtr)
+                stack(stackPtr - op.value) = v1
+            'Flow
+            Case iType.oJump
+                Select Case op.subType
+                    Case ISubType.ifTrue
+                        v1 = popV(stack, stackPtr)
+                        If v1 Then
+                            opIndex = op.value
+                        End If
+                    Case ISubType.ifFalse
+                        v1 = popV(stack, stackPtr)
+                        If Not v1 Then
+                            opIndex = op.value
+                        End If
+                    Case Else
+                        opIndex = op.value
+                End Select
+            Case iType.oReturn
+                Select Case op.subType
+                    Case ISubType.withValue
+                        v1 = popV(stack, stackPtr)
+                        opIndex = stack(stackPtr - 1)
+                        stack(stackPtr - 1) = v1
+                    Case Else
+                        opIndex = popV(stack, stackPtr)
+                End Select
+            'Data
+            Case iType.oMerge
+                Call CopyVariant(v1, popV(stack, stackPtr))
+                Call CopyVariant(stack(stackPtr - 1), v1)
+            Case iType.oPop
+                Call popV(stack, stackPtr)
+            Case Else
+                opIndex = 10 ^ 6 'TODO: replace by infinity or something
+        End Select
+    Wend
+    Call CopyVariant(evaluate, stack(0))
+End Function
+
+'Retrieves the arguments from the stack
+'@param {ByRef Variant()} stack     The stack to get the data from and add the result to
+'@param {ByRef Long} stackPtr       The pointer that indicates the position of the top of the stack
+'@returns {Variant()} The args list
+Private Function getArgs(ByRef stack() As Variant, ByRef stackPtr As Long) As Variant
+    Dim argCount As Variant: argCount = stack(stackPtr - 1)
+    Dim args() As Variant
+    If VarType(argCount) = vbString Then
+        'If no argument count is specified, there are no arguments
+        argCount = 0
+        args = Array()
+    Else
+        'If an argument count is provided, extract all arguments into an array
+        Call popV(stack, stackPtr)
+        ReDim args(1 To argCount)
+        For i = 1 To argCount
+            Call CopyVariant(args(i), popV(stack, stackPtr))
+        Next
+    End If
+    
+    getArgs = args
+End Function
+
+'Calls an object method/setter/getter/letter
+'@param {ByRef Variant()} stack     The stack to get the data from and add the result to
+'@param {ByRef Long} stackPtr       The pointer that indicates the position of the top of the stack
+'@param {ByRef Operation} op        The operation to execute
+Private Sub objectCaller(ByRef stack() As Variant, ByRef stackPtr As Long, ByRef op As Operation)
+    'Get the name and arguments
+    Dim args() As Variant: args = getArgs(stack, stackPtr)
+    Dim funcName As Variant: funcName = popV(stack, stackPtr)
+    
+    'Get caller type
+    Dim callerType As VbCallType
+    Select Case op.subType
+        Case ISubType.oPropGet:     callerType = VbGet
+        Case ISubType.oMethodCall:  callerType = VbMethod
+        Case ISubType.oPropLet:     callerType = VbLet
+        Case ISubType.oPropSet:     callerType = VbSet
+    End Select
+                
+    'Call rtcCallByName
+    Dim obj As Object
+    Set obj = popV(stack, stackPtr)
+    Call pushV(stack, stackPtr, rtcCallByName(obj, StrPtr(funcName), callerType, args, &H409))
+End Sub
+
+'Evaluates the built in standard functions
+'@param {String} sFuncName The name of the function to invoke
+'@param {Variant} args() The arguments
+'@returns The result
 Private Function evaluateFunc(ByVal sFuncName As String, ByVal args As Variant) As Variant
     Dim iArgStart As Long: iArgStart = LBound(args)
     If TypeName(stdLambda.oFunctExt) = "Dictionary" Then
@@ -610,12 +859,13 @@ Private Function evaluateFunc(ByVal sFuncName As String, ByVal args As Variant) 
         Case "val":     evaluateFunc = VBA.Conversion.val(args(iArgStart))
         
         'String functions
-        Case "Trim": evaluateFunc = VBA.Trim(args(iArgStart))
-        Case "LCase": evaluateFunc = VBA.LCase(args(iArgStart))
-        Case "UCase": evaluateFunc = VBA.UCase(args(iArgStart))
-        Case "Right": evaluateFunc = VBA.Right(args(iArgStart), args(iArgStart + 1))
-        Case "Left": evaluateFunc = VBA.Left(args(iArgStart), args(iArgStart + 1))
-        Case "Mid"
+        Case "trim": evaluateFunc = VBA.Trim(args(iArgStart))
+        Case "lcase": evaluateFunc = VBA.LCase(args(iArgStart))
+        Case "ucase": evaluateFunc = VBA.UCase(args(iArgStart))
+        Case "right": evaluateFunc = VBA.Right(args(iArgStart), args(iArgStart + 1))
+        Case "left": evaluateFunc = VBA.Left(args(iArgStart), args(iArgStart + 1))
+        Case "len": evaluateFunc = VBA.Len(args(iArgStart))
+        Case "mid"
             Select Case UBound(args)
                 Case iArgStart + 1
                     evaluateFunc = VBA.Mid(args(iArgStart), args(iArgStart + 1))
@@ -629,211 +879,6 @@ Private Function evaluateFunc(ByVal sFuncName As String, ByVal args As Variant) 
             Throw ("No such function: " & sFuncName)
     End Select
 End Function
-
-'==============
-'
-'  EVALUATION
-'
-'==============
-
-'Evaluates the given list of operations
-'@param {Operation()} operations  The operations to evaluate
-'@returns {Variant} The result of the operations
-Private Function evaluate(ByRef ops() As Operation) As Variant
-    Dim stack() As Variant
-    ReDim stack(0 To 5)
-    Dim stackPtr As Long: stackPtr = 0
-    
-    Dim op As Operation
-    Dim v1 As Variant
-    Dim v2 As Variant
-    Dim v3 As Variant
-    Dim opIndex As Long: opIndex = 0
-    Dim opCount As Long: opCount = UBound(ops)
-    
-    While opIndex <= opCount
-        op = ops(opIndex)
-        opIndex = opIndex + 1
-        Select Case op.Type
-            Case iType.oPush
-                Call pushV(stack, stackPtr, op.value)
-            'Arithmetic
-            Case iType.oArithmetic
-                v2 = popV(stack, stackPtr)
-                Select Case op.subType
-                    Case ISubType.oAdd
-                        v1 = popV(stack, stackPtr)
-                        v3 = v1 + v2
-                    Case ISubType.oSub
-                        v1 = popV(stack, stackPtr)
-                        v3 = v1 - v2
-                    Case ISubType.oMul
-                        v1 = popV(stack, stackPtr)
-                        v3 = v1 * v2
-                    Case ISubType.oDiv
-                        v1 = popV(stack, stackPtr)
-                        v3 = v1 / v2
-                    Case ISubType.oPow
-                        v1 = popV(stack, stackPtr)
-                        v3 = v1 ^ v2
-                    Case ISubType.oMod
-                        v1 = popV(stack, stackPtr)
-                        v3 = v1 Mod v2
-                    Case ISubType.oNeg
-                        v3 = -v2
-                    Case Else
-                        v3 = Empty
-                End Select
-                Call pushV(stack, stackPtr, v3)
-            'Comparison
-            Case iType.oComparison
-                v2 = popV(stack, stackPtr)
-                v1 = popV(stack, stackPtr)
-                Select Case op.subType
-                    Case ISubType.oEql
-                        v3 = v1 = v2
-                    Case ISubType.oNeq
-                        v3 = v1 <> v2
-                    Case ISubType.oGt
-                        v3 = v1 > v2
-                    Case ISubType.oGte
-                        v3 = v1 >= v2
-                    Case ISubType.oLt
-                        v3 = v1 < v2
-                    Case ISubType.oLte
-                        v3 = v1 <= v2
-                    Case Else
-                        v3 = Empty
-                End Select
-                Call pushV(stack, stackPtr, v3)
-            'Logic
-            Case iType.oLogic
-                v2 = popV(stack, stackPtr)
-                Select Case op.subType
-                    Case ISubType.oAnd
-                        v1 = popV(stack, stackPtr)
-                        v3 = v1 And v2
-                    Case ISubType.oOr
-                        v1 = popV(stack, stackPtr)
-                        v3 = v1 Or v2
-                    Case ISubType.oNot
-                        v3 = Not v2
-                    Case ISubType.oXor
-                        v1 = popV(stack, stackPtr)
-                        v3 = v1 Xor v2
-                    Case Else
-                        v3 = Empty
-                End Select
-                Call pushV(stack, stackPtr, v3)
-            'Object
-            Case iType.oObject
-                Call objectCaller(stack, stackPtr, op)
-            'Misc
-            Case iType.oMisc
-                v2 = popV(stack, stackPtr)
-                v1 = popV(stack, stackPtr)
-                Select Case op.subType
-                    Case ISubType.oCat
-                        v3 = v1 & v2
-                    Case ISubType.oLike
-                        v3 = v1 Like v2
-                    Case Else
-                        v3 = Empty
-                End Select
-                Call pushV(stack, stackPtr, v3)
-            'Variable
-            Case iType.oAccess
-                Select Case op.subType
-                    Case ISubType.argument
-                        Dim iArgIndex As Long: iArgIndex = val(Mid(op.value, 2)) + LBound(vLastArgs) - 1
-                        If iArgIndex <= UBound(vLastArgs) Then
-                            Call pushV(stack, stackPtr, vLastArgs(iArgIndex))
-                        Else
-                            Call Throw("Argument " & iArgIndex & " not supplied to Lambda.")
-                        End If
-                    Case Else
-                        Call pushV(stack, stackPtr, stack(stackPtr - op.value))
-                End Select
-            Case iType.oSet
-                v1 = popV(stack, stackPtr)
-                stack(stackPtr - op.value) = v1
-            'Flow
-            Case iType.oJump
-                Select Case op.subType
-                    Case ISubType.ifTrue
-                        v1 = popV(stack, stackPtr)
-                        If v1 Then
-                            opIndex = op.value
-                        End If
-                    Case ISubType.ifFalse
-                        v1 = popV(stack, stackPtr)
-                        If Not v1 Then
-                            opIndex = op.value
-                        End If
-                    Case Else
-                        opIndex = op.value
-                End Select
-            Case iType.oReturn
-                Select Case op.subType
-                    Case ISubType.withValue
-                        v1 = popV(stack, stackPtr)
-                        opIndex = stack(stackPtr - 1)
-                        stack(stackPtr - 1) = v1
-                    Case Else
-                        opIndex = popV(stack, stackPtr)
-                End Select
-            'Data
-            Case iType.oMerge
-                Call CopyVariant(v1, popV(stack, stackPtr))
-                Call CopyVariant(stack(stackPtr - 1), v1)
-            Case iType.oPop
-                Call popV(stack, stackPtr)
-            Case Else
-                opIndex = 10 ^ 6 'TODO: replace by infinity or something
-        End Select
-    Wend
-    Call CopyVariant(evaluate, stack(0))
-End Function
-
-
-'Calls an object method/setter/getter/letter
-'@param {ByRef Variant()} stack     The stack to get the data from and add the result to
-'@param {ByRef Long} stackPtr       The pointer that indicates the position of the top of the stack
-'@param {ByRef Operation} op        The operation to execute
-'@returns {void}
-Private Sub objectCaller(ByRef stack() As Variant, ByRef stackPtr As Long, ByRef op As Operation)
-    'Get the arguments
-    Dim funcName As Variant: funcName = popV(stack, stackPtr)
-    Dim argCount As Variant
-    Dim args() As Variant
-    If VarType(funcName) = vbString Then
-        'If no argument count is specified, there are no arguments
-        argCount = 0
-        args = Array()
-    Else
-        'If an argument count is provided, extract all arguments into an array
-        argCount = funcName
-        ReDim args(1 To argCount)
-        For i = 1 To argCount
-            Call CopyVariant(args(i), popV(stack, stackPtr))
-        Next
-        funcName = popV(stack, stackPtr)
-    End If
-    
-    'Get caller type
-    Dim callerType As VbCallType
-    Select Case op.subType
-        Case ISubType.oPropGet:     callerType = VbGet
-        Case ISubType.oMethodCall:  callerType = VbMethod
-        Case ISubType.oPropLet:     callerType = VbLet
-        Case ISubType.oPropSet:     callerType = VbSet
-    End Select
-                
-    'Call rtcCallByName
-    Dim obj As Object
-    Set obj = popV(stack, stackPtr)
-    Call pushV(stack, stackPtr, rtcCallByName(obj, StrPtr(funcName), callerType, args, &H409))
-End Sub
 
 '==========================
 '
@@ -994,8 +1039,8 @@ End Function
 '@param {IType} kType       The main type of the operation
 '@param {ISubType} subType  The sub type of the operation
 '@param {Variant} value     The value associated with the operation
-'@returns {Operation} Returns the created operation
-Private Function addOperation(kType As iType, Optional subType As ISubType, Optional value As Variant) As Operation
+'@returns {Integer} The index of the created operation
+Private Function addOperation(kType As iType, Optional subType As ISubType, Optional value As Variant) As Integer
     Dim size As Long: size = UBound(operations)
     If size = 0 Then
         ReDim Preserve operations(0 To 1)
@@ -1008,7 +1053,7 @@ Private Function addOperation(kType As iType, Optional subType As ISubType, Opti
         .subType = subType
         Call CopyVariant(.value, value)
     End With
-    addOperation = operations(iOperationIndex)
+    addOperation = iOperationIndex
     
     iOperationIndex = iOperationIndex + 1
 End Function
