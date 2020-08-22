@@ -20,7 +20,7 @@ Attribute VB_Exposed = False
 
 'Tokens, token definitions and operations
 Private Type TokenDefinition
-    Name As String
+    name As String
     Regex As String
     RegexObj As Object
 End Type
@@ -98,6 +98,12 @@ Private tokens() As token
 Private iTokenIndex As Long
 Private operations() As Operation
 Private iOperationIndex As Long
+Private stackSize As Long
+Private scopes() As Variant
+Private scopesArgCount() As Variant
+Private scopeCount As Long
+Private funcScope As Long
+
 
 Const minStackSize = 30 'note that the stack size may become smaller than this
 Public oFunctExt As Object 'Dictionary<string => stdCallback>
@@ -127,6 +133,11 @@ Public Function Create(ByVal sEquation As String, Optional ByVal bSandboxExtras 
     'Return cached lambda
     Set Create = oCache(sID)
 End Function
+
+Public Function CreateMultiline(ByRef sEquation As Variant, Optional ByVal bSandboxExtras As Boolean = False) As stdLambda
+    Set CreateMultiline = Create(Join(sEquation, " "), bSandboxExtras)
+End Function
+
 Public Sub Init(ByVal sEquation As String, ByVal bSandboxExtras As Boolean)
     If Not bSandboxExtras Then
         Set Me.oFunctExt = stdLambda.oFunctExt
@@ -134,8 +145,11 @@ Public Sub Init(ByVal sEquation As String, ByVal bSandboxExtras As Boolean)
     tokens = Tokenise(sEquation)
     iTokenIndex = 1
     iOperationIndex = 0
+    stackSize = 0
+    scopeCount = 0
+    funcScope = 0
+    Call parseBlock("eof")
     Call finishOperations
-    Call parseExpression
 End Sub
 
 Private Function stdICallable_Run(ParamArray params() As Variant) As Variant
@@ -205,15 +219,19 @@ Private Function getTokenDefinitions() As TokenDefinition()
     i = i + 1: arr(i) = getTokenDefinition("if", "if")
     i = i + 1: arr(i) = getTokenDefinition("then", "then")
     i = i + 1: arr(i) = getTokenDefinition("else", "else")
+    i = i + 1: arr(i) = getTokenDefinition("end", "end")
     ' Brackets
     i = i + 1: arr(i) = getTokenDefinition("lBracket", "\(")
     i = i + 1: arr(i) = getTokenDefinition("rBracket", "\)")
     ' Functions
-    i = i + 1: arr(i) = getTokenDefinition("funcName", "[a-zA-Z][a-zA-Z0-9_]+")
+    i = i + 1: arr(i) = getTokenDefinition("fun", "fun")
     i = i + 1: arr(i) = getTokenDefinition("comma", ",") 'params
+    ' Lines
+    i = i + 1: arr(i) = getTokenDefinition("colon", ":")
     
     'VarName
-    i = i + 1: arr(i) = getTokenDefinition("var", "\$\d+")
+    i = i + 1: arr(i) = getTokenDefinition("arg", "\$\d+")
+    i = i + 1: arr(i) = getTokenDefinition("var", "[a-zA-Z][a-zA-Z0-9_]*")
     
     'Operators
     i = i + 1: arr(i) = getTokenDefinition("propertyAccess", "\.")
@@ -242,17 +260,60 @@ End Function
 '
 '===========
 
+Private Sub parseBlock(ParamArray endToken() As Variant)
+    Call addScope
+    Dim size As Integer: size = stackSize + 1
+    
+    ' Consume multiple lines
+    Dim bLoop As Boolean: bLoop = True
+    Do
+        While optConsume("colon"): Wend
+        Call parseStatement
+        
+        For i = LBound(endToken) To UBound(endToken)
+            If peek(endToken(i)) Then
+                bLoop = False
+            End If
+        Next
+    Loop While bLoop
+    
+    ' Get rid of all extra expression results and declarations
+    While stackSize > size
+        Call addOperation(oMerge, , , -1)
+    Wend
+    scopeCount = scopeCount - 1
+End Sub
+
+Private Sub addScope()
+    scopeCount = scopeCount + 1
+    Dim scope As Long: scope = scopeCount
+    ReDim Preserve scopes(1 To scope)
+    ReDim Preserve scopesArgCount(1 To scope)
+    Set scopes(scope) = CreateObject("Scripting.Dictionary")
+    Set scopesArgCount(scope) = CreateObject("Scripting.Dictionary")
+End Sub
+
+Private Sub parseStatement()
+    If peek("var") And peek("equal", 2) Then
+        Call parseAssignment
+    ElseIf peek("fun") Then
+        Call parseFunctionDeclaration
+    Else
+        Call parseExpression
+    End If
+End Sub
+
 Private Sub parseExpression()
     Call parseLogicPriority1
 End Sub
 
-Private Sub parseLogicPriority1() 'and
+Private Sub parseLogicPriority1() 'xor
     Call parseLogicPriority2
     Dim bLoop As Boolean: bLoop = True
     Do
         If optConsume("xor") Then
             Call parseLogicPriority2
-            Call addOperation(oLogic, oXor)
+            Call addOperation(oLogic, oXor, , -1)
         Else
             bLoop = False
         End If
@@ -265,7 +326,7 @@ Private Sub parseLogicPriority2() 'or
     Do
         If optConsume("or") Then
             Call parseLogicPriority3
-            Call addOperation(oLogic, oOr)
+            Call addOperation(oLogic, oOr, , -1)
         Else
             bLoop = False
         End If
@@ -278,7 +339,7 @@ Private Sub parseLogicPriority3() 'and
     Do
         If optConsume("and") Then
             Call parseLogicPriority4
-            Call addOperation(oLogic, oOr)
+            Call addOperation(oLogic, oOr, , -1)
         Else
             bLoop = False
         End If
@@ -308,28 +369,28 @@ Private Sub parseComparisonPriority1() '=, <>, <, <=, >, >=, is, Like
     Do
         If optConsume("lessThan") Then
             Call parseArithmeticPriority1
-            Call addOperation(oComparison, oLt)
+            Call addOperation(oComparison, oLt, , -1)
         ElseIf optConsume("lessThanEqual") Then
             Call parseArithmeticPriority1
-            Call addOperation(oComparison, oLte)
+            Call addOperation(oComparison, oLte, , -1)
         ElseIf optConsume("greaterThan") Then
             Call parseArithmeticPriority1
-            Call addOperation(oComparison, oGt)
+            Call addOperation(oComparison, oGt, , -1)
         ElseIf optConsume("greaterThanEqual") Then
             Call parseArithmeticPriority1
-            Call addOperation(oComparison, oGte)
+            Call addOperation(oComparison, oGte, , -1)
         ElseIf optConsume("equal") Then
             Call parseArithmeticPriority1
-            Call addOperation(oComparison, oEql)
+            Call addOperation(oComparison, oEql, , -1)
         ElseIf optConsume("notEqual") Then
             Call parseArithmeticPriority1
-            Call addOperation(oComparison, oNeq)
+            Call addOperation(oComparison, oNeq, , -1)
         ElseIf optConsume("is") Then
             Call parseArithmeticPriority1
-            Call addOperation(oComparison, oIs)
+            Call addOperation(oComparison, oIs, , -1)
         ElseIf optConsume("like") Then
             Call parseArithmeticPriority1
-            Call addOperation(oComparison, oLike)
+            Call addOperation(oComparison, oLike, , -1)
         Else
             bLoop = False
         End If
@@ -342,7 +403,7 @@ Private Sub parseArithmeticPriority1() '&
     Do
         If optConsume("concatenate") Then
             Call parseArithmeticPriority2
-            Call addOperation(oMisc, oCat)
+            Call addOperation(oMisc, oCat, , -1)
         Else
             bLoop = False
         End If
@@ -355,10 +416,10 @@ Private Sub parseArithmeticPriority2() '+, -
     Do
         If optConsume("add") Then
             Call parseArithmeticPriority3
-            Call addOperation(oArithmetic, oAdd)
+            Call addOperation(oArithmetic, oAdd, , -1)
         ElseIf optConsume("subtract") Then
             Call parseArithmeticPriority3
-            Call addOperation(oArithmetic, oSub)
+            Call addOperation(oArithmetic, oSub, , -1)
         Else
             bLoop = False
         End If
@@ -372,7 +433,7 @@ Private Sub parseArithmeticPriority3() 'mod
     Do
         If optConsume("modulus") Then
             Call parseArithmeticPriority4
-            Call addOperation(oArithmetic, oMod)
+            Call addOperation(oArithmetic, oMod, , -1)
         Else
             bLoop = False
         End If
@@ -385,17 +446,17 @@ Private Sub parseArithmeticPriority4() '*, /
     Do
         If optConsume("multiply") Then
             Call parseArithmeticPriority4
-            Call addOperation(oArithmetic, oMul)
+            Call addOperation(oArithmetic, oMul, , -1)
         ElseIf optConsume("divide") Then
             Call parseArithmeticPriority4
-            Call addOperation(oArithmetic, oDiv)
+            Call addOperation(oArithmetic, oDiv, , -1)
         Else
             bLoop = False
         End If
     Loop While bLoop
 End Sub
 
-Private Sub parseArithmeticPriority5() '-, +
+Private Sub parseArithmeticPriority5() '+, - (unary)
     If optConsume("subtract") Then
         Call parseArithmeticPriority5 'recurse
         Call addOperation(oArithmetic, oNeg)
@@ -411,14 +472,14 @@ Private Sub parseArithmeticPriority6() '^
     Do
         If optConsume("power") Then
             Call parseArithmeticPriority6andahalf '- and + are still identity operators
-            Call addOperation(oArithmetic, oPow)
+            Call addOperation(oArithmetic, oPow, , -1)
         Else
             bLoop = False
         End If
     Loop While bLoop
 End Sub
 
-Private Sub parseArithmeticPriority6andahalf() '-, +
+Private Sub parseArithmeticPriority6andahalf() '+, - (unary)
     If optConsume("subtract") Then
         Call parseArithmeticPriority6andahalf 'recurse
         Call addOperation(oArithmetic, oNeg)
@@ -432,16 +493,25 @@ End Sub
 Private Sub parseFlowPriority1() 'if then else
     If optConsume("if") Then
         Call parseExpression
-        Dim skipThenJumpIndex As Integer: skipThenJumpIndex = addOperation(oJump, ifFalse)
+        Dim skipThenJumpIndex As Integer: skipThenJumpIndex = addOperation(oJump, ifFalse, , -1)
         
-        consume ("then")
-        Call parseExpression
+        Dim size As Integer: size = stackSize
+        Call consume("then")
+        Call parseBlock("else", "end")
         Dim skipElseJumpIndex As Integer: skipElseJumpIndex = addOperation(oJump)
         operations(skipThenJumpIndex).value = iOperationIndex
+        stackSize = size
         
-        consume ("else")
-        Call parseExpression
-        operations(skipElseJumpIndex).value = iOperationIndex
+        If optConsume("end") Then
+            Call addOperation(oPush, , 0, 1) 'Expressions should always return a value
+            operations(skipElseJumpIndex).value = iOperationIndex
+        Else
+            Call consume("else")
+            Call parseBlock("eof", "rBracket", "end")
+            operations(skipElseJumpIndex).value = iOperationIndex
+        
+            Call optConsume("end")
+        End If
     Else
         Call parseValuePriority1
     End If
@@ -450,16 +520,18 @@ End Sub
 Private Sub parseValuePriority1() 'numbers, $vars, strings, booleans, (expressions)
 
     If peek("literalNumber") Then
-        Call addOperation(oPush, , CDbl(consume("literalNumber")))
-    ElseIf peek("var") Then
-        Call addOperation(oAccess, argument, consume("var"))
+        Call addOperation(oPush, , CDbl(consume("literalNumber")), 1)
+    ElseIf peek("arg") Then
+        Call addOperation(oAccess, argument, consume("arg"), 1)
         Call parseManyAccessors
     ElseIf peek("literalString") Then
         Call parseString
     ElseIf peek("literalBoolean") Then
-        Call addOperation(oPush, , consume("literalBoolean") = "true")
-    ElseIf peek("funcName") Then
-        Call parseFunction
+        Call addOperation(oPush, , consume("literalBoolean") = "true", 1)
+    ElseIf peek("var") Then
+        If Not parseScopeAccess Then
+            Call parseFunction
+        End If
         Call parseManyAccessors
     Else
         Call consume("lBracket")
@@ -470,9 +542,11 @@ Private Sub parseValuePriority1() 'numbers, $vars, strings, booleans, (expressio
 End Sub
 
 Private Function parseFunction() As Variant
-    Call addOperation(oPush, , consume("funcName"))
+    Call addOperation(oPush, , consume("var"), 1)
+    Dim size As Integer: size = stackSize
     Call parseOptParameters
     Call addOperation(oFunc)
+    stackSize = size
 End Function
 
 Private Sub parseManyAccessors()
@@ -487,9 +561,11 @@ End Sub
 Private Function parseOptObjectProperty() As Boolean
     parseOptObjectProperty = False
     If optConsume("propertyAccess") Then
-        Call addOperation(oPush, , consume("funcName"))
+        Dim size As Integer: size = stackSize
+        Call addOperation(oPush, , consume("var"), 1)
         Call parseOptParameters
         Call addOperation(oObject, oPropGet)
+        stackSize = size
         parseOptObjectProperty = True
     End If
 End Function
@@ -497,9 +573,11 @@ End Function
 Private Function parseOptObjectMethod() As Boolean
     parseOptObjectMethod = False
     If optConsume("methodAccess") Then
-        Call addOperation(oPush, , consume("funcName"))
+        Dim size As Integer: size = stackSize
+        Call addOperation(oPush, , consume("var"), 1)
         Call parseOptParameters
         Call addOperation(oObject, oMethodCall)
+        stackSize = size
         parseOptObjectMethod = True
     End If
 End Function
@@ -516,7 +594,9 @@ Private Function parseOptParameters() As Boolean
             iArgCount = iArgCount + 1
         Wend
         Call consume("rBracket")
-        Call addOperation(oPush, , iArgCount)
+        If iArgCount > 0 Then
+            Call addOperation(oPush, , iArgCount, 1)
+        End If
         parseOptParameters = True
     End If
 End Function
@@ -525,8 +605,160 @@ Private Sub parseString()
     Dim sRes As String: sRes = consume("literalString")
     sRes = Mid(sRes, 2, Len(sRes) - 2)
     sRes = Replace(sRes, """""", """")
-    Call addOperation(oPush, , sRes)
+    Call addOperation(oPush, , sRes, 1)
 End Sub
+
+Private Function parseScopeAccess() As Boolean
+    If peek("lBracket", 2) Then
+        parseScopeAccess = parseFunctionAccess()
+    Else
+        parseScopeAccess = parseVariableAccess()
+    End If
+End Function
+
+Private Function parseVariableAccess() As Boolean
+    parseVariableAccess = False
+    Dim varName As String: varName = consume("var")
+    Dim offset As Long: offset = findVariable(varName)
+    If offset >= 0 Then
+        parseVariableAccess = True
+        Call addOperation(oAccess, , 1 + offset, 1)
+    Else
+        iTokenIndex = iTokenIndex - 1 ' Revert token consumption
+    End If
+End Function
+
+Private Sub parseAssignment()
+    Dim varName As String: varName = consume("var")
+    Call consume("equal")
+    Call parseExpression
+    Dim offset As Long: offset = findVariable(varName)
+    If offset >= 0 Then
+        ' If the variable already existed, move the data to that pos on the stack
+        Call addOperation(oSet, , offset, -1)
+        Call addOperation(oAccess, , offset, 1) ' To keep a return value
+    Else
+        ' If the variable didn't exist yet, treat this stack pos as its source
+        Call scopes(scopeCount).Add(varName, stackSize)
+    End If
+End Sub
+
+Private Function findVariable(varName As String) As Long
+    Dim scope As Long: scope = scopeCount
+    findVariable = -1
+    While scope > 0
+        If scopes(scope).exists(varName) Then
+            If scope < funcScope Then
+                Throw ("Can't access """ & varName & """, functions can unfortunately not access data outside their block")
+            ElseIf scopesArgCount(scope).exists(varName) Then
+                Throw ("Expected a variable, but found a function for name " & varName)
+            Else
+                findVariable = stackSize - scopes(scope).item(varName)
+                scope = 0
+            End If
+        End If
+        scope = scope - 1
+    Wend
+End Function
+'todo:
+Private Function parseFunctionAccess() As Boolean
+    parseFunctionAccess = False
+    Dim funcName As String: funcName = consume("var")
+    Dim argCount As Long
+    Dim funcPos As Long: funcPos = findFunction(funcName, argCount)
+    If funcPos <> -1 Then
+        parseFunctionAccess = True
+        Dim returnPosIndex As Integer: returnPosIndex = addOperation(oPush, , , 1)
+        
+        ' Consume the arguments
+        consume ("lBracket")
+        Dim iArgCount As Integer
+        While Not peek("rBracket")
+            If iArgCount > 0 Then Call consume("comma")
+            Call parseExpression
+            iArgCount = iArgCount + 1
+        Wend
+        Call consume("rBracket")
+        If iArgCount <> argCount Then
+            Throw (argCount & " arguments should have been provided to " & funcName & " but only " & iArgCount & " were received")
+        End If
+        
+        ' Add call and return data
+        Call addOperation(oJump, , funcPos, -iArgCount) 'only -argCount since pushing Result and popping return pos cancel out
+        operations(returnPosIndex).value = iOperationIndex
+    Else
+        iTokenIndex = iTokenIndex - 1 ' Revert token consumption
+    End If
+End Function
+'todo:
+Private Sub parseFunctionDeclaration()
+    ' Create a dedicated scope for this funcion
+    Call addScope
+    Dim prevFuncScope As Long: prevFuncScope = funcScope
+    funcScope = scopeCount
+    
+    ' Add operation to skip this code in normal operation flow
+    Dim skipToIndex As Integer: skipToIndex = addOperation(oJump)
+    
+    ' Obtain the signature
+    Call consume("fun")
+    Dim funcName As String: funcName = consume("var")
+    Call consume("lBracket")
+    Dim iArgCount As Integer
+    While Not peek("rBracket")
+        If iArgCount > 0 Then Call consume("comma")
+        Call parseParameterDeclaration
+        iArgCount = iArgCount + 1
+    Wend
+    Call consume("rBracket")
+    
+    ' Register the function
+    Call scopes(scopeCount - 1).Add(funcName, iOperationIndex)
+    Call scopesArgCount(scopeCount - 1).Add(funcName, iArgCount)
+    
+    ' Obtain the body
+    Call parseBlock("end")
+    Call consume("end")
+    While iArgCount > 0
+        Call addOperation(oMerge, , , -1)
+        iArgCount = iArgCount - 1
+    Wend
+    Call addOperation(oReturn, withValue, , -1)
+    operations(skipToIndex).value = iOperationIndex
+    
+    ' Reset the scope
+    scopeCount = scopeCount - 1
+    funcScope = prevFuncScope
+End Sub
+'todo:
+Private Sub parseParameterDeclaration()
+    Dim varName As String: varName = consume("var")
+    Dim offset As Long: offset = findVariable(varName)
+    If offset >= 0 Then
+        Throw ("You can't declare multiple parameters with the same name")
+    Else
+        ' Reserve a spot for this parameter, it will be pushed by the caller
+        stackSize = stackSize + 1
+        Call scopes(scopeCount).Add(varName, stackSize)
+    End If
+End Sub
+
+Private Function findFunction(varName As String, Optional ByRef argCount As Long) As Long
+    Dim scope As Long: scope = scopeCount
+    findFunction = -1
+    While scope > 0
+        If scopes(scope).exists(varName) Then
+            If Not scopesArgCount(scope).exists(varName) Then
+                Throw ("Expected a function, but found a variable for name " & varName)
+            Else
+                findFunction = scopes(scope).item(varName)
+                argCount = scopesArgCount(scope).item(varName)
+                scope = 0
+            End If
+        End If
+        scope = scope - 1
+    Wend
+End Function
 
 
 '==============
@@ -836,7 +1068,7 @@ Private Function evaluateFunc(ByVal sFuncName As String, ByVal args As Variant) 
         Case "clng":  evaluateFunc = VBA.Conversion.CLng(args(iArgStart))
         Case "cstr":  evaluateFunc = VBA.Conversion.CStr(args(iArgStart))
         Case "cvar":  evaluateFunc = VBA.Conversion.CVar(args(iArgStart))
-        Case "cverr":   evaluateFunc = VBA.Conversion.CVErr(args(iArgStart))
+        Case "cverr": evaluateFunc = VBA.Conversion.CVErr(args(iArgStart))
         
         'Conversion
         Case "asc":     evaluateFunc = VBA.Asc(args(iArgStart))
@@ -859,12 +1091,12 @@ Private Function evaluateFunc(ByVal sFuncName As String, ByVal args As Variant) 
         Case "val":     evaluateFunc = VBA.Conversion.val(args(iArgStart))
         
         'String functions
-        Case "trim": evaluateFunc = VBA.Trim(args(iArgStart))
+        Case "trim":  evaluateFunc = VBA.Trim(args(iArgStart))
         Case "lcase": evaluateFunc = VBA.LCase(args(iArgStart))
         Case "ucase": evaluateFunc = VBA.UCase(args(iArgStart))
         Case "right": evaluateFunc = VBA.Right(args(iArgStart), args(iArgStart + 1))
-        Case "left": evaluateFunc = VBA.Left(args(iArgStart), args(iArgStart + 1))
-        Case "len": evaluateFunc = VBA.Len(args(iArgStart))
+        Case "left":  evaluateFunc = VBA.Left(args(iArgStart), args(iArgStart + 1))
+        Case "len":   evaluateFunc = VBA.Len(args(iArgStart))
         Case "mid"
             Select Case UBound(args)
                 Case iArgStart + 1
@@ -934,15 +1166,19 @@ Private Function Tokenise(ByVal sInput As String) As token()
         
         'If no match made then syntax error
         If Not bMatched Then
-            Call Throw("Syntax Error - Lexer Error")
+            Call Throw("Syntax Error unexpected character """ & Mid(sInput, 1, 1) & """")
         End If
     Wend
+    
+    'Add eof token
+    ReDim Preserve tokens(1 To iNumTokens + 1)
+    tokens(iNumTokens + 1).Type.name = "eof"
     
     Tokenise = removeTokens(tokens, "space")
 End Function
 
 Private Function getTokenDefinition(ByVal sName As String, ByVal sRegex As String, Optional ByVal ignoreCase As Boolean = True) As TokenDefinition
-    getTokenDefinition.Name = sName
+    getTokenDefinition.name = sName
     getTokenDefinition.Regex = sRegex
     Set getTokenDefinition.RegexObj = CreateObject("VBScript.Regexp")
     getTokenDefinition.RegexObj.Pattern = "^(?:" & sRegex & ")"
@@ -957,7 +1193,7 @@ Private Function removeTokens(ByRef tokens() As token, ByVal sRemoveType As Stri
     Dim iCountRemoved As Long: iCountRemoved = 0
     Dim iToken As Long
     For iToken = LBound(tokens) To UBound(tokens)
-        If tokens(iToken).Type.Name <> sRemoveType Then
+        If tokens(iToken).Type.name <> sRemoveType Then
             tokens(iToken - iCountRemoved) = tokens(iToken)
         Else
             iCountRemoved = iCountRemoved + 1
@@ -990,20 +1226,21 @@ End Function
 Private Function consume(ByVal sType As String) As String
     Dim firstToken As token
     firstToken = ShiftTokens()
-    If firstToken.Type.Name <> sType Then
-        Call Throw("Unexpected token, found: " & firstToken.Type.Name & " but expected: " & sType)
+    If firstToken.Type.name <> sType Then
+        Call Throw("Unexpected token, found: " & firstToken.Type.name & " but expected: " & sType)
     Else
         consume = firstToken.value
     End If
 End Function
 
 'Checks whether the token at iTokenIndex is of the given type
-'@param {string} token The token that is expected
+'@param {string} token  The token that is expected
+'@param {long} offset   The number of tokens to look into the future, defaults to 1
 '@returns {boolean} Whether the expected token was found
-Private Function peek(ByVal sTokenType As String) As Boolean
+Private Function peek(ByVal sTokenType As String, Optional offset As Long = 1) As Boolean
     If iTokenIndex = 0 Then iTokenIndex = 1
-    If iTokenIndex <= UBound(tokens) Then
-        peek = tokens(iTokenIndex).Type.Name = sTokenType
+    If iTokenIndex + offset - 1 <= UBound(tokens) Then
+        peek = tokens(iTokenIndex + offset - 1).Type.name = sTokenType
     Else
         peek = False
     End If
@@ -1036,16 +1273,19 @@ Private Function isUniqueConst(ByRef test As Variant) As Boolean
 End Function
  
 'Adds an operation to the instance operations list
-'@param {IType} kType       The main type of the operation
-'@param {ISubType} subType  The sub type of the operation
-'@param {Variant} value     The value associated with the operation
+'@param {IType} kType         The main type of the operation
+'@param {ISubType} subType    The sub type of the operation
+'@param {Variant} value       The value associated with the operation
+'@param {Integer} stackDelta  The effect this has on the stack size (increasing or decreasing it)
 '@returns {Integer} The index of the created operation
-Private Function addOperation(kType As iType, Optional subType As ISubType, Optional value As Variant) As Integer
-    Dim size As Long: size = UBound(operations)
-    If size = 0 Then
+Private Function addOperation(kType As iType, Optional subType As ISubType, Optional value As Variant, Optional stackDelta As Integer) As Integer
+    If iOperationIndex = 0 Then
         ReDim Preserve operations(0 To 1)
-    ElseIf iOperationIndex > size Then
-        ReDim Preserve operations(0 To size * 2)
+    Else
+        Dim size As Long: size = UBound(operations)
+        If iOperationIndex > size Then
+            ReDim Preserve operations(0 To size * 2)
+        End If
     End If
     
     With operations(iOperationIndex)
@@ -1054,13 +1294,14 @@ Private Function addOperation(kType As iType, Optional subType As ISubType, Opti
         Call CopyVariant(.value, value)
     End With
     addOperation = iOperationIndex
+    stackSize = stackSize + stackDelta
     
     iOperationIndex = iOperationIndex + 1
 End Function
 
 'Resizes the operations list so there are no more empty operations
 Private Sub finishOperations()
-    ReDim Preserve operations(0 To iOperationsIndex)
+    ReDim Preserve operations(0 To iOperationIndex)
 End Sub
 
 '----------

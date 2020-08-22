@@ -42,6 +42,88 @@ Sub funcs()
     Debug.Print stdLambda.Create("uCase(trim(""          oranges        "")) & len(""potatoes"")").Run()
 End Sub
 
+Sub multiline()
+    Debug.Print stdLambda.Create("2+2: 5*2").Run()
+End Sub
+
+Sub variables()
+    Debug.Print stdLambda.CreateMultiline(Array( _
+         "test = 2", _
+         "if $1 then", _
+         "   smth = test + 2", _
+         "   test = smth * 2", _
+         "else", _
+         "   test = test + 4", _
+         "end", _
+         "test" _
+    )).Run(True)
+    Debug.Print stdLambda.Create("test = 2: if $1 then smth = test + 2: test = smth * 2 else test = test + 4 end: test ").Run(True)
+End Sub
+
+Sub functions()
+    Debug.Print stdLambda.CreateMultiline(Array( _
+         "fun fib(v)", _
+         "  if v<=1 then", _
+         "    v", _
+         "  else ", _
+         "    fib(v-2) + fib(v-1)", _
+         "  end", _
+         "end", _
+         "fib($1)" _
+    )).Run(20)
+
+    Debug.Print stdLambda.CreateMultiline(Array( _
+         "fun mul3(v) v * 3 end", _
+         "fun mul3Add1(v) mul3(v) + 2 end", _
+         "mul3Add1(2) + mul3Add1(2)" _
+    )).Run()
+    
+    Debug.Print stdLambda.CreateMultiline(Array( _
+         "someVar = 12", _
+         "fun localVars(v)", _
+         "  smth = 3", _
+         "  if v < 2 then ", _
+         "    smth = smth + 2", _
+         "  end ", _
+         "  smth", _
+         "end", _
+         "someVar + localVars(1)" _
+    )).Run()
+    
+    Debug.Print stdLambda.CreateMultiline(Array( _
+         "fun somth()", _
+         "  fun nested()", _
+         "    2", _
+         "  end", _
+         "  nested() + nested()", _
+         "end", _
+         "somth()" _
+    )).Run()
+    
+    'not allowed
+    Debug.Print stdLambda.CreateMultiline(Array( _
+         "fun somth()", _
+         "  fun nested()", _
+         "    2", _
+         "  end", _
+         "  nested() + nested()", _
+         "end", _
+         "nested()" _
+    )).Run()
+    
+    Debug.Print stdLambda.CreateMultiline(Array( _
+         "someVar = 12", _
+         "fun globalVars(v)", _
+         "  smth = 3", _
+         "  if v < 2 then ", _
+         "    smth = smth + someVar", _
+         "  end ", _
+         "  smth", _
+         "end", _
+         "someVar + globalVars(1)" _
+    )).Run()
+End Sub
+
 Sub performanceTest1()
     'Evaluate method access
     Range("A1").value = 1
