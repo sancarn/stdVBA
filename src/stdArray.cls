@@ -165,7 +165,7 @@ Public Sub Push(ByVal el As Variant)
     VariantCopy pArr(pLength), el
 
     'After add event
-    RaiseEvent BeforeAdd(me, pLength, pArr(pLength))
+    RaiseEvent AfterAdd(me, pLength, pArr(pLength))
   Else
     'Error
   End If
@@ -240,7 +240,7 @@ Public Function Unshift(val As Variant) As stdArray
   'Before Add event
   Dim bCancel as Boolean
   RaiseEvent BeforeAdd(me, 1, val, bCancel)
-  if bCancel then exit sub
+  if bCancel then exit Function
 
   'Ensure array is big enough and increase pLength
   If pLength = pProxyLength Then

@@ -110,7 +110,7 @@ Function RunEx(params() As Variant) As Variant
     iTokenIndex = 1
     
     'Execute top-down parser
-    Call CopyVariant(Run, expression())
+    Call CopyVariant(RunEx, expression())
 End Function
 
 
