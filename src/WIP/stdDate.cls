@@ -114,7 +114,7 @@ Public Property Get Hours() as Long
 End Property
 Public Property Get Days() as Long
   If pInitialised then
-    Day = VBA.Day(pValue)
+    Days = VBA.Day(pValue)
   Else
     'Call STD.Errors.Raise("STD.Class",4)
   End if
@@ -183,13 +183,13 @@ End Function
 
 Public Property Get isLeap() As Boolean
   Dim yr as long
-  yr = Year
+  yr = Years
 
   'Excel incorrectly treats 1900 as a leap year. See https://en.wikipedia.org/wiki/Leap_year_bug
-  If yr = 1900 Then p_isLeap = True: Exit Function
+  If yr = 1900 Then isLeap = True: Exit Function
   
   'Regular leap years:
-  p_isLeap = ((yr Mod 4 = 0 And yr Mod 100 <> 0) Or yr Mod 400 = 0)
+  isLeap = ((yr Mod 4 = 0 And yr Mod 100 <> 0) Or yr Mod 400 = 0)
 End Property
 
 'Example format strings:
@@ -373,11 +373,11 @@ Private Function DaysBetween(d1 As stdDate, d2 As stdDate) As Long
   
   'Calculate total days in d1 and d2.
   'Note: In February, 31 days (January have gone by) Thus daysPerMonth("Cumulative") has 2 zeros at the start of the array
-  Days1 = d1.day + stdDate.daysPerMonth("Cumulative" & IIf(d1.isLeap, "Leap", ""))(d1.month) + d1.year * Factor
-  Days2 = d2.day + stdDate.daysPerMonth("Cumulative" & IIf(d2.isLeap, "Leap", ""))(d2.month) + d2.year * Factor
+  Days1 = d1.days + stdDate.daysPerMonth("Cumulative" & IIf(d1.isLeap, "Leap", ""))(d1.months) + d1.years * Factor
+  Days2 = d2.days + stdDate.daysPerMonth("Cumulative" & IIf(d2.isLeap, "Leap", ""))(d2.months) + d2.years * Factor
   
   'Subtract the 2 day counts. Also include the fake leap year in 1900 created by Excel
-  DaysBetween = Days1 - Days2 + IIf(d2.year = 1900 And d1.year <> 1900, 1, 0)
+  DaysBetween = Days1 - Days2 + IIf(d2.years = 1900 And d1.years <> 1900, 1, 0)
 End Function
 
 Function RoundUp(ByVal Value As Double)

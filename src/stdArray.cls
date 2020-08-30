@@ -36,6 +36,13 @@ Private pInitialised As Boolean
 
 
 
+Public Event BeforeArrLet(ByRef arr as stdArray, ByRef arr as variant)
+Public Event AfterArrLet(ByRef arr as stdArray, ByRef arr as variant)
+Public Event BeforeAdd(ByRef arr As stdArray, ByVal iIndex As Long, ByRef item As Variant, ByRef cancel As Boolean)
+Public Event AfterAdd(ByRef arr as stdArray, ByVal iIndex as long, ByRef item as variant)
+Public Event BeforeRemove(ByRef arr as stdArray, ByVal iIndex as long, ByRef item as variant, ByRef cancel as Boolean)
+Public Event AfterClone(ByRef clone as stdArray)
+Public Event AfterCreate(ByRef arr as stdArray)
 
 Public Function Create(ParamArray params() As Variant) As stdArray
     Set Create = New stdArray
@@ -49,6 +56,9 @@ Public Function Create(ParamArray params() As Variant) As stdArray
     For i = lb To ub
         Call Create.Push(params(i))
     Next
+
+    'Raise AfterCreate event
+    RaiseEvent AfterCreate(Create)
 End Function
 
 
@@ -63,6 +73,9 @@ Public Function CreateWithOptions(ByVal iInitialLength As Long, ByVal iChunking 
     For i = lb To ub
         Call CreateWithOptions.Push(params(i))
     Next
+
+    'Raise AfterCreate event
+    RaiseEvent AfterCreate(Create)
 End Function
 
 
@@ -77,6 +90,9 @@ Public Function CreateFromArray(ByVal arr As Variant) As stdArray
     For i = lb To ub
         Call CreateFromArray.Push(arr(i))
     Next
+
+    'Raise AfterCreate event
+    RaiseEvent AfterCreate(Create)
 End Function
 
 
@@ -122,6 +138,7 @@ Public Property Get arr() As Variant
     arr = vRet
 End Property
 Public Property Let arr(v As Variant)
+    RaiseEvent BeforeArrLet(me,v)
     Dim lb As Long: lb = LBound(v)
     Dim ub As Long: ub = UBound(v)
     Dim cnt As Long: cnt = ub - lb + 1
@@ -129,10 +146,16 @@ Public Property Let arr(v As Variant)
     For i = lb To ub
         Call Push(pArr(i))
     Next
+    RaiseEvent AfterArrLet(me,v)
 End Property
 
 Public Sub Push(ByVal el As Variant)
   If pInitialised Then
+    'Before Add event
+    Dim bCancel as Boolean
+    RaiseEvent BeforeAdd(me, pLength + 1, el, bCancel)
+    if bCancel then exit sub
+
     If pLength = pProxyLength Then
         pProxyLength = pProxyLength + pChunking
         ReDim Preserve pArr(1 To pProxyLength) As Variant
@@ -140,6 +163,9 @@ Public Sub Push(ByVal el As Variant)
     
     pLength = pLength + 1
     VariantCopy pArr(pLength), el
+
+    'After add event
+    RaiseEvent AfterAdd(me, pLength, pArr(pLength))
   Else
     'Error
   End If
@@ -147,6 +173,11 @@ End Sub
 
 Public Function Pop() As Variant
     If pInitialised Then
+        'Raise BeforeRemove event and optionally cancel
+        Dim bCancel as Boolean
+        RaiseEvent BeforeRemove(me, pLength, pArr(pLength), bCancel)
+        If bCancel then exit function
+
         If pLength > 0 Then
             VariantCopy Pop, pArr(pLength)
             pLength = pLength - 1
@@ -161,6 +192,11 @@ End Function
 Public Function Remove(ByVal index As Long) As Variant
   'Ensure initialised
   If pInitialised Then
+    'Raise BeforeRemove event and optionally cancel
+    Dim bCancel as Boolean
+    RaiseEvent BeforeRemove(me, index, pArr(index), bCancel)
+    If bCancel then exit function
+
     'Ensure length > 0
     If pLength > 0 Then
       'Ensure index < length
@@ -201,8 +237,17 @@ End Function
 Public Function Unshift(val As Variant) As stdArray
   'Would be good to use CopyMemory here
   
+  'Before Add event
+  Dim bCancel as Boolean
+  RaiseEvent BeforeAdd(me, 1, val, bCancel)
+  if bCancel then exit Function
+
   'Ensure array is big enough and increase pLength
-  Call Push(0)
+  If pLength = pProxyLength Then
+    pProxyLength = pProxyLength + pChunking
+    ReDim Preserve pArr(1 To pProxyLength) As Variant
+  End If
+  pLength = pLength + 1
   
   'Unshift
   For i = pLength - 1 To 1 Step -1
@@ -210,6 +255,9 @@ Public Function Unshift(val As Variant) As stdArray
   Next
   pArr(0) = val
   
+  'After Add event
+  RaiseEvent AfterAdd(me, 1, val)
+
   Set Unshift = Me
 End Function
 
@@ -236,6 +284,8 @@ Public Function Clone() As stdArray
       Else
         'Error
       End If
+
+      RaiseEvent AfterClone(Clone)
   Else
     'Error
   End If
@@ -291,14 +341,14 @@ Public Property Get item(ByVal i As Integer) As Variant
     VariantCopy item, pArr(i)
     
 End Property
-Public Property Set item(ByVal i As Integer, item As Object)
+Public Property Set item(ByVal i As Integer, ByVal item As Object)
   VariantCopy pArr(i), item
 End Property
-Public Property Let item(ByVal i As Integer, item As Variant)
+Public Property Let item(ByVal i As Integer, ByVal item As Variant)
   VariantCopy pArr(i), item
 End Property
-Public Sub PutItem(ByVal index As Integer, ByRef item As Variant)
-  VariantCopy pArr(index), item
+Public Sub PutItem(ByVal i As Integer, ByRef item As Variant)
+  VariantCopy pArr(i), item
 End Sub
 
 
@@ -405,7 +455,14 @@ Public Function IsEvery(ByVal cb As stdICallable, Optional ByVal metadata As Obj
   If pInitialised Then
     Dim i As Long
     For i = 1 To pLength
-      If Not IIf(metadata Is Nothing, cb(pArr(i)), cb(metadata, pArr(i))) Then
+      Dim bFlag as Boolean
+      if metadata is nothing then
+        bFlag = cb.run(pArr(i))
+      else
+        bFlag = cb.run(metadata,pArr(i))
+      end if
+      
+      If Not bFlag Then
         IsEvery = False
         Exit Function
       End If
@@ -421,10 +478,17 @@ Public Function IsSome(ByVal cb As stdICallable, Optional ByVal metadata As Obje
   If pInitialised Then
     Dim i As Integer
     For i = LBound(pArr) To UBound(pArr)
-      If IIf(metadata Is Nothing, cb(pArr(i)), cb(metadata, pArr(i))) Then
-        IsSome = True
-        Exit Function
+      Dim bFlag as Boolean
+      If metadata is nothing then
+        bFlag = cb.Run(pArr(i))
+      else
+        bFlag = cb.Run(metadata,pArr(i))
       End If
+      
+      if bFlag then
+        IsSome = true
+        Exit Function
+      end if
     Next
     IsSome = False
   Else
@@ -513,9 +577,9 @@ Public Function Reduce(ByVal cb As stdICallable, Optional ByVal initialValue As 
 
       'Reduce
       If isMissing(metadata) Then
-        Reduce = cb(Reduce, el)
+        Reduce = cb.Run(Reduce, el)
       Else
-        Reduce = cb(metadata, Reduce, el)
+        Reduce = cb.Run(metadata, Reduce, el)
       End If
     Next
   Else
@@ -537,11 +601,11 @@ Public Function Filter(ByVal cb As stdICallable, Optional ByVal metadata As Obje
           
             'If callback succeeds (include metadata if given)
             If metadata Is Nothing Then
-                If cb(pArr(i)) Then
+                If cb.Run(pArr(i)) Then
                     Call ret.Push(pArr(i))
                 End If
             Else
-                If cb(metadata, pArr(i)) Then
+                If cb.Run(metadata, pArr(i)) Then
                     Call ret.Push(pArr(i))
                 End If
             End If
@@ -556,11 +620,11 @@ Public Function Count_By(cb As stdICallable, Optional ByVal metadata As Object =
   lCount = 0
   For i = 1 To pLength
     If metadata Is Nothing Then
-      If cb(pArr(i)) Then
+      If cb.Run(pArr(i)) Then
         lCount = lCount + 1
       End If
     Else
-      If cb(metadata, pArr(i)) Then
+      If cb.Run(metadata, pArr(i)) Then
         lCount = lCount + 1
       End If
     End If
@@ -579,9 +643,9 @@ Public Function groupBy(ByVal cb As stdICallable, Optional ByVal metadata As Obj
         'Get grouping key
         Dim key As Variant
         If metadata Is Nothing Then
-          key = cb(pArr(i))
+          key = cb.Run(pArr(i))
         Else
-          key = cb(metadata, pArr(i))
+          key = cb.Run(metadata, pArr(i))
         End If
 
         'If key is not set then set it

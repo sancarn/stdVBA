@@ -1097,6 +1097,7 @@ Private Function evaluateFunc(ByVal sFuncName As String, ByVal args As Variant) 
         Case "right": evaluateFunc = VBA.Right(args(iArgStart), args(iArgStart + 1))
         Case "left":  evaluateFunc = VBA.Left(args(iArgStart), args(iArgStart + 1))
         Case "len":   evaluateFunc = VBA.Len(args(iArgStart))
+
         Case "mid"
             Select Case UBound(args)
                 Case iArgStart + 1
