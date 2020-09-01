@@ -95,10 +95,8 @@ Implements stdICallable
 #If VBA7 Then
   'VBE7 is interchangable with msvbvm60.dll    however VBE7.dll appears to always be present where as msvbvm60 is only occasionally present.
   Private Declare PtrSafe Function rtcCallByName Lib "VBE7.dll" (ByRef vRet As Variant, ByVal cObj As Object, ByVal sMethod As LongPtr, ByVal eCallType As VbCallType, ByRef pArgs() As Variant, ByVal lcid As Long) As Long
-  Private Declare PtrSafe Sub VariantCopy Lib "oleaut32.dll" (ByRef pvargDest As Variant, ByRef pvargSrc As Variant)
 #Else
   Private Declare Function rtcCallByName Lib "msvbvm60" (ByRef vRet As Variant, ByVal cObj As Object, ByVal sMethod As LongPtr, ByVal eCallType As VbCallType, ByRef pArgs() As Variant, ByVal lcid As Long) As Long
-  Private Declare Sub VariantCopy Lib "oleaut32.dll" (ByRef pvargDest As Variant, ByRef pvargSrc As Variant)
 #End If
 
 Dim pInitialised As Boolean
@@ -139,7 +137,7 @@ Attribute Create.VB_Description = "Creates an instance of this class."
   end if
   
   Set Create = New stdCallback
-  Call Create.Init(itype, cType, Parent, Name)
+  Create.init(iType, Parent, Name, cType)
   
 End Function
 
@@ -201,14 +199,14 @@ Private Function stdICallable_Run(ParamArray params() as variant) As Variant
   Dim vArr() As Variant
   vArr = params
   
-  Call VariantCopy(stdICallable_Run,RunEx(vArr))
+  Call CopyVariant(stdICallable_Run,RunEx(vArr))
 End Function
 Private Function stdICallable_RunEx(params() as variant) As Variant
   'store args as different array otherwise crash occurs
   Dim vArr() As Variant
   vArr = params
   
-  Call VariantCopy(stdICallable_RunEx,RunEx(vArr))
+  Call CopyVariant(stdICallable_RunEx,RunEx(vArr))
 End Function
 
 
@@ -219,7 +217,7 @@ Attribute Run.VB_UserMemId = 0
   Dim vArr() As Variant
   vArr = args
   
-  Call VariantCopy(Run,RunEx(vArr))
+  Call CopyVariant(Run,RunEx(vArr))
 End Function
 
 'Default Property:
@@ -249,7 +247,7 @@ Public Function RunEx(vArr() as variant) As Variant
         Next
         
         'Copy results of Application.Run into vRet
-        VariantCopy vRet, Application.Run( _
+        CopyVariant vRet, Application.Run( _
             pCallback.sModuleName & "." & pCallback.sMethodName, _
             vArr(0), vArr(1), _
             vArr(2), vArr(3), _
@@ -288,7 +286,7 @@ Public Function RunEx(vArr() as variant) As Variant
       RaiseEvent AfterRun(Me, vRet)
       
       'Return result
-      VariantCopy Run, vRet
+      CopyVariant RunEx, vRet
   Else
     CriticalRaise "No callback specified. Please initialise with a Create function."
   End If
@@ -328,3 +326,16 @@ End Sub
 Private Function GetMissing(Optional arg As Variant) As Variant
   GetMissing = arg
 End Function
+
+
+'Copies one variant to a destination
+'@param {ByRef Variant} dest Destination to copy variant to
+'@param {Variant} value Source to copy variant from.
+'@perf This appears to be a faster variant of "oleaut32.dll\VariantCopy" + it's multi-platform
+Private Sub CopyVariant(ByRef dest As Variant, ByVal value As Variant)
+  If IsObject(value) Then
+    Set dest = value
+  Else
+    dest = value
+  End If
+End Sub

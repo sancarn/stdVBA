@@ -11,10 +11,8 @@ Attribute VB_Exposed = False
 #If VBA7 Then
   'VBE7 is interchangable with msvbvm60.dll    however VBE7.dll appears to always be present where as msvbvm60 is only occasionally present.
   Private Declare PtrSafe Function rtcCallByName Lib "VBE7.dll" (ByVal cObj As Object, ByVal sMethod As LongPtr, ByVal eCallType As VbCallType, ByRef pArgs() As Variant, ByVal lcid As Long) As Variant
-  Private Declare PtrSafe Sub VariantCopy Lib "oleaut32.dll" (ByRef pvargDest As Variant, ByRef pvargSrc As Variant)
 #Else
   Private Declare Function rtcCallByName Lib "msvbvm60" (ByVal cObj As Object, ByVal sMethod As LongPtr, ByVal eCallType As VbCallType, ByRef pArgs() As Variant, ByVal lcid As Long) As Variant
-  Private Declare Sub VariantCopy Lib "oleaut32.dll" (ByRef pvargDest As Variant, ByRef pvargSrc As Variant)
 #End If
 #Const devMode = True 'Used for enabling some debugging features
 
@@ -1345,6 +1343,7 @@ End Function
 'Copies one variant to a destination
 '@param {ByRef Variant} dest Destination to copy variant to
 '@param {Variant} value Source to copy variant from.
+'@perf This appears to be a faster variant of "oleaut32.dll\VariantCopy" + it's multi-platform
 Private Sub CopyVariant(ByRef dest As Variant, ByVal value As Variant)
   If IsObject(value) Then
     Set dest = value

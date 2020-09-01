@@ -24,7 +24,9 @@ Public Function RunEx(params() as variant) as variant: End Function
   ''If this cannot be implemented return 0
   'Public Function ToPointer() as long
 
-
+''Bind arguments to functions to appear as first arguments in call.
+''e.g. stdLambda.Create("$1.EnableEvents = false: $1.ScreenUpdating = false").bind(Application).Run()
+'Public Function Bind(ByVal v as variant) as stdICallable: End Function
 
 
 

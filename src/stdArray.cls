@@ -15,10 +15,8 @@ Attribute VB_Exposed = False
 '* Documentation of methods
 
 #If VBA6 Then
-  Private Declare PtrSafe Sub VariantCopy Lib "oleaut32.dll" (ByRef pvargDest As Variant, ByRef pvargSrc As Variant)
   Private Declare PtrSafe Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (ByVal Destination As LongPtr, ByVal Source As LongPtr, ByVal Length As Long)
 #Else
-  Private Declare Sub VariantCopy Lib "oleaut32.dll" (ByRef pvargDest As Variant, ByRef pvargSrc As Variant)
   Private Declare Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (ByVal Destination As Long, ByVal Source As Long, ByVal Length As Long)
 #End If
 Private Enum SortDirection
@@ -162,7 +160,7 @@ Public Sub Push(ByVal el As Variant)
     End If
     
     pLength = pLength + 1
-    VariantCopy pArr(pLength), el
+    CopyVariant pArr(pLength), el
 
     'After add event
     RaiseEvent AfterAdd(me, pLength, pArr(pLength))
@@ -179,7 +177,7 @@ Public Function Pop() As Variant
         If bCancel then exit function
 
         If pLength > 0 Then
-            VariantCopy Pop, pArr(pLength)
+            CopyVariant Pop, pArr(pLength)
             pLength = pLength - 1
         Else
             Pop = Empty
@@ -202,7 +200,7 @@ Public Function Remove(ByVal index As Long) As Variant
       'Ensure index < length
       If index <= pLength Then
         'Copy party we are removing to return variable
-        VariantCopy Remove, pArr(index)
+        CopyVariant Remove, pArr(index)
         
         'Loop through array from removal, set i-1th element to ith element
         Dim i As Long
@@ -227,7 +225,7 @@ End Function
 Public Function Shift() As Variant
   'Would be good to use CopyMemory here
   
-  VariantCopy Shift, pArr(1)
+  CopyVariant Shift, pArr(1)
   Dim i As Long
   For i = 1 To pLength - 1
     pArr(i) = pArr(i + 1)
@@ -338,17 +336,17 @@ Public Property Get item(ByVal i As Integer) As Variant
     'item(1) = 1st element
     'item(2) = 2nd element
     'etc.
-    VariantCopy item, pArr(i)
+    CopyVariant item, pArr(i)
     
 End Property
 Public Property Set item(ByVal i As Integer, ByVal item As Object)
-  VariantCopy pArr(i), item
+  CopyVariant pArr(i), item
 End Property
 Public Property Let item(ByVal i As Integer, ByVal item As Variant)
-  VariantCopy pArr(i), item
+  CopyVariant pArr(i), item
 End Property
 Public Sub PutItem(ByVal i As Integer, ByRef item As Variant)
-  VariantCopy pArr(i), item
+  CopyVariant pArr(i), item
 End Sub
 
 
@@ -361,7 +359,7 @@ Public Function indexOf(ByVal el As Variant, Optional ByVal start As Integer = 1
   'Loop over contents starting from start
   For i = start To pLength
     'Get item data
-    VariantCopy item, pArr(i)
+    CopyVariant item, pArr(i)
     
     'Is item an object?
     itemIsObj = IsObject(item)
@@ -394,7 +392,7 @@ Public Function lastIndexOf(ByVal el As Variant, Optional ByVal start As Integer
   'Loop over contents starting from start
   For i = pLength To start Step -1
     'Get item data
-    VariantCopy item, pArr(i)
+    CopyVariant item, pArr(i)
     
     'Is item an object?
     itemIsObj = IsObject(item)
@@ -520,7 +518,7 @@ Public Function Map(ByVal cb As stdICallable, Optional ByVal metadata As Object 
     For i = 1 To pLength
       'BUGFIX: Sometimes required, not sure when
       Dim v As Variant
-      VariantCopy v, item(i)
+      CopyVariant v, item(i)
       
       'Call callback based on metadata
       If metadata Is Nothing Then
@@ -555,8 +553,8 @@ Public Function Unique(Optional ByVal cb As stdICallable = Nothing, Optional ByV
   
   
   For i = 1 To pLength
-    If Not ret.includes(vKeys(i)) Then
-      Call ret.Push(vKeys(i))
+    If Not ret.includes(vKeys.item(i)) Then
+      Call ret.Push(vKeys.item(i))
     End If
   Next
 
@@ -573,7 +571,7 @@ Public Function Reduce(ByVal cb As stdICallable, Optional ByVal initialValue As 
     For i = 1 To pLength
       'BUGFIX: Sometimes required, not sure when
       Dim el As Variant
-      VariantCopy el, pArr(i)
+      CopyVariant el, pArr(i)
 
       'Reduce
       If isMissing(metadata) Then
@@ -731,4 +729,17 @@ Public Sub Test()
     'End If
     
     
+End Sub
+
+
+'Copies one variant to a destination
+'@param {ByRef Variant} dest Destination to copy variant to
+'@param {Variant} value Source to copy variant from.
+'@perf This appears to be a faster variant of "oleaut32.dll\VariantCopy" + it's multi-platform
+Private Sub CopyVariant(ByRef dest As Variant, ByVal value As Variant)
+  If IsObject(value) Then
+    Set dest = value
+  Else
+    dest = value
+  End If
 End Sub
