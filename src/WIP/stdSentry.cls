@@ -66,6 +66,21 @@ Public Function Create(ByVal OnDestroy as stdICallable, Optional args as variant
   Call Create.Init(OnDestroy,params)
 End Function
 
+'E.G. stdSentry.CreateFromMethods(stdError,"zprot_RNOn","zprot_RNOff")
+Public Function CreateFromMethods(ByVal obj as object, ByVal sOnCreateName as string, ByVal sOnDestroyName as string)
+  set CreateFromMethods = new stdSentry
+  Call CallByName(obj, sOnCreateName)
+  CreateFromMethods.Init(stdCallback.CreateFromObjectMethod(obj,sOnDestroyName))
+End Function
+
+'E.G. With stdSentry.CreateFromLet(Application,"EnableEvents", false)
+Public Function CreateFromLet(ByVal obj as object, ByVal sPropertyName as string, ByVal vNewValue as variant) as stdSentry
+  set CreateFromLet = new stdSentry
+  Dim vOldValue as variant: vOldValue = CallByName(obj,sPropertyName, vbGet)
+  Call CallByName(obj,sPropertyName, vbLet, vNewValue)
+  CreateFromLet.init(stdCallback.CreateFromObjectProperty(obj,sPropertyName, vbLet), vOldValue)
+End Function
+
 Public Sub Init(ByVal OnDestroy as stdICallable, args as variant)
   set pOnDestroy = OnDestroy
   If IsObject(args) then 
