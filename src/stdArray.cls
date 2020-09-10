@@ -125,15 +125,103 @@ Public Sub Rechunk()
 End Sub
 
 
+'Algorithms:
+'0 - Quicksort
+Public Function Sort(Optional ByVal cbSortBy As stdICallable = Nothing, Optional ByVal cbComparrason As stdICallable = Nothing, Optional ByVal iAlgorithm As Long = 0, Optional ByVal bSortInPlace As Boolean = False) As stdArray
+    If Not bSortInPlace Then
+        Set Sort = Me.Clone.Sort(cbSortBy, cbComparrason, iAlgorithm, True)
+    Else
+        Dim arr() As SortStruct
+        ReDim arr(1 To Me.Length) As SortStruct
+        
+        Dim i As Long
+        
+        'Copy array to sort structures
+        For i = 1 To Me.Length
+            Call CopyVariant(arr(i).Value, pArr(i))
+            If cbSortBy Is Nothing Then
+                Call CopyVariant(arr(i).SortValue, pArr(i))
+            Else
+                Call CopyVariant(arr(i).SortValue, cbSortBy.Run(pArr(i)))
+            End If
+        Next
+        
+        'Call sort algorithm
+        Select Case iAlgorithm
+            Case 0 'QuickSort
+                Call Sort_QuickSort(arr, cbComparrason)
+            Case Else
+                stdError.Raise "Invalid sorting algorithm specified"
+        End Select
+        
+        'Copy sort structures to array
+        For i = 1 To Me.Length
+            Call CopyVariant(pArr(i), arr(i).Value)
+        Next
+        
+        'Return array
+        Set Sort = Me
+    End If
+End Function
+
+'QuickSort3
+' Src: https://www.vbforums.com/showthread.php?473677-VB6-Sorting-algorithms-%28sort-array-sorting-arrays%29
+' Omit plngLeft & plngRight; they are used internally during recursion
+Private Sub Sort_QuickSort(ByRef pvarArray() As SortStruct, Optional cbComparrison As stdICallable = nothing, Optional ByVal plngLeft As Long, Optional ByVal plngRight As Long)
+    Dim lngFirst As Long
+    Dim lngLast As Long
+    Dim varMid As SortStruct
+    Dim varSwap As SortStruct
+    
+    If plngRight = 0 Then
+        plngLeft = 1
+        plngRight = Me.Length
+    End If
+    lngFirst = plngLeft
+    lngLast = plngRight
+    varMid = pvarArray((plngLeft + plngRight) \ 2)
+    Do
+        If cbComparrison Is Nothing Then
+            Do While pvarArray(lngFirst).SortValue < varMid.SortValue And lngFirst < plngRight
+                lngFirst = lngFirst + 1
+            Loop
+            Do While varMid.SortValue < pvarArray(lngLast).SortValue And lngLast > plngLeft
+                lngLast = lngLast - 1
+            Loop
+        Else
+            Do While cbComparrison.Run(pvarArray(lngFirst).SortValue, varMid.SortValue) And lngFirst < plngRight
+                lngFirst = lngFirst + 1
+            Loop
+            Do While cbComparrison.Run(varMid.SortValue, pvarArray(lngLast).SortValue) And lngLast > plngLeft
+                lngLast = lngLast - 1
+            Loop
+        End If
+        
+        If lngFirst <= lngLast Then
+            varSwap = pvarArray(lngFirst)
+            pvarArray(lngFirst) = pvarArray(lngLast)
+            pvarArray(lngLast) = varSwap
+            lngFirst = lngFirst + 1
+            lngLast = lngLast - 1
+        End If
+    Loop Until lngFirst > lngLast
+    If plngLeft < lngLast Then Sort_QuickSort pvarArray, cbComparrison, plngLeft, lngLast
+    If lngFirst < plngRight Then Sort_QuickSort pvarArray, cbComparrison, lngFirst, plngRight
+End Sub
+
 
 
 
 
 Public Property Get arr() As Variant
-    Dim vRet() As Variant
-    ReDim vRet(1 To pLength) As Variant
-    CopyMemory VarPtr(vRet(1)), VarPtr(pArr(1)), pLength * 16 '16 is variant size
-    arr = vRet
+    if pLength = 0 then
+      arr = Array()
+    else
+      Dim vRet() As Variant
+      ReDim vRet(1 To pLength) As Variant
+      CopyMemory VarPtr(vRet(1)), VarPtr(pArr(1)), pLength * 16 '16 is variant size
+      arr = vRet
+    end if
 End Property
 Public Property Let arr(v As Variant)
     RaiseEvent BeforeArrLet(me,v)
@@ -333,6 +421,7 @@ End Function
 
 
 Public Property Get item(ByVal i As Integer) As Variant
+Attribute item.VB_UserMemId = 0
     'item(1) = 1st element
     'item(2) = 2nd element
     'etc.
@@ -340,10 +429,10 @@ Public Property Get item(ByVal i As Integer) As Variant
     
 End Property
 Public Property Set item(ByVal i As Integer, ByVal item As Object)
-  CopyVariant pArr(i), item
+  set pArr(i) = item
 End Property
 Public Property Let item(ByVal i As Integer, ByVal item As Variant)
-  CopyVariant pArr(i), item
+  pArr(i) = item
 End Property
 Public Sub PutItem(ByVal i As Integer, ByRef item As Variant)
   CopyVariant pArr(i), item
