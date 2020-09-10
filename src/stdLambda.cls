@@ -1059,7 +1059,9 @@ Private Function evaluateFunc(ByVal sFuncName As String, ByVal args As Variant) 
             Else
                 evaluateFunc = args(iArgStart + 2)
             End If
-
+        Case "typename"
+            evaluateFunc = TypeName(args(iArgStart))
+            
         'VBA Casting
         Case "cbool": evaluateFunc = VBA.Conversion.CBool(args(iArgStart))
         Case "cbyte": evaluateFunc = VBA.Conversion.CByte(args(iArgStart))
