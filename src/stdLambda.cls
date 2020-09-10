@@ -170,6 +170,7 @@ Private Function stdICallable_RunEx(params() As Variant) As Variant
 End Function
 
 Function Run(ParamArray params() As Variant) As Variant
+Attribute Run.VB_UserMemId = 0
     'Bind args
     vLastArgs = params
 
