@@ -10,6 +10,15 @@ Attribute VB_Exposed = False
 Public stack As stdArray
 Public RaiseClient As Object 'Allow Raise through a custom userform. Userform should expose a Raise(sMessage, Criticality, Title, StackTrace) method.
 
+'TODO: Implement a ResumeNext() function for skipping past errors that are known, likely to use stdSentry
+'With stdError.ResumeNext()
+'    '...
+'End With
+'If stdError.Errors.Length > 0 Then
+'    
+'End If
+'Implementation detail: set ResumeNext = stdSentry.CreateFromMethods(stdError,"zprot_RNOn","zprot_RNOff")
+
 
 Public Sub RefreshStack()
     Set stack = stdArray.Create()

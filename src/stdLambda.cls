@@ -7,6 +7,10 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+
+'Implement stdICallable interface
+Implements stdICallable
+
 'Direct call convention of VBA.CallByName
 #If VBA7 Then
   'VBE7 is interchangable with msvbvm60.dll    however VBE7.dll appears to always be present where as msvbvm60 is only occasionally present.
@@ -166,6 +170,7 @@ Private Function stdICallable_RunEx(params() As Variant) As Variant
 End Function
 
 Function Run(ParamArray params() As Variant) As Variant
+Attribute Run.VB_UserMemId = 0
     'Bind args
     vLastArgs = params
 
@@ -1054,7 +1059,9 @@ Private Function evaluateFunc(ByVal sFuncName As String, ByVal args As Variant) 
             Else
                 evaluateFunc = args(iArgStart + 2)
             End If
-
+        Case "typename"
+            evaluateFunc = TypeName(args(iArgStart))
+            
         'VBA Casting
         Case "cbool": evaluateFunc = VBA.Conversion.CBool(args(iArgStart))
         Case "cbyte": evaluateFunc = VBA.Conversion.CByte(args(iArgStart))
