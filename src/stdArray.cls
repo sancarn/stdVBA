@@ -23,7 +23,10 @@ Private Enum SortDirection
     Ascending = 1
     Descending = 2
 End Enum
-
+Private Type SortStruct
+  Value as variant
+  SortValue as variant
+End Type
 
 Private pArr() As Variant
 Private pProxyLength As Long
@@ -219,7 +222,9 @@ Public Property Get arr() As Variant
     else
       Dim vRet() As Variant
       ReDim vRet(1 To pLength) As Variant
-      CopyMemory VarPtr(vRet(1)), VarPtr(pArr(1)), pLength * 16 '16 is variant size
+      For i = 1 To pLength
+        vRet(i) = pArr(i)
+      Next
       arr = vRet
     end if
 End Property

@@ -30,6 +30,18 @@ Sub testAll()
     Test.Assert "Unshift 1", TypeOf arr.unshift(1) is stdArray
     Test.Assert "Unshift 2", arr.item(1) = 1
 
+    'Test property arr
+    Test.Assert "Property Arr 1 always returns array when empty", TypeName(stdArray.Create().arr) = "Variant()"
+    Dim vArr as variant
+    vArr = arr.arr
+    Test.Assert "Property Arr 2 typename", TypeName(vArr) = "Variant()"
+    if TypeName(vArr) = "Variant()" then
+        Test.Assert "Property Arr 3 lbound", lbound(vArr) = 1
+        Test.Assert "Property Arr 4 item 1 equal", vArr(1) = arr.item(1)
+        Test.Assert "Property Arr 4 item 2 equal", vArr(2) = arr.item(2)
+        Test.Assert "Property Arr 4 item 3 equal", vArr(3) = arr.item(3)
+    end if
+    
     'Remove
     'Slice
     'Splice
@@ -59,5 +71,6 @@ Sub testAll()
     'Filter
     'Count_By
     'groupBy
-    
+    'sort
+
 End Sub
