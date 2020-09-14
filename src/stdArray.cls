@@ -42,6 +42,7 @@ Public Event AfterArrLet(ByRef arr as stdArray, ByRef arr as variant)
 Public Event BeforeAdd(ByRef arr As stdArray, ByVal iIndex As Long, ByRef item As Variant, ByRef cancel As Boolean)
 Public Event AfterAdd(ByRef arr as stdArray, ByVal iIndex as long, ByRef item as variant)
 Public Event BeforeRemove(ByRef arr as stdArray, ByVal iIndex as long, ByRef item as variant, ByRef cancel as Boolean)
+Public Event AfterRemove(ByRef arr as stdArray, ByVal iIndex as long)
 Public Event AfterClone(ByRef clone as stdArray)
 Public Event AfterCreate(ByRef arr as stdArray)
 
@@ -264,14 +265,17 @@ End Sub
 
 Public Function Pop() As Variant
     If pInitialised Then
-        'Raise BeforeRemove event and optionally cancel
-        Dim bCancel as Boolean
-        RaiseEvent BeforeRemove(me, pLength, pArr(pLength), bCancel)
-        If bCancel then exit function
-
         If pLength > 0 Then
+            'Raise BeforeRemove event and optionally cancel
+            Dim bCancel as Boolean
+            RaiseEvent BeforeRemove(me, pLength, pArr(pLength), bCancel)
+            If bCancel then exit function
+
             CopyVariant Pop, pArr(pLength)
             pLength = pLength - 1
+
+            'Raise AfterRemove event
+            RaiseEvent AfterRemove(me, pLength)
         Else
             Pop = Empty
         End If
@@ -283,15 +287,15 @@ End Function
 Public Function Remove(ByVal index As Long) As Variant
   'Ensure initialised
   If pInitialised Then
-    'Raise BeforeRemove event and optionally cancel
-    Dim bCancel as Boolean
-    RaiseEvent BeforeRemove(me, index, pArr(index), bCancel)
-    If bCancel then exit function
-
     'Ensure length > 0
     If pLength > 0 Then
       'Ensure index < length
       If index <= pLength Then
+        'Raise BeforeRemove event and optionally cancel
+        Dim bCancel as Boolean
+        RaiseEvent BeforeRemove(me, index, pArr(index), bCancel)
+        If bCancel then exit function
+
         'Copy party we are removing to return variable
         CopyVariant Remove, pArr(index)
         
@@ -304,6 +308,9 @@ Public Function Remove(ByVal index As Long) As Variant
         'Set last element length and subtract total length by 1
         pArr(pLength) = Empty
         pLength = pLength - 1
+
+        'Raise after remove event
+        RaiseEvent AfterRemove(me, index)
       Else
         'Error
       End If
