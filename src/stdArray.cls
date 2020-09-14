@@ -230,6 +230,7 @@ Public Function Shift() As Variant
   For i = 1 To pLength - 1
     pArr(i) = pArr(i + 1)
   Next
+  pLength = pLength -1
 End Function
 
 Public Function Unshift(val As Variant) As stdArray
@@ -251,7 +252,7 @@ Public Function Unshift(val As Variant) As stdArray
   For i = pLength - 1 To 1 Step -1
     pArr(i + 1) = pArr(i)
   Next
-  pArr(0) = val
+  pArr(1) = val
   
   'After Add event
   RaiseEvent AfterAdd(me, 1, val)
