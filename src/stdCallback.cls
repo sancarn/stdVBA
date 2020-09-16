@@ -106,74 +106,79 @@ Dim pInitialised As Boolean
 
 Private Enum ParentType
   Module = 1
-  Object = 2
+  object = 2
   Formula = 3
+  Bound = 4
 End Enum
 Private Type CallbackStruct
-  iType as ParentType
-  sModuleName as string
-  oObject as object
-  sMethodName as string
-  iCallType as VbCallType
-  sFormula as string
+  iType As ParentType
+  sModuleName As String
+  oObject As Object
+  sMethodName As String
+  iCallType As VbCallType
+  sFormula As String
+  vBoundArgs As Variant
 End Type
-Private pCallback as CallbackStruct
-Private vBoundArgs as variant
+Private pCallback As CallbackStruct
 
-Public Event BeforeRun(ByRef callback as stdCallback, ByRef args as variant)
-Public Event AfterRun(ByRef callback as stdCallback, ByRef sResult as variant)
+
+
+
+
+
+Public Event BeforeRun(ByRef callback As stdCallback, ByRef args As Variant)
+Public Event AfterRun(ByRef callback As stdCallback, ByRef sResult As Variant)
 
 
 
 'Create a callback object from module type string, translate to enum and initialise callback
-Public Function Create(mType As String, Parent As Variant, Name As String, Optional cType As Integer = VbCallType.VbMethod) As stdCallback
+Public Function Create(mType As String, Parent As Variant, name As String, Optional cType As Integer = VbCallType.VbMethod) As stdCallback
 Attribute Create.VB_Description = "Creates an instance of this class."
-  Dim iType as ParentType
-  if mType = "Module" then
+  Dim iType As ParentType
+  If mType = "Module" Then
     iType = ParentType.Module
-  elseif mType = "Object" then
-    iType = ParentType.Object
-  else
-    CriticalRaise  "Incorrect module type supplied"
-  end if
+  ElseIf mType = "Object" Then
+    iType = ParentType.object
+  Else
+    CriticalRaise "Incorrect module type supplied"
+  End If
   
   Set Create = New stdCallback
-  Create.init(iType, Parent, Name, cType)
-  
+  Call Create.Init(iType, Parent, name, cType)
 End Function
 
 'Create callback from Module function directly
-Public Function CreateFromModule(ByVal sParentName as string, ByVal sMethodName as string) as stdCallback
+Public Function CreateFromModule(ByVal sParentName As String, ByVal sMethodName As String) As stdCallback
 Attribute CreateFromModule.VB_Description = "Create callback from module method."
   Set CreateFromModule = New stdCallback
   Call CreateFromModule.Init(ParentType.Module, sParentName, sMethodName)
 End Function
 
 'Create callback from object and method name
-Public Function CreateFromObjectMethod(ByRef object as object, ByVal sMethodName as string) as stdCallback
+Public Function CreateFromObjectMethod(ByRef object As Object, ByVal sMethodName As String) As stdCallback
 Attribute CreateFromObjectMethod.VB_Description = "Create callback from object method."
-  Set CreateFromObjectMethod = new stdCallback
-  Call CreateFromObjectMethod.Init(ParentType.Object, object, sMethodName, VbCallType.VbMethod)
+  Set CreateFromObjectMethod = New stdCallback
+  Call CreateFromObjectMethod.Init(ParentType.object, object, sMethodName, VbCallType.VbMethod)
 End Function
 
 'Create callback from object and property name
-Public Function CreateFromObjectProperty(ByRef object as object, ByVal sPropName as string, ByVal cType as VbCallType) as stdCallback
+Public Function CreateFromObjectProperty(ByRef object As Object, ByVal sPropName As String, ByVal cType As VbCallType) As stdCallback
 Attribute CreateFromObjectProperty.VB_Description = "Create callback from object property."
-  Set CreateFromObjectProperty = new stdCallback
-  Call CreateFromObjectProperty.Init(ParentType.Object, object, sPropName, cType)
+  Set CreateFromObjectProperty = New stdCallback
+  Call CreateFromObjectProperty.Init(ParentType.object, object, sPropName, cType)
 End Function
 
-'CreateEvaluator from 
-Public Function CreateEvaluator(ByVal sFormula as string) as stdICallable
+'CreateEvaluator from
+Public Function CreateEvaluator(ByVal sFormula As String) As stdICallable
 Attribute CreateEvaluator.VB_Description = "Create callback from Excel formula. This method is VBA Only"
-  if IsObject(stdLambda) = "Empty" then
-    set CreateEvaluator = stdLambda.Create(sFormula)
+  If IsObject(stdLambda) = "Empty" Then
+    Set CreateEvaluator = stdLambda.Create(sFormula)
   Else
     CriticalRaise "Cannot find stdLambda library, required for Evaluator creation"
-  end if
+  End If
 End Function
 
-Friend Sub Init(iParentType As Long, ParamArray params() as variant) 'Parent As Variant, Name As String
+Friend Sub Init(iParentType As Long, ParamArray params() As Variant) 'Parent As Variant, Name As String
 Attribute Init.VB_Description = "Initialises this object. This should not be called directly unless building a ctor routine e.g. Create()."
   If Not pInitialised Then
     Select Case iParentType
@@ -181,13 +186,21 @@ Attribute Init.VB_Description = "Initialises this object. This should not be cal
         pCallback.iType = iParentType
         pCallback.sModuleName = params(0)
         pCallback.sMethodName = params(1)
-      Case ParentType.Object
+      Case ParentType.object
         pCallback.iType = iParentType
-        set pCallback.oObject = params(0)
+        Set pCallback.oObject = params(0)
         pCallback.sMethodName = params(1)
         pCallback.iCallType = params(2)
+      Case ParentType.Bound
+        pCallback.iType = iParentType
+        Set pCallback.oObject = params(0)
+        If isArray(params(1)) Then
+          pCallback.vBoundArgs = params(1)
+        Else
+          pCallback.vBoundArgs = Array()
+        End If
       Case Else
-        CriticalRaise "Invalid module type submitted"    
+        CriticalRaise "Invalid module type submitted"
     End Select
   Else
     CriticalRaise "Class is already initialised"
@@ -196,40 +209,42 @@ Attribute Init.VB_Description = "Initialises this object. This should not be cal
   pInitialised = True
 End Sub
 
-Private Function stdICallable_Run(ParamArray params() as variant) As Variant
-  Call CopyVariant(stdICallable_Run,RunEx(params))
+
+Private Function stdICallable_Run(ParamArray params() As Variant) As Variant
+  Call CopyVariant(stdICallable_Run, RunEx(params))
 End Function
-Private Function stdICallable_RunEx(ByVal params() as variant) As Variant
-  Call CopyVariant(stdICallable_RunEx,RunEx(params))
+Private Function stdICallable_RunEx(ByVal params As Variant) As Variant
+  Call CopyVariant(stdICallable_RunEx, RunEx(params))
 End Function
 
 'Bind a parameter to the function
 Private Function stdICallable_Bind(ParamArray params() As Variant) As stdICallable
-    vBoundArgs = ConcatArrays(vBoundArgs, params)
+  Set stdICallable_Bind = BindEx(params)
 End Function
-Private Sub stdICallable_Unbind()
-    vBoundArgs = Array()
-End Sub
-Public Function Bind(ParamArray params() as variant) as stdLambda
-    vBoundArgs = ConcatArrays(vBoundArgs, params)
+Public Function Bind(ParamArray params() As Variant) As stdCallback
+  Set Bind = BindEx(params)
 End Function
-Public Sub Unbind()
-    vBoundArgs = Array()
-End Sub
+Public Function BindEx(ByVal params As Variant) As stdCallback
+  Set BindEx = New stdCallback
+  Dim callable As stdICallable: Set callable = Me
+  Call BindEx.Init(ParentType.Bound, callable, params)
+End Function
+
 
 
 Public Function Run(ParamArray params() As Variant)
 Attribute Run.VB_Description = "Runs the specified callback."
 Attribute Run.VB_UserMemId = 0
-  Call CopyVariant(Run,RunEx(params))
+  Call CopyVariant(Run, RunEx(params))
 End Function
 
 'Default Property:
-Public Function RunEx(ByVal vArr() as variant) As Variant
+Public Function RunEx(ByVal vArr As Variant) As Variant
   If pInitialised And pCallback.iType Then
-    'Bind vBoundArgs to params
-    vArr = ConcatArrays(vBoundArgs,vArr)
-    
+    If pCallback.iType = ParentType.Bound Then
+      vArr = ConcatArrays(pCallback.vBoundArgs, vArr)
+    End If
+
     'Raise event for listeners
     RaiseEvent BeforeRun(Me, vArr)
     
@@ -276,14 +291,25 @@ Public Function RunEx(ByVal vArr() as variant) As Variant
         'Use rtcCallByName to avoid type errors from argument array
         'Src: http://www.vbforums.com/showthread.php?866039-RESOLVED-Store-CallByName-Arguments-list
         
-        'Call rtcCallByName
-        Dim hr As Long
-        hr = rtcCallByName(vRet, pCallback.oObject, StrPtr(pCallback.sMethodName), pCallback.iCallType, vArr, &H409)
-        
-        'If error then raise
-        If hr < 0 Then
-          CriticalRaise "Error in rtcCallByName. Error number: " & hr
+        If isArray(vArr) Then
+          Dim vArgs() As Variant
+          vArgs = vArr
+            
+          'Call rtcCallByName
+          Dim hr As Long
+          hr = rtcCallByName(vRet, pCallback.oObject, StrPtr(pCallback.sMethodName), pCallback.iCallType, vArgs, &H409)
+            
+          'If error then raise
+          If hr < 0 Then
+            CriticalRaise "Error in rtcCallByName. Error number: " & hr
+          End If
+        Else
+          CriticalRaise "Error in rtcCallByName. Arguments supplied to RunEx needs to be an array."
         End If
+      Case ParentType.Bound
+        Dim callable As stdICallable
+        Set callable = pCallback.oObject
+        Call CopyVariant(vRet, callable.RunEx(vArr))
       Case Else
         CriticalRaise "Cannot call callback. Invalid parent type assigned (" & iParentType & ")."
       End Select
@@ -309,22 +335,22 @@ Private Function Serialize(data As Variant) As String
     Case "String"
       Serialize = """" & data & """"
     Case Else
-      if VarType(data) = vbObject then
+      If VarType(data) = vbObject Then
         'allows for stuff like --> CreateEvaluator("@(@(@($1,""Workbooks""),""Item"",1),""Name"")")(Application)
-        'Assuming @() calls 
+        'Assuming @() calls
         Serialize = ObjPtr(data)
-      else
+      Else
         Serialize = data
-      end if
+      End If
   End Select
 End Function
 
-Private Sub CriticalRaise(ByVal sMessage as string)
+Private Sub CriticalRaise(ByVal sMessage As String)
   'If stdError exists
-    if vartype(stdError) then
+    If VarType(stdError) Then
       Call stdError.Raise("Can only create evaluators in Excel as they rely on Application.Evaluate()")
     Else
-      Call Err.Raise(1,"stdCallback", sMessage)
+      Call Err.Raise(1, "stdCallback", sMessage)
     End If
     End
 End Sub
@@ -348,7 +374,7 @@ End Sub
 
 
 'Used by Bind() for binding arguments ontop of BoundArgs and binding bound args to passed arguments
-'@param {Variant()} The 1st array which will 
+'@param {Variant()} The 1st array which will
 '@param {Variant()} The 2nd array which will be concatenated after the 1st
 '@complexity O(1)
 Private Function ConcatArrays(ByVal Arr1 As Variant, ByVal Arr2 As Variant) As Variant

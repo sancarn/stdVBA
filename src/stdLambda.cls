@@ -106,13 +106,20 @@ Private scopesArgCount() As Variant
 Private scopeCount As Long
 Private funcScope As Long
 
+Private Enum LambdaType
+    iStandardLambda = 1
+    iBoundLambda = 2
+End Enum
+
 
 Const minStackSize = 30 'note that the stack size may become smaller than this
 Public oFunctExt As Object 'Dictionary<string => stdCallback>
 Private vLastArgs As Variant
-Private vBoundArgs as Variant
-
 Private oCache As Object
+
+Private bBound as boolean
+Private oBound as stdICallable
+Private vBound as variant
 
 
 ''Usage:
@@ -130,78 +137,112 @@ Public Function Create(ByVal sEquation As String, Optional ByVal bSandboxExtras 
     Dim sID As String: sID = bSandboxExtras & ")" & sEquation
     If Not oCache.exists(sID) Then
         Set oCache(sID) = New stdLambda
-        Call oCache(sID).Init(sEquation, bSandboxExtras)
+        Call oCache(sID).Init(LambdaType.iStandardLambda, sEquation, bSandboxExtras)
     End If
     
     'Return cached lambda
     Set Create = oCache(sID)
-    Call Create.Unbind
 End Function
 
 Public Function CreateMultiline(ByRef sEquation As Variant, Optional ByVal bSandboxExtras As Boolean = False) As stdLambda
     Set CreateMultiline = Create(Join(sEquation, " "), bSandboxExtras)
 End Function
 
-Public Sub Init(ByVal sEquation As String, ByVal bSandboxExtras As Boolean)
-    If Not bSandboxExtras Then
-        Set Me.oFunctExt = stdLambda.oFunctExt
-    End If
-    tokens = Tokenise(sEquation)
-    iTokenIndex = 1
-    iOperationIndex = 0
-    stackSize = 0
-    scopeCount = 0
-    funcScope = 0
-    Call parseBlock("eof")
-    Call finishOperations
+Public Function BindEx(ByVal params as variant) as stdLambda
+    set BindEx = new stdLambda
+    Dim callable as stdICallable: set callable = me
+    Call BindEx.init(LambdaType.iBoundLambda, callable, params)
+End Function
+
+
+Public Sub Init(ByVal iLambdaType as long, ParamArray params() as variant)
+    Select Case iLambdaType
+        Case LambdaType.iStandardLambda
+            Dim sEquation as string: sEquation = params(0)
+            Dim bSandboxExtras as boolean: bSandboxExtras = params(1)
+
+            If Not bSandboxExtras Then
+                Set Me.oFunctExt = stdLambda.oFunctExt
+            End If
+            bBound = false
+            tokens = Tokenise(sEquation)
+            iTokenIndex = 1
+            iOperationIndex = 0
+            stackSize = 0
+            scopeCount = 0
+            funcScope = 0
+            Call parseBlock("eof")
+            Call finishOperations
+
+        Case LambdaType.iBoundLambda
+            bBound = true
+            set oBound = params(0)
+            vBound = params(1)
+
+        Case Else
+            'error?
+    end select
 End Sub
 
+
 Private Function stdICallable_Run(ParamArray params() As Variant) As Variant
-    'Bind args
-    vLastArgs = ConcatArrays(vBoundArgs,params)
+    if not bBound then
+        'Bind args
+        vLastArgs = params
 
-    'Execute top-down parser
-    Call CopyVariant(stdICallable_Run, evaluate(operations))
+        'Execute top-down parser
+        Call CopyVariant(stdICallable_Run, evaluate(operations))
+    else
+        Call CopyVariant(stdICallable_Run, oBound.RunEx(ConcatArrays(vBound,params)))
+    end if
 End Function
-Private Function stdICallable_RunEx(params() As Variant) As Variant
-    'Bind args
-    vLastArgs = ConcatArrays(vBoundArgs,params)
+Private Function stdICallable_RunEx(ByVal params As Variant) As Variant
+    if not bBound then
+        'Bind args
+        vLastArgs = params
 
-    'Execute top-down parser
-    Call CopyVariant(stdICallable_RunEx, evaluate(operations))
+        'Execute top-down parser
+        Call CopyVariant(stdICallable_RunEx, evaluate(operations))
+    else
+        Call CopyVariant(stdICallable_RunEx, oBound.RunEx(ConcatArrays(vBound,params)))
+    end if
 End Function
 
 Function Run(ParamArray params() As Variant) As Variant
 Attribute Run.VB_UserMemId = 0
-    'Bind args
-    vLastArgs = ConcatArrays(vBoundArgs,params)
+    if not bBound then
+        'Bind args
+        vLastArgs = params
 
-    'Execute top-down parser
-    Call CopyVariant(Run, evaluate(operations))
+        'Execute top-down parser
+        Call CopyVariant(Run, evaluate(operations))
+    else
+        Call CopyVariant(Run, oBound.RunEx(ConcatArrays(vBound,params)))
+    end if
 End Function
 
-Function RunEx(params() As Variant) As Variant
-    'Bind args
-    vLastArgs = ConcatArrays(vBoundArgs,params)
-    
-    'Execute top-down parser
-    Call CopyVariant(RunEx, evaluate(operations))
+Function RunEx(ByVal params As Variant) As Variant
+    if not bBound then
+        if not isArray(params) then
+            Err.Raise 1, "params to be supplied as array of arguments", ""
+        end if
+        'Bind args
+        vLastArgs = params
+        
+        'Execute top-down parser
+        Call CopyVariant(RunEx, evaluate(operations))
+    else
+        Call CopyVariant(RunEx, oBound.RunEx(ConcatArrays(vBound,params)))
+    end if
 End Function
 
 'Bind a parameter to the function
 Private Function stdICallable_Bind(ParamArray params() As Variant) As stdICallable
-    vBoundArgs = ConcatArrays(vBoundArgs, params)
+    set stdICallable_Bind = BindEx(params)
 End Function
-Private Sub stdICallable_Unbind()
-    vBoundArgs = Array()
-End Sub
 Public Function Bind(ParamArray params() as variant) as stdLambda
-    vBoundArgs = ConcatArrays(vBoundArgs, params)
+    set Bind = BindEx(params)
 End Function
-Public Sub Unbind()
-    vBoundArgs = Array()
-End Sub
-
 
 
 '================
@@ -967,7 +1008,9 @@ Private Function getArgs(ByRef stack() As Variant, ByRef stackPtr As Long) As Va
         'If an argument count is provided, extract all arguments into an array
         Call popV(stack, stackPtr)
         ReDim args(1 To argCount)
-        For i = 1 To argCount
+        
+        'Arguments are held on the stack in order, which means that we need to fill the array in reverse order.
+        For i = argCount To 1 Step -1
             Call CopyVariant(args(i), popV(stack, stackPtr))
         Next
     End If

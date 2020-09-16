@@ -103,6 +103,27 @@ Sub testAll()
     '     "end", _
     '     "someVar + globalVars(1)" _
     ')).Run()
+
+    'Test stdLambda::bind()
+    With stdLambda.Create("Array($1,$2,$3)").Bind(1)
+        Test.Assert "stdLambda::Bind() 1 Example", Join(.Run(2, 3), "|") = "1|2|3"
+        With .Bind(2)
+            Test.Assert "stdLambda::Bind() 2 Example", Join(.Run(3), "|") = "1|2|3"
+            With .Bind(3)
+                Test.Assert "stdLambda::Bind() 3 Example", Join(.Run(), "|") = "1|2|3"
+            End With
+        End With
+        
+        'In a historical version of stdLambda these would fail:
+        Test.Assert "stdLambda::Bind() 4 Ensure creation of new bindings doesn't erase old bindings", Join(stdLambda.Create("Array($1,$2,$3)").Run(1, 2, 3), "|") = "1|2|3"
+        Test.Assert "stdLambda::Bind() 5 Ensure creation of new bindings doesn't erase old bindings", Join(.Run(2, 3), "|") = "1|2|3"
+        
+        'Can also bind multiple arguments simultaneously
+        With .Bind(2, "hello")
+            Test.Assert "stdLambda::Bind() 6 multiple arg binding", Join(.Run(), "|") = "1|2|hello"
+        End With
+    End With
+
 End Sub
 
 Sub testPerformanceStdLambda()
