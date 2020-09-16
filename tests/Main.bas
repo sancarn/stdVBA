@@ -6,5 +6,5 @@ Sub MainTestAll()
     On Error Resume Next
     Call stdLambdaTests.testAll
     Call stdArrayTests.testAll
-    
+    Call stdCallbackTests.testAll
 End Sub
