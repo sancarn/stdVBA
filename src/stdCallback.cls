@@ -171,7 +171,7 @@ End Function
 'CreateEvaluator from
 Public Function CreateEvaluator(ByVal sFormula As String) As stdICallable
 Attribute CreateEvaluator.VB_Description = "Create callback from Excel formula. This method is VBA Only"
-  If IsObject(stdLambda) = "Empty" Then
+  If IsObject(stdLambda) Then
     Set CreateEvaluator = stdLambda.Create(sFormula)
   Else
     CriticalRaise "Cannot find stdLambda library, required for Evaluator creation"

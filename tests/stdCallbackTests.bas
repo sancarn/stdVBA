@@ -30,7 +30,7 @@ Public Sub testAll()
   End With
 
   'Historic evaluator method
-  Test.Assert "CreateEvaluator --> stdLambda", stdCallback.CreateEvaluator("1") is stdLambda
+  Test.Assert "CreateEvaluator --> stdLambda", TypeOf stdCallback.CreateEvaluator("1") is stdICallable
 
   'Test stdLambda::bind()
   With stdCallback.CreateFromModule("stdCallbackTests", "testCallbackTest").Bind(1)
