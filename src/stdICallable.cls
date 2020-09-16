@@ -14,6 +14,10 @@ Public Function Run(ParamArray params() as variant) as variant: End Function
 'Call function with supplied array of params
 Public Function RunEx(params() as variant) as variant: End Function
 
+'Bind a parameter to the function
+Public Function Bind(ParamArray params() as variant) as stdICallable: End Function
+Public Sub Unbind(): End Sub
+
 'Ideally we would want to get a pointer to the function... However, getting a pointer to an object method is
 'going to be defficult, partly due to the first parameter sent to the function is `Me`! We'll likely have to
 'use machine code to wrap a call with a `Me` pointer just so we can access the full pointer and use this in

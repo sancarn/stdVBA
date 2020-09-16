@@ -110,6 +110,7 @@ Private funcScope As Long
 Const minStackSize = 30 'note that the stack size may become smaller than this
 Public oFunctExt As Object 'Dictionary<string => stdCallback>
 Private vLastArgs As Variant
+Private vBoundArgs as Variant
 
 Private oCache As Object
 
@@ -134,6 +135,7 @@ Public Function Create(ByVal sEquation As String, Optional ByVal bSandboxExtras 
     
     'Return cached lambda
     Set Create = oCache(sID)
+    Call Create.Unbind
 End Function
 
 Public Function CreateMultiline(ByRef sEquation As Variant, Optional ByVal bSandboxExtras As Boolean = False) As stdLambda
@@ -156,14 +158,14 @@ End Sub
 
 Private Function stdICallable_Run(ParamArray params() As Variant) As Variant
     'Bind args
-    vLastArgs = params
+    vLastArgs = ConcatArrays(vBoundArgs,params)
 
     'Execute top-down parser
     Call CopyVariant(stdICallable_Run, evaluate(operations))
 End Function
 Private Function stdICallable_RunEx(params() As Variant) As Variant
     'Bind args
-    vLastArgs = params
+    vLastArgs = ConcatArrays(vBoundArgs,params)
 
     'Execute top-down parser
     Call CopyVariant(stdICallable_RunEx, evaluate(operations))
@@ -172,7 +174,7 @@ End Function
 Function Run(ParamArray params() As Variant) As Variant
 Attribute Run.VB_UserMemId = 0
     'Bind args
-    vLastArgs = params
+    vLastArgs = ConcatArrays(vBoundArgs,params)
 
     'Execute top-down parser
     Call CopyVariant(Run, evaluate(operations))
@@ -180,11 +182,25 @@ End Function
 
 Function RunEx(params() As Variant) As Variant
     'Bind args
-    vLastArgs = params
+    vLastArgs = ConcatArrays(vBoundArgs,params)
     
     'Execute top-down parser
     Call CopyVariant(RunEx, evaluate(operations))
 End Function
+
+'Bind a parameter to the function
+Private Function stdICallable_Bind(ParamArray params() As Variant) As stdICallable
+    vBoundArgs = ConcatArrays(vBoundArgs, params)
+End Function
+Private Sub stdICallable_Unbind()
+    vBoundArgs = Array()
+End Sub
+Public Function Bind(ParamArray params() as variant) as stdLambda
+    vBoundArgs = ConcatArrays(vBoundArgs, params)
+End Function
+Public Sub Unbind()
+    vBoundArgs = Array()
+End Sub
 
 
 
@@ -1368,6 +1384,36 @@ Private Sub Throw(ByVal sMessage As String)
     End
 End Sub
 
+
+'Used by Bind() for binding arguments ontop of BoundArgs and binding bound args to passed arguments
+'@param {Variant()} The 1st array which will 
+'@param {Variant()} The 2nd array which will be concatenated after the 1st
+'@complexity O(1)
+Private Function ConcatArrays(ByVal Arr1 As Variant, ByVal Arr2 As Variant) As Variant
+    Dim ub1 As Long: ub1 = UBound(Arr1)
+    Dim lb1 As Long: lb1 = LBound(Arr1)
+    Dim ub2 As Long: ub2 = UBound(Arr2)
+    Dim lb2 As Long: lb2 = LBound(Arr2)
+    Dim iub As Long: iub = ub1 + ub2 - lb2 + 1
+    
+    If iub > -1 Then
+        Dim v() As Variant
+        ReDim v(lb1 To iub)
+        
+        
+        Dim i As Long
+        For i = LBound(v) To UBound(v)
+            If i <= ub1 Then
+                Call CopyVariant(v(i), Arr1(i))
+            Else
+                Call CopyVariant(v(i), Arr2(i - ub1 - 1 + lb2))
+            End If
+        Next
+        ConcatArrays = v
+    Else
+        ConcatArrays = Array()
+    End If
+End Function
 
 
 
