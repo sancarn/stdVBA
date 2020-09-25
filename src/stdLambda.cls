@@ -399,7 +399,7 @@ Private Sub parseLogicPriority3() 'and
     Do
         If optConsume("and") Then
             Call parseLogicPriority4
-            Call addOperation(oLogic, oOr, , -1)
+            Call addOperation(oLogic, oAND, , -1)
         Else
             bLoop = False
         End If
