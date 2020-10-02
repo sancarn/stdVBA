@@ -12,7 +12,8 @@ Private Declare Sub LocalFree Lib "kernel32.dll" (ByVal M As Long)
 Private Declare Sub CopyMemory Lib "kernel32.dll" Alias "RtlMoveMemory" (Destination As Any, Source As Any, ByVal Length As Long)
 Private Declare Function CryptProtectData Lib "Crypt32.dll" (pDataIn As Blob, ByVal szDataDescr As Long, ByVal Entrophy As Long, ByVal pvReserved As Long, ByVal pPromptStruct As Long, ByVal dwFlags As Long, pDataOut As Blob) As Long
 Private Declare Function CryptUnprotectData Lib "Crypt32.dll" (pDataIn As Blob, ByVal szDataDescr As Long, ByVal Entrophy As Long, ByVal pvReserved As Long, ByVal pPromptStruct As Long, ByVal dwFlags As Long, pDataOut As Blob) As Long
- 'CryptProtectData(DataIn, null, DataPassword, null, null,null, DataOut)
+'CryptProtectData(DataIn, null, DataPassword, null, null, null, DataOut)
+'CryptUnprotectData(DataIn, null, DataPassword, null, null, null, DataOut)
 
 Private Function Encrypt(Source As String) As Long
     Dim DataIn As Blob
