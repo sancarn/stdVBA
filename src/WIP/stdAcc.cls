@@ -15,6 +15,31 @@ Private Declare PtrSafe Function WindowFromAccessibleObject Lib "oleacc" (ByVal 
 Private Declare PtrSafe Function GetCursorPos Lib "user32" (lpPoint As tPOINT) As Long 'For FromMouse()
 Private Declare PtrSafe Function APISendMessage Lib "user32" Alias "SendMessage" (ByVal hwnd As Long, ByVal Msg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
 
+'Not sure if this is the correct order, not sure if it's even needed given IAccessible apparently implements IDispatch...
+Private Enum IAccessible_Methods
+    accDoDefaultAction
+    accHitTest
+    accLocation
+    accNavigate
+    accSelect
+    get_accChild
+    get_accChildCount
+    get_accDefaultAction
+    get_accDescription
+    get_accFocus
+    get_accHelp
+    get_accHelpTopic
+    get_accKeyboardShortcut
+    get_accName
+    get_accParent
+    get_accRole
+    get_accSelection
+    get_accState
+    get_accValue
+    put_accName
+    put_accValue
+End Enum
+
 'Enums
 Public ACC_STATES As Object
 Public ACC_ROLES As Object
@@ -41,24 +66,24 @@ Const CHILDID_SELF = 0&
 Private oAcc As Object
 
 'Constructors:
-Public Function FromPoint(x As Long, y As Long) As stdAcc
-    Set FromPoint = New stdAcc
+Public Function CreateFromPoint(x As Long, y As Long) As stdAcc
+    Set CreateFromPoint = New stdAcc
     Dim obj As IAccessible
     Dim v As Variant
     Call AccessibleObjectFromPoint(x, y, obj, v)
-    Call FromPoint.SetIAccessible(obj)
+    Call CreateFromPoint.SetIAccessible(obj)
 End Function
-Public Function FromHwnd(hwnd As LongPtr) As stdAcc
-    Dim acc As New stdAcc
+Public Function CreateFromHwnd(hwnd As LongPtr) As stdAcc
+    Dim acc as New stdAcc
     Dim obj As IAccessible
     Set obj = IAccessibleFromHwnd(hwnd)
     Call acc.SetIAccessible(obj)
-    Set FromHwnd = acc
+    Set CreateFromHwnd = acc
 End Function
-Public Function FromExcel() As stdAcc
-    Set FromExcel = FromHwnd(Application.hwnd)
+Public Function CreateFromExcel() As stdAcc
+    Set CreateFromExcel = CreateFromHwnd(Application.hwnd)
 End Function
-Public Function FromDesktop() As stdAcc
+Public Function CreateFromDesktop() As stdAcc
     'Get this application's accessibility object
     Dim accThis As IAccessible
     Set accThis = IAccessibleFromHwnd(Application.hwnd)
@@ -69,19 +94,19 @@ Public Function FromDesktop() As stdAcc
     
     Dim acc As New stdAcc
     Call acc.SetIAccessible(accDesktop)
-    Set FromDesktop = acc
+    Set CreateFromDesktop = acc
 End Function
-Public Function FromIAccessible(ByRef obj As IAccessible) As stdAcc
-    Set FromIAccessible = New stdAcc
-    Call FromIAccessible.SetIAccessible(obj)
+Public Function CreateFromIAccessible(ByRef obj As IAccessible) As stdAcc
+    Set CreateFromIAccessible = New stdAcc
+    Call CreateFromIAccessible.SetIAccessible(obj)
 End Function
-Public Function FromMouse() As stdAcc
+Public Function CreateFromMouse() As stdAcc
     Dim pT As tPOINT
     Dim success As Long
     success = GetCursorPos(pT)
-    Set FromMouse = Me.FromPoint(pT.x, pT.y)
+    Set CreateFromMouse = Me.FromPoint(pT.x, pT.y)
 End Function
-Public Function FromPath(ByVal sPath As String) As stdAcc
+Public Function CreateFromPath(ByVal sPath As String) As stdAcc
     'If starting with "." remove it
     If left(sPath, 1) = "." Then sPath = Mid(sPath, 2)
     
@@ -100,7 +125,7 @@ Public Function FromPath(ByVal sPath As String) As stdAcc
     Next i
     
     'Return descendant
-    Set FromPath = acc
+    Set CreateFromPath = acc
 End Function
 
 Public Function GetDescendents() As Collection
@@ -124,88 +149,148 @@ Public Function GetDescendents() As Collection
     Set GetDescendents = c
 End Function
 
-Private Function QueryTest(ByRef acc As stdAcc, ByVal sQuery As String) As Boolean
-    'Optimisation - only split once!
-    Static sOldQuery As String, oldQuery As Variant
-    If sOldQuery <> sQuery Then
-        sOldQuery = sQuery
-        oldQuery = Split(sQuery, "&")
-    End If
-    
-    Dim b As Boolean: b = True
-    For i = 0 To UBound(oldQuery)
-        'Test various conditions
-        Dim sField As String, sValue As String
-        If UBound(Split(oldQuery(i), "=")) = 0 Then
-            Debug.Print "Invalid syntax: Field=Value required"
-            Exit Function
-        End If
-        sField = UCase(Trim(Split(oldQuery(i), "=")(0)))
-        sValue = UCase(Trim(Split(oldQuery(i), "=")(1)))
-        Select Case sField
-            Case "NAME"
-                b = b And UCase(acc.name) Like sValue
-            Case "DESCRIPTION"
-                b = b And UCase(acc.Description) Like sValue
-            Case "VALUE"
-                b = b And UCase(acc.value) Like sValue
-            Case "KEYBOARDSHORTCUT", "SHORTCUT"
-                b = b And UCase(acc.KeyboardShortcut) Like sValue
-            Case "HELP"
-                b = b And UCase(acc.Help) Like sValue
-            Case "ROLE"
-                b = b And UCase(acc.Role) Like sValue
-            Case "HELPTOPIC"
-                b = b And UCase(acc.HelpTopic) Like sValue
-        End Select
-    Next
-    
-    QueryTest = b
-End Function
 
-'Syntax: FindFirst("Name=*hello*&role=*WINDOW")
-Public Function FindFirst(ByVal sQuery As String) As stdAcc
-    'Test this object...
-    Dim accChild As stdAcc
-    If QueryTest(Me, sQuery) Then
-        Set FindFirst = Me
-        Exit Function
-    End If
-    
-    'Recursively call on children
-    Dim vDesc As stdAcc
-    For Each accChild In children
-        Set vDesc = accChild.FindFirst(sQuery)
-        If Not vDesc Is Nothing Then
-            Set FindFirst = vDesc
-            Exit Function
-        End If
-    Next
-    
-    'Just make sure no freezing occurs
-    DoEvents
+'Search the IAccessible tree for elements which match a certain criteria. When found exit the function.
+'@param {ByVal stdICallable<(stdAcc,eSearchType),eWalkType>} Callback returning
+'  eWalkType options:
+'    0/False   - Not found, countinue walking
+'    1/-1/True - Found, return this element
+'    2         - Not found, cancel search
+'    else      - Not found, don't search descendents
+'@param {eSearchType} - The type of search, 0 for Breadth First Search (BFS) and 1 for Depth First Search (DFS).
+' To understand the difference between BFS and DFS take this tree:
+'        A
+'       / \
+'      B   C
+'     /   / \
+'    D   E   F
+' A BFS will walk this tree in the following order: A, B, C, D, E, F
+' A DFS will walk this tree in a different order:   A, C, F, E, B, D
+' 
+'@examples
+' ```
+' 'Find where name is "hello" and class is "world":
+' el.FindFirst(stdLambda.Create("$1.name=""hello"" and $1.class=""world"""))
+' 'Find where name is "hello" but restrict search to 4 levels deep:
+' el.FindFirst(stdLambda.Create("if $2 = 4 then 2 else $1.name=""hello"""))
+' ```
+Public Function FindFirst(ByVal query As stdICallable, optional byval searchType as long=0) As stdAcc
+    Dim stack as Variant
+    stack = Array(Array(0,me))
+
+    Dim length as long: length = 1
+    Dim index as long: index = 0
+
+    'Loop over the stack/array
+    While length > 0 And index < length
+        Dim part as variant
+        if searchType = 0 then 
+            'Bredth first search, get item directly out of array, no need to change array size
+            index = index + 1
+            part = stack(index)
+        else
+            'Depth first search, so pop the item out of the stack
+            part = stackPopV(stack,length)
+        end if
+        Dim depth as long:     depth = part(0)
+        Dim element As stdAcc: set element = part(1)
+
+        'Run query and test options
+        select case query.Run(element,depth)
+            case 0
+                'Nothing found, search descendents
+                Dim child as stdAcc
+                for each child in element.children
+                    stackPushV(stack,length,Array(depth+1,child))
+                next
+            case 1,True
+                'Found, return element
+                set FindFirst = element
+                Exit Function
+            case 2
+                'Nothing found, cancel function
+                set FindFirst = nothing
+                Exit Function
+            'case 3
+            '    Nothing found, don't search descendents
+        end select
+
+        'Just make sure no freezing occurs
+        DoEvents
+    Wend
     
     'Else set to nothing
     Set FindFirst = Nothing
 End Function
 
-'Syntax: FindAll("Name=*hello*&role=*WINDOW")
-Public Function FindAll(ByVal sQuery As String) As Collection
-    Dim ret As Collection
-    Set ret = New Collection
-    
-    'Loop through all descendents
-    Dim desc As stdAcc
-    Dim descendents as collection: set descendents = Me.GetDescendents()
-    For Each desc In descendents
-        'If all conditions match, return desc
-        If QueryTest(desc, sQuery) Then
-            ret.Add desc
-        End If
-    Next
-    
-    'return all found matches
-    Set FindAll = ret
+'Search the IAccessible tree for elements which match a certain criteria. Return all elements found.
+'@param {ByVal stdICallable<(stdAcc,eSearchType),eWalkType>} Callback returning
+'  eWalkType options:
+'    0/False   - Not found, countinue walking
+'    1/-1/True - Found, return this element
+'    2         - Not found, cancel search
+'    else      - Not found, don't search descendents
+'@param {eSearchType} - The type of search, 0 for Breadth First Search (BFS) and 1 for Depth First Search (DFS).
+' To understand the difference between BFS and DFS take this tree:
+'        A
+'       / \
+'      B   C
+'     /   / \
+'    D   E   F
+' A BFS will walk this tree in the following order: A, B, C, D, E, F
+' A DFS will walk this tree in a different order:   A, C, F, E, B, D
+'@examples
+' ```
+' 'Find where name is "hello" and class is "world":
+' el.FindAll(stdLambda.Create("$1.name=""hello"" and $1.class=""world"""))
+' 'Find where name is "hello" but restrict search to 4 levels deep:
+' el.FindAll(stdLambda.Create("if $2 = 4 then 2 else $1.name=""hello"""))
+' ```
+Public Function FindAll(ByVal query As stdICallable, optional byval searchType as long=0) As Collection
+    Dim stack as Variant
+    stack = Array(Array(0,me))
+
+    Dim length as long: length = 1
+    Dim index as long: index = 0
+
+    'Initialise collection
+    set FindAll = new Collection
+
+    'Loop over the stack/array
+    While length > 0 And index < length
+        Dim part as variant
+        if searchType = 0 then 
+            'Bredth first search, get item directly out of array, no need to change array size
+            index = index + 1
+            part = stack(index)
+        else
+            'Depth first search, so pop the item out of the stack
+            part = stackPopV(stack,length)
+        end if
+        Dim depth as long:     depth = part(0)
+        Dim element As stdAcc: set element = part(1)
+
+        'Run query and test options
+        select case query.Run(element,depth)
+            case 0
+                'Nothing found, search descendents
+                Dim child as stdAcc
+                for each child in element.children
+                    stackPushV(stack,length,Array(depth+1,child))
+                next
+            case 1,True
+                'Found, add element
+                Call FindAll.add(element)
+            case 2
+                'Nothing found, cancel function
+                Exit Function
+            'case 3
+            '    Nothing found, don't search descendents
+        end select
+
+        'Just make sure no freezing occurs
+        DoEvents
+    Wend
 End Function
 
 'Complex properties
@@ -415,27 +500,19 @@ Private Function convertGUID(Guid As String) As tGUID
     
     Dim vArr: vArr = Split(Guid, "-")
     
-    '618736E0-3C3D-11CF-810C-00AA00389B71
-    convertGUID.lData1 = CLng(Application.WorksheetFunction.Hex2Dec(vArr(0))) '618736E0
-    convertGUID.nData2 = CInt(Application.WorksheetFunction.Hex2Dec(vArr(1))) '3C3D
-    convertGUID.nData3 = CInt(Application.WorksheetFunction.Hex2Dec(vArr(2))) '11CF
-    convertGUID.abytData4(0) = CInt(Application.WorksheetFunction.Hex2Dec(Mid(vArr(3), 1, 2))) '81
-    convertGUID.abytData4(1) = CInt(Application.WorksheetFunction.Hex2Dec(Mid(vArr(3), 3, 2))) '0C
-    convertGUID.abytData4(2) = CInt(Application.WorksheetFunction.Hex2Dec(Mid(vArr(4), 1, 2))) '00
-    convertGUID.abytData4(3) = CInt(Application.WorksheetFunction.Hex2Dec(Mid(vArr(4), 3, 2))) 'AA
-    convertGUID.abytData4(4) = CInt(Application.WorksheetFunction.Hex2Dec(Mid(vArr(4), 5, 2))) '00
-    convertGUID.abytData4(5) = CInt(Application.WorksheetFunction.Hex2Dec(Mid(vArr(4), 7, 2))) '38
-    convertGUID.abytData4(6) = CInt(Application.WorksheetFunction.Hex2Dec(Mid(vArr(4), 9, 2))) '9B
-    convertGUID.abytData4(7) = CInt(Application.WorksheetFunction.Hex2Dec(Mid(vArr(4), 11, 2))) '71
-End Function
+    'Generate GUID structure from string of hex
+    convertGUID.lData1       = CLng("&H" & vArr(0))             '618736E0
+    convertGUID.nData2       = CInt("&H" & vArr(1))             '3C3D
+    convertGUID.nData3       = CInt("&H" & vArr(2))             '11CF
+    convertGUID.abytData4(0) = CInt("&H" & Mid(vArr(3), 1, 2))  '81
+    convertGUID.abytData4(1) = CInt("&H" & Mid(vArr(3), 3, 2))  '0C
+    convertGUID.abytData4(2) = CInt("&H" & Mid(vArr(4), 1, 2))  '00
+    convertGUID.abytData4(3) = CInt("&H" & Mid(vArr(4), 3, 2))  'AA
+    convertGUID.abytData4(4) = CInt("&H" & Mid(vArr(4), 5, 2))  '00
+    convertGUID.abytData4(5) = CInt("&H" & Mid(vArr(4), 7, 2))  '38
+    convertGUID.abytData4(6) = CInt("&H" & Mid(vArr(4), 9, 2))  '9B
+    convertGUID.abytData4(7) = CInt("&H" & Mid(vArr(4), 11, 2)) '71
 
-Private Function accDesktop() As IAccessible
-    'Get this application's accessibility object
-    Dim accThis As IAccessible
-    Set accThis = IAccessibleFromHwnd(Application.hwnd)
-    
-    'Set desktop
-    Set accDesktop = accThis.accParent
 End Function
 
 Private Function getChildrenAsIAcc() As Collection
@@ -458,7 +535,7 @@ Private Function getChildrenAsIAcc() As Collection
         Else
             Dim oAccessible As IAccessible
             Set oAccessible = child
-            getChildrenAsIAcc.Add Me.FromIAccessible(oAccessible)
+            getChildrenAsIAcc.Add Me.CreateFromIAccessible(oAccessible)
         End If
     Next
 End Function
@@ -822,3 +899,35 @@ Private Sub Class_Initialize()
     Call SetupDicts
 End Sub
 
+
+'****************************************
+'* HELPERS FOR FindFirst() and FindAll()
+'****************************************
+'Given an array `stack`, and length `index`, append `item` onto the stack 
+Private Sub stackPushV(ByRef stack() As Variant, ByRef index As Long, ByVal item As Variant)
+    Dim size As Long: size = UBound(stack)
+    If index > size Then
+        ReDim Preserve stack(0 To size * 2)
+    End If
+    If IsObject(item) Then
+        Set stack(index) = item
+    Else
+        stack(index) = item
+    End If
+    index = index + 1
+End Sub
+
+'Used in DFS
+Private Function stackPopV(ByRef stack() As Variant, ByRef index As Variant) As Variant
+    Dim size As Long: size = UBound(stack)
+    If index < size / 3 And index > minStackSize Then
+        ReDim Preserve stack(0 To CLng(size / 2))
+    End If
+    index = index - 1
+    If IsObject(stack(index)) Then
+        Set popV = stack(index)
+    Else
+        popV = stack(index)
+    End If
+    stack(index) = Empty
+End Function
