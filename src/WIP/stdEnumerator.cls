@@ -75,6 +75,7 @@ Attribute VB_Exposed = False
 Private Enum EnumeratorType
     FromCallable
     FromIEnumVariant
+    FromArray
 End Enum
 
 Private Type SortStruct
@@ -90,10 +91,15 @@ Private pEnumObject as object
 Private pCallback as stdICallable
 
 'TODO: Implement ICallable methods in some way
-Public Function CreateFromCallable(ByVal cb as stdICallable) as stdEnumerator
-    set CreateFromCallable = new stdEnumerator
-    Call CreateFromCallable.init(EnumeratorType.FromCallable,cb)
-End Function
+'Public Function CreateFromCallable(ByVal cb as stdICallable) as stdEnumerator
+'    set CreateFromCallable = new stdEnumerator
+'    Call CreateFromCallable.init(EnumeratorType.FromCallable,cb)
+'End Function
+'
+'Public Function CreateFromArray(ByVal v as variant) as stdEnumerator
+'    set CreateFromArray = new stdEnumerator
+'    Call CreateFromCallable.init(EnumeratorType.FromArray,v)
+'End Function
 
 Public Function CreateFromIEnumVariant(ByVal o as IUnknown) as stdEnumerator
     set CreateFromIEnumVariant = new stdEnumerator
@@ -671,17 +677,17 @@ End Function
 
 
 'TODO: Implement raw API for working with IEnumVARIANT:
-Private Function getNextVariant(o as IEnumVARIANT) as variant
+Private Function getNextVariant(ByRef o as IEnumVARIANT) as variant
 
 End Function
-Private Sub skipNextVariant(o as IEnumVARIANT)
+Private Sub skipNextVariant(ByRef o as IEnumVARIANT)
 
 End Sub
-Private Function cloneEnumVariant(o as IEnumVARIANT) as IEnumVARIANT
+Private Function cloneEnumVariant(ByRef o as IEnumVARIANT) as IEnumVARIANT
 
 End Function
-Private Sub resetEnumVariant(o as IEnumVARIANT)
-
+Private Sub resetEnumVariant(ByRef o as IEnumVARIANT)
+    
 End Sub
 
 ''Feel this will be impossible currently, perhaps possible with DispCallFunc to call raw Next, Skip, Clone, Reset methods:
