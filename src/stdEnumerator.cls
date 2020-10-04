@@ -5,7 +5,7 @@ END
 Attribute VB_Name = "stdEnumerator"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
-Attribute VB_PredeclaredId = False
+Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 'Spec:
 'For some enumerable set ["foo","bar","baz","bazzer"] let stdEnumerator implement functions:
@@ -87,8 +87,10 @@ Private Type SortStruct
 End Type
 
 Private mode As EnumeratorType
-Private pEnumObject as object
+Private pEnumObject as IUnknown
 Private pCallback as stdICallable
+
+const VT_UNKNOWN = &Hd
 
 'TODO: Implement ICallable methods in some way
 'Public Function CreateFromCallable(ByVal cb as stdICallable) as stdEnumerator
@@ -168,13 +170,11 @@ Public Function Filter(ByVal cb as stdICallable, Optional ByVal WithIndex as boo
         case EnumeratorType.FromIEnumVariant
             Dim v as variant, i as long: i = 0
             For Each v In pEnumObject
-                if cb.Run(v) then
-                    if withIndex then
-                        i=i+1
-                        if cb.Run(i,v) then Call oRet.add(v)
-                    else
-                        if cb.Run(v) then Call oRet.add(v)
-                    end if
+                if withIndex then
+                    i=i+1
+                    if cb.Run(i,v) then Call oRet.add(v)
+                else
+                    if cb.Run(v) then Call oRet.add(v)
                 end if
             Next
     End Select
@@ -379,14 +379,14 @@ Public Function includes(ByVal tv as variant) as boolean
     includes = indexOf(tv) > 0
 End Function
 
-Public Function checkAll(ByVal tv as variant) as boolean
+Public Function checkAll(ByVal cb as stdICallable) as boolean
     select case mode
         case EnumeratorType.FromCallable
         
         case EnumeratorType.FromIEnumVariant
             Dim v as variant
             for each v in pEnumObject
-                if not areVariantsEqual(tv,v) then
+                if not cb.Run(v) then
                     checkAll = false
                     Exit Function
                 end if
@@ -395,14 +395,14 @@ Public Function checkAll(ByVal tv as variant) as boolean
     end select
 End Function
 
-Public Function checkAny(ByVal tv as variant) as boolean
+Public Function checkAny(ByVal cb as stdICallable) as boolean
     select case mode
         case EnumeratorType.FromCallable
         
         case EnumeratorType.FromIEnumVariant
             Dim v as variant
             for each v in pEnumObject
-                if areVariantsEqual(tv,v) then
+                if cb.Run(v) then
                     checkAny = true
                     Exit Function
                 end if
@@ -411,14 +411,14 @@ Public Function checkAny(ByVal tv as variant) as boolean
     end select
 End Function
 
-Public Function checkNone(ByVal tv as variant) as boolean
+Public Function checkNone(ByVal cb as stdICallable) as boolean
     select case mode
         case EnumeratorType.FromCallable
         
         case EnumeratorType.FromIEnumVariant
             Dim v as variant
             for each v in pEnumObject
-                if areVariantsEqual(tv,v) then
+                if cb.Run(v) then
                     checkNone = false
                     Exit Function
                 end if
@@ -427,14 +427,14 @@ Public Function checkNone(ByVal tv as variant) as boolean
     end select
 End Function
 
-Public Function checkOnlyOne(ByVal tv as variant) as boolean
+Public Function checkOnlyOne(ByVal cb as stdICallable) as boolean
     select case mode
         case EnumeratorType.FromCallable
         
         case EnumeratorType.FromIEnumVariant
             Dim v as variant, iMatched as long: iMatched = 0
             for each v in pEnumObject
-                if areVariantsEqual(tv,v) then
+                if cb.Run(v) then
                     iMatched = iMatched + 1
                     if iMatched > 1 then
                         checkOnlyOne = false
@@ -450,12 +450,13 @@ Public Function checkOnlyOne(ByVal tv as variant) as boolean
     end select
 End Function
 
-Public Function reduce(ByVal cb as stdICallable) as variant
+Public Function reduce(ByVal cb as stdICallable, Optional ByVal vInitialValue as variant = 0) as variant
     select case mode
         case EnumeratorType.FromCallable
         
         case EnumeratorType.FromIEnumVariant
             Dim v as variant, oRet as variant
+            Call CopyVariant(oRet, vInitialValue)
             for each v in pEnumObject
                 oRet = cb.Run(oRet,v)
             next
@@ -500,7 +501,7 @@ Public Function groupBy(ByVal cb as stdICallable) as object
     end select
 End Function
 
-Public Function max(Optional ByVal cb as stdICallable = nothing) as long
+Public Function max(Optional ByVal cb as stdICallable = nothing) as variant
     Dim vRet as variant
     Dim vMaxValue as variant
     select case mode
@@ -531,7 +532,7 @@ Public Function max(Optional ByVal cb as stdICallable = nothing) as long
     end select
 End Function
 
-Public Function min(Optional ByVal cb as stdICallable = nothing) as long
+Public Function min(Optional ByVal cb as stdICallable = nothing) as variant
     Dim vRet as variant
     Dim vMaxValue as variant
     select case mode
@@ -562,7 +563,7 @@ Public Function min(Optional ByVal cb as stdICallable = nothing) as long
     end select
 End Function
 
-Public Function sum(Optional ByVal cb as stdICallable = nothing) as long
+Public Function sum(Optional ByVal cb as stdICallable = nothing) as variant
     Dim vRet as variant
     select case mode
         case EnumeratorType.FromCallable
@@ -636,7 +637,7 @@ Public Function FindFirst(ByVal cb as stdICallable) as variant
                 end if
             next
     end select
-    set FindFirst = Me
+    FindFirst = Null
 End Function
 
 
@@ -656,20 +657,23 @@ Private Function areVariantsEqual(ByVal v1 as variant, ByVal v2 as variant) as b
     end if
 End Function
 Private Sub CopyVariant(ByRef vDest as variant, ByVal vSrc as Variant)
-    if isObject(vSrc) then
+    if isObject(vSrc)  Or  VarType(vSrc) = VT_UNKNOWN Then
         set vDest = vSrc
     else
         vDest = vSrc
     end if
 End Sub
-Private Function implementsIEnumVariant(ByVal o as IUnknown) as boolean
+Private Function implementsIEnumVariant(ByVal o as Variant) as boolean
     On Error GoTo ErrorOccurred
-        Dim x as IEnumVARIANT
-        set x = o
+        if isObject(o) or VarType(o) = VT_UNKNOWN then
+            Dim x as variant
+            For each x in o
+                Exit For
+            Next
+            implementsIEnumVariant = true
+            Exit Function
+        end if
     On Error GoTo 0
-    
-    implementsIEnumVariant = true
-    Exit Function
 
 ErrorOccurred:
     implementsIEnumVariant=false
