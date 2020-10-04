@@ -1204,12 +1204,14 @@ Private Function evaluateFunc(ByVal sFuncName As String, ByVal args As Variant) 
                     End If
                 Next
             Else
+              For i = iArgStart + 1 To UBound(args)
                 If Not IsObject(args(i)) Then
                     If args(iArgStart) = args(i) Then
                       evaluateFunc = True
                       Exit For
                     End If
                 End If
+              Next
             End If
         Case Else
             Throw ("No such function: " & sFuncName)

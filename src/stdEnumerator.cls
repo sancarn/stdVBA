@@ -171,9 +171,9 @@ Public Function Filter(ByVal cb as stdICallable, Optional ByVal WithIndex as boo
                 if cb.Run(v) then
                     if withIndex then
                         i=i+1
-                        if cb.RunEx(i,v) then Call oRet.add(v)
+                        if cb.Run(i,v) then Call oRet.add(v)
                     else
-                        if cb.RunEx(v) then Call oRet.add(v)
+                        if cb.Run(v) then Call oRet.add(v)
                     end if
                 end if
             Next
@@ -184,13 +184,13 @@ End Function
 
 Public Function Sort(ByVal cb as stdICallable) as stdEnumerator
     Dim arr() as SortStruct
-    Redim arr(1 to me.count)
     Dim iIndex as Long: iIndex = 0
     Dim iFirstItem as long: iFirstItem = 1
     Dim val as variant
     For each val in pEnumObject
         'Increment index
         iIndex = iIndex + 1
+        Redim Preserve arr(1 to iIndex)
 
         'Bind to SortStruct
         if iIndex > 1 Then
@@ -338,7 +338,7 @@ Public Function Join(Optional ByVal sDelimiter as string = ",") as string
             next
     end select
 
-    set Join = mid(sRet,2)
+    Join = mid(sRet,2)
 End Function
 
 Public Function indexOf(ByVal tv as variant) as long
@@ -360,7 +360,7 @@ Public Function indexOf(ByVal tv as variant) as long
 End Function
 
 Public Function lastIndexOf(ByVal tv as variant) as long
-    indexOf = 0
+    lastIndexOf = 0
     select case mode
         case EnumeratorType.FromCallable
         
@@ -369,7 +369,7 @@ Public Function lastIndexOf(ByVal tv as variant) as long
             for each v in pEnumObject
                 iRet = iRet + 1
                 if areVariantsEqual(tv,v) then
-                    indexOf = iRet
+                    lastIndexOf = iRet
                 end if
             next
     end select
@@ -403,11 +403,11 @@ Public Function checkAny(ByVal tv as variant) as boolean
             Dim v as variant
             for each v in pEnumObject
                 if areVariantsEqual(tv,v) then
-                    checkAll = true
+                    checkAny = true
                     Exit Function
                 end if
             next
-            checkAll = false
+            checkAny = false
     end select
 End Function
 
@@ -486,7 +486,7 @@ Public Function groupBy(ByVal cb as stdICallable) as object
         case EnumeratorType.FromIEnumVariant
             Dim v as variant
             for each v in pEnumObject
-                CopyVariant(key,cb.Run(v))
+                Call CopyVariant(key,cb.Run(v))
                 if not oRet.exists(key) then set oRet(key) = new Collection
                 oRet(key).add(v)
             next
@@ -512,22 +512,22 @@ Public Function max(Optional ByVal cb as stdICallable = nothing) as long
                 'Get value to test
                 Dim vtValue as variant
                 if cb is nothing then
-                    CopyVariant(vtValue,v)
+                    Call CopyVariant(vtValue,v)
                 else
-                    CopyVariant(vtValue,cb.Run(v))
+                    Call CopyVariant(vtValue,cb.Run(v))
                 end if
 
-                'Compare values and return
+                'Compare values and return 
                 if isEmpty(vRet) then
-                    CopyVariant(vRet,v)
-                    CopyVariant(vMaxValue, vtValue)
-                elseif vMaxValue < vtValue
-                    CopyVariant(vRet,v)
-                    CopyVariant(vMaxValue, vtValue)
+                    Call CopyVariant(vRet,v)
+                    Call CopyVariant(vMaxValue, vtValue)
+                elseif vMaxValue < vtValue then
+                    Call CopyVariant(vRet,v)
+                    Call CopyVariant(vMaxValue, vtValue)
                 end if
             next
             
-            CopyVariant(max,vRet)
+            Call CopyVariant(max,vRet)
     end select
 End Function
 
@@ -543,22 +543,22 @@ Public Function min(Optional ByVal cb as stdICallable = nothing) as long
                 'Get value to test
                 Dim vtValue as variant
                 if cb is nothing then
-                    CopyVariant(vtValue,v)
+                    Call CopyVariant(vtValue,v)
                 else
-                    CopyVariant(vtValue,cb.Run(v))
+                    Call CopyVariant(vtValue,cb.Run(v))
                 end if
 
                 'Compare values and return
                 if isEmpty(vRet) then
-                    CopyVariant(vRet,v)
-                    CopyVariant(vMaxValue, vtValue)
-                elseif vMaxValue > vtValue
-                    CopyVariant(vRet,v)
-                    CopyVariant(vMaxValue, vtValue)
+                    Call CopyVariant(vRet,v)
+                    Call CopyVariant(vMaxValue, vtValue)
+                elseif vMaxValue > vtValue then
+                    Call CopyVariant(vRet,v)
+                    Call CopyVariant(vMaxValue, vtValue)
                 end if
             next
             
-            CopyVariant(min,vRet)
+            Call CopyVariant(min,vRet)
     end select
 End Function
 
@@ -573,14 +573,14 @@ Public Function sum(Optional ByVal cb as stdICallable = nothing) as long
                 'Get value to test
                 Dim vtValue as variant
                 if cb is nothing then
-                    CopyVariant(vtValue,v)
+                    Call CopyVariant(vtValue,v)
                 else
-                    CopyVariant(vtValue,cb.Run(v))
+                    Call CopyVariant(vtValue,cb.Run(v))
                 end if
                 vRet = vRet + vtValue
             next
             
-            CopyVariant(sum,vRet)
+            Call CopyVariant(sum,vRet)
     end select
 End Function
 
@@ -631,12 +631,12 @@ Public Function FindFirst(ByVal cb as stdICallable) as variant
             Dim v as variant
             For each v in pEnumObject
                 if cb.run(v) then
-                    CopyVariant(FindFirst,v)
+                    Call CopyVariant(FindFirst,v)
                     Exit Function
                 end if
             next
     end select
-    set Cycle = Me
+    set FindFirst = Me
 End Function
 
 
