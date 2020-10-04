@@ -210,10 +210,17 @@ Public Function Sort(ByVal cb as stdICallable) as stdEnumerator
 
                     'Rebind previous element if required
                     if arr(iCompareIndex).iPrev <> 0 then
-                        'There is a previous element, rebind it!
-                        arr(arr(iCompareIndex).iPrev).iNext = iIndex
+                        'My new previous index is the previous elements previous index
+                        arr(iIndex).iPrev = arr(iCompareIndex).iPrev
+                        
+                        'The previous elements iNext should bind to me
+                        arr(arr(iIndex).iPrev).iNext = iIndex
+                        
+                        'The compare indexes iPrev should bind to me
+                        arr(iCompareIndex).iPrev = iIndex
                     else
-                        'There is no previous element i.e. this is the first element, change iFirstItem
+                        'There is no previous element i.e. this is the first element, change iFirstItem, and link current index to iPrev of comparee
+                        arr(iCompareIndex).iPrev = iIndex
                         iFirstItem = iIndex
                     End if
                     
@@ -273,6 +280,7 @@ Public Function Unique() as stdEnumerator
                 Dim tv as variant
                 for each tv in oRet
                     matchFound = areVariantsEqual(tv,v)
+                    if matchFound then Exit For
                 next
 
                 'If a match isn't found return v
@@ -334,11 +342,11 @@ Public Function Join(Optional ByVal sDelimiter as string = ",") as string
         
         case EnumeratorType.FromIEnumVariant
             for each v in pEnumObject
-                sRet = sRet & "," & v
+                sRet = sRet & sDelimiter & v
             next
     end select
 
-    Join = mid(sRet,2)
+    Join = mid(sRet,len(sDelimiter)+1)
 End Function
 
 Public Function indexOf(ByVal tv as variant) as long
@@ -650,10 +658,10 @@ End Function
 '===================================================================================================
 
 Private Function areVariantsEqual(ByVal v1 as variant, ByVal v2 as variant) as boolean
-    if isObject(tv) and isObject(v) then
-        areVariantsEqual = tv is v
-    elseif (not isobject(tv)) and (not isObject(v)) then
-        areVariantsEqual = tv = v
+    if isObject(v1) and isObject(v2) then
+        areVariantsEqual = v1 is v2
+    elseif (not isobject(v1)) and (not isObject(v2)) then
+        areVariantsEqual = v1 = v2
     end if
 End Function
 Private Sub CopyVariant(ByRef vDest as variant, ByVal vSrc as Variant)
