@@ -182,7 +182,7 @@ Public Function Filter(ByVal cb as stdICallable, Optional ByVal WithIndex as boo
     set Filter = stdEnumerator.CreateFromIEnumVariant(oRet)
 End Function
 
-Public Function Sort(cb as callback, ctor as object) as stdEnumerator
+Public Function Sort(ByVal cb as stdICallable) as stdEnumerator
     Dim arr() as SortStruct
     Redim arr(1 to me.count)
     Dim iIndex as Long: iIndex = 0
