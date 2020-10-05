@@ -98,7 +98,7 @@ Sub testAll()
     Test.Assert "Map w/ Index", e1.map(stdLambda.Create("$1+$2"),true).join() = "2,4,6,8,10,12,14,16,18"
     Test.Assert "Reverse", e1.reverse().join() = "9,8,7,6,5,4,3,2,1"
     Test.Assert "Filter", e1.Filter(stdLambda.Create("$1<=4")).join() = "1,2,3,4"
-    Test.Assert "Filter w/ Index", e1.Filter(stdLambda.Create("($1+$2)<=4"),true).join() = "2,4"
+    Test.Assert "Filter w/ Index", e1.Filter(stdLambda.Create("($1+$2)<=4"),true).join() = "1,2"
     Test.Assert "Concat", e1.concat(c1).join() = "1,2,3,4,5,6,7,8,9,1,2,3,4,5,6,7,8,9"
 
     With e1.concat(c1)
@@ -115,9 +115,9 @@ Sub testAll()
     Test.Assert "Reduce w/ Initial value", e1.reduce(stdLambda.Create("$1+$2"),10)=55
     Test.Assert "CountBy", e2.countBy(stdLambda.Create("len($1)<=5"))=39
     Test.Assert "CheckAll", e1.checkAll(stdLambda.Create("$1<=42"))
-    Test.Assert "CheckAny", e1.checkAll(stdLambda.Create("$1=5"))
-    Test.Assert "CheckNone 1", Not e1.checkAll(stdLambda.Create("$1=5"))
-    Test.Assert "CheckNone 2", e1.checkAll(stdLambda.Create("$1=42"))
+    Test.Assert "CheckAny", e1.checkAny(stdLambda.Create("$1=5"))
+    Test.Assert "CheckNone 1", Not e1.checkNone(stdLambda.Create("$1=5"))
+    Test.Assert "CheckNone 2", e1.checkNone(stdLambda.Create("$1=42"))
     Test.Assert "CheckOnlyOne 1 matched thus true", e1.checkOnlyOne(stdLambda.Create("$1=1"))
     Test.Assert "CheckOnlyOne 2 matched thus false", not e1.checkOnlyOne(stdLambda.Create("$1<=2"))
     Test.Assert "CheckOnlyOne 0 matched thus false", not e1.checkOnlyOne(stdLambda.Create("$1=42"))
@@ -156,12 +156,12 @@ Sub testAll()
     Test.Assert "Flatten", stdEnumerator.CreateFromIEnumVariant(tCol).Flatten().join() = "1,2,3,4,5,6"
 
     Dim dict as object
-    set dict = e1.groupBy(stdLambda.Create("if ($1 % 2) = 0 then ""Even"" else ""Odd"""))
+    set dict = e1.groupBy(stdLambda.Create("if ($1 mod 2) = 0 then ""Even"" else ""Odd"""))
     Test.Assert "GroupBy - Even numbers", dict("Even").join() = "2,4,6,8"
     Test.Assert "GroupBy - Odd numbers" , dict("Odd").join() = "1,3,5,7,9"
 
     'TODO: Fix sort
-    Test.Assert "Sort", e2.sort(stdLambda.Create("len($1)")).join = ""
+    Test.Assert "Sort", e2.Sort(stdLambda.Create("len($1)")).Join = "do,ut,et,Ut,ad,ut,ex,ea,in,in,eu,in,id,sit,sed,non,qui,est,amet,elit,enim,quis,nisi,Duis,aute,esse,sint,sunt,anim,Lorem,ipsum,dolor,magna,minim,irure,dolor,velit,nulla,culpa,tempor,labore,dolore,aliqua,veniam,cillum,dolore,fugiat,mollit,eiusmod,nostrud,ullamco,laboris,aliquip,commodo,officia,laborum,pariatur,occaecat,proident,deserunt,consequat,voluptate,Excepteur,cupidatat,adipiscing,incididunt,consectetur,exercitation,reprehenderit"
 End Sub
 
 
