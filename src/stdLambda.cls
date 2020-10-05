@@ -491,7 +491,7 @@ Private Sub parseArithmeticPriority3() 'mod
     Call parseArithmeticPriority4
     Dim bLoop As Boolean: bLoop = True
     Do
-        If optConsume("modulus") Then
+        If optConsume("mod") Then
             Call parseArithmeticPriority4
             Call addOperation(oArithmetic, oMod, , -1)
         Else

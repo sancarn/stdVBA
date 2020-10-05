@@ -7,4 +7,5 @@ Sub MainTestAll()
     Call stdLambdaTests.testAll
     Call stdArrayTests.testAll
     Call stdCallbackTests.testAll
+    Call stdEnumeratorTests.testAll
 End Sub
