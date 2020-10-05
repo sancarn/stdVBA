@@ -83,51 +83,51 @@ Over time I have been building my own libraries and have gradually built my own 
 
 The VBA Standard Library aims to give users a set of common libraries, maintained by the community, which aid in the building of VBA Applications.
 
-## Road map
+## Road Map
 
-Progress on this project is likely to be slow, as this is community led and currently maintained by very few contributers. As implementation usually follows interest, the following list of classes are likely to be worked on at different rates, and all in parallel instead of in a particular order.
+This project is has been majorly maintained by 1 person, so progress is generally very slow. This said, generally the road map corresponds with what I need at the time, or what irritates me. In general this means `fundamental` features are more likely to be complete first, more complex features will be integrated towards the end. This is not a rule, i.e. `stdSharepoint` is mostly complete without implementation of `stdXML` which it'd use. But as a general rule of thumb things will be implemented in the following order:
 
-* Finish off core WIP classes (e.g. `Date`, `Debug`, `Regex`).
-* Create a callable expression language / lambda syntax for VBA.
-* Other core classes need implementing (e.g. `String`, `Math`, `COM`, `Pointer`, `Dictionary`, `VBR`, `Kernel`, `Windows`, `FileSystem` ...)
-* Can start to implement `JSON`, `HTTP`, `XML`, `OXML`, `Zip` etc ... now.
-* Runtimes! `CLR`, `Powershell`, `JavaScript`,`SerialisedVBA`
-* Threading
-* Events
+* Types - `stdArray`, `stdDictionary`, `stdRegex`, `stdDate`, `stdLambda`, ... 
+* Data  - `stdJSON`, `stdXML`, `stdOXML`, `stdCSON`, `stdIni`, `stdZip` 
+* File  - `stdShell` 
+* Automation - `stdHTTP`, `stdAcc`, `stdWindow`, `stdKernel`
+* Excel specific - `xlFileWatcher`, `xlProjectBuilder`, `xlTimer`, `xlShapeEvents`, `xlTable`
+* Runtimes - `stdCLR`, `stdPowershell`, `stdJavascript`, `stdOfficeJSBridge`
 
 ## Planned Global Objects:
 
 | Status | VBType |Type       |Name             | Description  |
 |--------|--------|-----------|-----------------|--------------|
-| HOLD   | Class  |File       |stdFileSystem    | A wrapper around Shell's and FSO's file system APIs.
-| HOLD   | Class  |File       |stdZip           | A wrapper around shell's Zip functionality.
+| HOLD   | Class  |File       |stdShell         | A wrapper around windows file system APIs. Likely implemented as a class which can be instantiated on a file or folder, and can behave as multiple file items.
 | HOLD   | Class  |Debug      |stdDebug         | A wrapper around `Debug` while adding new options like styling messages and printing to an external html console.
 | READY  | Class  |Debug      |stdError         | Better error handling, including stack trace and error handling diversion and events.
-| WIP    | Class  |Data       |stdJSON          | [Tim Hall's fantastic JSON library](https://github.com/VBA-tools/VBA-JSON)
-| HOLD   | Class  |Data       |stdHTTP          | A wrapper around HTTP COM libraries.
-| WIP    | Class  |Data       |stdXML           | A library to manipulate XML documents.
+| HOLD   | Class  |Data       |stdZip           | A wrapper around shell's Zip functionality.
+| HOLD   | Class  |Data       |stdJSON          | [Tim Hall's fantastic JSON library](https://github.com/VBA-tools/VBA-JSON)
+| HOLD   | Class  |Data       |stdXML           | A library to manipulate XML documents.
 | HOLD   | Class  |Data       |stdOXML          | A library to assist in the modification of Office documents via Open XML format.
 | READY  | Class  |Type       |stdArray         | A library designed to re-create the Javascript dynamic array object.
+| READY  | Class  |Type       |stdEnumerator    | A library designed to wrap enumerable objects (implements `IEnumVARIANT`) providing additional functionality.
 | WIP    | Class  |Type       |stdDictionary    | A drop in replacement for VBScript's dictionary.
 | READY  | Class  |Type       |stdDate          | A standard date parsing library. No more will you have to rely on Excel's interpreter. State the format, get the data.
 | READY  | Class  |Type       |stdRegex         | A wrapper around `VBScript.RegExp` but with more features e.g. named capture groups and free-spaces.
 | READY  | Class  |Type       |stdLambda        | Build and create in-line functions. Execute them at a later stage.
 | READY  | Class  |Type       |stdCallback      | Link to existing functions defined in VBA code, call them at a later stage.
 | READY  | Class  |Type       |stdStringBuilder | A better way of creating large strings.
+| WIP    | Class  |Type       |stdCOM           | A wrapper around a COM object which provides Reflection (through ITypeInfo), Interface querying, Calling interface methods (via DispID) and more. 
 | UNK    | Module |Type       |stdIniVariantEnum| Initialising [IEnumVARIANT](http://www.vbforums.com/showthread.php?854963-VB6-IEnumVARIANT-For-Each-support-without-a-typelib) by recreating vtable. Used to overcome pitfalls of VB collections. Alternatively will implement an IFxEnumVariant interface
+| HOLD   | Class  |Automation |stdHTTP          | A wrapper around HTTP COM libraries.
+| WIP    | Class  |Automation |stdAccessibility | Use Microsoft Active Accessibility framework within VBA - Very useful for automation.
+| WIP    | Class  |Automation |stdWindows       | Standard functions for handling Windows
+| WIP    | Class  |Automation |stdKernel        | Low level but useful APIs. Won't be loading Kernel32.dll entirely, but will try to expose static methods to common useful functions.
 | WIP    | Class  |Runtimes   |stdCLR           | Host CLR (Common Language Runtime). Allows execution of C#.NET and VB.NET scripts in-process.
 | WIP    | Class  |Runtimes   |stdPowershell    | Host [Powershell](https://docs.microsoft.com/en-us/powershell/developer/hosting/windows-powershell-host-quickstart)
 | WIP    | Class  |Runtimes   |stdJavaScript    | Host [Edge and IE Javascript engine](https://docs.microsoft.com/en-us/microsoft-edge/hosting/chakra-hosting/hosting-the-javascript-runtime). [IE11 Hosting](https://docs.microsoft.com/en-us/microsoft-edge/hosting/chakra-hosting/targeting-edge-vs-legacy-engines-in-jsrt-apis)
 | WIP    | Class  |Runtimes   |stdJSBridge      | A VbaJsBridge module allowing applications to open and close programmatic access to VBA from OfficeJS.
 | UNK    | Class  |Runtimes   |stdVBR           | [Hidden functions from VB VirtualMachine library](http://www.freevbcode.com/ShowCode.asp?ID=7520)
-| UNK    | Class  |Runtimes   |stdSerialisedVBA | Custom engine for executing VBA from a serialised JSON string.
 | UNK    | Class  |Runtimes   |stdExecLib       | Execute external applications in-memory. [src](https://github.com/itm4n/VBA-RunPE)
-| WIP    | Class  |Automation |stdCOM           | Low level COM APIs.
-| WIP    | Class  |Automation |stdAccessibility | Use Microsoft Active Accessibility framework within VBA - Very useful for automation.
-| WIP    | Class  |Automation |stdWindows       | Standard functions for handling Windows
-| WIP    | Class  |Automation |stdKernel        | Low level but useful APIs. Won't be loading Kernel32.dll entirely, but will try to expose static methods to common useful functions.
 | WIP    | Class  |Processing |stdThread        | Multithreading in VBA? [src](http://www.freevbcode.com/ShowCode.asp?ID=1287#A%20Quick%20Review%20Of%20Multithreading)
-| WIP    | Class | Application | stdEvents | More events for VBA.
+| WIP    | Class  |Excel      |stdEvents        | More events for VBA.
+| WIP    | Class  |Excel      |stdTable         | Better tables for VBA, e.g. Map rows etc.
 
 ## Structure
 
