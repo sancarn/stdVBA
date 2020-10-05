@@ -48,6 +48,8 @@ Attribute VB_Exposed = False
 '    [X] checkAny
 '    [X] checkNone
 '    [X] checkOnlyOne
+'    [X] item
+'    [X] length
 
 'TODO: Implement the following methods:
 '    [?] each_cons  [1,2,3,4,5].each_cons(2,cb) ==> cb([1,2]) ==> cb([2,3]) ==> cb([3,4]) ==> cb([4,5])
@@ -648,9 +650,35 @@ Public Function FindFirst(ByVal cb as stdICallable) as variant
     FindFirst = Null
 End Function
 
+Public Function Item(ByVal i as Long) as variant
+    select case mode
+        case EnumeratorType.FromCallable
+        
+        case EnumeratorType.FromIEnumVariant
+            Dim v as variant, iCount as long: iCount = 0
+            For each v in pEnumObject
+                iCount = iCount + 1
+                if iCount = i then
+                    Call CopyVariant(Item,v)
+                    Exit Function
+                end if
+            next
+            Item = null
+    end select
+End Function
 
-
-
+Public Function Length() as Long
+    select case mode
+        case EnumeratorType.FromCallable
+        
+        case EnumeratorType.FromIEnumVariant
+            Dim v as variant, iCount as long: iCount = 0
+            For each v in pEnumObject
+                iCount = iCount + 1
+            next
+            Length = iCount
+    end select
+End Function
 
 
 

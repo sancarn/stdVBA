@@ -129,6 +129,10 @@ Sub testAll()
     Test.Assert "Sum", e1.sum(stdLambda.Create("$1*2"))=90
     Test.Assert "FindFirst found", e2.FindFirst(stdLambda.Create("len($1)=6"))="tempor"
     Test.Assert "FindFirst not found", isNull(e2.FindFirst(stdLambda.Create("len($1)=42")))
+    Test.Assert "Sort", e2.Sort(stdLambda.Create("len($1)")).Join = "do,ut,et,Ut,ad,ut,ex,ea,in,in,eu,in,id,sit,sed,non,qui,est,amet,elit,enim,quis,nisi,Duis,aute,esse,sint,sunt,anim,Lorem,ipsum,dolor,magna,minim,irure,dolor,velit,nulla,culpa,tempor,labore,dolore,aliqua,veniam,cillum,dolore,fugiat,mollit,eiusmod,nostrud,ullamco,laboris,aliquip,commodo,officia,laborum,pariatur,occaecat,proident,deserunt,consequat,voluptate,Excepteur,cupidatat,adipiscing,incididunt,consectetur,exercitation,reprehenderit"
+    Test.Assert "Length", e1.Length()=9
+    Test.Assert "Item 1 gets item", e1.item(5)=5
+    Test.Assert "Item 2 returns null", isNull(e1.item(99))
 
     'ForEach style tests
     Dim tCol as collection
@@ -159,9 +163,6 @@ Sub testAll()
     set dict = e1.groupBy(stdLambda.Create("if ($1 mod 2) = 0 then ""Even"" else ""Odd"""))
     Test.Assert "GroupBy - Even numbers", dict("Even").join() = "2,4,6,8"
     Test.Assert "GroupBy - Odd numbers" , dict("Odd").join() = "1,3,5,7,9"
-
-    'TODO: Fix sort
-    Test.Assert "Sort", e2.Sort(stdLambda.Create("len($1)")).Join = "do,ut,et,Ut,ad,ut,ex,ea,in,in,eu,in,id,sit,sed,non,qui,est,amet,elit,enim,quis,nisi,Duis,aute,esse,sint,sunt,anim,Lorem,ipsum,dolor,magna,minim,irure,dolor,velit,nulla,culpa,tempor,labore,dolore,aliqua,veniam,cillum,dolore,fugiat,mollit,eiusmod,nostrud,ullamco,laboris,aliquip,commodo,officia,laborum,pariatur,occaecat,proident,deserunt,consequat,voluptate,Excepteur,cupidatat,adipiscing,incididunt,consectetur,exercitation,reprehenderit"
 End Sub
 
 
