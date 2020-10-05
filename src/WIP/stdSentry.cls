@@ -59,11 +59,10 @@ Attribute VB_Exposed = False
 '
 'The stdSentry is implemented very simply:
 Private pOnDestroy as stdICallable
-Private params as variant
 
-Public Function Create(ByVal OnDestroy as stdICallable, Optional args as variant = Empty)
+Public Function Create(ByVal OnDestroy as stdICallable)
   set Create = new stdSentry
-  Call Create.Init(OnDestroy,params)
+  Call Create.Init(OnDestroy)
 End Function
 
 'E.G. stdSentry.CreateFromMethods(stdError,"zprot_RNOn","zprot_RNOff")
@@ -78,21 +77,16 @@ Public Function CreateFromLet(ByVal obj as object, ByVal sPropertyName as string
   set CreateFromLet = new stdSentry
   Dim vOldValue as variant: vOldValue = CallByName(obj,sPropertyName, vbGet)
   Call CallByName(obj,sPropertyName, vbLet, vNewValue)
-  CreateFromLet.init(stdCallback.CreateFromObjectProperty(obj,sPropertyName, vbLet), vOldValue)
+  CreateFromLet.init(stdCallback.CreateFromObjectProperty(obj,sPropertyName, vbLet).bind(vOldValue))
 End Function
 
-Public Sub Init(ByVal OnDestroy as stdICallable, args as variant)
+Public Sub Init(ByVal OnDestroy as stdICallable)
   set pOnDestroy = OnDestroy
-  If IsObject(args) then 
-    set params = args
-  Else
-    params = args
-  End if
 End Sub
 
 Private Sub Class_Terminate()
-  if not OnDestroy is nothing then
-    Call OnDestroy.RunEx(args)
+  if not pOnDestroy is nothing then
+    Call pOnDestroy.Run()
   End if
 End Sub
 
