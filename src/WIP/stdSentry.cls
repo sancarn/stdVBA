@@ -60,13 +60,13 @@ Attribute VB_Exposed = False
 'The stdSentry is implemented very simply:
 Private pOnDestroy as stdICallable
 
-Public Function Create(ByVal OnDestroy as stdICallable)
+Public Function Create(ByVal OnDestroy as stdICallable) as stdSentry
   set Create = new stdSentry
   Call Create.Init(OnDestroy)
 End Function
 
 'E.G. stdSentry.CreateFromMethods(stdError,"zprot_RNOn","zprot_RNOff")
-Public Function CreateFromMethods(ByVal obj as object, ByVal sOnCreateName as string, ByVal sOnDestroyName as string)
+Public Function CreateFromMethods(ByVal obj as object, ByVal sOnCreateName as string, ByVal sOnDestroyName as string) as stdSentry
   set CreateFromMethods = new stdSentry
   Call CallByName(obj, sOnCreateName)
   CreateFromMethods.Init(stdCallback.CreateFromObjectMethod(obj,sOnDestroyName))
