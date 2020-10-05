@@ -1174,44 +1174,44 @@ Private Function evaluateFunc(ByVal sFuncName As String, ByVal args As Variant) 
         Case "switch"
             'TODO: Switch caching and use of dictionary would be good here
             For i = iArgStart + 1 To UBound(args) Step 2
-                If i + 1 > UBound(args) Then
-                    Call CopyVariant(evaluateFunc, args(i))
+              If i + 1 > UBound(args) Then
+                Call CopyVariant(evaluateFunc, args(i))
+                Exit For
+              Else
+                If IsObject(args(iArgStart)) And IsObject(args(i)) Then
+                  If args(iArgStart) Is args(i) Then
+                    Set evaluateFunc = args(i + 1)
                     Exit For
-                Else
-                    If IsObject(args(iArgStart)) And IsObject(args(i)) Then
-                        If args(iArgStart) Is args(i) Then
-                          Set evaluateFunc = args(i + 1)
-                          Exit For
-                        End If
-                    ElseIf (Not IsObject(args(iArgStart))) And (Not IsObject(args(i))) Then
-                        If args(iArgStart) = args(i) Then
-                          evaluateFunc = args(i + 1)
-                          Exit For
-                        End If
-                    End If
+                  End If
+                ElseIf (Not IsObject(args(iArgStart))) And (Not IsObject(args(i))) Then
+                  If args(iArgStart) = args(i) Then
+                    evaluateFunc = args(i + 1)
+                    Exit For
+                  End If
                 End If
+              End If
             Next
         Case "any"
             evaluateFunc = False
             'Detect if comparee is an object or a value
             If IsObject(args(iArgStart)) Then
                 For i = iArgStart + 1 To UBound(args)
-                    If IsObject(args(i)) Then
-                        If args(iArgStart) Is args(i) Then
-                          evaluateFunc = True
-                          Exit For
-                        End If
+                  If IsObject(args(i)) Then
+                    If args(iArgStart) Is args(i) Then
+                      evaluateFunc = True
+                      Exit For
                     End If
+                  End If
                 Next
             Else
-              For i = iArgStart + 1 To UBound(args)
-                If Not IsObject(args(i)) Then
+                For i = iArgStart + 1 To UBound(args)
+                  If Not IsObject(args(i)) Then
                     If args(iArgStart) = args(i) Then
                       evaluateFunc = True
                       Exit For
                     End If
-                End If
-              Next
+                  End If
+                Next
             End If
         Case Else
             Throw ("No such function: " & sFuncName)
