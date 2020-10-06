@@ -114,7 +114,7 @@ Private pValue as Variant
 Private pType as String
 
 Public Property Get Value() as Variant
-    
+    '...
 End Property
 Public Property Let Value(v as variant)
     
@@ -131,7 +131,11 @@ Public Property Get Photo() as IPhoto
 End Property
 
 Public Property Set Photo(v as IPhoto)
+  RegisterClipboardFormatW(StrPtr(formatName))
+
   'Set format based on passed photo v
+  
+
 End Property
 
 Public Function GetBytes() as Byte()
