@@ -122,22 +122,53 @@ End Sub
 
 
 Public Function ForEach(Optional ByVal cb As stdICallable, Optional ByVal WithIndex as boolean = false) As stdEnumerator
-    select case mode
-        case EnumeratorType.FromCallable
-        
-        case EnumeratorType.FromIEnumVariant
-            Dim v as variant, i as long: i=0
-            For Each v In pEnumObject
-                i=i+1
-                if withIndex then
-                    Call cb.Run(i,v)
+    Dim bLoopInitialised as boolean: bLoopInitialised = false
+    
+    Dim v as variant, i as long: i=0
+    Do while true
+        'Increment index
+        i=i+1
+
+        'Obtain loop var from mode
+        select case mode
+            case EnumeratorType.FromCallable
+                if bLoopInitialised then
+                    v = pCallback.run(v,i)
                 else
-                    Call cb.Run(v)
+                    v = pCallback.Run(null)
+                    bLoopInitialised=true
                 end if
-            Next
-    End Select
+            case EnumeratorType.FromIEnumVariant
+                if bLoopInitialised then
+                    GoSub NextItem
+                else
+                    GoSub InitIEnumVARIANT
+                    bLoopInitialised = True
+                end if
+        end select
+        if isNull(v) then Exit Do
+        
+
+        if withIndex then
+            Call cb.Run(i,v)
+        else
+            Call cb.Run(v)
+        end if
+    Loop
 
     set ForEach = me
+    Exit Function
+
+'=========================================================================================================================
+' IEnumVARIANT Iterator - Don't change the code below
+'=========================================================================================================================
+InitIEnumVARIANT:
+    For Each v In pEnumObject
+        Return
+NextItem:
+    Next
+    v = Null
+    Return
 End Function
 
 Public Function Map(Optional ByVal cb As stdICallable, Optional ByVal WithIndex as boolean = false) As stdEnumerator
