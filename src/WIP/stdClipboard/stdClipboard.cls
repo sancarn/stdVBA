@@ -21,13 +21,13 @@ Attribute VB_Exposed = False
 
 'TODO: File is not fully complete, even though it has reached a stable state. Remaining tasks:
 '* This needs a new home
-'  'Save a picture from a shape
-'  '@param {ByVal Shape} - Shape to copy as picture
-'  '@param {ByVal String} - File path to save shape as picture too
-'  Private Sub VbSavePicture(ByVal shp As Shape, ByVal file As String)
-'    Call shp.CopyPicture(Appearance:=xlScreen, format:=xlBitmap)
-'    StdOle.SavePicture GetPictureFromClipboard(xlBitmap), file
-'  End Sub
+  ''Save a picture from a shape
+  ''@param {ByVal Shape} - Shape to copy as picture
+  ''@param {ByVal String} - File path to save shape as picture too
+  'Private Sub VbSavePicture(ByVal shp As Shape, ByVal file As String)
+  '  Call shp.CopyPicture(Appearance:=xlScreen, format:=xlBitmap)
+  '  StdOle.SavePicture GetPictureFromClipboard(xlBitmap), file
+  'End Sub
 '* Implement Picture [SET]
 
 'TODO: Elsewhere not here:
@@ -74,18 +74,18 @@ End Enum
   
   'DROPFiLES for CopyFiles()
   Private Type PICTDESC
-      Size As Long
+      size As Long
       Type As Long
       hPic As LongPtr
       hPal As LongPtr
   End Type
-  Private Declare Ptrsafe Function EmptyClipboard Lib "user32" () As Long
-  Private Declare Ptrsafe Function SetClipboardData Lib "user32" (ByVal wFormat As CLIPFORMAT, ByVal hMem As LongPtr) As Long
-  Private Declare Ptrsafe Function GlobalAlloc Lib "kernel32" (ByVal wFlags As Long, ByVal dwBytes As Long) As Long
-  Private Declare Ptrsafe Function GlobalLock Lib "kernel32" (ByVal hMem As LongPtr) As Long
-  Private Declare Ptrsafe Function GlobalUnlock Lib "kernel32" (ByVal hMem As LongPtr) As Long
-  Private Declare Ptrsafe Function GlobalSize Lib "kernel32" (ByVal hMem As LongPtr) As Long
-  Private Declare Ptrsafe Function lstrcpy Lib "kernel32" Alias "lstrcpyA" (ByVal lpString1 As LongPtr, ByVal lpString2 As LongPtr) As Long
+  Private Declare PtrSafe Function EmptyClipboard Lib "user32" () As Long
+  Private Declare PtrSafe Function SetClipboardData Lib "user32" (ByVal wFormat As CLIPFORMAT, ByVal hMem As LongPtr) As Long
+  Private Declare PtrSafe Function GlobalAlloc Lib "kernel32" (ByVal wFlags As Long, ByVal dwBytes As Long) As Long
+  Private Declare PtrSafe Function GlobalLock Lib "kernel32" (ByVal hMem As LongPtr) As Long
+  Private Declare PtrSafe Function GlobalUnlock Lib "kernel32" (ByVal hMem As LongPtr) As Long
+  Private Declare PtrSafe Function GlobalSize Lib "kernel32" (ByVal hMem As LongPtr) As Long
+  Private Declare PtrSafe Function lstrcpy Lib "kernel32" Alias "lstrcpyA" (ByVal lpString1 As LongPtr, ByVal lpString2 As LongPtr) As Long
   Private Declare PtrSafe Function IsClipboardFormatAvailable Lib "user32" (ByVal wFormat As CLIPFORMAT) As Long
   Private Declare PtrSafe Function OpenClipboard Lib "user32" (ByVal hWnd As LongPtr) As Long
   Private Declare PtrSafe Function GetClipboardData Lib "user32" (ByVal wFormat As CLIPFORMAT) As LongPtr
@@ -93,18 +93,18 @@ End Enum
   Private Declare PtrSafe Function OleCreatePictureIndirect Lib "oleaut32" (PicDesc As PICTDESC, RefIID As GUID, ByVal fPictureOwnsHandle As LongPtr, IPic As stdole.IPicture) As Long
   Private Declare PtrSafe Function CopyEnhMetaFile Lib "gdi32" Alias "CopyEnhMetaFileA" (ByVal hemfSrc As LongPtr, ByVal lpszFile As String) As LongPtr
   Private Declare PtrSafe Function CopyImage Lib "user32" (ByVal Handle As LongPtr, ByVal un1 As Long, ByVal n1 As Long, ByVal n2 As Long, ByVal un2 As Long) As LongPtr
-  Private Declare PtrSafe Function EnumClipboardFormats Lib "User32" (ByVal Format As Long) As Long
-  Private Declare PtrSafe Function GetClipboardFormatNameW Lib "User32" (ByVal Format As Long, ByVal lpszFormatName As LongPtr, ByVal cchMaxCount As Long) As Long
+  Private Declare PtrSafe Function EnumClipboardFormats Lib "user32" (ByVal Format As Long) As Long
+  Private Declare PtrSafe Function GetClipboardFormatNameW Lib "user32" (ByVal Format As Long, ByVal lpszFormatName As LongPtr, ByVal cchMaxCount As Long) As Long
   Private Declare PtrSafe Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (ByVal Destination As LongPtr, ByVal Source As LongPtr, ByVal Length As Long)
   Private Declare PtrSafe Function GetLastError Lib "kernel32" () As Long
-  Private Declare PtrSafe Function IIDFromString Lib "ole32" ( ByVal lpszIID As LongPtr, ByRef iid As Any) As Long
-  Private Declare PtrSafe Function SendMessage Lib "user32" (ByVal hWnd as LongPtr, ByVal iMsg as long, ByVal wParam as long, ByVal lParam as long)
+  Private Declare PtrSafe Function IIDFromString Lib "ole32" (ByVal lpszIID As LongPtr, ByRef iid As Any) As Long
+  Private Declare PtrSafe Function SendMessage Lib "user32" (ByVal hWnd As LongPtr, ByVal iMsg As Long, ByVal wParam As Long, ByVal lParam As Long)
   Private Declare PtrSafe Function DragQueryFile Lib "shell32.dll" Alias "DragQueryFileA" (ByVal hDrop As LongPtr, ByVal UINT As Long, ByVal lpStr As String, ByVal ch As Long) As Long
   Private Declare PtrSafe Function lstrlenW Lib "kernel32.dll" (ByVal lpString As LongPtr) As Long
   Private Declare PtrSafe Function lstrlenA Lib "kernel32.dll" (ByVal lpString As LongPtr) As Long
 #Else
   Private Type PICTDESC
-      Size As Long
+      size As Long
       Type As Long
       hPic As Long
       hPal As Long
@@ -183,8 +183,8 @@ Const LR_COPYRETURNORG = &H4
 'IID for IDispatch (used while creating stdole.IPicture)
 Private Const IID_DISPATCH As String = "{00020400-0000-0000-C000-000000000046}"
 
-Const WM_COPY as long = &H0301
-Const WM_PASTE as long = &H0302
+Const WM_COPY As Long = &H301
+Const WM_PASTE As Long = &H302
 
 
 
@@ -192,180 +192,180 @@ Const WM_PASTE as long = &H0302
 '* PUBLIC INTERFACE
 '************************************************************************************************
 
-'Get or set the value of the current 
+'Get or set the value of the current
 '@param
-Public Property Get Value(ByVal iFormat as CLIPFORMAT) as Variant
-Attribute Value.VB_UserMemId = 0
-  #if VBA7 then
+Public Property Get value(ByVal iFormat As CLIPFORMAT) As Variant
+Attribute value.VB_UserMemId = 0
+  #If VBA7 Then
     Dim hClipMemory     As LongPtr
     Dim lpClipMemory    As LongPtr
-  #else
+  #Else
     Dim hClipMemory     As Long
     Dim lpClipMemory    As Long
-  #end if
+  #End If
   
   'Get pointer to clipboard data
-  If Not OpenClipboard(0) Then Call CriticalRaise("Value [GET]","Unable to open clipboard")
-  If Not IsClipboardFormatAvailable(iFormat) Then Call CriticalRaise("Value [GET]","Specified clipboard format is not available")
-  hClipMemory = GetClipBoardData(iFormat)
-  If Not hClipMemory Then Call CriticalRaise("Value [GET]","Unable to obtain pointer to clipboard data")
+  If Not OpenClipboard(0) Then Call CriticalRaise("Value [GET]", "Unable to open clipboard")
+  If Not IsClipboardFormatAvailable(iFormat) Then Call CriticalRaise("Value [GET]", "Specified clipboard format is not available")
+  hClipMemory = GetClipboardData(iFormat)
+  If Not hClipMemory Then Call CriticalRaise("Value [GET]", "Unable to obtain pointer to clipboard data")
   
   'Get the data from the supplied pointer
   Dim size As Long
   size = GlobalSize(hClipMemory)
   lpClipMemory = GlobalLock(hClipMemory)
-  if CBool(lpClipMemory) then
+  If CBool(lpClipMemory) Then
     Dim retVal As Variant
-    select case iFormat
+    Select Case iFormat
       Case CLIPFORMAT.CF_UNICODETEXT
         retVal = StringFromPointerW(lpClipMemory)
       Case CLIPFORMAT.CF_TEXT
         retVal = StringFromPointerA(lpClipMemory)
       Case Else
-        retVal = BytesFromPointer(lpClipMemory,size)
-    end select
-    Call CopyVariant(Value, retVal)
-  else
-    Call CriticalRaise("Value [GET]","Unable to lock global memory")
-  end if
-  if not GlobalUnlock(hClipMemory) then Call CriticalRaise("Value [GET]","Unable to unlock global mem.")
-  if not CloseClipboard() then Call CriticalRaise("Value [GET]", "Unable to close clipboard. Error Code: " & GetLastError())
+        retVal = BytesFromPointer(lpClipMemory, size)
+    End Select
+    Call CopyVariant(value, retVal)
+  Else
+    Call CriticalRaise("Value [GET]", "Unable to lock global memory")
+  End If
+  If Not GlobalUnlock(hClipMemory) Then Call CriticalRaise("Value [GET]", "Unable to unlock global mem.")
+  If Not CloseClipboard() Then Call CriticalRaise("Value [GET]", "Unable to close clipboard. Error Code: " & GetLastError())
 End Property
-Public Property Let Value(ByVal iFormat as CLIPFORMAT, ByVal v as variant)
-  #if VBA7 then
+Public Property Let value(ByVal iFormat As CLIPFORMAT, ByVal v As Variant)
+  #If VBA7 Then
     Dim hClipMemory     As LongPtr
     Dim lpClipMemory    As LongPtr
-  #else
+  #Else
     Dim hClipMemory     As Long
     Dim lpClipMemory    As Long
-  #end if
+  #End If
 
   'Get the size of the block of memory
   Dim size As Long
-  select case iFormat
-    case CLIPFORMAT.CF_TEXT
+  Select Case iFormat
+    Case CLIPFORMAT.CF_TEXT
       size = LenB(v)
-    case else
-      Dim data() as byte
+    Case Else
+      Dim data() As Byte
       data = v
-      size = UBound(data) - lbound(data) + 1
-  end select
+      size = UBound(data) - LBound(data) + 1
+  End Select
   
   'Allocate blob to global moveable memory
   hClipMemory = GlobalAlloc(GAlloc.GHND, size)
-  if not hClipMemory then Call CriticalRaise("Value [LET]","Unable to allocate global memory")
+  If Not hClipMemory Then Call CriticalRaise("Value [LET]", "Unable to allocate global memory")
   
   'Lock global memory
   lpClipMemory = GlobalLock(hClipMemory)
-  if not lpClipMemory then Call CriticalRaise("Value [LET]","Unable to lock global memory")
+  If Not lpClipMemory Then Call CriticalRaise("Value [LET]", "Unable to lock global memory")
   
-  select case iFormat
-    case CLIPFORMAT.CF_TEXT
-      lpClipMemory=lstrcpy(lpClipMemory, StrPtr(v))
-      if not lpClipMemory then Call CriticalRaise("Value [LET]","Unable to copy string to global memory")
-    case else
-      Call CopyMemory(lpClipMemory,VarPtr(data(lbound(data))),size)
-  end select
-  if not GlobalUnlock(hClipMemory) then Call CriticalRaise("Value [LET]","Unable to unlock global mem.")
+  Select Case iFormat
+    Case CLIPFORMAT.CF_TEXT
+      lpClipMemory = lstrcpy(lpClipMemory, strPtr(v))
+      If Not lpClipMemory Then Call CriticalRaise("Value [LET]", "Unable to copy string to global memory")
+    Case Else
+      Call CopyMemory(lpClipMemory, VarPtr(data(LBound(data))), size)
+  End Select
+  If Not GlobalUnlock(hClipMemory) Then Call CriticalRaise("Value [LET]", "Unable to unlock global mem.")
 
   'Try to set clipboard data:
   If Not OpenClipboard(0) Then Call CriticalRaise("Value [LET]", "Unable to open clipboard")
-  if not EmptyClipboard() Then Call CriticalRaise("Value [LET]", "Cannot empty clipboard")
-  if Not SetClipboardData(iFormat, hGlobalMemory) then Call CriticalRaise("Value [LET]", "Unable to set clipboard data")
-  if Not CloseClipboard() Then Call CriticalRaise("Value [LET]", "Unable to close clipboard. Error Code: " & GetLastError())
+  If Not EmptyClipboard() Then Call CriticalRaise("Value [LET]", "Cannot empty clipboard")
+  If Not SetClipboardData(iFormat, hGlobalMemory) Then Call CriticalRaise("Value [LET]", "Unable to set clipboard data")
+  If Not CloseClipboard() Then Call CriticalRaise("Value [LET]", "Unable to close clipboard. Error Code: " & GetLastError())
 End Property
 
 'Check whether a given format is available based on the clipboards current data.
 '@param {ByVal CLIPFORMAT} - The format to check support for.
 '@returns {Boolean} True if the format is allowed, false otherwise
-Public Function IsFormatAvailable(ByVal iFormat as CLIPFORMAT) as boolean
+Public Function IsFormatAvailable(ByVal iFormat As CLIPFORMAT) As Boolean
   OpenClipboard 0
   IsFormatAvailable = IsClipboardFormatAvailable(iFormat)
-  CloseClipboard 
+  CloseClipboard
 End Function
 
 'Obtain the available formats as a collection of strings.
 '@returns {Collection} Formats allowed. We use string for easy enumeration with stdEnumerator.
-Public Function GetFormats() as collection
-  Dim iFormat as CLIPFORMAT: iFormat = CF_NOFORMAT
-  set getFormats = new Collection
+Public Function GetFormats() As Collection
+  Dim iFormat As CLIPFORMAT: iFormat = CF_NOFORMAT
+  Set GetFormats = New Collection
   'Loop over all formats and add to collection
   Do
     iFormat = EnumClipboardFormats(iFormat)
-    if iFormat = 0 then Exit Do
-    Call getFormats.add(CStr(iFormat),iFormat)
+    If iFormat = 0 Then Exit Do
+    Call GetFormats.add(CStr(iFormat), iFormat)
   Loop
 End Function
 
 'Obtain the available formats as a string, delimited by your chosen delimiter
 '@param {Optional ByVal String} Delimiter to use between format types
 '@returns {String} The formats you can use for the current clipboard data.
-Public Function GetFormatsString(Optional delim as string = ",") as string
-  Dim iFormat as CLIPFORMAT: iFormat = CF_NOFORMAT
-  Dim sBuff as string, sRet as string: sRet=""
+Public Function GetFormatsString(Optional delim As String = ",") As String
+  Dim iFormat As CLIPFORMAT: iFormat = CF_NOFORMAT
+  Dim sBuff As String, sRet As String: sRet = ""
   'Loop over all formats and add to collection
   Do
     iFormat = EnumClipboardFormats(iFormat)
     sBuff = Space(200)
-    if CBool(iFormat) then
-      if GetClipboardFormatNameW(iFormat, StrPtr(buffer),200) then
-        sRet = sRet & delim & trim(sBuff) & " (" & iFormat & ")"
-      else
+    If CBool(iFormat) Then
+      If GetClipboardFormatNameW(iFormat, strPtr(buffer), 200) Then
+        sRet = sRet & delim & Trim(sBuff) & " (" & iFormat & ")"
+      Else
         sRet = sRet & delim & "Unknown Name (" & iFormat & ")"
-      end if
-    else
+      End If
+    Else
       Exit Do
-    end if
+    End If
   Loop
-  GetFormatsText = mid(sRet,len(delim)+1)
+  GetFormatsText = mid(sRet, Len(delim) + 1)
 End Function
 
 'Get or set the clipboard as/to an IPicture object
-Public Property Get Picture() as stdole.IPicture
-  if IsClipboardFormatAvailable(CF_BITMAP) then
-    set Picture = GetPictureFromClipboard(CF_BITMAP)
-  elseif IsClipboardFormatAvailable(CF_ENHMETAFILE) then
-    set Picture = GetPictureFromClipboard(CF_ENHMETAFILE)
-  elseif IsClipboardFormatAvailable(CF_METAFILEPICT) then
-    set Picture = GetPictureFromClipboard(CF_METAFILEPICT) 'Unsure whether this would work if CF_ENHMETAFILE doesn't work...
+Public Property Get Picture() As stdole.IPicture
+  If IsClipboardFormatAvailable(CF_BITMAP) Then
+    Set Picture = GetPictureFromClipboard(CF_BITMAP)
+  ElseIf IsClipboardFormatAvailable(CF_ENHMETAFILE) Then
+    Set Picture = GetPictureFromClipboard(CF_ENHMETAFILE)
+  ElseIf IsClipboardFormatAvailable(CF_METAFILEPICT) Then
+    Set Picture = GetPictureFromClipboard(CF_METAFILEPICT) 'Unsure whether this would work if CF_ENHMETAFILE doesn't work...
   'elseif IsClipboardFormatAvailable(CF_HDROP) then
   '  ???
-  else
-    Call CriticalRaise("Picture","Invalid clipboard format")
-  end if
+  Else
+    Call CriticalRaise("Picture", "Invalid clipboard format")
+  End If
 End Property
-Public Property Set Picture(ByVal olePic as stdole.IPicture)
+Public Property Set Picture(ByVal olePic As stdole.IPicture)
   'TODO: refactor away from using Excel specific functionality
-  if Application.Name = "Microsoft Excel" then
-    const sTmpPath = "C:\Temp\stdVBA"
-    Dim size as long
-    Call olePic.SaveAsFile(sTmpPath,true,size)
+  If Application.Name = "Microsoft Excel" Then
+    Const sTmpPath = "C:\Temp\stdVBA"
+    Dim size As Long
+    Call olePic.SaveAsFile(sTmpPath, True, size)
     With Application.ThisWorkbook.Sheets(1).Pictures.Insert(fNameAndPath)
-      Call .CopyPicture(xlScreen,XlCopyPictureFormat.xlPicture)
-      Call .Delete()
+      Call .CopyPicture(xlScreen, XlCopyPictureFormat.XLPicture)
+      Call .Delete
     End With
     Kill sTmpPath
-  end if
+  End If
 End Property
 
 'Set the clipboard to an Excel picture object. This is a helper method and does nothing more than call xlPic.CopyPicture(1,2).
 '@param {ByVal Excel.IPicture} The picture to set the clipboard too.
-Public Property Set XLPicture(ByVal xlPic as Excel.IPicture)
+Public Property Set XLPicture(ByVal xlPic As Excel.IPicture)
   'xlScreen = 1, xlBitmap = 2
-  Call xlPic.CopyPicture(1,2)
+  Call xlPic.CopyPicture(1, 2)
 End Property
 
 'Get or Set the clipboard to a selection of files paths. Paths provided as a collection for easy stdEnumerator wrapping.
-Public Property Get Files() as Collection
-  set Files = new Collection
-  Dim sFiles() as string: sFiles = protGetFilesArr()
-  Dim i as long: For i = lbound(sFiles) to ubound(sFiles)
+Public Property Get Files() As Collection
+  Set Files = New Collection
+  Dim sFiles() As String: sFiles = protGetFilesArr()
+  Dim i As Long: For i = LBound(sFiles) To UBound(sFiles)
     Files.add sFiles(i)
-  next
+  Next
 End Property
-Public Property Set Files(ByVal vFiles as Collection)
-  Dim sFiles as string, vFile as variant
-  For each vFile in vFiles
+Public Property Set Files(ByVal vFiles As Collection)
+  Dim sFiles As String, vFile As Variant
+  For Each vFile In vFiles
     sFiles = sFiles & vFile & vbNullChar
   Next
   sFiles = sFiles & vbNullChar
@@ -374,8 +374,8 @@ End Property
 
 'Set the clipboard to a selection of Files passed in as an array
 '@param {ByVal Variant()} A set of files as an array
-Public Sub SetFilesArr(ByVal vFiles as variant)
-  Dim sFiles as string
+Public Sub SetFilesArr(ByVal vFiles As Variant)
+  Dim sFiles As String
   For i = LBound(vFiles) To UBound(vFiles)
     sFiles = sFiles & vFiles(i) & vbNullChar
   Next
@@ -387,93 +387,93 @@ End Sub
 'Realistically it might be better for this method to use Value LET directly.
 '@protected
 '@param {ByVal String} Files string delimited by vbNullChar and ending in 2x vbNullChar
-Public Sub protSetFilesText(ByVal sFiles as string)
-  #if VBA7 then
+Public Sub protSetFilesText(ByVal sFiles As String)
+  #If VBA7 Then
     Dim hClipMemory     As LongPtr
     Dim lpClipMemory    As LongPtr
-  #else
+  #Else
     Dim hClipMemory     As Long
     Dim lpClipMemory    As Long
-  #end if
+  #End If
   Dim tDropFiles As DROPFILES
 
   'Allocate blob to global moveable memory
   hClipMemory = GlobalAlloc(GAlloc.GHND, Len(tDropFiles) + LenB(sFiles))
-  if not hClipMemory then Call CriticalRaise("Value [LET]","Unable to allocate global memory")
+  If Not hClipMemory Then Call CriticalRaise("Value [LET]", "Unable to allocate global memory")
   
   'Lock global memory
   lpClipMemory = GlobalLock(hClipMemory)
-  if not lpClipMemory then Call CriticalRaise("Value [LET]","Unable to lock global memory")
+  If Not lpClipMemory Then Call CriticalRaise("Value [LET]", "Unable to lock global memory")
   
   'Specify that the offset to where the files are, from the beginning of this structure, are at the end of this structure.
   'I.E. The Binary memory data is literally going to look like:
   '   {STRUCTDATA}{FILE1}\0{FILE2}\0{FILE3}\0\0
   tDropFiles.pFiles = Len(tDropFiles)
-  Call CopyMemory(lpClipMemory,VarPtr(tDropFiles.pFiles),Len(tDropFiles))
-  Call CopyMemory(lpClipMemory + Len(tDropFiles), StrPtr(sFiles), LenB(sFiles))
+  Call CopyMemory(lpClipMemory, VarPtr(tDropFiles.pFiles), Len(tDropFiles))
+  Call CopyMemory(lpClipMemory + Len(tDropFiles), strPtr(sFiles), LenB(sFiles))
   
-  if not GlobalUnlock(hClipMemory) then Call CriticalRaise("Value [LET]","Unable to unlock global mem.")
+  If Not GlobalUnlock(hClipMemory) Then Call CriticalRaise("Value [LET]", "Unable to unlock global mem.")
 
   'Try to set clipboard data:
   If Not OpenClipboard(0) Then Call CriticalRaise("Value [LET]", "Unable to open clipboard")
-  if not EmptyClipboard() Then Call CriticalRaise("Value [LET]", "Cannot empty clipboard")
-  if Not SetClipboardData(CF_HDROP, hClipMemory) then Call CriticalRaise("Value [LET]", "Unable to set clipboard data")
-  if Not CloseClipboard() Then Call CriticalRaise("Value [LET]", "Unable to close clipboard. Error Code: " & GetLastError())
+  If Not EmptyClipboard() Then Call CriticalRaise("Value [LET]", "Cannot empty clipboard")
+  If Not SetClipboardData(CF_HDROP, hClipMemory) Then Call CriticalRaise("Value [LET]", "Unable to set clipboard data")
+  If Not CloseClipboard() Then Call CriticalRaise("Value [LET]", "Unable to close clipboard. Error Code: " & GetLastError())
 End Sub
 
 'Get the file paths of files stored on the clipboard
 '@protected
 '@param {ByVal String} Files string delimited by vbNullChar and ending in 2 vbNullChar
 '@returns {String()} The array of file paths stored in the clipboard
-Public Function protGetFilesArr() as String()
-  #if VBA7 then
+Public Function protGetFilesArr() As String()
+  #If VBA7 Then
     Dim hClipMemory     As LongPtr
     Dim lpClipMemory    As LongPtr
-  #else
+  #Else
     Dim hClipMemory     As Long
     Dim lpClipMemory    As Long
-  #end if
+  #End If
   
   'Get pointer to clipboard data
-  If Not OpenClipboard(0) Then Call CriticalRaise("Value [GET]","Unable to open clipboard")
-  If Not IsClipboardFormatAvailable(CF_HDROP) Then Call CriticalRaise("Value [GET]","Specified clipboard format is not available")
-  hClipMemory = GetClipBoardData(CF_HDROP)
-  Dim nFiles as long: nFiles = DragQueryFile(hClipMemory, -1&, "", 0)
-  If Not hClipMemory Then Call CriticalRaise("Value [GET]","Unable to obtain pointer to clipboard data")
+  If Not OpenClipboard(0) Then Call CriticalRaise("Value [GET]", "Unable to open clipboard")
+  If Not IsClipboardFormatAvailable(CF_HDROP) Then Call CriticalRaise("Value [GET]", "Specified clipboard format is not available")
+  hClipMemory = GetClipboardData(CF_HDROP)
+  Dim nFiles As Long: nFiles = DragQueryFile(hClipMemory, -1&, "", 0)
+  If Not hClipMemory Then Call CriticalRaise("Value [GET]", "Unable to obtain pointer to clipboard data")
   
-  Dim sRet() as string: Redim sRet(1 to nFiles)
-  Dim sFileName as string
+  Dim sRet() As String: ReDim sRet(1 To nFiles)
+  Dim sFileName As String
   
-  Dim i as long
-  For i = 1 to nFiles
+  Dim i As Long
+  For i = 1 To nFiles
     sFileName = Space(260)
-    Call DragQueryFile(hClipMemory, i-1, sFileName, 260)
+    Call DragQueryFile(hClipMemory, i - 1, sFileName, 260)
     sRet(i) = Trim(sFileName)
-  next
+  Next
   
   protGetFilesArr = sRet
-  if not CloseClipboard() then Call CriticalRaise("Value [GET]", "Unable to close clipboard. Error Code: " & GetLastError())
+  If Not CloseClipboard() Then Call CriticalRaise("Value [GET]", "Unable to close clipboard. Error Code: " & GetLastError())
 End Function
 
 
 'Raise a paste event to a window with handle hWnd
 '@param {ByVal LongPtr/Long} hWnd to send paste event to
-#if VBA7 then
-Public Sub SendPaste(Byval hWnd as LongPtr)
-#else
-Public Sub SendPaste(Byval hWnd as Long)
-#end if
-  Call SendMessage(hWnd,WM_PASTE,0,0)
+#If VBA7 Then
+Public Sub SendPaste(ByVal hWnd As LongPtr)
+#Else
+Public Sub SendPaste(ByVal hWnd As Long)
+#End If
+  Call SendMessage(hWnd, WM_PASTE, 0, 0)
 End Sub
 
 'Raise a copy event to a window with handle hWnd
 '@param {ByVal LongPtr/Long} hWnd to send copy event to
-#if VBA7 then
-Public Sub SendCopy(Byval hWnd as LongPtr)
-#else
-Public Sub SendCopy(Byval hWnd as Long)
-#end if
-  Call SendMessage(hWnd,WM_COPY,0,0)
+#If VBA7 Then
+Public Sub SendCopy(ByVal hWnd As LongPtr)
+#Else
+Public Sub SendCopy(ByVal hWnd As Long)
+#End If
+  Call SendMessage(hWnd, WM_COPY, 0, 0)
 End Sub
 
 
@@ -483,15 +483,15 @@ End Sub
 '  xlBitmap = 2
 '  xlPicture = -4147
 'End Enum
-Public Function GetClipFormatFromCopyPictureFormat(ByVal CopyPictureFormat as long) as CLIPFORMAT
+Public Function GetClipFormatFromCopyPictureFormat(ByVal CopyPictureFormat As Long) As CLIPFORMAT
   Const xxlBitmap = 2
   Const xxlPicture = -4147
-  select case CopyPictureFormat
-    case xxlBitmap
+  Select Case CopyPictureFormat
+    Case xxlBitmap
       GetClipFormatFromCopyPictureFormat = CLIPFORMAT.CF_BITMAP
-    case xxlPicture
+    Case xxlPicture
       GetClipFormatFromCopyPictureFormat = CLIPFORMAT.CF_ENHMETAFILE
-  end select
+  End Select
 End Function
 
 
@@ -503,7 +503,7 @@ End Function
 'Raises an error in stdError if available, else it will be raised in Err
 '@param {ByVal String} The Function name, to be concatenated with "stdClipboard::" to determine the source.
 '@param {ByVal String} The message to relay to the user.
-Private Sub CriticalRaise(ByVal sFuncName as string, ByVal sMessage As String)
+Private Sub CriticalRaise(ByVal sFuncName As String, ByVal sMessage As String)
   'If stdError exists
     If VarType(stdError) Then
       Call stdError.Raise("stdClipboard::" & sFuncName & " - " & sMessage)
@@ -518,41 +518,41 @@ End Sub
 '@param {ByVal LongPtr/Long} The pointer to copy bytes at
 '@param {ByVal Long} The size of the buffer to copy
 '@returns {Byte()} The bytes stired at the pointer
-#if VBA7 then
-Private Function BytesFromPointer(ByVal pointer as LongPtr, ByVal size as long) as Byte()
-#else
-Private Function BytesFromPointer(ByVal pointer as Long, ByVal size as long) as Byte()
-#end if
-  Dim buff() as Byte
-  If size > 0 then
-    Redim buff(1 to size)
-    Call CopyMemory(VarPtr(buff(1)),pointer,size)
-  else
-    Call CriticalRaise("BytesFromPointer [PRIVATE]","No size supplied.")
-  End if
+#If VBA7 Then
+Private Function BytesFromPointer(ByVal pointer As LongPtr, ByVal size As Long) As Byte()
+#Else
+Private Function BytesFromPointer(ByVal pointer As Long, ByVal size As Long) As Byte()
+#End If
+  Dim buff() As Byte
+  If size > 0 Then
+    ReDim buff(1 To size)
+    Call CopyMemory(VarPtr(buff(1)), pointer, size)
+  Else
+    Call CriticalRaise("BytesFromPointer [PRIVATE]", "No size supplied.")
+  End If
   BytesFromPointer = buff
 End Function
 
 'Obtain the Unicode string held at a particular pointer
 '@param {ByVal LongPtr/Long} The pointer to copy bytes at
 '@returns {String} The string copied
-#if VBA7 then
-Private Function StringFromPointerW(ByVal hLPTSTR as LongPtr) as string
-#else
-Private Function StringFromPointerW(ByVal hLPTSTR as long) as string
-#end if
-  StringFromPointerW = BytesFromPointer(hLPTSTR,lstrlenW(hLPTSTR)*2)
+#If VBA7 Then
+Private Function StringFromPointerW(ByVal hLPTSTR As LongPtr) As String
+#Else
+Private Function StringFromPointerW(ByVal hLPTSTR As Long) As String
+#End If
+  StringFromPointerW = BytesFromPointer(hLPTSTR, lstrlenW(hLPTSTR) * 2)
 End Function
 
 'Obtain the string held at a particular pointer
 '@param {ByVal LongPtr/Long} The pointer to copy bytes at
 '@returns {String} The string copied
-#if VBA7 then
-Private Function StringFromPointerA(ByVal hLPTSTR as LongPtr) as string
-#else
-Private Function StringFromPointerA(ByVal hLPTSTR as long) as string
-#end if
-  StringFromPointerA = BytesFromPointer(hLPTSTR,lstrlenA(hLPTSTR))
+#If VBA7 Then
+Private Function StringFromPointerA(ByVal hLPTSTR As LongPtr) As String
+#Else
+Private Function StringFromPointerA(ByVal hLPTSTR As Long) As String
+#End If
+  StringFromPointerA = BytesFromPointer(hLPTSTR, lstrlenA(hLPTSTR))
 End Function
 
 '******************************************************************
@@ -564,11 +564,11 @@ End Function
 '@returns {stdole.IPicture}   - Picture object representing clipboard data
 Private Function GetPictureFromClipboard(Optional ByVal lPicType As CLIPFORMAT) As stdole.IPicture
     'Define pointers
-    #if VBA7 then
+    #If VBA7 Then
       Dim hPtr As LongPtr, hCopy As LongPtr
-    #else
+    #Else
       Dim hPtr As Long, hCopy As Long
-    #end if
+    #End If
     
     'Check if the clipboard contains the required format
     If IsClipboardFormatAvailable(lPicType) Then
@@ -576,7 +576,7 @@ Private Function GetPictureFromClipboard(Optional ByVal lPicType As CLIPFORMAT) 
       If OpenClipboard(0&) > 0 Then
         'Get a handle to the image data
         hPtr = GetClipboardData(lPicType)
-        if not hPtr then Call CriticalRaise("GetPictureFromClipboard [PRIVATE]","Unable to get clipboard data handle")
+        If Not hPtr Then Call CriticalRaise("GetPictureFromClipboard [PRIVATE]", "Unable to get clipboard data handle")
 
         'Create our own copy of the image on the clipboard, in the appropriate format.
         If lPicType = CLIPFORMAT.CF_BITMAP Then
@@ -586,19 +586,19 @@ Private Function GetPictureFromClipboard(Optional ByVal lPicType As CLIPFORMAT) 
         End If
 
         'Release the clipboard to other programs
-        if not CloseClipboard then Call CriticalRaise("GetPictureFromClipboard [PRIVATE]","Unable to close clipboard")
+        If Not CloseClipboard Then Call CriticalRaise("GetPictureFromClipboard [PRIVATE]", "Unable to close clipboard")
 
         'If we got a handle to the image, convert it into a Picture object and return it
         If hCopy Then
           Set GetPictureFromClipboard = CreatePicture(hCopy, 0, lPicType)
-        else
-          Call CriticalRaise("GetPictureFromClipboard [PRIVATE]","Unable to obtain image handle")
-        end if
-      else
-        Call CriticalRaise("GetPictureFromClipboard [PRIVATE]","Unable to open clipboard")
+        Else
+          Call CriticalRaise("GetPictureFromClipboard [PRIVATE]", "Unable to obtain image handle")
+        End If
+      Else
+        Call CriticalRaise("GetPictureFromClipboard [PRIVATE]", "Unable to open clipboard")
       End If
     Else
-      Call CriticalRaise("GetPictureFromClipboard [PRIVATE]","Clipboard format is not available")
+      Call CriticalRaise("GetPictureFromClipboard [PRIVATE]", "Clipboard format is not available")
     End If
 End Function
 
@@ -607,11 +607,11 @@ End Function
 '@param {ByVal LongPtr/Long} - The HPALETTE handle identifying the color palette for the bitmap. Can be created with CreatePallette(LOGPALETTE) function from Gdi32.dll
 '@param {Byval CLIPFORMAT}   - The format of the picture stored in the clipboard
 '@returns {stdole.IPicture}     - Picture object representing clipboard data
-#if VBA7 then
+#If VBA7 Then
 Private Function CreatePicture(ByVal hPic As LongPtr, ByVal hPal As LongPtr, ByVal lPicType As CLIPFORMAT) As stdole.IPicture
-#else
+#Else
 Private Function CreatePicture(ByVal hPic As Long, ByVal hPal As Long, ByVal lPicType As CLIPFORMAT) As stdole.IPicture
-#end if
+#End If
   ' stdole.IPicture requires a reference to "OLE Automation"
   Dim r As Long, uPicInfo As PICTDESC, iid As GUID, IPic As stdole.IPicture
   
@@ -622,22 +622,22 @@ Private Function CreatePicture(ByVal hPic As Long, ByVal hPal As Long, ByVal lPi
   Const PICTYPE_ENHMETAFILE = 4
 
   ' Create the Interface GUID (for the stdole.IPicture interface)
-  if not IIDFromString(strPtr(IID_DISPATCH),iid) then Call CriticalRaise("CreatePicture","Cannot get IDispatch IID")
+  If Not IIDFromString(strPtr(IID_DISPATCH), iid) Then Call CriticalRaise("CreatePicture", "Cannot get IDispatch IID")
 
   ' Fill uPicInfo with necessary parts.
   With uPicInfo
-      .Size = Len(uPicInfo)                                                              ' Length of structure.
+      .size = Len(uPicInfo)                                                              ' Length of structure.
       .Type = IIf(lPicType = CLIPFORMAT.CF_BITMAP, PICTYPE_BITMAP, PICTYPE_ENHMETAFILE)  ' Type of Picture
       .hPic = hPic                                                                       ' Handle to image.
       .hPal = IIf(lPicType = CLIPFORMAT.CF_BITMAP, hPal, 0)                              ' Handle to palette (if bitmap).
   End With
 
   ' Create the Picture object.
-  If not OleCreatePictureIndirect(uPicInfo, iid, True, IPic) Then
-    Call CriticalRaise("CreatePicture [PRIVATE]","An error occurred in OleCreatePictureIndirect. Error code (" & r & ": " & fnOLEError(r) & ")")
-  else
+  If Not OleCreatePictureIndirect(uPicInfo, iid, True, IPic) Then
+    Call CriticalRaise("CreatePicture [PRIVATE]", "An error occurred in OleCreatePictureIndirect. Error code (" & r & ": " & fnOLEError(r) & ")")
+  Else
     Set CreatePicture = IPic
-  end if
+  End If
 End Function
 
 'Given an OLE Error ID, obtain a description of what this ID means:
