@@ -99,6 +99,9 @@ End Enum
   Private Declare PtrSafe Function GetLastError Lib "kernel32" () As Long
   Private Declare PtrSafe Function IIDFromString Lib "ole32" ( ByVal lpszIID As LongPtr, ByRef iid As Any) As Long
   Private Declare PtrSafe Function SendMessage Lib "user32" (ByVal hWnd as LongPtr, ByVal iMsg as long, ByVal wParam as long, ByVal lParam as long)
+  Private Declare PtrSafe Function DragQueryFile Lib "shell32.dll" Alias "DragQueryFileA" (ByVal hDrop As LongPtr, ByVal UINT As Long, ByVal lpStr As String, ByVal ch As Long) As Long
+  Private Declare PtrSafe Function lstrlenW Lib "kernel32.dll" (ByVal lpString As LongPtr) As Long
+  Private Declare PtrSafe Function lstrlenA Lib "kernel32.dll" (ByVal lpString As LongPtr) As Long
 #Else
   Private Type PICTDESC
       Size As Long
@@ -126,6 +129,9 @@ End Enum
   Private Declare Function GetLastError Lib "kernel32" () As Long
   Private Declare Function IIDFromString Lib "ole32" ( ByVal lpszIID As Long, ByRef iid As Any) As Long
   Private Declare Function SendMessage Lib "user32" (ByVal hWnd as Long, ByVal iMsg as long, ByVal wParam as long, ByVal lParam as long)
+  Private Declare Function DragQueryFile Lib "shell32.dll" Alias "DragQueryFileA" (ByVal hDrop As Long, ByVal UINT As Long, ByVal lpStr As String, ByVal ch As Long) As Long
+  Private Declare Function lstrlenW Lib "kernel32.dll" (ByVal lpString As Long) As Long
+  Private Declare Function lstrlenA Lib "kernel32.dll" (ByVal lpString As Long) As Long
 #End If
 
 
@@ -143,7 +149,6 @@ Private Type DROPFILES
   fWide As Long
 End Type
 
-Const GHND = &H42
 Private Enum GAlloc
   GMEM_FIXED = &H0
   GMEM_MOVEABLE = &H2
@@ -266,7 +271,7 @@ Public Property Let Value(ByVal iFormat as CLIPFORMAT, ByVal v as variant)
   'Try to set clipboard data:
   If Not OpenClipboard(0) Then Call CriticalRaise("Value [LET]", "Unable to open clipboard")
   if not EmptyClipboard() Then Call CriticalRaise("Value [LET]", "Cannot empty clipboard")
-  if Not SetClipboardData(iFormat, hGlobalMemory) then CriticalRaise("Value [LET]", "Unable to set clipboard data")
+  if Not SetClipboardData(iFormat, hGlobalMemory) then Call CriticalRaise("Value [LET]", "Unable to set clipboard data")
   if Not CloseClipboard() Then Call CriticalRaise("Value [LET]", "Unable to close clipboard. Error Code: " & GetLastError())
 End Property
 
@@ -298,14 +303,16 @@ End Function
 Public Function GetFormatsString(Optional delim as string = ",") as string
   Dim iFormat as CLIPFORMAT: iFormat = CF_NOFORMAT
   Dim sBuff as string, sRet as string: sRet=""
-  set getFormats = new Collection
   'Loop over all formats and add to collection
   Do
     iFormat = EnumClipboardFormats(iFormat)
     sBuff = Space(200)
-    if GetClipboardFormatNameW(iFormat, StrPtr(buffer),200)
     if CBool(iFormat) then
-      sRet = sRet & delim & trim(sBuff) & " (" & iFormat & ")"
+      if GetClipboardFormatNameW(iFormat, StrPtr(buffer),200) then
+        sRet = sRet & delim & trim(sBuff) & " (" & iFormat & ")"
+      else
+        sRet = sRet & delim & "Unknown Name (" & iFormat & ")"
+      end if
     else
       Exit Do
     end if
@@ -324,7 +331,7 @@ Public Property Get Picture() as stdole.IPicture
   elseif IsClipboardFormatAvailable(CF_HDROP) then
     '???
   else
-    Err.Raise(1,"stdClipboard::Photo","Invalid clipboard format")
+    Call CriticalRaise("Picture","Invalid clipboard format")
   end if
 End Property
 Public Property Set Picture(ByVal olePic as stdole.IPicture)
@@ -332,9 +339,9 @@ Public Property Set Picture(ByVal olePic as stdole.IPicture)
   if Application.Name = "Microsoft Excel" then
     const sTmpPath = "C:\Temp\stdVBA"
     Dim size as long
-    Call olePic.saveToFile(sTmpPath,true,size)
+    Call olePic.SaveAsFile(sTmpPath,true,size)
     With Application.ThisWorkbook.Sheets(1).Pictures.Insert(fNameAndPath)
-      .CopyPicture(xlScreen,XlCopyPictureFormat.xlPicture)
+      Call .CopyPicture(xlScreen,XlCopyPictureFormat.xlPicture)
       Call .Delete()
     End With
     Kill sTmpPath
@@ -351,7 +358,7 @@ End Property
 'Get or Set the clipboard to a selection of files paths. Paths provided as a collection for easy stdEnumerator wrapping.
 Public Property Get Files() as Collection
   set Files = new Collection
-  Dim sFiles() as stirng: sFiles = protGetFilesArr()
+  Dim sFiles() as string: sFiles = protGetFilesArr()
   Dim i as long: For i = lbound(sFiles) to ubound(sFiles)
     Files.add sFiles(i)
   next
@@ -362,7 +369,7 @@ Public Property Set Files(ByVal vFiles as Collection)
     sFiles = sFiles & vFile & vbNullChar
   Next
   sFiles = sFiles & vbNullChar
-  Call SetFilesText(sFiles)
+  Call protSetFilesText(sFiles)
 End Property
 
 'Set the clipboard to a selection of Files passed in as an array
@@ -373,7 +380,7 @@ Public Sub SetFilesArr(ByVal vFiles as variant)
     sFiles = sFiles & vFiles(i) & vbNullChar
   Next
   sFiles = sFiles & vbNullChar
-  Call SetFilesText(sFiles)
+  Call protSetFilesText(sFiles)
 End Sub
 
 'Internal method for setting the clipboard to a selection of Files passed in as a raw file string
@@ -410,9 +417,9 @@ Public Sub protSetFilesText(ByVal sFiles as string)
   'Try to set clipboard data:
   If Not OpenClipboard(0) Then Call CriticalRaise("Value [LET]", "Unable to open clipboard")
   if not EmptyClipboard() Then Call CriticalRaise("Value [LET]", "Cannot empty clipboard")
-  if Not SetClipboardData(CF_HDROP, hClipMemory) then CriticalRaise("Value [LET]", "Unable to set clipboard data")
+  if Not SetClipboardData(CF_HDROP, hClipMemory) then Call CriticalRaise("Value [LET]", "Unable to set clipboard data")
   if Not CloseClipboard() Then Call CriticalRaise("Value [LET]", "Unable to close clipboard. Error Code: " & GetLastError())
-End Function
+End Sub
 
 'Get the file paths of files stored on the clipboard
 '@protected
@@ -446,7 +453,7 @@ Public Function protGetFilesArr() as String()
   
   protGetFilesArr = sRet
   if not CloseClipboard() then Call CriticalRaise("Value [GET]", "Unable to close clipboard. Error Code: " & GetLastError())
-End Sub
+End Function
 
 
 'Raise a paste event to a window with handle hWnd
@@ -676,3 +683,15 @@ Private Function fnOLEError(ByVal lErrNum As Long) As String
       fnOLEError = " Success!"
   End Select
 End Function
+
+'Copies one variant to a destination
+'@param {ByRef Variant} dest Destination to copy variant to
+'@param {Variant} value Source to copy variant from.
+'@perf This appears to be a faster variant of "oleaut32.dll\VariantCopy" + it's multi-platform
+Private Sub CopyVariant(ByRef dest As Variant, ByVal value As Variant)
+  If IsObject(value) Then
+    Set dest = value
+  Else
+    dest = value
+  End If
+End Sub
