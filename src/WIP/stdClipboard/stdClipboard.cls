@@ -100,6 +100,7 @@ End Enum
   Private Declare PtrSafe Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (ByVal Destination As LongPtr, ByVal Source As LongPtr, ByVal Length As Long)
   Private Declare PtrSafe Function GetLastError Lib "kernel32" () As Long
   Private Declare PtrSafe Function IIDFromString Lib "ole32" ( ByVal lpszIID As LongPtr, ByRef iid As Any) As Long
+  Private Declare PtrSafe Function SendMessage Lib "user32" (ByVal hWnd as LongPtr, ByVal iMsg as long, ByVal wParam as long, ByVal lParam as long)
 #Else
   Private Type PICTDESC
       Size As Long
@@ -126,6 +127,7 @@ End Enum
   Private Declare Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (ByVal Destination As Long, ByVal Source As Long, ByVal Length As Long)
   Private Declare Function GetLastError Lib "kernel32" () As Long
   Private Declare Function IIDFromString Lib "ole32" ( ByVal lpszIID As Long, ByRef iid As Any) As Long
+  Private Declare Function SendMessage Lib "user32" (ByVal hWnd as Long, ByVal iMsg as long, ByVal wParam as long, ByVal lParam as long)
 #End If
 
 
@@ -177,6 +179,10 @@ Const LR_COPYRETURNORG = &H4
 
 'IID for IDispatch (used while creating stdole.IPicture)
 Private Const IID_DISPATCH As String = "{00020400-0000-0000-C000-000000000046}"
+
+Const WM_COPY as long = &H0301
+Const WM_PASTE as long = &H0302
+
 
 
 '************************************************************************************************
@@ -444,14 +450,26 @@ Public Function protGetFilesArr() as String()
 End Sub
 
 
-
+'Raise a paste event to a window with handle hWnd
+'@param {ByVal LongPtr/Long} hWnd to send paste event to
 #if VBA7 then
-Public Sub PasteFiles(Byval hWnd as LongPtr)
+Public Sub SendPaste(Byval hWnd as LongPtr)
 #else
-Public Sub PasteFiles(Byval hWnd as Long)
+Public Sub SendPaste(Byval hWnd as Long)
 #end if
-  '...
+  Call SendMessage(hWnd,WM_PASTE,0,0)
 End Sub
+
+'Raise a copy event to a window with handle hWnd
+'@param {ByVal LongPtr/Long} hWnd to send copy event to
+#if VBA7 then
+Public Sub SendCopy(Byval hWnd as LongPtr)
+#else
+Public Sub SendCopy(Byval hWnd as Long)
+#end if
+  Call SendMessage(hWnd,WM_COPY,0,0)
+End Sub
+
 
 
 'Converts xlCopyPictureFormat to CLIPFORMAT
@@ -476,6 +494,9 @@ End Function
 '* HELPERS
 '******************************************************************
 
+'Raises an error in stdError if available, else it will be raised in Err
+'@param {ByVal String} The Function name, to be concatenated with "stdClipboard::" to determine the source.
+'@param {ByVal String} The message to relay to the user.
 Private Sub CriticalRaise(ByVal sFuncName as string, ByVal sMessage As String)
   'If stdError exists
     If VarType(stdError) Then
@@ -487,6 +508,10 @@ Private Sub CriticalRaise(ByVal sFuncName as string, ByVal sMessage As String)
 End Sub
 
 
+'Returns a byte array stored at a pointer using RtlMoveMemory
+'@param {ByVal LongPtr/Long} The pointer to copy bytes at
+'@param {ByVal Long} The size of the buffer to copy
+'@returns {Byte()} The bytes stired at the pointer
 #if VBA7 then
 Private Function BytesFromPointer(ByVal pointer as LongPtr, ByVal size as long) as Byte()
 #else
@@ -502,6 +527,9 @@ Private Function BytesFromPointer(ByVal pointer as Long, ByVal size as long) as 
   BytesFromPointer = buff
 End Function
 
+'Obtain the Unicode string held at a particular pointer
+'@param {ByVal LongPtr/Long} The pointer to copy bytes at
+'@returns {String} The string copied
 #if VBA7 then
 Private Function StringFromPointerW(ByVal hLPTSTR as LongPtr) as string
 #else
@@ -510,6 +538,9 @@ Private Function StringFromPointerW(ByVal hLPTSTR as long) as string
   StringFromPointerW = BytesFromPointer(hLPTSTR,lstrlenW(hLPTSTR)*2)
 End Function
 
+'Obtain the string held at a particular pointer
+'@param {ByVal LongPtr/Long} The pointer to copy bytes at
+'@returns {String} The string copied
 #if VBA7 then
 Private Function StringFromPointerA(ByVal hLPTSTR as LongPtr) as string
 #else
