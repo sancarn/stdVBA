@@ -7,9 +7,7 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
-Attribute Value.VB_UserMemId = 0
 
-'Option Explicit
 
 'CREDITS:
 '----------
@@ -192,6 +190,7 @@ Const WM_PASTE as long = &H0302
 'Get or set the value of the current 
 '@param
 Public Property Get Value(ByVal iFormat as CLIPFORMAT) as Variant
+Attribute Value.VB_UserMemId = 0
   #if VBA7 then
     Dim hClipMemory     As LongPtr
     Dim lpClipMemory    As LongPtr
