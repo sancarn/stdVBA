@@ -21,13 +21,13 @@ Attribute VB_Exposed = False
 
 'TODO: File is not fully complete, even though it has reached a stable state. Remaining tasks:
 '* This needs a new home
-  ''Save a picture from a shape
-  ''@param {ByVal Shape} - Shape to copy as picture
-  ''@param {ByVal String} - File path to save shape as picture too
-  'Private Sub VbSavePicture(ByVal shp As Shape, ByVal file As String)
-  '  Call shp.CopyPicture(Appearance:=xlScreen, format:=xlBitmap)
-  '  StdOle.SavePicture GetPictureFromClipboard(xlBitmap), file
-  'End Sub
+'  'Save a picture from a shape
+'  '@param {ByVal Shape} - Shape to copy as picture
+'  '@param {ByVal String} - File path to save shape as picture too
+'  Private Sub VbSavePicture(ByVal shp As Shape, ByVal file As String)
+'    Call shp.CopyPicture(Appearance:=xlScreen, format:=xlBitmap)
+'    StdOle.SavePicture GetPictureFromClipboard(xlBitmap), file
+'  End Sub
 '* Implement Picture [SET]
 
 'TODO: Elsewhere not here:
