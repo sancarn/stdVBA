@@ -205,10 +205,10 @@ Attribute value.VB_UserMemId = 0
   #End If
   
   'Get pointer to clipboard data
-  If Not OpenClipboard(0) Then Call CriticalRaise("Value [GET]", "Unable to open clipboard")
-  If Not IsClipboardFormatAvailable(iFormat) Then Call CriticalRaise("Value [GET]", "Specified clipboard format is not available")
+  If Not CBool(OpenClipboard(0)) Then Call CriticalRaise("Value [GET]", "Unable to open clipboard")
+  If Not CBool(IsClipboardFormatAvailable(iFormat)) Then Call CriticalRaise("Value [GET]", "Specified clipboard format is not available")
   hClipMemory = GetClipboardData(iFormat)
-  If Not hClipMemory Then Call CriticalRaise("Value [GET]", "Unable to obtain pointer to clipboard data")
+  If Not CBool(hClipMemory) Then Call CriticalRaise("Value [GET]", "Unable to obtain pointer to clipboard data")
   
   'Get the data from the supplied pointer
   Dim size As Long
@@ -228,8 +228,8 @@ Attribute value.VB_UserMemId = 0
   Else
     Call CriticalRaise("Value [GET]", "Unable to lock global memory")
   End If
-  If Not GlobalUnlock(hClipMemory) Then Call CriticalRaise("Value [GET]", "Unable to unlock global mem.")
-  If Not CloseClipboard() Then Call CriticalRaise("Value [GET]", "Unable to close clipboard. Error Code: " & GetLastError())
+  If Not CBool(GlobalUnlock(hClipMemory)) Then Call CriticalRaise("Value [GET]", "Unable to unlock global mem.")
+  If Not CBool(CloseClipboard()) Then Call CriticalRaise("Value [GET]", "Unable to close clipboard. Error Code: " & GetLastError())
 End Property
 Public Property Let value(ByVal iFormat As CLIPFORMAT, ByVal v As Variant)
   #If VBA7 Then
@@ -253,26 +253,26 @@ Public Property Let value(ByVal iFormat As CLIPFORMAT, ByVal v As Variant)
   
   'Allocate blob to global moveable memory
   hClipMemory = GlobalAlloc(GAlloc.GHND, size)
-  If Not hClipMemory Then Call CriticalRaise("Value [LET]", "Unable to allocate global memory")
+  If Not CBool(hClipMemory) Then Call CriticalRaise("Value [LET]", "Unable to allocate global memory")
   
   'Lock global memory
   lpClipMemory = GlobalLock(hClipMemory)
-  If Not lpClipMemory Then Call CriticalRaise("Value [LET]", "Unable to lock global memory")
+  If Not CBool(lpClipMemory) Then Call CriticalRaise("Value [LET]", "Unable to lock global memory")
   
   Select Case iFormat
     Case CLIPFORMAT.CF_TEXT
       lpClipMemory = lstrcpy(lpClipMemory, strPtr(v))
-      If Not lpClipMemory Then Call CriticalRaise("Value [LET]", "Unable to copy string to global memory")
+      If Not CBool(lpClipMemory) Then Call CriticalRaise("Value [LET]", "Unable to copy string to global memory")
     Case Else
       Call CopyMemory(lpClipMemory, VarPtr(data(LBound(data))), size)
   End Select
-  If Not GlobalUnlock(hClipMemory) Then Call CriticalRaise("Value [LET]", "Unable to unlock global mem.")
+  If Not CBool(GlobalUnlock(hClipMemory)) Then Call CriticalRaise("Value [LET]", "Unable to unlock global mem.")
 
   'Try to set clipboard data:
-  If Not OpenClipboard(0) Then Call CriticalRaise("Value [LET]", "Unable to open clipboard")
-  If Not EmptyClipboard() Then Call CriticalRaise("Value [LET]", "Cannot empty clipboard")
-  If Not SetClipboardData(iFormat, hGlobalMemory) Then Call CriticalRaise("Value [LET]", "Unable to set clipboard data")
-  If Not CloseClipboard() Then Call CriticalRaise("Value [LET]", "Unable to close clipboard. Error Code: " & GetLastError())
+  If Not CBool(OpenClipboard(0)) Then Call CriticalRaise("Value [LET]", "Unable to open clipboard")
+  If Not CBool(EmptyClipboard()) Then Call CriticalRaise("Value [LET]", "Cannot empty clipboard")
+  If Not CBool(SetClipboardData(iFormat, hGlobalMemory)) Then Call CriticalRaise("Value [LET]", "Unable to set clipboard data")
+  If Not CBool(CloseClipboard()) Then Call CriticalRaise("Value [LET]", "Unable to close clipboard. Error Code: " & GetLastError())
 End Property
 
 'Check whether a given format is available based on the clipboards current data.
@@ -399,11 +399,11 @@ Public Sub protSetFilesText(ByVal sFiles As String)
 
   'Allocate blob to global moveable memory
   hClipMemory = GlobalAlloc(GAlloc.GHND, Len(tDropFiles) + LenB(sFiles))
-  If Not hClipMemory Then Call CriticalRaise("Value [LET]", "Unable to allocate global memory")
+  If Not CBool(hClipMemory) Then Call CriticalRaise("Value [LET]", "Unable to allocate global memory")
   
   'Lock global memory
   lpClipMemory = GlobalLock(hClipMemory)
-  If Not lpClipMemory Then Call CriticalRaise("Value [LET]", "Unable to lock global memory")
+  If Not CBool(lpClipMemory) Then Call CriticalRaise("Value [LET]", "Unable to lock global memory")
   
   'Specify that the offset to where the files are, from the beginning of this structure, are at the end of this structure.
   'I.E. The Binary memory data is literally going to look like:
@@ -412,13 +412,13 @@ Public Sub protSetFilesText(ByVal sFiles As String)
   Call CopyMemory(lpClipMemory, VarPtr(tDropFiles.pFiles), Len(tDropFiles))
   Call CopyMemory(lpClipMemory + Len(tDropFiles), strPtr(sFiles), LenB(sFiles))
   
-  If Not GlobalUnlock(hClipMemory) Then Call CriticalRaise("Value [LET]", "Unable to unlock global mem.")
+  If Not CBool(GlobalUnlock(hClipMemory)) Then Call CriticalRaise("Value [LET]", "Unable to unlock global mem.")
 
   'Try to set clipboard data:
-  If Not OpenClipboard(0) Then Call CriticalRaise("Value [LET]", "Unable to open clipboard")
-  If Not EmptyClipboard() Then Call CriticalRaise("Value [LET]", "Cannot empty clipboard")
-  If Not SetClipboardData(CF_HDROP, hClipMemory) Then Call CriticalRaise("Value [LET]", "Unable to set clipboard data")
-  If Not CloseClipboard() Then Call CriticalRaise("Value [LET]", "Unable to close clipboard. Error Code: " & GetLastError())
+  If Not CBool(OpenClipboard(0)) Then Call CriticalRaise("Value [LET]", "Unable to open clipboard")
+  If Not CBool(EmptyClipboard()) Then Call CriticalRaise("Value [LET]", "Cannot empty clipboard")
+  If Not CBool(SetClipboardData(CF_HDROP, hClipMemory)) Then Call CriticalRaise("Value [LET]", "Unable to set clipboard data")
+  If Not CBool(CloseClipboard()) Then Call CriticalRaise("Value [LET]", "Unable to close clipboard. Error Code: " & GetLastError())
 End Sub
 
 'Get the file paths of files stored on the clipboard
@@ -435,11 +435,11 @@ Public Function protGetFilesArr() As String()
   #End If
   
   'Get pointer to clipboard data
-  If Not OpenClipboard(0) Then Call CriticalRaise("Value [GET]", "Unable to open clipboard")
-  If Not IsClipboardFormatAvailable(CF_HDROP) Then Call CriticalRaise("Value [GET]", "Specified clipboard format is not available")
+  If Not CBool(OpenClipboard(0)) Then Call CriticalRaise("Value [GET]", "Unable to open clipboard")
+  If Not CBool(IsClipboardFormatAvailable(CF_HDROP)) Then Call CriticalRaise("Value [GET]", "Specified clipboard format is not available")
   hClipMemory = GetClipboardData(CF_HDROP)
   Dim nFiles As Long: nFiles = DragQueryFile(hClipMemory, -1&, "", 0)
-  If Not hClipMemory Then Call CriticalRaise("Value [GET]", "Unable to obtain pointer to clipboard data")
+  If Not CBool(hClipMemory) Then Call CriticalRaise("Value [GET]", "Unable to obtain pointer to clipboard data")
   
   Dim sRet() As String: ReDim sRet(1 To nFiles)
   Dim sFileName As String
@@ -452,7 +452,7 @@ Public Function protGetFilesArr() As String()
   Next
   
   protGetFilesArr = sRet
-  If Not CloseClipboard() Then Call CriticalRaise("Value [GET]", "Unable to close clipboard. Error Code: " & GetLastError())
+  If Not CBool(CloseClipboard()) Then Call CriticalRaise("Value [GET]", "Unable to close clipboard. Error Code: " & GetLastError())
 End Function
 
 
@@ -576,7 +576,7 @@ Private Function GetPictureFromClipboard(Optional ByVal lPicType As CLIPFORMAT) 
       If OpenClipboard(0&) > 0 Then
         'Get a handle to the image data
         hPtr = GetClipboardData(lPicType)
-        If Not hPtr Then Call CriticalRaise("GetPictureFromClipboard [PRIVATE]", "Unable to get clipboard data handle")
+        If Not CBool(hPtr) Then Call CriticalRaise("GetPictureFromClipboard [PRIVATE]", "Unable to get clipboard data handle")
 
         'Create our own copy of the image on the clipboard, in the appropriate format.
         If lPicType = CLIPFORMAT.CF_BITMAP Then
@@ -586,7 +586,7 @@ Private Function GetPictureFromClipboard(Optional ByVal lPicType As CLIPFORMAT) 
         End If
 
         'Release the clipboard to other programs
-        If Not CloseClipboard Then Call CriticalRaise("GetPictureFromClipboard [PRIVATE]", "Unable to close clipboard")
+        If Not CBool(CloseClipboard()) Then Call CriticalRaise("GetPictureFromClipboard [PRIVATE]", "Unable to close clipboard")
 
         'If we got a handle to the image, convert it into a Picture object and return it
         If hCopy Then
@@ -622,7 +622,7 @@ Private Function CreatePicture(ByVal hPic As Long, ByVal hPal As Long, ByVal lPi
   Const PICTYPE_ENHMETAFILE = 4
 
   ' Create the Interface GUID (for the stdole.IPicture interface)
-  If Not IIDFromString(strPtr(IID_DISPATCH), iid) Then Call CriticalRaise("CreatePicture", "Cannot get IDispatch IID")
+  If Not CBool(IIDFromString(strPtr(IID_DISPATCH), iid)) Then Call CriticalRaise("CreatePicture", "Cannot get IDispatch IID")
 
   ' Fill uPicInfo with necessary parts.
   With uPicInfo
@@ -633,10 +633,10 @@ Private Function CreatePicture(ByVal hPic As Long, ByVal hPal As Long, ByVal lPi
   End With
 
   ' Create the Picture object.
-  If Not OleCreatePictureIndirect(uPicInfo, iid, True, IPic) Then
-    Call CriticalRaise("CreatePicture [PRIVATE]", "An error occurred in OleCreatePictureIndirect. Error code (" & r & ": " & fnOLEError(r) & ")")
-  Else
+  If CBool(OleCreatePictureIndirect(uPicInfo, iid, True, IPic)) Then
     Set CreatePicture = IPic
+  Else
+    Call CriticalRaise("CreatePicture [PRIVATE]", "An error occurred in OleCreatePictureIndirect. Error code (" & r & ": " & fnOLEError(r) & ")")
   End If
 End Function
 
