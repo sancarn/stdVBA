@@ -323,13 +323,13 @@ End Function
 'Get or set the clipboard as/to an IPicture object
 Public Property Get Picture() as stdole.IPicture
   if IsClipboardFormatAvailable(CF_BITMAP) then
-    set Picture = GetPictureFromClipboard()
-  elseif IsClipboardFormatAvailable(CF_DSPBITMAP) then
-    set Picture = GetPictureFromClipboard()
-  elseif IsClipboardFormatAvailable(CF_METAFILEPIC) then
-    '...
-  elseif IsClipboardFormatAvailable(CF_HDROP) then
-    '???
+    set Picture = GetPictureFromClipboard(CF_BITMAP)
+  elseif IsClipboardFormatAvailable(CF_ENHMETAFILE) then
+    set Picture = GetPictureFromClipboard(CF_ENHMETAFILE)
+  elseif IsClipboardFormatAvailable(CF_METAFILEPICT) then
+    set Picture = GetPictureFromClipboard(CF_METAFILEPICT) 'Unsure whether this would work if CF_ENHMETAFILE doesn't work...
+  'elseif IsClipboardFormatAvailable(CF_HDROP) then
+  '  ???
   else
     Call CriticalRaise("Picture","Invalid clipboard format")
   end if
