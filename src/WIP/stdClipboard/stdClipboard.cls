@@ -205,10 +205,10 @@ Attribute value.VB_UserMemId = 0
   #End If
   
   'Get pointer to clipboard data
-  If Not CBool(OpenClipboard(0)) Then Call CriticalRaise("Value [GET]", "Unable to open clipboard")
+  If Not CBool(OpenClipboard(0)) Then Call CriticalRaise("Value [GET]", "Unable to open clipboard (DllError: " & Err.LastDllError & ")")
   If Not CBool(IsClipboardFormatAvailable(iFormat)) Then Call CriticalRaise("Value [GET]", "Specified clipboard format is not available")
   hClipMemory = GetClipboardData(iFormat)
-  If Not CBool(hClipMemory) Then Call CriticalRaise("Value [GET]", "Unable to obtain pointer to clipboard data")
+  If Not CBool(hClipMemory) Then Call CriticalRaise("Value [GET]", "Unable to obtain pointer to clipboard data (DllError: " & Err.LastDllError & ")")
   
   'Get the data from the supplied pointer
   Dim size As Long
@@ -226,10 +226,10 @@ Attribute value.VB_UserMemId = 0
     End Select
     Call CopyVariant(value, retVal)
   Else
-    Call CriticalRaise("Value [GET]", "Unable to lock global memory")
+    Call CriticalRaise("Value [GET]", "Unable to lock global memory (DllError: " & Err.LastDllError & ")")
   End If
-  If CBool(GlobalUnlock(hClipMemory)) Then Call CriticalRaise("Value [GET]", "Unable to unlock global mem.")
-  If Not CBool(CloseClipboard()) Then Call CriticalRaise("Value [GET]", "Unable to close clipboard. Error Code: " & GetLastError())
+  If CBool(GlobalUnlock(hClipMemory)) Then Call CriticalRaise("Value [GET]", "Unable to unlock global mem (DllError: " & Err.LastDllError & ")")
+  If Not CBool(CloseClipboard()) Then Call CriticalRaise("Value [GET]", "Unable to close clipboard (DllError: " & Err.LastDllError & ")")
 End Property
 Public Property Let value(ByVal iFormat As CLIPFORMAT, ByVal v As Variant)
   #If VBA7 Then
@@ -331,7 +331,7 @@ Public Property Get Picture() As stdole.IPicture
   'elseif IsClipboardFormatAvailable(CF_HDROP) then
   '  ???
   Else
-    Call CriticalRaise("Picture", "Invalid clipboard format")
+    Call CriticalRaise("Picture", "Invalid clipboard format (DllError: " & Err.LastDllError & ")")
   End If
 End Property
 Public Property Set Picture(ByVal olePic As stdole.IPicture)
@@ -399,11 +399,11 @@ Public Sub protSetFilesText(ByVal sFiles As String)
 
   'Allocate blob to global moveable memory
   hClipMemory = GlobalAlloc(GAlloc.GHND, Len(tDropFiles) + LenB(sFiles))
-  If Not CBool(hClipMemory) Then Call CriticalRaise("Value [LET]", "Unable to allocate global memory")
+  If Not CBool(hClipMemory) Then Call CriticalRaise("Value [LET]", "Unable to allocate global memory (DllError: " & Err.LastDllError & ")")
   
   'Lock global memory
   lpClipMemory = GlobalLock(hClipMemory)
-  If Not CBool(lpClipMemory) Then Call CriticalRaise("Value [LET]", "Unable to lock global memory")
+  If Not CBool(lpClipMemory) Then Call CriticalRaise("Value [LET]", "Unable to lock global memory (DllError: " & Err.LastDllError & ")")
   
   'Specify that the offset to where the files are, from the beginning of this structure, are at the end of this structure.
   'I.E. The Binary memory data is literally going to look like:
@@ -412,13 +412,13 @@ Public Sub protSetFilesText(ByVal sFiles As String)
   Call CopyMemory(lpClipMemory, VarPtr(tDropFiles.pFiles), Len(tDropFiles))
   Call CopyMemory(lpClipMemory + Len(tDropFiles), strPtr(sFiles), LenB(sFiles))
   
-  If CBool(GlobalUnlock(hClipMemory)) Then Call CriticalRaise("Value [LET]", "Unable to unlock global mem.")
+  If CBool(GlobalUnlock(hClipMemory)) Then Call CriticalRaise("Value [LET]", "Unable to unlock global mem (DllError: " & Err.LastDllError & ")")
 
   'Try to set clipboard data:
-  If Not CBool(OpenClipboard(0)) Then Call CriticalRaise("Value [LET]", "Unable to open clipboard")
-  If Not CBool(EmptyClipboard()) Then Call CriticalRaise("Value [LET]", "Cannot empty clipboard")
-  If Not CBool(SetClipboardData(CF_HDROP, hClipMemory)) Then Call CriticalRaise("Value [LET]", "Unable to set clipboard data")
-  If Not CBool(CloseClipboard()) Then Call CriticalRaise("Value [LET]", "Unable to close clipboard. Error Code: " & GetLastError())
+  If Not CBool(OpenClipboard(0)) Then Call CriticalRaise("Value [LET]", "Unable to open clipboard (DllError: " & Err.LastDllError & ")")
+  If Not CBool(EmptyClipboard()) Then Call CriticalRaise("Value [LET]", "Cannot empty clipboard (DllError: " & Err.LastDllError & ")")
+  If Not CBool(SetClipboardData(CF_HDROP, hClipMemory)) Then Call CriticalRaise("Value [LET]", "Unable to set clipboard data (DllError: " & Err.LastDllError & ")")
+  If Not CBool(CloseClipboard()) Then Call CriticalRaise("Value [LET]", "Unable to close clipboard (DllError: " & Err.LastDllError & ")")
 End Sub
 
 'Get the file paths of files stored on the clipboard
@@ -435,11 +435,11 @@ Public Function protGetFilesArr() As String()
   #End If
   
   'Get pointer to clipboard data
-  If Not CBool(OpenClipboard(0)) Then Call CriticalRaise("Value [GET]", "Unable to open clipboard")
+  If Not CBool(OpenClipboard(0)) Then Call CriticalRaise("Value [GET]", "Unable to open clipboard (DllError: " & Err.LastDllError & ")")
   If Not CBool(IsClipboardFormatAvailable(CF_HDROP)) Then Call CriticalRaise("Value [GET]", "Specified clipboard format is not available")
   hClipMemory = GetClipboardData(CF_HDROP)
   Dim nFiles As Long: nFiles = DragQueryFile(hClipMemory, -1&, "", 0)
-  If Not CBool(hClipMemory) Then Call CriticalRaise("Value [GET]", "Unable to obtain pointer to clipboard data")
+  If Not CBool(hClipMemory) Then Call CriticalRaise("Value [GET]", "Unable to obtain pointer to clipboard data (DllError: " & Err.LastDllError & ")")
   
   Dim sRet() As String: ReDim sRet(1 To nFiles)
   Dim sFileName As String
@@ -452,7 +452,7 @@ Public Function protGetFilesArr() As String()
   Next
   
   protGetFilesArr = sRet
-  If Not CBool(CloseClipboard()) Then Call CriticalRaise("Value [GET]", "Unable to close clipboard. Error Code: " & GetLastError())
+  If Not CBool(CloseClipboard()) Then Call CriticalRaise("Value [GET]", "Unable to close clipboard (DllError: " & Err.LastDllError & ")")
 End Function
 
 
@@ -577,7 +577,7 @@ Private Function GetPictureFromClipboard(Optional ByVal lPicType As CLIPFORMAT) 
       If OpenClipboard(0&) > 0 Then
         'Get a handle to the image data
         hPtr = GetClipboardData(lPicType)
-        If Not CBool(hPtr) Then Call CriticalRaise("GetPictureFromClipboard [PRIVATE]", "Unable to get clipboard data handle")
+        If Not CBool(hPtr) Then Call CriticalRaise("GetPictureFromClipboard [PRIVATE]", "Unable to get clipboard data handle (DllError: " & Err.LastDllError & ")")
 
         'Create our own copy of the image on the clipboard, in the appropriate format.
         If lPicType = CLIPFORMAT.CF_BITMAP Then
@@ -587,16 +587,16 @@ Private Function GetPictureFromClipboard(Optional ByVal lPicType As CLIPFORMAT) 
         End If
 
         'Release the clipboard to other programs
-        If Not CBool(CloseClipboard()) Then Call CriticalRaise("GetPictureFromClipboard [PRIVATE]", "Unable to close clipboard")
+        If Not CBool(CloseClipboard()) Then Call CriticalRaise("GetPictureFromClipboard [PRIVATE]", "Unable to close clipboard (DllError: " & Err.LastDllError & ")")
 
         'If we got a handle to the image, convert it into a Picture object and return it
         If hCopy Then
           Set GetPictureFromClipboard = CreatePicture(hCopy, 0, lPicType)
         Else
-          Call CriticalRaise("GetPictureFromClipboard [PRIVATE]", "Unable to obtain image handle")
+          Call CriticalRaise("GetPictureFromClipboard [PRIVATE]", "Unable to obtain image handle (DllError: " & Err.LastDllError & ")")
         End If
       Else
-        Call CriticalRaise("GetPictureFromClipboard [PRIVATE]", "Unable to open clipboard")
+        Call CriticalRaise("GetPictureFromClipboard [PRIVATE]", "Unable to open clipboard (DllError: " & Err.LastDllError & ")")
       End If
     Else
       Call CriticalRaise("GetPictureFromClipboard [PRIVATE]", "Clipboard format is not available")
@@ -623,7 +623,7 @@ Private Function CreatePicture(ByVal hPic As Long, ByVal hPal As Long, ByVal lPi
   Const PICTYPE_ENHMETAFILE = 4
 
   ' Create the Interface GUID (for the stdole.IPicture interface)
-  If Not CBool(IIDFromString(strPtr(IID_DISPATCH), iid)) Then Call CriticalRaise("CreatePicture", "Cannot get IDispatch IID")
+  If Not CBool(IIDFromString(strPtr(IID_DISPATCH), iid)) Then Call CriticalRaise("CreatePicture", "Cannot get IDispatch IID (DllError: " & Err.LastDllError & ")")
 
   ' Fill uPicInfo with necessary parts.
   With uPicInfo
