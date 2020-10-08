@@ -81,8 +81,8 @@ End Enum
   End Type
   Private Declare PtrSafe Function EmptyClipboard Lib "user32" () As Long
   Private Declare PtrSafe Function SetClipboardData Lib "user32" (ByVal wFormat As CLIPFORMAT, ByVal hMem As LongPtr) As Long
-  Private Declare PtrSafe Function GlobalAlloc Lib "kernel32" (ByVal wFlags As Long, ByVal dwBytes As Long) As Long
-  Private Declare PtrSafe Function GlobalLock Lib "kernel32" (ByVal hMem As LongPtr) As Long
+  Private Declare PtrSafe Function GlobalAlloc Lib "kernel32" (ByVal wFlags As Long, ByVal dwBytes As Long) As LongPtr
+  Private Declare PtrSafe Function GlobalLock Lib "kernel32" (ByVal hMem As LongPtr) As LongPtr
   Private Declare PtrSafe Function GlobalUnlock Lib "kernel32" (ByVal hMem As LongPtr) As Long
   Private Declare PtrSafe Function GlobalSize Lib "kernel32" (ByVal hMem As LongPtr) As Long
   Private Declare PtrSafe Function lstrcpy Lib "kernel32" Alias "lstrcpyA" (ByVal lpString1 As LongPtr, ByVal lpString2 As LongPtr) As Long
@@ -228,7 +228,7 @@ Attribute value.VB_UserMemId = 0
   Else
     Call CriticalRaise("Value [GET]", "Unable to lock global memory")
   End If
-  If Not CBool(GlobalUnlock(hClipMemory)) Then Call CriticalRaise("Value [GET]", "Unable to unlock global mem.")
+  If CBool(GlobalUnlock(hClipMemory)) Then Call CriticalRaise("Value [GET]", "Unable to unlock global mem.")
   If Not CBool(CloseClipboard()) Then Call CriticalRaise("Value [GET]", "Unable to close clipboard. Error Code: " & GetLastError())
 End Property
 Public Property Let value(ByVal iFormat As CLIPFORMAT, ByVal v As Variant)
@@ -253,26 +253,26 @@ Public Property Let value(ByVal iFormat As CLIPFORMAT, ByVal v As Variant)
   
   'Allocate blob to global moveable memory
   hClipMemory = GlobalAlloc(GAlloc.GHND, size)
-  If Not CBool(hClipMemory) Then Call CriticalRaise("Value [LET]", "Unable to allocate global memory")
+  If Not CBool(hClipMemory) Then Call CriticalRaise("Value [LET]", "Unable to allocate global memory (DllError: " & Err.LastDllError & ")")
   
   'Lock global memory
   lpClipMemory = GlobalLock(hClipMemory)
-  If Not CBool(lpClipMemory) Then Call CriticalRaise("Value [LET]", "Unable to lock global memory")
+  If Not CBool(lpClipMemory) Then Call CriticalRaise("Value [LET]", "Unable to lock global memory (DllError: " & Err.LastDllError & ")")
   
   Select Case iFormat
     Case CLIPFORMAT.CF_TEXT
       lpClipMemory = lstrcpy(lpClipMemory, strPtr(v))
-      If Not CBool(lpClipMemory) Then Call CriticalRaise("Value [LET]", "Unable to copy string to global memory")
+      If Not CBool(lpClipMemory) Then Call CriticalRaise("Value [LET]", "Unable to copy string to global memory (DllError: " & Err.LastDllError & ")")
     Case Else
       Call CopyMemory(lpClipMemory, VarPtr(data(LBound(data))), size)
   End Select
-  If Not CBool(GlobalUnlock(hClipMemory)) Then Call CriticalRaise("Value [LET]", "Unable to unlock global mem.")
+  If CBool(GlobalUnlock(hClipMemory)) Then Call CriticalRaise("Value [LET]", "Unable to unlock global mem. (DllError: " & Err.LastDllError & ")")
 
   'Try to set clipboard data:
-  If Not CBool(OpenClipboard(0)) Then Call CriticalRaise("Value [LET]", "Unable to open clipboard")
-  If Not CBool(EmptyClipboard()) Then Call CriticalRaise("Value [LET]", "Cannot empty clipboard")
-  If Not CBool(SetClipboardData(iFormat, hGlobalMemory)) Then Call CriticalRaise("Value [LET]", "Unable to set clipboard data")
-  If Not CBool(CloseClipboard()) Then Call CriticalRaise("Value [LET]", "Unable to close clipboard. Error Code: " & GetLastError())
+  If Not CBool(OpenClipboard(0)) Then Call CriticalRaise("Value [LET]", "Unable to open clipboard (DllError: " & Err.LastDllError & ")")
+  If Not CBool(EmptyClipboard()) Then Call CriticalRaise("Value [LET]", "Cannot empty clipboard (DllError: " & Err.LastDllError & ")")
+  If Not CBool(SetClipboardData(iFormat, hClipMemory)) Then Call CriticalRaise("Value [LET]", "Unable to set clipboard data (DllError: " & Err.LastDllError & ")")
+  If Not CBool(CloseClipboard()) Then Call CriticalRaise("Value [LET]", "Unable to close clipboard (DllError: " & Err.LastDllError & ")")
 End Property
 
 'Check whether a given format is available based on the clipboards current data.
@@ -412,7 +412,7 @@ Public Sub protSetFilesText(ByVal sFiles As String)
   Call CopyMemory(lpClipMemory, VarPtr(tDropFiles.pFiles), Len(tDropFiles))
   Call CopyMemory(lpClipMemory + Len(tDropFiles), strPtr(sFiles), LenB(sFiles))
   
-  If Not CBool(GlobalUnlock(hClipMemory)) Then Call CriticalRaise("Value [LET]", "Unable to unlock global mem.")
+  If CBool(GlobalUnlock(hClipMemory)) Then Call CriticalRaise("Value [LET]", "Unable to unlock global mem.")
 
   'Try to set clipboard data:
   If Not CBool(OpenClipboard(0)) Then Call CriticalRaise("Value [LET]", "Unable to open clipboard")
@@ -504,6 +504,7 @@ End Function
 '@param {ByVal String} The Function name, to be concatenated with "stdClipboard::" to determine the source.
 '@param {ByVal String} The message to relay to the user.
 Private Sub CriticalRaise(ByVal sFuncName As String, ByVal sMessage As String)
+  Call CloseClipboard
   'If stdError exists
     If VarType(stdError) Then
       Call stdError.Raise("stdClipboard::" & sFuncName & " - " & sMessage)
