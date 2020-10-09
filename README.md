@@ -1,4 +1,4 @@
-# VBA-STD-Library
+# stdVBA
 
 A Collection of libraries to form a common standard layer for modern VBA applications.
 
