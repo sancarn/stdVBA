@@ -32,15 +32,18 @@ Sub testAll()
     'Test files copy
     #If Win64 Then
         'Currently got a crash here, known limitation - not sure why this is occurring.
+        AppendTest vbaTests, index, "NOT x64: Ensure setting files ensure clipboard supports CF_HDROP", False
+        AppendTest vbaTests, index, "NOT x64: Ensure we can get at the files 1", False
+        AppendTest vbaTests, index, "NOT x64: Ensure we can get at the files 2", False
     #Else
-    Dim files As Collection
-    Set files = New Collection
-    files.Add "D:\Programming\Github\VBA-STD-Library\README.md"
-    files.Add "D:\Programming\Github\VBA-STD-Library\Links.md"
-    Set stdClipboard.files = files
-    AppendTest vbaTests, index, "Ensure setting files ensure clipboard supports CF_HDROP", stdClipboard.IsFormatAvailable(CF_HDROP)
-    AppendTest vbaTests, index, "Ensure we can get at the files 1", stdClipboard.files.item(1) = "C:\a\b\c"
-    AppendTest vbaTests, index, "Ensure we can get at the files 2", stdClipboard.files.item(2) = "C:\a\b\d"
+        Dim files As Collection
+        Set files = New Collection
+        files.Add "D:\Programming\Github\VBA-STD-Library\README.md"
+        files.Add "D:\Programming\Github\VBA-STD-Library\Links.md"
+        Set stdClipboard.files = files
+        AppendTest vbaTests, index, "Ensure setting files ensure clipboard supports CF_HDROP", stdClipboard.IsFormatAvailable(CF_HDROP)
+        AppendTest vbaTests, index, "Ensure we can get at the files 1", stdClipboard.files.item(1) = "C:\a\b\c"
+        AppendTest vbaTests, index, "Ensure we can get at the files 2", stdClipboard.files.item(2) = "C:\a\b\d"
     #End If
     
     'Loop through tests and log
