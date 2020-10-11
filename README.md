@@ -42,11 +42,11 @@ sub Main()
   Debug.Print arr.Map(stdLambda.Create("ThisWorkbook.Sheets($1)")) _ 
                  .Map(stdLambda.Create("$1.Name")).join(",")            'Sheet1,Sheet2,Sheet3,...,Sheet10
   
-  'Execute methods with lambda:
-  Call stdArray.Create(Workbooks(1),Workbooks(2)).forEach(stdLambda.Create("$1#Save")
+  'Execute methods with lambdas and enumerate over enumeratable collections:
+  Call stdEnumerator.Create(Application.Workbooks).forEach(stdLambda.Create("$1#Save")
   
   'We even have if statement!
-  With stdLambda.Create("if $1 then ""lisa"" else ""bart"")
+  With stdLambda.Create("if $1 then ""lisa"" else ""bart""")
     Debug.Print .Run(true)                                              'lisa
     Debug.Print .Run(false)                                             'bart
   End With
@@ -64,14 +64,29 @@ sub Main()
   Debug.Print oRegResult("city")   '040
   
   'And getting all the matches....
-  Debug.Print oRegex.MatchAll("D-040-1425;D-029-0055;A-100-1351").map(stdCallback.CreateFromModule("ModuleMain","GetCountry")).join 'D,D,A
+  Debug.Print oRegex.MatchAll("D-040-1425;D-029-0055;A-100-1351").map(stdLambda.Create("$1.item(""county"")")).join 'D,D,A
+
+  'Copy some data to the clipboard:
+  Range("A1").value = "Hello there"
+  Range("A1").copy
+  Debug.Print stdClipboard.Text 'Hello there
+  stdClipboard.Text = "Hello world"
+  Debug.Print stdClipboard.Text 'Hello world
+
+  'Copy files to the clipboard.
+  Dim files as collection
+  set files = new collection
+  files.add "C:\File1.txt"
+  files.add "C:\File2.txt"
+  set stdClipboard.files = files
+
+  'Save a chart as a file
+  Sheets("Sheet1").ChartObjects(1).copy
+  Call stdClipboard.Picture.saveAsFile("C:\test.bmp",false,null) 'Use IPicture interface to save to disk as image
 End Sub
 
 Public Function CalcArea(ByVal radius as Double) as Double
   CalcArea = 3.14159*radius*radius
-End Function
-Public Function GetCounty(obj as object) as string
-  GetCountry = obj("county")
 End Function
 ```
 
