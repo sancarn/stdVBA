@@ -405,6 +405,11 @@ Public Sub SetFilesArr(ByVal vFiles As Variant)
   Call protSetFilesText(sFiles)
 End Sub
 
+#If Win64 Then
+Public Sub protSetFilesText(ByVal sFiles As String)
+    MsgBox "Not implemented. Current version produces crash for unknown reasons.", vbCritical
+End Sub
+#Else
 'Internal method for setting the clipboard to a selection of Files passed in as a raw file string
 'Realistically it might be better for this method to use Value LET directly.
 '@protected
@@ -445,6 +450,7 @@ Public Sub protSetFilesText(ByVal sFiles As String)
   'No need to call `GlobalFree` as system does this for us re: https://stackoverflow.com/questions/1264137/how-to-copy-string-to-clipboard-in-c#comment48533963_1264179
   'If CBool(GlobalFree(hClipMemory)) Then If Err.LastDllError <> 0 Then Call CriticalRaise("Value [GET]", "Cannot free Global mem (DllError: " & Err.LastDllError & ")")
 End Sub
+#End If
 
 'Get the file paths of files stored on the clipboard
 '@protected
