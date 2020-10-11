@@ -8,4 +8,5 @@ Sub MainTestAll()
     Call stdArrayTests.testAll
     Call stdCallbackTests.testAll
     Call stdEnumeratorTests.testAll
+    Call stdClipboardTests.testAll
 End Sub

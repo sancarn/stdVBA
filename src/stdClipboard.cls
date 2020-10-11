@@ -473,7 +473,7 @@ Public Function protGetFilesArr() As String()
   For i = 1 To nFiles
     sFileName = Space(260)
     Call DragQueryFile(hClipMemory, i - 1, sFileName, 260)
-    sRet(i) = Trim(sFileName)
+    sRet(i) = VBA.Trim(sFileName)
   Next
   
   protGetFilesArr = sRet
@@ -717,7 +717,7 @@ Private Function CreatePicture(ByVal hPic As Long, ByVal hPal As Long, ByVal lPi
   End With
 
   ' Create the Picture object.
-  If CBool(OleCreatePictureIndirect(uPicInfo, iid, True, IPic)) Then
+  If Not CBool(OleCreatePictureIndirect(uPicInfo, iid, True, IPic)) Then
     Set CreatePicture = IPic
   Else
     Call CriticalRaise("CreatePicture [PRIVATE]", "An error occurred in OleCreatePictureIndirect. Error code (" & r & ": " & fnOLEError(r) & ")")
