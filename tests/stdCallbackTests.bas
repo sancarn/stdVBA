@@ -4,19 +4,19 @@ Public Sub testAll()
 
   With stdCallback.CreateFromModule("stdCallbackTests", "testCallbackTest")
     'Run tests
-    Dim v as Variant
-    v = .Run(1,2,3,4)
+    Dim v As Variant
+    v = .Run(1, 2, 3, 4)
     Test.Assert "Run() 1 is array", isArray(v)
-    if isArray(v) then
-      Test.Assert "Run() 2 array correct", join(v,"|") = "1|2|3|4"
-    end if
+    If isArray(v) Then
+      Test.Assert "Run() 2 array correct", Join(v, "|") = "1|2|3|4"
+    End If
 
     'RunEx tests
-    v=.RunEx(Array(1,2,3,4))
+    v = .RunEx(Array(1, 2, 3, 4))
     Test.Assert "RunEx() 1 is array", isArray(v)
-    if isArray(v) then
-      Test.Assert "RunEx() 2 array correct", join(v,"|") = "1|2|3|4"
-    end if
+    If isArray(v) Then
+      Test.Assert "RunEx() 2 array correct", Join(v, "|") = "1|2|3|4"
+    End If
   End With
 
   'Test object method
@@ -25,12 +25,12 @@ Public Sub testAll()
   End With
 
   'Test object property
-  With stdCallback.CreateFromObjectProperty(Test, "TestProperty", vbGet)
+  With stdCallback.CreateFromObjectProperty(Test, "TestProperty", VbGet)
     
   End With
 
   'Historic evaluator method
-  Test.Assert "CreateEvaluator --> stdLambda", TypeOf stdCallback.CreateEvaluator("1") is stdICallable
+  Test.Assert "CreateEvaluator --> stdLambda", TypeOf stdCallback.CreateEvaluator("1") Is stdICallable
 
   'Test stdLambda::bind()
   With stdCallback.CreateFromModule("stdCallbackTests", "testCallbackTest").Bind(1)
