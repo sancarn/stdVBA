@@ -7,8 +7,10 @@ A Collection of libraries to form a common standard layer for modern VBA applica
 * Code faster!
 * Improve code maintainability.
 * Let the library handle the complicated stuff, you focus on the process 
-* Heavily inspired of JavaScript APIs - More standard
+* Heavily inspired by JavaScript APIs - More standard
 * Open Source - Means the libraries are continually maintained by the community. Want something added, help us make it!
+
+[The full roadmap](https://github.com/sancarn/stdVBA/projects/1) has more detailed information than here.
 
 ## Short example
 
@@ -111,38 +113,48 @@ This project is has been majorly maintained by 1 person, so progress is generall
 
 ## Planned Global Objects:
 
-| Status | VBType |Type       |Name             | Description  |
-|--------|--------|-----------|-----------------|--------------|
-| HOLD   | Class  |File       |stdShell         | A wrapper around windows file system APIs. Likely implemented as a class which can be instantiated on a file or folder, and can behave as multiple file items.
-| HOLD   | Class  |Debug      |stdDebug         | A wrapper around `Debug` while adding new options like styling messages and printing to an external html console.
-| READY  | Class  |Debug      |stdError         | Better error handling, including stack trace and error handling diversion and events.
-| HOLD   | Class  |Data       |stdZip           | A wrapper around shell's Zip functionality.
-| HOLD   | Class  |Data       |stdJSON          | [Tim Hall's fantastic JSON library](https://github.com/VBA-tools/VBA-JSON)
-| HOLD   | Class  |Data       |stdXML           | A library to manipulate XML documents.
-| HOLD   | Class  |Data       |stdOXML          | A library to assist in the modification of Office documents via Open XML format.
-| READY  | Class  |Type       |stdArray         | A library designed to re-create the Javascript dynamic array object.
-| READY  | Class  |Type       |stdEnumerator    | A library designed to wrap enumerable objects (implements `IEnumVARIANT`) providing additional functionality.
-| WIP    | Class  |Type       |stdDictionary    | A drop in replacement for VBScript's dictionary.
-| READY  | Class  |Type       |stdDate          | A standard date parsing library. No more will you have to rely on Excel's interpreter. State the format, get the data.
-| READY  | Class  |Type       |stdRegex         | A wrapper around `VBScript.RegExp` but with more features e.g. named capture groups and free-spaces.
-| READY  | Class  |Type       |stdLambda        | Build and create in-line functions. Execute them at a later stage.
-| READY  | Class  |Type       |stdCallback      | Link to existing functions defined in VBA code, call them at a later stage.
-| READY  | Class  |Type       |stdStringBuilder | A better way of creating large strings.
-| WIP    | Class  |Type       |stdCOM           | A wrapper around a COM object which provides Reflection (through ITypeInfo), Interface querying, Calling interface methods (via DispID) and more. 
-| UNK    | Module |Type       |stdIniVariantEnum| Initialising [IEnumVARIANT](http://www.vbforums.com/showthread.php?854963-VB6-IEnumVARIANT-For-Each-support-without-a-typelib) by recreating vtable. Used to overcome pitfalls of VB collections. Alternatively will implement an IFxEnumVariant interface
-| HOLD   | Class  |Automation |stdHTTP          | A wrapper around HTTP COM libraries.
-| WIP    | Class  |Automation |stdAccessibility | Use Microsoft Active Accessibility framework within VBA - Very useful for automation.
-| WIP    | Class  |Automation |stdWindows       | Standard functions for handling Windows
-| WIP    | Class  |Automation |stdKernel        | Low level but useful APIs. Won't be loading Kernel32.dll entirely, but will try to expose static methods to common useful functions.
-| WIP    | Class  |Runtimes   |stdCLR           | Host CLR (Common Language Runtime). Allows execution of C#.NET and VB.NET scripts in-process.
-| WIP    | Class  |Runtimes   |stdPowershell    | Host [Powershell](https://docs.microsoft.com/en-us/powershell/developer/hosting/windows-powershell-host-quickstart)
-| WIP    | Class  |Runtimes   |stdJavaScript    | Host [Edge and IE Javascript engine](https://docs.microsoft.com/en-us/microsoft-edge/hosting/chakra-hosting/hosting-the-javascript-runtime). [IE11 Hosting](https://docs.microsoft.com/en-us/microsoft-edge/hosting/chakra-hosting/targeting-edge-vs-legacy-engines-in-jsrt-apis)
-| WIP    | Class  |Runtimes   |stdJSBridge      | A VbaJsBridge module allowing applications to open and close programmatic access to VBA from OfficeJS.
-| UNK    | Class  |Runtimes   |stdVBR           | [Hidden functions from VB VirtualMachine library](http://www.freevbcode.com/ShowCode.asp?ID=7520)
-| UNK    | Class  |Runtimes   |stdExecLib       | Execute external applications in-memory. [src](https://github.com/itm4n/VBA-RunPE)
-| WIP    | Class  |Processing |stdThread        | Multithreading in VBA? [src](http://www.freevbcode.com/ShowCode.asp?ID=1287#A%20Quick%20Review%20Of%20Multithreading)
-| WIP    | Class  |Excel      |stdEvents        | More events for VBA.
-| WIP    | Class  |Excel      |stdTable         | Better tables for VBA, e.g. Map rows etc.
+|                                                           Status | VBType |Type       |Name             | Description  |
+|------------------------------------------------------------------|--------|-----------|-----------------|--------------|
+| ![_](https://via.placeholder.com/15/00ff00/000000?text=+) READY  | Class  |Debug      |stdError         | Better error handling, including stack trace and error handling diversion and events.
+| ![_](https://via.placeholder.com/15/00ff00/000000?text=+) READY  | Class  |Type       |stdArray         | A library designed to re-create the Javascript dynamic array object.
+| ![_](https://via.placeholder.com/15/ffff00/000000?text=+) WIP    | Class  |Type       |stdEnumerator    | A library designed to wrap enumerable objects (implements `IEnumVARIANT`) providing additional functionality.
+| ![_](https://via.placeholder.com/15/ffff00/000000?text=+) WIP    | Class  |Type       |stdDictionary    | A drop in replacement for VBScript's dictionary.
+| ![_](https://via.placeholder.com/15/00ff00/000000?text=+) READY  | Class  |Type       |stdDate          | A standard date parsing library. No more will you have to rely on Excel's interpreter. State the format, get the data.
+| ![_](https://via.placeholder.com/15/00ff00/000000?text=+) READY  | Class  |Type       |stdRegex         | A wrapper around `VBScript.RegExp` but with more features e.g. named capture groups and free-spaces.
+| ![_](https://via.placeholder.com/15/00ff00/000000?text=+) READY  | Class  |Type       |stdLambda        | Build and create in-line functions. Execute them at a later stage.
+| ![_](https://via.placeholder.com/15/00ff00/000000?text=+) READY  | Class  |Type       |stdCallback      | Link to existing functions defined in VBA code, call them at a later stage.
+| ![_](https://via.placeholder.com/15/ffff00/000000?text=+) WIP    | Class  |Type       |stdCOM           | A wrapper around a COM object which provides Reflection (through ITypeInfo), Interface querying, Calling interface methods (via DispID) and more. 
+| ![_](https://via.placeholder.com/15/00ff00/000000?text=+) READY  | Class  |Automation |stdClipboard     | Clipboard management library. Set text, files, images and more to the clipboard.
+| ![_](https://via.placeholder.com/15/00ff00/000000?text=+) HOLD   | Class  |Automation |stdHTTP          | A wrapper around Win HTTP libraries.
+| ![_](https://via.placeholder.com/15/ffff00/000000?text=+) WIP    | Class  |Automation |stdAccessibility | Use Microsoft Active Accessibility framework within VBA - Very useful for automation.
+| ![_](https://via.placeholder.com/15/ffff00/000000?text=+) WIP    | Class  |Excel      |stdTable         | Better tables for VBA, e.g. Map rows etc.
+
+[The full roadmap](https://github.com/sancarn/stdVBA/projects/1) has more detailed information than here.
+
+### Statuses
+
+#### ![_](https://via.placeholder.com/15/00ff00/000000?text=+) READY
+
+APIs which are ready to use, and although are not fully featured are in a good enough working state.
+
+#### ![_](https://via.placeholder.com/15/00ff00/000000?text=+) WIP
+
+APIs which are WIP are not necessarily being worked on currently but at least are recognised for their importance to the library. These will be lightly worked on/thought about continuously even if no commits are made.
+
+As of Oct 2020, this status typically consists of:
+* data types, e.g. stdEnumerator, stdDictionary, stdTable;
+* Unit testing; 
+* Tasks difficult to automate otherwise e.g. stdClipboard, stdAccessibility;
+
+#### ![_](https://via.placeholder.com/15/ff0000/000000?text=+) HOLD
+
+APIs where progress has been temporarily halted, and/or is currently not a priority.
+
+In the early days we'll see this more with things which do already have existing work arounds and are not critical, so projects are more likely to fit into this category.
+
+#### ![_](https://via.placeholder.com/15/aaaaaa/000000?text=+) UNK
+
+APIs which have been indefinitely halted. We aren't sure whether we need these or if they really fit into the project. They are nice to haves but not necessities for the project as current. These ideas may be picked up later. All feature requests will fit into this category initially.
 
 ## Structure
 
