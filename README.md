@@ -113,8 +113,8 @@ This project is has been majorly maintained by 1 person, so progress is generall
 
 ## Planned Global Objects:
 
-|Color                                                    | Status | Type       |Name             | Description  |
-|---------------------------------------------------------|--------|------------|-----------------|--------------|
+|Color                                                     | Status | Type       |Name             | Description  |
+|----------------------------------------------------------|--------|------------|-----------------|--------------|
 |![_](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Debug      |stdError         | Better error handling, including stack trace and error handling diversion and events.
 |![_](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Type       |stdArray         | A library designed to re-create the Javascript dynamic array object.
 |![_](https://via.placeholder.com/15/ffff00/000000?text=+) | WIP    | Type       |stdEnumerator    | A library designed to wrap enumerable objects (implements `IEnumVARIANT`) providing additional functionality.
@@ -127,7 +127,7 @@ This project is has been majorly maintained by 1 person, so progress is generall
 |![_](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Automation |stdClipboard     | Clipboard management library. Set text, files, images and more to the clipboard.
 |![_](https://via.placeholder.com/15/00ff00/000000?text=+) | HOLD   | Automation |stdHTTP          | A wrapper around Win HTTP libraries.
 |![_](https://via.placeholder.com/15/ffff00/000000?text=+) | WIP    | Automation |stdAccessibility | Use Microsoft Active Accessibility framework within VBA - Very useful for automation.
-|![_](https://via.placeholder.com/15/ffff00/000000?text=+) | WIP    | Excel      |stdTable         | Better tables for VBA, e.g. Map rows etc.
+|![_](https://via.placeholder.com/15/ffff00/000000?text=+) | WIP    | Excel      |xlTable          | Better tables for VBA, e.g. Map rows etc.
 
 [The full roadmap](https://github.com/sancarn/stdVBA/projects/1) has more detailed information than here.
 
@@ -158,52 +158,51 @@ APIs which have been indefinitely halted. We aren't sure whether we need these o
 
 ## Structure
 
-All modules or classes will be prefixed by `std`.
+All modules or classes will be prefixed by `std` if they are generic libraries.
 
-Commonly implementations will be of classes which are factory classes. E.G:
+Application specific libraries to be prefixed with `xl`, `wd`, `pp`, `ax` representing their specific application.
+
+Commonly implementations will use the factory class design pattern:
 
 ```vb
-Class stdRegex
-  private p_pattern as string
-  private p_flags as string
-  '...
-  
-  'Creates a regex object given a pattern and flags.
+Class stdClass
+  Private bInitialised as boolean
+
+  'Creates an object from the given parameters
   '@constructor
-  '
-  '@param {string}  Pattern - The pattern to match
-  '@param {string}  Flags - Optional flags to apply
-  '@return {stdRegex} Regular expression object
-  '@example
-  '    stdRegex.Create("A\d+","i")
-  Public Function Create(ByVal pattern As String, Optional ByVal flags As String = "") As stdRegex
-    If Not Me Is stdRegex Then
-      stdError.Raise ("Constructor called on object not class")
-      Exit Function
+  Public Function Create(...) As stdClass
+    if not bInitialised then
+      Set Create = New stdClass
+      Call Create.init(...)
+    else
+      Call CriticalRaise("Constructor called on object not class")
     End If
-    
-    Set Create = New stdRegex
-    Call Create.init(pattern, flags)
   End Function
 
-  'Initialises the class from within the static superclass. This method is meant for internal use only. Use at your own risk.
+  'Initialises the class. This method is meant for internal use only. Use at your own risk.
   '@protected
-  '
-  '@param {string}  Pattern - The pattern to match
-  '@param {string}  Flags - Optional flags to apply
-  '@example
-  '    obj.init("A\d+","i")
-  Friend Sub init(ByVal pattern As String, ByVal flags As String)
-    If Me Is stdRegex Then
-      stdError.Raise ("Cannot run init on class")
-      Exit Sub
+  Public Sub init(...)
+    If bInitialised Then
+      Call CriticalRaise("Cannot run init() on initialised object")
+    elseif Me is stdClass then
+      Call CriticalRaise("Cannot run init() on static class")
+    else
+      'initialise with params...
+
+      'Make sure bInitialised is set
+      bInitialised=true
     End If
-    
-    p_pattern = pattern
-    p_flags = flags
-    '...
   End Sub
-  '..
+
+  Private Sub CriticalRaise(ByVal sMsg as string)
+    if isObject(stdError) then
+      stdError.Raise sMsg
+    else
+      Err.Raise 1, "stdClass", sMsg
+    end if
+  End Sub
+  
+  '...
 End Class
 ```
 
