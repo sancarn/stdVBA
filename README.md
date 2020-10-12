@@ -137,7 +137,7 @@ This project is has been majorly maintained by 1 person, so progress is generall
 
 APIs which are ready to use, and although are not fully featured are in a good enough working state.
 
-#### ![_](https://via.placeholder.com/15/00ff00/000000?text=+) WIP
+#### ![_](https://via.placeholder.com/15/ffff00/000000?text=+) WIP
 
 APIs which are WIP are not necessarily being worked on currently but at least are recognised for their importance to the library. These will be lightly worked on/thought about continuously even if no commits are made.
 
