@@ -759,8 +759,56 @@ Public Function groupBy(ByVal cb As stdICallable, Optional ByVal metadata As Obj
     Set groupBy = result
 End Function
 
+Public Function Max(Optional ByVal cb As stdICallable = nothing) as variant
+  Dim vRet, vMaxValue, v
+  For i = 1 to pLength
+    Call CopyVariant(v,pArr(i))
+    
+    'Get value to test
+    Dim vtValue as variant
+    if cb is nothing then
+      Call CopyVariant(vtValue,v)
+    else
+      Call CopyVariant(vtValue,cb.Run(v))
+    end if
 
+    'Compare values and return 
+    if isEmpty(vRet) then
+      Call CopyVariant(vRet,v)
+      Call CopyVariant(vMaxValue, vtValue)
+    elseif vMaxValue < vtValue then
+      Call CopyVariant(vRet,v)
+      Call CopyVariant(vMaxValue, vtValue)
+    end if
+  next
 
+  Call CopyVariant(Max,vRet)
+End Function
+Public Function Min(Optional ByVal cb As stdICallable = nothing) as variant
+  Dim vRet, vMinValue, v
+  For i = 1 to pLength
+    Call CopyVariant(v,pArr(i))
+    
+    'Get value to test
+    Dim vtValue as variant
+    if cb is nothing then
+      Call CopyVariant(vtValue,v)
+    else
+      Call CopyVariant(vtValue,cb.Run(v))
+    end if
+
+    'Compare values and return 
+    if isEmpty(vRet) then
+      Call CopyVariant(vRet,v)
+      Call CopyVariant(vMinValue, vtValue)
+    elseif vMinValue > vtValue then
+      Call CopyVariant(vRet,v)
+      Call CopyVariant(vMinValue, vtValue)
+    end if
+  next
+
+  Call CopyVariant(Min,vRet)
+End Function
 
 
 Public Sub Test()
