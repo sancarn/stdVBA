@@ -1,3 +1,20 @@
+
+'@class stdWindow
+'@description A class for managing windows
+'@example:
+'   With stdWindow.CreateFromDesktop()
+'     Dim notepad as stdWindow
+'     set notepad = .Find(stdLambda.Create("$1.Caption = ""Untitled - Notepad"" and $1.ProcessName = ""notepad.exe"""))
+'     nodepad.SendKeysInput("hello world")
+'     nodepad.SendKeysInput("^a")
+'     nodepad.SendKeysInput("^c")
+'     Debug.Print stdClipboard.Text
+'   End With
+'
+'   'Make a userform resizable
+'   MyForm.show
+'   stdWindow.CreateFromIUnknown(MyForm).resizable = true
+'
 '--------------------------------------------------------------------------------
 'Win API Declares
 '--------------------------------------------------------------------------------
@@ -20,6 +37,89 @@ Private Type apiWindowInfo
     atomWindowType As Long    'ATOM
     wCreatorVersion As Long   'WORD
 End Type
+Public Enum apiWindowHookType
+  WH_MSGFILTER = -1
+  WH_JOURNALRECORD = 0
+  WH_JOURNALPLAYBACK = 1
+  WH_KEYBOARD = 2
+  WH_GETMESSAGE = 3
+  WH_CALLWNDPROC = 4
+  WH_SYSMSGFILTER = 6
+  WH_MOUSE = 7
+  WH_SHELL = 10
+  WH_CALLWNDPROCRET = 12
+  WH_KEYBOARD_LL = 13
+  WH_MOUSE_LL = 14
+  WH_CBT = 5
+  WH_DEBUG = 9
+  WH_FOREGROUNDIDLE =  11
+End Enum
+
+'https://www.autohotkey.com/docs_1.0/misc/Styles.htm
+Public Enum apiWindowStyles
+  WS_BORDER = &H00800000
+  WS_CAPTION = &H00C00000
+  WS_CHILD = &H40000000
+  WS_CHILDWINDOW = &H40000000
+  WS_CLIPCHILDREN = &H02000000
+  WS_CLIPSIBLINGS = &H04000000
+  WS_DISABLED = &H08000000
+  WS_DLGFRAME = &H00400000
+  WS_GROUP = &H00020000
+  WS_HSCROLL = &H00100000
+  WS_ICONIC = &H20000000
+  WS_MAXIMIZE = &H01000000
+  WS_MAXIMIZEBOX = &H00010000
+  WS_MINIMIZE = &H20000000
+  WS_MINIMIZEBOX = &H00020000
+  WS_OVERLAPPED = &H00000000
+  WS_POPUP = &H80000000
+  WS_SIZEBOX = &H00040000
+  WS_SYSMENU = &H00080000
+  WS_TABSTOP = &H00010000
+  WS_THICKFRAME = &H00040000
+  WS_TILED = &H00000000
+  WS_VISIBLE = &H10000000
+  WS_VSCROLL = &H00200000
+
+  WS_OVERLAPPEDWINDOW = WS_OVERLAPPED OR WS_CAPTION OR WS_SYSMENU OR WS_THICKFRAME OR WS_MINIMIZEBOX OR WS_MAXIMIZEBOX
+  WS_POPUPWINDOW = WS_POPUP OR WS_BORDER OR WS_SYSMENU
+End Enum
+
+
+
+Private Enum apiTagInputType
+  INPUT_MOUSE = 0
+  INPUT_KEYBOARD = 1
+  INPUT_HARDWARE = 2
+End Enum
+Private Type apiKeyboardInput
+  wVirtualKey as Integer   
+  wScanCode as Integer
+  dwFlags as long
+  time as Long
+  dwExtraInfo as LongPtr
+End type
+Private Type apiTagInput
+  iType as apiTagInputType
+  kbd as apiKeyboardInput
+End Type
+Private Enum KeyState
+  Up
+  Down
+End Enum
+Private Enum KeyModifier
+  Ctrl = 1
+  Shift = 2
+  Alt = 4
+  Meta = 8
+End Enum
+Private Type KeyToken
+  wVirtualKey as Integer  'https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
+  wScanCode as Integer    '
+  iKeyState as KeyState
+  iModifiers() as KeyModifier
+End Type
 
 'Or use EnumChildWindows
 Private Enum apiWindowRelationship
@@ -31,7 +131,6 @@ Private Enum apiWindowRelationship
     GW_HWNDPREV = 3
     GW_OWNER = 4
 End Enum
-
 
 Private enum apiWindowShowStyles
   SW_HIDE = 0
@@ -47,6 +146,27 @@ Private enum apiWindowShowStyles
   SW_SHOWDEFAULT = 10    'Default window state at start of program
   SW_FORCEMINIMIZE = 11
 End Enum
+
+Private enum apiWindowLongType
+  GWL_WNDPROC = -4
+  GWL_HINSTANCE = -6
+  GWL_HWNDPARENT = -8
+  GWL_ID = -12
+  GWL_STYLE = -16
+  GWL_EXSTYLE = -20
+  GWL_USERDATA = -21
+  
+  'If HWND is a dialog box
+  DWL_MSGRESULT = 0
+  'DWL_DLGPROC = DWLP_MSGRESULT + sizeof(LRESULT)
+  'DWL_USER = DWL_DLGPROC + sizeof(DLGPROC)
+End Enum
+
+Private enum apiWindowAncestorType
+  GA_PARENT = 1
+  GA_ROOT = 2
+  GA_ROOTOWNER = 3
+End enum
 
 
 'Constructors
@@ -68,6 +188,11 @@ Private Declare PtrSafe Function GetWindowInfo Lib "user32" (ByVal hwnd as LongP
 Private Declare PtrSafe Function GetParent Lib "user32" (ByVal hwnd as LongPtr) as LongPtr
 Private Declare PtrSafe Function SetParent Lib "user32" (ByVal hwnd as LongPtr, ByVal hwndParent as LongPtr) as LongPtr
 Private Declare PtrSafe Function GetWindowDC Lib "user32" (ByVal hwnd as LongPtr) as LongPtr
+Private Declare PtrSafe Function GetWindowLongA Lib "user32" (ByVal hwnd as LongPtr, ByVal nIndex as apiWindowLongType) as Long
+Private Declare PtrSafe Function GetWindowLongPtrA Lib "user32" (ByVal hwnd as LongPtr, ByVal nIndex as apiWindowLongType) as LongPtr
+Private Declare PtrSafe Function SetWindowLongA Lib "user32" (ByVal hwnd as LongPtr, ByVal nIndex as apiWindowLongType, ByVal dwNewLong as Long) as Long
+Private Declare PtrSafe Function SetWindowLongPtrA Lib "user32" (ByVal hwnd as LongPtr, ByVal nIndex as apiWindowLongType, ByVal dwNewPtr as LongPtr) as Long
+Private Declare PtrSafe Function GetAncestor Lib "user32" (ByVal hwnd as LongPtr, ByVal nIndex as apiWindowAncestorType) as LongPtr
 
 Private Declare PtrSafe Function SetWindowPos Lib "user32" (ByVal hwnd as LongPtr, ByVal hwndInsertAfter as LongPtr, ByVal x as Long, ByVal y as Long, ByVal width as long, ByVal height as long, ByVal flags as long) as Boolean
 Private Declare PtrSafe Function MoveWindow Lib "user32" (ByVal hwnd as LongPtr, ByVal x as long, ByVal y as long, ByVal width as long, ByVal height as long, ByVal bRepaint as Boolean) as Boolean
@@ -90,6 +215,9 @@ Private Declare PtrSafe Function apiSendMessage Lib "user32" Alias "SendMessageA
 Private Declare PtrSafe Function apiPostMessage Lib "user32" Alias "PostMessageA" (ByVal hwnd As LongPtr, ByVal wMsg As Long, ByVal wParam As Long, ByVal lParam As Long) As Boolean
 Private Declare PtrSafe Function ShowWindow Lib "user32" (ByVal hwnd As LongPtr, ByVal nCmdShow As apiWindowShowStyles) As Long
 Private Declare PtrSafe Function BringWindowToTop Lib "user32" (ByVal hwnd As LongPtr) As Long
+
+'SendKeys
+Private Declare PtrSafe Function GetMessageExtraInfo Lib "user32" () as LongPtr
 
 '--------------------------------------------------------------------------------
 'Class Declares
@@ -145,6 +273,11 @@ Public Function CreateFromHwnd(ByVal hwnd as LongPtr) as stdWindow
   Call CreateFromDesktop.init(hwnd)
 End Function
 
+
+'Find and Create a window object for a window displayed intersecting a point on the screen.
+'@param {ByVal Long} X of Point to find window at
+'@param {ByVal Long} Y of Point to find window at
+'@returns {stdWindow} Window intersecting point.
 Public Function CreateFromPoint(ByVal x as Long, ByVal y as Long) as stdWindow
   set CreateFromPoint = new stdWindow
   Call CreateFromPoint.init(WindowFromPoint(x,y))
@@ -186,18 +319,22 @@ End Sub
 'Access window information
 '--------------------------------------------------------------------------------
 
+'Get the hWND / window ID of the window
 Public Property Get handle() as LongPtr
   handle = pHandle
 End Property
 
+'Get the handle to the display context for the window
 Public Property Get hDC() as LongPtr
   hDC = GetWindowDC(pHandle)
 End Property
 
+'Detect if the window exists
 Public Property Get Exists as Boolean
   Exists = IsWindow(pHandle)
 End Property
 
+'Detect if the window is visible
 Public Property Get IsVisible() as Boolean
   if Exists then
     IsVisible = IsWindowVisible(pHandle)
@@ -205,6 +342,8 @@ Public Property Get IsVisible() as Boolean
     CriticalRaise "IsVisible", "Window does not exist."
   end if
 End Property
+
+'Detect if the window is minimised
 Public Property Get IsMinimised() as Boolean
   If Exists then
     IsMinimised = IsIconic(pHandle)
@@ -212,6 +351,8 @@ Public Property Get IsMinimised() as Boolean
     CriticalRaise "IsMinimised", "Window does not exist."
   end if
 End Property
+
+'Detect if the window is maximised
 Public Property Get IsMaximised() as Boolean
   If Exists then
     IsMaximised = IsZoomed(pHandle)
@@ -219,14 +360,17 @@ Public Property Get IsMaximised() as Boolean
     CriticalRaise "IsMaximised", "Window does not exist."
   end if
 End Property
-Public Property Get IsHung() as Boolean
+
+'Detect if the window is hanging/frozen
+Public Property Get IsFrozen() as Boolean
   if Exists then
-    IsHung = IsHungAppWindow(pHandle)
+    IsFrozen = IsHungAppWindow(pHandle)
   else
-    CriticalRaise "IsHung", "Window does not exist."
+    CriticalRaise "IsFrozen", "Window does not exist."
   end if
 End Property
 
+'Get/Set the window caption
 Public Property Get Caption() as string
   if Exists then
     Dim sCharBuffer as string, iNumChars as long
@@ -246,6 +390,7 @@ Public Property Let Caption(ByVal s as string)
   end if
 End Property
 
+'Get the window class
 Public Property Get Class() as string
   if Exists then
     Dim sCharBuffer as string, iNumChars as long
@@ -256,6 +401,7 @@ Public Property Get Class() as string
   end if
 End Property
 
+'Get the Client rect - I.E. Position and Size of Window's Client area
 Public Property Get RectClient() as Long()
   if Exists then
     Dim rect as apiRect
@@ -275,6 +421,8 @@ Public Property Get RectClient() as Long()
     CriticalRaise "RectClient", "Window does not exist."
   end if
 End Property
+
+'Get/Set the Window rect - I.E. Position and Size of window
 Public Property Get RectWindow() as Long()
   if Exists then
     Dim rect as apiRect
@@ -302,6 +450,7 @@ Public Property Let RectWindow(rect() as Long)
   end if
 End Property
 
+'Get/Set the X position of this window
 Public Property Get X() as Long
   if Exists then
     X = Me.RectWindow(0)
@@ -317,6 +466,8 @@ Public Property Let X(ByVal vX as Long)
     CriticalRaise "X [Let]", "Window does not exist."
   end if
 End Property
+
+'Get/Set the Y position of this window
 Public Property Get Y() as Long
   if Exists then
     Y = Me.RectWindow(1)
@@ -332,6 +483,8 @@ Public Property Let Y(ByVal vY as Long)
     CriticalRaise "Y [Let]", "Window does not exist."
   end if
 End Property
+
+'Get/Set the width of this window
 Public Property Get Width() as Long
   if Exists then
     Width =  = Me.RectWindow(2)
@@ -347,6 +500,8 @@ Public Property Let Width(ByVal vW as Long)
     CriticalRaise "Width [Let]", "Window does not exist."
   end if
 End Property
+
+'Get/Set the height of this window
 Public Property Get Height() as Long
   if Exists then
     Height = Me.RectWindow(3)
@@ -362,6 +517,8 @@ Public Property Let Height(ByVal vH as Long)
     CriticalRaise "Height [Let]", "Window does not exist."
   end if
 End Property
+
+'Get the ID of the process running this window
 Public Property Get ProcessID() as long
   if Exists then
     Call GetWindowThreadProcessId(pHandle, ProcessID)
@@ -369,6 +526,8 @@ Public Property Get ProcessID() as long
     CriticalRaise "ProcessID", "Window does not exist."
   end if
 End Property
+
+'Get the name of the process running this window
 Public Property Get ProcessName() as string
   if Exists then
     Dim sCharBuffer as string, iNumChars as long
@@ -379,20 +538,142 @@ Public Property Get ProcessName() as string
   end if
 End Property
 
+'Get/Set the window's parent window:
 Public Property Get Parent() as stdWindow
   set Parent = stdWindow.CreateFromHwnd(GetParent(pHandle))
 End Property
 Public Property Set Parent(ByVal win as stdWindow)
-  Dim hOldParent as LongPtr
-  hOldParent = SetParent(Me.Handle, win.Handle)
+  if not Exists then
+    CriticalRaise "Parent [Set]", "Window does not exist."
+  if not win.Exists then
+    CriticalRaise "Parent [Set]", "New parent window no longer exists."
+  else
+    Dim hOldParent as LongPtr
+    hOldParent = SetParent(pHandle, win.Handle)
+  end if
 End Property
 
-Public Property Get WindowLong() as Long
-  'TODO:
+'Get the root window of this Window/ChildWindow
+Public Property Get AncestralRoot() as stdWindow
+  if Exists then
+    set AncestralRoot = stdWindow.CreateFromHwnd(GetAncestor(hwnd,apiWindowAncestorType.GA_ROOT))
+  else
+    CriticalRaise "AncestralRoot", "Window does not exist."
+  end if
 End Property
-Public Property Let WindowLong() as Long
-  'TODO:
+
+'Get/Set the style of the window
+Public Property Get Style() as Long
+  if Exists then
+    Style = GetWindowLongA(pHandle, apiWindowLongType.GWL_STYLE)
+  else
+    CriticalRaise "Style", "Window does not exist."
+  end if
 End Property
+Public Property Let Style(ByVal newStyle as Long)
+  if Exists then
+    'Clear Error. See return value at https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowlonga
+    Err.Clear
+
+    'Set window long
+    Dim hResult as Long: hResult = SetWindowLongA(pHandle, apiWindowLongType.GWL_STYLE, newStyle)
+
+    'Check for errors
+    if hResult = 0 and Err.LastDllError <> 0 then CriticalRaise "Style [Let]", "Unexpected error in SetWindowLongA", Err.LastDllError
+  else
+    CriticalRaise "Style [Let]", "Window does not exist."
+  end if
+End Property
+
+'Get/Set the extended style of the window
+Public Property Get StyleEx() as Long
+  if Exists then
+    StyleEx = GetWindowLongA(pHandle, apiWindowLongType.GWL_EXSTYLE)
+  else
+    CriticalRaise "StyleEx", "Window does not exist."
+  end if
+End Property
+Public Property Let StyleEx(ByVal newStyle as Long)
+  if Exists then
+    'Clear Error. See return value at https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowlonga
+    Err.Clear
+
+    'Set window long
+    Dim hResult as Long: hResult = SetWindowLongA(pHandle, apiWindowLongType.GWL_EXSTYLE, newStyle)
+
+    'Check for errors
+    if hResult = 0 and Err.LastDllError <> 0 then CriticalRaise "StyleEx [Let]", "Unexpected error in SetWindowLongA", Err.LastDllError
+  else
+    CriticalRaise "StyleEx [Let]", "Window does not exist."
+  end if
+End Property
+
+'Get/Set a pointer to userdata/metadata
+Public Property Get UserData() as LongPtr
+  if Exists then
+    UserData = GetWindowLongPtrA(pHandle, apiWindowLongType.GWL_USERDATA)
+  else
+    CriticalRaise "UserData", "Window does not exist."
+  end if
+End Property
+Public Property Let UserData(ByVal newUserData as LongPtr)
+  if Exists then
+    'Clear Error. See return value at https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowlonga
+    Err.Clear
+
+    'Set window long
+    Dim hResult as LongPtr: hResult = SetWindowLongPtrA(pHandle, apiWindowLongType.GWL_USERDATA, newUserData)
+
+    'Check for errors
+    if hResult = 0 and Err.LastDllError <> 0 then CriticalRaise "UserData [Let]", "Unexpected error in SetWindowLongA", Err.LastDllError
+  else
+    CriticalRaise "UserData [Let]", "Window does not exist."
+  end if
+End Property
+
+'Get/Set the WndProc of the window
+Public Property Get WndProc() as LongPtr
+  if Exists then
+    WndProc = GetWindowLongPtrA(pHandle, apiWindowLongType.GWL_WNDPROC)
+  else
+    CriticalRaise "WndProc", "Window does not exist."
+  end if
+End Property
+Public Property Let WndProc(ByVal newWndProc as LongPtr)
+  if Exists then
+    'Clear Error. See return value at https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowlonga
+    Err.Clear
+
+    'Set window long
+    Dim hResult as LongPtr: hResult = SetWindowLongPtrA(pHandle, apiWindowLongType.GWL_WNDPROC, newWndProc)
+
+    'Check for errors
+    if hResult = 0 and Err.LastDllError <> 0 then CriticalRaise "WndProc [Let]", "Unexpected error in SetWindowLongA", Err.LastDllError
+  else
+    CriticalRaise "WndProc [Let]", "Window does not exist."
+  end if
+End Property
+
+'Get/Set ability to resize
+Public Property Get Resizable() as Boolean
+  'THICK FRAME style is used to determine if a window is resizable
+  Resizable = Style AND apiWindowStyles.WS_THICKFRAME
+End Property
+Public Property Let Resizable(ByVal v as Boolean)
+  if v then 
+    Style = Style OR apiWindowStyles.WS_THICKFRAME
+  else
+    Style = Style AND (Not apiWindowStyles.WS_THICKFRAME)
+  end if
+End Property
+
+'Set hooks for a window
+Public Function SetHook(ByVal idHook as apiWindowHookType, ByVal hook as LongPtr, hInstance as LongPtr, dwThreadID as long) as LongPtr
+  'TODO:
+End Function
+
+
+
 
 '--------------------------------------------------------------------------------
 'Automate the window
@@ -432,22 +713,91 @@ Public Function SendMessageTimeout(ByVal wMsg As Long, ByVal wParam As Long, ByV
   end if
 End Function
 
-'https://github.com/AutoHotkey/AutoHotkey/blob/4b8aa248906771a3e25744683dd161ef53c7555a/Source/keyboard_mouse.cpp#L95
-Public Sub SendKeysPlay()
-  if Exists then
-    'TODO:
-  else
-    CriticalRaise "SendKeysPlay", "Window does not exist."
+
+
+Public Sub ClickInput(optional ByVal x as long = &HFFFF, Optional ByVal y as long = &HFFFF, Optional ByVal Button as EMouseButton)
+  'TODO:
+  'If x or y are missing, then interpret them as center of window
+  if x = &HFFFF or y = &HFFFF then
+    Dim r() as Long: r = RectWindow
+    if x = &HFFFF then x = CLng((r(2) - r(0))/2)
+    if y = &HFFFF then y = CLng((r(3) - r(1))/2)
   end if
+
+  select case Button
+    case LButton
+    case RButton
+    case mButton
+
+  end select
+
+  'TODO: Use SendInput()
 End Sub
-Public Sub SendKeysInput()
+
+Public Sub ClickEvent(optional ByVal x as long = &H10000, Optional ByVal y as long = &H10000, Optional ByVal Button as EMouseButton, Optional ByVal isDoubleClick as boolean = false ,Optional ByVal wParam as Long = 0)
+  'If x or y are missing, then interpret them as center of window
+  if x = &HFFFF or y = &HFFFF then
+    Dim r() as Long: r = RectWindow
+    if x > &HFFFF then x = CLng((r(2) - r(0))/2)
+    if y > &HFFFF then y = CLng((r(3) - r(1))/2)
+  end if
+
+  const WM_LBUTTONDOWN = &H0201
+  const WM_LBUTTONUP = &H0202
+  const WM_LBUTTONDBLCLK = &H0203
+  const WM_RBUTTONDOWN = &H0204
+  const WM_RBUTTONUP = &H0205
+  const WM_RBUTTONDBLCLK = &H0206
+  const WM_MBUTTONDOWN = &H0207
+  const WM_MBUTTONUP = &H0208
+  const WM_MBUTTONDBLCLK = &H0209
+
+  Dim lParam as long: lParam = MakeDWord(x,y)
+
+  select case Button
+    case LButton
+      if isDoubleClick then
+        Call PostMessage(WM_LBUTTONDBLCLK,wParam,lParam)
+      else
+        Call PostMessage(WM_LBUTTONDOWN,wParam,lParam)
+        Call PostMessage(WM_LBUTTONUP,wParam,lParam)
+      end if
+    case RButton
+      if isDoubleClick then
+        Call PostMessage(WM_RBUTTONDBLCLK,wParam,lParam)
+      else
+        Call PostMessage(WM_RBUTTONDOWN,wParam,lParam)
+        Call PostMessage(WM_RBUTTONUP,wParam,lParam)
+      end if
+    case MButton
+      if isDoubleClick then
+        Call PostMessage(WM_MBUTTONDBLCLK,wParam,lParam)
+      else
+        Call PostMessage(WM_MBUTTONDOWN,wParam,lParam)
+        Call PostMessage(WM_MBUTTONUP,wParam,lParam)
+      end if
+  end select
+End Sub
+
+'Uses `SendInput` to send keystrokes to a window.
+'@param {ByVal String} Keys to send to the window
+'@param {Optional ByVal Boolean} Whether to ignore special chars or not e.g. `{Enter}`
+'@param {Optional ByVal Long} Delay between each keystroke
+Public Sub SendKeysInput(ByVal sKeys as string, optional ByVal bRaw as boolean = false, optional byVal keyDelay as long = 0)
+  Dim Keys() as KeyToken: vKeys = TokeniseKeys(sKeys)
   if Exists then
     'TODO:
   else
     CriticalRaise "SendKeysInput", "Window does not exist."
   end if
 End Sub
-Public Sub SendKeysEvent()
+
+'Uses `SendMessage` to send keystrokes to a window.
+'@param {ByVal String} Keys to send to the window
+'@param {Optional ByVal Boolean} Whether to ignore special chars or not e.g. `{Enter}`
+'@param {Optional ByVal Long} Delay between each keystroke
+Public Sub SendKeysEvent(ByVal sKeys as string, optional ByVal bRaw as boolean = false, optional byVal keyDelay as long = 0)
+  Dim Keys() as KeyToken: vKeys = TokeniseKeys(sKeys)
   if Exists then
     'TODO:
   else
@@ -455,31 +805,37 @@ Public Sub SendKeysEvent()
   end if
 End Sub
 
+'Parses a set of keys and converts them into a KeyToken array 
+Private Function TokeniseKeys(ByVal sKeys as string) as KeyToken()
+  'TODO:
+End Function
+
+
 
 Public Sub Show()
   if Exists then
-    'TODO:
+    Call ShowWindow(pHandle,apiWindowShowStyles.SW_SHOWNOACTIVATE)
   else
     CriticalRaise "Show", "Window does not exist."
   end if
 End Sub
 Public Sub Hide()
   if Exists then
-    'TODO:
+    Call ShowWindow(pHandle,apiWindowShowStyles.SW_HIDE)
   else
     CriticalRaise "Hide", "Window does not exist."
   end if
 End Sub
 Public Sub Maximize()
   if Exists then
-    'TODO:
+    Call ShowWindow(pHandle,apiWindowShowStyles.SW_MAXIMIZE)
   else
     CriticalRaise "Maximize", "Window does not exist."
   end if
 End Sub
 Public Sub Minimize()
   if Exists then
-    'TODO:
+    Call ShowWindow(pHandle,apiWindowShowStyles.SW_MINIMIZE)
   else
     CriticalRaise "Minimize", "Window does not exist."
   end if
@@ -487,11 +843,7 @@ End Sub
 
 Public Sub Activate()
   if Exists then
-    'If the window isn't visible, show it
-    if not Visible then Call Show()
-
-    'Bring the window to the front
-    'TODO:
+    Call ShowWindow(pHandle,apiWindowShowStyles.SW_SHOW)
   else
     CriticalRaise "Minimize", "Window does not exist."
   end if
@@ -521,17 +873,72 @@ Public Property Get Children() as stdEnumerator
     CriticalRaise "Children", "Window does not exist."
   end if
 End Property
-Public Function Find(ByVal callable as stdICallable, Optional ByVal searchType as ESearchType = ESearchType.BredthFirst) as stdWindow
-  if Exists then
-    'TODO:
+
+Public Property Get Descendents(Optional ByVal DFS as Boolean = true) as stdEnumerator
+  'Don't find all objects at once as this will be too slow, instead load when needed:
+  Dim stack as Collection
+  set stack = new Collection
+  stack.add Me
+  set Descendents = stdEnumerator.CreateFromFunction( _ 
+    stdCallback.CreateFromObjectMethod(Me, "zProtGetNextDescendent").bind(stack, DFS) _ 
+  )
+End Function
+
+'Obtain the next window given a stack
+Public Function zProtGetNextDescendent(ByVal stack as Collection, ByVal DFS as Boolean, ByVal Prev as stdWindow) as stdWindow
+  if stack.count > 0 then
+    'Get the next window, use popCol if we want to do Depth First Search, else use shiftCol
+    Dim oNext as stdWindow
+    if DFS then
+      set oNext = popCol(stack)
+    else
+      set oNext = shiftCol(stack)
+    end if
+
+    'Add all children to stack
+    Dim windows as Collection: set windows = oNext.Children.Object
+    for each child in windows
+      stack.add child
+    next
+
+    'Return oNext
+    set zProtGetNextDescendent = oNext
   else
-    CriticalRaise "Find", "Window does not exist."
+    zProtGetNextDescendent = null
   end if
-End Property
-Public Function FindAll(ByVal callable as stdICallable) as stdEnumerator
-  if Exists then
-    'TODO:
+End Function
+
+
+'*******************
+'* PRIVATE HELPERS *
+'*******************
+Private Function PopCol(ByRef col as collection) as stdWindow
+  set PopCol = col(col.count)
+  Call col.remove(col.count)
+End Function
+Private Function ShiftCol(ByRef Col as collection) as stdWindow
+  set ShiftCol = col(1)
+  Call col.remove(1)
+End Function
+Private Function MakeDWord(wHi as Integer, wLo as Integer) as Long
+  If wHi And &H8000& then
+    MakeDWord = (((wHi And &H7FFF&) * (&HFFFF& + 1)) Or (wLo And &HFFFF&)) Or &H80000000
   else
-    CriticalRaise "FindAll", "Window does not exist."
-  end if
-End Property
+    MakeDWord = (wHi * &HFFFF) + wLo
+  End If
+End Function
+
+Private Sub CriticalRaise(ByVal sMethod as string, ByVal sMessage As String, Optional ByVal ErrorNum as Long)
+  'If stdError exists
+    If VarType(stdError) Then
+      Call stdError.Raise("stdWindow::" & sMethod & sMessage & iif(ErrorNum>0, " (" & ErrorNum & ")",""))
+    Else
+      Call Err.Raise(ErrorNum, "stdWindow::" & sMethod, sMessage)
+      End
+    End If
+End Sub
+
+'Public Sub Requires()
+'  if IsEmpty(stdEnumerator) then Call Msgbox("Requires `stdEnumerator`", vbInformation) else stdEnumerator.Requires
+'
+'End Sub
