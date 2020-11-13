@@ -66,8 +66,15 @@ sub Main()
   Debug.Print oRegResult("city")   '040
   
   'And getting all the matches....
-  Debug.Print oRegex.MatchAll("D-040-1425;D-029-0055;A-100-1351").map(stdLambda.Create("$1.item(""county"")")).join 'D,D,A
-
+  Dim sHaystack as string: sHaystack = "D-040-1425;D-029-0055;A-100-1351"
+  Debug.Print stdEnumerator.CreateFromEnumVARIANT(oRegex.MatchAll(sHaystack)).map(stdLambda.Create("$1.item(""county"")")).join 'D,D,A
+  
+  'Dump regex matches to range:
+  '   D,040,040-1425
+  '   D,029,029-0055
+  '   A,100,100-1351
+  Range("A3:C6").value = oRegex.ListArr(sHaystack, Array("$county","$city","$city-$street"))
+  
   'Copy some data to the clipboard:
   Range("A1").value = "Hello there"
   Range("A1").copy
@@ -120,13 +127,14 @@ This project is has been majorly maintained by 1 person, so progress is generall
 |![_](https://via.placeholder.com/15/ffff00/000000?text=+) | WIP    | Type       |stdEnumerator    | A library designed to wrap enumerable objects (implements `IEnumVARIANT`) providing additional functionality.
 |![_](https://via.placeholder.com/15/ffff00/000000?text=+) | WIP    | Type       |stdDictionary    | A drop in replacement for VBScript's dictionary.
 |![_](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Type       |stdDate          | A standard date parsing library. No more will you have to rely on Excel's interpreter. State the format, get the data.
-|![_](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Type       |stdRegex         | A wrapper around `VBScript.RegExp` but with more features e.g. named capture groups and free-spaces.
+|![_](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Type       |stdRegex         | A regex library with more features than standard e.g. named capture groups and free-spaces.
 |![_](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Type       |stdLambda        | Build and create in-line functions. Execute them at a later stage.
 |![_](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Type       |stdCallback      | Link to existing functions defined in VBA code, call them at a later stage.
 |![_](https://via.placeholder.com/15/ffff00/000000?text=+) | WIP    | Type       |stdCOM           | A wrapper around a COM object which provides Reflection (through ITypeInfo), Interface querying, Calling interface methods (via DispID) and more. 
 |![_](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Automation |stdClipboard     | Clipboard management library. Set text, files, images and more to the clipboard.
-|![_](https://via.placeholder.com/15/00ff00/000000?text=+) | HOLD   | Automation |stdHTTP          | A wrapper around Win HTTP libraries.
-|![_](https://via.placeholder.com/15/ffff00/000000?text=+) | WIP    | Automation |stdAccessibility | Use Microsoft Active Accessibility framework within VBA - Very useful for automation.
+|![_](https://via.placeholder.com/15/ff0000/000000?text=+) | HOLD   | Automation |stdHTTP          | A wrapper around Win HTTP libraries.
+|![_](https://via.placeholder.com/15/ffff00/000000?text=+) | WIP    | Automation |stdWindow        | A handy wrapper around Win32 Window management APIs.
+|![_](https://via.placeholder.com/15/ffff00/000000?text=+) | WIP    | Automation |stdAcc           | Use Microsoft Active Accessibility framework within VBA - Very useful for automation.
 |![_](https://via.placeholder.com/15/ffff00/000000?text=+) | WIP    | Excel      |xlTable          | Better tables for VBA, e.g. Map rows etc.
 
 [The full roadmap](https://github.com/sancarn/stdVBA/projects/1) has more detailed information than here.
