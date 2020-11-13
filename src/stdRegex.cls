@@ -313,7 +313,7 @@ End Function
 'Given a text string, return all strings which match the source regex pattern.
 '
 '@param {string}  sHaystack - Text to search for regex in.
-'@return {stdArray<Dictionary>} An array of strings which match the regex.
+'@return {Collection<Dictionary>} An array of strings which match the regex.
 '@example
 'Regex:
 '    \d{5}-ST[A-Z]\d
@@ -327,7 +327,7 @@ End Function
 '    * 62346-STZ9
 'Result:
 '    [{0: "12345-STA1", ...}, {0: "12323-STB9", ...}, {0: "23565-STC2", ...}, {0: "62346-STZ9", ...}]
-Public Function MatchAll(ByVal sHaystack As String) As stdArray
+Public Function MatchAll(ByVal sHaystack As String) As Collection
   If Me Is stdRegex Then
     stdError.Raise ("Method called on class not object")
     Exit Function
@@ -345,8 +345,8 @@ Public Function MatchAll(ByVal sHaystack As String) As stdArray
   p_regex.Global = bOriginalGlobal
   
   'Create array to hold match data
-  Dim oRet As stdArray
-  Set oRet = stdArray.Create()
+  Dim oRet As Collection
+  Set oRet = new Collection
   
   'Loop over all matches
   Dim i As Long, j As Long
@@ -369,7 +369,7 @@ Public Function MatchAll(ByVal sHaystack As String) As stdArray
     Next
 
     'Push dictionary to array
-    Call oRet.Push(oDict)
+    Call oRet.add(oDict)
   Next
 
   'Return data
@@ -451,42 +451,74 @@ Public Function List(ByVal sHaystack As String, ByVal sFormat As String) As Stri
   End If
 
   'Get all matches
-  Dim arr As stdArray
-  Set arr = MatchAll(sHaystack)
+  Dim matches As Collection
+  Set matches = MatchAll(sHaystack)
   
-  'Realistically there is going to be more optimal ways of doing this, but for now i'm keeping it really simple.
-
-  'Loop over all matches
-  Dim i As Long, j As Long, sList As String, sTmpFormat As String
-  For i = 1 To arr.Length
-    'Get keys of each match
-    Dim keys As Variant
-    keys = arr.item(i).keys()
-
-    'Loop over default keys and make replacements
-    sTmpFormat = sFormat
-    sTmpFormat = VBA.Replace(sTmpFormat, "$&", arr.item(i)(0))
-    sTmpFormat = VBA.Replace(sTmpFormat, "\\", "f934b47b-b799-4f52-9b4c-f170a82b52fe")
-    sTmpFormat = VBA.Replace(sTmpFormat, "\r", Chr(13))
-    sTmpFormat = VBA.Replace(sTmpFormat, "\n", Chr(10))
-    sTmpFormat = VBA.Replace(sTmpFormat, "f934b47b-b799-4f52-9b4c-f170a82b52fe", "\")
-
-    'Loop over remaining keys and make replacements
-    For j = 1 To UBound(keys)
-      Select Case keys(j)
-        Case "$RAW", "$COUNT"
-        Case Else
-          sTmpFormat = VBA.Replace(sTmpFormat, "$" & keys(j), arr.item(i)(keys(j)))
-      End Select
-    Next
-
+  'Loop over all matches and list
+  Dim match As variant, j As Long, sList As String, sTmpFormat As String
+  For each match in matches
     'Concatenate to sList
-    sList = sList & sTmpFormat
+    sList = sList & FormatFromMatch(match,sFormat)
   Next
 
   'Return sList
   List = sList
 End Function
+
+Public Function ListArr(ByVal sHaystack as string, vFormats as variant) as variant
+  If Me Is stdRegex Then
+    Call stdError.Raise("Method called on class not object")
+    Exit Function
+  End If
+
+  'Get all matches
+  Dim matches As Collection
+  Set matches = MatchAll(sHaystack)
+  
+  Dim numCols as long: numCols = ubound(vFormats)-lbound(vFormats)+1
+  
+  Dim v() as variant
+  Redim v(1 to matches.count, 1 to numCols)
+
+  'Loop over all matches
+  Dim match As variant, j As Long, iRow as long, iCol as long
+  For each match in matches
+    iRow = iRow + 1
+    iCol = 0
+    For j = lbound(vFormats) to ubound(vFormats)
+      iCol = iCol + 1
+      v(iRow,iCol) = FormatFromMatch(match,vFormats(j))
+    Next
+  Next
+
+  'Return sList
+  ListArr = v
+End Function
+
+Private Function FormatFromMatch(ByVal match as object, ByVal sFormat as string)
+  'TODO: Make this more efficient, ideally we'd only loop through the format once
+
+  'Get keys of each match
+  Dim keys As Variant
+  keys = match.keys()
+
+  'Loop over default keys and make replacements
+  sFormat = VBA.Replace(sFormat, "$&", match(0))
+  sFormat = VBA.Replace(sFormat, "\\", "f934b47b-b799-4f52-9b4c-f170a82b52fe")
+  sFormat = VBA.Replace(sFormat, "\r", Chr(13))
+  sFormat = VBA.Replace(sFormat, "\n", Chr(10))
+  sFormat = VBA.Replace(sFormat, "f934b47b-b799-4f52-9b4c-f170a82b52fe", "\")
+
+  'Loop over remaining keys and make replacements
+  For j = 1 To UBound(keys)
+    Select Case keys(j)
+      Case "$RAW", "$COUNT"
+      Case Else
+        sFormat = VBA.Replace(sFormat, "$" & keys(j), match(keys(j)))
+    End Select
+  Next
+End Function
+
 
 
 Public Function UnitTests() As Boolean
