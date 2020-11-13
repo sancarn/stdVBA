@@ -29,7 +29,7 @@ Sub testAll()
     Test.Assert "Match Dictionary contains numbered captures 3", oMatch(2) = "D"
     Test.Assert "Match Dictionary contains numbered captures 4 & ensure non-capturing group not captured", oMatch(3) = "4BU"
     Test.Assert "Match contains count of submatches", oMatch("$COUNT") = 3
-    Test.Assert "Match contains regex match object", TypeName(oMatch("$RAW")) = "Match"
+    Test.Assert "Match contains regex match object", TypeName(oMatch("$RAW")) = "IMatchCollection2"
 
     'MatchAll should return a Collection of Dictionaries, and contain all matches in the haystack
     Dim oMatches as Object: set oMatches = rx.MatchAll(sHaystack)
@@ -46,10 +46,11 @@ Sub testAll()
     rx.Flags = "m"
 
     'Test replace
-    sHaystack = "12345-STA1  123    10/02/2019" & vbCrLf & _ 
-                "12323-STB9  2123   01/01/2005" & vbCrLf & _ 
-                "and here is some more:" & vbCrLf & _ 
-                "23565-STC2  23     ??/??/????" & vbCrLf & _ 
+    sHaystack = "Here is some cool data:" & vbCrLf & _
+                "12345-STA1  123    10/02/2019" & vbCrLf & _
+                "12323-STB9  2123   01/01/2005" & vbCrLf & _
+                "and here is some more:" & vbCrLf & _
+                "23565-STC2  23     ??/??/????" & vbCrLf & _
                 "62346-STZ9  5      01/05/1932"
 
     Dim sResult as string
@@ -60,17 +61,17 @@ Sub testAll()
               "23565-STC2,??/??/????,23" & vbCrLf & _ 
               "62346-STZ9,01/05/1932,5" 
 
-    set rx = stdRegex.Create("(?<id>\d{5}-ST[A-Z]\d)\s+(?<count>\d+)\s+(?<date>..\/..\/....)")
-    Test.Assert "Replace", rx.Replace(sHaystack, "$id,$date,$count") = sResults
+    set rx = stdRegex.Create("(?<id>\d{5}-ST[A-Z]\d)\s+(?<count>\d+)\s+(?<date>..\/..\/....)","g")
+    Test.Assert "Replace", rx.Replace(sHaystack, "$id,$date,$count") = sResult
 
     'Test List
     sResult = "12345-STA1,10/02/2019,123" & vbCrLf & _ 
               "12323-STB9,01/01/2005,2123" & vbCrLf & _ 
               "23565-STC2,??/??/????,23" & vbCrLf & _ 
-              "62346-STZ9,01/05/1932,5" 
+              "62346-STZ9,01/05/1932,5"  & vbCrLf
     Test.Assert "List", rx.List(sHaystack, "$id,$date,$count\r\n")
 
-    'Test ListArr - ListArr not currently implemented correctly
+    'Test ListArr - ListArr not currently implemented correctly 
     Dim vResult as Variant
     vResult = rx.ListArr(sHaystack, Array("$id-$date","$count"))
     Test.Assert "Number of columns match number in array", (Ubound(vResult,2)-Lbound(vResult,2)+1) = 2

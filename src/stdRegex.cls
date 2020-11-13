@@ -301,7 +301,7 @@ Public Function Match(ByVal sHaystack As String) As Object
   Dim i As Long
   For i = 1 To p_namesDict.Count
     oRet(i) = oMatches(0).Submatches(i - 1)
-    If Not IsEmpty(oMatches(i - 1).Submatches(j - 1)) then
+    If Not IsEmpty(oMatches(0).Submatches(i - 1)) then
       If Not IsEmpty(p_namesDict(i - 1).Submatches(0)) Then oRet(p_namesDict(i - 1).Submatches(0)) = oMatches(0).Submatches(i - 1)
     End If
   Next i
@@ -495,7 +495,7 @@ Public Function ListArr(ByVal sHaystack as string, vFormats as variant) as varia
   ListArr = v
 End Function
 
-Private Function FormatFromMatch(ByVal match as object, ByVal sFormat as string)
+Private Function FormatFromMatch(ByVal match as object, ByVal sFormat as string) as string
   'TODO: Make this more efficient, ideally we'd only loop through the format once
 
   'Get keys of each match
@@ -517,6 +517,8 @@ Private Function FormatFromMatch(ByVal match as object, ByVal sFormat as string)
         sFormat = VBA.Replace(sFormat, "$" & keys(j), match(keys(j)))
     End Select
   Next
+
+  FormatFromMatch = sFormat
 End Function
 
 
