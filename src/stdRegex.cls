@@ -98,8 +98,13 @@ Public Function Create(ByVal pattern As String, Optional ByVal flags As String =
   static cache as object: if cache is nothing then set cache = CreateObject("Scripting.Dictionary")
   Dim sKey as string: sKey = pattern & "&" & flags
   if not cache.exists(sKey) then
-    Set cache(sKey) = New stdRegex
-    Call cache(sKey).init(pattern, flags)
+    'Call to [friend] init requires type information, can't use dict directly
+    Dim r As stdRegex
+    Set r = New stdRegex
+    Call r.init(pattern, flags)
+    
+    'Set cache
+    Set cache(sKey) = r
   end if
 
   'Return cached object
