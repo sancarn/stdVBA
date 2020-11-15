@@ -21,12 +21,12 @@ Public Sub testAll()
 
   'Test object method
   With stdCallback.CreateFromObjectMethod(Test, "TestMethod")
-
+    'TODO: Test method executes
   End With
 
   'Test object property
   With stdCallback.CreateFromObjectProperty(Test, "TestProperty", VbGet)
-    
+    'TODO: Test method executes
   End With
 
   'Historic evaluator method
