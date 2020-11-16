@@ -26,6 +26,34 @@
 '   [X] CreateFromIUnknown(obj) as stdWindow
 ' STATIC METHODS
 '   [?] Requires()
+' INSTANCE PROPERTIES
+'   [X] Get     handle() as LongPtr
+'   [X] Get     hDC() as LongPtr
+'   [X] Get     Exists as Boolean
+'   [X] Get     IsVisible() as Boolean
+'   [X] Get     IsMinimised() as Boolean
+'   [X] Get     IsMaximised() as Boolean
+'   [X] Get     IsFrozen() as Boolean
+'   [X] Get/Set Caption() as string
+'   [X] Get     Class() as string
+'   [X] Get     RectClient() as Long()
+'   [X] Get/Set RectWindow() as Long()
+'   [X] Get/Set X() as Long
+'   [X] Get/Set Y() as Long
+'   [X] Get/Set Width() as Long
+'   [X] Get/Set Height() as Long
+'   [X] Get     ProcessID() as long
+'   [X] Get     ProcessName() as string
+'   [X] Get/Set Parent() as stdWindow
+'   [X] Get     AncestralRoot() as stdWindow
+'   [X] Get/Set Style() as Long
+'   [X] Get/Set StyleEx() as Long
+'   [X] Get/Set UserData() as LongPtr
+'   [X] Get/Set WndProc() as LongPtr
+'   [X] Get/Set Resizable() as Boolean
+'   [X] Get     Children() as stdEnumerator
+'   [X] Get     Descendents(DFS?) as stdEnumerator
+
 ' INSTANCE METHODS
 '   [ ] SetHook(idHook, hook, hInstance, dwThreadID) as LongPtr
 '   [X] Redraw()
