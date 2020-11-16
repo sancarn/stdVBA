@@ -124,7 +124,7 @@ This project is has been majorly maintained by 1 person, so progress is generall
 |----------------------------------------------------------|--------|------------|-----------------|--------------|
 |![_](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Debug      |stdError         | Better error handling, including stack trace and error handling diversion and events.
 |![_](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Type       |stdArray         | A library designed to re-create the Javascript dynamic array object.
-|![_](https://via.placeholder.com/15/ffff00/000000?text=+) | WIP    | Type       |stdEnumerator    | A library designed to wrap enumerable objects (implements `IEnumVARIANT`) providing additional functionality.
+|![_](https://via.placeholder.com/15/ffff00/000000?text=+) | WIP    | Type       |stdEnumerator    | A library designed to wrap enumerable objects providing additional functionality.
 |![_](https://via.placeholder.com/15/ffff00/000000?text=+) | WIP    | Type       |stdDictionary    | A drop in replacement for VBScript's dictionary.
 |![_](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Type       |stdDate          | A standard date parsing library. No more will you have to rely on Excel's interpreter. State the format, get the data.
 |![_](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Type       |stdRegex         | A regex library with more features than standard e.g. named capture groups and free-spaces.
