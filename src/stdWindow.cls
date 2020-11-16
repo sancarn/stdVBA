@@ -15,6 +15,41 @@
 '   MyForm.show
 '   stdWindow.CreateFromIUnknown(MyForm).resizable = true
 '
+'Spec:
+' CONSTRUCTORS
+'   [ ] Create(sClassName,sCaption,dwStyle, x, y, Width, Height, hWndParent, hMenu, hInstance, lpParam) as stdWindow
+'   [ ] CreateStaticPopup(x, y, Width, Height, BorderWidth, BorderColor) as stdWindow
+'   [X] CreateFromDesktop() as stdWindow
+'   [X] CreateFromHwnd(hwnd) as stdWindow
+'   [X] CreateFromPoint(x, y) as stdWindow
+'   [X] CreateFromEvent() as stdWindow
+'   [X] CreateFromIUnknown(obj) as stdWindow
+' STATIC METHODS
+'   [?] Requires()
+' INSTANCE METHODS
+'   [ ] SetHook(idHook, hook, hInstance, dwThreadID) as LongPtr
+'   [X] Redraw()
+'   [X] SendMessage(wMsg, wParam, lParam)
+'   [X] PostMessage(wMsg, wParam, lParam)
+'   [ ] SendMessageTimeout(wMsg, wParam, lParam, TimeoutMilliseconds)
+'   [ ] ClickInput(x?, y?, Button?)
+'   [X] ClickEvent(x?, y?, Button?, isDoubleClick?, wParam?)
+'   [ ] SendKeysInput(sKeys, bRaw?, keyDelay?)
+'   [X] SendKeysEvent(sKeys, bRaw?, keyDelay?)
+'   [X] Show()
+'   [X] Hide()
+'   [X] Maximize()
+'   [X] Minimize()
+'   [X] Activate()
+' PROTECTED METHODS
+'   [X] zProtGetNextDescendent(stack, DFS, Prev) as stdWindow
+
+
+
+
+
+
+
 '--------------------------------------------------------------------------------
 'Win API Declares
 '--------------------------------------------------------------------------------
