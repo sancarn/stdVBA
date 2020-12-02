@@ -9,6 +9,9 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Public stack As stdArray
 Public RaiseClient As Object 'Allow Raise through a custom userform. Userform should expose a Raise(sMessage, Criticality, Title, StackTrace) method.
+Public Event OnStackAdd(ByRef oStack as stdArray, ByRef oElement as object)
+Public Event OnStackPop(ByRef oStack as stdArray, ByRef oElement as object)
+
 
 'TODO: Implement a ResumeNext() function for skipping past errors that are known, likely to use stdSentry
 'With stdError.ResumeNext()
@@ -19,6 +22,11 @@ Public RaiseClient As Object 'Allow Raise through a custom userform. Userform sh
 'End If
 'Implementation detail: set ResumeNext = stdSentry.CreateFromMethods(stdError,"zprot_RNOn","zprot_RNOff")
 
+'TODO: Tracking performance of function calls on the stack.
+'         stdError.TrackPerformance = true/false
+'
+
+
 
 Public Sub RefreshStack()
     Set stack = stdArray.Create()
@@ -27,14 +35,17 @@ End Sub
 'TODO: It'd be cool if we could look backwards at the stack in order to get the calling object name, instead of providing it in sMethodName.
 Public Sub AddStack(ByVal sMethodName As String)
     If stack Is Nothing Then Set stack = stdArray.Create()
-    stack.Push sMethodName
+    Dim oElement as object: set oElement = CreateDict("Name",sMethodName)
+    RaiseEvent OnStackAdd(stack, oElement)
+    stack.Push oElement
 End Sub
 
 Public Sub PopStack()
     If stack Is Nothing Then
         Raise "stdError::StackPop() - No stack created", vbCritical
     Else
-        stack.Pop
+        Dim oElement as object: set oElement = stack.Pop()
+        RaiseEvent OnStackPop(stack, oElement)
     End If
 End Sub
 
@@ -85,64 +96,28 @@ Public Function GetTrace() as String
         
         Dim i As Long
         For i = 1 To stack.Length
-            sStackTrace = sStackTrace & Space((i - 1) * 3) & "|- " & stack.item(i) & vbCrLf
+            sStackTrace = sStackTrace & Space((i - 1) * 3) & "|- " & stack.item(i)("Name") & vbCrLf
         Next
     End If
 
     GetTrace = sStackTrace
 End Function
 
-
-Sub Test()
-    With stdError
-        .RefreshStack
-        .AddStack "A"
-            .AddStack "B"
-                .AddStack "C"
-                .PopStack
-                .AddStack "D"
-                .PopStack
-                .AddStack "E"
-                    Debug.Print .Raise("Some Error occurred")
-                
-                    Set RaiseClient = stdArray
-                    Debug.Print .Raise("Some Other Error occurred")
-                    .AddStack "F"
-                        
-                        'Purposely overstacking the buffer
-                        .AddStack "Something crazy and cool"
-                            .AddStack "g"
-                                .AddStack "g"
-                                    .AddStack "g"
-                                        .AddStack "g"
-                                            .AddStack "g"
-                                                .AddStack "g"
-                                                    .AddStack "g"
-                                                        .AddStack "g"
-                                                            .AddStack "g"
-                                                                .AddStack "g"
-                                                                    .AddStack "g"
-                                                                        .AddStack "g"
-                                                                            .AddStack "g"
-                                                                                .AddStack "g"
-                                                                                    .AddStack "g"
-                                                                                        .AddStack "g"
-                                                                                            .AddStack "g"
-                                                                                                .AddStack "g"
-                                                                                                    .AddStack "g"
-                                                                                                        .AddStack "g"
-                                                                                                            .AddStack "g"
-                                                                                                                .AddStack "g"
-                                                                                                                    .AddStack "g"
-                                                                                                                        .AddStack "g"
-                                                                                                                            .AddStack "g"
-                                                                                                                                .AddStack "g"
-                                                                                                                                    .AddStack "g"
-                                                                                                                                        .AddStack "g"
-                                                                                                                                            .AddStack "Something crazy and cool"
-                                                                                                                                            .Raise "Poop"
-                                                                                                                                            'This stack trace will barely be visible in the default alert box.
-                                                                                                                                            'Suggest instead using RaiseClient with edit control.
-                        
-    End With
-End Sub
+Private Function CreateDict(ParamArray args() As Variant)
+  'Create dictionary
+  Dim o As Object: Set o = CreateObject("Scripting.Dictionary")
+  
+  'Loop over parameters and create dictionary
+  Dim i As Long
+  For i = LBound(args) To UBound(args) Step 2
+      'If is object then set
+      If IsObject(args(i + 1)) Then
+          Set o(args(i)) = args(i + 1)
+      Else
+          o(args(i)) = args(i + 1)
+      End If
+  Next
+    
+  'Return dictionary
+  Set CreateDict = o
+End Function
