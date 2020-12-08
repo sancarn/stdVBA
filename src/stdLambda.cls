@@ -270,28 +270,28 @@ Private Function getTokenDefinitions() As TokenDefinition()
 
     'Literal
     i = i + 1: arr(i) = getTokenDefinition("literalString", """(?:""""|[^""])*""") 'String
-    i = i + 1: arr(i) = getTokenDefinition("literalNumber", "\d+(?:\.\d+)?")   'Number
-    i = i + 1: arr(i) = getTokenDefinition("literalBoolean", "True|False")
+    i = i + 1: arr(i) = getTokenDefinition("literalNumber", "\d+(?:\.\d+)?") 'Number
+    i = i + 1: arr(i) = getTokenDefinition("literalBoolean", "True|False", isKeyword:=True)
     
     'Named operators
-    i = i + 1: arr(i) = getTokenDefinition("is", "is")
-    i = i + 1: arr(i) = getTokenDefinition("mod", "mod")
-    i = i + 1: arr(i) = getTokenDefinition("and", "and")
-    i = i + 1: arr(i) = getTokenDefinition("or", "or")
-    i = i + 1: arr(i) = getTokenDefinition("xor", "xor")
-    i = i + 1: arr(i) = getTokenDefinition("not", "not")
+    i = i + 1: arr(i) = getTokenDefinition("is", "is", isKeyword:=True)
+    i = i + 1: arr(i) = getTokenDefinition("mod", "mod", isKeyword:=True)
+    i = i + 1: arr(i) = getTokenDefinition("and", "and", isKeyword:=True)
+    i = i + 1: arr(i) = getTokenDefinition("or", "or", isKeyword:=True)
+    i = i + 1: arr(i) = getTokenDefinition("xor", "xor", isKeyword:=True)
+    i = i + 1: arr(i) = getTokenDefinition("not", "not", isKeyword:=True)
 
     'Structural
     ' Inline if
-    i = i + 1: arr(i) = getTokenDefinition("if", "if")
-    i = i + 1: arr(i) = getTokenDefinition("then", "then")
-    i = i + 1: arr(i) = getTokenDefinition("else", "else")
-    i = i + 1: arr(i) = getTokenDefinition("end", "end")
+    i = i + 1: arr(i) = getTokenDefinition("if", "if", isKeyword:=True)
+    i = i + 1: arr(i) = getTokenDefinition("then", "then", isKeyword:=True)
+    i = i + 1: arr(i) = getTokenDefinition("else", "else", isKeyword:=True)
+    i = i + 1: arr(i) = getTokenDefinition("end", "end", isKeyword:=True)
     ' Brackets
     i = i + 1: arr(i) = getTokenDefinition("lBracket", "\(")
     i = i + 1: arr(i) = getTokenDefinition("rBracket", "\)")
     ' Functions
-    i = i + 1: arr(i) = getTokenDefinition("fun", "fun")
+    i = i + 1: arr(i) = getTokenDefinition("fun", "fun", isKeyword:=True)
     i = i + 1: arr(i) = getTokenDefinition("comma", ",") 'params
     ' Lines
     i = i + 1: arr(i) = getTokenDefinition("colon", ":")
@@ -1294,11 +1294,11 @@ Private Function Tokenise(ByVal sInput As String) As token()
     Tokenise = removeTokens(tokens, "space")
 End Function
 
-Private Function getTokenDefinition(ByVal sName As String, ByVal sRegex As String, Optional ByVal ignoreCase As Boolean = True) As TokenDefinition
+Private Function getTokenDefinition(ByVal sName As String, ByVal sRegex As String, Optional ByVal ignoreCase As Boolean = True, Optional ByVal isKeyword As Boolean = False) As TokenDefinition
     getTokenDefinition.name = sName
-    getTokenDefinition.Regex = sRegex
+    getTokenDefinition.Regex = sRegex & IIf(isKeyword, "\b", "")
     Set getTokenDefinition.RegexObj = CreateObject("VBScript.Regexp")
-    getTokenDefinition.RegexObj.Pattern = "^(?:" & sRegex & ")"
+    getTokenDefinition.RegexObj.pattern = "^(?:" & sRegex & IIf(isKeyword, "\b", "") & ")"
     getTokenDefinition.RegexObj.ignoreCase = ignoreCase
 End Function
 
