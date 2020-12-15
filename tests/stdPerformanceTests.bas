@@ -7,12 +7,12 @@ Sub testAll()
     'Measurement keys 1
     With stdPerformance.Measure("Test1")
     End With
-    Test.Assert "MeasurementKeys 1", Join(stdPerformance.MeasurementKeys,";") = "Test1"
+    Test.Assert "MeasuresKeys 1", Join(stdPerformance.MeasuresKeys,";") = "Test1"
     
     'Measurement keys 2
     With stdPerformance.Measure("Test2")
     End With
-    Test.Assert "MeasurementKeys 2", Join(stdPerformance.MeasurementKeys,";") = "Test1;Test2"
+    Test.Assert "MeasuresKeys 2", Join(stdPerformance.MeasuresKeys,";") = "Test1;Test2"
 
     With stdPerformance.measure("#1 Select and set")
         For i = 1 to C_MAX
@@ -28,16 +28,16 @@ Sub testAll()
     End With
 
     'GetMeasurement
-    Test.Assert "GetMeasurement", stdPerformance.GetMeasurement("#1 Select and set") > 0
+    Test.Assert "[Get] Measurement", stdPerformance.Measurement("#1 Select and set") > 0
     
     'Clear all measurements
-    stdPerformance.MeasurementsClear
+    stdPerformance.MeasuresClear
 
     'Remove items removes all keys
-    Test.Assert "Clear removes items", ubound(stdPerformance.MeasurementKeys) - lbound(stdPerformance.MeasurementKeys) + 1 = 0
+    Test.Assert "Clear removes items", ubound(stdPerformance.MeasuresKeys) - lbound(stdPerformance.MeasuresKeys) + 1 = 0
 
     'If key not found measurment is empty?
-    Test.Assert "GetMeasurement null", stdPerformance.GetMeasurement("#1 Select and set") = Empty
+    Test.Assert "GetMeasurement null", stdPerformance.Measurement("#1 Select and set") = Empty
 
     'Optimise testing
     Application.ScreenUpdating = true

@@ -8,7 +8,62 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
-
+'Spec:
+'This class has been designed to meet your performance testing and optimisation needs. stdPerformance uses the `Sentry Object` design pattern
+'which allows for cleaner more maintainable code.
+'Functions implemented on the class
+'CONSTRUCTORS
+'    [X] Create   - With Cache
+'    [X] init       #PROTECTED
+'    [X] Measure  - Create a performance measuring Sentry Object
+'    [X] Optimise - Create a object which toggles runtime options for optimisation. Currently sets: `ScreenUpdating`, `EnableEvents` and `XLCalculation`.
+'                   This is intended to be application agnostic.
+'
+'STATIC PROPERTIES
+'    [X] Get MeasureKeys - Get an array of procs/blocks which have been measured
+'    [x] Get Measurement(sProcOrBlock) - Get the average time it took to execute a block.
+'    [ ] Get MeasuresStr
+'    [ ] Get MeasuresHtml
+'
+'STATIC methods
+'    [x] MeasuresClear() - Clear the performance stack.
+'
+'OUT-OF-SCOPE
+'    * Anything performance related which is specific, should realistically be honed to a specific class for that thing.
+'
+'EXAMPLES
+'# 1 - Usage of Optimser
+'
+'   'Disable numerous options for performance
+'   Debug.Print Application.ScreenUpdating, Application.EnableEvents, Application.Calculation         'false,false,-4105 
+'   With stdPerformance.Optimiser()
+'     Debug.Print Application.ScreenUpdating, Application.EnableEvents, Application.Calculation         'false,false,-4135
+'   End With
+'   Debug.Print Application.ScreenUpdating, Application.EnableEvents, Application.Calculation         'false,false,-4105 
+'   
+'   'Disable everything BUT Calculation
+'   Debug.Print Application.ScreenUpdating, Application.EnableEvents, Application.Calculation         'false,false,-4105 
+'   With stdPerformance.Optimiser(Calculation:=xlCalculation.xlCalculationAutomatic)
+'     Debug.Print Application.ScreenUpdating, Application.EnableEvents, Application.Calculation         'false,false,-4105
+'   End With
+'   Debug.Print Application.ScreenUpdating, Application.EnableEvents, Application.Calculation         'false,false,-4105 
+'
+'# 2 - measuring performance:
+'
+'   With stdPerformance.measure("#1 Select then set")
+'     For i = 1 to C_MAX
+'       cells(1,1).select
+'       selection.value = "hello"
+'     Next
+'   End With
+'   
+'   With stdPerformance.measure("#2 Set directly")
+'     For i = 1 to C_MAX
+'       cells(1,1).value = "hello"
+'     next
+'   End With
+'
+'Declares for performance counters
 #If Mac Then
    #If MAC_OFFICE_VERSION >= 15 Then
       Private Declare Function GetTickCount Lib "/Applications/Microsoft Excel.app/Contents/Frameworks/MicrosoftOffice.framework/MicrosoftOffice" () As Long
@@ -23,26 +78,25 @@ Attribute VB_Exposed = False
    #End If
 #End If
 
-
+'Enum for sentry object type
 Public Enum EPerfObjType
   iMeasure=1
   iOptimiser=2
 End Enum
 
+'The instance object type.
 Private pObjType as EPerfObjType
-
 
 'iOptimiser Fields...
 Private pEnableEvents as boolean
 Private pScreenUpdating as boolean
-
+Private pCalculation as long
 
 'iMeasure definitions
 Private pStartTime as long
 Private pKeyName as string 
 
-
-'Public storage
+'Measurement storage
 Private Type FakeDictItem
   key as string
   val as variant
@@ -59,7 +113,12 @@ Public Function Create(ByVal objType as EPerfObjType, ByVal params as Variant) a
   Call Create.init(objType, params)
 End Function
 
-'
+'Init
+'PROTECTED - Don't call this method unless you know what you are doing.
+'Initialises the class
+'@protected
+'@param {EPerfObjType} - Type of performance object to create. iMeasure - used for measuring performance, iOptimiser - used for optimising performance 
+'@param {Variant()} - Additional params supplied as array.
 Public Sub Init(ByVal objType as EPerfObjType, ByVal params as variant)
   pObjType = objType
   select case objType
@@ -74,6 +133,14 @@ Public Sub Init(ByVal objType as EPerfObjType, ByVal params as variant)
       'Set vals
       Application.ScreenUpdating = params(0)
       Application.EnableEvents = params(1)
+      
+      'Different options for different applications
+      select case Application.Name 
+        case "Microsoft Excel"
+          pCalculation = Application.Calculation
+          Application.Calculation = params(2)
+      end select
+
   end select
 End Sub
 
@@ -98,27 +165,28 @@ End Function
 '@param {Boolean} - ScreenUpdating set value
 '@param {Boolean} - EnableEvents set value
 '@returns {stdPerformance<iOptimiser>} - Object termination has special behaviour. See Measure and Optimise methods for further details.
+'@note Calculation is defined as long instead of xlCalculation so the function continues to work without compile error in Word, Powerpoint etc.
 '@usage
 '  ```vb
 '  With stdPerformance.Optimise
 '    'some heavy code here
 '  End With
 '  ```
-Public Function Optimise(Optional ByVal ScreenUpdating as boolean = false, Optional ByVal EnableEvents as boolean = false) as stdPerformance
-  set Optimise = stdPerformance.Create(iOptimiser, Array(ScreenUpdating,EnableEvents))
+Public Function Optimise(Optional ByVal ScreenUpdating as boolean = false, Optional ByVal EnableEvents as boolean = false, Optional ByVal Calculation as long = -4135) as stdPerformance
+  set Optimise = stdPerformance.Create(iOptimiser, Array(ScreenUpdating,EnableEvents,Calculation))
 End Function
 
 
-'GetMeasurement
+'Measurement
 '@param {String} - Name of measurement to get
 '@returns {Double} - Average measurement time
-Public Function GetMeasurement(ByVal sKey As String) As Double
+Public Property Get Measurement(ByVal sKey As String) As Double
   If Me Is stdPerformance Then
     Dim v: v = getDictItem(sKey)
     If TypeName(v) = "Variant()" Then
-        GetMeasurement = getDictItem(sKey)(0)
+        Measurement = getDictItem(sKey)(0)
     Else
-        GetMeasurement = Empty
+        Measurement = Empty
     End If
   End If
 End Function
@@ -143,14 +211,18 @@ Public Sub AddMeasurement(ByVal sKey as string, ByVal time as long)
   end if
 End Sub
 
-Public Sub MeasurementsClear()
+'MeasuresClear
+'Clears all procedures/blocks and times that have been measured
+Public Sub MeasuresClear()
   ReDim FakeDict(0 to 0)
 End Sub
 
-Public Property Get MeasurementKeys() as string()
+'MeasuresKeys
+'@returns {string()} - Array containing the procedures or blocks that have been measured.
+Public Property Get MeasuresKeys() as string()
   if Me is stdPerformance then
     if ubound(FakeDict) = 0 then
-      MeasurementKeys = Split("")
+      MeasuresKeys = Split("")
     else
       'Define return array
       Dim sOut() as string
@@ -163,29 +235,39 @@ Public Property Get MeasurementKeys() as string()
       next
 
       'return data
-      MeasurementKeys = sOut
+      MeasuresKeys = sOut
     end if
   end if 
 End Property
 
-
+'Used by static class only
+'@constructor
 Private Sub Class_Initialize()
   if me is stdPerformance then
     Redim FakeDict(0 to 0)
   end if
 End Sub
 
+'Used by instance objects only
 '@destructor
 Private Sub Class_Terminate()
-  select case pObjType
-    case iMeasure
-      Dim pEndTime as long: pEndTime = GetTickCount()
-      Call stdPerformance.AddMeasurement(pKeyName, Abs(pEndTime - pStartTime))
-    case iOptimiser
-      'Store vals
-      Application.ScreenUpdating = pScreenUpdating
-      Application.EnableEvents = pEnableEvents
-  end select
+  if not me is stdPerformance then
+    select case pObjType
+      case iMeasure
+        Dim pEndTime as long: pEndTime = GetTickCount()
+        Call stdPerformance.AddMeasurement(pKeyName, Abs(pEndTime - pStartTime))
+      case iOptimiser
+        'Store vals
+        Application.ScreenUpdating = pScreenUpdating
+        Application.EnableEvents = pEnableEvents
+        
+        'Different options for different applications
+        select case Application.Name 
+          case "Microsoft Excel"
+            Application.Calculation = pCalculation
+        end select
+    end select
+  end if
 End Sub
 
 
