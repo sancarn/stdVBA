@@ -25,8 +25,8 @@ Attribute VB_Exposed = False
 
 
 Public Enum EPerfObjType
-  iMeasure
-  iOptimiser
+  iMeasure=1
+  iOptimiser=2
 End Enum
 
 Private pObjType as EPerfObjType
@@ -61,6 +61,7 @@ End Function
 
 '
 Public Sub Init(ByVal objType as EPerfObjType, ByVal params as variant)
+  pObjType = objType
   select case objType
     case iMeasure
       pKeyName = params(0)
@@ -104,7 +105,7 @@ End Function
 '  End With
 '  ```
 Public Function Optimise(Optional ByVal ScreenUpdating as boolean = false, Optional ByVal EnableEvents as boolean = false) as stdPerformance
-  set Measure = stdPerformance.Create(iOptimiser, Array(ScreenUpdating,EnableEvents))
+  set Optimise = stdPerformance.Create(iOptimiser, Array(ScreenUpdating,EnableEvents))
 End Function
 
 
@@ -176,7 +177,7 @@ End Sub
 
 '@destructor
 Private Sub Class_Terminate()
-  select case objType
+  select case pObjType
     case iMeasure
       Dim pEndTime as long: pEndTime = GetTickCount()
       Call stdPerformance.AddMeasurement(pKeyName, Abs(pEndTime - pStartTime))
