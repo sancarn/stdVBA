@@ -11,15 +11,15 @@ Attribute VB_Exposed = False
 
 #If Mac Then
    #If MAC_OFFICE_VERSION >= 15 Then
-      Declare Function GetTickCount Lib "/Applications/Microsoft Excel.app/Contents/Frameworks/MicrosoftOffice.framework/MicrosoftOffice" () As Long
+      Private Declare Function GetTickCount Lib "/Applications/Microsoft Excel.app/Contents/Frameworks/MicrosoftOffice.framework/MicrosoftOffice" () As Long
    #Else
-      Declare Function GetTickCount Lib "Applications:Microsoft Office 2011:Office:MicrosoftOffice.framework:MicrosoftOffice" () As Long
+      Private Declare Function GetTickCount Lib "Applications:Microsoft Office 2011:Office:MicrosoftOffice.framework:MicrosoftOffice" () As Long
    #End If
 #Else ' Win32 or Win64
    #If VBA7 Then
-      Declare PtrSafe Function GetTickCount Lib "kernel32" () As Long
+      Private Declare PtrSafe Function GetTickCount Lib "kernel32" () As Long
    #Else
-      Declare Function GetTickCount Lib "kernel32" () As Long
+      Private Declare Function GetTickCount Lib "kernel32" () As Long
    #End If
 #End If
 
@@ -94,13 +94,87 @@ End Function
 
 'Optimise
 '@constructor
-'@param {EPerfObjType} - Type of performance object to create. iMeasure - used for measuring performance, iOptimiser - used for optimising performance 
-'@param {Variant()} - Additional params supplied as array.
-'@returns {stdPerformance<EPerfObjType>} - Object termination has special behaviour. See Measure and Optimise methods for further details.
+'@param {Boolean} - ScreenUpdating set value
+'@param {Boolean} - EnableEvents set value
+'@returns {stdPerformance<iOptimiser>} - Object termination has special behaviour. See Measure and Optimise methods for further details.
+'@usage
+'  ```vb
+'  With stdPerformance.Optimise
+'    'some heavy code here
+'  End With
+'  ```
 Public Function Optimise(Optional ByVal ScreenUpdating as boolean = false, Optional ByVal EnableEvents as boolean = false) as stdPerformance
   set Measure = stdPerformance.Create(iOptimiser, Array(ScreenUpdating,EnableEvents))
 End Function
 
+
+'GetMeasurement
+'@param {String} - Name of measurement to get
+'@returns {Double} - Average measurement time
+Public Function GetMeasurement(ByVal sKey As String) As Double
+  If Me Is stdPerformance Then
+    Dim v: v = getDictItem(sKey)
+    If TypeName(v) = "Variant()" Then
+        GetMeasurement = getDictItem(sKey)(0)
+    Else
+        GetMeasurement = Empty
+    End If
+  End If
+End Function
+
+'AddMeasurement
+'If a time is added that was previously also added then the average of the times is calculated.
+'@param {String} - Name of measurement to add to global cache
+'@param {Long} - time to add to global cache
+Public Sub AddMeasurement(ByVal sKey as string, ByVal time as long)
+  if Me is stdPerformance then
+    Debug.Print sKey & ": " & time & " ms"
+    Dim ind as long: ind = getDictIndex(sKey)
+    if ind = -1 then
+      Call setDictItem(sKey, Array(time,1))
+    else
+      Dim vItem: vItem = getDictItem(sKey)
+      Dim average as long: average = vItem(0)
+      Dim count as long: count = vItem(1) + 1
+      average = average + (time - average)/count
+      Call setDictItem(sKey, Array(average,count))
+    end if
+  end if
+End Sub
+
+Public Sub MeasurementsClear()
+  ReDim FakeDict(0 to 0)
+End Sub
+
+Public Property Get MeasurementKeys() as string()
+  if Me is stdPerformance then
+    if ubound(FakeDict) = 0 then
+      MeasurementKeys = Split("")
+    else
+      'Define return array
+      Dim sOut() as string
+      Redim Preserve sOut(0 to ubound(FakeDict)-1)
+
+      'Fill keys array 
+      Dim i as long
+      For i = 0 to ubound(FakeDict)-1
+        sOut(i) = FakeDict(i).key
+      next
+
+      'return data
+      MeasurementKeys = sOut
+    end if
+  end if 
+End Property
+
+
+Private Sub Class_Initialize()
+  if me is stdPerformance then
+    Redim FakeDict(0 to 0)
+  end if
+End Sub
+
+'@destructor
 Private Sub Class_Terminate()
   select case objType
     case iMeasure
@@ -112,45 +186,6 @@ Private Sub Class_Terminate()
       Application.EnableEvents = pEnableEvents
   end select
 End Sub
-
-Public Function GetMeasurement(ByVal sKey as string) as Double
-  if Me is stdPerformance then
-    GetMeasurement = getDictItem(sKey)(0)
-  end if 
-End Function
-
-Public Sub AddMeasurement(ByVal sKey as string, ByVal time as long)
-  if Me is stdPerformance then
-    Dim ind as long: ind = getDictIndex(sKey)
-    if ind = -1 then
-      Call setDictItem(sKey, Array(time,1))
-    else
-      Dim vItem: vItem = getDictItem(sKey)
-      Dim average as long: average = vItem(0)
-      Dim count as long: count = vItem(1) + 1
-      average = average + (time - average)/count
-      Call setDictItem(sKey, Array(average,count)
-    end if
-  end if
-End Sub
-
-Public Property MeasurementKeys() as string()
-  if Me is stdPerformance then
-    'Define return array
-    Dim sOut() as string
-    Redim sOut(0 to ubound FakeDict)
-
-    'Fill keys array
-    Dim i as long
-    For i = 0 to ubound(FakeDict)
-      sOut(i) = FakeDict(i).key
-    next
-
-    GetMeasurementKeys = sOut
-  end if 
-End Property
-
-
 
 
 
@@ -189,9 +224,9 @@ Private Sub setDictItem(ByVal key as string, ByVal v as variant, Optional ByVal 
   
   'If item not exist, add it
   if ind = -1 then
-    ind = ubound(FakeDict)+1
-    Redim FakeDict(0 to ind)
+    ind = getUB(FakeDict)
     FakeDict(ind).key = key
+    Redim Preserve FakeDict(0 to ind+1)
   end if
 
   'Assign value to index
@@ -201,6 +236,18 @@ Private Sub setDictItem(ByVal key as string, ByVal v as variant, Optional ByVal 
     FakeDict(ind).val = v
   end if
 End Sub
+
+'getUB
+'gets the upper bound of an array, if the array is uninitialised return -1
+'@param {ByRef FakeDictItem()} Array of dict items
+'@returns {Long} - Upper bound of array OR -1 if not initialised
+Private Function getUB(ByRef items() As FakeDictItem) As Long
+    On Error GoTo ErrorOccurred
+        getUB = UBound(items)
+        Exit Function
+ErrorOccurred:
+    getUB = -1
+End Function
 
 'getDictIndex
 'Returns the item paired with some key
