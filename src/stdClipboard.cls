@@ -426,11 +426,19 @@ Public Sub protSetFilesText(ByVal sFiles As String)
 
   'Allocate blob to global moveable memory
   hClipMemory = GlobalAlloc(GAlloc.GHND, Len(tDropFiles) + LenB(sFiles))
+<<<<<<< HEAD
   If Not CBool(hClipMemory) Then Call CriticalRaise("Value [LET]", "Unable to allocate global memory (DllError: " & Err.LastDllError & ")")
   
   'Lock global memory
   lpClipMemory = GlobalLock(hClipMemory)
   If Not CBool(lpClipMemory) Then Call CriticalRaise("Value [LET]", "Unable to lock global memory (DllError: " & Err.LastDllError & ")")
+=======
+  If Not CBool(hClipMemory) Then Call CriticalRaise("protSetFilesText", "Unable to allocate global memory (DllError: " & Err.LastDllError & ")")
+  
+  'Lock global memory
+  lpClipMemory = GlobalLock(hClipMemory)
+  If Not CBool(lpClipMemory) Then Call CriticalRaise("protSetFilesText", "Unable to lock global memory (DllError: " & Err.LastDllError & ")")
+>>>>>>> master
   
   'Specify that the offset to where the files are, from the beginning of this structure, are at the end of this structure.
   'I.E. The Binary memory data is literally going to look like:
@@ -439,6 +447,7 @@ Public Sub protSetFilesText(ByVal sFiles As String)
   Call CopyMemory(lpClipMemory, VarPtr(tDropFiles.pFiles), Len(tDropFiles))
   Call CopyMemory(lpClipMemory + Len(tDropFiles), StrPtr(sFiles), LenB(sFiles))
   
+<<<<<<< HEAD
   If CBool(GlobalUnlock(hClipMemory)) Then If Err.LastDllError <> 0 Then Call CriticalRaise("Value [LET]", "Unable to unlock global mem (DllError: " & Err.LastDllError & ")")
   
   'Try to set clipboard data:
@@ -446,6 +455,15 @@ Public Sub protSetFilesText(ByVal sFiles As String)
   If Not CBool(EmptyClipboard()) Then Call CriticalRaise("Value [LET]", "Cannot empty clipboard (DllError: " & Err.LastDllError & ")")
   If Not CBool(SetClipboardData(CF_HDROP, hClipMemory)) Then Call CriticalRaise("Value [LET]", "Unable to set clipboard data (DllError: " & Err.LastDllError & ")")
   If Not CBool(CloseClipboard()) Then Call CriticalRaise("Value [LET]", "Unable to close clipboard (DllError: " & Err.LastDllError & ")")
+=======
+  If CBool(GlobalUnlock(hClipMemory)) Then If Err.LastDllError <> 0 Then Call CriticalRaise("protSetFilesText", "Unable to unlock global mem (DllError: " & Err.LastDllError & ")")
+  
+  'Try to set clipboard data:
+  If Not CBool(OpenClipboard(Application.hwnd)) Then Call CriticalRaise("protSetFilesText", "Unable to open clipboard (DllError: " & Err.LastDllError & ")")
+  If Not CBool(EmptyClipboard()) Then Call CriticalRaise("protSetFilesText", "Cannot empty clipboard (DllError: " & Err.LastDllError & ")")
+  If Not CBool(SetClipboardData(CF_HDROP, hClipMemory)) Then Call CriticalRaise("protSetFilesText", "Unable to set clipboard data (DllError: " & Err.LastDllError & ")")
+  If Not CBool(CloseClipboard()) Then Call CriticalRaise("protSetFilesText", "Unable to close clipboard (DllError: " & Err.LastDllError & ")")
+>>>>>>> master
   
   'No need to call `GlobalFree` as system does this for us re: https://stackoverflow.com/questions/1264137/how-to-copy-string-to-clipboard-in-c#comment48533963_1264179
   'If CBool(GlobalFree(hClipMemory)) Then If Err.LastDllError <> 0 Then Call CriticalRaise("Value [GET]", "Cannot free Global mem (DllError: " & Err.LastDllError & ")")
@@ -466,11 +484,19 @@ Public Function protGetFilesArr() As String()
   #End If
   
   'Get pointer to clipboard data
+<<<<<<< HEAD
   If Not CBool(OpenClipboard(Application.hwnd)) Then Call CriticalRaise("Value [GET]", "Unable to open clipboard (DllError: " & Err.LastDllError & ")")
   If Not CBool(IsClipboardFormatAvailable(CF_HDROP)) Then Call CriticalRaise("Value [GET]", "Specified clipboard format is not available")
   hClipMemory = GetClipboardData(CF_HDROP)
   Dim nFiles As Long: nFiles = DragQueryFile(hClipMemory, -1&, "", 0)
   If Not CBool(hClipMemory) Then Call CriticalRaise("Value [GET]", "Unable to obtain pointer to clipboard data (DllError: " & Err.LastDllError & ")")
+=======
+  If Not CBool(OpenClipboard(Application.hwnd)) Then Call CriticalRaise("protGetFilesArr", "Unable to open clipboard (DllError: " & Err.LastDllError & ")")
+  If Not CBool(IsClipboardFormatAvailable(CF_HDROP)) Then Call CriticalRaise("protGetFilesArr", "Specified clipboard format is not available")
+  hClipMemory = GetClipboardData(CF_HDROP)
+  Dim nFiles As Long: nFiles = DragQueryFile(hClipMemory, -1&, "", 0)
+  If Not CBool(hClipMemory) Then Call CriticalRaise("protGetFilesArr", "Unable to obtain pointer to clipboard data (DllError: " & Err.LastDllError & ")")
+>>>>>>> master
   
   Dim sRet() As String: ReDim sRet(1 To nFiles)
   Dim sFileName As String
@@ -483,7 +509,11 @@ Public Function protGetFilesArr() As String()
   Next
   
   protGetFilesArr = sRet
+<<<<<<< HEAD
   If Not CBool(CloseClipboard()) Then Call CriticalRaise("Value [GET]", "Unable to close clipboard (DllError: " & Err.LastDllError & ")")
+=======
+  If Not CBool(CloseClipboard()) Then Call CriticalRaise("protGetFilesArr", "Unable to close clipboard (DllError: " & Err.LastDllError & ")")
+>>>>>>> master
 End Function
 
 
@@ -542,7 +572,11 @@ Private Sub CriticalRaise(ByVal sFuncName As String, ByVal sMessage As String)
     If VarType(stdError) Then
       Call stdError.Raise("stdClipboard::" & sFuncName & " - " & sMessage)
     Else
+<<<<<<< HEAD
       Call Err.Raise(1, "stdCallback::" & sFuncName, sMessage)
+=======
+      Call Err.Raise(IIf(Err.LastDllError < 0, Err.LastDllError, &H80070000 Or Err.LastDllError), "stdClipboard::" & sFuncName, sMessage)
+>>>>>>> master
     End If
     End
 End Sub
@@ -712,7 +746,11 @@ Private Function CreatePicture(ByVal hPic As Long, ByVal hPal As Long, ByVal lPi
   Const PICTYPE_ENHMETAFILE = 4
 
   ' Create the Interface GUID (for the stdole.IPicture interface)
+<<<<<<< HEAD
   If CBool(IIDFromString(StrPtr(IID_IDISPATCH), iid)) Then Call CriticalRaise("CreatePicture", "Cannot get IDispatch IID (DllError: " & Err.LastDllError & ")")
+=======
+  If CBool(IIDFromString(StrPtr(IID_IDISPATCH), iid)) Then Call CriticalRaise("CreatePicture [PRIVATE]", "Cannot get IDispatch IID (DllError: " & Err.LastDllError & ")")
+>>>>>>> master
 
   ' Fill uPicInfo with necessary parts.
   With uPicInfo

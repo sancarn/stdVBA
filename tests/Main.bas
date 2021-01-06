@@ -9,4 +9,8 @@ Sub MainTestAll()
     Call stdCallbackTests.testAll
     Call stdEnumeratorTests.testAll
     Call stdClipboardTests.testAll
+<<<<<<< HEAD
+=======
+    Call stdRegexTests.testAll
+>>>>>>> master
 End Sub
