@@ -22,6 +22,11 @@ Private Declare PtrSafe Function WindowFromAccessibleObject Lib "oleacc" (ByVal 
 Private Declare PtrSafe Function GetCursorPos Lib "user32" (lpPoint As tPOINT) As Long 'For FromMouse()
 Private Declare PtrSafe Function APISendMessage Lib "user32" Alias "SendMessage" (ByVal hwnd As Long, ByVal Msg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
 
+Public Enum ESearchType
+    BredthFirst = 0
+    DepthFirst = 1
+End Enum
+
 'Not sure if this is the correct order, not sure if it's even needed given IAccessible apparently implements IDispatch...
 Private Enum IAccessible_Methods
     accDoDefaultAction
@@ -181,7 +186,7 @@ End Function
 ' 'Find where name is "hello" but restrict search to 4 levels deep:
 ' el.FindFirst(stdLambda.Create("if $2 = 4 then 2 else $1.name=""hello"""))
 ' ```
-Public Function FindFirst(ByVal query As stdICallable, optional byval searchType as long=0) As stdAcc
+Public Function FindFirst(ByVal query As stdICallable, optional byval searchType as ESearchType=0) As stdAcc
     Dim stack as Variant
     stack = Array(Array(0,me))
 
@@ -253,7 +258,7 @@ End Function
 ' 'Find where name is "hello" but restrict search to 4 levels deep:
 ' el.FindAll(stdLambda.Create("if $2 = 4 then 2 else $1.name=""hello"""))
 ' ```
-Public Function FindAll(ByVal query As stdICallable, optional byval searchType as long=0) As Collection
+Public Function FindAll(ByVal query As stdICallable, optional byval searchType as ESearchType=0) As Collection
     Dim stack as Variant
     stack = Array(Array(0,me))
 
