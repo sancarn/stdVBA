@@ -19,13 +19,16 @@ Attribute VB_Exposed = False
 'Functions implemented on this class:
 'CONSTRUCTORS
 '    [X] CreateFromIEnumVariant
-'    [X] CreateFromICallable
+'    [ ] CreateFromICallable   'Only half implemented
+'    [ ] CreateFromArray
 '    [X] init  #PROTECTED
 '
 'INSTANCE METHODS
 'Many methods were inspired by those in Ruby's Enumerable: https://ruby-doc.org/core-2.7.2/Enumerable.html
-'    [X] Sort() as stdArray
-'    [X] Reverse() as stdArray
+'    [X] asCollection()
+'    [X] asArray(iType as vbVarType) 
+'    [X] Sort()
+'    [X] Reverse()
 '    [X] ForEach
 '    [X] Map
 '    [X] Unique
@@ -120,11 +123,97 @@ Public Sub Init(ByVal iEnumeratorType as long, ParamArray v() As Variant)
     end select
 End Sub
 
+Public Function AsCollection() as Collection
+    Dim retCol as Collection: set retCol = new Collection
+    select case mode
+        case EnumeratorType.FromCallable
+        
+        case EnumeratorType.FromIEnumVariant
+            For Each v In pEnumObject
+                retCol.add v
+            Next
+    End Select
+
+    set AsCollection = retCol
+End Function
+Public Function AsArray(Optional ByVal iType as vbVarType = vbVarType.vbVariant) as Variant
+    Dim arrLen as long: arrLen = Length()
+    Dim vRet as variant
+    select case iType
+        case vbVarType.vbBoolean
+            Dim a1() as Boolean
+            Redim a1(1 to arrLen)
+            vRet = a1
+        case vbVarType.vbByte
+            Dim a2() as Byte
+            Redim a2(1 to arrLen)
+            vRet = a2
+        case vbVarType.vbCurrency
+            Dim a3() as Currency
+            Redim a3(1 to arrLen)
+            vRet = a3
+        case vbVarType.vbDate
+            Dim a4() as Date
+            Redim a4(1 to arrLen)
+            vRet = a4
+        case vbVarType.vbDouble
+            Dim a5() as Double
+            Redim a5(1 to arrLen)
+            vRet = a5
+        case vbVarType.vbLong
+            Dim a6() as Long
+            Redim a6(1 to arrLen)
+            vRet = a6
+        case vbVarType.vbObject
+            Dim a7() as Object
+            Redim a7(1 to arrLen)
+            vRet = a7
+        case vbVarType.vbString 
+            Dim a8() as String
+            Redim a8(1 to arrLen)
+            vRet = a8
+        case vbVarType.vbVariant
+            Dim a9() as Variant
+            Redim a9(1 to arrLen)
+            vRet = a9
+    end select
+
+    select case mode
+        case EnumeratorType.FromCallable
+        
+        case EnumeratorType.FromIEnumVariant
+            Dim v as variant, i as long: i=0
+            select case iType
+                case vbVarType.vbObject
+                    For Each v In pEnumObject
+                        i=i+1
+                        set vRet(i) = v
+                    Next
+                case vbVarType.vbVariant
+                    For Each v In pEnumObject
+                        i=i+1
+                        if isObject(v) then
+                            set vRet(i) = v
+                        else
+                            vRet(i) = v
+                        end if
+                    Next
+                case else
+                    For Each v In pEnumObject
+                        i=i+1
+                        vRet(i) = v
+                    Next
+            end select
+    End Select
+
+    AsArray = vRet
+End Function
+
 
 Public Function ForEach(Optional ByVal cb As stdICallable, Optional ByVal WithIndex as boolean = false) As stdEnumerator
     select case mode
         case EnumeratorType.FromCallable
-        
+            
         case EnumeratorType.FromIEnumVariant
             Dim v as variant, i as long: i=0
             For Each v In pEnumObject
