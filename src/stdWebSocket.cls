@@ -32,12 +32,7 @@ Attribute VB_Exposed = True
 '    [X] OnError(data)
 '    [X] OnMessage(data)
 '    [X] EventRaised(name,data)
-'
-'  WHAT WE WON'T DO:
-'    with_index    'this can't be easily done, so instead implement methods like `forEach(cb,withIndex?=false)
 
-'  TODO: Things we can't do (yet)
-'    take <-- can't do this unless we implement IEnumVARIANT and call Next() method
 
 Public Event EventRaised(ByVal sEventName As String, ByVal eventData As Variant)
 Public Event OnOpen(ByVal eventData As Variant)
