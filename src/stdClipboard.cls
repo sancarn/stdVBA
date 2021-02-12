@@ -197,7 +197,7 @@ Attribute value.VB_UserMemId = 0
   #End If
   
   'Get pointer to clipboard data
-  If Not CBool(OpenClipboard(Application.hwnd)) Then Call CriticalRaise("Value [GET]", "Unable to open clipboard (DllError: " & Err.LastDllError & ")")
+  If Not CBool(OpenClipboardTimeout(Application.hwnd)) Then Call CriticalRaise("Value [GET]", "Unable to open clipboard (DllError: " & Err.LastDllError & ")")
   If Not CBool(IsClipboardFormatAvailable(iFormat)) Then Call CriticalRaise("Value [GET]", "Specified clipboard format is not available")
   hClipMemory = GetClipboardData(iFormat)
   If Not CBool(hClipMemory) Then Call CriticalRaise("Value [GET]", "Unable to obtain pointer to clipboard data (DllError: " & Err.LastDllError & ")")
@@ -266,7 +266,7 @@ Public Property Let value(ByVal iFormat As CLIPFORMAT, ByVal v As Variant)
   If CBool(GlobalUnlock(hClipMemory)) Then If Err.LastDllError <> 0 Then Call CriticalRaise("Value [LET]", "Unable to unlock global mem. (DllError: " & Err.LastDllError & ")")
   
   'Try to set clipboard data:
-  If Not CBool(OpenClipboard(Application.hwnd)) Then Call CriticalRaise("Value [LET]", "Unable to open clipboard (DllError: " & Err.LastDllError & ")")
+  If Not CBool(OpenClipboardTimeout(Application.hwnd)) Then Call CriticalRaise("Value [LET]", "Unable to open clipboard (DllError: " & Err.LastDllError & ")")
   If Not CBool(EmptyClipboard()) Then Call CriticalRaise("Value [LET]", "Cannot empty clipboard (DllError: " & Err.LastDllError & ")")
   If Not CBool(SetClipboardData(iFormat, hClipMemory)) Then Call CriticalRaise("Value [LET]", "Unable to set clipboard data (DllError: " & Err.LastDllError & ")")
   If Not CBool(CloseClipboard()) Then Call CriticalRaise("Value [LET]", "Unable to close clipboard (DllError: " & Err.LastDllError & ")")
@@ -293,7 +293,7 @@ End Property
 '@param {ByVal CLIPFORMAT} - The format to check support for.
 '@returns {Boolean} True if the format is allowed, false otherwise
 Public Function IsFormatAvailable(ByVal iFormat As CLIPFORMAT) As Boolean
-  Call OpenClipboard(Application.hwnd)
+  Call OpenClipboardTimeout(Application.hwnd)
   IsFormatAvailable = IsClipboardFormatAvailable(iFormat)
   Call CloseClipboard
 End Function
@@ -305,7 +305,7 @@ Public Property Get formats() As Collection
   Dim iFormat As CLIPFORMAT: iFormat = CF_NOFORMAT
   Dim ret As Collection: Set ret = New Collection
   'Loop over all formats and add to collection
-  Call OpenClipboard(Application.hwnd)
+  Call OpenClipboardTimeout(Application.hwnd)
   Do
     iFormat = EnumClipboardFormats(iFormat)
     If CBool(iFormat) Then
@@ -326,7 +326,7 @@ Public Property Get formatIDs() As Collection
   Dim iFormat As CLIPFORMAT: iFormat = CF_NOFORMAT
   Dim ret As Collection: Set ret = New Collection
   'Loop over all formats and add to collection
-  Call OpenClipboard(Application.hwnd)
+  Call OpenClipboardTimeout(Application.hwnd)
     Do
     iFormat = EnumClipboardFormats(iFormat)
     If CBool(iFormat) Then
@@ -426,6 +426,7 @@ Public Sub protSetFilesText(ByVal sFiles As String)
 
   'Allocate blob to global moveable memory
   hClipMemory = GlobalAlloc(GAlloc.GHND, Len(tDropFiles) + LenB(sFiles))
+
   If Not CBool(hClipMemory) Then Call CriticalRaise("protSetFilesText", "Unable to allocate global memory (DllError: " & Err.LastDllError & ")")
   
   'Lock global memory
@@ -442,7 +443,7 @@ Public Sub protSetFilesText(ByVal sFiles As String)
   If CBool(GlobalUnlock(hClipMemory)) Then If Err.LastDllError <> 0 Then Call CriticalRaise("protSetFilesText", "Unable to unlock global mem (DllError: " & Err.LastDllError & ")")
   
   'Try to set clipboard data:
-  If Not CBool(OpenClipboard(Application.hwnd)) Then Call CriticalRaise("protSetFilesText", "Unable to open clipboard (DllError: " & Err.LastDllError & ")")
+  If Not CBool(OpenClipboardTimeout(Application.hwnd)) Then Call CriticalRaise("protSetFilesText", "Unable to open clipboard (DllError: " & Err.LastDllError & ")")
   If Not CBool(EmptyClipboard()) Then Call CriticalRaise("protSetFilesText", "Cannot empty clipboard (DllError: " & Err.LastDllError & ")")
   If Not CBool(SetClipboardData(CF_HDROP, hClipMemory)) Then Call CriticalRaise("protSetFilesText", "Unable to set clipboard data (DllError: " & Err.LastDllError & ")")
   If Not CBool(CloseClipboard()) Then Call CriticalRaise("protSetFilesText", "Unable to close clipboard (DllError: " & Err.LastDllError & ")")
@@ -466,11 +467,12 @@ Public Function protGetFilesArr() As String()
   #End If
   
   'Get pointer to clipboard data
-  If Not CBool(OpenClipboard(Application.hwnd)) Then Call CriticalRaise("protGetFilesArr", "Unable to open clipboard (DllError: " & Err.LastDllError & ")")
+  If Not CBool(OpenClipboardTimeout(Application.hwnd)) Then Call CriticalRaise("protGetFilesArr", "Unable to open clipboard (DllError: " & Err.LastDllError & ")")
   If Not CBool(IsClipboardFormatAvailable(CF_HDROP)) Then Call CriticalRaise("protGetFilesArr", "Specified clipboard format is not available")
   hClipMemory = GetClipboardData(CF_HDROP)
   Dim nFiles As Long: nFiles = DragQueryFile(hClipMemory, -1&, "", 0)
   If Not CBool(hClipMemory) Then Call CriticalRaise("protGetFilesArr", "Unable to obtain pointer to clipboard data (DllError: " & Err.LastDllError & ")")
+
   
   Dim sRet() As String: ReDim sRet(1 To nFiles)
   Dim sFileName As String
@@ -660,7 +662,7 @@ Private Function GetPictureFromClipboard(Optional ByVal lPicType As CLIPFORMAT) 
     'Check if the clipboard contains the required format
     If IsClipboardFormatAvailable(lPicType) Then
       'Get access to the clipboard
-      If OpenClipboard(Application.hwnd) > 0 Then
+      If OpenClipboardTimeout(Application.hwnd) > 0 Then
         'Get a handle to the image data
         hPtr = GetClipboardData(lPicType)
         If Not CBool(hPtr) Then Call CriticalRaise("GetPictureFromClipboard [PRIVATE]", "Unable to get clipboard data handle (DllError: " & Err.LastDllError & ")")
@@ -785,3 +787,25 @@ Private Sub CopyVariant(ByRef dest As Variant, ByVal value As Variant)
     dest = value
   End If
 End Sub
+
+
+'Tries to open the clipbaord with a timeout
+'@param {long} hWnd to open clipboard in
+'@param {long} number of milliseconds to wait
+'@returns {boolean} true if clipboard is open, false if clipboard couldn't be opened
+Private Function OpenClipboardTimeout(ByVal hwnd As Long, Optional ByVal dwTimeoutMilliseconds As Long = 5000) As Boolean
+  Dim iStart As Long: iStart = GetTickCount()
+  Dim bOpen As Boolean, bExpired As Boolean
+  While Not (bOpen Or bExpired)
+    'Open clipboard and only continue if open
+    bOpen = CBool(OpenClipboard(hwnd))
+    OpenClipboardTimeout = bOpen
+    If bOpen Then Exit Function
+    
+    'Check for expirey
+    bExpired = Abs(GetTickCount() - iStart) >= dwTimeoutMilliseconds
+    
+    'Do Excel events
+    DoEvents
+  Wend
+End Function
