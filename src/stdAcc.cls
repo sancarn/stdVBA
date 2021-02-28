@@ -8,6 +8,55 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
+'Spec:
+'A class used to automate  objects which implement IAccessible
+'
+'
+'CONSTRUCTORS
+'    [X] CreateFromPoint
+'    [X] CreateFromHwnd
+'    [X] CreateFromApplication
+'    [X] CreateFromDesktop
+'    [X] CreateFromIAccessible
+'    [X] CreateFromMouse
+'INSTANCE METHODS:
+'    [X] CreateFromPath
+'    [X] GetDescendents
+'    [X] FindFirst(stdICallable)
+'    [X] FindAll(stdICallable)
+'    [X] DoDefaultAction()
+'    [X] SendMessage         TODO: Consider removing when we have stdWindow?
+'    [X] Highlight(seconds?)
+'    [X] getPath
+'    [X] PrintChildTexts()
+'    [X] PrintDescTexts(sFile?)
+'PROPERTIES:
+'    [X] R   Parent
+'    [X] R   Children
+'    [X] R   hwnd
+'    [X] R   location
+'    [X] R   HitTest
+'    [X] R   Selection
+'    [X] R/W Value
+'    [X] R   Name
+'    [X] R   DefaultAction
+'    [X] R   Role
+'    [X] R   State
+'    [X] R   Description
+'    [X] R   KeyboardShortcut
+'    [X] R/W Focus
+'    [X] R   Help
+'    [X] R   HelpTopic
+'    [X] R   Text
+'
+'INSTANCE METHODS
+'Many methods were inspired by those in Ruby's Enumerable: https://ruby-doc.org/core-2.7.2/Enumerable.html
+
+
+
+
+
+
 'TODO:
 '[?] SendKeys() method
 '[?] SendKeysRaw() method
@@ -15,7 +64,7 @@ Attribute VB_Exposed = False
 
 
 Private Declare PtrSafe Function AccessibleObjectFromPoint Lib "oleacc" (ByVal x As Long, ByVal y As Long, ppoleAcc As IAccessible, pvarElement As Variant) As Long
-Private Declare PtrSafe Function AccessibleObjectFromWindow Lib "oleacc" (ByVal hwnd As Long, ByVal dwId As Long, riid As tGUID, ppvObject As Object) As Long
+Private Declare PtrSafe Function AccessibleObjectFromWindow Lib "oleacc" (ByVal hwnd As LongPtr, ByVal dwId As Long, riid As tGUID, ppvObject As Object) As Long
 Private Declare PtrSafe Function AccessibleObjectFromEvent Lib "oleacc.dll" (hwnd As LongPtr, dwObjectId As Integer, dwChildID As Integer, ppacc As IAccessible, pVarChild As Object) As Long
 Private Declare PtrSafe Function AccessibleChildren Lib "oleacc" (ByVal paccContainer As IAccessible, ByVal iChildStart As Long, ByVal cChildren As Long, rgvarChildren As Variant, pcObtained As Long) As Long
 Private Declare PtrSafe Function WindowFromAccessibleObject Lib "oleacc" (ByVal pacc As IAccessible, ByRef pHwnd As LongPtr) As LongPtr
@@ -26,6 +75,105 @@ Public Enum ESearchType
     BredthFirst = 0
     DepthFirst = 1
 End Enum
+
+Public Enum EMSAARoles
+    ROLE_TITLEBAR = &H1&
+    ROLE_MENUBAR = &H2&
+    ROLE_SCROLLBAR = &H3&
+    ROLE_GRIP = &H4&
+    ROLE_SOUND = &H5&
+    ROLE_CURSOR = &H6&
+    ROLE_CARET = &H7&
+    ROLE_ALERT = &H8&
+    ROLE_WINDOW = &H9&
+    ROLE_CLIENT = &HA&
+    ROLE_MENUPOPUP = &HB&
+    ROLE_MENUITEM = &HC&
+    ROLE_TOOLTIP = &HD&
+    ROLE_APPLICATION = &HE&
+    ROLE_DOCUMENT = &HF&
+    ROLE_PANE = &H10&
+    ROLE_CHART = &H11&
+    ROLE_DIALOG = &H12&
+    ROLE_BORDER = &H13&
+    ROLE_GROUPING = &H14&
+    ROLE_SEPARATOR = &H15&
+    ROLE_TOOLBAR = &H16&
+    ROLE_STATUSBAR = &H17&
+    ROLE_TABLE = &H18&
+    ROLE_COLUMNHEADER = &H19&
+    ROLE_ROWHEADER = &H1A&
+    ROLE_COLUMN = &H1B&
+    ROLE_ROW = &H1C&
+    ROLE_CELL = &H1D&
+    ROLE_LINK = &H1E&
+    ROLE_HELPBALLOON = &H1F&
+    ROLE_CHARACTER = &H20&
+    ROLE_LIST = &H21&
+    ROLE_LISTITEM = &H22&
+    ROLE_OUTLINE = &H23&
+    ROLE_OUTLINEITEM = &H24&
+    ROLE_PAGETAB = &H25&
+    ROLE_PROPERTYPAGE = &H26&
+    ROLE_INDICATOR = &H27&
+    ROLE_GRAPHIC = &H28&
+    ROLE_STATICTEXT = &H29&
+    ROLE_TEXT = &H2A&
+    ROLE_PUSHBUTTON = &H2B&
+    ROLE_CHECKBUTTON = &H2C&
+    ROLE_RADIOBUTTON = &H2D&
+    ROLE_COMBOBOX = &H2E&
+    ROLE_DROPLIST = &H2F&
+    ROLE_PROGRESSBAR = &H30&
+    ROLE_DIAL = &H31&
+    ROLE_HOTKEYFIELD = &H32&
+    ROLE_SLIDER = &H33&
+    ROLE_SPINBUTTON = &H34&
+    ROLE_DIAGRAM = &H35&
+    ROLE_ANIMATION = &H36&
+    ROLE_EQUATION = &H37&
+    ROLE_BUTTONDROPDOWN = &H38&
+    ROLE_BUTTONMENU = &H39&
+    ROLE_BUTTONDROPDOWNGRID = &H3A&
+    ROLE_WHITESPACE = &H3B&
+    ROLE_PAGETABLIST = &H3C&
+End Enum
+Public Enum EMSAAStates
+    STATE_NORMAL = &H0
+    STATE_UNAVAILABLE = &H1
+    STATE_SELECTED = &H2
+    STATE_FOCUSED = &H4
+    STATE_PRESSED = &H8
+    STATE_CHECKED = &H10
+    STATE_MIXED = &H20
+    STATE_INDETERMINATE = &H99
+    STATE_READONLY = &H40
+    STATE_HOTTRACKED = &H80
+    STATE_DEFAULT = &H100
+    STATE_EXPANDED = &H200
+    STATE_COLLAPSED = &H400
+    STATE_BUSY = &H800
+    STATE_FLOATING = &H1000
+    STATE_MARQUEED = &H2000
+    STATE_ANIMATED = &H4000
+    STATE_INVISIBLE = &H8000
+    STATE_OFFSCREEN = &H10000
+    STATE_SIZEABLE = &H20000
+    STATE_MOVEABLE = &H40000
+    STATE_SELFVOICING = &H80000
+    STATE_FOCUSABLE = &H100000
+    STATE_SELECTABLE = &H200000
+    STATE_LINKED = &H400000
+    STATE_TRAVERSED = &H800000
+    STATE_MULTISELECTABLE = &H1000000
+    STATE_EXTSELECTABLE = &H2000000
+    STATE_ALERT_LOW = &H4000000
+    STATE_ALERT_MEDIUM = &H8000000
+    STATE_ALERT_HIGH = &H10000000
+    STATE_PROTECTED = &H20000000
+    STATE_VALID = &H7FFFFFFF
+End Enum
+
 
 'Not sure if this is the correct order, not sure if it's even needed given IAccessible apparently implements IDispatch...
 Private Enum IAccessible_Methods
@@ -53,12 +201,11 @@ Private Enum IAccessible_Methods
 End Enum
 
 'Enums
-Public ACC_STATES As Object
-Public ACC_ROLES As Object
 Public proxy As Boolean
 Public proxyParent As Object 'IAcc
 Public proxyInfo As Object
 Public proxyIndex As Long
+Public Lookups As Object
 
 'GUID type for ObjectFromWindow
 Private Type tGUID
@@ -71,11 +218,17 @@ Private Type tPOINT
     x As Long
     y As Long
 End Type
+Private Type tFindNode
+    initialised as boolean
+    depth as long
+    element as object
+End Type
+
 
 Const CHILDID_SELF = 0&
 
 'Should only be set from IAcc
-Private oAcc As Object
+Public protAccessible As Object
 
 'Constructors:
 Public Function CreateFromPoint(x As Long, y As Long) As stdAcc
@@ -83,17 +236,17 @@ Public Function CreateFromPoint(x As Long, y As Long) As stdAcc
     Dim obj As IAccessible
     Dim v As Variant
     Call AccessibleObjectFromPoint(x, y, obj, v)
-    Call CreateFromPoint.SetIAccessible(obj)
+    set CreateFromPoint.protAccessible = obj
 End Function
 Public Function CreateFromHwnd(hwnd As LongPtr) As stdAcc
     Dim acc as New stdAcc
     Dim obj As IAccessible
     Set obj = IAccessibleFromHwnd(hwnd)
-    Call acc.SetIAccessible(obj)
+    set acc.protAccessible = obj
     Set CreateFromHwnd = acc
 End Function
-Public Function CreateFromExcel() As stdAcc
-    Set CreateFromExcel = CreateFromHwnd(Application.hwnd)
+Public Function CreateFromApplication() As stdAcc
+    Set CreateFromApplication = CreateFromHwnd(Application.hwnd)
 End Function
 Public Function CreateFromDesktop() As stdAcc
     'Get this application's accessibility object
@@ -105,12 +258,12 @@ Public Function CreateFromDesktop() As stdAcc
     Set accDesktop = accThis.accParent
     
     Dim acc As New stdAcc
-    Call acc.SetIAccessible(accDesktop)
+    set acc.protAccessible = accDesktop
     Set CreateFromDesktop = acc
 End Function
 Public Function CreateFromIAccessible(ByRef obj As IAccessible) As stdAcc
     Set CreateFromIAccessible = New stdAcc
-    Call CreateFromIAccessible.SetIAccessible(obj)
+    set CreateFromIAccessible.protAccessible = obj
 End Function
 Public Function CreateFromMouse() As stdAcc
     Dim pT As tPOINT
@@ -161,7 +314,6 @@ Public Function GetDescendents() As Collection
     Set GetDescendents = c
 End Function
 
-
 'Search the IAccessible tree for elements which match a certain criteria. When found exit the function.
 '@param {ByVal stdICallable<(stdAcc,eSearchType),eWalkType>} Callback returning
 '  eWalkType options:
@@ -187,46 +339,50 @@ End Function
 ' el.FindFirst(stdLambda.Create("if $2 = 4 then 2 else $1.name=""hello"""))
 ' ```
 Public Function FindFirst(ByVal query As stdICallable, optional byval searchType as ESearchType=0) As stdAcc
-    Dim stack as Variant
-    stack = Array(Array(0,me))
-
-    Dim length as long: length = 1
-    Dim index as long: index = 0
+    Dim stack() As tFindNode
+    ReDim stack(0 To 0)
+    stack(0).initialised = true
+    stack(0).depth = 0
+    Set stack(0).element = Me
+    
+    Dim length As Long: length = 1
+    Dim index As Long: index = -1
 
     'Loop over the stack/array
     While length > 0 And index < length
-        Dim part as variant
-        if searchType = 0 then 
+        Dim part As tFindNode
+        If searchType = 0 Then
             'Bredth first search, get item directly out of array, no need to change array size
             index = index + 1
             part = stack(index)
-        else
+        Else
             'Depth first search, so pop the item out of the stack
-            part = stackPopV(stack,length)
-        end if
-        Dim depth as long:     depth = part(0)
-        Dim element As stdAcc: set element = part(1)
-
-        'Run query and test options
-        select case query.Run(element,depth)
-            case 0
-                'Nothing found, search descendents
-                Dim child as stdAcc
-                for each child in element.children
-                    stackPushV(stack,length,Array(depth+1,child))
-                next
-            case 1,True
-                'Found, return element
-                set FindFirst = element
-                Exit Function
-            case 2
-                'Nothing found, cancel function
-                set FindFirst = nothing
-                Exit Function
-            'case 3
-            '    Nothing found, don't search descendents
-        end select
-
+            part = stackPopV(stack, length)
+        End If
+        
+        With part
+            If not .initialised Then Exit Function
+            
+            'Run query and test options
+            Select Case query.Run(.element, .depth)
+                Case 0
+                    'Nothing found, search descendents
+                    Dim child As stdAcc
+                    For Each child In part.element.children
+                        Call stackPushV(stack, length, CreateFindNode(.depth + 1, child))
+                    Next
+                Case 1, True
+                    'Found, return element
+                    Set FindFirst = .element
+                    Exit Function
+                Case 2
+                    'Nothing found, cancel function
+                    Set FindFirst = Nothing
+                    Exit Function
+                'case 3
+                '    Nothing found, don't search descendents
+            End Select
+        End With
         'Just make sure no freezing occurs
         DoEvents
     Wend
@@ -259,18 +415,22 @@ End Function
 ' el.FindAll(stdLambda.Create("if $2 = 4 then 2 else $1.name=""hello"""))
 ' ```
 Public Function FindAll(ByVal query As stdICallable, optional byval searchType as ESearchType=0) As Collection
-    Dim stack as Variant
-    stack = Array(Array(0,me))
-
-    Dim length as long: length = 1
-    Dim index as long: index = 0
+    Dim stack() As tFindNode
+    ReDim stack(0 To 0)
+    stack(0).initialised = true
+    stack(0).depth = 0
+    Set stack(0).element = Me
+    
+    Dim length As Long: length = 1
+    Dim index As Long: index = -1
+    
 
     'Initialise collection
     set FindAll = new Collection
 
     'Loop over the stack/array
     While length > 0 And index < length
-        Dim part as variant
+        Dim part as tFindNode
         if searchType = 0 then 
             'Bredth first search, get item directly out of array, no need to change array size
             index = index + 1
@@ -279,27 +439,29 @@ Public Function FindAll(ByVal query As stdICallable, optional byval searchType a
             'Depth first search, so pop the item out of the stack
             part = stackPopV(stack,length)
         end if
-        Dim depth as long:     depth = part(0)
-        Dim element As stdAcc: set element = part(1)
+        
+        With part
+            'When hitting the edge of the stack quit
+            if not .initialised then Exit Function
 
-        'Run query and test options
-        select case query.Run(element,depth)
-            case 0
-                'Nothing found, search descendents
-                Dim child as stdAcc
-                for each child in element.children
-                    stackPushV(stack,length,Array(depth+1,child))
-                next
-            case 1,True
-                'Found, add element
-                Call FindAll.add(element)
-            case 2
-                'Nothing found, cancel function
-                Exit Function
-            'case 3
-            '    Nothing found, don't search descendents
-        end select
-
+            'Run query and test options
+            select case query.Run(.element,.depth)
+                case 0
+                    'Nothing found, search descendents
+                    Dim child as stdAcc
+                    for each child in .element.children
+                        Call stackPushV(stack,length,CreateFindNode(.depth+1,child))
+                    next
+                case 1,True
+                    'Found, add element
+                    Call FindAll.add(.element)
+                case 2
+                    'Nothing found, cancel function
+                    Exit Function
+                'case 3
+                '    Nothing found, don't search descendents
+            end select
+        End with
         'Just make sure no freezing occurs
         DoEvents
     Wend
@@ -312,7 +474,7 @@ Public Property Get Parent() As stdAcc
     End If
     On Error GoTo handle_error
         Set Parent = New stdAcc
-        Call Parent.SetIAccessible(oAcc.accParent)
+        set Parent.protAccessible = protAccessible.accParent
     On Error GoTo 0
     Exit Property
 handle_error:
@@ -330,8 +492,8 @@ End Property
 
 Public Property Get hwnd()
     On Error GoTo handle_error
-        Dim lHwnd As Long
-        WindowFromAccessibleObject oAcc, lHwnd
+        Dim lHwnd As LongPtr
+        WindowFromAccessibleObject protAccessible, lHwnd
         hwnd = lHwnd
     On Error GoTo 0
     Exit Property
@@ -341,12 +503,12 @@ End Property
 
 Public Property Get Location() As Collection
     On Error GoTo ErrorHandler
-        'Get location from oAcc
+        'Get location from protAccessible
         Dim pcxWidth As Long
         Dim pcyHeight As Long
         Dim pxLeft As Long
         Dim pyTop As Long
-        Call oAcc.accLocation(pxLeft, pyTop, pcxWidth, pcyHeight, CHILDID_SELF)
+        Call protAccessible.accLocation(pxLeft, pyTop, pcxWidth, pcyHeight, CHILDID_SELF)
         
         'Create location collection
         Set Location = New Collection
@@ -364,30 +526,34 @@ End Property
 Public Property Get HitTest(x As Long, y As Long) As stdAcc
     Set HitTest = New stdAcc
     Dim NewAcc As Object
-    Call oAcc.accHitTest(x, y, NewAcc)
-    Call HitTest.SetIAccessible(NewAcc)
+    Call protAccessible.accHitTest(x, y, NewAcc)
+    set HitTest.protAccessible = NewAcc
 End Property
 
 Public Property Get Selection() As Object
     On Error Resume Next
-    Set Selection = oAcc.Selection
+    Set Selection = protAccessible.Selection
 End Property
 
 Public Property Get value() As Variant
     On Error Resume Next
-    If VarType(oAcc.accValue) = vbObject Then
-        Set value = oAcc.accValue
-    Else
-        value = oAcc.accValue
-    End If
+    With protAccessible
+        If VarType(.accValue) = vbObject Then
+            Set value = .accValue
+        Else
+            Let value = .accValue
+        End If
+    End With
 End Property
 Public Property Let value(val As Variant)
     On Error Resume Next
-    If VarType(oAcc.accValue) = vbObject Then
-        Set oAcc.accValue = val
-    Else
-        oAcc.accValue = val
-    End If
+    With protAccessible
+        If VarType(.accValue) = vbObject Then
+            Set .accValue = val
+        Else
+            Let .accValue = val
+        End If
+    End with
 End Property
 
 
@@ -395,48 +561,59 @@ End Property
 'Simple properties:
 Public Property Get name() As String
     On Error Resume Next
-    name = oAcc.accName
+    name = protAccessible.accName
 End Property
 Public Property Get DefaultAction() As String
     On Error Resume Next
-    DefaultAction = oAcc.accDefaultAction
+    DefaultAction = protAccessible.accDefaultAction
 End Property
 Public Property Get Role() As String
     On Error Resume Next
-    Role = Me.ACC_ROLES(oAcc.AccRole)
+    Role = Me.Lookups("roles")("S2N")(protAccessible.AccRole)
 End Property
 Public Property Get State() As String
     On Error Resume Next
-    State = Me.ACC_STATES(oAcc.AccState)
+    State = Me.Lookups("states")("S2N")(protAccessible.AccState)
+End Property
+Public Property Get StateData() As Long
+    On Error Resume Next
+    StateData = protAccessible.AccState
 End Property
 Public Property Get Description() As String
     On Error Resume Next
-    Description = oAcc.accDescription
+    Description = protAccessible.accDescription
 End Property
 Public Property Get KeyboardShortcut() As String
     On Error Resume Next
-    KeyboardShortcut = oAcc.accKeyboardShortcut
+    KeyboardShortcut = protAccessible.accKeyboardShortcut
 End Property
 Public Property Get Focus() As Boolean
     On Error Resume Next
-    Focus = oAcc.accFocus
+    Focus = protAccessible.accFocus
 End Property
 Public Property Let Focus(val As Boolean)
     On Error Resume Next
-    oAcc.accFocus = val
+    protAccessible.accFocus = val
 End Property
 Public Property Get Help() As String
     On Error Resume Next
-    Help = oAcc.accHelp
+    Help = protAccessible.accHelp
 End Property
 Public Property Get HelpTopic() As String
     On Error Resume Next
-    HelpTopic = oAcc.accHelpTopic
+    HelpTopic = protAccessible.accHelpTopic
 End Property
 
 Public Property Get Text() As String
     If Len(Me.name & Me.value & Me.DefaultAction & Me.Description & Me.Help & Me.HelpTopic & Me.KeyboardShortcut) > 0 Then
-        Text = Me.name & ":" & Me.value & "@" & Me.DefaultAction & "-" & Me.Description & ";" & Me.Help & ";" & Me.HelpTopic & ";" & Me.KeyboardShortcut
+        Text = "Name: """ & Me.name & """; " & _
+               "Value: """ & Me.value & """; " & _
+               "DefaultAction: """ & Me.DefaultAction & """; " & _
+               "Description: """ & Me.Description & """; " & _
+               "Role: """ & Me.Role & """; " & _
+               "Help: """ & Me.Help & """; " & _
+               "HelpTopic: """ & Me.HelpTopic & """; " & _
+               "KeyboardShortcut: """ & Me.KeyboardShortcut & """;"
     Else
         Text = ""
     End If
@@ -445,7 +622,7 @@ End Property
 Public Function DoDefaultAction()
     If Me.proxy Then
     Else
-        Call oAcc.accDoDefaultAction
+        Call protAccessible.accDoDefaultAction
     End If
 End Function
 
@@ -456,6 +633,56 @@ Public Function SendMessage(ByVal Msg As Long, ByVal wParam As Long, ByVal lPara
         Err.Raise 1, "No hwnd on this window"
     End If
 End Function
+
+'Useful for debugging
+Public Sub PrintChildTexts()
+    Dim child As stdAcc
+    Dim iIndex As Long: iIndex = 0
+    For Each child In children
+        iIndex = iIndex + 1
+        Debug.Print iIndex & ". " & child.Text
+    Next
+End Sub
+
+'Prints all descendent texts. Useful for debugging. Also includes all paths of all descendents which can be very beneficial.
+'
+'
+Public Sub PrintDescTexts(Optional ByVal sToFilePath as string = "", Optional ByVal bPrintToDebug as boolean = true, Optional ByVal sPath As String = "P", Optional ByVal fileNum as long = 0)
+    'Open file is file name passed and file num not given
+    Dim bFileOpened as boolean
+    if fileNum = 0 and len(sToFilePath) > 0 then
+        bFileOpened = true
+        fileNum = FreeFile()
+        open sToFilePath for Output as #fileNum
+    end if
+
+    'Loop over all children
+    Dim child As stdAcc
+    Dim iIndex As Long: iIndex = 0
+    For Each child In children
+        'Get child index for path
+        iIndex = iIndex + 1
+
+        'Create path string
+        Dim myPath As String: myPath = sPath & "." & iIndex
+
+        'If file has been opened, print data to file
+        If fileNum <> 0 Then Print #fileNum, myPath & ". " & child.Text
+        
+        'Only print to debug if bPrintToDebug
+        if bPrintToDebug then Debug.Print myPath & ". " & child.Text
+
+        'Recurse to all children
+        Call child.PrintDescTexts(sToFilePath, bPrintToDebug, myPath, fileNum)
+    Next
+
+    'Only close file if file was opened within sub
+    if bFileOpened then
+        Close #fileNum
+    end if
+End Sub
+
+
 
 'TODO: Highlight() - Creates a userform with transparent background and red border
 'Public Function Highlight() as stdUserform
@@ -481,7 +708,7 @@ End Function
 '  accHelpTopic         - Get help file if provided
 
 'Retrieve the IAccessible interface from a window handle
-Private Function IAccessibleFromHwnd(hwnd As Long) As IAccessible
+Private Function IAccessibleFromHwnd(ByVal hwnd As LongPtr) As IAccessible
     ' Define the GUID for the IAccessible object {618736E0-3C3D-11CF-810C-00AA00389B71}
     Dim Guid As tGUID
     Guid = convertGUID("618736E0-3C3D-11CF-810C-00AA00389B71")
@@ -529,11 +756,11 @@ End Function
 
 Private Function getChildrenAsIAcc() As Collection
     Dim children As Collection
-    Set children = getAccChildren(oAcc)
+    Set children = getAccChildren(protAccessible)
     
     Set getChildrenAsIAcc = New Collection
     Dim child As Variant
-    For iChildID = 1 To Me.GetIAccessible().accChildCount
+    For iChildID = 1 To protAccessible.accChildCount
         'Check if child is an object, if it is set it, otherwise let it
         if vartype(children(iChildID)) = vbObject Then
             Set child = children(iChildID)
@@ -542,7 +769,7 @@ Private Function getChildrenAsIAcc() As Collection
         end if
 
         'Create proxy as required
-        If VarType(child) = vbLong
+        If VarType(child) = vbLong then
             getChildrenAsIAcc.Add createProxyChild(iChildID)
         Else
             Dim oAccessible As IAccessible
@@ -578,20 +805,20 @@ Private Function createProxyChild(ByVal childID As Long) As stdAcc
     Set acc.Parent = Me
     acc.proxyIndex = childID
     acc.proxyInfo = CreateObject("Scripting.Dictionary")
-    acc.proxyInfo.Add "Name", oAcc.accName(childID - 1)
-    acc.proxyInfo.Add "DefaultAction", oAcc.accDefaultAction(childID - 1)
-    acc.proxyInfo.Add "Role", oAcc.AccRole(childID - 1)
-    acc.proxyInfo.Add "State", oAcc.AccState(childID - 1)
-    acc.proxyInfo.Add "Parent", oAcc.accParent(childID - 1)
-    acc.proxyInfo.Add "Description", oAcc.accDescription(childID - 1)
-    acc.proxyInfo.Add "KeyboardShortcut", oAcc.accKeyboardShortcut(childID - 1)
-    acc.proxyInfo.Add "ChildCount", oAcc.accChildCount(childID - 1)
-    acc.proxyInfo.Add "Focus", oAcc.accFocus(childID - 1)
-    acc.proxyInfo.Add "Location", oAcc.accLocation(childID - 1)
-    acc.proxyInfo.Add "HitTest", oAcc.accHitTest(childID - 1)
-    acc.proxyInfo.Add "Selection", oAcc.accSelection(childID - 1)
-    acc.proxyInfo.Add "Help", oAcc.accHelp(childID - 1)
-    acc.proxyInfo.Add "HelpTopic", oAcc.accHelpTopic(childID - 1)
+    acc.proxyInfo.Add "Name", protAccessible.accName(childID - 1)
+    acc.proxyInfo.Add "DefaultAction", protAccessible.accDefaultAction(childID - 1)
+    acc.proxyInfo.Add "Role", protAccessible.AccRole(childID - 1)
+    acc.proxyInfo.Add "State", protAccessible.AccState(childID - 1)
+    acc.proxyInfo.Add "Parent", protAccessible.accParent(childID - 1)
+    acc.proxyInfo.Add "Description", protAccessible.accDescription(childID - 1)
+    acc.proxyInfo.Add "KeyboardShortcut", protAccessible.accKeyboardShortcut(childID - 1)
+    acc.proxyInfo.Add "ChildCount", protAccessible.accChildCount(childID - 1)
+    acc.proxyInfo.Add "Focus", protAccessible.accFocus(childID - 1)
+    acc.proxyInfo.Add "Location", protAccessible.accLocation(childID - 1)
+    acc.proxyInfo.Add "HitTest", protAccessible.accHitTest(childID - 1)
+    acc.proxyInfo.Add "Selection", protAccessible.accSelection(childID - 1)
+    acc.proxyInfo.Add "Help", protAccessible.accHelp(childID - 1)
+    acc.proxyInfo.Add "HelpTopic", protAccessible.accHelpTopic(childID - 1)
     
     Set createProxyChild = acc
 End Function
@@ -611,206 +838,6 @@ Private Function getAccChildren(obj As IAccessible) As Collection
     
     Set getAccChildren = col
 End Function
-
-Private Sub SetupDicts()
-    'SETUP ACC_STATES DICTIONARY
-    '*******************************
-    Set ACC_STATES = CreateObject("Scripting.Dictionary")
-    ACC_STATES.Add "NORMAL", &H0
-    ACC_STATES.Add "UNAVAILABLE", &H1
-    ACC_STATES.Add "SELECTED", &H2
-    ACC_STATES.Add "FOCUSED", &H4
-    ACC_STATES.Add "PRESSED", &H8
-    ACC_STATES.Add "CHECKED", &H10
-    ACC_STATES.Add "MIXED", &H20
-    ACC_STATES.Add "INDETERMINATE", &H99
-    ACC_STATES.Add "READONLY", &H40
-    ACC_STATES.Add "HOTTRACKED", &H80
-    ACC_STATES.Add "DEFAULT", &H100
-    ACC_STATES.Add "EXPANDED", &H200
-    ACC_STATES.Add "COLLAPSED", &H400
-    ACC_STATES.Add "BUSY", &H800
-    ACC_STATES.Add "FLOATING", &H1000
-    ACC_STATES.Add "MARQUEED", &H2000
-    ACC_STATES.Add "ANIMATED", &H4000
-    ACC_STATES.Add "INVISIBLE", &H8000
-    ACC_STATES.Add "OFFSCREEN", &H10000
-    ACC_STATES.Add "SIZEABLE", &H20000
-    ACC_STATES.Add "MOVEABLE", &H40000
-    ACC_STATES.Add "SELFVOICING", &H80000
-    ACC_STATES.Add "FOCUSABLE", &H100000
-    ACC_STATES.Add "SELECTABLE", &H200000
-    ACC_STATES.Add "LINKED", &H400000
-    ACC_STATES.Add "TRAVERSED", &H800000
-    ACC_STATES.Add "MULTISELECTABLE", &H1000000
-    ACC_STATES.Add "EXTSELECTABLE", &H2000000
-    ACC_STATES.Add "ALERT_LOW", &H4000000
-    ACC_STATES.Add "ALERT_MEDIUM", &H8000000
-    ACC_STATES.Add "ALERT_HIGH", &H10000000
-    ACC_STATES.Add "PROTECTED", &H20000000
-    ACC_STATES.Add "VALID", &H7FFFFFFF
-    
-    ACC_STATES.Add &H0, "NORMAL"
-    ACC_STATES.Add &H1, "UNAVAILABLE"
-    ACC_STATES.Add &H2, "SELECTED"
-    ACC_STATES.Add &H4, "FOCUSED"
-    ACC_STATES.Add &H8, "PRESSED"
-    ACC_STATES.Add &H10, "CHECKED"
-    ACC_STATES.Add &H20, "MIXED"
-    ACC_STATES.Add &H99, "INDETERMINATE"
-    ACC_STATES.Add &H40, "READONLY"
-    ACC_STATES.Add &H80, "HOTTRACKED"
-    ACC_STATES.Add &H100, "DEFAULT"
-    ACC_STATES.Add &H200, "EXPANDED"
-    ACC_STATES.Add &H400, "COLLAPSED"
-    ACC_STATES.Add &H800, "BUSY"
-    ACC_STATES.Add &H1000, "FLOATING"
-    ACC_STATES.Add &H2000, "MARQUEED"
-    ACC_STATES.Add &H4000, "ANIMATED"
-    ACC_STATES.Add &H8000, "INVISIBLE"
-    ACC_STATES.Add &H10000, "OFFSCREEN"
-    ACC_STATES.Add &H20000, "SIZEABLE"
-    ACC_STATES.Add &H40000, "MOVEABLE"
-    ACC_STATES.Add &H80000, "SELFVOICING"
-    ACC_STATES.Add &H100000, "FOCUSABLE"
-    ACC_STATES.Add &H200000, "SELECTABLE"
-    ACC_STATES.Add &H400000, "LINKED"
-    ACC_STATES.Add &H800000, "TRAVERSED"
-    ACC_STATES.Add &H1000000, "MULTISELECTABLE"
-    ACC_STATES.Add &H2000000, "EXTSELECTABLE"
-    ACC_STATES.Add &H4000000, "ALERT_LOW"
-    ACC_STATES.Add &H8000000, "ALERT_MEDIUM"
-    ACC_STATES.Add &H10000000, "ALERT_HIGH"
-    ACC_STATES.Add &H20000000, "PROTECTED"
-    ACC_STATES.Add &H7FFFFFFF, "VALID"
-    
-    'SETUP ACC_ROLES DICTIONARY
-    '*******************************
-    Set ACC_ROLES = CreateObject("Scripting.Dictionary")
-    ACC_ROLES.Add "ROLE_TITLEBAR", &H1&
-    ACC_ROLES.Add "ROLE_MENUBAR", &H2&
-    ACC_ROLES.Add "ROLE_SCROLLBAR", &H3&
-    ACC_ROLES.Add "ROLE_GRIP", &H4&
-    ACC_ROLES.Add "ROLE_SOUND", &H5&
-    ACC_ROLES.Add "ROLE_CURSOR", &H6&
-    ACC_ROLES.Add "ROLE_CARET", &H7&
-    ACC_ROLES.Add "ROLE_ALERT", &H8&
-    ACC_ROLES.Add "ROLE_WINDOW", &H9&
-    ACC_ROLES.Add "ROLE_CLIENT", &HA&
-    ACC_ROLES.Add "ROLE_MENUPOPUP", &HB&
-    ACC_ROLES.Add "ROLE_MENUITEM", &HC&
-    ACC_ROLES.Add "ROLE_TOOLTIP", &HD&
-    ACC_ROLES.Add "ROLE_APPLICATION", &HE&
-    ACC_ROLES.Add "ROLE_DOCUMENT", &HF&
-    ACC_ROLES.Add "ROLE_PANE", &H10&
-    ACC_ROLES.Add "ROLE_CHART", &H11&
-    ACC_ROLES.Add "ROLE_DIALOG", &H12&
-    ACC_ROLES.Add "ROLE_BORDER", &H13&
-    ACC_ROLES.Add "ROLE_GROUPING", &H14&
-    ACC_ROLES.Add "ROLE_SEPARATOR", &H15&
-    ACC_ROLES.Add "ROLE_TOOLBAR", &H16&
-    ACC_ROLES.Add "ROLE_STATUSBAR", &H17&
-    ACC_ROLES.Add "ROLE_TABLE", &H18&
-    ACC_ROLES.Add "ROLE_COLUMNHEADER", &H19&
-    ACC_ROLES.Add "ROLE_ROWHEADER", &H1A&
-    ACC_ROLES.Add "ROLE_COLUMN", &H1B&
-    ACC_ROLES.Add "ROLE_ROW", &H1C&
-    ACC_ROLES.Add "ROLE_CELL", &H1D&
-    ACC_ROLES.Add "ROLE_LINK", &H1E&
-    ACC_ROLES.Add "ROLE_HELPBALLOON", &H1F&
-    ACC_ROLES.Add "ROLE_CHARACTER", &H20&
-    ACC_ROLES.Add "ROLE_LIST", &H21&
-    ACC_ROLES.Add "ROLE_LISTITEM", &H22&
-    ACC_ROLES.Add "ROLE_OUTLINE", &H23&
-    ACC_ROLES.Add "ROLE_OUTLINEITEM", &H24&
-    ACC_ROLES.Add "ROLE_PAGETAB", &H25&
-    ACC_ROLES.Add "ROLE_PROPERTYPAGE", &H26&
-    ACC_ROLES.Add "ROLE_INDICATOR", &H27&
-    ACC_ROLES.Add "ROLE_GRAPHIC", &H28&
-    ACC_ROLES.Add "ROLE_STATICTEXT", &H29&
-    ACC_ROLES.Add "ROLE_TEXT", &H2A&
-    ACC_ROLES.Add "ROLE_PUSHBUTTON", &H2B&
-    ACC_ROLES.Add "ROLE_CHECKBUTTON", &H2C&
-    ACC_ROLES.Add "ROLE_RADIOBUTTON", &H2D&
-    ACC_ROLES.Add "ROLE_COMBOBOX", &H2E&
-    ACC_ROLES.Add "ROLE_DROPLIST", &H2F&
-    ACC_ROLES.Add "ROLE_PROGRESSBAR", &H30&
-    ACC_ROLES.Add "ROLE_DIAL", &H31&
-    ACC_ROLES.Add "ROLE_HOTKEYFIELD", &H32&
-    ACC_ROLES.Add "ROLE_SLIDER", &H33&
-    ACC_ROLES.Add "ROLE_SPINBUTTON", &H34&
-    ACC_ROLES.Add "ROLE_DIAGRAM", &H35&
-    ACC_ROLES.Add "ROLE_ANIMATION", &H36&
-    ACC_ROLES.Add "ROLE_EQUATION", &H37&
-    ACC_ROLES.Add "ROLE_BUTTONDROPDOWN", &H38&
-    ACC_ROLES.Add "ROLE_BUTTONMENU", &H39&
-    ACC_ROLES.Add "ROLE_BUTTONDROPDOWNGRID", &H3A&
-    ACC_ROLES.Add "ROLE_WHITESPACE", &H3B&
-    ACC_ROLES.Add "ROLE_PAGETABLIST", &H3C&
-    ACC_ROLES.Add "ROLE_CLOCK", &H3D&
-    
-    ACC_ROLES.Add &H1&, "ROLE_TITLEBAR"
-    ACC_ROLES.Add &H2&, "ROLE_MENUBAR"
-    ACC_ROLES.Add &H3&, "ROLE_SCROLLBAR"
-    ACC_ROLES.Add &H4&, "ROLE_GRIP"
-    ACC_ROLES.Add &H5&, "ROLE_SOUND"
-    ACC_ROLES.Add &H6&, "ROLE_CURSOR"
-    ACC_ROLES.Add &H7&, "ROLE_CARET"
-    ACC_ROLES.Add &H8&, "ROLE_ALERT"
-    ACC_ROLES.Add &H9&, "ROLE_WINDOW"
-    ACC_ROLES.Add &HA&, "ROLE_CLIENT"
-    ACC_ROLES.Add &HB&, "ROLE_MENUPOPUP"
-    ACC_ROLES.Add &HC&, "ROLE_MENUITEM"
-    ACC_ROLES.Add &HD&, "ROLE_TOOLTIP"
-    ACC_ROLES.Add &HE&, "ROLE_APPLICATION"
-    ACC_ROLES.Add &HF&, "ROLE_DOCUMENT"
-    ACC_ROLES.Add &H10&, "ROLE_PANE"
-    ACC_ROLES.Add &H11&, "ROLE_CHART"
-    ACC_ROLES.Add &H12&, "ROLE_DIALOG"
-    ACC_ROLES.Add &H13&, "ROLE_BORDER"
-    ACC_ROLES.Add &H14&, "ROLE_GROUPING"
-    ACC_ROLES.Add &H15&, "ROLE_SEPARATOR"
-    ACC_ROLES.Add &H16&, "ROLE_TOOLBAR"
-    ACC_ROLES.Add &H17&, "ROLE_STATUSBAR"
-    ACC_ROLES.Add &H18&, "ROLE_TABLE"
-    ACC_ROLES.Add &H19&, "ROLE_COLUMNHEADER"
-    ACC_ROLES.Add &H1A&, "ROLE_ROWHEADER"
-    ACC_ROLES.Add &H1B&, "ROLE_COLUMN"
-    ACC_ROLES.Add &H1C&, "ROLE_ROW"
-    ACC_ROLES.Add &H1D&, "ROLE_CELL"
-    ACC_ROLES.Add &H1E&, "ROLE_LINK"
-    ACC_ROLES.Add &H1F&, "ROLE_HELPBALLOON"
-    ACC_ROLES.Add &H20&, "ROLE_CHARACTER"
-    ACC_ROLES.Add &H21&, "ROLE_LIST"
-    ACC_ROLES.Add &H22&, "ROLE_LISTITEM"
-    ACC_ROLES.Add &H23&, "ROLE_OUTLINE"
-    ACC_ROLES.Add &H24&, "ROLE_OUTLINEITEM"
-    ACC_ROLES.Add &H25&, "ROLE_PAGETAB"
-    ACC_ROLES.Add &H26&, "ROLE_PROPERTYPAGE"
-    ACC_ROLES.Add &H27&, "ROLE_INDICATOR"
-    ACC_ROLES.Add &H28&, "ROLE_GRAPHIC"
-    ACC_ROLES.Add &H29&, "ROLE_STATICTEXT"
-    ACC_ROLES.Add &H2A&, "ROLE_TEXT"
-    ACC_ROLES.Add &H2B&, "ROLE_PUSHBUTTON"
-    ACC_ROLES.Add &H2C&, "ROLE_CHECKBUTTON"
-    ACC_ROLES.Add &H2D&, "ROLE_RADIOBUTTON"
-    ACC_ROLES.Add &H2E&, "ROLE_COMBOBOX"
-    ACC_ROLES.Add &H2F&, "ROLE_DROPLIST"
-    ACC_ROLES.Add &H30&, "ROLE_PROGRESSBAR"
-    ACC_ROLES.Add &H31&, "ROLE_DIAL"
-    ACC_ROLES.Add &H32&, "ROLE_HOTKEYFIELD"
-    ACC_ROLES.Add &H33&, "ROLE_SLIDER"
-    ACC_ROLES.Add &H34&, "ROLE_SPINBUTTON"
-    ACC_ROLES.Add &H35&, "ROLE_DIAGRAM"
-    ACC_ROLES.Add &H36&, "ROLE_ANIMATION"
-    ACC_ROLES.Add &H37&, "ROLE_EQUATION"
-    ACC_ROLES.Add &H38&, "ROLE_BUTTONDROPDOWN"
-    ACC_ROLES.Add &H39&, "ROLE_BUTTONMENU"
-    ACC_ROLES.Add &H3A&, "ROLE_BUTTONDROPDOWNGRID"
-    ACC_ROLES.Add &H3B&, "ROLE_WHITESPACE"
-    ACC_ROLES.Add &H3C&, "ROLE_PAGETABLIST"
-    ACC_ROLES.Add &H3D&, "ROLE_CLOCK"
-End Sub
 
 Public Function getPath(Optional toAccessible As stdAcc = Nothing) As String
     'Initialise trace
@@ -899,47 +926,115 @@ Private Function jsonEscape(ByVal s As String) As String
     jsonEscape = s
 End Function
 
-Friend Sub SetIAccessible(ByRef acc As Object)
-    Set oAcc = acc
+Private Sub Class_Initialize()
+    set Lookups = stdAcc.getLookups()
 End Sub
-Public Function GetIAccessible() As Object
-    Set GetIAccessible = oAcc
+
+'Returns the lookups object
+Public Function getLookups()
+    if Lookups is nothing then
+        set Lookups = CreateObject("Scripting.Dictionary")
+        set Lookups("states") = CreateLookupDict(Array( _ 
+            "STATE_NORMAL", &H0,                "STATE_UNAVAILABLE", &H1, _ 
+            "STATE_SELECTED", &H2,              "STATE_FOCUSED", &H4, _ 
+            "STATE_PRESSED", &H8,               "STATE_CHECKED", &H10, _ 
+            "STATE_MIXED", &H20,                "STATE_INDETERMINATE", &H99, _ 
+            "STATE_READONLY", &H40,             "STATE_HOTTRACKED", &H80, _ 
+            "STATE_DEFAULT", &H100,             "STATE_EXPANDED", &H200, _ 
+            "STATE_COLLAPSED", &H400,           "STATE_BUSY", &H800, _ 
+            "STATE_FLOATING", &H1000,           "STATE_MARQUEED", &H2000, _ 
+            "STATE_ANIMATED", &H4000,           "STATE_INVISIBLE", &H8000, _ 
+            "STATE_OFFSCREEN", &H10000,         "STATE_SIZEABLE", &H20000, _ 
+            "STATE_MOVEABLE", &H40000,          "STATE_SELFVOICING", &H80000, _ 
+            "STATE_FOCUSABLE", &H100000,        "STATE_SELECTABLE", &H200000, _ 
+            "STATE_LINKED", &H400000,           "STATE_TRAVERSED", &H800000, _ 
+            "STATE_MULTISELECTABLE", &H1000000, "STATE_EXTSELECTABLE", &H2000000, _ 
+            "STATE_ALERT_LOW", &H4000000,       "STATE_ALERT_MEDIUM", &H8000000, _ 
+            "STATE_ALERT_HIGH", &H10000000,     "STATE_PROTECTED", &H20000000, _ 
+            "STATE_VALID", &H7FFFFFFF _ 
+        ))
+        set Lookups("roles") = CreateLookupDict(Array( _ 
+            "ROLE_TITLEBAR", &H1&            , "ROLE_MENUBAR", &H2&          , "ROLE_SCROLLBAR", &H3&, _ 
+            "ROLE_GRIP", &H4&                , "ROLE_SOUND", &H5&            , "ROLE_CURSOR", &H6&, _ 
+            "ROLE_CARET", &H7&               , "ROLE_ALERT", &H8&            , "ROLE_WINDOW", &H9&, _ 
+            "ROLE_CLIENT", &HA&              , "ROLE_MENUPOPUP", &HB&        , "ROLE_MENUITEM", &HC&, _ 
+            "ROLE_TOOLTIP", &HD&             , "ROLE_APPLICATION", &HE&      , "ROLE_DOCUMENT", &HF&, _ 
+            "ROLE_PANE", &H10&               , "ROLE_CHART", &H11&           , "ROLE_DIALOG", &H12&, _ 
+            "ROLE_BORDER", &H13&             , "ROLE_GROUPING", &H14&        , "ROLE_SEPARATOR", &H15&, _ 
+            "ROLE_TOOLBAR", &H16&            , "ROLE_STATUSBAR", &H17&       , "ROLE_TABLE", &H18&, _ 
+            "ROLE_COLUMNHEADER", &H19&       , "ROLE_ROWHEADER", &H1A&       , "ROLE_COLUMN", &H1B&, _ 
+            "ROLE_ROW", &H1C&                , "ROLE_CELL", &H1D&            , "ROLE_LINK", &H1E&, _ 
+            "ROLE_HELPBALLOON", &H1F&        , "ROLE_CHARACTER", &H20&       , "ROLE_LIST", &H21&, _ 
+            "ROLE_LISTITEM", &H22&           , "ROLE_OUTLINE", &H23&         , "ROLE_OUTLINEITEM", &H24&, _ 
+            "ROLE_PAGETAB", &H25&            , "ROLE_PROPERTYPAGE", &H26&    , "ROLE_INDICATOR", &H27&, _ 
+            "ROLE_GRAPHIC", &H28&            , "ROLE_STATICTEXT", &H29&      , "ROLE_TEXT", &H2A&, _ 
+            "ROLE_PUSHBUTTON", &H2B&         , "ROLE_CHECKBUTTON", &H2C&     , "ROLE_RADIOBUTTON", &H2D&, _ 
+            "ROLE_COMBOBOX", &H2E&           , "ROLE_DROPLIST", &H2F&        , "ROLE_PROGRESSBAR", &H30&, _ 
+            "ROLE_DIAL", &H31&               , "ROLE_HOTKEYFIELD", &H32&     , "ROLE_SLIDER", &H33&, _ 
+            "ROLE_SPINBUTTON", &H34&         , "ROLE_DIAGRAM", &H35&         , "ROLE_ANIMATION", &H36&, _ 
+            "ROLE_EQUATION", &H37&           , "ROLE_BUTTONDROPDOWN", &H38&  , "ROLE_BUTTONMENU", &H39&, _ 
+            "ROLE_BUTTONDROPDOWNGRID", &H3A& , "ROLE_WHITESPACE", &H3B&      , "ROLE_PAGETABLIST", &H3C&, _ 
+            "ROLE_CLOCK",&H3D&  _ 
+        ))
+    end if
+    set getLookups = lookups
+End Function
+
+Private Function CreateLookupDict(arr as Variant) as Object
+    Dim oRet as object: set oRet = CreateObject("Scripting.Dictionary")
+    Dim i as long
+
+    'Create string --> number dictionary
+    set oRet("S2N") = CreateObject("Scripting.Dictionary")
+    For i = lbound(arr) to ubound(arr) step 2
+        Call oRet("S2N").add(arr(i), arr(i+1))
+    next
+
+    'Create number --> string dictionary
+    set oRet("N2S") = CreateObject("Scripting.Dictionary")
+    For i = lbound(arr) to ubound(arr) step 2
+        Call oRet("S2N").add(arr(i+1), arr(i))
+    next
+
+    'Return dictionary
+    set CreateLookupDict = oRet
 End Function
 
 
-Private Sub Class_Initialize()
-    Call SetupDicts
-End Sub
 
 
 '****************************************
 '* HELPERS FOR FindFirst() and FindAll()
 '****************************************
+Private Function CreateFindNode(ByVal depth as long, ByVal element as stdAcc) as tFindNode
+    CreateFindNode.initialised = true
+    CreateFindNode.depth = depth
+    set CreateFindNode.element = element
+End Function
+
 'Given an array `stack`, and length `index`, append `item` onto the stack 
-Private Sub stackPushV(ByRef stack() As Variant, ByRef index As Long, ByVal item As Variant)
-    Dim size As Long: size = UBound(stack)
-    If index > size Then
+Private Sub stackPushV(ByRef stack() As tFindNode, ByRef index As Long, ByRef item As tFindNode)
+    Dim ub As Long: ub = UBound(stack)
+    Dim size As Long: size = ub + 1
+    If index > ub Then
         ReDim Preserve stack(0 To size * 2)
     End If
-    If IsObject(item) Then
-        Set stack(index) = item
-    Else
-        stack(index) = item
-    End If
+    stack(index).initialised = item.initialised
+    stack(index).depth = item.depth
+    Set stack(index).element = item.element
     index = index + 1
 End Sub
 
 'Used in DFS
-Private Function stackPopV(ByRef stack() As Variant, ByRef index As Variant) As Variant
-    Dim size As Long: size = UBound(stack)
+Private Function stackPopV(ByRef stack() As tFindNode, ByRef index As Variant) As tFindNode
+    Dim size As Long: size = UBound(stack) + 1
     If index < size / 3 And index > minStackSize Then
         ReDim Preserve stack(0 To CLng(size / 2))
     End If
     index = index - 1
-    If IsObject(stack(index)) Then
-        Set popV = stack(index)
-    Else
-        popV = stack(index)
-    End If
+    
+    stackPopV.initialised = stack(index).initialised
+    stackPopV.depth = stack(index).depth
+    set stackPopV.element = stack(index).element
     stack(index) = Empty
 End Function
