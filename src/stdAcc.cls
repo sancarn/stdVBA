@@ -352,7 +352,7 @@ Public Function FindFirst(ByVal query As stdICallable, optional byval searchType
     While length > 0 And index < length
         Dim part As tFindNode
         If searchType = 0 Then
-            'Bredth first search, get item directly out of array, no need to change array size
+            'Breadth first search, get item directly out of array, no need to change array size
             index = index + 1
             part = stack(index)
         Else
@@ -432,7 +432,7 @@ Public Function FindAll(ByVal query As stdICallable, optional byval searchType a
     While length > 0 And index < length
         Dim part as tFindNode
         if searchType = 0 then 
-            'Bredth first search, get item directly out of array, no need to change array size
+            'Breadth first search, get item directly out of array, no need to change array size
             index = index + 1
             part = stack(index)
         else
