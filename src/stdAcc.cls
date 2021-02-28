@@ -231,14 +231,14 @@ Const CHILDID_SELF = 0&
 Public protAccessible As Object
 
 'Constructors:
-Public Function CreateFromPoint(x As Long, y As Long) As stdAcc
+Public Function CreateFromPoint(ByVal x As Long, ByVal y As Long) As stdAcc
     Set CreateFromPoint = New stdAcc
     Dim obj As IAccessible
     Dim v As Variant
     Call AccessibleObjectFromPoint(x, y, obj, v)
     set CreateFromPoint.protAccessible = obj
 End Function
-Public Function CreateFromHwnd(hwnd As LongPtr) As stdAcc
+Public Function CreateFromHwnd(ByVal hwnd As LongPtr) As stdAcc
     Dim acc as New stdAcc
     Dim obj As IAccessible
     Set obj = IAccessibleFromHwnd(hwnd)
