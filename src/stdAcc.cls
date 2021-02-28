@@ -72,7 +72,7 @@ Private Declare PtrSafe Function GetCursorPos Lib "user32" (lpPoint As tPOINT) A
 Private Declare PtrSafe Function APISendMessage Lib "user32" Alias "SendMessage" (ByVal hwnd As Long, ByVal Msg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
 
 Public Enum ESearchType
-    BredthFirst = 0
+    BreadthFirst = 0
     DepthFirst = 1
 End Enum
 
