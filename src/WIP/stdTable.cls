@@ -8,7 +8,34 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
-
+'Spec:
+'Constructors:
+'    CreateFromRecordSet()
+'    CreateFromListObject()
+'    CreateFromArray()
+'Instance Methods:
+'    select(whereLambda) as stdTable
+'    update(updateLambda) as stdTable
+'    updateField(sFieldName, vValue) as stdTable
+'    join(table1,table2,field1,joinType) as stdTable
+'
+' Dim myTable as stdTable
+' set myTable = stdTable.CreateFromListObject(Sheets(1).ListObjects(1))
+' myTable.select(stdLambda.Create("$1.item(""FieldName"")=""Value""")) _ 
+'        .updateField("SomeField","SomeValue")
+'        .update(stdLambda.CreateMultiline(Array( _ 
+'          "$1.item(""SomeField1"")=""Value1""", _ 
+'          "$1.item(""SomeField2"")=""Value2""", _ 
+'        )))
+'        .addField(...)
+'        .removeField(...)
+'        .fields  'fields ==> stdEnumerator<Dictionary>
+'        .addCalculatedField(sFileName, calculationLambda)
+'        .rows.map(mapper) 'rows ==> stdEnumerator<stdTableRow>
+'        ?toJSON '[{"field1":value1,...},{...}]
+'        ?toCSV  'field1,field2\nvalue1,value2,...
+'        ?toXML  '<table name="..."><meta>...</meta><row><col name="field1">value1</col></row>...</table>
+'        ?toHTML '<table><tr><th>...</th>...</tr><tr><td>...</td>...</tr>...</table>
 
 
 'stdTable myTable

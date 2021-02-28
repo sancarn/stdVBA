@@ -8,4 +8,8 @@ Sub MainTestAll()
     Call stdArrayTests.testAll
     Call stdCallbackTests.testAll
     Call stdAccTests.testAll
+    Call stdEnumeratorTests.testAll
+    Call stdClipboardTests.testAll
+    Call stdRegexTests.testAll
+    Call stdWebSocketTests.testAll
 End Sub

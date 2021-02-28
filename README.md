@@ -1,4 +1,4 @@
-# VBA-STD-Library
+# stdVBA
 
 A Collection of libraries to form a common standard layer for modern VBA applications.
 
@@ -7,8 +7,10 @@ A Collection of libraries to form a common standard layer for modern VBA applica
 * Code faster!
 * Improve code maintainability.
 * Let the library handle the complicated stuff, you focus on the process 
-* Heavily inspired of JavaScript APIs - More standard
+* Heavily inspired by JavaScript APIs - More standard
 * Open Source - Means the libraries are continually maintained by the community. Want something added, help us make it!
+
+[The full roadmap](https://github.com/sancarn/stdVBA/projects/1) has more detailed information than here.
 
 ## Short example
 
@@ -42,11 +44,11 @@ sub Main()
   Debug.Print arr.Map(stdLambda.Create("ThisWorkbook.Sheets($1)")) _ 
                  .Map(stdLambda.Create("$1.Name")).join(",")            'Sheet1,Sheet2,Sheet3,...,Sheet10
   
-  'Execute methods with lambda:
-  Call stdArray.Create(Workbooks(1),Workbooks(2)).forEach(stdLambda.Create("$1#Save")
+  'Execute methods with lambdas and enumerate over enumeratable collections:
+  Call stdEnumerator.Create(Application.Workbooks).forEach(stdLambda.Create("$1#Save")
   
   'We even have if statement!
-  With stdLambda.Create("if $1 then ""lisa"" else ""bart"")
+  With stdLambda.Create("if $1 then ""lisa"" else ""bart""")
     Debug.Print .Run(true)                                              'lisa
     Debug.Print .Run(false)                                             'bart
   End With
@@ -64,14 +66,36 @@ sub Main()
   Debug.Print oRegResult("city")   '040
   
   'And getting all the matches....
-  Debug.Print oRegex.MatchAll("D-040-1425;D-029-0055;A-100-1351").map(stdCallback.CreateFromModule("ModuleMain","GetCountry")).join 'D,D,A
+  Dim sHaystack as string: sHaystack = "D-040-1425;D-029-0055;A-100-1351"
+  Debug.Print stdEnumerator.CreateFromEnumVARIANT(oRegex.MatchAll(sHaystack)).map(stdLambda.Create("$1.item(""county"")")).join 'D,D,A
+  
+  'Dump regex matches to range:
+  '   D,040,040-1425
+  '   D,029,029-0055
+  '   A,100,100-1351
+  Range("A3:C6").value = oRegex.ListArr(sHaystack, Array("$county","$city","$city-$street"))
+  
+  'Copy some data to the clipboard:
+  Range("A1").value = "Hello there"
+  Range("A1").copy
+  Debug.Print stdClipboard.Text 'Hello there
+  stdClipboard.Text = "Hello world"
+  Debug.Print stdClipboard.Text 'Hello world
+
+  'Copy files to the clipboard.
+  Dim files as collection
+  set files = new collection
+  files.add "C:\File1.txt"
+  files.add "C:\File2.txt"
+  set stdClipboard.files = files
+
+  'Save a chart as a file
+  Sheets("Sheet1").ChartObjects(1).copy
+  Call stdClipboard.Picture.saveAsFile("C:\test.bmp",false,null) 'Use IPicture interface to save to disk as image
 End Sub
 
 Public Function CalcArea(ByVal radius as Double) as Double
   CalcArea = 3.14159*radius*radius
-End Function
-Public Function GetCounty(obj as object) as string
-  GetCountry = obj("county")
 End Function
 ```
 
@@ -83,100 +107,110 @@ Over time I have been building my own libraries and have gradually built my own 
 
 The VBA Standard Library aims to give users a set of common libraries, maintained by the community, which aid in the building of VBA Applications.
 
-## Road map
+## Road Map
 
-Progress on this project is likely to be slow, as this is community led and currently maintained by very few contributers. As implementation usually follows interest, the following list of classes are likely to be worked on at different rates, and all in parallel instead of in a particular order.
+This project is has been majorly maintained by 1 person, so progress is generally very slow. This said, generally the road map corresponds with what I need at the time, or what irritates me. In general this means `fundamental` features are more likely to be complete first, more complex features will be integrated towards the end. This is not a rule, i.e. `stdSharepoint` is mostly complete without implementation of `stdXML` which it'd use. But as a general rule of thumb things will be implemented in the following order:
 
-* Finish off core WIP classes (e.g. `Date`, `Debug`, `Regex`).
-* Create a callable expression language / lambda syntax for VBA.
-* Other core classes need implementing (e.g. `String`, `Math`, `COM`, `Pointer`, `Dictionary`, `VBR`, `Kernel`, `Windows`, `FileSystem` ...)
-* Can start to implement `JSON`, `HTTP`, `XML`, `OXML`, `Zip` etc ... now.
-* Runtimes! `CLR`, `Powershell`, `JavaScript`,`SerialisedVBA`
-* Threading
-* Events
+* Types - `stdArray`, `stdDictionary`, `stdRegex`, `stdDate`, `stdLambda`, ... 
+* Data  - `stdJSON`, `stdXML`, `stdOXML`, `stdCSON`, `stdIni`, `stdZip` 
+* File  - `stdShell` 
+* Automation - `stdHTTP`, `stdAcc`, `stdWindow`, `stdKernel`
+* Excel specific - `xlFileWatcher`, `xlProjectBuilder`, `xlTimer`, `xlShapeEvents`, `xlTable`
+* Runtimes - `stdCLR`, `stdPowershell`, `stdJavascript`, `stdOfficeJSBridge`
 
 ## Planned Global Objects:
 
-| Status | VBType |Type       |Name             | Description  |
-|--------|--------|-----------|-----------------|--------------|
-| HOLD   | Class  |File       |stdFileSystem    | A wrapper around Shell's and FSO's file system APIs.
-| HOLD   | Class  |File       |stdZip           | A wrapper around shell's Zip functionality.
-| HOLD   | Class  |Debug      |stdDebug         | A wrapper around `Debug` while adding new options like styling messages and printing to an external html console.
-| READY  | Class  |Debug      |stdError         | Better error handling, including stack trace and error handling diversion and events.
-| WIP    | Class  |Data       |stdJSON          | [Tim Hall's fantastic JSON library](https://github.com/VBA-tools/VBA-JSON)
-| HOLD   | Class  |Data       |stdHTTP          | A wrapper around HTTP COM libraries.
-| WIP    | Class  |Data       |stdXML           | A library to manipulate XML documents.
-| HOLD   | Class  |Data       |stdOXML          | A library to assist in the modification of Office documents via Open XML format.
-| READY  | Class  |Type       |stdArray         | A library designed to re-create the Javascript dynamic array object.
-| WIP    | Class  |Type       |stdDictionary    | A drop in replacement for VBScript's dictionary.
-| READY  | Class  |Type       |stdDate          | A standard date parsing library. No more will you have to rely on Excel's interpreter. State the format, get the data.
-| READY  | Class  |Type       |stdRegex         | A wrapper around `VBScript.RegExp` but with more features e.g. named capture groups and free-spaces.
-| READY  | Class  |Type       |stdLambda        | Build and create in-line functions. Execute them at a later stage.
-| READY  | Class  |Type       |stdCallback      | Link to existing functions defined in VBA code, call them at a later stage.
-| READY  | Class  |Type       |stdStringBuilder | A better way of creating large strings.
-| UNK    | Module |Type       |stdIniVariantEnum| Initialising [IEnumVARIANT](http://www.vbforums.com/showthread.php?854963-VB6-IEnumVARIANT-For-Each-support-without-a-typelib) by recreating vtable. Used to overcome pitfalls of VB collections. Alternatively will implement an IFxEnumVariant interface
-| WIP    | Class  |Runtimes   |stdCLR           | Host CLR (Common Language Runtime). Allows execution of C#.NET and VB.NET scripts in-process.
-| WIP    | Class  |Runtimes   |stdPowershell    | Host [Powershell](https://docs.microsoft.com/en-us/powershell/developer/hosting/windows-powershell-host-quickstart)
-| WIP    | Class  |Runtimes   |stdJavaScript    | Host [Edge and IE Javascript engine](https://docs.microsoft.com/en-us/microsoft-edge/hosting/chakra-hosting/hosting-the-javascript-runtime). [IE11 Hosting](https://docs.microsoft.com/en-us/microsoft-edge/hosting/chakra-hosting/targeting-edge-vs-legacy-engines-in-jsrt-apis)
-| WIP    | Class  |Runtimes   |stdJSBridge      | A VbaJsBridge module allowing applications to open and close programmatic access to VBA from OfficeJS.
-| UNK    | Class  |Runtimes   |stdVBR           | [Hidden functions from VB VirtualMachine library](http://www.freevbcode.com/ShowCode.asp?ID=7520)
-| UNK    | Class  |Runtimes   |stdSerialisedVBA | Custom engine for executing VBA from a serialised JSON string.
-| UNK    | Class  |Runtimes   |stdExecLib       | Execute external applications in-memory. [src](https://github.com/itm4n/VBA-RunPE)
-| WIP    | Class  |Automation |stdCOM           | Low level COM APIs.
-| WIP    | Class  |Automation |stdAccessibility | Use Microsoft Active Accessibility framework within VBA - Very useful for automation.
-| WIP    | Class  |Automation |stdWindows       | Standard functions for handling Windows
-| WIP    | Class  |Automation |stdKernel        | Low level but useful APIs. Won't be loading Kernel32.dll entirely, but will try to expose static methods to common useful functions.
-| WIP    | Class  |Processing |stdThread        | Multithreading in VBA? [src](http://www.freevbcode.com/ShowCode.asp?ID=1287#A%20Quick%20Review%20Of%20Multithreading)
-| WIP    | Class | Application | stdEvents | More events for VBA.
+|Color                                                     | Status | Type       |Name             | Description  |
+|----------------------------------------------------------|--------|------------|-----------------|--------------|
+|![_](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Debug      |stdError         | Better error handling, including stack trace and error handling diversion and events.
+|![_](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Type       |stdArray         | A library designed to re-create the Javascript dynamic array object.
+|![_](https://via.placeholder.com/15/ffff00/000000?text=+) | WIP    | Type       |stdEnumerator    | A library designed to wrap enumerable objects providing additional functionality.
+|![_](https://via.placeholder.com/15/ffff00/000000?text=+) | WIP    | Type       |stdDictionary    | A drop in replacement for VBScript's dictionary.
+|![_](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Type       |stdDate          | A standard date parsing library. No more will you have to rely on Excel's interpreter. State the format, get the data.
+|![_](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Type       |stdRegex         | A regex library with more features than standard e.g. named capture groups and free-spaces.
+|![_](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Type       |stdLambda        | Build and create in-line functions. Execute them at a later stage.
+|![_](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Type       |stdCallback      | Link to existing functions defined in VBA code, call them at a later stage.
+|![_](https://via.placeholder.com/15/ffff00/000000?text=+) | WIP    | Type       |stdCOM           | A wrapper around a COM object which provides Reflection (through ITypeInfo), Interface querying, Calling interface methods (via DispID) and more. 
+|![_](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Automation |stdClipboard     | Clipboard management library. Set text, files, images and more to the clipboard.
+|![_](https://via.placeholder.com/15/ff0000/000000?text=+) | HOLD   | Automation |stdHTTP          | A wrapper around Win HTTP libraries.
+|![_](https://via.placeholder.com/15/ffff00/000000?text=+) | WIP    | Automation |stdWindow        | A handy wrapper around Win32 Window management APIs.
+|![_](https://via.placeholder.com/15/ffff00/000000?text=+) | WIP    | Automation |stdAcc           | Use Microsoft Active Accessibility framework within VBA - Very useful for automation.
+|![_](https://via.placeholder.com/15/ffff00/000000?text=+) | WIP    | Excel      |xlTable          | Better tables for VBA, e.g. Map rows etc.
+
+[The full roadmap](https://github.com/sancarn/stdVBA/projects/1) has more detailed information than here.
+
+### Statuses
+
+#### ![_](https://via.placeholder.com/15/00ff00/000000?text=+) READY
+
+APIs which are ready to use, and although are not fully featured are in a good enough working state.
+
+#### ![_](https://via.placeholder.com/15/ffff00/000000?text=+) WIP
+
+APIs which are WIP are not necessarily being worked on currently but at least are recognised for their importance to the library. These will be lightly worked on/thought about continuously even if no commits are made.
+
+As of Oct 2020, this status typically consists of:
+* data types, e.g. stdEnumerator, stdDictionary, stdTable;
+* Unit testing; 
+* Tasks difficult to automate otherwise e.g. stdClipboard, stdAccessibility;
+
+#### ![_](https://via.placeholder.com/15/ff0000/000000?text=+) HOLD
+
+APIs where progress has been temporarily halted, and/or is currently not a priority.
+
+In the early days we'll see this more with things which do already have existing work arounds and are not critical, so projects are more likely to fit into this category.
+
+#### ![_](https://via.placeholder.com/15/aaaaaa/000000?text=+) UNK
+
+APIs which have been indefinitely halted. We aren't sure whether we need these or if they really fit into the project. They are nice to haves but not necessities for the project as current. These ideas may be picked up later. All feature requests will fit into this category initially.
 
 ## Structure
 
-All modules or classes will be prefixed by `std`.
+All modules or classes will be prefixed by `std` if they are generic libraries.
 
-Commonly implementations will be of classes which are factory classes. E.G:
+Application specific libraries to be prefixed with `xl`, `wd`, `pp`, `ax` representing their specific application.
+
+Commonly implementations will use the factory class design pattern:
 
 ```vb
-Class stdRegex
-  private p_pattern as string
-  private p_flags as string
-  '...
-  
-  'Creates a regex object given a pattern and flags.
+Class stdClass
+  Private bInitialised as boolean
+
+  'Creates an object from the given parameters
   '@constructor
-  '
-  '@param {string}  Pattern - The pattern to match
-  '@param {string}  Flags - Optional flags to apply
-  '@return {stdRegex} Regular expression object
-  '@example
-  '    stdRegex.Create("A\d+","i")
-  Public Function Create(ByVal pattern As String, Optional ByVal flags As String = "") As stdRegex
-    If Not Me Is stdRegex Then
-      stdError.Raise ("Constructor called on object not class")
-      Exit Function
+  Public Function Create(...) As stdClass
+    if not bInitialised then
+      Set Create = New stdClass
+      Call Create.init(...)
+    else
+      Call CriticalRaise("Constructor called on object not class")
     End If
-    
-    Set Create = New stdRegex
-    Call Create.init(pattern, flags)
   End Function
 
-  'Initialises the class from within the static superclass. This method is meant for internal use only. Use at your own risk.
+  'Initialises the class. This method is meant for internal use only. Use at your own risk.
   '@protected
-  '
-  '@param {string}  Pattern - The pattern to match
-  '@param {string}  Flags - Optional flags to apply
-  '@example
-  '    obj.init("A\d+","i")
-  Friend Sub init(ByVal pattern As String, ByVal flags As String)
-    If Me Is stdRegex Then
-      stdError.Raise ("Cannot run init on class")
-      Exit Sub
+  Public Sub init(...)
+    If bInitialised Then
+      Call CriticalRaise("Cannot run init() on initialised object")
+    elseif Me is stdClass then
+      Call CriticalRaise("Cannot run init() on static class")
+    else
+      'initialise with params...
+
+      'Make sure bInitialised is set
+      bInitialised=true
     End If
-    
-    p_pattern = pattern
-    p_flags = flags
-    '...
   End Sub
-  '..
+
+  Private Sub CriticalRaise(ByVal sMsg as string)
+    if isObject(stdError) then
+      stdError.Raise sMsg
+    else
+      Err.Raise 1, "stdClass", sMsg
+    end if
+  End Sub
+  
+  '...
 End Class
 ```
 

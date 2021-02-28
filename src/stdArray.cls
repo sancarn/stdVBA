@@ -391,10 +391,11 @@ Public Function Clone() As stdArray
 End Function
 
 Public Function Reverse() As stdArray
+    'TODO: Need to find a better more low level approach to creating arrays from existing arrays/preventing redim for methods like this
     Dim ret As stdArray
-    Set ret = stdArray.CreateWithOptions(pLength, pChunking)
+    Set ret = stdArray.Create()
     For i = pLength To 1 Step -1
-      Call ret.PutItem(i - pLength + 1, pArr(i))
+      Call ret.Push(pArr(i))
     Next
     Set Reverse = ret
 End Function
@@ -485,14 +486,14 @@ Public Function indexOf(ByVal el As Variant, Optional ByVal start As Integer = 1
   indexOf = -1
 End Function
 
-Public Function lastIndexOf(ByVal el As Variant, Optional ByVal start As Integer)
+Public Function lastIndexOf(ByVal el As Variant)
   Dim elIsObj As Boolean, i As Long, item As Variant, itemIsObj As Boolean
   
   'Is element an object?
   elIsObj = IsObject(el)
   
   'Loop over contents starting from start
-  For i = pLength To start Step -1
+  For i = pLength To 1 Step -1
     'Get item data
     CopyVariant item, pArr(i)
     
@@ -522,28 +523,6 @@ Public Function includes(ByVal el As Variant, Optional ByVal startFrom As Intege
   includes = indexOf(el, startFrom) >= startFrom
 End Function
 
-Public Function Count(Optional ByVal v As Variant = Empty, Optional ByVal metadata As Object = Nothing) As Long
-    Dim i As Long, lCount As Long
-    lCount = 0
-    
-    If IsObject(v) Then
-      For i = 1 To pLength
-        If pArr(i) Is v Then
-          lCount = lCount + 1
-        End If
-      Next
-    Else
-      For i = 1 To pLength
-        If pArr(i) = v Then
-          lCount = lCount + 1
-        End If
-      Next
-    End If
-
-    'Return count
-    Count = lCount
-End Function
-
 
 
 
@@ -551,16 +530,12 @@ End Function
 'Iterative Functions (All require stdICallable):
 
 'Example: if incidents.IsEvery(cbValid) then ...
-Public Function IsEvery(ByVal cb As stdICallable, Optional ByVal metadata As Object = Nothing) As Boolean
+Public Function IsEvery(ByVal cb As stdICallable) As Boolean
   If pInitialised Then
     Dim i As Long
     For i = 1 To pLength
       Dim bFlag as Boolean
-      if metadata is nothing then
-        bFlag = cb.run(pArr(i))
-      else
-        bFlag = cb.run(metadata,pArr(i))
-      end if
+      bFlag = cb.run(pArr(i))
       
       If Not bFlag Then
         IsEvery = False
@@ -574,16 +549,12 @@ Public Function IsEvery(ByVal cb As stdICallable, Optional ByVal metadata As Obj
   End If
 End Function
 
-Public Function IsSome(ByVal cb As stdICallable, Optional ByVal metadata As Object = Nothing) As Boolean
+Public Function IsSome(ByVal cb As stdICallable) As Boolean
   If pInitialised Then
     Dim i As Integer
-    For i = LBound(pArr) To UBound(pArr)
+    For i = 1 To pLength
       Dim bFlag as Boolean
-      If metadata is nothing then
-        bFlag = cb.Run(pArr(i))
-      else
-        bFlag = cb.Run(metadata,pArr(i))
-      End If
+      bFlag = cb.Run(pArr(i))
       
       if bFlag then
         IsSome = true
@@ -596,22 +567,18 @@ Public Function IsSome(ByVal cb As stdICallable, Optional ByVal metadata As Obje
   End If
 End Function
 
-Public Sub ForEach(ByVal cb As stdICallable, Optional ByVal metadata As Object = Nothing)
+Public Sub ForEach(ByVal cb As stdICallable)
   If pInitialised Then
     Dim i As Integer
     For i = 1 To pLength
-      If metadata Is Nothing Then
-          Call cb.Run(pArr(i))
-      Else
-          Call cb.Run(metadata, pArr(i))
-      End If
+      Call cb.Run(pArr(i))
     Next
   Else
     'Error
   End If
 End Sub
 
-Public Function Map(ByVal cb As stdICallable, Optional ByVal metadata As Object = Nothing) As stdArray
+Public Function Map(ByVal cb As stdICallable) As stdArray
   If pInitialised Then
     Dim pMap As stdArray
     Set pMap = Me.Clone()
@@ -622,12 +589,8 @@ Public Function Map(ByVal cb As stdICallable, Optional ByVal metadata As Object 
       Dim v As Variant
       CopyVariant v, item(i)
       
-      'Call callback based on metadata
-      If metadata Is Nothing Then
-        Call pMap.PutItem(i, cb.Run(v))
-      Else
-        Call pMap.PutItem(i, cb.Run(metadata, v))
-      End If
+      'Call callback
+      Call pMap.PutItem(i, cb.Run(v))
     Next
     
     Set Map = pMap
@@ -638,25 +601,23 @@ End Function
 
 
 'OPTIMISE: Needs optimisation. Currently very sub-optimal
-Public Function Unique(Optional ByVal cb As stdICallable = Nothing, Optional ByVal metadata As Variant) As stdArray
-  Dim ret As stdArray
-  Set ret = stdArray.CreateWithOptions(pLength, pChunking)
+Public Function Unique(Optional ByVal cb As stdICallable = Nothing) As stdArray
+  Dim ret As stdArray: Set ret = stdArray.CreateWithOptions(pLength, pChunking)
+  Dim retL As stdArray: Set retL = CreateWithOptions(pLength, pChunking)
   
+  'Collect keys
   Dim vKeys As stdArray
   If cb Is Nothing Then
     Set vKeys = Me.Clone
   Else
-    If metadata Is Nothing Then
-      Set vKeys = Me.Map(cb)
-    Else
-      Set vKeys = Me.Map(cb, metadata)
-    End If
+    Set vKeys = Me.Map(cb)
   End If
   
-  
+  'Unique by key
   For i = 1 To pLength
-    If Not ret.includes(vKeys.item(i)) Then
-      Call ret.Push(vKeys.item(i))
+    If Not retL.includes(vKeys.item(i)) Then
+      Call retL.Push(vKeys.item(i))
+      Call ret.Push(pArr(i))
     End If
   Next
 
@@ -665,7 +626,7 @@ Public Function Unique(Optional ByVal cb As stdICallable = Nothing, Optional ByV
 End Function
 
 
-Public Function Reduce(ByVal cb As stdICallable, Optional ByVal initialValue As Variant=0, Optional ByVal metadata As Variant) As Variant
+Public Function Reduce(ByVal cb As stdICallable, Optional ByVal initialValue As Variant=0) As Variant
   If pInitialised Then
     Reduce = initialValue
     
@@ -676,18 +637,14 @@ Public Function Reduce(ByVal cb As stdICallable, Optional ByVal initialValue As 
       CopyVariant el, pArr(i)
 
       'Reduce
-      If isMissing(metadata) Then
-        Reduce = cb.Run(Reduce, el)
-      Else
-        Reduce = cb.Run(metadata, Reduce, el)
-      End If
+      Reduce = cb.Run(Reduce, el)
     Next
   Else
     'Error
   End If
 End Function
 
-Public Function Filter(ByVal cb As stdICallable, Optional ByVal metadata As Object = Nothing) As stdArray
+Public Function Filter(ByVal cb As stdICallable) As stdArray
     Dim ret As stdArray
     Set ret = stdArray.CreateWithOptions(pLength, pChunking)
     Set Filter = ret
@@ -697,17 +654,9 @@ Public Function Filter(ByVal cb As stdICallable, Optional ByVal metadata As Obje
         Dim i As Long, v As Variant
         'Loop over array
         For i = 1 To pLength
-          
-          
-            'If callback succeeds (include metadata if given)
-            If metadata Is Nothing Then
-                If cb.Run(pArr(i)) Then
-                    Call ret.Push(pArr(i))
-                End If
-            Else
-                If cb.Run(metadata, pArr(i)) Then
-                    Call ret.Push(pArr(i))
-                End If
+            'If callback succeeds, push retvar
+            If cb.Run(pArr(i)) Then
+                Call ret.Push(pArr(i))
             End If
         Next i
     Else
@@ -715,24 +664,22 @@ Public Function Filter(ByVal cb As stdICallable, Optional ByVal metadata As Obje
     End If
 End Function
 
-Public Function Count_By(cb As stdICallable, Optional ByVal metadata As Object = Nothing) As Long
-  Dim i As Long, lCount As Long
-  lCount = 0
-  For i = 1 To pLength
-    If metadata Is Nothing Then
+Public Function Count(Optional ByVal cb As stdICallable = nothing) As Long
+  if cb is nothing then
+    Count = Length
+  else
+    Dim i As Long, lCount As Long
+    lCount = 0
+    For i = 1 To pLength
       If cb.Run(pArr(i)) Then
         lCount = lCount + 1
       End If
-    Else
-      If cb.Run(metadata, pArr(i)) Then
-        lCount = lCount + 1
-      End If
-    End If
-  Next i
-  Count_By = lCount
+    Next i
+    Count = lCount
+  end if
 End Function
 
-Public Function groupBy(ByVal cb As stdICallable, Optional ByVal metadata As Object) As Object
+Public Function Group(ByVal cb As stdICallable) As Object
     'Array to store result in
     Dim result As Object
     Set result = CreateObject("Scripting.Dictionary")
@@ -742,11 +689,7 @@ Public Function groupBy(ByVal cb As stdICallable, Optional ByVal metadata As Obj
     For i = 1 To pLength
         'Get grouping key
         Dim key As Variant
-        If metadata Is Nothing Then
-          key = cb.Run(pArr(i))
-        Else
-          key = cb.Run(metadata, pArr(i))
-        End If
+        key = cb.Run(pArr(i))
 
         'If key is not set then set it
         If Not result.exists(key) Then Set result(key) = stdArray.Create()
@@ -756,83 +699,61 @@ Public Function groupBy(ByVal cb As stdICallable, Optional ByVal metadata As Obj
     Next
 
     'Return result
-    Set groupBy = result
+    Set Group = result
 End Function
 
+Public Function Max(Optional ByVal cb As stdICallable = nothing, Optional ByVal startingValue As Variant = Empty) as variant
+  Dim vRet, vMaxValue, v
+  vMaxValue = startingValue: vRet = startingValue
+  For i = 1 to pLength
+    Call CopyVariant(v,pArr(i))
+    
+    'Get value to test
+    Dim vtValue as variant
+    if cb is nothing then
+      Call CopyVariant(vtValue,v)
+    else
+      Call CopyVariant(vtValue,cb.Run(v))
+    end if
 
+    'Compare values and return 
+    if isEmpty(vRet) then
+      Call CopyVariant(vRet,v)
+      Call CopyVariant(vMaxValue, vtValue)
+    elseif vMaxValue < vtValue then
+      Call CopyVariant(vRet,v)
+      Call CopyVariant(vMaxValue, vtValue)
+    end if
+  next
 
+  Call CopyVariant(Max,vRet)
+End Function
+Public Function Min(Optional ByVal cb As stdICallable = nothing, Optional ByVal startingValue As Variant = Empty) as variant
+  Dim vRet, vMinValue, v
+  vMinValue = startingValue: vRet = startingValue
+  For i = 1 to pLength
+    Call CopyVariant(v,pArr(i))
+    
+    'Get value to test
+    Dim vtValue as variant
+    if cb is nothing then
+      Call CopyVariant(vtValue,v)
+    else
+      Call CopyVariant(vtValue,cb.Run(v))
+    end if
 
+    'Compare values and return 
+    if isEmpty(vRet) then
+      Call CopyVariant(vRet,v)
+      Call CopyVariant(vMinValue, vtValue)
+    elseif vMinValue > vtValue then
+      Call CopyVariant(vRet,v)
+      Call CopyVariant(vMinValue, vtValue)
+    end if
+  next
 
-Public Sub Test()
-  'New stdArray tests
-  Dim i As Long
-  Dim x As stdArray
-  Set x = stdArray.Create()
-  For i = 1 To 10
-      Call x.Push(i)
-  Next
-  Debug.Assert x.zProxyLength = 10
-  Call x.Push(11)
-  Debug.Assert x.zProxyLength = 20
-  
-  Dim y As stdArray
-  Set y = stdArray.CreateWithOptions(5, 11)
-  For i = 1 To 11
-      Call y.Push(i)
-  Next
-  Debug.Assert y.zProxyLength = 11
-  Call y.Push(12)
-  Debug.Assert y.zProxyLength = 22
-  
-  
-  y.item(1) = 10
-  Debug.Assert False
-  
-  y.PutItem 1, 30
-  
-  
-  Dim z As stdArray
-  Set z = stdArray.CreateWithOptions(15, 10)
-  
-  For i = 1 To 16
-    Call z.Push(i)
-  Next
-  Debug.Assert z.Length = 16
-  Debug.Assert z.zProxyLength = 25
-    
-    
-    
-    
-    'ORIGINAL stdArray tests
-    On Error Resume Next
-    Debug.Print "1-Generic tests:"
-    Dim v As stdArray:
-    Set v = stdArray.Create(1)
-    Debug.Print "1-1:" & (v.item(1) = 1)
-    Call v.Push(2)
-    Debug.Print "1-2:" & (v.item(1) = 1)
-    Debug.Print "1-3:" & (v.item(2) = 2)
-    
-    'Test object pushing and access
-    Dim o As Object
-    Set o = CreateObject("Scripting.Dictionary")
-    o("hello") = "world"
-    Call v.Push(o)
-    Debug.Print "1-4:" & (v.item(3)("hello") = "world")
-    
-    Debug.Print "2-Length tests:"
-    Debug.Print "2-1:" & (stdArray.Create().Length = 0)
-    Debug.Print "2-2:" & (stdArray.Create(1).Length = 1)
-    Debug.Print "2-3:" & (stdArray.Create(1, 2).Length = 2)
-    
-    
-    'If stdICallable Then
-    '  Debug.Print "9-stdICallable tests"
-    'End If
-    
-    
-End Sub
-
+  Call CopyVariant(Min,vRet)
+End Function
 
 'Copies one variant to a destination
 '@param {ByRef Variant} dest Destination to copy variant to
