@@ -55,27 +55,36 @@ Attribute VB_Exposed = False
 'GENERIC
 'TODO: VB6 complient, 32-Bit complient, 64-Bit complient
 
+'TODO: Error in hwnd - AccessibleObjectFromWindow returns an E_FAIL code. Potentially related to https://stackoverflow.com/a/8617584/6302131
+'                      Need to test if coinitialise has any other affects on excel. Might also be related to Excel trying to access it's own object
+'                      model? Not sure...
+
+
 Private Declare PtrSafe Function AccessibleObjectFromPoint Lib "oleacc" (ByVal x As Long, ByVal y As Long, ppoleAcc As IAccessible, pvarElement As Variant) As Long
 Private Declare PtrSafe Function AccessibleObjectFromWindow Lib "oleacc" (ByVal hwnd As LongPtr, ByVal dwId As Long, riid As tGUID, ppvObject As Object) As Long
 Private Declare PtrSafe Function AccessibleObjectFromEvent Lib "oleacc.dll" (hwnd As LongPtr, dwObjectId As Integer, dwChildID As Integer, ppacc As IAccessible, pVarChild As Object) As Long
 Private Declare PtrSafe Function AccessibleChildren Lib "oleacc" (ByVal paccContainer As IAccessible, ByVal iChildStart As Long, ByVal cChildren As Long, rgvarChildren As Variant, pcObtained As Long) As Long
-Private Declare PtrSafe Function WindowFromAccessibleObject Lib "oleacc" (ByVal pacc As IAccessible, ByRef pHwnd As LongPtr) As LongPtr
+Private Declare PtrSafe Function WindowFromAccessibleObject Lib "oleacc" (ByVal pacc As IAccessible, ByRef pHwnd As LongPtr) As Long
 Private Declare PtrSafe Function GetCursorPos Lib "user32" (lpPoint As tPOINT) As Long 'For FromMouse()
 Private Declare PtrSafe Function APISendMessage Lib "user32" Alias "SendMessage" (ByVal hwnd As Long, ByVal Msg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
 
-Public Enum ESearchType
+
+'Used while walking the Accessibility tree. Can be used to toggle between a Breadth first search and a depth first search.
+Public Enum EAccFindType
     BreadthFirst = 0
     DepthFirst = 1
 End Enum
-Public Enum ESearchResult
-    MatchFound = 1
-    MatchFoundSearchDescendents=4
-    NoMatchFound = 0
-    NoMatchCancelSearch= 2
-    NoMatchSkipDescendents= 3
+
+'Used while walking the Accessibility tree. Can be used to discard entire trees of elements, to increase speed of walk algorithms.
+Public Enum EAccFindResult
+    MatchFound = 1                 'Matched                                    
+    MatchFoundSearchDescendents=4  'Same as `ESearchResult.MatchFound`         
+    NoMatchFound = 0               'Not found, continue searching descendents  
+    NoMatchCancelSearch= 2         'Not found, cancel search                   
+    NoMatchSkipDescendents= 3      'Not found, don't search descendents        
 End Enum
 
-Public Enum EMSAARoles
+Public Enum EAccRoles
     ROLE_TITLEBAR = &H1&
     ROLE_MENUBAR = &H2&
     ROLE_SCROLLBAR = &H3&
@@ -137,7 +146,7 @@ Public Enum EMSAARoles
     ROLE_WHITESPACE = &H3B&
     ROLE_PAGETABLIST = &H3C&
 End Enum
-Public Enum EMSAAStates
+Public Enum EAccStates
     STATE_NORMAL = &H0
     STATE_UNAVAILABLE = &H1
     STATE_SELECTED = &H2
@@ -199,11 +208,10 @@ Private Enum IAccessible_Methods
     put_accValue
 End Enum
 
-Public isProxy As Boolean
-Public proxyParent As Object 'IAcc
-Public proxyInfo As Object
-Public proxyIndex As Long
-Public Lookups As Object
+Private isProxy As Boolean
+Private proxyParent As Object 'IAcc
+Private proxyIndex As Long
+Private Lookups As Object
 
 'GUID type for ObjectFromWindow
 Private Type tGUID
@@ -225,7 +233,8 @@ End Type
 
 Const CHILDID_SELF = 0&
 
-'Should only be set from IAcc
+'The object which implements `IAccessible`, with which this class wraps. Please don't modify this object, unless you know what you are doing.
+'@protected 
 Public protAccessible As Object
 
 'Constructors:
@@ -332,6 +341,17 @@ Public Function CreateFromPath(ByVal sPath As String) As stdAcc
     Set CreateFromPath = acc
 End Function
 
+'Initialises an stdAcc object as a `Proxy` object, who's methods are implemented on the parent instead of on the element itself
+'@constructor
+'@protected
+'@returns {VOID}
+Public Sub InitWithProxy(ByRef oParent as stdAcc, ByVal index as long)
+    isProxy = true
+    set proxyParent = oParent
+    proxyIndex = index
+End Sub
+
+
 'Get all descendents of the stdAcc control
 '@returns {Collection} Collection of descendents
 Public Function GetDescendents() As Collection
@@ -356,14 +376,14 @@ Public Function GetDescendents() As Collection
 End Function
 
 'Search the IAccessible tree for elements which match a certain criteria. Return the first element found.
-'@param {ByVal stdICallable<(stdAcc,depth)=>ESearchResult>} Callback returning
-'  ESearchResult options:
-'    ESearchResult.NoMatchFound/0/False             - Not found, countinue walking
-'    ESearchResult.MatchFound/1/-1/True             - Found, return this element
-'    ESearchResult.NoMatchCancelSearch/2            - Not found, cancel search
-'    ESearchResult.NoMatchSkipDescendents/3,else    - Not found, don't search descendents
-'    ESearchResult.MatchFoundSearchDescendents/4    - Same as ESearchResult.MatchFound
-'@param {ESearchType=1} - The type of search, 0 for Breadth First Search (BFS) and 1 for Depth First Search (DFS).
+'@param {ByVal stdICallable<(stdAcc,depth)=>EAccFindResult>} Callback returning
+'  EAccFindResult options:
+'    EAccFindResult.NoMatchFound/0/False             - Not found, countinue walking
+'    EAccFindResult.MatchFound/1/-1/True             - Found, return this element
+'    EAccFindResult.NoMatchCancelSearch/2            - Not found, cancel search
+'    EAccFindResult.NoMatchSkipDescendents/3,else    - Not found, don't search descendents
+'    EAccFindResult.MatchFoundSearchDescendents/4    - Same as EAccFindResult.MatchFound
+'@param {EAccFindType=1} - The type of search, 0 for Breadth First Search (BFS) and 1 for Depth First Search (DFS).
 ' To understand the difference between BFS and DFS take this tree:
 '        A
 '       / \
@@ -379,7 +399,7 @@ End Function
 ' 'Find first element named "hello" at depth > 4:
 ' el.FindFirst(stdLambda.Create("$1.name = ""hello"" AND $2 > 4"))
 ' ```
-Public Function FindFirst(ByVal query As stdICallable, optional byval searchType as ESearchType=ESearchType.DepthFirst) As stdAcc
+Public Function FindFirst(ByVal query As stdICallable, optional byval searchType as EAccFindType=EAccFindType.DepthFirst) As stdAcc
     Dim stack() As tFindNode
     ReDim stack(0 To 0)
     stack(0).initialised = true
@@ -389,19 +409,22 @@ Public Function FindFirst(ByVal query As stdICallable, optional byval searchType
     Dim length As Long: length = 1
     Dim index As Long: index = -1
 
+    'Bind globals to query
+    Call BindGlobals(query)
+
     'Loop over the stack/array
     While length > 0 And index < length
         Dim part As tFindNode
         select case searchType
-            case ESearchType.DepthFirst
+            case EAccFindType.DepthFirst
                 'Depth first search, so pop the item out of the stack
                 part = stackPopV(stack,length)
-            case ESearchType.BreadthFirst
+            case EAccFindType.BreadthFirst
                 'Breadth first search, get item directly out of array, no need to change array size
                 index = index + 1
                 part = stack(index)
             case else
-                Err.Raise 1, "stdAcc#FindFirst", "Invalid search type given. Please use ESearchType"
+                Err.Raise 1, "stdAcc#FindFirst", "Invalid search type given. Please use EAccFindType"
         end select
         
         With part
@@ -409,21 +432,21 @@ Public Function FindFirst(ByVal query As stdICallable, optional byval searchType
             
             'Run query and test options
             Select Case query.Run(.element, .depth)
-                Case ESearchResult.NoMatchFound
+                Case EAccFindResult.NoMatchFound
                     'Nothing found, search descendents
                     Dim child As stdAcc
                     For Each child In part.element.children
                         Call stackPushV(stack, length, CreateFindNode(.depth + 1, child))
                     Next
-                Case ESearchResult.MatchFound, True, ESearchResult.MatchFoundSearchDescendents
+                Case EAccFindResult.MatchFound, True, EAccFindResult.MatchFoundSearchDescendents
                     'Found, return element
                     Set FindFirst = .element
                     Exit Function
-                Case ESearchResult.NoMatchCancelSearch
+                Case EAccFindResult.NoMatchCancelSearch
                     'Nothing found, cancel function
                     Set FindFirst = Nothing
                     Exit Function
-                case ESearchResult.NoMatchSkipDescendents
+                case EAccFindResult.NoMatchSkipDescendents
                 '    Nothing found, don't search descendents
             End Select
         End With
@@ -436,14 +459,14 @@ Public Function FindFirst(ByVal query As stdICallable, optional byval searchType
 End Function
 
 'Search the IAccessible tree for elements which match a certain criteria. Return all elements found.
-'@param {ByVal stdICallable<(stdAcc,depth)=>ESearchResult>} Callback returning
-'  ESearchResult options:
-'    ESearchResult.NoMatchFound/0/False             - Not found, countinue walking
-'    ESearchResult.MatchFound/1/-1/True             - Found, return this element, won't search descendents of elements found
-'    ESearchResult.NoMatchCancelSearch/2            - Not found, cancel search
-'    ESearchResult.NoMatchSkipDescendents/3,else    - Not found, don't search descendents
-'    ESearchResult.MatchFoundSearchDescendents/4    - Found, return this element, but continue searching descendents
-'@param {ESearchType} - The type of search, 0 for Breadth First Search (BFS) and 1 for Depth First Search (DFS).
+'@param {ByVal stdICallable<(stdAcc,depth)=>EAccFindResult>} Callback returning
+'  EAccFindResult options:
+'    EAccFindResult.NoMatchFound/0/False             - Not found, countinue walking
+'    EAccFindResult.MatchFound/1/-1/True             - Found, return this element, won't search descendents of elements found
+'    EAccFindResult.NoMatchCancelSearch/2            - Not found, cancel search
+'    EAccFindResult.NoMatchSkipDescendents/3,else    - Not found, don't search descendents
+'    EAccFindResult.MatchFoundSearchDescendents/4    - Found, return this element, but continue searching descendents
+'@param {EAccFindType} - The type of search, 0 for Breadth First Search (BFS) and 1 for Depth First Search (DFS).
 ' To understand the difference between BFS and DFS take this tree:
 '        A
 '       / \
@@ -459,7 +482,7 @@ End Function
 ' 'Find all elements with depth <= 4:
 ' el.FindAll(stdLambda.Create("if $2 < 4 then 4 else if $2 = 4 then 1 else 3"))
 ' ```
-Public Function FindAll(ByVal query As stdICallable, optional byval searchType as ESearchType=ESearchType.DepthFirst) As Collection
+Public Function FindAll(ByVal query As stdICallable, optional byval searchType as EAccFindType=EAccFindType.DepthFirst) As Collection
     Dim stack() As tFindNode
     ReDim stack(0 To 0)
     stack(0).initialised = true
@@ -469,6 +492,8 @@ Public Function FindAll(ByVal query As stdICallable, optional byval searchType a
     Dim length As Long: length = 1
     Dim index As Long: index = -1
     
+    'Bind globals to query
+    Call BindGlobals(query)
 
     'Initialise collection
     set FindAll = new Collection
@@ -477,15 +502,15 @@ Public Function FindAll(ByVal query As stdICallable, optional byval searchType a
     While length > 0 And index < length
         Dim part as tFindNode
         select case searchType
-            case ESearchType.DepthFirst
+            case EAccFindType.DepthFirst
                 'Depth first search, so pop the item out of the stack
                 part = stackPopV(stack,length)
-            case ESearchType.BreadthFirst
+            case EAccFindType.BreadthFirst
                 'Breadth first search, get item directly out of array, no need to change array size
                 index = index + 1
                 part = stack(index)
             case else
-                Err.Raise 1, "stdAcc#FindAll", "Invalid search type given. Please use ESearchType"
+                Err.Raise 1, "stdAcc#FindAll", "Invalid search type given. Please use EAccFindType"
         end select
         
         With part
@@ -495,20 +520,20 @@ Public Function FindAll(ByVal query As stdICallable, optional byval searchType a
             'Run query and test options
             Dim child as stdAcc
             select case query.Run(.element,.depth)
-                Case ESearchResult.NoMatchFound
+                Case EAccFindResult.NoMatchFound
                     'Nothing found, search descendents
                     for each child in .element.children
                         Call stackPushV(stack,length,CreateFindNode(.depth+1,child))
                     next
-                Case ESearchResult.MatchFound, True
+                Case EAccFindResult.MatchFound, True
                     'Found, add element
                     Call FindAll.add(.element)
-                Case ESearchResult.NoMatchCancelSearch
+                Case EAccFindResult.NoMatchCancelSearch
                     'Nothing found, cancel function
                     Exit Function
-                Case ESearchResult.NoMatchSkipDescendents
+                Case EAccFindResult.NoMatchSkipDescendents
                     'Nothing found, don't search descendents
-                Case ESearchResult.MatchFoundSearchDescendents
+                Case EAccFindResult.MatchFoundSearchDescendents
                     Call FindAll.add(.element)
                     for each child in .element.children
                         Call stackPushV(stack,length,CreateFindNode(.depth+1,child))
@@ -549,11 +574,18 @@ End Property
 
 'Return the hwnd of the IAccessible object
 '@returns {LongPtr} hwnd of this element
-Public Property Get hwnd() as LongPtr
+'Return the hwnd of the IAccessible object
+'@returns {LongPtr} hwnd of this element
+Public Property Get hwnd() As LongPtr
     On Error GoTo handle_error
         Dim lHwnd As LongPtr
-        WindowFromAccessibleObject protAccessible, lHwnd
-        hwnd = lHwnd
+        Dim res As Long
+        res = WindowFromAccessibleObject(protAccessible, lHwnd)
+        If res = 0 Then
+            hwnd = lHwnd
+        Else
+            Call Err.Raise(1, "", "Error " & Hex(res) & " - " & COMErrorDescription(res) & " in stdAcc#hwnd")
+        End If
     On Error GoTo 0
     Exit Property
 handle_error:
@@ -640,14 +672,14 @@ End Property
 '@returns {String} the role of the element
 Public Property Get Role() As String
     On Error Resume Next
-    Role = Me.Lookups("roles")("S2N")(protAccessible.AccRole)
+    Role = Lookups("EAccRoles")("N2S")(protAccessible.AccRole)
 End Property
 
 'Returns the state of the element
 '@returns {String} the state of the element
 Public Property Get State() As String
     On Error Resume Next
-    State = Me.Lookups("states")("S2N")(protAccessible.AccState)
+    State = Lookups("EAccStates")("N2S")(protAccessible.AccState)
 End Property
 
 'Returns the state(s) of the element
@@ -843,7 +875,7 @@ Public Function getPath(Optional toAccessible As stdAcc = Nothing) As String
     On Error GoTo 0
     Exit Function
 ErrorOccurred:
-    Err.Raise 1, "stdAcc#getPath", "An unknown error occurred while finding stdAcc path" 
+    Err.Raise 1, "stdAcc#getPath", "An unknown error occurred while finding stdAcc path." & vbCrLf & Err.Description
 End Function
 
 'Returns this element and all descendents as a JSON string. Useful for debugging
@@ -876,7 +908,7 @@ End Function
 Public Function protGetLookups()
     if Lookups is nothing then
         set Lookups = CreateObject("Scripting.Dictionary")
-        set Lookups("states") = CreateLookupDict(Array( _ 
+        set Lookups("EAccStates") = CreateLookupDict(Array( _ 
             "STATE_NORMAL", &H0,                "STATE_UNAVAILABLE", &H1, _ 
             "STATE_SELECTED", &H2,              "STATE_FOCUSED", &H4, _ 
             "STATE_PRESSED", &H8,               "STATE_CHECKED", &H10, _ 
@@ -895,7 +927,7 @@ Public Function protGetLookups()
             "STATE_ALERT_HIGH", &H10000000,     "STATE_PROTECTED", &H20000000, _ 
             "STATE_VALID", &H7FFFFFFF _ 
         ))
-        set Lookups("roles") = CreateLookupDict(Array( _ 
+        set Lookups("EAccRoles") = CreateLookupDict(Array( _ 
             "ROLE_TITLEBAR", &H1&            , "ROLE_MENUBAR", &H2&          , "ROLE_SCROLLBAR", &H3&, _ 
             "ROLE_GRIP", &H4&                , "ROLE_SOUND", &H5&            , "ROLE_CURSOR", &H6&, _ 
             "ROLE_CARET", &H7&               , "ROLE_ALERT", &H8&            , "ROLE_WINDOW", &H9&, _ 
@@ -917,6 +949,13 @@ Public Function protGetLookups()
             "ROLE_EQUATION", &H37&           , "ROLE_BUTTONDROPDOWN", &H38&  , "ROLE_BUTTONMENU", &H39&, _ 
             "ROLE_BUTTONDROPDOWNGRID", &H3A& , "ROLE_WHITESPACE", &H3B&      , "ROLE_PAGETABLIST", &H3C&, _ 
             "ROLE_CLOCK",&H3D&  _ 
+        ))
+        set Lookups("EAccFindResult") = CreateLookupDict(Array( _ 
+            "MatchFound", EAccFindResult.MatchFound, _ 
+            "MatchFoundSearchDescendents", EAccFindResult.MatchFoundSearchDescendents, _ 
+            "NoMatchFound", EAccFindResult.NoMatchFound, _ 
+            "NoMatchCancelSearch", EAccFindResult.NoMatchCancelSearch, _ 
+            "NoMatchSkipDescendents", EAccFindResult.NoMatchSkipDescendents _ 
         ))
     end if
     set protGetLookups = lookups
@@ -978,8 +1017,16 @@ Private Function convertGUID(Guid As String) As tGUID
     convertGUID.abytData4(5) = CInt("&H" & Mid(vArr(4), 7, 2))  '38
     convertGUID.abytData4(6) = CInt("&H" & Mid(vArr(4), 9, 2))  '9B
     convertGUID.abytData4(7) = CInt("&H" & Mid(vArr(4), 11, 2)) '71
-
 End Function
+
+'@param {stdICallable} A callable that may 
+'@returns {VOID}
+Private Sub BindGlobals(ByRef query as stdICallable)
+    Dim bSuccess as boolean
+    Call query.SendMessage("bindGlobal", bSuccess, Array("EAccRoles", Lookups("EAccRoles")("S2N")))
+    Call query.SendMessage("bindGlobal", bSuccess, Array("EAccStates", Lookups("EAccStates")("S2N")))
+    Call query.SendMessage("bindGlobal", bSuccess, Array("EAccFindResult", Lookups("EAccFindResult")("S2N")))
+End Sub
 
 'Creates a collection of stdAcc objects representing the children of the element
 '@returns {Collection<stdAcc>} The returned collection of children
@@ -1012,30 +1059,8 @@ End Function
 '@param {Long} Child ID to create proxy element on
 '@returns {stdAcc} stdAcc element for child
 Private Function createProxyChild(ByVal childID As Long) As stdAcc
-    Dim acc As stdAcc
-    Set acc = New stdAcc
-    acc.isProxy = True
-    
-    On Error Resume Next
-    Set acc.Parent = Me
-    acc.proxyIndex = childID
-    acc.proxyInfo = CreateObject("Scripting.Dictionary")
-    acc.proxyInfo.Add "Name", protAccessible.accName(childID - 1)
-    acc.proxyInfo.Add "DefaultAction", protAccessible.accDefaultAction(childID - 1)
-    acc.proxyInfo.Add "Role", protAccessible.AccRole(childID - 1)
-    acc.proxyInfo.Add "State", protAccessible.AccState(childID - 1)
-    acc.proxyInfo.Add "Parent", protAccessible.accParent(childID - 1)
-    acc.proxyInfo.Add "Description", protAccessible.accDescription(childID - 1)
-    acc.proxyInfo.Add "KeyboardShortcut", protAccessible.accKeyboardShortcut(childID - 1)
-    acc.proxyInfo.Add "ChildCount", protAccessible.accChildCount(childID - 1)
-    acc.proxyInfo.Add "Focus", protAccessible.accFocus(childID - 1)
-    acc.proxyInfo.Add "Location", protAccessible.accLocation(childID - 1)
-    acc.proxyInfo.Add "HitTest", protAccessible.accHitTest(childID - 1)
-    acc.proxyInfo.Add "Selection", protAccessible.accSelection(childID - 1)
-    acc.proxyInfo.Add "Help", protAccessible.accHelp(childID - 1)
-    acc.proxyInfo.Add "HelpTopic", protAccessible.accHelpTopic(childID - 1)
-    
-    Set createProxyChild = acc
+    Set createProxyChild = New stdAcc
+    Call createProxyChild.InitWithProxy(Me, childID)
 End Function
 
 'Get children as IAccessible
@@ -1077,19 +1102,23 @@ End Sub
 '@param {Variant()} 1D array of Key,Value pairs
 '@returns {Dictionary} Dictionary<{S2N: Dictionary<key,value>, N2S: Dictionary<value, key> }>
 Private Function CreateLookupDict(arr as Variant) as Object
-    Dim oRet as object: set oRet = CreateObject("Scripting.Dictionary")
+    Dim oRet as object
+    set oRet = CreateObject("Scripting.Dictionary")
+    oRet.CompareMode = 1
     Dim i as long
 
     'Create string --> number dictionary
     set oRet("S2N") = CreateObject("Scripting.Dictionary")
+    oRet("S2N").CompareMode = 1
     For i = lbound(arr) to ubound(arr) step 2
         Call oRet("S2N").add(arr(i), arr(i+1))
     next
 
     'Create number --> string dictionary
     set oRet("N2S") = CreateObject("Scripting.Dictionary")
+    oRet("N2S").CompareMode = 1
     For i = lbound(arr) to ubound(arr) step 2
-        Call oRet("S2N").add(arr(i+1), arr(i))
+        Call oRet("N2S").add(arr(i+1), arr(i))
     next
 
     'Return dictionary
@@ -1140,5 +1169,48 @@ Private Function stackPopV(ByRef stack() As tFindNode, ByRef index As Variant) A
     stackPopV.initialised = stack(index).initialised
     stackPopV.depth = stack(index).depth
     set stackPopV.element = stack(index).element
-    stack(index) = Empty
+    stack(index).initialised = False
+    stack(index).depth = 0
+    Set stack(index).element = Nothing
+End Function
+
+
+'Returns the COM Error Description for the passed error code
+'@param {Long} Error code
+'@returns {String} Description of error
+Private Function COMErrorDescription(ByVal code As Long) As String
+    Static pErrorCodes As Object
+    If pErrorCodes Is Nothing Then
+        Set pErrorCodes = CreateObject("Scripting.Dictionary")
+        pErrorCodes(Hex(-2147352563)) = "DISP_E_ARRAYISLOCKED"
+        pErrorCodes(Hex(-2147352560)) = "DISP_E_BADCALLEE"
+        pErrorCodes(Hex(-2147352565)) = "DISP_E_BADINDEX"
+        pErrorCodes(Hex(-2147352562)) = "DISP_E_BADPARAMCOUNT"
+        pErrorCodes(Hex(-2147352568)) = "DISP_E_BADVARTYPE"
+        pErrorCodes(Hex(-2147352557)) = "DISP_E_BUFFERTOOSMALL"
+        pErrorCodes(Hex(-2147352558)) = "DISP_E_DIVBYZERO"
+        pErrorCodes(Hex(-2147352567)) = "DISP_E_EXCEPTION"
+        pErrorCodes(Hex(-2147352573)) = "DISP_E_MEMBERNOTFOUND"
+        pErrorCodes(Hex(-2147352569)) = "DISP_E_NONAMEDARGS"
+        pErrorCodes(Hex(-2147352559)) = "DISP_E_NOTACOLLECTION"
+        pErrorCodes(Hex(-2147352566)) = "DISP_E_OVERFLOW"
+        pErrorCodes(Hex(-2147352572)) = "DISP_E_PARAMNOTFOUND"
+        pErrorCodes(Hex(-2147352561)) = "DISP_E_PARAMNOTOPTIONAL"
+        pErrorCodes(Hex(-2147352571)) = "DISP_E_TYPEMISMATCH"
+        pErrorCodes(Hex(-2147352575)) = "DISP_E_UNKNOWNINTERFACE"
+        pErrorCodes(Hex(-2147352564)) = "DISP_E_UNKNOWNLCID"
+        pErrorCodes(Hex(-2147352570)) = "DISP_E_UNKNOWNNAME"
+        pErrorCodes(Hex(-2147467260)) = "E_ABORT"
+        pErrorCodes(Hex(-2147024891)) = "E_ACCESSDENIED"
+        pErrorCodes(Hex(-2147467259)) = "E_FAIL"
+        pErrorCodes(Hex(-2147024890)) = "E_HANDLE"
+        pErrorCodes(Hex(-2147024809)) = "E_INVALIDARG"
+        pErrorCodes(Hex(-2147467262)) = "E_NOINTERFACE"
+        pErrorCodes(Hex(-2147467263)) = "E_NOTIMPL"
+        pErrorCodes(Hex(-2147024882)) = "E_OUTOFMEMORY"
+        pErrorCodes(Hex(-2147483638)) = "E_PENDING"
+        pErrorCodes(Hex(-2147467261)) = "E_POINTER"
+        pErrorCodes(Hex(-2147418113)) = "E_UNEXPECTED"
+    End If
+    COMErrorDescription = pErrorCodes(Hex(code))
 End Function
