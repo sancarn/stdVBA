@@ -758,7 +758,7 @@ Public Sub DoDefaultAction()
     End If
 End Sub
 
-'Performs the default action of the IAccessible object
+'Sends a message to the window
 'TODO: Move this out to stdWindow when ready `stdWindow.Create(hwnd).sendMessage(...)`
 '@param {Long} Message to send
 '@param {Long} WParam to send
