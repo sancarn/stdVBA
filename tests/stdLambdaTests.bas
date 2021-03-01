@@ -124,6 +124,28 @@ Sub testAll()
         End With
     End With
 
+    'Testing global variables
+    With stdLambda.Create("hello + 2")
+        Call .BindGlobal("hello", 1)
+        Test.Assert "stdLambda::BindGlobal() 1 Can bind global variables", .Run() = 3
+    End With
+
+    'Testing dictionary declaration
+    With stdLambda.Create("$1.TEST")
+        Dim oDict as object
+        set oDict = CreateObject("Scripting.Dictionary")
+        oDict("TEST") = True
+        Test.Assert "Dictionary.Method syntax", .Run(oDict)
+    End With
+
+    'Ensure late-bound bindGlobal() works
+    Dim iCallable as stdICallable, bSuccess as boolean
+    set iCallable = stdLambda.Create("hello")
+    Call iCallable.SendMessage("bindGlobal", bSuccess, Array("hello",true))
+    Test.Assert "SendMessage Success Parameter set", bSuccess
+    Test.Assert "SendMessage Successful binding", iCallable.Run()
+    Call iCallable.SendMessage("", bSuccess, Null)
+    Test.Assert "SendMessage Fail Parameter set", Not bSuccess
 End Sub
 
 Sub testPerformanceStdLambda()

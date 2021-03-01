@@ -230,6 +230,18 @@ Public Function BindEx(ByVal params As Variant) As stdCallback
   Call BindEx.Init(ParentType.Bound, callable, params)
 End Function
 
+Private Function stdICallable_SendMessage(ByVal sMessage as string, ByRef success as Boolean, ByVal params as variant) as Variant
+    select case sMessage
+        case "obj"
+            set stdICallable_SendMessage = Me
+            success = true
+        case "className"
+            stdICallable_SendMessage = "stdCallback"
+            success = true
+        case else
+            success = false 
+    end select
+End Function
 
 
 Public Function Run(ParamArray params() As Variant)
