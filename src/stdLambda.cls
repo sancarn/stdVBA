@@ -120,12 +120,15 @@ End Enum
 
 
 Const minStackSize = 30 'note that the stack size may become smaller than this
+
+'@protected
 Public oFunctExt As Object 'Dictionary<string => stdCallback>
+
 Private vLastArgs As Variant
 Private oCache As Object
 
 Private bBound as boolean
-Private oBound as stdICallable
+Private oBound as stdLambda
 Private vBound as variant
 
 
@@ -161,6 +164,23 @@ Public Function BindEx(ByVal params as variant) as stdLambda
     Call BindEx.init(LambdaType.iBoundLambda, callable, params)
 End Function
 
+'Bind a global variable to the function
+'@param {String} - New global name
+'@param {Variant}- Data to store in global variable
+'@returns {stdLambda} The lambda existing lambda
+Public Function BindGlobal(ByVal sGlobalName as string, ByVal variable as Variant) as stdLambda
+    set BindGlobal = Me
+    If bBound Then
+        Call oBound.BindGlobal(sGlobalName, variable)
+    Else
+        If IsObject(variable) Then
+            Set oFunctExt(sGlobalName) = variable
+        Else
+            Let oFunctExt(sGlobalName) = variable
+        End If
+    End If
+End Function
+
 
 Public Sub Init(ByVal iLambdaType as long, ParamArray params() as variant)
     Select Case iLambdaType
@@ -168,9 +188,10 @@ Public Sub Init(ByVal iLambdaType as long, ParamArray params() as variant)
             Dim sEquation as string: sEquation = params(0)
             Dim bSandboxExtras as boolean: bSandboxExtras = params(1)
 
-            If Not bSandboxExtras Then
-                Set Me.oFunctExt = stdLambda.oFunctExt
-            End If
+            'Function extensions
+            Set oFunctExt = stdLambda.oFunctExt
+            If bSandboxExtras OR oFunctExt is nothing Then set oFunctExt = CreateObject("Scripting.Dictionary")
+
             bBound = false
             tokens = Tokenise(sEquation)
             iTokenIndex = 1
@@ -185,12 +206,14 @@ Public Sub Init(ByVal iLambdaType as long, ParamArray params() as variant)
             bBound = true
             set oBound = params(0)
             vBound = params(1)
-
+            
+            'Function extensions
+            Set oFunctExt = stdLambda.oFunctExt
+            If bSandboxExtras OR oFunctExt is nothing Then set oFunctExt = CreateObject("Scripting.Dictionary")
         Case Else
             'error?
     end select
 End Sub
-
 
 Private Function stdICallable_Run(ParamArray params() As Variant) As Variant
     if not bBound then
@@ -251,6 +274,28 @@ Public Function Bind(ParamArray params() as variant) as stdLambda
     set Bind = BindEx(params)
 End Function
 
+'Low-dependency function calling
+'@protected
+'@param {ByVal String}       - Message to send
+'@param {ByRef Boolean}      - Success of message. If message wasn't processed return false.
+'@param {Paramarray Variant} - Parameters to pass along with message
+'@returns {Variant} - Anything returned by the function
+Private Function stdICallable_SendMessage(ByVal sMessage as string, ByRef success as boolean, ByVal params as variant) as Variant
+    select case sMessage
+        case "obj"
+            set stdICallable_SendMessage = Me
+            success = true
+        case "className"
+            stdICallable_SendMessage = "stdLambda"
+            success = true
+        case "bindGlobal"
+            'Bind global based whether this is a bound lambda or not
+            Call BindGlobal(params(0), params(1))
+            success = true
+        case else 
+            success = false
+    end select
+End Function
 
 '================
 '
@@ -931,8 +976,7 @@ Private Function evaluate(ByRef ops() As Operation) As Variant
                 Dim args() As Variant
                 args = getArgs(stack, stackPtr)
                 v1 = popV(stack, stackPtr)
-                v3 = evaluateFunc(v1, args)
-                Call pushV(stack, stackPtr, v3)
+                Call pushV(stack, stackPtr, evaluateFunc(v1, args))
             'Misc
             Case iType.oMisc
                 v2 = popV(stack, stackPtr)
@@ -1046,12 +1090,33 @@ Private Sub objectCaller(ByRef stack() As Variant, ByRef stackPtr As Long, ByRef
     'Call rtcCallByName
     Dim obj As Object
     Set obj = popV(stack, stackPtr)
-    #if Mac then
-        Call pushV(stack, stackPtr, macCallByName(obj, funcName, callerType, args))
-    #else
-        Call pushV(stack, stackPtr, rtcCallByName(obj, StrPtr(funcName), callerType, args, &H409))
-    #end if
+    Call pushV(stack, stackPtr, stdCallByName(obj, funcName, callerType, args))
 End Sub
+
+'Calls an object method/setter/getter/letter. Treats dictionary properties as direct object properties, I.E. `A.B` ==> `A.item("B")`
+Public Function stdCallByName(ByRef obj as object, ByVal funcName as string,ByVal callerType as VbCallType, ByRef args() as variant) as Variant
+    'If Dictionary and 
+    if TypeName(obj) = "Dictionary" then
+        select case funcName
+            case "add","exists","items", "keys", "remove", "removeall","comparemode","count","item","key"
+                'These methods already exist on dictionary, do not override
+            case else
+                'Call DictionaryInstance.Item(funcName) only if funcName exists on the item
+                if obj.exists(funcName) then
+                    'TODO: Make this work for callerType.VbLet
+                    Call CopyVariant(stdCallByName,obj.item(funcName))
+                    Exit Function
+                end if
+        end select
+    end if
+
+    'Call CallByName from DLL or 
+    #if Mac then
+        Call CopyVariant(stdCallByName, macCallByName(obj, funcName, callerType, args))
+    #else
+        Call CopyVariant(stdCallByName, rtcCallByName(obj, StrPtr(funcName), callerType, args, &H409))
+    #end if
+End Function
 
 'Evaluates the built in standard functions
 '@param {String} sFuncName The name of the function to invoke
@@ -1059,9 +1124,15 @@ End Sub
 '@returns The result
 Private Function evaluateFunc(ByVal sFuncName As String, ByVal args As Variant) As Variant
     Dim iArgStart As Long: iArgStart = LBound(args)
-    If TypeName(stdLambda.oFunctExt) = "Dictionary" Then
+    If TypeName(Me.oFunctExt) = "Dictionary" Then
         If Me.oFunctExt.exists(sFuncName) Then
-            evaluateFunc = Me.oFunctExt(sFuncName).RunEx(args)
+            Dim vInjectedVar As Variant
+            Call CopyVariant(vInjectedVar, oFunctExt(sFuncName))
+            If TypeOf vInjectedVar Is stdICallable Then
+                evaluateFunc = Me.oFunctExt(sFuncName).RunEx(args)
+            Else
+                Call CopyVariant(evaluateFunc, vInjectedVar)
+            End If
             Exit Function
         End If
     End If
@@ -1466,7 +1537,7 @@ Private Sub CopyVariant(ByRef dest As Variant, ByVal value As Variant)
   If IsObject(value) Then
     Set dest = value
   Else
-    dest = value
+    Let dest = value
   End If
 End Sub
 
