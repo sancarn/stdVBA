@@ -1,0 +1,1 @@
+* [ ] [Useful docs on WinMgmt](https://sites.google.com/site/beyondexcel/project-updates/exposingsystemsecretswithvbaandwmiapi)
