@@ -134,7 +134,7 @@ This project is has been majorly maintained by 1 person, so progress is generall
 |![_](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Automation |stdClipboard     | Clipboard management library. Set text, files, images and more to the clipboard.
 |![_](https://via.placeholder.com/15/ff0000/000000?text=+) | HOLD   | Automation |stdHTTP          | A wrapper around Win HTTP libraries.
 |![_](https://via.placeholder.com/15/ffff00/000000?text=+) | WIP    | Automation |stdWindow        | A handy wrapper around Win32 Window management APIs.
-|![_](https://via.placeholder.com/15/ffff00/000000?text=+) | WIP    | Automation |stdAcc           | Use Microsoft Active Accessibility framework within VBA - Very useful for automation.
+|![_](https://via.placeholder.com/15/00ff00/000000?text=+) | WIP    | Automation |stdAcc           | Use Microsoft Active Accessibility framework within VBA - Very useful for automation.
 |![_](https://via.placeholder.com/15/ffff00/000000?text=+) | WIP    | Excel      |xlTable          | Better tables for VBA, e.g. Map rows etc.
 
 [The full roadmap](https://github.com/sancarn/stdVBA/projects/1) has more detailed information than here.
