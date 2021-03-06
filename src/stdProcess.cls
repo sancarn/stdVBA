@@ -34,9 +34,9 @@ Private Declare PtrSafe Function QueryFullProcessImageNameA Lib "Kernel32.dll" (
 ) As Boolean
 
 Private Declare PtrSafe Function OpenProcess Lib "Kernel32.dll" ( _ 
-  dwDesiredAccess as Long, _ 
-  bInheritHandle as Boolean, _ 
-  dwProcessId as Long _ 
+  ByVal dwDesiredAccess as Long, _ 
+  ByVal bInheritHandle as Boolean, _ 
+  ByVal dwProcessId as Long _ 
 ) as LongPtr
 
 
@@ -87,7 +87,7 @@ End Function
 '@constructor
 '@param {stdICallable} - The query to search processes for
 '@returns {stdProcess} the queried process
-Public Function CreateFromExisting(ByVal query as stdICallable) as stdProcess
+Public Function CreateFromQuery(ByVal query as stdICallable) as stdProcess
     Dim pEntry as PROCESSENTRY32: pEntry.dwSize = LenB(pEntry)
     Dim snapshot As LongPtr: snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, ByVal 0&)
     Dim continueSearch as boolean: continueSearch = Process32First(snapshot, pEntry)
@@ -95,8 +95,8 @@ Public Function CreateFromExisting(ByVal query as stdICallable) as stdProcess
         Dim oDict as object: set oDict = getQueryDictFromEntry(pEntry)
         if pEnquery.run(oDict) then
             With oDict
-                Set CreateFromExisting = New stdProcess
-                Call CreateFromExisting.protInitFromProcessId(.item("id"), .item("name"), .item("path"), .item("moduleID"))
+                Set CreateFromQuery = New stdProcess
+                Call CreateFromQuery.protInitFromProcessId(.item("id"), .item("name"), .item("path"), .item("moduleID"))
                 Call CloseHandle(snapshot)
                 Exit Function
             End With
@@ -111,7 +111,7 @@ End Function
 '@constructor
 '@param {stdICallable} - The query to search processes for
 '@returns {Collection<stdProcess>}
-Public Function CreateFromAllExisting(ByVal query as stdICallable) as Collection
+Public Function CreateManyFromQuery(ByVal query as stdICallable) as Collection
     Dim pEntry as PROCESSENTRY32: pEntry.dwSize = LenB(pEntry)
     Dim snapshot As LongPtr: snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, ByVal 0&)
     Dim continueSearch as boolean: continueSearch = Process32First(snapshot, pEntry)
@@ -125,12 +125,37 @@ Public Function CreateFromAllExisting(ByVal query as stdICallable) as Collection
                 Call proc.protInitFromProcessId(.item("id"), .item("name"), .item("path"), .item("moduleID"))
                 ret.add proc
             End With
-        else
-            continueSearch = Process32Next(snapshot,pEntry)
         end if
+
+        continueSearch = Process32Next(snapshot,pEntry)
     wend
     Call CloseHandle(snapshot)
-    set CreateFromAllExisting = ret
+    set CreateManyFromQuery = ret
+End Function
+
+'Obtains a collection of processes which match the query given
+'@constructor
+'@returns {Collection<stdProcess>} All processes
+Public Function CreateMany() As Collection
+    Dim pEntry As PROCESSENTRY32: pEntry.dwSize = LenB(pEntry)
+    Dim snapshot As LongPtr: snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, ByVal 0&)
+    Dim continueSearch As Boolean: continueSearch = Process32First(snapshot, pEntry)
+    Dim ret As Collection: Set ret = New Collection
+    While continueSearch
+        Dim oDict As Object: Set oDict = getQueryDictFromEntry(pEntry)
+
+        With oDict
+            Dim proc As stdProcess
+            Set proc = New stdProcess
+            Call proc.protInitFromProcessId(.Item("id"), .Item("name"), .Item("path"), .Item("moduleID"))
+            ret.add proc
+        End With
+
+        continueSearch = Process32Next(snapshot, pEntry)
+
+    Wend
+    Call CloseHandle(snapshot)
+    Set CreateMany = ret
 End Function
 
 'Initialises a process object from process id and other data. Optional args are generated if not supplied
@@ -250,17 +275,23 @@ End Function
 '@returns {String} - The fully qualified path to the process
 Private Function getProcessImageName(ByVal lProcessID As Long) As String
     Dim hProcess As LongPtr
-    Dim sBuf As String
-    Dim sChar As Long
-
     hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, 0, lProcessID)
     If hProcess Then
+        Dim sBuf As String
         sBuf = String$(MAX_PATH, Chr$(0))
-        Call QueryFullProcessImageNameA(hProcess, 0, sBuf, MAX_PATH)
-        sBuf = Left$(sBuf, sChar)
+
+        Dim iLen As Long
+        iLen = MAX_PATH
+
+        Call QueryFullProcessImageNameA(hProcess, 0, sBuf, iLen)
+        sBuf = Left$(sBuf, iLen)
+
+        'Close handle 
+        Call CloseHandle(hProcess)
+    else
+        Debug.print "Error in getProcessImageName - 0x" & Hex(Err.LastDllError)
     End If
     getProcessImageName = sBuf
-    Call CloseHandle(hProcess)
 End Function
 
 
