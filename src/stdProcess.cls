@@ -9,28 +9,28 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 Private Declare PtrSafe Function CreateToolhelp32Snapshot Lib "Kernel32.dll" ( _
-    ByVal dwFlags As Integer, _
-    ByVal th32ProcessID As Integer _
+  ByVal dwFlags As Integer, _
+  ByVal th32ProcessID As Integer _
 ) As Long
  
 Private Declare PtrSafe Function Process32First Lib "Kernel32.dll" ( _
-    ByVal hSnapshot As LongPtr, _
-    ByRef lppe As PROCESSENTRY32 _
+  ByVal hSnapshot As LongPtr, _
+  ByRef lppe As PROCESSENTRY32 _
 ) As Boolean
 Private Declare PtrSafe Function Process32Next Lib "Kernel32.dll" ( _
-    ByVal hSnapshot As LongPtr, _
-    ByRef lppe As PROCESSENTRY32 _
+  ByVal hSnapshot As LongPtr, _
+  ByRef lppe As PROCESSENTRY32 _
 ) As Boolean
 
 Private Declare PtrSafe Function CloseHandle Lib "Kernel32.dll" ( _
-    ByVal hObject As LongPtr _
+  ByVal hObject As LongPtr _
 ) As Long
 
 Private Declare PtrSafe Function QueryFullProcessImageNameA Lib "Kernel32.dll" ( _
-    ByVal hProcess As LongPtr, _
-    ByVal dwFlags As Long, _
-    ByVal lpExeName As String, _
-    ByRef lpdwSize As Long _
+  ByVal hProcess As LongPtr, _
+  ByVal dwFlags As Long, _
+  ByVal lpExeName As String, _
+  ByRef lpdwSize As Long _
 ) As Boolean
 
 Private Declare PtrSafe Function OpenProcess Lib "Kernel32.dll" ( _
@@ -70,10 +70,13 @@ Private Declare PtrSafe Function GetPriorityClass Lib "Kernel32.dll" ( _
   ByVal hProcess As LongPtr _
 ) As Long
 
+Private Declare PtrSafe Function FileTimeToSystemTime Lib "Kernel32.dll" ( _
+  ByRef lpFileTime As FileTime, _
+  ByRef lpSystemTime As SystemTime _
+) As Boolean
 
-Const MAX_PATH = 260
-Const TH32CS_SNAPPROCESS = &H2&
 
+'The priority of the process, use #Priority to get one of these values
 Public Enum EProcessPriority
   ABOVE_NORMAL_PRIORITY_CLASS = &H8000
   BELOW_NORMAL_PRIORITY_CLASS = &H4000
@@ -83,6 +86,9 @@ Public Enum EProcessPriority
   REALTIME_PRIORITY_CLASS = &H100
 End Enum
 
+'EProcessAccess is an enum 
+'This is used by OpenProcess and ultimately protProcessHandleCreate(...). You generally shouldn't need this enum.
+'@protected
 Public Enum EProcessAccess
   PROCESS_CREATE_PROCESS = &H80
   PROCESS_CREATE_THREAD = &H2
@@ -99,23 +105,49 @@ Public Enum EProcessAccess
   SYNCHRONIZE = &H100000
 End Enum
 
+
+Private Enum TH32CS
+  TH32CS_INHERIT = &H80000000
+  TH32CS_SNAPHEAPLIST = &H1
+  TH32CS_SNAPMODULE = &H8
+  TH32CS_SNAPMODULE32 = &H10
+  TH32CS_SNAPPROCESS = &H2
+  TH32CS_SNAPTHREAD = &H4
+End Enum
+
 Private Type FileTime
   dwLowDateTime As Long
   dwHighDateTime As Long
 End Type
 
-Private Type PROCESSENTRY32
-    dwSize As Long
-    cntUsage As Long
-    th32ProcessID As Long
-    th32DefaultHeapID As LongPtr
-    th32ModuleID As Long
-    cntThreads As Long
-    th32ParentProcessID As Long
-    pcPriClassBase As Long
-    dwFlags As Long
-    szexeFile As String * MAX_PATH
+Private Type SystemTime
+  wYear As Integer
+  wMonth As Integer
+  wDayOfWeek As Integer
+  wDay As Integer
+  wHour As Integer
+  wMinute As Integer
+  wSecond As Integer
+  wMilliseconds As Integer
 End Type
+
+Private Const MAX_PATH = 260
+Private Type PROCESSENTRY32
+  dwSize As Long
+  cntUsage As Long
+  th32ProcessID As Long
+  th32DefaultHeapID As LongPtr
+  th32ModuleID As Long
+  cntThreads As Long
+  th32ParentProcessID As Long
+  pcPriClassBase As Long
+  dwFlags As Long
+  szexeFile As String * MAX_PATH
+End Type
+
+
+
+Private pProcessCache As Object
 
 Private pProcessId As Long
 Private pModuleID As Long
@@ -131,8 +163,8 @@ Private pQueryInfoHandle As LongPtr
 '@param {ByVal vbAppWinStyle} - The style to show the window
 '@returns {stdProcess} - The launched process
 Public Function Create(ByVal sCmd As String, Optional ByVal winStyle As VbAppWinStyle = VbAppWinStyle.vbHide) As stdProcess
-    Set Create = New stdProcess
-    Call Create.protInitFromProcessId(Shell(sCmd, winStyle))
+  Set Create = New stdProcess
+  Call Create.protInitFromProcessId(Shell(sCmd, winStyle))
 End Function
 
 'Creates a process from a given process id
@@ -140,8 +172,8 @@ End Function
 '@param {ByVal Long} - the process id
 '@returns {stdProcess} the queried process
 Public Function CreateFromProcessId(ByVal pID As Long) As stdProcess
-    Set CreateFromProcessId = New stdProcess
-    Call CreateFromProcessId.protInitFromProcessId(pID)
+  Set CreateFromProcessId = New stdProcess
+  Call CreateFromProcessId.protInitFromProcessId(pID)
 End Function
 
 'Obtains a the first process which matches the query given
@@ -149,74 +181,66 @@ End Function
 '@param {stdICallable} - The query to search processes for
 '@returns {stdProcess} the queried process
 Public Function CreateFromQuery(ByVal query As stdICallable) As stdProcess
-    Dim pEntry As PROCESSENTRY32: pEntry.dwSize = LenB(pEntry)
-    Dim snapshot As LongPtr: snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, ByVal 0&)
-    Dim continueSearch As Boolean: continueSearch = Process32First(snapshot, pEntry)
-    While continueSearch
-        Dim oDict As Object: Set oDict = getQueryDictFromEntry(pEntry)
-        If query.Run(oDict) Then
-            With oDict
-                Set CreateFromQuery = New stdProcess
-                Call CreateFromQuery.protInitFromProcessId(.item("id"), .item("name"), .item("path"), .item("moduleID"))
-                Call CloseHandle(snapshot)
-                Exit Function
-            End With
-        Else
-            continueSearch = Process32Next(snapshot, pEntry)
+  Dim pEntry As PROCESSENTRY32: pEntry.dwSize = LenB(pEntry)
+  Dim snapshot As LongPtr: snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, ByVal 0&)
+  Dim continueSearch As Boolean: continueSearch = Process32First(snapshot, pEntry)
+  While continueSearch
+    If pEntry.th32ProcessID <> 0 Then
+        Dim p As stdProcess: Set p = getProcessFromEntry(pEntry)
+        If query.Run(p) Then
+          Set CreateFromQuery = p
+          Call CloseHandle(snapshot)
+          Exit Function
         End If
-    Wend
-    Call CloseHandle(snapshot)
+    End If
+    
+    'Next process
+    continueSearch = Process32Next(snapshot, pEntry)
+  Wend
+  Call CloseHandle(snapshot)
 End Function
 
 'Obtains a collection of processes which match the query given
 '@constructor
 '@param {stdICallable} - The query to search processes for
 '@returns {Collection<stdProcess>}
-Public Function CreateManyFromQuery(ByVal query As stdICallable) As collection
-    Dim pEntry As PROCESSENTRY32: pEntry.dwSize = LenB(pEntry)
-    Dim snapshot As LongPtr: snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, ByVal 0&)
-    Dim continueSearch As Boolean: continueSearch = Process32First(snapshot, pEntry)
-    Dim ret As collection: Set ret = New collection
-    While continueSearch
-        Dim oDict As Object: Set oDict = getQueryDictFromEntry(pEntry)
-        If query.Run(oDict) Then
-            With oDict
-                Dim proc As stdProcess
-                Set proc = New stdProcess
-                Call proc.protInitFromProcessId(.item("id"), .item("name"), .item("path"), .item("moduleID"))
-                ret.add proc
-            End With
-        End If
-
-        continueSearch = Process32Next(snapshot, pEntry)
-    Wend
-    Call CloseHandle(snapshot)
-    Set CreateManyFromQuery = ret
+Public Function CreateManyFromQuery(ByVal query As stdICallable) As Collection
+  Dim pEntry As PROCESSENTRY32: pEntry.dwSize = LenB(pEntry)
+  Dim snapshot As LongPtr: snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, ByVal 0&)
+  Dim continueSearch As Boolean: continueSearch = Process32First(snapshot, pEntry)
+  Dim ret As Collection: Set ret = New Collection
+  While continueSearch
+    If pEntry.th32ProcessID <> 0 Then
+      Dim p As stdProcess: Set p = getProcessFromEntry(pEntry)
+      If query.Run(p) Then
+        Call ret.add(p)
+      End If
+    End If
+    
+    'Next process
+    continueSearch = Process32Next(snapshot, pEntry)
+  Wend
+  Call CloseHandle(snapshot)
+  Set CreateManyFromQuery = ret
 End Function
 
 'Obtains a collection of processes which match the query given
 '@constructor
 '@returns {Collection<stdProcess>} All processes
-Public Function CreateAll() As collection
-    Dim pEntry As PROCESSENTRY32: pEntry.dwSize = LenB(pEntry)
-    Dim snapshot As LongPtr: snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, ByVal 0&)
-    Dim continueSearch As Boolean: continueSearch = Process32First(snapshot, pEntry)
-    Dim ret As collection: Set ret = New collection
-    While continueSearch
-        Dim oDict As Object: Set oDict = getQueryDictFromEntry(pEntry)
+Public Function CreateAll() As Collection
+  Dim pEntry As PROCESSENTRY32: pEntry.dwSize = LenB(pEntry)
+  Dim snapshot As LongPtr: snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, ByVal 0&)
+  Dim continueSearch As Boolean: continueSearch = Process32First(snapshot, pEntry)
+  Dim ret As Collection: Set ret = New Collection
+  While continueSearch
+    'Add proc to return collection
+    Call ret.add(getProcessFromEntry(pEntry))
 
-        With oDict
-            Dim proc As stdProcess
-            Set proc = New stdProcess
-            Call proc.protInitFromProcessId(.item("id"), .item("name"), .item("path"), .item("moduleID"))
-            ret.add proc
-        End With
-
-        continueSearch = Process32Next(snapshot, pEntry)
-
-    Wend
-    Call CloseHandle(snapshot)
-    Set CreateAll = ret
+    'Next process
+    continueSearch = Process32Next(snapshot, pEntry)
+  Wend
+  Call CloseHandle(snapshot)
+  Set CreateAll = ret
 End Function
 
 '================================================================================================
@@ -232,20 +256,19 @@ End Function
 '@param {ByVal Long   = 0} - The process module id
 '@returns {VOID}
 Public Sub protInitFromProcessId(ByVal argID As Long, Optional ByVal argName As String = "", Optional ByVal argPath As String = "", Optional ByVal argModuleID As Long = 0)
-    pProcessId = argID
-    pModuleID = argModuleID
-    pName = argName
-    pPath = argPath
-    If argModuleID = 0 Then pModuleID = getModuleIDByPid(argID)
-    If Len(argName) = 0 Then pName = getProcessNameById(argID)
-    If Len(argPath) = 0 Then pPath = getProcessImageName(argID)
-    pQueryInfoHandle = OpenProcess(PROCESS_QUERY_INFORMATION, False, argID)
+  pProcessId = argID
+  pModuleID = argModuleID
+  pName = argName
+  pPath = argPath
+  If argModuleID = 0 Then pModuleID = getModuleIDByPid(argID)
+  If Len(argName) = 0 Then pName = getProcessNameById(argID)
+  If Len(argPath) = 0 Then pPath = getProcessImageName(argID)
+  pQueryInfoHandle = OpenProcess(PROCESS_QUERY_INFORMATION, False, argID)
 End Sub
 
 Private Sub Class_Terminate()
-    Call CloseHandle(pQueryInfoHandle)
+  Call CloseHandle(pQueryInfoHandle)
 End Sub
-
 
 '================================================================================================
 '=      PUBLIC PROPERTIES
@@ -254,13 +277,13 @@ End Sub
 'Obtain the process id
 '@returns {Long} - the process id
 Public Property Get id() As Long
-    id = pProcessId
+  id = pProcessId
 End Property
 
 'Obtain the process module id
 '@returns {Long} - the process module id
 Public Property Get moduleID() As Long
-    moduleID = pModuleID
+  moduleID = pModuleID
 End Property
 
 'TODO: SessionID
@@ -269,27 +292,27 @@ End Property
 'Obtain the process name
 '@returns {Long} - the process name
 Public Property Get name() As String
-    name = pName
+  name = pName
 End Property
 
 'Obtain the process path
 '@returns {Long} - the process path
 Public Property Get path() As String
-    path = pPath
+  path = pPath
 End Property
 
 'Returns the Winmgmts object representing the process
 '@returns {Object<SWbemObjectEx>}
 Public Property Get Winmgmt() As Object
-    Static cache As Object
-    If cache Is Nothing Then Set cache = GetObject("WINMGMTS:\\.\ROOT\cimv2:Win32_Process.Handle=" & pProcessId)
-    Set Winmgmt = cache
+  Static cache As Object
+  If cache Is Nothing Then Set cache = GetObject("WINMGMTS:\\.\ROOT\cimv2:Win32_Process.Handle=" & pProcessId)
+  Set Winmgmt = cache
 End Property
 
 'Attempts to return the command line of the application. Please note [the command line may have changed](https://devblogs.microsoft.com/oldnewthing/20091125-00/?p=15923).
 '@returns {String} The string which originally contained the command line arguments passed to this application.
 Public Property Get CommandLine() As String
-    If Not Winmgmt Is Nothing Then CommandLine = Winmgmt.CommandLine
+  If Not Winmgmt Is Nothing Then CommandLine = Winmgmt.CommandLine
 End Property
 
 'Returns whether the process is still running or not
@@ -308,29 +331,31 @@ Public Property Get isCritical() As Boolean
   End If
 End Function
 
+'Get the process' priority
+'@returns {EProcessPriority} the process' priority
 Public Property Get Priority() As EProcessPriority
   Priority = GetPriorityClass(pQueryInfoHandle)
 End Property
 
 
 'Get the datetime representing the time the process was started/created
-'@returns {String} The datetime representing the time the process was started/created
-Public Property Get TimeCreated() As String
+'@returns {Date} The datetime representing the time the process was started/created
+Public Property Get TimeCreated() As Date
   Dim t1 As FileTime, t2 As FileTime, t3 As FileTime, t4 As FileTime
   If GetProcessTimes(pQueryInfoHandle, t1, t2, t3, t4) Then
-    TimeCreated = t1.dwHighDateTime & " " & t1.dwLowDateTime
+    TimeCreated = TimeFromFileTime(t1)
   Else
     Call Err.Raise(1, "stdProcess.TimeCreated", "Cannot get creation time of process. Error code 0x" & Hex(Err.LastDllError))
   End If
 End Property
 
 'Get the datetime representing the time the process was quit
-'@returns {String} The datetime representing the time the process was quit
-Public Property Get TimeQuit() As String
+'@returns {Date} The datetime representing the time the process was quit
+Public Property Get TimeQuit() As Date
   Dim t1 As FileTime, t2 As FileTime, t3 As FileTime, t4 As FileTime
   If Not isRunning Then
     If GetProcessTimes(pQueryInfoHandle, t1, t2, t3, t4) Then
-      TimeQuit = t2.dwHighDateTime & " " & t2.dwLowDateTime
+      TimeQuit = TimeFromFileTime(t2)
     Else
       Call Err.Raise(1, "stdProcess.TimeQuit", "Cannot get creation time of process. Error code 0x" & Hex(Err.LastDllError))
     End If
@@ -340,29 +365,29 @@ Public Property Get TimeQuit() As String
 End Property
 
 'Get the amount of time that the process has executed in kernel mode
-'@returns {String} The datetime representing the kernel time
-Public Property Get TimeKernel() As String
+'@returns {Date} The datetime representing the kernel time
+Public Property Get TimeKernel() As Date
   Dim t1 As FileTime, t2 As FileTime, t3 As FileTime, t4 As FileTime
   If GetProcessTimes(pQueryInfoHandle, t1, t2, t3, t4) Then
-    TimeKernel = t3.dwHighDateTime & " " & t3.dwLowDateTime
+    TimeKernel = TimeFromFileTime(t3)
   Else
     Call Err.Raise(1, "stdProcess.TimeKernel", "Cannot get creation time of process. Error code 0x" & Hex(Err.LastDllError))
   End If
 End Property
 
 'Get the amount of time that the process has executed in user mode
-'@returns {String} The datetime representing the user time
-Public Property Get TimeUser() As String
+'@returns {Date} The datetime representing the user time
+Public Property Get TimeUser() As Date
   Dim t1 As FileTime, t2 As FileTime, t3 As FileTime, t4 As FileTime
   If GetProcessTimes(pQueryInfoHandle, t1, t2, t3, t4) Then
-    TimeUser = t4.dwHighDateTime & " " & t4.dwLowDateTime
+    TimeUser = TimeFromFileTime(t4)
   Else
     Call Err.Raise(1, "stdProcess.TimeUser", "Cannot get creation time of process. Error code 0x" & Hex(Err.LastDllError))
   End If
 End Property
 
-
-'@returns {Long} -1 if cannot get ExitCode, otherwise the exit code provided at runtime
+'Get the exit code of this process. Note, an exit code is only ever received if the process has ended. Check isRunning prior to calling this function.
+'@returns {Long} the exit code provided at runtime
 Public Property Get ExitCode() As Long
   'Note: GetExitCodeProcess can return a weird boolean where `bool` and `Not bool` both result in `True`, which is nonsense...
   'for this reason we explicitely cast to a long here...
@@ -439,81 +464,97 @@ End Sub
 'Obtain a Dictionary object used for Querying.
 '@param {PROCESSENTRY32} - The PROCESSENTRY32 entry to convert to a dictionary.
 '@returns {Dictionary<string: variant>} - Dictionary of process information
-Private Function getQueryDictFromEntry(entry As PROCESSENTRY32) As Object
-    Dim ret As Object: Set ret = CreateObject("Scripting.Dictionary")
-    ret("id") = entry.th32ProcessID
-    ret("parentID") = entry.th32ParentProcessID
-    ret("moduleID") = entry.th32ModuleID
-    ret("name") = Left(entry.szexeFile, InStr(1, entry.szexeFile, vbNullChar) - 1)
-    ret("path") = getProcessImageName(entry.th32ProcessID)
-    Set getQueryDictFromEntry = ret
+Private Function getProcessFromEntry(entry As PROCESSENTRY32) As stdProcess
+  Dim ret As stdProcess
+  Set ret = New stdProcess
+  
+  With entry
+    Dim sName As String: sName = Left(.szexeFile, InStr(1, .szexeFile, vbNullChar) - 1)
+    Dim sPath As String: sPath = getProcessImageName(.th32ProcessID)
+    Call ret.protInitFromProcessId(.th32ProcessID, sName, sPath, .th32ModuleID)
+  End With
+  
+  Set getProcessFromEntry = ret
 End Function
 
 'Obtain the Process name from the ProcessID
 '@param {ByVal Long} - The process id
 '@returns {Long} - The process name
 Private Function getProcessNameById(ByVal lProcessID As Long) As String
-    Dim entry As PROCESSENTRY32: entry = getCachedProcessEntry(lProcessID)
-    getProcessNameById = Left(entry.szexeFile, InStr(1, entry.szexeFile, vbNullChar) - 1)
+  Dim entry As PROCESSENTRY32: entry = getCachedProcessEntry(lProcessID)
+  getProcessNameById = Left(entry.szexeFile, InStr(1, entry.szexeFile, vbNullChar) - 1)
 End Function
 
 'Obtain the ModuleID from the ProcessID
 '@param {ByVal Long} - The process id
 '@returns {Long} - The module id
 Private Function getModuleIDByPid(ByVal lProcessID As Long) As Long
-    Dim entry As PROCESSENTRY32: entry = getCachedProcessEntry(lProcessID)
-    getModuleIDByPid = entry.th32ModuleID
+  Dim entry As PROCESSENTRY32: entry = getCachedProcessEntry(lProcessID)
+  getModuleIDByPid = entry.th32ModuleID
 End Function
 
 'Obtain the PROCESSENTRY32 struct from the ProcessID
 '@param {ByVal Long} - The process id
 '@returns {PROCESSENTRY32} - The PROCESSENTRY32 representing the process' data
 Private Function getCachedProcessEntry(ByVal lProcessID As Long, Optional ByVal Override As Boolean = False) As PROCESSENTRY32
-    Static pEntry As PROCESSENTRY32
-    Static stcProcessID As Long
-    If stcProcessID <> lProcessID Or Override Then
-        stcProcessID = lProcessID
-        pEntry.dwSize = LenB(pEntry)
+  Static pEntry As PROCESSENTRY32
+  Static stcProcessID As Long
+  If stcProcessID <> lProcessID Or Override Then
+    stcProcessID = lProcessID
+    pEntry.dwSize = LenB(pEntry)
 
-        Dim snapshot As LongPtr: snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, ByVal 0&)
-        Dim continueSearch As Boolean: continueSearch = Process32First(snapshot, pEntry)
-        While continueSearch
-            If pEntry.th32ProcessID = lProcessID Then
-                continueSearch = False
-            Else
-                continueSearch = Process32Next(snapshot, pEntry)
-            End If
-        Wend
-        Call CloseHandle(snapshot)
-    End If
-    getCachedProcessEntry = pEntry
+    Dim snapshot As LongPtr: snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, ByVal 0&)
+    Dim continueSearch As Boolean: continueSearch = Process32First(snapshot, pEntry)
+    While continueSearch
+      If pEntry.th32ProcessID = lProcessID Then
+        continueSearch = False
+      Else
+        continueSearch = Process32Next(snapshot, pEntry)
+      End If
+    Wend
+    Call CloseHandle(snapshot)
+  End If
+  getCachedProcessEntry = pEntry
 End Function
 
 'Obtain the full qualified path of a process from it's ProcessID
 '@param {ByVal Long} - The process id
 '@returns {String} - The fully qualified path to the process
 Public Function getProcessImageName(ByVal lProcessID As Long) As String
-    Dim hProcess As LongPtr
-    hProcess = OpenProcess(EProcessAccess.PROCESS_QUERY_INFORMATION, 0, lProcessID)
-    If hProcess Then
-        Dim sBuf As String
-        sBuf = String$(MAX_PATH, Chr$(0))
+  Dim hProcess As LongPtr
+  hProcess = OpenProcess(EProcessAccess.PROCESS_QUERY_INFORMATION, 0, lProcessID)
+  If hProcess Then
+    Dim sBuf As String
+    sBuf = String$(MAX_PATH, Chr$(0))
 
-        Dim iLen As Long
-        iLen = MAX_PATH
+    Dim iLen As Long
+    iLen = MAX_PATH
 
-        Call QueryFullProcessImageNameA(hProcess, 0, sBuf, iLen)
-        sBuf = Left$(sBuf, iLen)
+    Call QueryFullProcessImageNameA(hProcess, 0, sBuf, iLen)
+    sBuf = Left$(sBuf, iLen)
 
-        'Close handle
-        Call CloseHandle(hProcess)
+    'Close handle
+    Call CloseHandle(hProcess)
+  Else
+    If Err.LastDllError <> 5 Then
+      Debug.Print "Error in getProcessImageName of process " & lProcessID & " with code: 0x" & Hex(Err.LastDllError)
     Else
-        If Err.LastDllError <> 5 Then
-            Debug.Print "Error in getProcessImageName of process " & lProcessID & " with code: 0x" & Hex(Err.LastDllError)
-        Else
-            'Unauthorised - some system processes have this issue.
-        End If
+      'Unauthorised - some system processes have this issue.
     End If
-    getProcessImageName = sBuf
+  End If
+  getProcessImageName = sBuf
 End Function
 
+'Convert a FileTime struct into an Excel DateTime value.
+'@param {FileTime} The filetime to get the Excel date of
+'@returns {Date} The Excel date represented by the FileTime
+Private Function TimeFromFileTime(ByRef ft As FileTime) As Date
+  Dim st As SystemTime
+  If FileTimeToSystemTime(ft, st) Then
+    With st
+      TimeFromFileTime = DateSerial(.wYear, .wMonth, .wDay) + TimeSerial(.wHour, .wMinute, .wSecond)
+    End With
+  Else
+    Err.Raise Err.LastDllError, "TimeFromFileTime", "Unhandled error in time conversion. Error number: " & Err.LastDllError
+  End If
+End Function
