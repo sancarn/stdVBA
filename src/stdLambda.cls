@@ -15,7 +15,7 @@ Attribute VB_Exposed = False
 Implements stdICallable
 
 'Direct call convention of VBA.CallByName
-#If not Mac then
+#If Not Mac Then
     #If VBA7 Then
         'VBE7 is interchangable with msvbvm60.dll    however VBE7.dll appears to always be present where as msvbvm60 is only occasionally present.
         Private Declare PtrSafe Function rtcCallByName Lib "VBE7.dll" (ByVal cObj As Object, ByVal sMethod As LongPtr, ByVal eCallType As VbCallType, ByRef pArgs() As Variant, ByVal lcid As Long) As Variant
@@ -123,13 +123,11 @@ Const minStackSize = 30 'note that the stack size may become smaller than this
 
 '@protected
 Public oFunctExt As Object 'Dictionary<string => stdCallback>
-
-Private vLastArgs As Variant
 Private oCache As Object
 
-Private bBound as boolean
-Private oBound as stdLambda
-Private vBound as variant
+Private bBound As Boolean
+Private oBound As stdLambda
+Private vBound As Variant
 
 
 ''Usage:
@@ -158,18 +156,18 @@ Public Function CreateMultiline(ByRef sEquation As Variant, Optional ByVal bSand
     Set CreateMultiline = Create(Join(sEquation, " "), bSandboxExtras)
 End Function
 
-Public Function BindEx(ByVal params as variant) as stdLambda
-    set BindEx = new stdLambda
-    Dim callable as stdICallable: set callable = me
-    Call BindEx.init(LambdaType.iBoundLambda, callable, params)
+Public Function BindEx(ByVal params As Variant) As stdLambda
+    Set BindEx = New stdLambda
+    Dim callable As stdICallable: Set callable = Me
+    Call BindEx.Init(LambdaType.iBoundLambda, callable, params)
 End Function
 
 'Bind a global variable to the function
 '@param {String} - New global name
 '@param {Variant}- Data to store in global variable
 '@returns {stdLambda} The lambda existing lambda
-Public Function BindGlobal(ByVal sGlobalName as string, ByVal variable as Variant) as stdLambda
-    set BindGlobal = Me
+Public Function BindGlobal(ByVal sGlobalName As String, ByVal variable As Variant) As stdLambda
+    Set BindGlobal = Me
     If bBound Then
         Call oBound.BindGlobal(sGlobalName, variable)
     Else
@@ -182,17 +180,17 @@ Public Function BindGlobal(ByVal sGlobalName as string, ByVal variable as Varian
 End Function
 
 
-Public Sub Init(ByVal iLambdaType as long, ParamArray params() as variant)
+Public Sub Init(ByVal iLambdaType As Long, ParamArray params() As Variant)
     Select Case iLambdaType
         Case LambdaType.iStandardLambda
-            Dim sEquation as string: sEquation = params(0)
-            Dim bSandboxExtras as boolean: bSandboxExtras = params(1)
+            Dim sEquation As String: sEquation = params(0)
+            Dim bSandboxExtras As Boolean: bSandboxExtras = params(1)
 
             'Function extensions
             Set oFunctExt = stdLambda.oFunctExt
-            If bSandboxExtras OR oFunctExt is nothing Then set oFunctExt = CreateObject("Scripting.Dictionary")
+            If bSandboxExtras Or oFunctExt Is Nothing Then Set oFunctExt = CreateObject("Scripting.Dictionary")
 
-            bBound = false
+            bBound = False
             tokens = Tokenise(sEquation)
             iTokenIndex = 1
             iOperationIndex = 0
@@ -203,75 +201,68 @@ Public Sub Init(ByVal iLambdaType as long, ParamArray params() as variant)
             Call finishOperations
 
         Case LambdaType.iBoundLambda
-            bBound = true
-            set oBound = params(0)
+            bBound = True
+            Set oBound = params(0)
             vBound = params(1)
             
             'Function extensions
             Set oFunctExt = stdLambda.oFunctExt
-            If bSandboxExtras OR oFunctExt is nothing Then set oFunctExt = CreateObject("Scripting.Dictionary")
+            If bSandboxExtras Or oFunctExt Is Nothing Then Set oFunctExt = CreateObject("Scripting.Dictionary")
         Case Else
             'error?
-    end select
+    End Select
 End Sub
 
 Private Function stdICallable_Run(ParamArray params() As Variant) As Variant
-    if not bBound then
-        'Bind args
-        vLastArgs = params
-
+    If Not bBound Then
         'Execute top-down parser
-        Call CopyVariant(stdICallable_Run, evaluate(operations))
-    else
-        Call CopyVariant(stdICallable_Run, oBound.RunEx(ConcatArrays(vBound,params)))
-    end if
+        Call CopyVariant(stdICallable_Run, evaluate(operations, params))
+    Else
+        Call CopyVariant(stdICallable_Run, oBound.RunEx(ConcatArrays(vBound, params)))
+    End If
 End Function
 Private Function stdICallable_RunEx(ByVal params As Variant) As Variant
-    if not bBound then
-        'Bind args
-        vLastArgs = params
-
+    If Not isArray(params) Then
+        Err.Raise 1, "params to be supplied as array of arguments", ""
+    End If
+    
+    If Not bBound Then
         'Execute top-down parser
-        Call CopyVariant(stdICallable_RunEx, evaluate(operations))
-    else
-        Call CopyVariant(stdICallable_RunEx, oBound.RunEx(ConcatArrays(vBound,params)))
-    end if
+        Call CopyVariant(stdICallable_RunEx, evaluate(operations, params))
+    Else
+        Call CopyVariant(stdICallable_RunEx, oBound.RunEx(ConcatArrays(vBound, params)))
+    End If
 End Function
 
 Function Run(ParamArray params() As Variant) As Variant
 Attribute Run.VB_UserMemId = 0
-    if not bBound then
-        'Bind args
-        vLastArgs = params
-
+    If Not bBound Then
         'Execute top-down parser
-        Call CopyVariant(Run, evaluate(operations))
-    else
-        Call CopyVariant(Run, oBound.RunEx(ConcatArrays(vBound,params)))
-    end if
+        Call CopyVariant(Run, evaluate(operations, params))
+    Else
+        Call CopyVariant(Run, oBound.RunEx(ConcatArrays(vBound, params)))
+    End If
 End Function
 
 Function RunEx(ByVal params As Variant) As Variant
-    if not bBound then
-        if not isArray(params) then
+    If Not bBound Then
+        If Not isArray(params) Then
             Err.Raise 1, "params to be supplied as array of arguments", ""
-        end if
-        'Bind args
-        vLastArgs = params
+        End If
         
         'Execute top-down parser
-        Call CopyVariant(RunEx, evaluate(operations))
-    else
-        Call CopyVariant(RunEx, oBound.RunEx(ConcatArrays(vBound,params)))
-    end if
+        Call CopyVariant(RunEx, evaluate(operations, params))
+    Else
+        Call CopyVariant(RunEx, oBound.RunEx(ConcatArrays(vBound, params)))
+    End If
 End Function
 
 'Bind a parameter to the function
 Private Function stdICallable_Bind(ParamArray params() As Variant) As stdICallable
-    set stdICallable_Bind = BindEx(params)
+    Set stdICallable_Bind = BindEx(params)
 End Function
-Public Function Bind(ParamArray params() as variant) as stdLambda
-    set Bind = BindEx(params)
+Public Function Bind(ParamArray params() As Variant) As stdLambda
+    Set Bind = BindEx(params)
 End Function
 
 'Low-dependency function calling
@@ -280,21 +271,21 @@ End Function
 '@param {ByRef Boolean}      - Success of message. If message wasn't processed return false.
 '@param {Paramarray Variant} - Parameters to pass along with message
 '@returns {Variant} - Anything returned by the function
-Private Function stdICallable_SendMessage(ByVal sMessage as string, ByRef success as boolean, ByVal params as variant) as Variant
-    select case sMessage
-        case "obj"
-            set stdICallable_SendMessage = Me
-            success = true
-        case "className"
+Private Function stdICallable_SendMessage(ByVal sMessage As String, ByRef success As Boolean, ByVal params As Variant) As Variant
+    Select Case sMessage
+        Case "obj"
+            Set stdICallable_SendMessage = Me
+            success = True
+        Case "className"
             stdICallable_SendMessage = "stdLambda"
-            success = true
-        case "bindGlobal"
+            success = True
+        Case "bindGlobal"
             'Bind global based whether this is a bound lambda or not
             Call BindGlobal(params(0), params(1))
-            success = true
-        case else 
-            success = false
-    end select
+            success = True
+        Case Else
+            success = False
+    End Select
 End Function
 
 '================
@@ -451,7 +442,7 @@ Private Sub parseLogicPriority3() 'and
     Do
         If optConsume("and") Then
             Call parseLogicPriority4
-            Call addOperation(oLogic, oAND, , -1)
+            Call addOperation(oLogic, oAnd, , -1)
         Else
             bLoop = False
         End If
@@ -751,7 +742,7 @@ Private Sub parseAssignment()
         Call addOperation(oAccess, , offset, 1) ' To keep a return value
     Else
         ' If the variable didn't exist yet, treat this stack pos as its source
-        Call scopes(scopeCount).Add(varName, stackSize)
+        Call scopes(scopeCount).add(varName, stackSize)
     End If
 End Sub
 
@@ -825,8 +816,8 @@ Private Sub parseFunctionDeclaration()
     Call consume("rBracket")
     
     ' Register the function
-    Call scopes(scopeCount - 1).Add(funcName, iOperationIndex)
-    Call scopesArgCount(scopeCount - 1).Add(funcName, iArgCount)
+    Call scopes(scopeCount - 1).add(funcName, iOperationIndex)
+    Call scopesArgCount(scopeCount - 1).add(funcName, iArgCount)
     
     ' Obtain the body
     Call parseBlock("end")
@@ -851,7 +842,7 @@ Private Sub parseParameterDeclaration()
     Else
         ' Reserve a spot for this parameter, it will be pushed by the caller
         stackSize = stackSize + 1
-        Call scopes(scopeCount).Add(varName, stackSize)
+        Call scopes(scopeCount).add(varName, stackSize)
     End If
 End Sub
 
@@ -882,7 +873,7 @@ End Function
 'Evaluates the given list of operations
 '@param {Operation()} operations  The operations to evaluate
 '@returns {Variant} The result of the operations
-Private Function evaluate(ByRef ops() As Operation) As Variant
+Private Function evaluate(ByRef ops() As Operation, ByVal vLastArgs As Variant) As Variant
     Dim stack() As Variant
     ReDim stack(0 To 5)
     Dim stackPtr As Long: stackPtr = 0
@@ -1094,28 +1085,28 @@ Private Sub objectCaller(ByRef stack() As Variant, ByRef stackPtr As Long, ByRef
 End Sub
 
 'Calls an object method/setter/getter/letter. Treats dictionary properties as direct object properties, I.E. `A.B` ==> `A.item("B")`
-Public Function stdCallByName(ByRef obj as object, ByVal funcName as string,ByVal callerType as VbCallType, ByRef args() as variant) as Variant
-    'If Dictionary and 
-    if TypeName(obj) = "Dictionary" then
-        select case funcName
-            case "add","exists","items", "keys", "remove", "removeall","comparemode","count","item","key"
+Public Function stdCallByName(ByRef obj As Object, ByVal funcName As String, ByVal callerType As VbCallType, ByRef args() As Variant) As Variant
+    'If Dictionary and
+    If TypeName(obj) = "Dictionary" Then
+        Select Case funcName
+            Case "add", "exists", "items", "keys", "remove", "removeall", "comparemode", "count", "item", "key"
                 'These methods already exist on dictionary, do not override
-            case else
+            Case Else
                 'Call DictionaryInstance.Item(funcName) only if funcName exists on the item
-                if obj.exists(funcName) then
+                If obj.exists(funcName) Then
                     'TODO: Make this work for callerType.VbLet
-                    Call CopyVariant(stdCallByName,obj.item(funcName))
+                    Call CopyVariant(stdCallByName, obj.item(funcName))
                     Exit Function
-                end if
-        end select
-    end if
+                End If
+        End Select
+    End If
 
-    'Call CallByName from DLL or 
-    #if Mac then
+    'Call CallByName from DLL or
+    #If Mac Then
         Call CopyVariant(stdCallByName, macCallByName(obj, funcName, callerType, args))
-    #else
+    #Else
         Call CopyVariant(stdCallByName, rtcCallByName(obj, StrPtr(funcName), callerType, args, &H409))
-    #end if
+    #End If
 End Function
 
 'Evaluates the built in standard functions
@@ -1240,7 +1231,7 @@ Private Function evaluateFunc(ByVal sFuncName As String, ByVal args As Variant) 
         Case "trim":  evaluateFunc = VBA.Trim(args(iArgStart))
         Case "lcase": evaluateFunc = VBA.LCase(args(iArgStart))
         Case "ucase": evaluateFunc = VBA.UCase(args(iArgStart))
-        Case "right": evaluateFunc = VBA.Right(args(iArgStart), args(iArgStart + 1))
+        Case "right": evaluateFunc = VBA.right(args(iArgStart), args(iArgStart + 1))
         Case "left":  evaluateFunc = VBA.Left(args(iArgStart), args(iArgStart + 1))
         Case "len":   evaluateFunc = VBA.Len(args(iArgStart))
 
@@ -1552,7 +1543,7 @@ End Sub
 
 
 'Used by Bind() for binding arguments ontop of BoundArgs and binding bound args to passed arguments
-'@param {Variant()} The 1st array which will 
+'@param {Variant()} The 1st array which will
 '@param {Variant()} The 2nd array which will be concatenated after the 1st
 '@complexity O(1)
 Private Function ConcatArrays(ByVal Arr1 As Variant, ByVal Arr2 As Variant) As Variant
@@ -1593,79 +1584,79 @@ End Function
 '@param {ByVal VbCallType} - The property/method call type
 '@param {ByVal Variant()}  - An array of arguments. This function supports up to 30 arguments, akin to Application.Run
 '@returns Variant - The return value of the called function
-Private Function macCallByName(ByRef obj as object, ByVal funcName as string, ByVal callerType as VbCallType, ByVal args as variant) as variant
+Private Function macCallByName(ByRef obj As Object, ByVal funcName As String, ByVal callerType As VbCallType, ByVal args As Variant) As Variant
     'Get currentLength
     Dim currentLength As Integer: currentLength = UBound(args) - LBound(args) + 1
-    Dim i as long: i = lbound(args)
+    Dim i As Long: i = LBound(args)
     
     'Cant use same trick as in stdCallback, as it seems CallByName doesn't support the Missing value... So have to do it this way...
     'Will go up to 30 as per Application.Run() Also seems that you can't pass args array directly to CallByName() because it causes an Overflow error,
     'instead we need to convert the args to vars first... Yes this doesn't look at all pretty, but at least it's compartmentalised to the end of the code...
-    Dim a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16,a17,a18,a19,a20,a21,a22,a23,a24,a25,a26,a27,a28,a29
-    if currentLength-1 >= 0  then Call CopyVariant(a0 ,args(i+0 )) else Goto macJmpCall
-    if currentLength-1 >= 1  then Call CopyVariant(a1 ,args(i+1 )) else Goto macJmpCall
-    if currentLength-1 >= 2  then Call CopyVariant(a2 ,args(i+2 )) else Goto macJmpCall
-    if currentLength-1 >= 3  then Call CopyVariant(a3 ,args(i+3 )) else Goto macJmpCall
-    if currentLength-1 >= 4  then Call CopyVariant(a4 ,args(i+4 )) else Goto macJmpCall
-    if currentLength-1 >= 5  then Call CopyVariant(a5 ,args(i+5 )) else Goto macJmpCall
-    if currentLength-1 >= 6  then Call CopyVariant(a6 ,args(i+6 )) else Goto macJmpCall
-    if currentLength-1 >= 7  then Call CopyVariant(a7 ,args(i+7 )) else Goto macJmpCall
-    if currentLength-1 >= 8  then Call CopyVariant(a8 ,args(i+8 )) else Goto macJmpCall
-    if currentLength-1 >= 9  then Call CopyVariant(a9 ,args(i+9 )) else Goto macJmpCall
-    if currentLength-1 >= 10 then Call CopyVariant(a10,args(i+10)) else Goto macJmpCall
-    if currentLength-1 >= 11 then Call CopyVariant(a11,args(i+11)) else Goto macJmpCall
-    if currentLength-1 >= 12 then Call CopyVariant(a12,args(i+12)) else Goto macJmpCall
-    if currentLength-1 >= 13 then Call CopyVariant(a13,args(i+13)) else Goto macJmpCall
-    if currentLength-1 >= 14 then Call CopyVariant(a14,args(i+14)) else Goto macJmpCall
-    if currentLength-1 >= 15 then Call CopyVariant(a15,args(i+15)) else Goto macJmpCall
-    if currentLength-1 >= 16 then Call CopyVariant(a16,args(i+16)) else Goto macJmpCall
-    if currentLength-1 >= 17 then Call CopyVariant(a17,args(i+17)) else Goto macJmpCall
-    if currentLength-1 >= 18 then Call CopyVariant(a18,args(i+18)) else Goto macJmpCall
-    if currentLength-1 >= 19 then Call CopyVariant(a19,args(i+19)) else Goto macJmpCall
-    if currentLength-1 >= 20 then Call CopyVariant(a20,args(i+20)) else Goto macJmpCall
-    if currentLength-1 >= 21 then Call CopyVariant(a21,args(i+21)) else Goto macJmpCall
-    if currentLength-1 >= 22 then Call CopyVariant(a22,args(i+22)) else Goto macJmpCall
-    if currentLength-1 >= 23 then Call CopyVariant(a23,args(i+23)) else Goto macJmpCall
-    if currentLength-1 >= 24 then Call CopyVariant(a24,args(i+24)) else Goto macJmpCall
-    if currentLength-1 >= 25 then Call CopyVariant(a25,args(i+25)) else Goto macJmpCall
-    if currentLength-1 >= 26 then Call CopyVariant(a26,args(i+26)) else Goto macJmpCall
-    if currentLength-1 >= 27 then Call CopyVariant(a27,args(i+27)) else Goto macJmpCall
-    if currentLength-1 >= 28 then Call CopyVariant(a28,args(i+28)) else Goto macJmpCall
-    if currentLength-1 >= 29 then Call CopyVariant(a29,args(i+29)) else Goto macJmpCall
+    Dim a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21, a22, a23, a24, a25, a26, a27, a28, a29
+    If currentLength - 1 >= 0 Then Call CopyVariant(a0, args(i + 0)) Else GoTo macJmpCall
+    If currentLength - 1 >= 1 Then Call CopyVariant(a1, args(i + 1)) Else GoTo macJmpCall
+    If currentLength - 1 >= 2 Then Call CopyVariant(a2, args(i + 2)) Else GoTo macJmpCall
+    If currentLength - 1 >= 3 Then Call CopyVariant(a3, args(i + 3)) Else GoTo macJmpCall
+    If currentLength - 1 >= 4 Then Call CopyVariant(a4, args(i + 4)) Else GoTo macJmpCall
+    If currentLength - 1 >= 5 Then Call CopyVariant(a5, args(i + 5)) Else GoTo macJmpCall
+    If currentLength - 1 >= 6 Then Call CopyVariant(a6, args(i + 6)) Else GoTo macJmpCall
+    If currentLength - 1 >= 7 Then Call CopyVariant(a7, args(i + 7)) Else GoTo macJmpCall
+    If currentLength - 1 >= 8 Then Call CopyVariant(a8, args(i + 8)) Else GoTo macJmpCall
+    If currentLength - 1 >= 9 Then Call CopyVariant(a9, args(i + 9)) Else GoTo macJmpCall
+    If currentLength - 1 >= 10 Then Call CopyVariant(a10, args(i + 10)) Else GoTo macJmpCall
+    If currentLength - 1 >= 11 Then Call CopyVariant(a11, args(i + 11)) Else GoTo macJmpCall
+    If currentLength - 1 >= 12 Then Call CopyVariant(a12, args(i + 12)) Else GoTo macJmpCall
+    If currentLength - 1 >= 13 Then Call CopyVariant(a13, args(i + 13)) Else GoTo macJmpCall
+    If currentLength - 1 >= 14 Then Call CopyVariant(a14, args(i + 14)) Else GoTo macJmpCall
+    If currentLength - 1 >= 15 Then Call CopyVariant(a15, args(i + 15)) Else GoTo macJmpCall
+    If currentLength - 1 >= 16 Then Call CopyVariant(a16, args(i + 16)) Else GoTo macJmpCall
+    If currentLength - 1 >= 17 Then Call CopyVariant(a17, args(i + 17)) Else GoTo macJmpCall
+    If currentLength - 1 >= 18 Then Call CopyVariant(a18, args(i + 18)) Else GoTo macJmpCall
+    If currentLength - 1 >= 19 Then Call CopyVariant(a19, args(i + 19)) Else GoTo macJmpCall
+    If currentLength - 1 >= 20 Then Call CopyVariant(a20, args(i + 20)) Else GoTo macJmpCall
+    If currentLength - 1 >= 21 Then Call CopyVariant(a21, args(i + 21)) Else GoTo macJmpCall
+    If currentLength - 1 >= 22 Then Call CopyVariant(a22, args(i + 22)) Else GoTo macJmpCall
+    If currentLength - 1 >= 23 Then Call CopyVariant(a23, args(i + 23)) Else GoTo macJmpCall
+    If currentLength - 1 >= 24 Then Call CopyVariant(a24, args(i + 24)) Else GoTo macJmpCall
+    If currentLength - 1 >= 25 Then Call CopyVariant(a25, args(i + 25)) Else GoTo macJmpCall
+    If currentLength - 1 >= 26 Then Call CopyVariant(a26, args(i + 26)) Else GoTo macJmpCall
+    If currentLength - 1 >= 27 Then Call CopyVariant(a27, args(i + 27)) Else GoTo macJmpCall
+    If currentLength - 1 >= 28 Then Call CopyVariant(a28, args(i + 28)) Else GoTo macJmpCall
+    If currentLength - 1 >= 29 Then Call CopyVariant(a29, args(i + 29)) Else GoTo macJmpCall
 
 macJmpCall:
-    select case currentLength
-        case 0:  Call CopyVariant(macCallByName,CallByName(obj,funcName,callerType))
-        case 1:  Call CopyVariant(macCallByName,CallByName(obj,funcName,callerType,a0))
-        case 2:  Call CopyVariant(macCallByName,CallByName(obj,funcName,callerType,a0,a1))
-        case 3:  Call CopyVariant(macCallByName,CallByName(obj,funcName,callerType,a0,a1,a2))
-        case 4:  Call CopyVariant(macCallByName,CallByName(obj,funcName,callerType,a0,a1,a2,a3))
-        case 5:  Call CopyVariant(macCallByName,CallByName(obj,funcName,callerType,a0,a1,a2,a3,a4))
-        case 6:  Call CopyVariant(macCallByName,CallByName(obj,funcName,callerType,a0,a1,a2,a3,a4,a5))
-        case 7:  Call CopyVariant(macCallByName,CallByName(obj,funcName,callerType,a0,a1,a2,a3,a4,a5,a6))
-        case 8:  Call CopyVariant(macCallByName,CallByName(obj,funcName,callerType,a0,a1,a2,a3,a4,a5,a6,a7))
-        case 9:  Call CopyVariant(macCallByName,CallByName(obj,funcName,callerType,a0,a1,a2,a3,a4,a5,a6,a7,a8))
-        case 10: Call CopyVariant(macCallByName,CallByName(obj,funcName,callerType,a0,a1,a2,a3,a4,a5,a6,a7,a8,a9))
-        case 11: Call CopyVariant(macCallByName,CallByName(obj,funcName,callerType,a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10))
-        case 12: Call CopyVariant(macCallByName,CallByName(obj,funcName,callerType,a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11))
-        case 13: Call CopyVariant(macCallByName,CallByName(obj,funcName,callerType,a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12))
-        case 14: Call CopyVariant(macCallByName,CallByName(obj,funcName,callerType,a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13))
-        case 15: Call CopyVariant(macCallByName,CallByName(obj,funcName,callerType,a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14))
-        case 16: Call CopyVariant(macCallByName,CallByName(obj,funcName,callerType,a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15))
-        case 17: Call CopyVariant(macCallByName,CallByName(obj,funcName,callerType,a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16))
-        case 18: Call CopyVariant(macCallByName,CallByName(obj,funcName,callerType,a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16,a17))
-        case 19: Call CopyVariant(macCallByName,CallByName(obj,funcName,callerType,a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16,a17,a18))
-        case 20: Call CopyVariant(macCallByName,CallByName(obj,funcName,callerType,a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16,a17,a18,a19))
-        case 21: Call CopyVariant(macCallByName,CallByName(obj,funcName,callerType,a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16,a17,a18,a19,a20))
-        case 22: Call CopyVariant(macCallByName,CallByName(obj,funcName,callerType,a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16,a17,a18,a19,a20,a21))
-        case 23: Call CopyVariant(macCallByName,CallByName(obj,funcName,callerType,a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16,a17,a18,a19,a20,a21,a22))
-        case 24: Call CopyVariant(macCallByName,CallByName(obj,funcName,callerType,a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16,a17,a18,a19,a20,a21,a22,a23))
-        case 25: Call CopyVariant(macCallByName,CallByName(obj,funcName,callerType,a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16,a17,a18,a19,a20,a21,a22,a23,a24))
-        case 26: Call CopyVariant(macCallByName,CallByName(obj,funcName,callerType,a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16,a17,a18,a19,a20,a21,a22,a23,a24,a25))
-        case 27: Call CopyVariant(macCallByName,CallByName(obj,funcName,callerType,a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16,a17,a18,a19,a20,a21,a22,a23,a24,a25,a26))
-        case 28: Call CopyVariant(macCallByName,CallByName(obj,funcName,callerType,a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16,a17,a18,a19,a20,a21,a22,a23,a24,a25,a26,a27))
-        case 29: Call CopyVariant(macCallByName,CallByName(obj,funcName,callerType,a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16,a17,a18,a19,a20,a21,a22,a23,a24,a25,a26,a27,a28))
-        case 30: Call CopyVariant(macCallByName,CallByName(obj,funcName,callerType,a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16,a17,a18,a19,a20,a21,a22,a23,a24,a25,a26,a27,a28,a29))
+    Select Case currentLength
+        Case 0:  Call CopyVariant(macCallByName, CallByName(obj, funcName, callerType))
+        Case 1:  Call CopyVariant(macCallByName, CallByName(obj, funcName, callerType, a0))
+        Case 2:  Call CopyVariant(macCallByName, CallByName(obj, funcName, callerType, a0, a1))
+        Case 3:  Call CopyVariant(macCallByName, CallByName(obj, funcName, callerType, a0, a1, a2))
+        Case 4:  Call CopyVariant(macCallByName, CallByName(obj, funcName, callerType, a0, a1, a2, a3))
+        Case 5:  Call CopyVariant(macCallByName, CallByName(obj, funcName, callerType, a0, a1, a2, a3, a4))
+        Case 6:  Call CopyVariant(macCallByName, CallByName(obj, funcName, callerType, a0, a1, a2, a3, a4, a5))
+        Case 7:  Call CopyVariant(macCallByName, CallByName(obj, funcName, callerType, a0, a1, a2, a3, a4, a5, a6))
+        Case 8:  Call CopyVariant(macCallByName, CallByName(obj, funcName, callerType, a0, a1, a2, a3, a4, a5, a6, a7))
+        Case 9:  Call CopyVariant(macCallByName, CallByName(obj, funcName, callerType, a0, a1, a2, a3, a4, a5, a6, a7, a8))
+        Case 10: Call CopyVariant(macCallByName, CallByName(obj, funcName, callerType, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9))
+        Case 11: Call CopyVariant(macCallByName, CallByName(obj, funcName, callerType, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10))
+        Case 12: Call CopyVariant(macCallByName, CallByName(obj, funcName, callerType, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11))
+        Case 13: Call CopyVariant(macCallByName, CallByName(obj, funcName, callerType, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12))
+        Case 14: Call CopyVariant(macCallByName, CallByName(obj, funcName, callerType, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13))
+        Case 15: Call CopyVariant(macCallByName, CallByName(obj, funcName, callerType, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14))
+        Case 16: Call CopyVariant(macCallByName, CallByName(obj, funcName, callerType, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15))
+        Case 17: Call CopyVariant(macCallByName, CallByName(obj, funcName, callerType, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16))
+        Case 18: Call CopyVariant(macCallByName, CallByName(obj, funcName, callerType, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17))
+        Case 19: Call CopyVariant(macCallByName, CallByName(obj, funcName, callerType, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18))
+        Case 20: Call CopyVariant(macCallByName, CallByName(obj, funcName, callerType, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19))
+        Case 21: Call CopyVariant(macCallByName, CallByName(obj, funcName, callerType, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20))
+        Case 22: Call CopyVariant(macCallByName, CallByName(obj, funcName, callerType, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21))
+        Case 23: Call CopyVariant(macCallByName, CallByName(obj, funcName, callerType, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21, a22))
+        Case 24: Call CopyVariant(macCallByName, CallByName(obj, funcName, callerType, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21, a22, a23))
+        Case 25: Call CopyVariant(macCallByName, CallByName(obj, funcName, callerType, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21, a22, a23, a24))
+        Case 26: Call CopyVariant(macCallByName, CallByName(obj, funcName, callerType, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21, a22, a23, a24, a25))
+        Case 27: Call CopyVariant(macCallByName, CallByName(obj, funcName, callerType, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21, a22, a23, a24, a25, a26))
+        Case 28: Call CopyVariant(macCallByName, CallByName(obj, funcName, callerType, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21, a22, a23, a24, a25, a26, a27))
+        Case 29: Call CopyVariant(macCallByName, CallByName(obj, funcName, callerType, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21, a22, a23, a24, a25, a26, a27, a28))
+        Case 30: Call CopyVariant(macCallByName, CallByName(obj, funcName, callerType, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21, a22, a23, a24, a25, a26, a27, a28, a29))
     End Select
 End Function
 
