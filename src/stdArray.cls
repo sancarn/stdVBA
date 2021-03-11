@@ -702,8 +702,9 @@ Public Function Group(ByVal cb As stdICallable) As Object
     Set Group = result
 End Function
 
-Public Function Max(Optional ByVal cb As stdICallable = nothing) as variant
+Public Function Max(Optional ByVal cb As stdICallable = nothing, Optional ByVal startingValue As Variant = Empty) as variant
   Dim vRet, vMaxValue, v
+  vMaxValue = startingValue: vRet = startingValue
   For i = 1 to pLength
     Call CopyVariant(v,pArr(i))
     
@@ -727,8 +728,9 @@ Public Function Max(Optional ByVal cb As stdICallable = nothing) as variant
 
   Call CopyVariant(Max,vRet)
 End Function
-Public Function Min(Optional ByVal cb As stdICallable = nothing) as variant
+Public Function Min(Optional ByVal cb As stdICallable = nothing, Optional ByVal startingValue As Variant = Empty) as variant
   Dim vRet, vMinValue, v
+  vMinValue = startingValue: vRet = startingValue
   For i = 1 to pLength
     Call CopyVariant(v,pArr(i))
     
