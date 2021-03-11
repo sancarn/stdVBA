@@ -123,8 +123,8 @@ Const minStackSize = 30 'note that the stack size may become smaller than this
 
 '@protected
 Public oFunctExt As Object 'Dictionary<string => stdCallback>
-Private oCache As Object
 
+Private oCache As Object
 Private bBound As Boolean
 Private oBound As stdLambda
 Private vBound As Variant
@@ -166,8 +166,8 @@ End Function
 '@param {String} - New global name
 '@param {Variant}- Data to store in global variable
 '@returns {stdLambda} The lambda existing lambda
-Public Function BindGlobal(ByVal sGlobalName As String, ByVal variable As Variant) As stdLambda
-    Set BindGlobal = Me
+Public Function BindGlobal(ByVal sGlobalName as string, ByVal variable as Variant) as stdLambda
+    set BindGlobal = Me
     If bBound Then
         Call oBound.BindGlobal(sGlobalName, variable)
     Else
@@ -188,9 +188,10 @@ Public Sub Init(ByVal iLambdaType As Long, ParamArray params() As Variant)
 
             'Function extensions
             Set oFunctExt = stdLambda.oFunctExt
-            If bSandboxExtras Or oFunctExt Is Nothing Then Set oFunctExt = CreateObject("Scripting.Dictionary")
 
-            bBound = False
+            If bSandboxExtras OR oFunctExt is nothing Then set oFunctExt = CreateObject("Scripting.Dictionary")
+
+            bBound = false
             tokens = Tokenise(sEquation)
             iTokenIndex = 1
             iOperationIndex = 0
@@ -207,7 +208,7 @@ Public Sub Init(ByVal iLambdaType As Long, ParamArray params() As Variant)
             
             'Function extensions
             Set oFunctExt = stdLambda.oFunctExt
-            If bSandboxExtras Or oFunctExt Is Nothing Then Set oFunctExt = CreateObject("Scripting.Dictionary")
+            If bSandboxExtras OR oFunctExt is nothing Then set oFunctExt = CreateObject("Scripting.Dictionary")
         Case Else
             'error?
     End Select
@@ -271,21 +272,21 @@ End Function
 '@param {ByRef Boolean}      - Success of message. If message wasn't processed return false.
 '@param {Paramarray Variant} - Parameters to pass along with message
 '@returns {Variant} - Anything returned by the function
-Private Function stdICallable_SendMessage(ByVal sMessage As String, ByRef success As Boolean, ByVal params As Variant) As Variant
-    Select Case sMessage
-        Case "obj"
-            Set stdICallable_SendMessage = Me
-            success = True
-        Case "className"
+Private Function stdICallable_SendMessage(ByVal sMessage as string, ByRef success as boolean, ByVal params as variant) as Variant
+    select case sMessage
+        case "obj"
+            set stdICallable_SendMessage = Me
+            success = true
+        case "className"
             stdICallable_SendMessage = "stdLambda"
-            success = True
-        Case "bindGlobal"
+            success = true
+        case "bindGlobal"
             'Bind global based whether this is a bound lambda or not
             Call BindGlobal(params(0), params(1))
-            success = True
-        Case Else
-            success = False
-    End Select
+            success = true
+        case else 
+            success = false
+    end select
 End Function
 
 '================
@@ -1085,6 +1086,11 @@ Private Sub objectCaller(ByRef stack() As Variant, ByRef stackPtr As Long, ByRef
 End Sub
 
 'Calls an object method/setter/getter/letter. Treats dictionary properties as direct object properties, I.E. `A.B` ==> `A.item("B")`
+'@param {ByRef Object} - The object to call
+'@param {ByVal String} - The method name to call
+'@param {ByVal VbCallType} - The property/method call type
+'@param {ByVal Variant()}  - An array of arguments. This function supports up to 30 arguments, akin to Application.Run
+'@returns Variant - The return value of the called function
 Public Function stdCallByName(ByRef obj As Object, ByVal funcName As String, ByVal callerType As VbCallType, ByRef args() As Variant) As Variant
     'If Dictionary and
     If TypeName(obj) = "Dictionary" Then

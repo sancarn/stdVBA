@@ -66,7 +66,7 @@ Private Declare PtrSafe Function AccessibleObjectFromEvent Lib "oleacc.dll" (hwn
 Private Declare PtrSafe Function AccessibleChildren Lib "oleacc" (ByVal paccContainer As IAccessible, ByVal iChildStart As Long, ByVal cChildren As Long, rgvarChildren As Variant, pcObtained As Long) As Long
 Private Declare PtrSafe Function WindowFromAccessibleObject Lib "oleacc" (ByVal pacc As IAccessible, ByRef pHwnd As LongPtr) As Long
 Private Declare PtrSafe Function GetCursorPos Lib "user32" (lpPoint As tPOINT) As Long 'For FromMouse()
-Private Declare PtrSafe Function APISendMessage Lib "user32" Alias "SendMessage" (ByVal hwnd As Long, ByVal Msg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
+Private Declare PtrSafe Function APISendMessage Lib "user32" Alias "SendMessage" (ByVal hwnd As LongPtr, ByVal Msg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
 
 
 'Used while walking the Accessibility tree. Can be used to toggle between a Breadth first search and a depth first search.
@@ -312,7 +312,7 @@ Public Function CreateFromMouse() As stdAcc
     Dim pT As tPOINT
     Dim success As Long
     success = GetCursorPos(pT)
-    Set CreateFromMouse = Me.FromPoint(pT.x, pT.y)
+    Set CreateFromMouse = Me.CreateFromPoint(pT.x, pT.y)
 End Function
 
 'Creates an `stdAcc` object for the element at a given path from the current element.
