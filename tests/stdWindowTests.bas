@@ -181,7 +181,8 @@ Sub testAll()
   '********************
   
   
-
+  uf.Quit
+  Debug.Print "stdWindow#Quit", Not uf.Exists
   unload UserForm1
 End Sub
 

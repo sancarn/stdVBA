@@ -1101,7 +1101,7 @@ End Function
 'Automate the window
 '--------------------------------------------------------------------------------
 
-Public Sub Close()
+Public Sub Quit()
   if Exists then
     if DestroyWindow(pHandle) = 0 then
       Err.Raise Err.LastDllError, "Close", "Failed to close window"
