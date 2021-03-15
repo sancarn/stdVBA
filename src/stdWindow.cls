@@ -31,39 +31,38 @@ Attribute VB_Exposed = False
 '   [X] CreateFromDesktop() as stdWindow
 '   [X] CreateFromHwnd(hwnd) as stdWindow
 '   [X] CreateFromPoint(x, y) as stdWindow
-'   [X] CreateFromEvent() as stdWindow
+'   [ ] CreateFromEvent() as stdWindow
 '   [X] CreateFromIUnknown(obj) as stdWindow
-'   [ ] TODO: CreateFromContextMenu() as stdWindow    'Class == "#32768"
+'   [X] CreateFromContextMenu() as stdWindow    'Class == "#32768"
 ' STATIC METHODS
 '   [?] Requires()
 ' INSTANCE PROPERTIES
 '   [X] Get     handle() as LongPtr
 '   [X] Get     hDC() as LongPtr
 '   [X] Get     Exists as Boolean
-'   [X] Get     IsVisible() as Boolean
-'   [X] Get     IsMinimised() as Boolean
-'   [X] Get     IsMaximised() as Boolean
+'   [X] Get/Let Visible() as Boolean        
+'   [X] Get/Let State() as EWndState    'Normal,Minimised,Maximised
 '   [X] Get     IsFrozen() as Boolean
-'   [X] Get/Set Caption() as string
+'   [X] Get/Let Caption() as string
 '   [X] Get     Class() as string
 '   [X] Get     RectClient() as Long()
-'   [X] Get/Set RectWindow() as Long()
-'   [X] Get/Set X() as Long
-'   [X] Get/Set Y() as Long
-'   [X] Get/Set Width() as Long
-'   [X] Get/Set Height() as Long
+'   [X] Get/Let RectWindow() as Long()
+'   [X] Get/Let X() as Long
+'   [X] Get/Let Y() as Long
+'   [X] Get/Let Width() as Long
+'   [X] Get/Let Height() as Long
 '   [X] Get     ProcessID() as long
 '   [X] Get     ProcessName() as string
 '   [X] Get/Set Parent() as stdWindow
 '   [X] Get     AncestralRoot() as stdWindow
-'   [X] Get/Set Style() as Long
-'   [X] Get/Set StyleEx() as Long
-'   [X] Get/Set UserData() as LongPtr
-'   [X] Get/Set WndProc() as LongPtr
-'   [X] Get/Set Resizable() as Boolean
-'   [X] Get     Children() as stdEnumerator
-'   [X] Get     Descendents(DFS?) as stdEnumerator
-'   [ ] TODO: Get/Set Visible
+'   [X] Get/Let Style() as Long
+'   [X] Get/Let StyleEx() as Long
+'   [X] Get/Let UserData() as LongPtr
+'   [X] Get/Let WndProc() as LongPtr
+'   [X] Get/Let Resizable() as Boolean
+'   [X] Get     Children() as Collection
+'   [X] Get     Descendents() as Collection
+'   [ ] Get/Let AlwaysOnTop() as Boolean
 '
 ' INSTANCE METHODS
 '   [ ] SetHook(idHook, hook, hInstance, dwThreadID) as LongPtr
@@ -80,9 +79,10 @@ Attribute VB_Exposed = False
 '   [X] Maximize()
 '   [X] Minimize()
 '   [X] Activate()
-'   [ ] TODO: Close()
+'   [X] Close()
 '   [X] FindFirst(query)
 '   [X] FindAll(query)
+'   [ ] Screenshot()
 ' PROTECTED METHODS
 '   [X] zProtGetNextDescendent(stack, DFS, Prev) as stdWindow
 
@@ -191,7 +191,11 @@ Public Enum EWndExStyles
   WS_EX_OVERLAPPEDWINDOW     = WS_EX_WINDOWEDGE or WS_EX_CLIENTEDGE 
   WS_EX_PALETTEWINDOW        = WS_EX_WINDOWEDGE or WS_EX_TOOLWINDOW or WS_EX_TOPMOST
 End Enum
-
+Public Enum EWndState
+  Normal
+  Maximised
+  Minimised
+End Enum
 
 Private Enum apiTagInputType
   INPUT_MOUSE = 0
@@ -307,16 +311,16 @@ Private Declare PtrSafe Function IUnknown_GetWindow Lib "shlwapi" Alias "#172" (
 Private Declare PtrSafe Function WindowFromPoint Lib "user32" (ByVal x As Long, ByVal y As Long) As LongPtr
 
 'Getting window data
-Private Declare PtrSafe Function IsWindow Lib "user32" (ByVal hwnd As LongPtr) As Boolean
-Private Declare PtrSafe Function IsWindowVisible Lib "user32" (ByVal hwnd As LongPtr) As Boolean
-Private Declare PtrSafe Function IsIconic Lib "user32" (ByVal hwnd As LongPtr) As Boolean
-Private Declare PtrSafe Function IsHungAppWindow Lib "user32" (ByVal hwnd As LongPtr) As Boolean
-Private Declare PtrSafe Function IsZoomed Lib "user32" (ByVal hwnd As LongPtr) As Boolean
+Private Declare PtrSafe Function IsWindow Lib "user32" (ByVal hwnd As LongPtr) As Long
+Private Declare PtrSafe Function IsWindowVisible Lib "user32" (ByVal hwnd As LongPtr) As Long
+Private Declare PtrSafe Function IsIconic Lib "user32" (ByVal hwnd As LongPtr) As Long
+Private Declare PtrSafe Function IsHungAppWindow Lib "user32" (ByVal hwnd As LongPtr) As Long
+Private Declare PtrSafe Function IsZoomed Lib "user32" (ByVal hwnd As LongPtr) As Long
 Private Declare PtrSafe Function GetWindowText Lib "user32" Alias "GetWindowTextA" (ByVal hwnd As LongPtr, ByVal lpString As String, ByVal cch As Long) As Long
 Private Declare PtrSafe Function GetClassName Lib "user32" Alias "GetClassNameA" (ByVal hwnd As LongPtr, ByVal lpClassName As String, ByVal nMaxCount As Long) As Long
-Private Declare PtrSafe Function GetClientRect Lib "user32" (ByVal hwnd As LongPtr, ByRef pRect As apiRect) As Boolean
-Private Declare PtrSafe Function GetWindowRect Lib "user32" (ByVal hwnd As LongPtr, ByRef pRect As apiRect) As Boolean
-Private Declare PtrSafe Function GetWindowInfo Lib "user32" (ByVal hwnd As LongPtr, ByRef pInf As apiWindowInfo) As Boolean
+Private Declare PtrSafe Function GetClientRect Lib "user32" (ByVal hwnd As LongPtr, ByRef pRect As apiRect) As Long
+Private Declare PtrSafe Function GetWindowRect Lib "user32" (ByVal hwnd As LongPtr, ByRef pRect As apiRect) As Long
+Private Declare PtrSafe Function GetWindowInfo Lib "user32" (ByVal hwnd As LongPtr, ByRef pInf As apiWindowInfo) As Long
 Private Declare PtrSafe Function GetParent Lib "user32" (ByVal hwnd As LongPtr) As LongPtr
 Private Declare PtrSafe Function SetParent Lib "user32" (ByVal hwnd As LongPtr, ByVal hWndParent As LongPtr) As LongPtr
 Private Declare PtrSafe Function GetWindowDC Lib "user32" (ByVal hwnd As LongPtr) As LongPtr
@@ -325,12 +329,14 @@ Private Declare PtrSafe Function GetWindowLongPtrA Lib "user32" (ByVal hwnd As L
 Private Declare PtrSafe Function SetWindowLongA Lib "user32" (ByVal hwnd As LongPtr, ByVal nIndex As apiWindowLongType, ByVal dwNewLong As Long) As Long
 Private Declare PtrSafe Function SetWindowLongPtrA Lib "user32" (ByVal hwnd As LongPtr, ByVal nIndex As apiWindowLongType, ByVal dwNewPtr As LongPtr) As Long
 Private Declare PtrSafe Function GetAncestor Lib "user32" (ByVal hwnd As LongPtr, ByVal nIndex As apiWindowAncestorType) As LongPtr
+Private Declare PtrSafe Function FindWindowExA Lib "user32" (ByVal hwnd as LongPtr, ByVal hwndChildAfter as LongPtr, ByVal lpszClass as string, ByVal lpszWindow as string) as LongPtr
 
-Private Declare PtrSafe Function SetWindowPos Lib "user32" (ByVal hwnd As LongPtr, ByVal hwndInsertAfter As LongPtr, ByVal x As Long, ByVal y As Long, ByVal width As Long, ByVal height As Long, ByVal flags As Long) As Boolean
-Private Declare PtrSafe Function MoveWindow Lib "user32" (ByVal hwnd As LongPtr, ByVal x As Long, ByVal y As Long, ByVal width As Long, ByVal height As Long, ByVal bRepaint As Boolean) As Boolean
+
+Private Declare PtrSafe Function SetWindowPos Lib "user32" (ByVal hwnd As LongPtr, ByVal hwndInsertAfter As LongPtr, ByVal x As Long, ByVal y As Long, ByVal width As Long, ByVal height As Long, ByVal flags As Long) As Long
+Private Declare PtrSafe Function MoveWindow Lib "user32" (ByVal hwnd As LongPtr, ByVal x As Long, ByVal y As Long, ByVal width As Long, ByVal height As Long, ByVal bRepaint As Boolean) As Long
 
 'Redrawing window, UpdateWindow can also be used but isn't as safe...
-Private Declare PtrSafe Function RedrawWindow Lib "user32" (ByVal hwnd As LongPtr, ByVal lprcUpdate As LongPtr, ByVal hrgnUpdate As LongPtr, ByVal flags As Long) As Boolean
+Private Declare PtrSafe Function RedrawWindow Lib "user32" (ByVal hwnd As LongPtr, ByVal lprcUpdate As LongPtr, ByVal hrgnUpdate As LongPtr, ByVal flags As Long) As Long
 
 'Get children / siblings / parent
 Private Declare PtrSafe Function GetWindow Lib "user32" (ByVal hwnd As LongPtr, ByVal wCmd As apiWindowRelationship) As LongPtr
@@ -340,13 +346,14 @@ Private Declare PtrSafe Function GetWindowThreadProcessId Lib "user32" (ByVal hw
 Private Declare PtrSafe Function GetWindowModuleFileName Lib "user32" Alias "GetWindowModuleFileNameA" (ByVal hwnd As LongPtr, ByVal pszFileName As String, ByVal cchFileNameMax As Long) As Long
 
 'Setting window data
-Private Declare PtrSafe Function SetWindowText Lib "user32" Alias "SetWindowTextA" (ByVal hwnd As LongPtr, ByVal lpString As String) As Boolean
+Private Declare PtrSafe Function SetWindowText Lib "user32" Alias "SetWindowTextA" (ByVal hwnd As LongPtr, ByVal lpString As String) As Long
 
 'Automating windows
 Private Declare PtrSafe Function apiSendMessage Lib "user32" Alias "SendMessageA" (ByVal hwnd As LongPtr, ByVal wMsg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
-Private Declare PtrSafe Function apiPostMessage Lib "user32" Alias "PostMessageA" (ByVal hwnd As LongPtr, ByVal wMsg As Long, ByVal wParam As Long, ByVal lParam As Long) As Boolean
+Private Declare PtrSafe Function apiPostMessage Lib "user32" Alias "PostMessageA" (ByVal hwnd As LongPtr, ByVal wMsg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
 Private Declare PtrSafe Function ShowWindow Lib "user32" (ByVal hwnd As LongPtr, ByVal nCmdShow As EWndShowStyle) As Long
 Private Declare PtrSafe Function BringWindowToTop Lib "user32" (ByVal hwnd As LongPtr) As Long
+Private Declare PtrSafe Function DestroyWindow Lib "user32" (ByVal hwnd As LongPtr) As Long
 
 'SendKeys
 Private Declare PtrSafe Function GetMessageExtraInfo Lib "user32" () As LongPtr
@@ -376,7 +383,7 @@ Private Lookups as Object
 '@returns {stdWindow} The created window
 '@remarks System Class Names: BUTTON, COMBOBOX, EDIT, LISTBOX, MDICLIENT, RICHEDIT, RICHEDIT_CLASS, SCROLLBAR, STATIC
 Private Function Create(ByVal sClassName As String, ByVal sCaption As String, ByVal dwStyle As Long, ByVal x As Long, ByVal y As Long, ByVal width As Long, ByVal height As Long, ByVal hWndParent As LongPtr, ByVal hMenu As LongPtr, ByVal hInstance As LongPtr, ByVal lpParam As Long) As stdWindow
-  CriticalRaise "Create", "Not Implemented"
+  Err.Raise 1, "Create", "Not Implemented"
 End Function
 
 'TODO: Create a window object used mainly for highlighting areas
@@ -390,7 +397,7 @@ End Function
 '@returns {stdWindow} The created highlighting box
 '@remarks https://stackoverflow.com/questions/3970066/creating-a-transparent-window-in-c-win32
 Private Function CreateStaticPopup(ByVal x As Long, ByVal y As Long, ByVal width As Long, ByVal height As Long, ByVal BorderWidth As Long, ByVal BorderColor As Long) As stdWindow
-  CriticalRaise "Create", "Not Implemented"
+  Err.Raise 1, "Create", "Not Implemented"
 End Function
 
 'Create a window from the desktop window
@@ -437,11 +444,25 @@ Public Function CreateFromIUnknown(ByVal obj As IUnknown) As stdWindow
     Set CreateFromIUnknown = New stdWindow
     Call CreateFromIUnknown.protInit(hwnd)
   ElseIf hResult = -2147467262 Then
-    CriticalRaise "CreateFromIUnknown", "This object does not implement IOleWindow, IInternetSecurityMgrSite or IShellView, and thus cannot retrieve the window assosciated with the object."
+    Err.Raise 1, "CreateFromIUnknown", "This object does not implement IOleWindow, IInternetSecurityMgrSite or IShellView, and thus cannot retrieve the window assosciated with the object."
   Else
-    CriticalRaise "CreateFromIUnknown", "An unknown error has occurred.", hResult
+    Err.Raise 1, "CreateFromIUnknown", "An unknown error has occurred.", hResult
   End If
 End Function
+
+'Create a window object from the context menu. There should only ever be 1 context menu on the system at one time.
+'@constructor
+'@returns {stdWindow} Window object representing the ContextMenu
+Public Function CreateFromContextMenu() as stdWindow
+  Dim hwnd as LongPtr: hwnd = FindWindowExA(null, null, MakeIntAtom(&H8000&), vbNullString)
+  if hwnd <> 0 then 
+    set CreateFromContextMenu = CreateFromHwnd(hwnd)
+  else
+    set CreateFromContextMenu = nothing
+  end if
+End Function
+
+
 
 'Notes:
 'Windows are hierarchical therefore CreateManyFromQuery and CreateFromQuery makes less sense than FindFirst() and FindAll() methods
@@ -484,39 +505,12 @@ Public Property Get Exists() As Boolean
   Exists = IsWindow(pHandle)
 End Property
 
-'Detect if the window is visible
-Public Property Get IsVisible() As Boolean
-  If Exists Then
-    IsVisible = IsWindowVisible(pHandle)
-  Else
-    CriticalRaise "IsVisible", "Window does not exist."
-  End If
-End Property
-
-'Detect if the window is minimised
-Public Property Get IsMinimised() As Boolean
-  If Exists Then
-    IsMinimised = IsIconic(pHandle)
-  Else
-    CriticalRaise "IsMinimised", "Window does not exist."
-  End If
-End Property
-
-'Detect if the window is maximised
-Public Property Get IsMaximised() As Boolean
-  If Exists Then
-    IsMaximised = IsZoomed(pHandle)
-  Else
-    CriticalRaise "IsMaximised", "Window does not exist."
-  End If
-End Property
-
 'Detect if the window is hanging/frozen
 Public Property Get IsFrozen() As Boolean
   If Exists Then
     IsFrozen = IsHungAppWindow(pHandle)
   Else
-    CriticalRaise "IsFrozen", "Window does not exist."
+    Err.Raise 1, "IsFrozen", "Window does not exist."
   End If
 End Property
 
@@ -528,16 +522,16 @@ Public Property Get Caption() As String
     iNumChars = GetWindowText(pHandle, sCharBuffer, 256)
     Caption = Mid(sCharBuffer, 1, iNumChars)
   Else
-    CriticalRaise "Caption", "Window does not exist."
+    Err.Raise 1, "Caption", "Window does not exist."
   End If
 End Property
 Public Property Let Caption(ByVal s As String)
   If Exists Then
-    If Not SetWindowText(pHandle, s) Then
-      CriticalRaise "Caption [Let]", "Window text could not be set."
+    If Not CBool(SetWindowText(pHandle, s)) Then
+      Err.Raise 1, "Caption [Let]", "Window text could not be set."
     End If
   Else
-    CriticalRaise "Caption [Let]", "Window does not exist."
+    Err.Raise 1, "Caption [Let]", "Window does not exist."
   End If
 End Property
 
@@ -549,7 +543,96 @@ Public Property Get Class() As String
     iNumChars = GetClassName(pHandle, sCharBuffer, 256)
     Class = Mid(sCharBuffer, 1, iNumChars)
   Else
-    CriticalRaise "Class", "Window does not exist."
+    Err.Raise 1, "Class", "Window does not exist."
+  End If
+End Property
+
+'Get/Let visibility of window
+Public Property Get Visible() as Boolean
+  if Exists then
+    Visible = IsWindowVisible(pHandle)
+  else
+    Err.Raise 1, "Visible", "Window does not exist."
+  end if
+End Property
+Public Property Let Visible(ByVal x as Boolean)
+  if Exists then
+    if x then
+      Call ShowWindow(pHandle, EWndShowStyle.SW_SHOW)
+    else
+      Call ShowWindow(pHandle, EWndShowStyle.SW_HIDE)
+    end if
+  else
+    Err.Raise 1, "Visible", "Window does not exist."
+  end if
+End Property
+
+'Get/Let windowState of window
+Public Property Get State() as EWndState
+  if Exists then
+    if isZoomed(pHandle) then
+      State = EWndState.Maximised
+    elseif IsIconic(pHandle) then
+      State = EWndState.Minimised
+    else
+      State = EWndState.Normal
+    end if
+  else
+    Err.Raise 1, "State", "Window does not exist."
+  end if  
+End Property
+Public Property Let State(ByVal x as EWndState)
+  if Exists then
+    if Visible then
+      select case x
+        case EWndState.Normal
+          Call ShowWindow(pHandle, EWndShowStyle.SW_RESTORE)
+        case EWndState.Maximised
+          Call ShowWindow(pHandle, EWndShowStyle.SW_MAXIMIZE)
+        case EWndState.Minimised
+          Call ShowWindow(pHandle, EWndShowStyle.SW_FORCEMINIMIZE)
+      end select
+    else
+      Err.Raise 1, "State", "Cannot set window state of a hidden window."
+    end if
+  else
+    Err.Raise 1, "State", "Window does not exist."
+  end if
+End Property
+
+'Get the child windows of this window
+Public Property Get Children() As Collection
+  If Exists Then
+    'Define collection to return
+    Dim ret As Collection
+    Set ret = New Collection
+
+    'Attempt to get a child window
+    Dim childHandle As LongPtr
+    childHandle = GetWindow(pHandle, GW_CHILD)
+
+    'If a child window exists, find all children
+    if  childHandle <> 0 then
+      'Quickly add all hwnds to an array
+      'This is a fast operation, object creation is anticipated to be a slower operation, thus is left till afterwards
+      Dim childHandles() As LongPtr, i As Long: i = -1
+      Do While (childHandle <> 0)
+          i = i + 1
+          ReDim Preserve childHandles(i)
+          childHandles(i) = childHandle
+          childHandle = GetWindow(childHandle, GW_HWNDNEXT)
+      Loop
+      
+      'Create stdWindow objects from hwnds array and add them to collection.
+      For i = LBound(childHandles) To UBound(childHandles)
+        Call ret.Add(stdWindow.CreateFromHwnd(childHandles(i)))
+      Next
+    end if
+
+    'Return child objects
+    Set Children = ret
+  Else
+    Err.Raise 1, "Children", "Window does not exist."
   End If
 End Property
 
@@ -567,10 +650,10 @@ Public Property Get RectClient() As Double()
         RectClient = fRet
       End With
     Else
-      CriticalRaise "RectClient", "Cannot get client rect.", Err.LastDllError
+      Err.Raise 1, "RectClient", "Cannot get client rect.", Err.LastDllError
     End If
   Else
-    CriticalRaise "RectClient", "Window does not exist."
+    Err.Raise 1, "RectClient", "Window does not exist."
   End If
 End Property
 
@@ -589,10 +672,10 @@ Public Property Get RectWindow() As Variant
         RectWindow = fRet
       End With
     Else
-      CriticalRaise "RectWindow", "Cannot get window rect.", Err.LastDllError
+      Err.Raise 1, "RectWindow", "Cannot get window rect.", Err.LastDllError
     End If
   Else
-    CriticalRaise "RectWindow", "Window does not exist."
+    Err.Raise 1, "RectWindow", "Window does not exist."
   End If
 End Property
 Public Property Let RectWindow(ByVal rect As Variant)
@@ -600,10 +683,10 @@ Public Property Let RectWindow(ByVal rect As Variant)
     If Exists Then
       Call MoveWindow(pHandle, rect(0), rect(1), rect(2), rect(3), True)
     Else
-      CriticalRaise "RectWindow [Let]", "Window does not exist."
+      Err.Raise 1, "RectWindow [Let]", "Window does not exist."
     End If
   Else
-    CriticalRaise "RectWindow [Let]", "Value must be an array of 4 doubles - left, top, width, height."
+    Err.Raise 1, "RectWindow [Let]", "Value must be an array of 4 doubles - left, top, width, height."
   End If
 End Property
 
@@ -612,7 +695,7 @@ Public Property Get x() As Long
   If Exists Then
     x = Me.RectWindow()(0)
   Else
-    CriticalRaise "stdWindow#x", "Window does not exist."
+    Err.Raise 1, "stdWindow#x", "Window does not exist."
   End If
 End Property
 Public Property Let x(ByVal vX As Long)
@@ -620,7 +703,7 @@ Public Property Let x(ByVal vX As Long)
     Dim rect As Variant: rect = RectWindow
     Call MoveWindow(pHandle, vX, rect(1), rect(2), rect(3), True)
   Else
-    CriticalRaise "stdWindow#x [Let]", "Window does not exist."
+    Err.Raise 1, "stdWindow#x [Let]", "Window does not exist."
   End If
 End Property
 
@@ -629,7 +712,7 @@ Public Property Get y() As Long
   If Exists Then
     y = RectWindow()(1)
   Else
-    CriticalRaise "stdWindow#y", "Window does not exist."
+    Err.Raise 1, "stdWindow#y", "Window does not exist."
   End If
 End Property
 Public Property Let y(ByVal vY As Long)
@@ -637,7 +720,7 @@ Public Property Let y(ByVal vY As Long)
     Dim rect As Variant: rect = RectWindow
     Call MoveWindow(pHandle, rect(0), vY, rect(2), rect(3), True)
   Else
-    CriticalRaise "stdWindow#y [Let]", "Window does not exist."
+    Err.Raise 1, "stdWindow#y [Let]", "Window does not exist."
   End If
 End Property
 
@@ -646,15 +729,15 @@ Public Property Get width() As Long
   If Exists Then
     width = RectWindow()(2)
   Else
-    CriticalRaise "stdWindow#width", "Window does not exist."
+    Err.Raise 1, "stdWindow#width", "Window does not exist."
   End If
 End Property
 Public Property Let width(ByVal vW As Long)
   If Exists Then
-    Dim rect() As Long: rect = RectWindow
+    Dim rect As variant:: rect = RectWindow
     Call MoveWindow(pHandle, rect(0), rect(1), vW, rect(3), True)
   Else
-    CriticalRaise "stdWindow#width [Let]", "Window does not exist."
+    Err.Raise 1, "stdWindow#width [Let]", "Window does not exist."
   End If
 End Property
 
@@ -663,15 +746,15 @@ Public Property Get height() As Long
   If Exists Then
     height = RectWindow()(3)
   Else
-    CriticalRaise "stdWindow#height", "Window does not exist."
+    Err.Raise 1, "stdWindow#height", "Window does not exist."
   End If
 End Property
 Public Property Let height(ByVal vH As Long)
   If Exists Then
-    Dim rect() As Long: rect = RectWindow
+    Dim rect As variant:: rect = RectWindow
     Call MoveWindow(pHandle, rect(0), rect(1), rect(2), vH, True)
   Else
-    CriticalRaise "stdWindow#height [Let]", "Window does not exist."
+    Err.Raise 1, "stdWindow#height [Let]", "Window does not exist."
   End If
 End Property
 
@@ -680,7 +763,7 @@ Public Property Get ProcessID() As Long
   If Exists Then
     Call GetWindowThreadProcessId(pHandle, ProcessID)
   Else
-    CriticalRaise "ProcessID", "Window does not exist."
+    Err.Raise 1, "ProcessID", "Window does not exist."
   End If
 End Property
 
@@ -692,7 +775,7 @@ Public Property Get ProcessName() As String
     iNumChars = GetWindowModuleFileName(pHandle, sCharBuffer, 256)
     ProcessName = Mid(sCharBuffer, 1, iNumChars)
   Else
-    CriticalRaise "ProcessName", "Window does not exist."
+    Err.Raise 1, "ProcessName", "Window does not exist."
   End If
 End Property
 
@@ -701,13 +784,15 @@ Public Property Get Parent() As stdWindow
   Dim pHwnd As LongPtr: pHwnd = GetParent(pHandle)
   If pHwnd <> 0 Then
     Set Parent = stdWindow.CreateFromHwnd(GetParent(pHandle))
+  ElseIf Class <> "#32769" Then
+    Set Parent = stdWindow.CreateFromDesktop()
   End If
 End Property
 Public Property Set Parent(ByVal win As stdWindow)
   If Not Exists Then
-    CriticalRaise "Parent [Set]", "Window does not exist."
+    Err.Raise 1, "Parent [Set]", "Window does not exist."
   ElseIf Not win.Exists Then
-    CriticalRaise "Parent [Set]", "New parent window no longer exists."
+    Err.Raise 1, "Parent [Set]", "New parent window no longer exists."
   Else
     Dim hOldParent As LongPtr
     hOldParent = SetParent(pHandle, win.handle)
@@ -719,7 +804,7 @@ Public Property Get AncestralRoot() As stdWindow
   If Exists Then
     Set AncestralRoot = stdWindow.CreateFromHwnd(GetAncestor(pHandle, apiWindowAncestorType.GA_ROOT))
   Else
-    CriticalRaise "AncestralRoot", "Window does not exist."
+    Err.Raise 1, "AncestralRoot", "Window does not exist."
   End If
 End Property
 
@@ -728,7 +813,7 @@ Public Property Get Style() As Long
   If Exists Then
     Style = GetWindowLongA(pHandle, apiWindowLongType.GWL_STYLE)
   Else
-    CriticalRaise "Style", "Window does not exist."
+    Err.Raise 1, "Style", "Window does not exist."
   End If
 End Property
 Public Property Let Style(ByVal newStyle As Long)
@@ -740,9 +825,9 @@ Public Property Let Style(ByVal newStyle As Long)
     Dim hResult As Long: hResult = SetWindowLongA(pHandle, apiWindowLongType.GWL_STYLE, newStyle)
 
     'Check for errors
-    If hResult = 0 And Err.LastDllError <> 0 Then CriticalRaise "Style [Let]", "Unexpected error in SetWindowLongA", Err.LastDllError
+    If hResult = 0 And Err.LastDllError <> 0 Then Err.Raise 1, "Style [Let]", "Unexpected error in SetWindowLongA", Err.LastDllError
   Else
-    CriticalRaise "Style [Let]", "Window does not exist."
+    Err.Raise 1, "Style [Let]", "Window does not exist."
   End If
 End Property
 
@@ -751,7 +836,7 @@ Public Property Get StyleEx() As Long
   If Exists Then
     StyleEx = GetWindowLongA(pHandle, apiWindowLongType.GWL_EXSTYLE)
   Else
-    CriticalRaise "StyleEx", "Window does not exist."
+    Err.Raise 1, "StyleEx", "Window does not exist."
   End If
 End Property
 Public Property Let StyleEx(ByVal newStyle As Long)
@@ -763,9 +848,9 @@ Public Property Let StyleEx(ByVal newStyle As Long)
     Dim hResult As Long: hResult = SetWindowLongA(pHandle, apiWindowLongType.GWL_EXSTYLE, newStyle)
 
     'Check for errors
-    If hResult = 0 And Err.LastDllError <> 0 Then CriticalRaise "StyleEx [Let]", "Unexpected error in SetWindowLongA", Err.LastDllError
+    If hResult = 0 And Err.LastDllError <> 0 Then Err.Raise 1, "StyleEx [Let]", "Unexpected error in SetWindowLongA", Err.LastDllError
   Else
-    CriticalRaise "StyleEx [Let]", "Window does not exist."
+    Err.Raise 1, "StyleEx [Let]", "Window does not exist."
   End If
 End Property
 
@@ -774,7 +859,7 @@ Public Property Get UserData() As LongPtr
   If Exists Then
     UserData = GetWindowLongPtrA(pHandle, apiWindowLongType.GWL_USERDATA)
   Else
-    CriticalRaise "UserData", "Window does not exist."
+    Err.Raise 1, "UserData", "Window does not exist."
   End If
 End Property
 Public Property Let UserData(ByVal newUserData As LongPtr)
@@ -786,9 +871,9 @@ Public Property Let UserData(ByVal newUserData As LongPtr)
     Dim hResult As LongPtr: hResult = SetWindowLongPtrA(pHandle, apiWindowLongType.GWL_USERDATA, newUserData)
 
     'Check for errors
-    If hResult = 0 And Err.LastDllError <> 0 Then CriticalRaise "UserData [Let]", "Unexpected error in SetWindowLongA", Err.LastDllError
+    If hResult = 0 And Err.LastDllError <> 0 Then Err.Raise 1, "UserData [Let]", "Unexpected error in SetWindowLongA", Err.LastDllError
   Else
-    CriticalRaise "UserData [Let]", "Window does not exist."
+    Err.Raise 1, "UserData [Let]", "Window does not exist."
   End If
 End Property
 
@@ -797,7 +882,7 @@ Public Property Get WndProc() As LongPtr
   If Exists Then
     WndProc = GetWindowLongPtrA(pHandle, apiWindowLongType.GWL_WNDPROC)
   Else
-    CriticalRaise "WndProc", "Window does not exist."
+    Err.Raise 1, "WndProc", "Window does not exist."
   End If
 End Property
 Public Property Let WndProc(ByVal newWndProc As LongPtr)
@@ -809,9 +894,9 @@ Public Property Let WndProc(ByVal newWndProc As LongPtr)
     Dim hResult As LongPtr: hResult = SetWindowLongPtrA(pHandle, apiWindowLongType.GWL_WNDPROC, newWndProc)
 
     'Check for errors
-    If hResult = 0 And Err.LastDllError <> 0 Then CriticalRaise "WndProc [Let]", "Unexpected error in SetWindowLongA", Err.LastDllError
+    If hResult = 0 And Err.LastDllError <> 0 Then Err.Raise 1, "WndProc [Let]", "Unexpected error in SetWindowLongA", Err.LastDllError
   Else
-    CriticalRaise "WndProc [Let]", "Window does not exist."
+    Err.Raise 1, "WndProc [Let]", "Window does not exist."
   End If
 End Property
 
@@ -828,10 +913,16 @@ Public Property Let Resizable(ByVal v As Boolean)
   End If
 End Property
 
+
+'================================================================================================
+'=      PUBLIC INSTANCE METHODS
+'================================================================================================
+
+
 'Set hooks for a window
 Public Function SetHook(ByVal idHook As apiWindowHookType, ByVal hook As LongPtr, hInstance As LongPtr, dwThreadID As Long) As LongPtr
   'TODO:
-  CriticalRaise "SetHook", "Error: Not implemented."
+  Err.Raise 1, "SetHook", "Error: Not implemented."
 End Function
 
 'Search the Window tree for elements which match a certain criteria. Return the first element found.
@@ -1010,6 +1101,46 @@ End Function
 'Automate the window
 '--------------------------------------------------------------------------------
 
+Public Sub Close()
+  if Exists then
+    if DestroyWindow(pHandle) = 0 then
+      Err.Raise Err.LastDllError, "Close", "Failed to close window"
+    end if
+  else
+    Err.Raise 1, "Close", "Window does not exist."
+  end if
+End Sub
+
+Public Sub Activate()
+  If Exists Then
+    Call ShowWindow(pHandle, EWndShowStyle.SW_SHOW)
+  Else
+    Err.Raise 1, "Minimize", "Window does not exist."
+  End If
+End Sub
+
+'Get all descendents of the stdWindow
+'@returns {Collection<stdWindow>} Collection of descendents
+Public Function GetDescendents() As Collection
+  'Create collection which will be returned
+  Dim c As Collection
+  Set c = New Collection
+  
+  Dim child As stdWindow, desc As stdWindow
+  For Each child In Children
+    'Add children to collection
+    c.Add child
+    
+    'Add all descendents to collection
+    For Each desc In child.GetDescendents
+        c.Add desc
+    Next
+  Next
+  
+  'Return descendents
+  Set GetDescendents = c
+End Function
+
 Public Sub Redraw()
   Const RDW_INVALIDATE = &H1
   Call RedrawWindow(pHandle, 0&, 0&, RDW_INVALIDATE)
@@ -1019,7 +1150,7 @@ Public Function SendMessage(ByVal wMsg As Long, ByVal wParam As Long, ByVal lPar
   If Exists Then
     SendMessage = apiSendMessage(pHandle, wMsg, wParam, lParam)
   Else
-    CriticalRaise "SendMessage", "Window does not exist."
+    Err.Raise 1, "SendMessage", "Window does not exist."
   End If
 End Function
 Public Sub PostMessage(ByVal wMsg As Long, ByVal wParam As Long, ByVal lParam As Long)
@@ -1029,19 +1160,19 @@ Public Sub PostMessage(ByVal wMsg As Long, ByVal wParam As Long, ByVal lParam As
     If pHandle = GetDesktopWindow Then hwnd = &HFFFF
     
     If Not apiPostMessage(hwnd, wMsg, wParam, lParam) Then
-      CriticalRaise "PostMessage", "An unexpected error occurred while posting the message.", Err.LastDllError
+      Err.Raise 1, "PostMessage", "An unexpected error occurred while posting the message.", Err.LastDllError
     End If
   Else
-    CriticalRaise "PostMessage", "Window does not exist."
+    Err.Raise 1, "PostMessage", "Window does not exist."
   End If
 End Sub
 
 Public Function SendMessageTimeout(ByVal wMsg As Long, ByVal wParam As Long, ByVal lParam As Long, ByVal TimeoutMilliseconds As Long)
   If Exists Then
     'TODO:
-    CriticalRaise "SendMessageTimeout", "Error: Not implemented."
+    Err.Raise 1, "SendMessageTimeout", "Error: Not implemented."
   Else
-    CriticalRaise "SendMessageTimeout", "Window does not exist."
+    Err.Raise 1, "SendMessageTimeout", "Window does not exist."
   End If
 End Function
 
@@ -1064,7 +1195,7 @@ Public Sub ClickInput(Optional ByVal x As Long = &HFFFF, Optional ByVal y As Lon
   End Select
 
   'TODO: Use SendInput()
-  CriticalRaise "ClickInput", "Error: Not implemented."
+  Err.Raise 1, "ClickInput", "Error: Not implemented."
 End Sub
 
 Public Sub ClickEvent(Optional ByVal x As Long = &H10000, Optional ByVal y As Long = &H10000, Optional ByVal Button As EWndMouseButton, Optional ByVal isDoubleClick As Boolean = False, Optional ByVal wParam As Long = 0)
@@ -1120,9 +1251,9 @@ Public Sub SendKeysInput(ByVal sKeys As String, Optional ByVal bRaw As Boolean =
   Dim Keys() As KeyToken: Keys = TokeniseKeys(sKeys)
   If Exists Then
     'TODO:
-    CriticalRaise "SendKeysInput", "Error: Not implemented."
+    Err.Raise 1, "SendKeysInput", "Error: Not implemented."
   Else
-    CriticalRaise "SendKeysInput", "Window does not exist."
+    Err.Raise 1, "SendKeysInput", "Window does not exist."
   End If
 End Sub
 
@@ -1134,103 +1265,18 @@ Public Sub SendKeysEvent(ByVal sKeys As String, Optional ByVal bRaw As Boolean =
   Dim Keys() As KeyToken: Keys = TokeniseKeys(sKeys)
   If Exists Then
     'TODO:
-    CriticalRaise "SendKeysEvent", "Error: Not implemented."
+    Err.Raise 1, "SendKeysEvent", "Error: Not implemented."
   Else
-    CriticalRaise "SendKeysEvent", "Window does not exist."
+    Err.Raise 1, "SendKeysEvent", "Window does not exist."
   End If
 End Sub
 
 'Parses a set of keys and converts them into a KeyToken array
 Private Function TokeniseKeys(ByVal sKeys As String) As KeyToken()
   'TODO:
-  CriticalRaise "TokeniseKeys", "Error: Not implemented."
+  Err.Raise 1, "TokeniseKeys", "Error: Not implemented."
 End Function
 
-
-
-Public Sub Show()
-  If Exists Then
-    Call ShowWindow(pHandle, EWndShowStyle.SW_SHOWNOACTIVATE)
-  Else
-    CriticalRaise "Show", "Window does not exist."
-  End If
-End Sub
-Public Sub Hide()
-  If Exists Then
-    Call ShowWindow(pHandle, EWndShowStyle.SW_HIDE)
-  Else
-    CriticalRaise "Hide", "Window does not exist."
-  End If
-End Sub
-Public Sub Maximize()
-  If Exists Then
-    Call ShowWindow(pHandle, EWndShowStyle.SW_MAXIMIZE)
-  Else
-    CriticalRaise "Maximize", "Window does not exist."
-  End If
-End Sub
-Public Sub Minimize()
-  If Exists Then
-    Call ShowWindow(pHandle, EWndShowStyle.SW_MINIMIZE)
-  Else
-    CriticalRaise "Minimize", "Window does not exist."
-  End If
-End Sub
-
-Public Sub Activate()
-  If Exists Then
-    Call ShowWindow(pHandle, EWndShowStyle.SW_SHOW)
-  Else
-    CriticalRaise "Minimize", "Window does not exist."
-  End If
-End Sub
-
-Public Property Get Children() As Collection
-  If Exists Then
-    Dim hwnd As LongPtr
-    hwnd = GetWindow(pHandle, GW_CHILD)
-    
-    Dim hwnds() As LongPtr, i As Long: i = -1
-    Do While (hwnd <> 0)
-        i = i + 1
-        ReDim Preserve hwnds(i)
-        hwnds(i) = hwnd
-        hwnd = GetWindow(hwnd, GW_HWNDNEXT)
-    Loop
-    
-    Dim ret As Collection
-    Set ret = New Collection
-    For i = LBound(hwnds) To UBound(hwnds)
-      Call ret.Add(stdWindow.CreateFromHwnd(hwnds(i)))
-    Next
-    
-    Set Children = ret
-  Else
-    CriticalRaise "Children", "Window does not exist."
-  End If
-End Property
-
-'Get all descendents of the stdWindow
-'@returns {Collection<stdWindow>} Collection of descendents
-Public Function GetDescendents() As Collection
-  'Create collection which will be returned
-  Dim c As Collection
-  Set c = New Collection
-  
-  Dim child As stdWindow, desc As stdWindow
-  For Each child In Children
-    'Add children to collection
-    c.Add child
-    
-    'Add all descendents to collection
-    For Each desc In child.GetDescendents
-        c.Add desc
-    Next
-  Next
-  
-  'Return descendents
-  Set GetDescendents = c
-End Function
 
 '================================================================================================
 '=      PROTECTED METHODS
@@ -1308,6 +1354,11 @@ Public Function protGetLookups()
           "NoMatchCancelSearch"         , EWndFindResult.NoMatchCancelSearch, _ 
           "NoMatchSkipDescendents"      , EWndFindResult.NoMatchSkipDescendents _ 
         ))
+        set Lookups("EWndState") = CreateLookupDict(Array( _ 
+          "Normal", EWndState.Normal, _ 
+          "Maximised", EWndState.Maximised, _ 
+          "Minimised", EWndState.Minimised _ 
+        ))
     end if
     set protGetLookups = lookups
 End Function
@@ -1332,16 +1383,6 @@ Private Function MakeDWord(ByVal wHi As Integer, ByVal wLo As Integer) As Long
   End If
 End Function
 
-Private Sub CriticalRaise(ByVal sMethod As String, ByVal sMessage As String, Optional ByVal ErrorNum As Long)
-  'If stdError exists
-    If VarType(stdError) Then
-      Call stdError.Raise("stdWindow::" & sMethod & sMessage & iif(ErrorNum > 0, " (" & ErrorNum & ")", ""))
-    Else
-      Call Err.Raise(ErrorNum, "stdWindow::" & sMethod, sMessage)
-      End
-    End If
-End Sub
-
 '****************************************
 '* HELPERS FOR FindFirst() and FindAll()
 '****************************************
@@ -1350,9 +1391,10 @@ End Sub
 '@returns {VOID}
 Private Sub BindGlobals(ByRef query as stdICallable)
     Dim bSuccess as boolean
-    Call query.SendMessage("bindGlobal", bSuccess, Array("EWndStyles", Lookups("EWndStyles")("S2N")))
-    Call query.SendMessage("bindGlobal", bSuccess, Array("EWndExStyles", Lookups("EWndExStyles")("S2N")))
-    Call query.SendMessage("bindGlobal", bSuccess, Array("EWndFindResult", Lookups("EWndFindResult")("S2N")))
+    Dim keys: keys = Lookups.keys()
+    For each key in keys
+      Call query.SendMessage("bindGlobal", bSuccess, Array(key, Lookups(key)("S2N")))
+    next
 End Sub
 
 'Constructor for a tFindNode type
@@ -1431,7 +1473,12 @@ Private Function CreateLookupDict(arr as Variant) as Object
     set CreateLookupDict = oRet
 End Function
 
-
+'Create an atom class string representing an atom.
+'@param {Long} Atom to convert to a string
+'@returns {String} Classname representing atom
+Private Function MakeIntAtom(ByVal iAtom as long) as string
+  MakeIntAtom = "#" & iAtom
+End Function
 
 
 
