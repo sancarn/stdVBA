@@ -8,6 +8,10 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
+'======================================
+'TODO:    Submit merge request
+'======================================
+
 '@class stdWindow
 '@description A class for managing windows
 '@example:
@@ -85,6 +89,8 @@ Attribute VB_Exposed = False
 '   [ ] Screenshot()
 ' PROTECTED METHODS
 '   [X] zProtGetNextDescendent(stack, DFS, Prev) as stdWindow
+' GENERIC
+'   [ ] TODO: Mac compatibility
 
 
 
@@ -197,6 +203,9 @@ Public Enum EWndState
   Minimised
 End Enum
 
+'SendInput() API helpers
+'TODO: Not used yet
+'========================================
 Private Enum apiTagInputType
   INPUT_MOUSE = 0
   INPUT_KEYBOARD = 1
@@ -207,7 +216,11 @@ Private Type apiKeyboardInput
   wScanCode As Integer
   dwFlags As Long
   time As Long
-  dwExtraInfo As LongPtr
+  #if VBA7 then
+    dwExtraInfo As LongPtr
+  #else
+    dwExtraInfo As Long
+  #end if
 End Type
 Private Type apiTagInput
   iType As apiTagInputType
@@ -229,6 +242,8 @@ Private Type KeyToken
   iKeyState As KeyState
   iModifiers() As KeyModifier
 End Type
+'========================================
+
 
 'Or use EnumChildWindows
 Private Enum apiWindowRelationship
@@ -304,62 +319,117 @@ Private Type tFindNode
   element as object
 End Type
 
+#if VBA7 then
+  'Constructors
+  Private Declare PtrSafe Function GetDesktopWindow Lib "user32" () As LongPtr
+  Private Declare PtrSafe Function IUnknown_GetWindow Lib "shlwapi" Alias "#172" (ByVal pIUnk As IUnknown, ByVal hwnd As LongPtr) As Long
+  Private Declare PtrSafe Function WindowFromPoint Lib "user32" (ByVal x As Long, ByVal y As Long) As LongPtr
 
-'Constructors
-Private Declare PtrSafe Function GetDesktopWindow Lib "user32" () As LongPtr
-Private Declare PtrSafe Function IUnknown_GetWindow Lib "shlwapi" Alias "#172" (ByVal pIUnk As IUnknown, ByVal hwnd As LongPtr) As Long
-Private Declare PtrSafe Function WindowFromPoint Lib "user32" (ByVal x As Long, ByVal y As Long) As LongPtr
+  'Getting window data
+  Private Declare PtrSafe Function IsWindow Lib "user32" (ByVal hwnd As LongPtr) As Long
+  Private Declare PtrSafe Function IsWindowVisible Lib "user32" (ByVal hwnd As LongPtr) As Long
+  Private Declare PtrSafe Function IsIconic Lib "user32" (ByVal hwnd As LongPtr) As Long
+  Private Declare PtrSafe Function IsHungAppWindow Lib "user32" (ByVal hwnd As LongPtr) As Long
+  Private Declare PtrSafe Function IsZoomed Lib "user32" (ByVal hwnd As LongPtr) As Long
+  Private Declare PtrSafe Function GetWindowText Lib "user32" Alias "GetWindowTextA" (ByVal hwnd As LongPtr, ByVal lpString As String, ByVal cch As Long) As Long
+  Private Declare PtrSafe Function GetClassName Lib "user32" Alias "GetClassNameA" (ByVal hwnd As LongPtr, ByVal lpClassName As String, ByVal nMaxCount As Long) As Long
+  Private Declare PtrSafe Function GetClientRect Lib "user32" (ByVal hwnd As LongPtr, ByRef pRect As apiRect) As Long
+  Private Declare PtrSafe Function GetWindowRect Lib "user32" (ByVal hwnd As LongPtr, ByRef pRect As apiRect) As Long
+  Private Declare PtrSafe Function GetWindowInfo Lib "user32" (ByVal hwnd As LongPtr, ByRef pInf As apiWindowInfo) As Long
+  Private Declare PtrSafe Function GetParent Lib "user32" (ByVal hwnd As LongPtr) As LongPtr
+  Private Declare PtrSafe Function SetParent Lib "user32" (ByVal hwnd As LongPtr, ByVal hWndParent As LongPtr) As LongPtr
+  Private Declare PtrSafe Function GetWindowDC Lib "user32" (ByVal hwnd As LongPtr) As LongPtr
+  Private Declare PtrSafe Function GetWindowLongA Lib "user32" (ByVal hwnd As LongPtr, ByVal nIndex As apiWindowLongType) As Long
+  Private Declare PtrSafe Function GetWindowLongPtrA Lib "user32" (ByVal hwnd As LongPtr, ByVal nIndex As apiWindowLongType) As LongPtr
+  Private Declare PtrSafe Function SetWindowLongA Lib "user32" (ByVal hwnd As LongPtr, ByVal nIndex As apiWindowLongType, ByVal dwNewLong As Long) As Long
+  Private Declare PtrSafe Function SetWindowLongPtrA Lib "user32" (ByVal hwnd As LongPtr, ByVal nIndex As apiWindowLongType, ByVal dwNewPtr As LongPtr) As Long
+  Private Declare PtrSafe Function GetAncestor Lib "user32" (ByVal hwnd As LongPtr, ByVal nIndex As apiWindowAncestorType) As LongPtr
+  Private Declare PtrSafe Function FindWindowExA Lib "user32" (ByVal hwnd as LongPtr, ByVal hwndChildAfter as LongPtr, ByVal lpszClass as string, ByVal lpszWindow as string) as LongPtr
+  Private Declare PtrSafe Function SetWindowPos Lib "user32" (ByVal hwnd As LongPtr, ByVal hwndInsertAfter As LongPtr, ByVal x As Long, ByVal y As Long, ByVal width As Long, ByVal height As Long, ByVal flags As Long) As Long
+  Private Declare PtrSafe Function MoveWindow Lib "user32" (ByVal hwnd As LongPtr, ByVal x As Long, ByVal y As Long, ByVal width As Long, ByVal height As Long, ByVal bRepaint As Boolean) As Long
 
-'Getting window data
-Private Declare PtrSafe Function IsWindow Lib "user32" (ByVal hwnd As LongPtr) As Long
-Private Declare PtrSafe Function IsWindowVisible Lib "user32" (ByVal hwnd As LongPtr) As Long
-Private Declare PtrSafe Function IsIconic Lib "user32" (ByVal hwnd As LongPtr) As Long
-Private Declare PtrSafe Function IsHungAppWindow Lib "user32" (ByVal hwnd As LongPtr) As Long
-Private Declare PtrSafe Function IsZoomed Lib "user32" (ByVal hwnd As LongPtr) As Long
-Private Declare PtrSafe Function GetWindowText Lib "user32" Alias "GetWindowTextA" (ByVal hwnd As LongPtr, ByVal lpString As String, ByVal cch As Long) As Long
-Private Declare PtrSafe Function GetClassName Lib "user32" Alias "GetClassNameA" (ByVal hwnd As LongPtr, ByVal lpClassName As String, ByVal nMaxCount As Long) As Long
-Private Declare PtrSafe Function GetClientRect Lib "user32" (ByVal hwnd As LongPtr, ByRef pRect As apiRect) As Long
-Private Declare PtrSafe Function GetWindowRect Lib "user32" (ByVal hwnd As LongPtr, ByRef pRect As apiRect) As Long
-Private Declare PtrSafe Function GetWindowInfo Lib "user32" (ByVal hwnd As LongPtr, ByRef pInf As apiWindowInfo) As Long
-Private Declare PtrSafe Function GetParent Lib "user32" (ByVal hwnd As LongPtr) As LongPtr
-Private Declare PtrSafe Function SetParent Lib "user32" (ByVal hwnd As LongPtr, ByVal hWndParent As LongPtr) As LongPtr
-Private Declare PtrSafe Function GetWindowDC Lib "user32" (ByVal hwnd As LongPtr) As LongPtr
-Private Declare PtrSafe Function GetWindowLongA Lib "user32" (ByVal hwnd As LongPtr, ByVal nIndex As apiWindowLongType) As Long
-Private Declare PtrSafe Function GetWindowLongPtrA Lib "user32" (ByVal hwnd As LongPtr, ByVal nIndex As apiWindowLongType) As LongPtr
-Private Declare PtrSafe Function SetWindowLongA Lib "user32" (ByVal hwnd As LongPtr, ByVal nIndex As apiWindowLongType, ByVal dwNewLong As Long) As Long
-Private Declare PtrSafe Function SetWindowLongPtrA Lib "user32" (ByVal hwnd As LongPtr, ByVal nIndex As apiWindowLongType, ByVal dwNewPtr As LongPtr) As Long
-Private Declare PtrSafe Function GetAncestor Lib "user32" (ByVal hwnd As LongPtr, ByVal nIndex As apiWindowAncestorType) As LongPtr
-Private Declare PtrSafe Function FindWindowExA Lib "user32" (ByVal hwnd as LongPtr, ByVal hwndChildAfter as LongPtr, ByVal lpszClass as string, ByVal lpszWindow as string) as LongPtr
+  'Redrawing window, UpdateWindow can also be used but isn't as safe...
+  Private Declare PtrSafe Function RedrawWindow Lib "user32" (ByVal hwnd As LongPtr, ByVal lprcUpdate As LongPtr, ByVal hrgnUpdate As LongPtr, ByVal flags As Long) As Long
+
+  'Get children / siblings / parent
+  Private Declare PtrSafe Function GetWindow Lib "user32" (ByVal hwnd As LongPtr, ByVal wCmd As apiWindowRelationship) As LongPtr
+
+  'Get process related data
+  Private Declare PtrSafe Function GetWindowThreadProcessId Lib "user32" (ByVal hwnd As LongPtr, ByRef ldpwProcessId As Long) As Long
+  Private Declare PtrSafe Function GetWindowModuleFileName Lib "user32" Alias "GetWindowModuleFileNameA" (ByVal hwnd As LongPtr, ByVal pszFileName As String, ByVal cchFileNameMax As Long) As Long
+
+  'Setting window data
+  Private Declare PtrSafe Function SetWindowText Lib "user32" Alias "SetWindowTextA" (ByVal hwnd As LongPtr, ByVal lpString As String) As Long
+
+  'Automating windows
+  Private Declare PtrSafe Function apiSendMessage Lib "user32" Alias "SendMessageA" (ByVal hwnd As LongPtr, ByVal wMsg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
+  Private Declare PtrSafe Function apiPostMessage Lib "user32" Alias "PostMessageA" (ByVal hwnd As LongPtr, ByVal wMsg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
+  Private Declare PtrSafe Function ShowWindow Lib "user32" (ByVal hwnd As LongPtr, ByVal nCmdShow As EWndShowStyle) As Long
+  Private Declare PtrSafe Function BringWindowToTop Lib "user32" (ByVal hwnd As LongPtr) As Long
+  Private Declare PtrSafe Function DestroyWindow Lib "user32" (ByVal hwnd As LongPtr) As Long
+
+  'SendKeys
+  Private Declare PtrSafe Function GetMessageExtraInfo Lib "user32" () As LongPtr
+#else
+  'Constructors
+  Private Declare PtrSafe Function GetDesktopWindow Lib "user32" () As Long
+  Private Declare PtrSafe Function IUnknown_GetWindow Lib "shlwapi" Alias "#172" (ByVal pIUnk As IUnknown, ByVal hwnd As Long) As Long
+  Private Declare PtrSafe Function WindowFromPoint Lib "user32" (ByVal x As Long, ByVal y As Long) As Long
+
+  'Getting window data
+  Private Declare PtrSafe Function IsWindow Lib "user32" (ByVal hwnd As Long) As Long
+  Private Declare PtrSafe Function IsWindowVisible Lib "user32" (ByVal hwnd As Long) As Long
+  Private Declare PtrSafe Function IsIconic Lib "user32" (ByVal hwnd As Long) As Long
+  Private Declare PtrSafe Function IsHungAppWindow Lib "user32" (ByVal hwnd As Long) As Long
+  Private Declare PtrSafe Function IsZoomed Lib "user32" (ByVal hwnd As Long) As Long
+  Private Declare PtrSafe Function GetWindowText Lib "user32" Alias "GetWindowTextA" (ByVal hwnd As Long, ByVal lpString As String, ByVal cch As Long) As Long
+  Private Declare PtrSafe Function GetClassName Lib "user32" Alias "GetClassNameA" (ByVal hwnd As Long, ByVal lpClassName As String, ByVal nMaxCount As Long) As Long
+  Private Declare PtrSafe Function GetClientRect Lib "user32" (ByVal hwnd As Long, ByRef pRect As apiRect) As Long
+  Private Declare PtrSafe Function GetWindowRect Lib "user32" (ByVal hwnd As Long, ByRef pRect As apiRect) As Long
+  Private Declare PtrSafe Function GetWindowInfo Lib "user32" (ByVal hwnd As Long, ByRef pInf As apiWindowInfo) As Long
+  Private Declare PtrSafe Function GetParent Lib "user32" (ByVal hwnd As Long) As Long
+  Private Declare PtrSafe Function SetParent Lib "user32" (ByVal hwnd As Long, ByVal hWndParent As Long) As Long
+  Private Declare PtrSafe Function GetWindowDC Lib "user32" (ByVal hwnd As Long) As Long
+  Private Declare PtrSafe Function GetWindowLongA Lib "user32" (ByVal hwnd As Long, ByVal nIndex As apiWindowLongType) As Long
+  Private Declare PtrSafe Function GetWindowLongA Lib "user32" (ByVal hwnd As Long, ByVal nIndex As apiWindowLongType) As Long
+  Private Declare PtrSafe Function SetWindowLongA Lib "user32" (ByVal hwnd As Long, ByVal nIndex As apiWindowLongType, ByVal dwNewLong As Long) As Long
+  Private Declare PtrSafe Function SetWindowLongA Lib "user32" (ByVal hwnd As Long, ByVal nIndex As apiWindowLongType, ByVal dwNewPtr As Long) As Long
+  Private Declare PtrSafe Function GetAncestor Lib "user32" (ByVal hwnd As Long, ByVal nIndex As apiWindowAncestorType) As Long
+  Private Declare PtrSafe Function FindWindowExA Lib "user32" (ByVal hwnd as Long, ByVal hwndChildAfter as Long, ByVal lpszClass as string, ByVal lpszWindow as string) as Long
+  Private Declare PtrSafe Function SetWindowPos Lib "user32" (ByVal hwnd As Long, ByVal hwndInsertAfter As Long, ByVal x As Long, ByVal y As Long, ByVal width As Long, ByVal height As Long, ByVal flags As Long) As Long
+  Private Declare PtrSafe Function MoveWindow Lib "user32" (ByVal hwnd As Long, ByVal x As Long, ByVal y As Long, ByVal width As Long, ByVal height As Long, ByVal bRepaint As Boolean) As Long
+
+  'Redrawing window, UpdateWindow can also be used but isn't as safe...
+  Private Declare PtrSafe Function RedrawWindow Lib "user32" (ByVal hwnd As Long, ByVal lprcUpdate As Long, ByVal hrgnUpdate As Long, ByVal flags As Long) As Long
+
+  'Get children / siblings / parent
+  Private Declare PtrSafe Function GetWindow Lib "user32" (ByVal hwnd As Long, ByVal wCmd As apiWindowRelationship) As Long
+
+  'Get process related data
+  Private Declare PtrSafe Function GetWindowThreadProcessId Lib "user32" (ByVal hwnd As Long, ByRef ldpwProcessId As Long) As Long
+  Private Declare PtrSafe Function GetWindowModuleFileName Lib "user32" Alias "GetWindowModuleFileNameA" (ByVal hwnd As Long, ByVal pszFileName As String, ByVal cchFileNameMax As Long) As Long
+
+  'Setting window data
+  Private Declare PtrSafe Function SetWindowText Lib "user32" Alias "SetWindowTextA" (ByVal hwnd As Long, ByVal lpString As String) As Long
+
+  'Automating windows
+  Private Declare PtrSafe Function apiSendMessage Lib "user32" Alias "SendMessageA" (ByVal hwnd As Long, ByVal wMsg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
+  Private Declare PtrSafe Function apiPostMessage Lib "user32" Alias "PostMessageA" (ByVal hwnd As Long, ByVal wMsg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
+  Private Declare PtrSafe Function ShowWindow Lib "user32" (ByVal hwnd As Long, ByVal nCmdShow As EWndShowStyle) As Long
+  Private Declare PtrSafe Function BringWindowToTop Lib "user32" (ByVal hwnd As Long) As Long
+  Private Declare PtrSafe Function DestroyWindow Lib "user32" (ByVal hwnd As Long) As Long
+
+  'SendKeys
+  Private Declare PtrSafe Function GetMessageExtraInfo Lib "user32" () As Long
+#end if
 
 
-Private Declare PtrSafe Function SetWindowPos Lib "user32" (ByVal hwnd As LongPtr, ByVal hwndInsertAfter As LongPtr, ByVal x As Long, ByVal y As Long, ByVal width As Long, ByVal height As Long, ByVal flags As Long) As Long
-Private Declare PtrSafe Function MoveWindow Lib "user32" (ByVal hwnd As LongPtr, ByVal x As Long, ByVal y As Long, ByVal width As Long, ByVal height As Long, ByVal bRepaint As Boolean) As Long
+#if VBA7 then
+  Private pHandle As LongPtr
+#else
+  Private pHandle As Long
+#end if
 
-'Redrawing window, UpdateWindow can also be used but isn't as safe...
-Private Declare PtrSafe Function RedrawWindow Lib "user32" (ByVal hwnd As LongPtr, ByVal lprcUpdate As LongPtr, ByVal hrgnUpdate As LongPtr, ByVal flags As Long) As Long
-
-'Get children / siblings / parent
-Private Declare PtrSafe Function GetWindow Lib "user32" (ByVal hwnd As LongPtr, ByVal wCmd As apiWindowRelationship) As LongPtr
-
-'Get process related data
-Private Declare PtrSafe Function GetWindowThreadProcessId Lib "user32" (ByVal hwnd As LongPtr, ByRef ldpwProcessId As Long) As Long
-Private Declare PtrSafe Function GetWindowModuleFileName Lib "user32" Alias "GetWindowModuleFileNameA" (ByVal hwnd As LongPtr, ByVal pszFileName As String, ByVal cchFileNameMax As Long) As Long
-
-'Setting window data
-Private Declare PtrSafe Function SetWindowText Lib "user32" Alias "SetWindowTextA" (ByVal hwnd As LongPtr, ByVal lpString As String) As Long
-
-'Automating windows
-Private Declare PtrSafe Function apiSendMessage Lib "user32" Alias "SendMessageA" (ByVal hwnd As LongPtr, ByVal wMsg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
-Private Declare PtrSafe Function apiPostMessage Lib "user32" Alias "PostMessageA" (ByVal hwnd As LongPtr, ByVal wMsg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
-Private Declare PtrSafe Function ShowWindow Lib "user32" (ByVal hwnd As LongPtr, ByVal nCmdShow As EWndShowStyle) As Long
-Private Declare PtrSafe Function BringWindowToTop Lib "user32" (ByVal hwnd As LongPtr) As Long
-Private Declare PtrSafe Function DestroyWindow Lib "user32" (ByVal hwnd As LongPtr) As Long
-
-'SendKeys
-Private Declare PtrSafe Function GetMessageExtraInfo Lib "user32" () As LongPtr
-
-
-Private pHandle As LongPtr
 Private pInitialized As Boolean
 Private Lookups as Object
 
@@ -382,7 +452,11 @@ Private Lookups as Object
 '@param {ByVal lpParam} Pointer to a location where extra information is stored. Or ClientCreateStruct (for MDI windows), or null if no extra data required
 '@returns {stdWindow} The created window
 '@remarks System Class Names: BUTTON, COMBOBOX, EDIT, LISTBOX, MDICLIENT, RICHEDIT, RICHEDIT_CLASS, SCROLLBAR, STATIC
+#if VBA7 then
 Private Function Create(ByVal sClassName As String, ByVal sCaption As String, ByVal dwStyle As Long, ByVal x As Long, ByVal y As Long, ByVal width As Long, ByVal height As Long, ByVal hWndParent As LongPtr, ByVal hMenu As LongPtr, ByVal hInstance As LongPtr, ByVal lpParam As Long) As stdWindow
+#else
+Private Function Create(ByVal sClassName As String, ByVal sCaption As String, ByVal dwStyle As Long, ByVal x As Long, ByVal y As Long, ByVal width As Long, ByVal height As Long, ByVal hWndParent As Long, ByVal hMenu As Long, ByVal hInstance As Long, ByVal lpParam As Long) As stdWindow
+#end if
   Err.Raise 1, "Create", "Not Implemented"
 End Function
 
@@ -412,7 +486,11 @@ End Function
 '@constructor
 '@param {ByVal LongPtr} Handle to window (hwnd) to create window object for
 '@returns {stdWindow} Specificed window.
+#if VBA7 then
 Public Function CreateFromHwnd(ByVal hwnd As LongPtr) As stdWindow
+#else
+Public Function CreateFromHwnd(ByVal hwnd As Long) As stdWindow
+#end if
   Set CreateFromHwnd = New stdWindow
   Call CreateFromHwnd.protInit(hwnd)
 End Function
@@ -438,7 +516,12 @@ End Function
 '@param {ByVal IUnknown} Object which implements GetWindow() method
 '@returns {stdWindow} Window specified by object
 Public Function CreateFromIUnknown(ByVal obj As IUnknown) As stdWindow
-  Dim hwnd As LongPtr, hResult As Long
+  #if VBA7 then
+    Dim hwnd As LongPtr
+  #else
+    Dim hwnd As Long
+  #end if
+  Dim hResult As Long
   hResult = IUnknown_GetWindow(obj, VarPtr(hwnd))
   If hResult = 0 Then
     Set CreateFromIUnknown = New stdWindow
@@ -454,7 +537,12 @@ End Function
 '@constructor
 '@returns {stdWindow} Window object representing the ContextMenu
 Public Function CreateFromContextMenu() as stdWindow
-  Dim hwnd as LongPtr: hwnd = FindWindowExA(null, null, MakeIntAtom(&H8000&), vbNullString)
+  #if VBA7 then
+    Dim hwnd as LongPtr
+  #else
+    Dim hwnd as Long
+  #end if
+  hwnd = FindWindowExA(null, null, MakeIntAtom(&H8000&), vbNullString)
   if hwnd <> 0 then 
     set CreateFromContextMenu = CreateFromHwnd(hwnd)
   else
@@ -475,7 +563,11 @@ End Function
 '@protected
 '@param {ByVal LongPtr} Handle to window (hwnd) to create window object for
 '@returns {stdWindow} Specificed window.
+#if VBA7 then
 Friend Sub protInit(ByVal hwnd As LongPtr)
+#else
+Friend Sub protInit(ByVal hwnd As Long)
+#end if
   pHandle = hwnd
   pInitialized = True
 End Sub
@@ -491,12 +583,20 @@ End Sub
 '--------------------------------------------------------------------------------
 
 'Get the hWND / window ID of the window
+#if VBA7 then
 Public Property Get handle() As LongPtr
+#else
+Public Property Get handle() As Long
+#end if
   handle = pHandle
 End Property
 
 'Get the handle to the display context for the window
+#if VBA7 then
 Public Property Get hDC() As LongPtr
+#else
+Public Property Get hDC() As Long
+#end if
   hDC = GetWindowDC(pHandle)
 End Property
 
@@ -608,14 +708,24 @@ Public Property Get Children() As Collection
     Set ret = New Collection
 
     'Attempt to get a child window
-    Dim childHandle As LongPtr
+    #if VBA7 then
+      Dim childHandle As LongPtr
+    #else
+      Dim childHandle As Long
+    #end if
     childHandle = GetWindow(pHandle, GW_CHILD)
 
     'If a child window exists, find all children
     if  childHandle <> 0 then
       'Quickly add all hwnds to an array
       'This is a fast operation, object creation is anticipated to be a slower operation, thus is left till afterwards
-      Dim childHandles() As LongPtr, i As Long: i = -1
+      #if VBA7 then
+        Dim childHandles() As LongPtr
+      #else
+        Dim childHandles() As Long
+      #end if
+
+      Dim i As Long: i = -1
       Do While (childHandle <> 0)
           i = i + 1
           ReDim Preserve childHandles(i)
@@ -781,7 +891,12 @@ End Property
 
 'Get/Set the window's parent window:
 Public Property Get Parent() As stdWindow
-  Dim pHwnd As LongPtr: pHwnd = GetParent(pHandle)
+  #if VBA7 then
+    Dim pHwnd As LongPtr
+  #else
+    Dim pHwnd As Long
+  #end if
+  pHwnd = GetParent(pHandle)
   If pHwnd <> 0 Then
     Set Parent = stdWindow.CreateFromHwnd(GetParent(pHandle))
   ElseIf Class <> "#32769" Then
@@ -794,7 +909,11 @@ Public Property Set Parent(ByVal win As stdWindow)
   ElseIf Not win.Exists Then
     Err.Raise 1, "Parent [Set]", "New parent window no longer exists."
   Else
-    Dim hOldParent As LongPtr
+    #if VBA7 then
+      Dim hOldParent As LongPtr
+    #else
+      Dim hOldParent As Long
+    #end if
     hOldParent = SetParent(pHandle, win.handle)
   End If
 End Property
@@ -854,51 +973,103 @@ Public Property Let StyleEx(ByVal newStyle As Long)
   End If
 End Property
 
-'Get/Set a pointer to userdata/metadata
-Public Property Get UserData() As LongPtr
-  If Exists Then
-    UserData = GetWindowLongPtrA(pHandle, apiWindowLongType.GWL_USERDATA)
-  Else
-    Err.Raise 1, "UserData", "Window does not exist."
-  End If
-End Property
-Public Property Let UserData(ByVal newUserData As LongPtr)
-  If Exists Then
-    'Clear Error. See return value at https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowlonga
-    Err.Clear
+#if VBA7 then
+  'Get/Set a pointer to userdata/metadata
+  Public Property Get UserData() As LongPtr
+    If Exists Then
+      UserData = GetWindowLongPtrA(pHandle, apiWindowLongType.GWL_USERDATA)
+    Else
+      Err.Raise 1, "UserData", "Window does not exist."
+    End If
+  End Property
 
-    'Set window long
-    Dim hResult As LongPtr: hResult = SetWindowLongPtrA(pHandle, apiWindowLongType.GWL_USERDATA, newUserData)
+  Public Property Let UserData(ByVal newUserData As LongPtr)
+    If Exists Then
+      'Clear Error. See return value at https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowlonga
+      Err.Clear
 
-    'Check for errors
-    If hResult = 0 And Err.LastDllError <> 0 Then Err.Raise 1, "UserData [Let]", "Unexpected error in SetWindowLongA", Err.LastDllError
-  Else
-    Err.Raise 1, "UserData [Let]", "Window does not exist."
-  End If
-End Property
+      'Set window long
+      Dim hResult As LongPtr: hResult = SetWindowLongPtrA(pHandle, apiWindowLongType.GWL_USERDATA, newUserData)
 
-'Get/Set the WndProc of the window
-Public Property Get WndProc() As LongPtr
-  If Exists Then
-    WndProc = GetWindowLongPtrA(pHandle, apiWindowLongType.GWL_WNDPROC)
-  Else
-    Err.Raise 1, "WndProc", "Window does not exist."
-  End If
-End Property
-Public Property Let WndProc(ByVal newWndProc As LongPtr)
-  If Exists Then
-    'Clear Error. See return value at https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowlonga
-    Err.Clear
+      'Check for errors
+      If hResult = 0 And Err.LastDllError <> 0 Then Err.Raise 1, "UserData [Let]", "Unexpected error in SetWindowLongA", Err.LastDllError
+    Else
+      Err.Raise 1, "UserData [Let]", "Window does not exist."
+    End If
+  End Property
 
-    'Set window long
-    Dim hResult As LongPtr: hResult = SetWindowLongPtrA(pHandle, apiWindowLongType.GWL_WNDPROC, newWndProc)
+  'Get/Set the WndProc of the window
+  Public Property Get WndProc() As LongPtr
+    If Exists Then
+      WndProc = GetWindowLongPtrA(pHandle, apiWindowLongType.GWL_WNDPROC)
+    Else
+      Err.Raise 1, "WndProc", "Window does not exist."
+    End If
+  End Property
+  Public Property Let WndProc(ByVal newWndProc As LongPtr)
+    If Exists Then
+      'Clear Error. See return value at https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowlonga
+      Err.Clear
 
-    'Check for errors
-    If hResult = 0 And Err.LastDllError <> 0 Then Err.Raise 1, "WndProc [Let]", "Unexpected error in SetWindowLongA", Err.LastDllError
-  Else
-    Err.Raise 1, "WndProc [Let]", "Window does not exist."
-  End If
-End Property
+      'Set window long
+      Dim hResult As LongPtr: hResult = SetWindowLongPtrA(pHandle, apiWindowLongType.GWL_WNDPROC, newWndProc)
+
+      'Check for errors
+      If hResult = 0 And Err.LastDllError <> 0 Then Err.Raise 1, "WndProc [Let]", "Unexpected error in SetWindowLongA", Err.LastDllError
+    Else
+      Err.Raise 1, "WndProc [Let]", "Window does not exist."
+    End If
+  End Property
+#else
+  'Get/Set a pointer to userdata/metadata
+  Public Property Get UserData() As Long
+    If Exists Then
+      UserData = GetWindowLongPtrA(pHandle, apiWindowLongType.GWL_USERDATA)
+    Else
+      Err.Raise 1, "UserData", "Window does not exist."
+    End If
+  End Property
+  Public Property Let UserData(ByVal newUserData As Long)
+    If Exists Then
+      'Clear Error. See return value at https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowlonga
+      Err.Clear
+
+      'Set window long
+      Dim hResult As Long: hResult = SetWindowLongPtrA(pHandle, apiWindowLongType.GWL_USERDATA, newUserData)
+
+      'Check for errors
+      If hResult = 0 And Err.LastDllError <> 0 Then Err.Raise 1, "UserData [Let]", "Unexpected error in SetWindowLongA", Err.LastDllError
+    Else
+      Err.Raise 1, "UserData [Let]", "Window does not exist."
+    End If
+  End Property
+
+  'Get/Set the WndProc of the window
+  Public Property Get WndProc() As Long
+    If Exists Then
+      WndProc = GetWindowLongPtrA(pHandle, apiWindowLongType.GWL_WNDPROC)
+    Else
+      Err.Raise 1, "WndProc", "Window does not exist."
+    End If
+  End Property
+  Public Property Let WndProc(ByVal newWndProc As Long)
+    If Exists Then
+      'Clear Error. See return value at https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowlonga
+      Err.Clear
+
+      'Set window long
+      Dim hResult As Long: hResult = SetWindowLongPtrA(pHandle, apiWindowLongType.GWL_WNDPROC, newWndProc)
+
+      'Check for errors
+      If hResult = 0 And Err.LastDllError <> 0 Then Err.Raise 1, "WndProc [Let]", "Unexpected error in SetWindowLongA", Err.LastDllError
+    Else
+      Err.Raise 1, "WndProc [Let]", "Window does not exist."
+    End If
+  End Property
+#end if
+  
+
+
 
 'Get/Set ability to resize
 Public Property Get Resizable() As Boolean
@@ -920,7 +1091,11 @@ End Property
 
 
 'Set hooks for a window
-Public Function SetHook(ByVal idHook As apiWindowHookType, ByVal hook As LongPtr, hInstance As LongPtr, dwThreadID As Long) As LongPtr
+#if VBA7 then
+Public Function SetHook(ByVal idHook As apiWindowHookType, ByVal hook As LongPtr, hInstance As LongPtr, dwThreadID As Long) As LongPtr  
+#else
+Public Function SetHook(ByVal idHook As apiWindowHookType, ByVal hook As Long, hInstance As Long, dwThreadID As Long) As Long
+#end if
   'TODO:
   Err.Raise 1, "SetHook", "Error: Not implemented."
 End Function
@@ -1156,7 +1331,12 @@ End Function
 Public Sub PostMessage(ByVal wMsg As Long, ByVal wParam As Long, ByVal lParam As Long)
   If Exists Then
     'If desktop then broadcasts
-    Dim hwnd As LongPtr: hwnd = pHandle
+    #if VBA7 then
+      Dim hwnd As LongPtr
+    #else
+      Dim hwnd As Long
+    #end if
+    hwnd = pHandle
     If pHandle = GetDesktopWindow Then hwnd = &HFFFF
     
     If Not apiPostMessage(hwnd, wMsg, wParam, lParam) Then
