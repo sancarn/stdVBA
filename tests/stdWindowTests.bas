@@ -89,16 +89,16 @@ Sub testAll()
   '****************
   'Test CreateFromDesktop() constructor
   Set desktop = stdWindow.CreateFromDesktop()
-  Debug.Print "Desktop class", desktop.Class = "#32769"
+  Test.Assert "Desktop class", desktop.Class = "#32769"
   
   'Test CreateFromHwnd() constructor
   Set app = stdWindow.CreateFromHwnd(Application.hwnd)
-  Debug.Print "stdWindow::CreateFromHwnd()", app.Class = "XLMAIN"
+  Test.Assert "stdWindow::CreateFromHwnd()", app.Class = "XLMAIN"
   
   'Test CreateFromIUnknown() constructor
   UserForm1.Show False
   Set uf = stdWindow.CreateFromIUnknown(UserForm1)
-  Debug.Print "stdWindow::CreateFromIUnknown", uf.Class = "ThunderDFrame"
+  Test.Assert "stdWindow::CreateFromIUnknown", uf.Class = "ThunderDFrame"
   
   'Test CreateFromPoint() ?
   
@@ -110,70 +110,70 @@ Sub testAll()
   '***********************
   '* INSTANCE PROPERTIES *
   '***********************
-  Debug.Print "stdWindow#handle", app.handle <> 0
-  Debug.Print "stdWindow#hDC", app.hDC <> 0
-  Debug.Print "stdWindow#Exists", app.Exists
-  Debug.Print "stdWindow#Visible", desktop.Visible
+  Test.Assert "stdWindow#handle", app.handle <> 0
+  Test.Assert "stdWindow#hDC", app.hDC <> 0
+  Test.Assert "stdWindow#Exists", app.Exists
+  Test.Assert "stdWindow#Visible", desktop.Visible
   uf.visible = false
-  Debug.Print "stdWindow#Visible - set false", not uf.visible
+  Test.Assert "stdWindow#Visible - set false", not uf.visible
   uf.visible = true
-  Debug.Print "stdWindow#Visible - set true", uf.visible
+  Test.Assert "stdWindow#Visible - set true", uf.visible
 
-  Debug.Print "stdWindow#state norm", desktop.state = normal
+  Test.Assert "stdWindow#state norm", desktop.state = normal
   Application.WindowState = xlMinimized
-  Debug.Print "stdWindow#state min", app.state = minimised
+  Test.Assert "stdWindow#state min", app.state = minimised
   Application.WindowState = xlMaximized
-  Debug.Print "stdWindow#state max", app.state = maximised
+  Test.Assert "stdWindow#state max", app.state = maximised
   'TODO: Test isFrozen == true
-  Debug.Print "stdWindow#IsFrozen", Not desktop.IsFrozen
-  Debug.Print "stdWindow#Caption [Get]", app.Caption Like ThisWorkbook.windows(1).Caption & "*"
+  Test.Assert "stdWindow#IsFrozen", Not desktop.IsFrozen
+  Test.Assert "stdWindow#Caption [Get]", app.Caption Like ThisWorkbook.windows(1).Caption & "*"
   uf.Caption = "Test"
-  Debug.Print "stdWindow#Caption [Let]", uf.Caption = "Test"
+  Test.Assert "stdWindow#Caption [Let]", uf.Caption = "Test"
   uf.Caption = UserForm1.name
   
-  Debug.Print "stdWindow#class", app.Class = "XLMAIN"
+  Test.Assert "stdWindow#class", app.Class = "XLMAIN"
   'TODO: RectClient
   'TODO: RectWindow [Get]
   'TODO: RectWindow [Set]
   
   'Position/Size Get
-  Debug.Print "x", uf.x > 0
-  Debug.Print "y", uf.y > 0
-  Debug.Print "width", uf.width > 0
-  Debug.Print "height", uf.height > 0
+  Test.Assert "x", uf.x > 0
+  Test.Assert "y", uf.y > 0
+  Test.Assert "width", uf.width > 0
+  Test.Assert "height", uf.height > 0
   
   'Position/Size Let
   uf.x=10
   uf.y=10
   uf.width = 100
   uf.height = 100
-  Debug.Print "x [Let]", uf.x = 10
-  Debug.Print "y [Let]", uf.y = 10
-  Debug.Print "width [Let]", uf.width = 100
-  Debug.Print "height [Let]", uf.height = 100
+  Test.Assert "x [Let]", uf.x = 10
+  Test.Assert "y [Let]", uf.y = 10
+  Test.Assert "width [Let]", uf.width = 100
+  Test.Assert "height [Let]", uf.height = 100
 
   
-  Debug.Print "ProcessID 1", uf.processID = app.processId
-  Debug.Print "ProcessID 2", uf.processID > 0 
-  Debug.Print "ProcessName", uf.ProcessName like "*VBE7.DLL" 
-  Debug.Print "stdWindow#parent - Desktop no parent", desktop.Parent Is Nothing
-  Debug.Print "stdWindow#parent - app has desktop as parent 1", Not app.Parent Is Nothing
-  If Not app.Parent Is Nothing Then Debug.Print "stdWindow#parent - app has desktop as parent 2", app.Parent.Class = "#32769"
+  Test.Assert "ProcessID 1", uf.processID = app.processId
+  Test.Assert "ProcessID 2", uf.processID > 0 
+  Test.Assert "ProcessName", uf.ProcessName like "*VBE7.DLL" 
+  Test.Assert "stdWindow#parent - Desktop no parent", desktop.Parent Is Nothing
+  Test.Assert "stdWindow#parent - app has desktop as parent 1", Not app.Parent Is Nothing
+  If Not app.Parent Is Nothing Then Test.Assert "stdWindow#parent - app has desktop as parent 2", app.Parent.Class = "#32769"
   'TODO: Parent [Set]
   'TODO: AncestralRoot
-  Debug.Print "stdWindow#Style", Hex(desktop.Style) = "96000000"
+  Test.Assert "stdWindow#Style", Hex(desktop.Style) = "96000000"
   'TODO: Test set Style
-  Debug.Print "stdWindow#StyleEx", desktop.StyleEx = 0
+  Test.Assert "stdWindow#StyleEx", desktop.StyleEx = 0
   'TODO: Test set StyleEx
-  Debug.Print "stdWindow#UserData - Desktop = 0", desktop.UserData = 0
-  Debug.Print "stdWindow#UserData - UF = 0", uf.UserData = 0
+  Test.Assert "stdWindow#UserData - Desktop = 0", desktop.UserData = 0
+  Test.Assert "stdWindow#UserData - UF = 0", uf.UserData = 0
   'TODO: Test set UserData
-  Debug.Print "stdWindow#WndProc", uf.WndProc <> 0
+  Test.Assert "stdWindow#WndProc", uf.WndProc <> 0
   'TODO: Test WndProc set
-  Debug.Print "stdWindow#Resizable 1", Not uf.Resizable
-  Debug.Print "stdWindow#Resizable 2", app.Resizable
+  Test.Assert "stdWindow#Resizable 1", Not uf.Resizable
+  Test.Assert "stdWindow#Resizable 2", app.Resizable
   'TODO Resizable [Set]
-  Debug.Print "stdWindow#children 1", app.Children.count > 0
+  Test.Assert "stdWindow#children 1", app.Children.count > 0
   'TODO: Descendents
   
   '********************
@@ -182,7 +182,7 @@ Sub testAll()
   
   
   uf.Quit
-  Debug.Print "stdWindow#Quit", Not uf.Exists
+  Test.Assert "stdWindow#Quit", Not uf.Exists
   unload UserForm1
 End Sub
 
