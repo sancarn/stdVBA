@@ -11,6 +11,7 @@ Sub MainTestAll()
     Call stdEnumeratorTests.testAll
     Call stdClipboardTests.testAll
     Call stdRegexTests.testAll
+    Call stdWindowTests.testAll
     Call stdWebSocketTests.testAll
     Call stdProcessTests.testAll
 End Sub
