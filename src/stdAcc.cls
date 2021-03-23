@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
-'Spec:
+'Spec: 
 'A class used to automate  objects which implement IAccessible
 '
 '
