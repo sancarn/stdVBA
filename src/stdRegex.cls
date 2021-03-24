@@ -8,21 +8,69 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
-'Adds new features:
-'* Named capturing groups
-'* TODO: Modern symbols e.g. \A and \Z symbols
-'* TODO: Maybe add ListArr() - Produces a list in a table form (as array), ready to import directly into Excel.
-'* ...?+ --> (?:...?)+
+'Spec:
+'This class has been designed to extend the feature set provided by VBScript.Regexp (or to eventually replace it entirely)
+'Functions implemented on the class
+'CONSTRUCTORS
+'    [X] Create - With Cache
+'    [X] init     #PROTECTED
 '
-'The class works as follows:
-'  * Input regex is transpiled to ES6 convention using options
-'  * Regex is executed using VBScript
-'  * Regex object returned with new features.
-
-'Usage examples:
-'     stdRegex[/hello (?<name>.*)/i].match("hello Andy Chan")("name")
-
-
+'PROPERTIES
+'    [X] Get/Let Pattern
+'    [X] Get/Let Flags
+'
+'INSTANCE METHODS
+'    [X] Test
+'    [X] Match
+'    [X] MatchAll
+'    [X] Replace
+'    [X] List
+'    [X] ListArr
+'    [ ] Compile - Can we compile for faster execution?
+'    [?] NamedCaptures - See ruby
+'    [?] Names - Get the names of the pattern
+'
+'REGEX ENGINE
+'    [X] Implement Named Capturing Groups
+'    [-] Flags Supported
+'        [X] i - Case insensitive
+'        [X] g - Global
+'        [X] m - Multiline
+'        [X] x - Ignore whitespace
+'        [X] c - Ignore comment
+'        [X] s - Singleline mode. `.` Matches all characters including whitepsace
+'        [ ] n - Explicit capture. Do not capture unnamed groups
+'    [ ] More symbols e.g. \A, \Z, ...
+'    [ ] Rewrite the regex engine to implement more features, dependency reduction and Mac compatibility? https://swtch.com/~rsc/regexp/regexp1.html and https://deniskyashif.com/2019/02/17/implementing-a-regular-expression-engine/ 
+'        [ ] Stream Support? - could be helpful with huge files
+'    [ ] Back propogation
+'    [ ] Positive and Negative lookahead/lookbehind
+'
+'OUT-OF-SCOPE
+'    * Grep from file - unless there a smarter way than using rx.Match(stdShell.Read()) we won't be adding this to this class
+'
+'EXAMPLES
+'# 1 - Printing codes from some haystack  
+'
+'   sHaystack = "12345-AA1, 12345-AB1,15233-AC3, 63234-ZD2"
+'   set debugPrint = stdCallback.CreateFromModule("Main", "debugPrint")
+'   stdEnumerator.Create(stdRegex.Create("(?<Site>\d{5})-(\w{2}\d)").MatchAll(sHaystack)).Map(stdLambda.Create("$1.item(""Site"")")).Unique.ForEach(debugPrint)
+'
+'   Sub debugPrint(ByVal s as string)
+'       Debug.Print s
+'   End Sub
+'
+'# 2 - Dumping array to excel:
+'
+'   sResult = "Here is some cool data:" & vbCrLf & _ 
+'             "12345-STA1,10/02/2019,123" & vbCrLf & _ 
+'             "12323-STB9,01/01/2005,2123" & vbCrLf & _ 
+'             "and here is some more:" & vbCrLf & _ 
+'             "23565-STC2,??/??/????,23" & vbCrLf & _ 
+'             "62346-STZ9,01/05/1932,5" 
+'   vResult = rx.ListArr(sHaystack, Array("$id-$date","$count"))
+'   Range("A1:B1").value = Array("ID-Date","Count")
+'   Range("A2").Resize(ubound(vResult,1),2).value = vResult
 
 Private p_initialised As Boolean
 Private p_pattern As String
@@ -31,76 +79,6 @@ Private p_flags As String
 Private p_namesDict As Object
 Private p_regex As Object
 
-
-'Get pattern for regex
-Public Property Get pattern() As String
-  If Me Is stdRegex Then
-    stdError.Raise ("Property called on class not object")
-    Exit Property
-  End If
-
-  pattern = p_pattern
-End Property
-
-'Set pattern for regex
-Public Property Let pattern(val As String)
-  If Me Is stdRegex Then
-    stdError.Raise ("Property called on class not object")
-    Exit Property
-  End If
-  
-  Call init(val, p_flags)
-End Property
-
-
-
-
-'Get Flags for regex
-Public Property Get flags() As String
-  If Me Is stdRegex Then
-    stdError.Raise ("Property called on class not object")
-    Exit Property
-  End If
-
-  flags = p_flags
-End Property
-
-'Set Flags for regex
-Public Property Let flags(val As String)
-  If Me Is stdRegex Then
-    stdError.Raise ("Property called on class not object")
-    Exit Property
-  End If
-
-  Call init(p_pattern, val)
-End Property
-
-
-
-'Creates a regex object given a pattern and flags.
-'@constructor
-'@EVAL
-'
-'@param {string}  Pattern and flags in ECMA Script syntax.
-'@return {stdRegex} Regular expression object
-'@example
-'    stdRegex.Create2("/A\d+/i")
-'    stdRegex[/hello world/i]
-Public Function Create2(ByVal rx As String) As stdRegex
-Attribute Create2.VB_UserMemId = -5
-
-  If Not Me Is stdRegex Then
-    stdError.Raise ("Constructor called on object not class")
-    Exit Function
-  End If
-
-  'regex given like /asdf/flags
-  Dim iEnd As Long: iEnd = inStrRev(rx, "/")
-  Dim sPattern As String: sPattern = Mid(rx, 2, iEnd - 2)
-  Dim sFlags As String: sFlags = Mid(rx, iEnd + 1)
-  Debug.Assert False
-  Set Create2 = Create(sPattern, sFlags)
-End Function
 
 'Creates a regex object given a pattern and flags.
 '@constructor
@@ -112,12 +90,25 @@ End Function
 '    stdRegex.Create("A\d+","i")
 Public Function Create(ByVal pattern As String, Optional ByVal flags As String = "") As stdRegex
   If Not Me Is stdRegex Then
-    stdError.Raise ("Constructor called on object not class")
+    Call stdError.Raise("Constructor called on object not class")
     Exit Function
   End If
   
-  Set Create = New stdRegex
-  Call Create.init(pattern, flags)
+  'Cache regex objects for faster speed
+  static cache as object: if cache is nothing then set cache = CreateObject("Scripting.Dictionary")
+  Dim sKey as string: sKey = pattern & "&" & flags
+  if not cache.exists(sKey) then
+    'Call to [friend] init requires type information, can't use dict directly
+    Dim r As stdRegex
+    Set r = New stdRegex
+    Call r.init(pattern, flags)
+    
+    'Set cache
+    Set cache(sKey) = r
+  end if
+
+  'Return cached object
+  set Create = cache(sKey)
 End Function
 
 
@@ -215,15 +206,49 @@ Friend Sub init(ByVal pattern As String, ByVal flags As String)
   p_initialised = True
 End Sub
 
-'These functions allow for easy use of
-Private Function SaveEscape(ByVal sHaystack As String, ByVal sChar As String) As String
-  SaveEscape = VBA.Replace(VBA.Replace(sHaystack, "\\", ";f934b47b-b799-4f52-9b4c-f170a82b52fe;"), "\" & sChar, ";6632df85-1730-4159-a742-5b0c8c526ab8;")
-End Function
-Private Function LoadEscape(ByVal sHaystack As String, ByVal sChar As String) As String
-  LoadEscape = VBA.Replace(VBA.Replace(sHaystack, ";f934b47b-b799-4f52-9b4c-f170a82b52fe;", "\\"), ";6632df85-1730-4159-a742-5b0c8c526ab8;", "\" & sChar)
-End Function
 
 
+
+
+
+
+'Get/Set pattern for regex
+Public Property Get pattern() As String
+  If Me Is stdRegex Then
+    stdError.Raise ("Property called on class not object")
+    Exit Property
+  End If
+
+  pattern = p_pattern
+End Property
+Public Property Let pattern(val As String)
+  If Me Is stdRegex Then
+    stdError.Raise ("Property called on class not object")
+    Exit Property
+  End If
+  
+  Call init(val, p_flags)
+End Property
+
+
+
+'Get/Set Flags for regex
+Public Property Get flags() As String
+  If Me Is stdRegex Then
+    stdError.Raise ("Property called on class not object")
+    Exit Property
+  End If
+
+  flags = p_flags
+End Property
+Public Property Let flags(val As String)
+  If Me Is stdRegex Then
+    stdError.Raise ("Property called on class not object")
+    Exit Property
+  End If
+
+  Call init(p_pattern, val)
+End Property
 
 
 
@@ -247,9 +272,6 @@ Public Function Test(ByVal sHaystack As String) As Boolean
   
   Test = p_regex.Test(sHaystack)
 End Function
-
-
-
 
 
 
@@ -301,7 +323,7 @@ Public Function Match(ByVal sHaystack As String) As Object
   Dim i As Long
   For i = 1 To p_namesDict.Count
     oRet(i) = oMatches(0).Submatches(i - 1)
-    If Not IsEmpty(oMatches(i - 1).Submatches(j - 1)) then
+    If Not IsEmpty(oMatches(0).Submatches(i - 1)) then
       If Not IsEmpty(p_namesDict(i - 1).Submatches(0)) Then oRet(p_namesDict(i - 1).Submatches(0)) = oMatches(0).Submatches(i - 1)
     End If
   Next i
@@ -310,10 +332,12 @@ Public Function Match(ByVal sHaystack As String) As Object
   Set Match = oRet
 End Function
 
+
+
 'Given a text string, return all strings which match the source regex pattern.
 '
 '@param {string}  sHaystack - Text to search for regex in.
-'@return {stdArray<Dictionary>} An array of strings which match the regex.
+'@return {Collection<Dictionary>} An array of strings which match the regex.
 '@example
 'Regex:
 '    \d{5}-ST[A-Z]\d
@@ -327,7 +351,7 @@ End Function
 '    * 62346-STZ9
 'Result:
 '    [{0: "12345-STA1", ...}, {0: "12323-STB9", ...}, {0: "23565-STC2", ...}, {0: "62346-STZ9", ...}]
-Public Function MatchAll(ByVal sHaystack As String) As stdArray
+Public Function MatchAll(ByVal sHaystack As String) As Collection
   If Me Is stdRegex Then
     stdError.Raise ("Method called on class not object")
     Exit Function
@@ -345,8 +369,8 @@ Public Function MatchAll(ByVal sHaystack As String) As stdArray
   p_regex.Global = bOriginalGlobal
   
   'Create array to hold match data
-  Dim oRet As stdArray
-  Set oRet = stdArray.Create()
+  Dim oRet As Collection
+  Set oRet = new Collection
   
   'Loop over all matches
   Dim i As Long, j As Long
@@ -369,12 +393,13 @@ Public Function MatchAll(ByVal sHaystack As String) As stdArray
     Next
 
     'Push dictionary to array
-    Call oRet.Push(oDict)
+    Call oRet.add(oDict)
   Next
 
   'Return data
   Set MatchAll = oRet
 End Function
+
 
 
 'Given a Haystack and a Replacer, Replace all matches with the source regex with the format given in the Replacer.
@@ -423,6 +448,7 @@ Public Function Replace(ByVal sHaystack As String, ByVal sReplacer As String) As
 End Function
 
 
+
 'Given a Haystack and a Format, Generate a string containing all matches in the format provided.
 '
 '@param {string}  sHaystack - Text to search for regex in.
@@ -451,37 +477,14 @@ Public Function List(ByVal sHaystack As String, ByVal sFormat As String) As Stri
   End If
 
   'Get all matches
-  Dim arr As stdArray
-  Set arr = MatchAll(sHaystack)
+  Dim matches As Collection
+  Set matches = MatchAll(sHaystack)
   
-  'Realistically there is going to be more optimal ways of doing this, but for now i'm keeping it really simple.
-
-  'Loop over all matches
-  Dim i As Long, j As Long, sList As String, sTmpFormat As String
-  For i = 1 To arr.Length
-    'Get keys of each match
-    Dim keys As Variant
-    keys = arr.item(i).keys()
-
-    'Loop over default keys and make replacements
-    sTmpFormat = sFormat
-    sTmpFormat = VBA.Replace(sTmpFormat, "$&", arr.item(i)(0))
-    sTmpFormat = VBA.Replace(sTmpFormat, "\\", "f934b47b-b799-4f52-9b4c-f170a82b52fe")
-    sTmpFormat = VBA.Replace(sTmpFormat, "\r", Chr(13))
-    sTmpFormat = VBA.Replace(sTmpFormat, "\n", Chr(10))
-    sTmpFormat = VBA.Replace(sTmpFormat, "f934b47b-b799-4f52-9b4c-f170a82b52fe", "\")
-
-    'Loop over remaining keys and make replacements
-    For j = 1 To UBound(keys)
-      Select Case keys(j)
-        Case "$RAW", "$COUNT"
-        Case Else
-          sTmpFormat = VBA.Replace(sTmpFormat, "$" & keys(j), arr.item(i)(keys(j)))
-      End Select
-    Next
-
+  'Loop over all matches and list
+  Dim match As variant, j As Long, sList As String, sTmpFormat As String
+  For each match in matches
     'Concatenate to sList
-    sList = sList & sTmpFormat
+    sList = sList & FormatFromMatch(match,sFormat)
   Next
 
   'Return sList
@@ -489,36 +492,92 @@ Public Function List(ByVal sHaystack As String, ByVal sFormat As String) As Stri
 End Function
 
 
-Public Function UnitTests() As Boolean
-  Dim b As Long: b = 0
+
+'Supplied with a haystack to search, ListArr will return a 2d array of data where the rows represent each match, and the columns represent the formats passed into vFormats parameter
+'@param {ByVal String} Haystack to search
+'@param {ByVal Array<String>} Array of formats to print into seperate columns. E.G. `Array("$id-$date","$detail")`
+'@returns {Array[2d]<String>} All matches as a 2d array. Useful especially for dumping matches to Excel.
+Public Function ListArr(ByVal sHaystack as string, ByVal vFormats as variant) as variant
+  If Me Is stdRegex Then
+    Call stdError.Raise("Method called on class not object")
+    Exit Function
+  End If
+
+  'Get all matches
+  Dim matches As Collection
+  Set matches = MatchAll(sHaystack)
   
-  'Match tests (9)
-  b = b + CLng(stdRegex.Create("(?<site>\d{5})-(?<equipment>\w{2})(\d+)").Match("12345-SP1")("site") = "12345")
-  b = b + CLng(stdRegex.Create("(?<site>\d{5})-(?<equipment>\w{2})(\d+)").Match("12345-SP1")("equipment") = "SP")
-  b = b + CLng(stdRegex.Create("(?<site>\d{5})-(?<equipment>\w{2})(\d+)").Match("12345-SP1")(0) = "12345-SP1")
-  b = b + CLng(stdRegex.Create("(?<site>\d{5})-(?<equipment>\w{2})(\d+)").Match("12345-SP1")(1) = "12345")
-  b = b + CLng(stdRegex.Create("(?<site>\d{5})-(?<equipment>\w{2})(\d+)").Match("12345-SP1")(2) = "SP")
-  b = b + CLng(stdRegex.Create("(?<site>\d{5})-(?<equipment>\w{2})(\d+)").Match("12345-SP1")(3) = "1")
-  b = b + CLng(stdRegex.Create("(?<site>\d{5})-(?<equipment>\w{2})(\d+)").Match("12345-SP1")("$COUNT") = 3)
-  b = b + CLng(Not stdRegex.Create("(?<site>\d{5})-(?<equipment>\w{2})(\d+)").Match("12345-SP1")("$RAW") Is Nothing)
-  b = b + CLng(stdRegex.Create("(?<site>\d{5})-(?<equipment>\w{2})(\d+)").Match("12345-SP1;62735-EF5")(1) = "12345")
+  Dim numCols as long: numCols = ubound(vFormats)-lbound(vFormats)+1
   
-  'MatchAll tests (3)
-  b = b + CLng(stdRegex.Create("(?<site>\d{5})-(?<equipment>\w{2})(\d+)").MatchAll("12345-SP1;62735-EF5").Length = 2)
-  b = b + CLng(stdRegex.Create("(?<site>\d{5})-(?<equipment>\w{2})(\d+)").MatchAll("12345-SP1;62735-EF5").item(1)("site") = "12345")
-  b = b + CLng(stdRegex.Create("(?<site>\d{5})-(?<equipment>\w{2})(\d+)").MatchAll("12345-SP1;62735-EF5").item(2)("site") = "62735")
-  
-  'Replace tests (2)
-  b = b + CLng(stdRegex.Create("(?<site>\d{5})-(?<equipment>\w{2})(\d+)").Replace("12345-SP1;62735-EF5", "$site") = "12345;62735-EF5")
-  b = b + CLng(stdRegex.Create("(?<site>\d{5})-(?<equipment>\w{2})(\d+)", "g").Replace("12345-SP1;62735-EF5", "$site") = "12345;62735")
-  
-  'List tests (1)
-  b = b + CLng(stdRegex.Create("(?<site>\d{5})-(?<equipment>\w{2})(\d+)").List("12345-SP1;62735-EF5", "$site-") = "12345-62735-")
-  
-  'Calculate percent complete
-  Dim f As Double
-  f = (-1 * b) / 15 * 100
-  Debug.Print Round(f, 2) & "% successful."
-  
-  UnitTests = f = 100
+  Dim v() as variant
+  Redim v(1 to matches.count, 1 to numCols)
+
+  'Loop over all matches
+  Dim match As variant, j As Long, iRow as long, iCol as long
+  For each match in matches
+    iRow = iRow + 1
+    iCol = 0
+    For j = lbound(vFormats) to ubound(vFormats)
+      iCol = iCol + 1
+      v(iRow,iCol) = FormatFromMatch(match,vFormats(j))
+    Next
+  Next
+
+  'Return sList
+  ListArr = v
+End Function
+
+
+'*******************
+'* PRIVATE METHODS *
+'*******************
+
+'Supplied with a format string and match object, dump the required information from the match object to the string, and return it.
+'@param {ByVal Dictionary} Match dictionary with numerical keys for each match, key 0 is whole match and also named matches.
+'@param {ByVal string} Format to return data in. Indexed submatches to be extracted using $1, $2, ... . Named submatches to be extracted using $name syntax. \r\n will be 
+'@returns {String} String formatted with data from match object.
+Private Function FormatFromMatch(ByVal match as object, ByVal sFormat as string) as string
+  'TODO: Make this more efficient, ideally we'd only loop through the format once
+
+  'Get keys of each match
+  Dim keys As Variant
+  keys = match.keys()
+
+  'Loop over default keys and make replacements
+  sFormat = VBA.Replace(sFormat, "$&", match(0))
+  sFormat = VBA.Replace(sFormat, "\\", "f934b47b-b799-4f52-9b4c-f170a82b52fe")
+  sFormat = VBA.Replace(sFormat, "\$", "bfde0637-8207-418d-9d34-68ba974e8110")
+  sFormat = VBA.Replace(sFormat, "\r", Chr(13))
+  sFormat = VBA.Replace(sFormat, "\n", Chr(10))
+  sFormat = VBA.Replace(sFormat, "f934b47b-b799-4f52-9b4c-f170a82b52fe", "\")
+
+  'Loop over remaining keys and make replacements
+  For j = 1 To UBound(keys)
+    Select Case keys(j)
+      Case "$RAW", "$COUNT"
+      Case Else
+        sFormat = VBA.Replace(sFormat, "$" & keys(j), match(keys(j)))
+    End Select
+  Next
+
+  sFormat = VBA.Replace(sFormat, "bfde0637-8207-418d-9d34-68ba974e8110","$")
+  FormatFromMatch = sFormat
+End Function
+
+
+
+'Escape chars within a string
+'@param {ByVal String} Haystack to search
+'@param {ByVal String} Char to escape
+'@returns {String} Escaped string
+Private Function SaveEscape(ByVal sHaystack As String, ByVal sChar As String) As String
+  SaveEscape = VBA.Replace(VBA.Replace(sHaystack, "\\", ";f934b47b-b799-4f52-9b4c-f170a82b52fe;"), "\" & sChar, ";6632df85-1730-4159-a742-5b0c8c526ab8;")
+End Function
+
+'Convert a string with escaped chars to those without escaped chars
+'@param {ByVal String} Haystack to search
+'@param {ByVal String} Char to un-escape
+'@returns {String} Unescaped string
+Private Function LoadEscape(ByVal sHaystack As String, ByVal sChar As String) As String
+  LoadEscape = VBA.Replace(VBA.Replace(sHaystack, ";f934b47b-b799-4f52-9b4c-f170a82b52fe;", "\\"), ";6632df85-1730-4159-a742-5b0c8c526ab8;", "\" & sChar)
 End Function

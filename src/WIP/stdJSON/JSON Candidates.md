@@ -67,10 +67,8 @@ This means it is very easy to add stdIJSON implementation to custom classes/obje
 
 ### Cons
 
-No automatic serialization of dictionaries and arrays/collections components.
-
-This can likely be easily added.
-
+* No automatic serialization to dictionaries and arrays/collections. This can likely be easily added.
+* No iterator methods
 
 ## [VBA-JSON by Tim Hall](https://github.com/VBA-tools/VBA-JSON)
 
@@ -88,4 +86,8 @@ Fits in neatly with VBA, producing Dictionaries and Collections. Also consumes d
 
 #### API
 
-No Easy API to build JSON.
+* No Easy API to build JSON.
+* No iterator methods
+
+
+Ideally a combination of the 2 classes would be ideal.
