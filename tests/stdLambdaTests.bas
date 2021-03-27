@@ -130,10 +130,10 @@ Sub testAll()
         Test.Assert "stdLambda::BindGlobal() 1 Can bind global variables", .Run() = 3
     End With
 
+    Dim oDict as object: set oDict = CreateObject("Scripting.Dictionary")
+
     'Testing dictionary declaration
     With stdLambda.Create("$1.TEST")
-        Dim oDict as object
-        set oDict = CreateObject("Scripting.Dictionary")
         oDict("TEST") = True
         Test.Assert "Dictionary.Method syntax", .Run(oDict)
     End With
@@ -146,6 +146,29 @@ Sub testAll()
     Test.Assert "SendMessage Successful binding", iCallable.Run()
     Call iCallable.SendMessage("", bSuccess, Null)
     Test.Assert "SendMessage Fail Parameter set", Not bSuccess
+
+    'Ensure performance chaching is faster when params are the same:
+    oDict("number") = 1
+    
+    'Time without performance cache
+    iStart = Timer
+    With stdLambda.Create("$1.number+1")
+      For i = 1 To 10 ^ 4
+          Call .Run(oDict)
+      Next
+    End With
+    Dim timeA As Double: timeA = (Timer - iStart)
+    
+    'Time with performance cache
+    iStart = Timer
+    With stdLambda.Create("$1.number+1", True)
+      For i = 1 To 10 ^ 4
+          Call .Run(oDict)
+      Next
+    End With
+    Dim timeB As Double: timeB = (Timer - iStart)
+    
+    test.assert "Performance cache faster than without", TimeB < TimeA
 End Sub
 
 Sub testPerformanceStdLambda()
