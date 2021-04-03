@@ -104,6 +104,7 @@ End Enum
   Private Declare PtrSafe Function DragQueryFile Lib "shell32.dll" Alias "DragQueryFileA" (ByVal hDrop As LongPtr, ByVal UINT As Long, ByVal lpStr As String, ByVal ch As Long) As Long
   Private Declare PtrSafe Function lstrlenW Lib "kernel32.dll" (ByVal lpString As LongPtr) As Long
   Private Declare PtrSafe Function lstrlenA Lib "kernel32.dll" (ByVal lpString As LongPtr) As Long
+  Private Declare PtrSafe Function GetTickCount Lib "kernel32" () As Long
 #Else
   Private Type PICTDESC
       size As Long
@@ -136,6 +137,7 @@ End Enum
   Private Declare Function DragQueryFile Lib "shell32.dll" Alias "DragQueryFileA" (ByVal hDrop As Long, ByVal UINT As Long, ByVal lpStr As String, ByVal ch As Long) As Long
   Private Declare Function lstrlenW Lib "kernel32.dll" (ByVal lpString As Long) As Long
   Private Declare Function lstrlenA Lib "kernel32.dll" (ByVal lpString As Long) As Long
+  Private Declare Function GetTickCount Lib "kernel32" () As Long
 #End If
 
 
