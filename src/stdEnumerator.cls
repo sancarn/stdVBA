@@ -19,8 +19,9 @@ Attribute VB_Exposed = False
 'Functions implemented on this class:
 'CONSTRUCTORS
 '    [X] CreateFromIEnumVariant
-'    [ ] CreateFromICallable   'Only half implemented
-'    [ ] CreateFromArray
+'    [X] CreateFromCallable
+'    [X] CreateFromArray
+'    [ ] CreateFromDictionary
 '    [X] init  #PROTECTED
 '
 'INSTANCE METHODS
@@ -106,7 +107,7 @@ End Function
 
 Public Function CreateFromArray(ByVal v as variant, optional byval iMaxLength as long = 1000000) as stdEnumerator
     set CreateFromArray = new stdEnumerator
-    Call CreateFromCallable.init(EnumeratorType.FromArray,iMaxLength,v)
+    Call CreateFromArray.init(EnumeratorType.FromArray,iMaxLength,v)
 End Function
 
 Public Function CreateFromIEnumVariant(ByVal o as Object, optional byval iMaxLength as long = 1000000) as stdEnumerator
@@ -114,22 +115,40 @@ Public Function CreateFromIEnumVariant(ByVal o as Object, optional byval iMaxLen
     Call CreateFromIEnumVariant.init(EnumeratorType.FromIEnumVariant,iMaxLength,o)
 End Function
 
+'TODO: CreateFromDictionary
+'Public Function CreateFromDictionary(ByVal o as object, optional byval iMaxLength as long = 1000000) as stdEnumerator
+'    set CreateFromDictionary = new stdEnumerator
+'    Call CreateFromDictionary.init(EnumeratorType.FromDictionary,iMaxLength,o)
+'End Function
+
 Public Sub Init(ByVal iEnumeratorType as long, ByVal iMaxLength as long, ParamArray v() As Variant)
     mode = iEnumeratorType
     pMaxLength = iMaxLength
     select case mode
         case EnumeratorType.FromIEnumVariant
+            'HACK: This is a real work around for the fact that we can't access IEnumVARIANT methods (getNewEnum,getNextVariant,skipNextVariant,cloneEnumVariant,resetEnumVariant)
+            'directly. Realistically this may sometimes not even work. A more long term solution would be to call getNewEnum() and then getNextVariant() until we reach the end of the
+            'object. This may be implementable after stdCOM is fully implemented.
+
             set pEnumObject = v(0)
             
-            'Convert collection to array as IEnumVARIANT work around
-            Dim i as long: i = 0
-            Dim vArr()
-            Redim vArr(1 to pEnumObject.count)
-            Dim obj as object
-            For each obj in pEnumObject
-                i=i+1
-                Call CopyVariant(vArr(i), obj)
+            'Calculate total length
+            Dim iLength As Long: iLength = 0
+            Dim obj As Variant
+            For Each obj In pEnumObject
+                iLength = iLength + 1
             next
+            
+            'Define array
+            Dim vArr()
+            ReDim Preserve vArr(1 To iLength)
+            
+            'Copy IEnumVARIANT into array
+            Dim i As Long: i = 0
+            For Each obj In pEnumObject
+                i = i + 1
+                Call CopyVariant(vArr(i), obj)
+            Next
 
             pBaseArray = vArr
         case EnumeratorType.FromArray
@@ -144,10 +163,11 @@ End Sub
 Public Function AsCollection() as Collection
     Dim i as long: i = 0
     Dim v as variant: v = null
+    Dim kv as string: kv = ""
     Dim retCol as Collection: set retCol = new Collection
-    While NextItem(v,i)
-        retCol.add v
-    End Select
+    While NextItem(kv, v, i)
+        retCol.add v, kv
+    Wend
 
     set AsCollection = retCol
 End Function
@@ -198,14 +218,15 @@ Public Function AsArray(Optional ByVal iType as vbVarType = vbVarType.vbVariant)
     end select
 
     Dim v as variant: v = null
+    Dim kv as variant: kv = null 
     Dim i as long: i = 0
     select case iType
         case vbVarType.vbObject
-            while NextItem(v,i)
+            while NextItem(kv, v, i)
                 set vRet(i) = v
             Wend
         case vbVarType.vbVariant
-            while NextItem(v,i)
+            while NextItem(kv, v, i)
                 if isObject(v) then
                     set vRet(i) = v
                 else
@@ -213,7 +234,7 @@ Public Function AsArray(Optional ByVal iType as vbVarType = vbVarType.vbVariant)
                 end if
             Wend
         case else
-            while NextItem(v,i)
+            while NextItem(kv, v, i)
                 vRet(i) = v
             Wend
     end select
@@ -221,13 +242,39 @@ Public Function AsArray(Optional ByVal iType as vbVarType = vbVarType.vbVariant)
     AsArray = vRet
 End Function
 
+'Returns the stored enumerator as a dictionary
+'@returns {Dictionary} Dictionary containing enumerator data
+Public Function AsDictionary() as Object
+    Dim oRet as object
+    set oRet = CreateObject("Scripting.Dictionary")
+    
+    Dim v as variant: v = null
+    Dim kv as variant: kv = null 
+    Dim i as long: i = 0
+    While NextItem(kv,v,i)
+        if isObject(v) then
+          set oRet(kv) = v
+        else
+          let oRet(kv) = v
+        end if
+    Wend
 
+    set AsDictionary = oRet
+End Function
+
+'Calls the callback on each item of the enumerator
+'@param {stdICallable} callback to call
+'@oaram {}
 Public Function ForEach(Optional ByVal cb As stdICallable, Optional ByVal WithIndex as boolean = false) As stdEnumerator
     Dim v as variant: v = null
     Dim i as long: i = 0
-    while NextItem(v,i)
-        if withIndex then Call BindArg(v,i)
-        Call cb.RunEx(v)
+    Dim kv as variant: kv = null 
+    while NextItem(kv,v,i)
+        if withIndex then
+          Call cb.Run(v, kv)
+        else
+          Call cb.Run(v)
+        end if
     Wend
     set ForEach = me
 End Function
@@ -236,9 +283,13 @@ Public Function Map(Optional ByVal cb As stdICallable, Optional ByVal WithIndex 
     Dim oRet as Collection: Set oRet = new Collection
     Dim v as variant: v = null
     Dim i as long: i = 0
-    while NextItem(v,i)
-        if withIndex then Call BindArg(v,i)
-        Call oRet.add(cb.RunEx(v))
+    Dim kv as variant: kv = null 
+    while NextItem(kv,v,i)
+        if WithIndex then
+          Call oRet.add(cb.Run(v,kv))
+        else
+          Call oRet.add(cb.Run(v))
+        end if
     Wend
 
     set Map = stdEnumerator.CreateFromIEnumVariant(oRet)
@@ -248,21 +299,29 @@ Public Function Filter(ByVal cb as stdICallable, Optional ByVal WithIndex as boo
     Dim oRet as Collection: Set oRet = new Collection
     Dim v as variant: v = null
     Dim i as long: i = 0
+    Dim kv as variant: kv = null 
 
-    While NextItem(v,i)
-        if withIndex then Call BindArg(v,i)
-        if cb.RunEx(v) then Call oRet.add(v)
+    While NextItem(kv, v,i)
+        Dim bMeetsRequirements as boolean
+        if withIndex then
+          bMeetsRequirements = cb.Run(v,kv)
+        else  
+          bMeetsRequirements = cb.Run(v)
+        end if
+
+        if bMeetsRequirements then Call oRet.add(v)
     Wend
 
     set Filter = stdEnumerator.CreateFromIEnumVariant(oRet)
 End Function
 
-Public Function Sort(ByVal cb as stdICallable) as stdEnumerator
+Public Function Sort(ByVal cb as stdICallable, Optional ByVal withIndex as Boolean = false) as stdEnumerator
     Dim arr() as SortStruct
     Dim iIndex as Long: iIndex = 0
     Dim iFirstItem as long: iFirstItem = 1
     Dim val as variant: val = null
-    While NextItem(val,iIndex)
+    Dim keyVal as variant: keyVal = null
+    While NextItem(keyVal, val,iIndex)
         'Increment index
         Redim Preserve arr(1 to iIndex)
 
@@ -271,7 +330,11 @@ Public Function Sort(ByVal cb as stdICallable) as stdEnumerator
             'Initialise sorting struct
             Call CopyVariant(arr(iIndex).value, val)
             arr(iIndex).iIndex = iIndex
-            arr(iIndex).sortValue = cb.RunEx(arr(iIndex).value)
+            if withIndex then
+              arr(iIndex).sortValue = cb.Run(arr(iIndex).value, keyVal)
+            else
+              arr(iIndex).sortValue = cb.Run(arr(iIndex).value)
+            end if
 
             'Sort/Compare
             Dim iCompareIndex as long: iCompareIndex = iFirstItem
@@ -320,7 +383,11 @@ Public Function Sort(ByVal cb as stdICallable) as stdEnumerator
         Else
             'Initialise sorting struct
             Call CopyVariant(arr(1).value, val)
-            arr(1).sortValue = cb.RunEx(arr(1).value)
+            if withIndex then
+              arr(1).sortValue = cb.Run(arr(1).value, keyVal)
+            else
+              arr(1).sortValue = cb.Run(arr(1).value)
+            end if
             arr(1).iIndex = 1
             arr(1).iNext = 0
             arr(1).iPrev = 0
@@ -344,12 +411,14 @@ Public Function Unique() as stdEnumerator
     Dim oRet as Collection: Set oRet = new Collection
     Dim v as variant: v = null
     Dim i as long: i = 0
+    Dim kv as variant: kv = null
 
-    While NextItem(v,i)
+    While NextItem(kv, v,i)
         Dim tv as variant: tv = null
+        Dim ktv as variant: ktv = null
         Dim ti as long: ti = i
         Dim matchFound as boolean: matchFound=false
-        Do While NextItem(tv,ti)
+        Do While NextItem(ktv, tv, ti)
             matchFound = areVariantsEqual(tv,v)
             if matchFound then Exit Do
         Loop
@@ -376,8 +445,8 @@ Public Function Concat(ByVal obj as stdEnumerator) as stdEnumerator
     Dim oRet as Collection: Set oRet = new Collection
     Dim v as variant: v = null
     Dim i as long: i = 0
-    
-    While NextItem(v,i)
+    Dim kv as variant: v = null
+    While NextItem(kv,v,i)
         Call oRet.add(v)
     Wend
     for each v in obj.AsCollection
@@ -391,11 +460,12 @@ Public Function Join(Optional ByVal sDelimiter as string = ",") as string
     Dim sRet as string
     sRet = ""
 
-        Dim oRet as Collection: Set oRet = new Collection
+    Dim oRet as Collection: Set oRet = new Collection
     Dim v as variant: v = null
     Dim i as long: i = 0
+    Dim kv as variant: kv = null
     
-    While NextItem(v,i)
+    While NextItem(kv,v,i)
         sRet = sRet & sDelimiter & v
     Wend
 
@@ -406,8 +476,9 @@ Public Function indexOf(ByVal tv as variant) as long
     Dim oRet as Collection: Set oRet = new Collection
     Dim v as variant: v = null
     Dim i as long: i = 0
+    Dim kv as variant: kv = null
     
-    While NextItem(v,i)
+    While NextItem(kv,v,i)
         if areVariantsEqual(tv,v) then
             indexOf = i
             Exit Function
@@ -421,8 +492,9 @@ Public Function lastIndexOf(ByVal tv as variant) as long
     Dim oRet as Collection: Set oRet = new Collection
     Dim v as variant: v = null
     Dim i as long: i = 0
+    Dim kv as variant: kv = null
     
-    While NextItem(v,i)
+    While NextItem(kv,v,i)
         if areVariantsEqual(tv,v) then
             lastIndexOf = i
         end if
@@ -437,9 +509,11 @@ Public Function checkAll(ByVal cb as stdICallable) as boolean
     Dim oRet as Collection: Set oRet = new Collection
     Dim v as variant: v = null
     Dim i as long: i = 0
+    Dim kv as variant: kv = null
+
     checkAll = true
-    While NextItem(v,i)
-        if not cb.RunEx(v) then
+    While NextItem(kv,v,i)
+        if not cb.Run(v,kv) then
             checkAll = false
             Exit Function
         end if
@@ -450,9 +524,10 @@ Public Function checkAny(ByVal cb as stdICallable) as boolean
     Dim oRet as Collection: Set oRet = new Collection
     Dim v as variant: v = null
     Dim i as long: i = 0
+    Dim kv as variant: kv = null
     
-    While NextItem(v,i)
-        if cb.RunEx(v) then
+    While NextItem(kv,v,i)
+        if cb.Run(v,kv) then
             checkAny = true
             Exit Function
         end if
@@ -464,9 +539,10 @@ Public Function checkNone(ByVal cb as stdICallable) as boolean
     Dim oRet as Collection: Set oRet = new Collection
     Dim v as variant: v = null
     Dim i as long: i = 0
-    
-    While NextItem(v,i)
-        if cb.RunEx(v) then
+    Dim kv as variant: kv = null
+
+    While NextItem(kv, v,i)
+        if cb.Run(v,kv) then
             checkNone = false
             Exit Function
         end if
@@ -478,9 +554,10 @@ Public Function checkOnlyOne(ByVal cb as stdICallable) as boolean
     Dim oRet as Collection: Set oRet = new Collection
     Dim v as variant: v = null
     Dim i as long: i = 0
+    Dim kv as variant: kv = null
     Dim iMatched as long: iMatched = 0
-    While NextItem(v,i)
-        if cb.RunEx(v) then
+    While NextItem(kv, v, i)
+        if cb.Run(v,kv) then
             iMatched = iMatched + 1
             if iMatched > 1 then
                 checkOnlyOne = false
@@ -493,17 +570,17 @@ Public Function checkOnlyOne(ByVal cb as stdICallable) as boolean
         Exit Function
     End if
     checkOnlyOne = true
-    end select
 End Function
 
 Public Function reduce(ByVal cb as stdICallable, Optional ByVal vInitialValue as variant = 0) as variant
     Dim v as variant: v = null
     Dim i as long: i = 0
-    Dim v as variant, vRet as variant
+    Dim kv as variant: kv = null
+    Dim vRet as variant
     Call CopyVariant(vRet, vInitialValue)
     
-    While NextItem(v,i)
-        vRet = cb.RunEx(vRet,v)
+    While NextItem(kv, v,i)
+        vRet = cb.Run(vRet,v,kv)
     Wend
     Call CopyVariant(reduce,vRet)
 End Function
@@ -512,9 +589,10 @@ Public Function countBy(ByVal cb as stdICallable) as long
     Dim iRet as Long: iRet = 0
     Dim v as variant: v = null
     Dim i as long: i = 0
-    
-    While NextItem(v,i)
-        if cb.RunEx(v) then iRet = iRet + 1
+    Dim kv as variant: kv = null
+
+    While NextItem(kv, v, i)
+        if cb.Run(v,kv) then iRet = iRet + 1
     Wend
     countBy = iRet
 End Function
@@ -525,15 +603,15 @@ Public Function groupBy(ByVal cb as stdICallable) as object
     
     Dim v as variant: v = null
     Dim i as long: i = 0
+    Dim kv as variant: kv = null
     
-    While NextItem(v,i)
-        Call CopyVariant(key,cb.RunEx(v))
+    While NextItem(kv,v,i)
+        Call CopyVariant(key,cb.Run(v,kv))
         if not oRet.exists(key) then set oRet(key) = new Collection
         Call oRet(key).add(v)
     Wend
             
     Dim keys as variant: keys = oRet.keys()
-    Dim i as long
     For i = 0 to ubound(keys)
         set oRet(keys(i)) = stdEnumerator.CreateFromIEnumVariant(oRet(keys(i)))
     next
@@ -545,14 +623,15 @@ Public Function max(Optional ByVal cb as stdICallable = nothing) as variant
     Dim vMaxValue as variant
     Dim v as variant: v = null
     Dim i as long: i = 0
-    
-    While NextItem(v,i)
+    Dim kv as variant: kv = null
+
+    While NextItem(kv,v,i)
         'Get value to test
         Dim vtValue as variant
         if cb is nothing then
             Call CopyVariant(vtValue,v)
         else
-            Call CopyVariant(vtValue,cb.RunEx(v))
+            Call CopyVariant(vtValue,cb.Run(v))
         end if
 
         'Compare values and return 
@@ -573,14 +652,15 @@ Public Function min(Optional ByVal cb as stdICallable = nothing) as variant
     Dim vMaxValue as variant
     Dim v as variant: v = null
     Dim i as long: i = 0
-    
-    While NextItem(v,i)
+    Dim kv as variant: kv = null
+
+    While NextItem(kv,v,i)
         'Get value to test
         Dim vtValue as variant
         if cb is nothing then
             Call CopyVariant(vtValue,v)
         else
-            Call CopyVariant(vtValue,cb.RunEx(v))
+            Call CopyVariant(vtValue,cb.Run(v,kv))
         end if
 
         'Compare values and return
@@ -601,14 +681,15 @@ Public Function sum(Optional ByVal cb as stdICallable = nothing) as variant
     Dim oRet as Collection: Set oRet = new Collection
     Dim v as variant: v = null
     Dim i as long: i = 0
+    Dim kv as variant: kv = null
     
-    While NextItem(v,i)
+    While NextItem(kv,v,i)
         'Get value to test
         Dim vtValue as variant
         if cb is nothing then
             Call CopyVariant(vtValue,v)
         else
-            Call CopyVariant(vtValue,cb.RunEx(v))
+            Call CopyVariant(vtValue,cb.Run(v,kv))
         end if
         vRet = vRet + vtValue
     Wend
@@ -630,9 +711,10 @@ Public Function Cycle(ByVal iTimes as long, ByVal cb as stdICallable) as stdEnum
         Dim oRet as Collection: Set oRet = new Collection
         Dim v as variant: v = null
         Dim ti as long: ti = 0
+        Dim kv as variant: kv = null
         
-        While NextItem(v,ti)
-            Call cb.runEx(v)
+        While NextItem(kv,v,ti)
+            Call cb.run(v,kv)
         Wend
     next
     set Cycle = Me
@@ -642,9 +724,10 @@ Public Function FindFirst(ByVal cb as stdICallable) as variant
     Dim oRet as Collection: Set oRet = new Collection
     Dim v as variant: v = null
     Dim i as long: i = 0
-    
-    While NextItem(v,i)
-        if cb.runEx(v) then
+    Dim kv as variant: kv = null
+
+    While NextItem(kv,v,i)
+        if cb.run(v,kv) then
             Call CopyVariant(FindFirst,v)
             Exit Function
         end if
@@ -653,22 +736,23 @@ Public Function FindFirst(ByVal cb as stdICallable) as variant
     FindFirst = Null
 End Function
 
-Public Property Item(ByVal i as Long) as variant
+Public Property Get Item(ByVal index as Long) as variant
     Dim oRet as Collection: Set oRet = new Collection
     Dim v as variant: v = null
     Dim ti as long: ti = 0
-    
-    While NextItem(v,ti)
-        if ti = i then
+    Dim kv as variant: kv = null
+
+    While NextItem(kv,v,ti)
+        if ti = index then
             Call CopyVariant(Item,v)
             Exit Function
         end if
     Wend
     
-    Err.Raise 1, "stdEnumerator", "Error: No such item " & i & " in stdEnumerator."
+    Err.Raise 1, "stdEnumerator", "Error: No such item " & index & " in stdEnumerator."
 End Property 
 
-Public Property Length() as Long
+Public Property Get Length() as Long
     Dim oRet as Collection: Set oRet = new Collection
     Dim v as variant: v = null
     Dim i as long: i = 0
@@ -676,7 +760,8 @@ Public Property Length() as Long
     if mode = FromArray then
         Length = UBound(pBaseArray) - LBound(pBaseArray) + 1
     else
-        While NextItem(v,i)
+        Dim kv as variant: kv = null
+        While NextItem(kv,v,i)
             if i > iMaxLength then
                 Err.Raise 1, "stdEnumerator", "Error: In order to prevent freezes stdEnumerator's Length() has a maxLength parameter. If the length of your collection is greater than this figure the program will error. Either Potential freeze detected."
             end if
@@ -743,7 +828,7 @@ Private Function flattenChildrenRecurse(ByVal parent as variant) as Collection
         'Loop through children
         for each child in parent.AsCollection
             'Recursive add to oRet
-            for each t in flattenChildrenRecurse(sv)
+            for each t in flattenChildrenRecurse(child)
                 oRet.Add t
             next
         next 
@@ -751,7 +836,7 @@ Private Function flattenChildrenRecurse(ByVal parent as variant) as Collection
         'Loop through children
         for each child in parent
             'Recursive add to oRet
-            for each t in flattenChildrenRecurse(sv)
+            for each t in flattenChildrenRecurse(child)
                 oRet.Add t
             next
         next
@@ -763,20 +848,24 @@ Private Function flattenChildrenRecurse(ByVal parent as variant) as Collection
 End Function
 
 'Given previous item and index, obtain the next item and index
+'@param {ByRef Variant} Previous/Next Key
 '@param {ByRef Variant} Previous/Next Item
 '@param {ByRef Long}    Previous/Next Index
 '@returns {Boolean}     Whether a new item was succesfully obtained or not.
-Private Function NextItem(ByRef vNextItem as Variant, ByRef iCurrentIndex as long) as Boolean
+Private Function NextItem(ByRef vNextKey as variant, ByRef vNextItem as Variant, ByRef iCurrentIndex as long) as Boolean
   iCurrentIndex = iCurrentIndex+1
   select case mode
     case FromIEnumVariant, FromArray
       Dim lb as long: lb = LBound(pBaseArray,1)
       Dim ub as long: ub = Ubound(pBaseArray,1)
       Dim l as long: l = ub-lb+1
+
       if l > 0 then
         Dim iIndex as long: iIndex = lb + iCurrentIndex - 1
         if iIndex <= ub then
-          Call CopyVariant(vNextItem,Array(pBaseArray(iIndex)))
+          Call CopyVariant(vNextItem,pBaseArray(iIndex))
+          vNextKey = iif(mode = FromIEnumVariant, iCurrentIndex, iIndex)
+          
           NextItem = true
         else
           NextItem = false
@@ -785,29 +874,39 @@ Private Function NextItem(ByRef vNextItem as Variant, ByRef iCurrentIndex as lon
         NextItem = false
       end if
     case FromCallable
-      Call CopyVariant(vNextItem,arrayFromCollection(pCallback.Bind(new Collection).Run(vNextItem, i)))
-      if isNull(vNextItem(1)) then
-        NextItem = false
+      Dim vTmpItem as variant
+      Call CopyVariant(vTmpItem,pCallback.Run(vNextItem, iCurrentIndex))
+      if isArray(vTmpItem) then
+        Dim iArrLength as long: iArrLength = ubound(vTmpItem) - lbound(vTmpItem)+1
+        Dim iArrLb as long: iArrLb = lbound(vTmpItem)
+        if iArrLength > 0 and iArrLength <= 4 then
+          'Assume array of format:
+          'bContinue?,iNextIndex, vNextItem, vNextKey
+          if iArrLength >= 1 then NextItem      = vTmpItem(iArrLb+0)
+          if iArrLength >= 2 then iCurrentIndex = vTmpItem(iArrLb+1)
+          if iArrLength >= 3 then
+            Call CopyVariant(vNextItem,vTmpItem(iArrLb+2)) 
+          else
+            vNextItem = null
+          end if
+          if iArrLength >= 4 then
+            Call CopyVariant(vNextKey, vTmpItem(iArrLb+3))
+          else
+            vNextKey = null
+          end if
+          Exit Function
+        else
+          'Assume array is an item:
+          Call CopyVariant(vNextItem,vTmpItem)
+          vNextKey = iCurrentIndex
+        end if
       else
-        NextItem = true
+        Call CopyVariant(vNextItem, vTmpItem)
+        vNextKey = iCurrentIndex
       end if
+      
+      NextItem = not isNull(vNextItem)
   end select
-End Function
-
-Private Sub BindArg(ByRef vArgs as Variant, ByVal vArg as variant)
-    Redim Preserve vArgs(lbound(vArgs) to ubound(vArgs)+1)
-    Call CopyVariant(vArgs(ubound(vArgs)), vArg)
-End Sub
-
-Private Function arrayFromCollection(ByVal col as Collection) as Variant
-    Dim i as long: i = 0
-    Dim vRet() as variant
-    Redim vRet(1 to col.count)
-    For each v in col
-        i = i+1
-        Call CopyVariant(vRet(i),v)
-    next
-    arrayFromCollection = vRet
 End Function
 
 'TODO: Implement raw API for working with IEnumVARIANT:
