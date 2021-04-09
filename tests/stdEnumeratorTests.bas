@@ -116,6 +116,7 @@ Sub testAll()
         Test.Assert "includes 1", .includes(4)
         Test.Assert "includes 2", not .includes(42)
         Test.Assert "Unique", .Unique().Join() = "1,2,3,4,5,6,7,8,9"
+        Test.Assert "Unique w/ cb", .Unique(stdLambda.Create("$1")).Join() = "1,2,3,4,5,6,7,8,9"
     End with
 
     Test.Assert "Reduce", e1.reduce(stdLambda.Create("$1+$2"))=45

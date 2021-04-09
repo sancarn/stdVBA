@@ -407,19 +407,35 @@ Public Function Sort(ByVal cb as stdICallable, Optional ByVal withIndex as Boole
     set sort = stdEnumerator.CreateFromIEnumVariant(ret)
 End Function
 
-Public Function Unique() as stdEnumerator
+Public Function Unique(optional byval cb as stdICallable = nothing) as stdEnumerator
     Dim oRet as Collection: Set oRet = new Collection
     Dim v as variant: v = null
     Dim i as long: i = 0
     Dim kv as variant: kv = null
+    Dim comp1 as variant, comp2 as variant
 
     While NextItem(kv, v,i)
         Dim tv as variant: tv = null
         Dim ktv as variant: ktv = null
         Dim ti as long: ti = i
         Dim matchFound as boolean: matchFound=false
+        
+        'Obtain comparison token
+        if cb is nothing then 
+          Call CopyVariant(Comp1, v)
+        else
+          Call CopyVariant(Comp1, cb.Run(v))
+        end if
+
         Do While NextItem(ktv, tv, ti)
-            matchFound = areVariantsEqual(tv,v)
+            'Obtain 2nd comparison token
+            if cb is nothing then
+              Call CopyVariant(Comp2, tv)
+            else
+              Call CopyVariant(Comp2, cb.Run(tv))
+            end if
+            
+            matchFound = areVariantsEqual(Comp1,Comp2)
             if matchFound then Exit Do
         Loop
         
