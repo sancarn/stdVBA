@@ -128,7 +128,8 @@ Private oCache As Object
 Private bBound As Boolean
 Private oBound As stdLambda
 Private vBound As Variant
-
+Private bUsePerformanceCache as Boolean
+Private pPerformanceCache as  object
 
 ''Usage:
 'Debug.Print stdLambda.Create("1+3*8/2*(2+2+3)").Execute()
@@ -139,21 +140,21 @@ Private vBound As Variant
 'End With
 'Debug.Print stdLambda.Create("$1.Range(""A1"")").Execute(Sheets(1)).Address(True, True, xlA1, True)
 'Debug.Print stdLambda.Create("$1#join("","")").Execute(stdArray.Create(1,2))
-Public Function Create(ByVal sEquation As String, Optional ByVal bSandboxExtras As Boolean = False) As stdLambda
+Public Function Create(ByVal sEquation As String, Optional ByVal bUsePerformanceCache As Boolean = False, Optional ByVal bSandboxExtras As Boolean = False) As stdLambda
     'Cache Lambda created
     If oCache Is Nothing Then Set oCache = CreateObject("Scripting.Dictionary")
-    Dim sID As String: sID = bSandboxExtras & ")" & sEquation
+    Dim sID As String: sID = bUsePerformanceCache & "-" & bSandboxExtras & ")" & sEquation
     If Not oCache.exists(sID) Then
         Set oCache(sID) = New stdLambda
-        Call oCache(sID).Init(LambdaType.iStandardLambda, sEquation, bSandboxExtras)
+        Call oCache(sID).Init(LambdaType.iStandardLambda, sEquation, bUsePerformanceCache, bSandboxExtras)
     End If
     
     'Return cached lambda
     Set Create = oCache(sID)
 End Function
 
-Public Function CreateMultiline(ByRef sEquation As Variant, Optional ByVal bSandboxExtras As Boolean = False) As stdLambda
-    Set CreateMultiline = Create(Join(sEquation, " "), bSandboxExtras)
+Public Function CreateMultiline(ByRef sEquation As Variant, Optional ByVal bUsePerformanceCache As Boolean = False, Optional ByVal bSandboxExtras As Boolean = False) As stdLambda
+    Set CreateMultiline = Create(Join(sEquation, " "), bUsePerformanceCache, bSandboxExtras)
 End Function
 
 Public Function BindEx(ByVal params As Variant) As stdLambda
@@ -184,11 +185,14 @@ Public Sub Init(ByVal iLambdaType As Long, ParamArray params() As Variant)
     Select Case iLambdaType
         Case LambdaType.iStandardLambda
             Dim sEquation As String: sEquation = params(0)
-            Dim bSandboxExtras As Boolean: bSandboxExtras = params(1)
+            bUsePerformanceCache = params(1)
+            Dim bSandboxExtras As Boolean: bSandboxExtras = params(2)
+            
+            'Performance cache
+            if bUsePerformanceCache then set pPerformanceCache = CreateObject("Scripting.Dictionary")
 
             'Function extensions
             Set oFunctExt = stdLambda.oFunctExt
-
             If bSandboxExtras OR oFunctExt is nothing Then set oFunctExt = CreateObject("Scripting.Dictionary")
 
             bBound = false
@@ -886,6 +890,16 @@ Private Function evaluate(ByRef ops() As Operation, ByVal vLastArgs As Variant) 
     Dim opIndex As Long: opIndex = 0
     Dim opCount As Long: opCount = UBound(ops)
     
+    'If result is in performance cache then return it immediately
+    if bUsePerformanceCache then
+        Dim sPerformanceCacheID as string: sPerformanceCacheID = getPerformanceCacheID(vLastArgs)     
+        if pPerformanceCache.exists(sPerformanceCacheID) then
+            Call CopyVariant(evaluate, pPerformanceCache(sPerformanceCacheID))
+            Exit Function
+        end if
+    end if
+
+    'Evaluate operations to identify result
     While opIndex <= opCount
         op = ops(opIndex)
         opIndex = opIndex + 1
@@ -1033,6 +1047,16 @@ Private Function evaluate(ByRef ops() As Operation, ByVal vLastArgs As Variant) 
                 opIndex = 10 ^ 6 'TODO: replace by infinity or something
         End Select
     Wend
+
+    'Add result to performance cache
+    if bUsePerformanceCache then
+        if isObject(stack(0)) then
+            set pPerformanceCache(sPerformanceCacheID) = stack(0)
+        else
+            let pPerformanceCache(sPerformanceCacheID) = stack(0)
+        end if
+    end if
+
     Call CopyVariant(evaluate, stack(0))
 End Function
 
@@ -1126,7 +1150,7 @@ Private Function evaluateFunc(ByVal sFuncName As String, ByVal args As Variant) 
             Dim vInjectedVar As Variant
             Call CopyVariant(vInjectedVar, oFunctExt(sFuncName))
             If TypeOf vInjectedVar Is stdICallable Then
-                evaluateFunc = Me.oFunctExt(sFuncName).RunEx(args)
+                Call CopyVariant(evaluateFunc, Me.oFunctExt(sFuncName).RunEx(args))
             Else
                 Call CopyVariant(evaluateFunc, vInjectedVar)
             End If
@@ -1179,7 +1203,7 @@ Private Function evaluateFunc(ByVal sFuncName As String, ByVal args As Variant) 
 
         'VBA Structure
         Case "array": evaluateFunc = args
-        'TODO: Case "CallByName": evaluateFunc = CallByName(args(iArgStart))
+        'TODO: Case "callbyname": evaluateFunc = CallByName(args(iArgStart))
         Case "createobject"
             Select Case UBound(args)
                 Case iArgStart
@@ -1525,6 +1549,51 @@ Private Function popV(ByRef stack() As Variant, ByRef index As Variant) As Varia
     #End If
 End Function
 
+'Serializes the argument array passed to a string.
+'@param {ByRef Variant()} Arguments to serialize
+'@returns {String} Serialized representation of the arguments.
+'@remark Objects cannot be split into their components and thus are cached as a conglomerate of type and pointer (e.g. Dictionary<12341234123>). 
+'@TODO: Potentially use [StgSerializePropVariant ](https://docs.microsoft.com/en-us/windows/win32/api/propvarutil/nf-propvarutil-stgserializepropvariant) as this'd be more optimal
+'@example
+'  Debug.Print getPerformanceCacheID(Array())=""
+'  Debug.Print getPerformanceCacheID(Array(Array(1, 2, Null), "yop", Empty, "", Nothing, New Collection, DateSerial(2020, 1, 1), False, True)) = "Array[1;2;null;];""yop"";empty;"""";Nothing;Collection<1720260481920>;01/01/2020;False;True;"
+'returns
+'  True
+'  True
+Private Function getPerformanceCacheID(ByRef Arguments As Variant) As String
+    Dim length As Long: length = UBound(Arguments) - LBound(Arguments) + 1
+    If length > 0 Then
+        Dim sSerialized As String: sSerialized = ""
+        For i = LBound(Arguments) To UBound(Arguments)
+            Select Case VarType(Arguments(i))
+              Case vbBoolean, vbByte, vbInteger, vbLong, vbLongLong, vbCurrency, vbDate, vbDecimal, vbDouble, vbSingle
+                  sSerialized = sSerialized & Arguments(i) & ";"
+              Case vbString
+                  sSerialized = sSerialized & """" & Arguments(i) & """;"
+              Case vbObject, vbDataObject
+                  If Arguments(i) Is Nothing Then
+                      sSerialized = sSerialized & "Nothing;"
+                  Else
+                      sSerialized = sSerialized & TypeName(Arguments(i)) & "<" & ObjPtr(Arguments(i)) & ">;"
+                  End If
+              Case vbEmpty
+                  sSerialized = sSerialized & "empty;"
+              Case vbNull
+                  sSerialized = sSerialized & "null;"
+              Case vbError
+                  sSerialized = sSerialized & "error;"
+              Case Else
+                  If CBool(VarType(Arguments(i)) And vbArray) Then
+                      sSerialized = sSerialized & "Array[" & getPerformanceCacheID(Arguments(i)) & "];"
+                  Else
+                      sSerialized = sSerialized & "Unknown;"
+                  End If
+            End Select
+        Next
+    End If
+    getPerformanceCacheID = sSerialized
+End Function
+
 '-------
 'general
 '-------
@@ -1675,5 +1744,3 @@ macJmpCall:
         Case 30: Call CopyVariant(macCallByName, CallByName(obj, funcName, callerType, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21, a22, a23, a24, a25, a26, a27, a28, a29))
     End Select
 End Function
-
-
