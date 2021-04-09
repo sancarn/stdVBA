@@ -1,6 +1,6 @@
 # `stdAcc`
 
-This merge request is to finally lift `stdAcc` from WIP into SRC with the new query system based on `stdICallable` interface.
+`stdAcc` is a library built largely for Windows (and in the future Mac) window automation. The intention is to give users full flexibility over the windows on the operating system, allowing you to filter them, obtain information from them, and automate them.
 
 ## Spec
 
