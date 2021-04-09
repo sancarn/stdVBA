@@ -321,6 +321,7 @@ Private Function getTokenDefinitions() As TokenDefinition()
     i = i + 1: arr(i) = getTokenDefinition("or", "or", isKeyword:=True)
     i = i + 1: arr(i) = getTokenDefinition("xor", "xor", isKeyword:=True)
     i = i + 1: arr(i) = getTokenDefinition("not", "not", isKeyword:=True)
+    i = i + 1: arr(i) = getTokenDefinition("like", "like", isKeyword:=True)
 
     'Structural
     ' Inline if
