@@ -1172,7 +1172,10 @@ Private Function evaluateFunc(ByVal sFuncName As String, ByVal args As Variant) 
         Case "vbback":          evaluateFunc = vbBack
         Case "vbformfeed":      evaluateFunc = vbFormFeed
         Case "vbverticaltab":   evaluateFunc = vbVerticalTab
-
+        Case "null":            evaluateFunc = Null
+        Case "nothing":         set evaluateFunc = Nothing
+        Case "empty":           evaluateFunc = Empty
+        Case "missing":         evaluateFunc = getMissing()
 
         'VBA Structure
         Case "array": evaluateFunc = args
@@ -1526,6 +1529,13 @@ End Function
 'general
 '-------
 
+'Used to obtain missing
+'@Param {Variant} The value to be returned - Please do not populate this parameter.
+'@returns {Missing} Missing value
+Private Function GetMissing(Optional arg As Variant) As Variant
+  GetMissing = arg
+End Function
+
 'Copies one variant to a destination
 '@param {ByRef Variant} dest Destination to copy variant to
 '@param {Variant} value Source to copy variant from.
@@ -1666,6 +1676,4 @@ macJmpCall:
     End Select
 End Function
 
-Private Function GetMissing(Optional arg As Variant) As Variant
-  GetMissing = arg
-End Function
+
