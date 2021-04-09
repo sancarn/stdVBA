@@ -1196,7 +1196,10 @@ Private Function evaluateFunc(ByVal sFuncName As String, ByVal args As Variant) 
         Case "vbback":          evaluateFunc = vbBack
         Case "vbformfeed":      evaluateFunc = vbFormFeed
         Case "vbverticaltab":   evaluateFunc = vbVerticalTab
-
+        Case "null":            evaluateFunc = Null
+        Case "nothing":         set evaluateFunc = Nothing
+        Case "empty":           evaluateFunc = Empty
+        Case "missing":         evaluateFunc = getMissing()
 
         'VBA Structure
         Case "array": evaluateFunc = args
@@ -1595,6 +1598,13 @@ End Function
 'general
 '-------
 
+'Used to obtain missing
+'@Param {Variant} The value to be returned - Please do not populate this parameter.
+'@returns {Missing} Missing value
+Private Function GetMissing(Optional arg As Variant) As Variant
+  GetMissing = arg
+End Function
+
 'Copies one variant to a destination
 '@param {ByRef Variant} dest Destination to copy variant to
 '@param {Variant} value Source to copy variant from.
@@ -1733,8 +1743,4 @@ macJmpCall:
         Case 29: Call CopyVariant(macCallByName, CallByName(obj, funcName, callerType, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21, a22, a23, a24, a25, a26, a27, a28))
         Case 30: Call CopyVariant(macCallByName, CallByName(obj, funcName, callerType, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21, a22, a23, a24, a25, a26, a27, a28, a29))
     End Select
-End Function
-
-Private Function GetMissing(Optional arg As Variant) As Variant
-  GetMissing = arg
 End Function

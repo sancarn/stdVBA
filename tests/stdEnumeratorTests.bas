@@ -90,9 +90,16 @@ Sub testAll()
     On Error Resume Next
     Dim e1 as stdEnumerator: set e1 = stdEnumerator.CreateFromIEnumVariant(c1)
     Dim e2 as stdEnumerator: set e2 = stdEnumerator.CreateFromIEnumVariant(c2)
-    
+    Dim e3 as stdEnumerator: set e3 = stdEnumerator.CreateFromArray(Array(1,2,3,4,5,6,7,8,9))
+    Dim e4 as stdEnumerator: set e4 = stdEnumerator.CreateFromCallable(stdLambda.Create("Array($2 <= 9, $2, $2, $2)"))    '1,2,3,4,5,6,7,8,9
+    Dim e5 as stdEnumerator: set e5 = stdEnumerator.CreateFromCallable(stdLambda.Create("if $2 <= 9 then $2 else null"))  '1,2,3,4,5,6,7,8,9
+
     'We'll be using join a lot for tests so test this first:
-    Test.Assert "Join", e1.Join() = "1,2,3,4,5,6,7,8,9"
+    Test.Assert "CreateFromIEnumVariant + Join", e1.Join() = "1,2,3,4,5,6,7,8,9"
+    Test.Assert "CreateFromArray", e3.join = "1,2,3,4,5,6,7,8,9"
+    Test.Assert "CreateFromCallable 1 Array return form", e4.join = "1,2,3,4,5,6,7,8,9"
+    Test.Assert "CreateFromCallable 2 Null return form", e5.join = "1,2,3,4,5,6,7,8,9"
+
     Test.Assert "Join w/ Delim", e1.Join("|") = "1|2|3|4|5|6|7|8|9"
     Test.Assert "Map", e1.map(stdLambda.Create("$1*2")).join() = "2,4,6,8,10,12,14,16,18"
     Test.Assert "Map w/ Index", e1.map(stdLambda.Create("$1+$2"),true).join() = "2,4,6,8,10,12,14,16,18"
@@ -130,9 +137,9 @@ Sub testAll()
     Test.Assert "FindFirst found", e2.FindFirst(stdLambda.Create("len($1)=6"))="tempor"
     Test.Assert "FindFirst not found", isNull(e2.FindFirst(stdLambda.Create("len($1)=42")))
     Test.Assert "Sort", e2.Sort(stdLambda.Create("len($1)")).Join = "do,ut,et,Ut,ad,ut,ex,ea,in,in,eu,in,id,sit,sed,non,qui,est,amet,elit,enim,quis,nisi,Duis,aute,esse,sint,sunt,anim,Lorem,ipsum,dolor,magna,minim,irure,dolor,velit,nulla,culpa,tempor,labore,dolore,aliqua,veniam,cillum,dolore,fugiat,mollit,eiusmod,nostrud,ullamco,laboris,aliquip,commodo,officia,laborum,pariatur,occaecat,proident,deserunt,consequat,voluptate,Excepteur,cupidatat,adipiscing,incididunt,consectetur,exercitation,reprehenderit"
-    Test.Assert "Length", e1.Length()=9
+    Test.Assert "Length", e1.Length=9
     Test.Assert "Item 1 gets item", e1.item(5)=5
-    Test.Assert "Item 2 returns null", isNull(e1.item(99))
+    'Test.Assert "Item 2 returns null", isNull(e1.item(99))   '=> This errors, as required.
 
     'ForEach style tests
     Dim tCol as collection
