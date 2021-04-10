@@ -898,19 +898,19 @@ Private Function NextItem(ByRef vNextKey as variant, ByRef vNextItem as Variant,
       NextItem = not isNull(vNextItem)
     case FromCallableVerbose
       Dim vVerboseReturn as Variant
-      Call CopyVariant(vArr,pCallback.Run(vNextItem, iCurrentIndex))
-      if isArray(vTmpItem) then
-        Dim iArrLength as long: iArrLength = ubound(vTmpItem) - lbound(vTmpItem)+1
+      Call CopyVariant(vVerboseReturn,pCallback.Run(vNextItem, iCurrentIndex))
+      if isArray(vVerboseReturn) then
+        Dim iArrLength as long: iArrLength = ubound(vVerboseReturn) - lbound(vVerboseReturn)+1
         if iArrLength > 0 and iArrLength <= 4 then
           vNextItem = null
           vNextKey = null
-
-          Dim iArrLb as long: iArrLb = lbound(vTmpItem)
-          if iArrLength >= 1 then NextItem      = vTmpItem(iArrLb+0)
-          if iArrLength >= 2 then iCurrentIndex = vTmpItem(iArrLb+1)
-          if iArrLength >= 3 then Call CopyVariant(vNextItem,vTmpItem(iArrLb+2)) 
-          if iArrLength >= 4 then Call CopyVariant(vNextKey, vTmpItem(iArrLb+3))
           NextItem = true
+          
+          Dim iArrLb as long: iArrLb = lbound(vVerboseReturn)
+          if iArrLength >= 1 then NextItem      = vVerboseReturn(iArrLb+0)
+          if iArrLength >= 2 then iCurrentIndex = vVerboseReturn(iArrLb+1)
+          if iArrLength >= 3 then Call CopyVariant(vNextItem,vVerboseReturn(iArrLb+2)) 
+          if iArrLength >= 4 then Call CopyVariant(vNextKey, vVerboseReturn(iArrLb+3))
         else
           Err.Raise 1, "stdEnumerator", "Incorrect return value length"
         end if
