@@ -91,14 +91,15 @@ Sub testAll()
     Dim e1 as stdEnumerator: set e1 = stdEnumerator.CreateFromIEnumVariant(c1)
     Dim e2 as stdEnumerator: set e2 = stdEnumerator.CreateFromIEnumVariant(c2)
     Dim e3 as stdEnumerator: set e3 = stdEnumerator.CreateFromArray(Array(1,2,3,4,5,6,7,8,9))
-    Dim e4 as stdEnumerator: set e4 = stdEnumerator.CreateFromCallable(stdLambda.Create("Array($2 <= 9, $2, $2, $2)"))    '1,2,3,4,5,6,7,8,9
-    Dim e5 as stdEnumerator: set e5 = stdEnumerator.CreateFromCallable(stdLambda.Create("if $2 <= 9 then $2 else null"))  '1,2,3,4,5,6,7,8,9
+    Dim e4 as stdEnumerator: set e4 = stdEnumerator.CreateFromCallable(stdLambda.Create("if $2 <= 9 then $2 else null"))  '1,2,3,4,5,6,7,8,9
+    Dim e5 as stdEnumerator: set e5 = stdEnumerator.CreateFromCallableVerbose(stdLambda.Create("Array($2 <= 9, $2, $2, $2)"))    '1,2,3,4,5,6,7,8,9
+    
 
     'We'll be using join a lot for tests so test this first:
     Test.Assert "CreateFromIEnumVariant + Join", e1.Join() = "1,2,3,4,5,6,7,8,9"
     Test.Assert "CreateFromArray", e3.join = "1,2,3,4,5,6,7,8,9"
-    Test.Assert "CreateFromCallable 1 Array return form", e4.join = "1,2,3,4,5,6,7,8,9"
-    Test.Assert "CreateFromCallable 2 Null return form", e5.join = "1,2,3,4,5,6,7,8,9"
+    Test.Assert "CreateFromCallable", e4.join = "1,2,3,4,5,6,7,8,9"
+    Test.Assert "CreateFromCallableVerbose", e5.join = "1,2,3,4,5,6,7,8,9"
 
     Test.Assert "Join w/ Delim", e1.Join("|") = "1|2|3|4|5|6|7|8|9"
     Test.Assert "Map", e1.map(stdLambda.Create("$1*2")).join() = "2,4,6,8,10,12,14,16,18"
