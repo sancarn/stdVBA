@@ -93,6 +93,19 @@ Sub testAll()
     Dim e3 as stdEnumerator: set e3 = stdEnumerator.CreateFromArray(Array(1,2,3,4,5,6,7,8,9))
     Dim e4 as stdEnumerator: set e4 = stdEnumerator.CreateFromCallable(stdLambda.Create("if $2 <= 9 then $2 else null"))  '1,2,3,4,5,6,7,8,9
     Dim e5 as stdEnumerator: set e5 = stdEnumerator.CreateFromCallableVerbose(stdLambda.Create("Array($2 <= 9, $2, $2, $2)"))    '1,2,3,4,5,6,7,8,9
+    Dim e6 as stdEnumerator: set e6 = stdEnumerator.CreateFromCallableVerbose(stdLambda.Create("Array($2 <= 9, $2, $2, ""a"" & $2)"))
+    
+    Dim vAsArray as variant: vAsArray = e3.AsArray()
+    Dim vAsArrayLong as variant: vAsArrayLong  = e3.AsArray(vbLong)
+    Dim vAsArrayString as variant: vAsArrayString  = e3.AsArray(vbString)
+    Dim oAsCol  as object: set oAsCol  = e3.AsCollection()
+    Dim oAsDict as object: set oAsDict = e6.AsDictionary()
+
+    Test.Assert "AsArray()", typename(vAsArray) = "Variant()" and (ubound(vAsArray)-lbound(vAsArray)+1) = e3.length
+    Test.Assert "AsArray()", typename(vAsArrayLong) = "Long()" and (ubound(vAsArrayLong)-lbound(vAsArrayLong)+1) = e3.length
+    Test.Assert "AsArray()", typename(vAsArrayString) = "String()" and (ubound(vAsArrayString)-lbound(vAsArrayString)+1) = e3.length
+    Test.Assert "AsDictionary()", e6.AsDictionary()("a1") = 1
+    Test.Assert "AsCollection()", oAsCol.count = e3.length and typename(oAsCol) = "Collection"
     
 
     'We'll be using join a lot for tests so test this first:
@@ -101,12 +114,14 @@ Sub testAll()
     Test.Assert "CreateFromCallable", e4.join = "1,2,3,4,5,6,7,8,9"
     Test.Assert "CreateFromCallableVerbose", e5.join = "1,2,3,4,5,6,7,8,9"
 
+    Test.Assert "Join empty", stdEnumerator.CreateFromArray(Array()).join() = ""
     Test.Assert "Join w/ Delim", e1.Join("|") = "1|2|3|4|5|6|7|8|9"
     Test.Assert "Map", e1.map(stdLambda.Create("$1*2")).join() = "2,4,6,8,10,12,14,16,18"
-    Test.Assert "Map w/ Index", e1.map(stdLambda.Create("$1+$2"),true).join() = "2,4,6,8,10,12,14,16,18"
+    Test.Assert "Map w/ Index", e1.Map(stdLambda.Create("$1+$2")).Join() = "2,4,6,8,10,12,14,16,18"
     Test.Assert "Reverse", e1.reverse().join() = "9,8,7,6,5,4,3,2,1"
     Test.Assert "Filter", e1.Filter(stdLambda.Create("$1<=4")).join() = "1,2,3,4"
-    Test.Assert "Filter w/ Index", e1.Filter(stdLambda.Create("($1+$2)<=4"),true).join() = "1,2"
+    Test.Assert "Filter returns elements not cb return value", e1.Filter(stdLambda.Create("$1*2<=4")).join() = "1,2"
+    Test.Assert "Filter w/ Index", e1.Filter(stdLambda.Create("$2<=4")).join() = "1,2,3,4"
     Test.Assert "Concat", e1.concat(c1).join() = "1,2,3,4,5,6,7,8,9,1,2,3,4,5,6,7,8,9"
 
     With e1.concat(c1)
@@ -138,10 +153,10 @@ Sub testAll()
     Test.Assert "Sum", e1.sum(stdLambda.Create("$1*2"))=90
     Test.Assert "FindFirst found", e2.FindFirst(stdLambda.Create("len($1)=6"))="tempor"
     Test.Assert "FindFirst not found", isNull(e2.FindFirst(stdLambda.Create("len($1)=42")))
-    Test.Assert "Sort", e2.Sort(stdLambda.Create("len($1)")).Join = "do,ut,et,Ut,ad,ut,ex,ea,in,in,eu,in,id,sit,sed,non,qui,est,amet,elit,enim,quis,nisi,Duis,aute,esse,sint,sunt,anim,Lorem,ipsum,dolor,magna,minim,irure,dolor,velit,nulla,culpa,tempor,labore,dolore,aliqua,veniam,cillum,dolore,fugiat,mollit,eiusmod,nostrud,ullamco,laboris,aliquip,commodo,officia,laborum,pariatur,occaecat,proident,deserunt,consequat,voluptate,Excepteur,cupidatat,adipiscing,incididunt,consectetur,exercitation,reprehenderit"
+    Test.Assert "Sort", stdEnumerator.CreateFromArray(Array(1,3,5,4,2,6,9,7,8)).sort().join() = "1,2,3,4,5,6,7,8,9"
+    Test.Assert "Sort w/ callback", e2.Sort(stdLambda.Create("len($1)")).Join = "do,ut,et,Ut,ad,ut,ex,ea,in,in,eu,in,id,sit,sed,non,qui,est,amet,elit,enim,quis,nisi,Duis,aute,esse,sint,sunt,anim,Lorem,ipsum,dolor,magna,minim,irure,dolor,velit,nulla,culpa,tempor,labore,dolore,aliqua,veniam,cillum,dolore,fugiat,mollit,eiusmod,nostrud,ullamco,laboris,aliquip,commodo,officia,laborum,pariatur,occaecat,proident,deserunt,consequat,voluptate,Excepteur,cupidatat,adipiscing,incididunt,consectetur,exercitation,reprehenderit"
     Test.Assert "Length", e1.Length=9
     Test.Assert "Item 1 gets item", e1.item(5)=5
-    'Test.Assert "Item 2 returns null", isNull(e1.item(99))   '=> This errors, as required.
 
     'ForEach style tests
     Dim tCol as collection
@@ -149,7 +164,7 @@ Sub testAll()
     Call e1.forEach(stdLambda.Create("$1#add($2)").bind(tCol))
     Test.Assert "ForEach", stdEnumerator.CreateFromIEnumVariant(tCol).join() = "1,2,3,4,5,6,7,8,9"
     set tCol = new collection
-    Call e1.forEach(stdLambda.Create("$1#add($2+$3)").bind(tCol),true)
+    Call e1.forEach(stdLambda.Create("$1#add($2+$3)").bind(tCol))
     Test.Assert "ForEach w\ Index", stdEnumerator.CreateFromIEnumVariant(tCol).join() = "2,4,6,8,10,12,14,16,18"
     set tCol = new collection
     Call e1.cycle(2, stdLambda.Create("$1#add($2)").bind(tCol))
@@ -173,30 +188,3 @@ Sub testAll()
     Test.Assert "GroupBy - Even numbers", dict("Even").join() = "2,4,6,8"
     Test.Assert "GroupBy - Odd numbers" , dict("Odd").join() = "1,3,5,7,9"
 End Sub
-
-
-
-' {} [X] Sort() as stdArray
-' {T} [X] Reverse() as stdArray
-' {T} [X] ForEach                  +T w/Index
-' {T} [X] Map                      +T w/Index
-' {T} [X] Unique
-' {T} [X] Filter
-' {T} [X] Concat
-' {T} [X] Join
-' {T} [X] indexOf                  +T w/ not found value
-' {T} [X] lastIndexOf              +T w/ not found value
-' {T} [X] includes                 +
-' {T} [X] reduce
-' {T} [X] countBy
-' {T} [X] max
-' {T} [X] min
-' {T} [X] sum
-' {T} [X] Flatten
-' {T} [X] cycle
-' {T} [X] findFirst
-' {T} [X] checkAll
-' {T} [X] checkAny
-' {T} [X] checkNone
-' {T} [X] checkOnlyOne
-' {T} [X] groupBy
