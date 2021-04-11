@@ -259,3 +259,5 @@ Evaluates callback `cb` on all items of the enumerator. If only one item returns
 ### PROTECTED METHODS
 
 #### `protInit(ByVal iEnumeratorType as long, ByVal iMaxLength as long, ParamArray v() As Variant)`
+
+Can be used to instantiate the class. Do not use this method unless you know what you are doing.
