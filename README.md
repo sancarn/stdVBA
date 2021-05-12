@@ -133,7 +133,7 @@ This project is has been majorly maintained by 1 person, so progress is generall
 |![l](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Type       |stdCOM           | A wrapper around a COM object which provides Reflection (through ITypeInfo), Interface querying, Calling interface methods (via DispID) and more. 
 |![l](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Automation |stdClipboard     | Clipboard management library. Set text, files, images and more to the clipboard.
 |![l](https://via.placeholder.com/15/ff0000/000000?text=+) | HOLD   | Automation |stdHTTP          | A wrapper around Win HTTP libraries.
-|![l](https://via.placeholder.com/15/ffff00/000000?text=+) | WIP    | Automation |stdWindow        | A handy wrapper around Win32 Window management APIs.
+|![l](https://via.placeholder.com/15/00ff00/000000?text=+) | RAEDY  | Automation |stdWindow        | A handy wrapper around Win32 Window management APIs.
 |![l](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Automation |stdProcess       | Create and manage processes.
 |![l](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Automation |stdAcc           | Use Microsoft Active Accessibility framework within VBA - Very useful for automation.
 |![l](https://via.placeholder.com/15/ffff00/000000?text=+) | WIP    | Excel      |xlTable          | Better tables for VBA, e.g. Map rows etc.
