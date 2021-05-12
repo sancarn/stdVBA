@@ -124,17 +124,17 @@ This project is has been majorly maintained by 1 person, so progress is generall
 |----------------------------------------------------------|--------|------------|-----------------|--------------|
 |![l](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Debug      |stdError         | Better error handling, including stack trace and error handling diversion and events.
 |![l](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Type       |stdArray         | A library designed to re-create the Javascript dynamic array object.
-|![l](https://via.placeholder.com/15/ffff00/000000?text=+) | WIP    | Type       |stdEnumerator    | A library designed to wrap enumerable objects providing additional functionality.
+|![l](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Type       |stdEnumerator    | A library designed to wrap enumerable objects providing additional functionality.
 |![l](https://via.placeholder.com/15/ffff00/000000?text=+) | WIP    | Type       |stdDictionary    | A drop in replacement for VBScript's dictionary.
 |![l](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Type       |stdDate          | A standard date parsing library. No more will you have to rely on Excel's interpreter. State the format, get the data.
 |![l](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Type       |stdRegex         | A regex library with more features than standard e.g. named capture groups and free-spaces.
 |![l](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Type       |stdLambda        | Build and create in-line functions. Execute them at a later stage.
 |![l](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Type       |stdCallback      | Link to existing functions defined in VBA code, call them at a later stage.
-|![l](https://via.placeholder.com/15/ffff00/000000?text=+) | WIP    | Type       |stdCOM           | A wrapper around a COM object which provides Reflection (through ITypeInfo), Interface querying, Calling interface methods (via DispID) and more. 
+|![l](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Type       |stdCOM           | A wrapper around a COM object which provides Reflection (through ITypeInfo), Interface querying, Calling interface methods (via DispID) and more. 
 |![l](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Automation |stdClipboard     | Clipboard management library. Set text, files, images and more to the clipboard.
 |![l](https://via.placeholder.com/15/ff0000/000000?text=+) | HOLD   | Automation |stdHTTP          | A wrapper around Win HTTP libraries.
 |![l](https://via.placeholder.com/15/ffff00/000000?text=+) | WIP    | Automation |stdWindow        | A handy wrapper around Win32 Window management APIs.
-|![l](https://via.placeholder.com/15/ffff00/000000?text=+) | WIP    | Automation |stdProcess       | Create and manage processes.
+|![l](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Automation |stdProcess       | Create and manage processes.
 |![l](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Automation |stdAcc           | Use Microsoft Active Accessibility framework within VBA - Very useful for automation.
 |![l](https://via.placeholder.com/15/ffff00/000000?text=+) | WIP    | Excel      |xlTable          | Better tables for VBA, e.g. Map rows etc.
 
