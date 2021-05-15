@@ -952,6 +952,8 @@ Private Function evaluate(ByRef ops() As Operation, ByVal vLastArgs As Variant) 
                         v3 = v1 < v2
                     Case ISubType.oLte
                         v3 = v1 <= v2
+                    Case ISubType.oLike
+                        v3 = v1 Like v2
                     Case Else
                         v3 = Empty
                 End Select
@@ -991,8 +993,6 @@ Private Function evaluate(ByRef ops() As Operation, ByVal vLastArgs As Variant) 
                 Select Case op.subType
                     Case ISubType.oCat
                         v3 = v1 & v2
-                    Case ISubType.oLike
-                        v3 = v1 Like v2
                     Case Else
                         v3 = Empty
                 End Select

@@ -342,6 +342,7 @@ End Property
 '@returns {Date} The datetime representing the time the process was started/created
 Public Property Get TimeCreated() As Date
   Dim t1 As FileTime, t2 As FileTime, t3 As FileTime, t4 As FileTime
+  if pQueryInfoHandle = 0 then exit property
   If GetProcessTimes(pQueryInfoHandle, t1, t2, t3, t4) Then
     TimeCreated = TimeFromFileTime(t1)
   Else
@@ -353,6 +354,7 @@ End Property
 '@returns {Date} The datetime representing the time the process was quit
 Public Property Get TimeQuit() As Date
   Dim t1 As FileTime, t2 As FileTime, t3 As FileTime, t4 As FileTime
+  if pQueryInfoHandle = 0 then exit property
   If Not isRunning Then
     If GetProcessTimes(pQueryInfoHandle, t1, t2, t3, t4) Then
       TimeQuit = TimeFromFileTime(t2)
@@ -368,6 +370,7 @@ End Property
 '@returns {Date} The datetime representing the kernel time
 Public Property Get TimeKernel() As Date
   Dim t1 As FileTime, t2 As FileTime, t3 As FileTime, t4 As FileTime
+  if pQueryInfoHandle = 0 then exit property
   If GetProcessTimes(pQueryInfoHandle, t1, t2, t3, t4) Then
     TimeKernel = TimeFromFileTime(t3)
   Else
@@ -379,6 +382,7 @@ End Property
 '@returns {Date} The datetime representing the user time
 Public Property Get TimeUser() As Date
   Dim t1 As FileTime, t2 As FileTime, t3 As FileTime, t4 As FileTime
+  if pQueryInfoHandle = 0 then exit property
   If GetProcessTimes(pQueryInfoHandle, t1, t2, t3, t4) Then
     TimeUser = TimeFromFileTime(t4)
   Else

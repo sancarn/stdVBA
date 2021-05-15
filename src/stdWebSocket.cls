@@ -66,11 +66,11 @@ Public Sub Init(ByVal url As String)
   'Save document
   Set document = ie.document
   
+  'Create bind function on document object
   Dim scpt As Object
   Set scpt = document.createElement("script")
   scpt.text = "document.bind = function(name,data){window[name]=data}"
   Call document.body.appendChild(scpt)
-  Set poop = stdCallback.CreateFromObjectMethod(Me, "handleEvent")
   
   'Bind browser helper objects
   With document
