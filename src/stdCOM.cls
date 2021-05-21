@@ -27,7 +27,7 @@ Attribute VB_Exposed = False
     Private Declare Sub SetLastError Lib "kernel32.dll" (ByVal dwErrCode As Long)
     Private Declare Function IIDFromString Lib "ole32.dll" (ByVal pstCLS As Long, ByRef iid As guid) As Long
 #End If
-
+'
 'GUID struct for QueryInterface
 Private Type GUID
     Data1 As Long
