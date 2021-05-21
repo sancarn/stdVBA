@@ -1331,6 +1331,12 @@ End Function
 '
 '==========================
 
+'Class initialisation
+Private Sub Class_Initialize()
+    'If this is stdLambda predeclared class, ensure that oFuncExt is defined.
+    If Me Is stdLambda Then Set oFuncExt = CreateObject("Scripting.Dictionary")
+End Sub
+
 '------------
 'tokenisation
 '------------
