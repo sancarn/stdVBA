@@ -7,7 +7,7 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
-Public Enum EMessageSubject
+Public Enum ETableSubject
   RowSelect
   RowDeselect
   
@@ -50,4 +50,4 @@ Public Property Get Column(ByVal sHeaderName As String) As stdITable: End Proper
 'Obtain a new ID (can be used to create new rows)
 Public Function getNewID() As Variant: End Function
 
-Public Function Message(ByVal eSubject As EMessageSubject, ParamArray params()) As Variant: End Function
+Public Function Message(ByVal eSubject As ETableSubject, ParamArray params()) As Variant: End Function

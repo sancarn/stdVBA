@@ -9,6 +9,12 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 'Attribute Item.VB_UserMemId = 0
 
+Enum ETableRowSubject
+  RowSelected
+  RowDeselected
+  RowChange
+End Enum
+
 'Return as an array of variants
 Public Function AsArray() As Variant: End Function
 
@@ -41,3 +47,5 @@ Public Function Clone() As stdITableRow: End Function
 
 'Save row to the database table, Diff must be cleared on save
 Public Sub Save(): End Sub
+
+Public Function Message(ByVal eSubject As ETableRowSubject, ParamArray params()) As Variant: End Function

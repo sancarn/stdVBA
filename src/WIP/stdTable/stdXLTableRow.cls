@@ -176,6 +176,10 @@ Private Property Let stdITableRow_Item(ByVal sHeaderName As String, ByVal RHS As
   Item(sHeaderName) = RHS
 End Property
 
+Private Function stdITableRow_Message(ByVal eSubject As ETableRowSubject, ParamArray params() As Variant) As Variant
+
+End Function
+
 Private Property Get stdITableRow_parent() As stdITable
   Set stdITableRow_parent = parent
 End Property
