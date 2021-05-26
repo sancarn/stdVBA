@@ -473,7 +473,7 @@ Friend Sub protInitFromObject(ByVal obj As IUnknown)
 End Sub
 Friend Sub protInitFromPtr(ByVal ptr As LongPtr)
   pObjPtr = ptr
-  Call AddRefence
+  Call unkAddRef
 End Sub
 Private Sub Class_Terminate()
   If oMeta Is Nothing Then Call unkRelease
