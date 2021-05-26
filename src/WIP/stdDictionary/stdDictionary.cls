@@ -8,8 +8,6 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
-
-
 'Hash size typically we are anticipating only 10 hashes being required. In reality the larger this number is the better in terms of
 'performance, however the more memory is consumed. If you're generating hundreds of dictionaries you want to keep this number as low as possible.
 'on the other hand if you are making 1 huge hash, then this number should likely be a lot larger.
@@ -48,7 +46,7 @@ Public Function Create(ParamArray keyItems() as variant) as stdDictionary
     Call Create.Add(keyItems(i),keyItems(i+1))
   next
 End Function
-Public Function CreateAdvanced(HashSize,ListSize,ChunkSize,ParamArray keyItems() as variant) as stdDictionary
+Public Function CreateAdvanced(HashSize, ListSize,ChunkSize,ParamArray keyItems() as variant) as stdDictionary
   set Create = new stdDictionary
   Call Create.protInit()
   For i = 0 to ubound(keyItems)
@@ -175,25 +173,26 @@ Private Function HashFunction(Key as variant) as Long
       next
     #if VBA7 then
     case vbLongLong
-      HashFunction = HashFunction(CStr(key))
+      iRet = HashFunction(CStr(key))
     #end if
     case vbDouble, vbSingle, vbCurrency
       'There appears to be no way (without declares) to copy the bytes of a double into a VBA byte array. Instead we go with a string, which isn't ideal but hopefully
       'will be good enough
-      HashFunction = HashFunction(Cstr(Key))
+      iRet = HashFunction(Cstr(Key))
     case vbDate
-      HashFunction = HashFunction(Cstr(CDbl(key)))
+      iRet = HashFunction(Cstr(CDbl(key)))
     case vbInteger, vbLong, vbBoolean
-      HashFunction = Abs(Key)
+      iRet = Abs(Key)
     case vbEmpty, vbNull, vbVariant
-      HashFunction = 0
+      iRet = 0
     case vbError
-      HashFunction = Key.Number
+      iRet = Key.Number
     case vbObject
       if typeof key is stdIHashable then
-        HashFunction = HashFunction(Key.hash)
+        Dim hKey as stdIHashable: set hKey = key
+        iRet = HashFunction(hKey.hash)
       else
-        HashFunction = HashFunction(objptr(Key))
+        iRet = HashFunction(objptr(Key))
       end if
   end select
 
