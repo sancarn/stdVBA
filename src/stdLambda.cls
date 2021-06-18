@@ -554,10 +554,10 @@ Private Sub parseArithmeticPriority4() '*, /
     Dim bLoop As Boolean: bLoop = True
     Do
         If optConsume("multiply") Then
-            Call parseArithmeticPriority4
+            Call parseArithmeticPriority5
             Call addOperation(oArithmetic, oMul, , -1)
         ElseIf optConsume("divide") Then
-            Call parseArithmeticPriority4
+            Call parseArithmeticPriority5
             Call addOperation(oArithmetic, oDiv, , -1)
         Else
             bLoop = False
