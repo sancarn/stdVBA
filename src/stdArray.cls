@@ -224,7 +224,7 @@ Public Property Get arr() As Variant
       Dim vRet() As Variant
       ReDim vRet(1 To pLength) As Variant
       For i = 1 To pLength
-        vRet(i) = pArr(i)
+        Call CopyVariant(vRet(i), pArr(i))
       Next
       arr = vRet
     end if

@@ -122,6 +122,11 @@ Public Function CreateFromIEnumVariant(ByVal o as Object, optional byval iMaxLen
     Call CreateFromIEnumVariant.protInit(EnumeratorType.FromIEnumVariant,iMaxLength,o)
 End Function
 
+Public Function CreateEmpty(optional byval iMaxLength as long = 1000000) as stdEnumerator
+    set CreateEmpty = new stdEnumerator
+    Call CreateEmpty.protInit(EnumeratorType.FromIEnumVariant,iMaxLength,new Collection)
+End Function
+
 'TODO: CreateFromDictionary
 'Public Function CreateFromDictionary(ByVal o as object, optional byval iMaxLength as long = 1000000) as stdEnumerator
 '    set CreateFromDictionary = new stdEnumerator
@@ -147,17 +152,21 @@ Public Sub protInit(ByVal iEnumeratorType as long, ByVal iMaxLength as long, Par
             next
             
             'Define array
-            Dim vArr()
-            ReDim Preserve vArr(1 To iLength)
-            
-            'Copy IEnumVARIANT into array
-            Dim i As Long: i = 0
-            For Each obj In pEnumObject
-                i = i + 1
-                Call CopyVariant(vArr(i), obj)
-            Next
+            if iLength > 0 then
+                Dim vArr()
+                ReDim Preserve vArr(1 To iLength)
+                
+                'Copy IEnumVARIANT into array
+                Dim i As Long: i = 0
+                For Each obj In pEnumObject
+                    i = i + 1
+                    Call CopyVariant(vArr(i), obj)
+                Next
 
-            pBaseArray = vArr
+                pBaseArray = vArr
+            else
+                pBaseArray = Array()
+            end if
         case EnumeratorType.FromArray
             pBaseArray = v(0)
         case EnumeratorType.FromCallable
