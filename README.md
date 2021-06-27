@@ -120,33 +120,40 @@ This project is has been majorly maintained by 1 person, so progress is generall
 
 ## Planned Global Objects:
 
+<!--
+  docs/assets/Status_G.png - Ready
+  docs/assets/Status_Y.png - WIP
+  docs/assets/Status_R.png - Hold
+-->
+
+
 |Color                                                     | Status | Type       |Name             | Description  |
 |----------------------------------------------------------|--------|------------|-----------------|--------------|
-|![l](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Debug      |stdError         | Better error handling, including stack trace and error handling diversion and events.
-|![l](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Type       |stdArray         | A library designed to re-create the Javascript dynamic array object.
-|![l](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Type       |stdEnumerator    | A library designed to wrap enumerable objects providing additional functionality.
-|![l](https://via.placeholder.com/15/ffff00/000000?text=+) | WIP    | Type       |stdDictionary    | A drop in replacement for VBScript's dictionary.
-|![l](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Type       |stdDate          | A standard date parsing library. No more will you have to rely on Excel's interpreter. State the format, get the data.
-|![l](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Type       |stdRegex         | A regex library with more features than standard e.g. named capture groups and free-spaces.
-|![l](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Type       |stdLambda        | Build and create in-line functions. Execute them at a later stage.
-|![l](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Type       |stdCallback      | Link to existing functions defined in VBA code, call them at a later stage.
-|![l](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Type       |stdCOM           | A wrapper around a COM object which provides Reflection (through ITypeInfo), Interface querying, Calling interface methods (via DispID) and more. 
-|![l](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Automation |stdClipboard     | Clipboard management library. Set text, files, images and more to the clipboard.
-|![l](https://via.placeholder.com/15/ff0000/000000?text=+) | HOLD   | Automation |stdHTTP          | A wrapper around Win HTTP libraries.
-|![l](https://via.placeholder.com/15/00ff00/000000?text=+) | RAEDY  | Automation |stdWindow        | A handy wrapper around Win32 Window management APIs.
-|![l](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Automation |stdProcess       | Create and manage processes.
-|![l](https://via.placeholder.com/15/00ff00/000000?text=+) | READY  | Automation |stdAcc           | Use Microsoft Active Accessibility framework within VBA - Very useful for automation.
-|![l](https://via.placeholder.com/15/ffff00/000000?text=+) | WIP    | Excel      |xlTable          | Better tables for VBA, e.g. Map rows etc.
+|![l](docs/assets/Status_G.png) | READY  | Debug      |stdError         | Better error handling, including stack trace and error handling diversion and events.
+|![l](docs/assets/Status_G.png) | READY  | Type       |stdArray         | A library designed to re-create the Javascript dynamic array object.
+|![l](docs/assets/Status_G.png) | READY  | Type       |stdEnumerator    | A library designed to wrap enumerable objects providing additional functionality.
+|![l](docs/assets/Status_Y.png) | WIP    | Type       |stdDictionary    | A drop in replacement for VBScript's dictionary.
+|![l](docs/assets/Status_G.png) | READY  | Type       |stdDate          | A standard date parsing library. No more will you have to rely on Excel's interpreter. State the format, get the data.
+|![l](docs/assets/Status_G.png) | READY  | Type       |stdRegex         | A regex library with more features than standard e.g. named capture groups and free-spaces.
+|![l](docs/assets/Status_G.png) | READY  | Type       |stdLambda        | Build and create in-line functions. Execute them at a later stage.
+|![l](docs/assets/Status_G.png) | READY  | Type       |stdCallback      | Link to existing functions defined in VBA code, call them at a later stage.
+|![l](docs/assets/Status_G.png) | READY  | Type       |stdCOM           | A wrapper around a COM object which provides Reflection (through ITypeInfo), Interface querying, Calling interface methods (via DispID) and more. 
+|![l](docs/assets/Status_G.png) | READY  | Automation |stdClipboard     | Clipboard management library. Set text, files, images and more to the clipboard.
+|![l](docs/assets/Status_R.png) | HOLD   | Automation |stdHTTP          | A wrapper around Win HTTP libraries.
+|![l](docs/assets/Status_G.png) | READY  | Automation |stdWindow        | A handy wrapper around Win32 Window management APIs.
+|![l](docs/assets/Status_G.png) | READY  | Automation |stdProcess       | Create and manage processes.
+|![l](docs/assets/Status_G.png) | READY  | Automation |stdAcc           | Use Microsoft Active Accessibility framework within VBA - Very useful for automation.
+|![l](docs/assets/Status_Y.png) | WIP    | Excel      |xlTable          | Better tables for VBA, e.g. Map rows etc.
 
 [The full roadmap](https://github.com/sancarn/stdVBA/projects/1) has more detailed information than here.
 
 ### Statuses
 
-#### ![_](https://via.placeholder.com/15/00ff00/000000?text=+) READY
+#### ![_](docs/assets/Status_G.png) READY
 
 APIs which are ready to use, and although are not fully featured are in a good enough working state.
 
-#### ![_](https://via.placeholder.com/15/ffff00/000000?text=+) WIP
+#### ![_](docs/assets/Status_Y.png) WIP
 
 APIs which are WIP are not necessarily being worked on currently but at least are recognised for their importance to the library. These will be lightly worked on/thought about continuously even if no commits are made.
 
@@ -155,7 +162,7 @@ As of Oct 2020, this status typically consists of:
 * Unit testing; 
 * Tasks difficult to automate otherwise e.g. stdClipboard, stdAccessibility;
 
-#### ![_](https://via.placeholder.com/15/ff0000/000000?text=+) HOLD
+#### ![_](docs/assets/Status_R.png) HOLD
 
 APIs where progress has been temporarily halted, and/or is currently not a priority.
 
