@@ -129,21 +129,23 @@ This project is has been majorly maintained by 1 person, so progress is generall
 
 |Color                                                     | Status | Type       |Name             | Description  |
 |----------------------------------------------------------|--------|------------|-----------------|--------------|
-|![l](docs/assets/Status_G.png) | READY  | Debug      |stdError         | Better error handling, including stack trace and error handling diversion and events.
-|![l](docs/assets/Status_G.png) | READY  | Type       |stdArray         | A library designed to re-create the Javascript dynamic array object.
-|![l](docs/assets/Status_G.png) | READY  | Type       |stdEnumerator    | A library designed to wrap enumerable objects providing additional functionality.
-|![l](docs/assets/Status_Y.png) | WIP    | Type       |stdDictionary    | A drop in replacement for VBScript's dictionary.
-|![l](docs/assets/Status_G.png) | READY  | Type       |stdDate          | A standard date parsing library. No more will you have to rely on Excel's interpreter. State the format, get the data.
-|![l](docs/assets/Status_G.png) | READY  | Type       |stdRegex         | A regex library with more features than standard e.g. named capture groups and free-spaces.
-|![l](docs/assets/Status_G.png) | READY  | Type       |stdLambda        | Build and create in-line functions. Execute them at a later stage.
-|![l](docs/assets/Status_G.png) | READY  | Type       |stdCallback      | Link to existing functions defined in VBA code, call them at a later stage.
-|![l](docs/assets/Status_G.png) | READY  | Type       |stdCOM           | A wrapper around a COM object which provides Reflection (through ITypeInfo), Interface querying, Calling interface methods (via DispID) and more. 
-|![l](docs/assets/Status_G.png) | READY  | Automation |stdClipboard     | Clipboard management library. Set text, files, images and more to the clipboard.
-|![l](docs/assets/Status_R.png) | HOLD   | Automation |stdHTTP          | A wrapper around Win HTTP libraries.
-|![l](docs/assets/Status_G.png) | READY  | Automation |stdWindow        | A handy wrapper around Win32 Window management APIs.
-|![l](docs/assets/Status_G.png) | READY  | Automation |stdProcess       | Create and manage processes.
-|![l](docs/assets/Status_G.png) | READY  | Automation |stdAcc           | Use Microsoft Active Accessibility framework within VBA - Very useful for automation.
-|![l](docs/assets/Status_Y.png) | WIP    | Excel      |xlTable          | Better tables for VBA, e.g. Map rows etc.
+|![l](docs/assets/Status_R.png) | HOLD   | Debug       |stdError         | Better error handling, including stack trace and error handling diversion and events.
+|![l](docs/assets/Status_G.png) | READY  | Type        |stdArray         | A library designed to re-create the Javascript dynamic array object.
+|![l](docs/assets/Status_G.png) | READY  | Type        |stdEnumerator    | A library designed to wrap enumerable objects providing additional functionality.
+|![l](docs/assets/Status_Y.png) | WIP    | Type        |stdDictionary    | A drop in replacement for VBScript's dictionary.
+|![l](docs/assets/Status_G.png) | READY  | Type        |stdDate          | A standard date parsing library. No more will you have to rely on Excel's interpreter. State the format, get the data.
+|![l](docs/assets/Status_G.png) | READY  | Type        |stdRegex         | A regex library with more features than standard e.g. named capture groups and free-spaces.
+|![l](docs/assets/Status_G.png) | READY  | Type        |stdLambda        | Build and create in-line functions. Execute them at a later stage.
+|![l](docs/assets/Status_G.png) | READY  | Type        |stdCallback      | Link to existing functions defined in VBA code, call them at a later stage.
+|![l](docs/assets/Status_G.png) | READY  | Type        |stdCOM           | A wrapper around a COM object which provides Reflection (through ITypeInfo), Interface querying, Calling interface methods (via DispID) and more. 
+|![l](docs/assets/Status_G.png) | READY  | Automation  |stdClipboard     | Clipboard management library. Set text, files, images and more to the clipboard.
+|![l](docs/assets/Status_R.png) | HOLD   | Automation  |stdHTTP          | A wrapper around Win HTTP libraries.
+|![l](docs/assets/Status_G.png) | READY  | Automation  |stdWindow        | A handy wrapper around Win32 Window management APIs.
+|![l](docs/assets/Status_G.png) | READY  | Automation  |stdProcess       | Create and manage processes.
+|![l](docs/assets/Status_G.png) | READY  | Automation  |stdAcc           | Use Microsoft Active Accessibility framework within VBA - Very useful for automation.
+|![l](docs/assets/Status_G.png) | READY  | Automation  |stdWebSocket     | WebSocket automation. Currently uses IE, need to move to more stable runtime. Will be useful for modern automation e.g. chrome
+|![l](docs/assets/Status_Y.png) | WIP    | Excel       |xlTable          | Better tables for VBA, e.g. Map rows etc.
+|![l](docs/assets/Status_G.png) | READY  | DevTools    |stdPerformance   | Performance testing
 
 [The full roadmap](https://github.com/sancarn/stdVBA/projects/1) has more detailed information than here.
 
