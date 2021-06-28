@@ -129,23 +129,23 @@ This project is has been majorly maintained by 1 person, so progress is generall
 
 |Color                                                     | Status | Type       |Name             |Docs | Description  |
 |----------------------------------------------------------|--------|------------|-----------------|-----|--------------|
-|![l](docs/assets/Status_R.png) | HOLD   | Debug       |stdError        | No docs | Better error handling, including stack trace and error handling diversion and events.
-|![l](docs/assets/Status_G.png) | READY  | Type        |stdArray        | No docs | A library designed to re-create the Javascript dynamic array object.
+|![l](docs/assets/Status_R.png) | HOLD   | Debug       |stdError        | None | Better error handling, including stack trace and error handling diversion and events.
+|![l](docs/assets/Status_G.png) | READY  | Type        |stdArray        | None | A library designed to re-create the Javascript dynamic array object.
 |![l](docs/assets/Status_G.png) | READY  | Type        |stdEnumerator   | [docs](docs/stdEnumerator.md) | A library designed to wrap enumerable objects providing additional functionality.
-|![l](docs/assets/Status_Y.png) | WIP    | Type        |stdDictionary   | No docs | A drop in replacement for VBScript's dictionary.
-|![l](docs/assets/Status_G.png) | READY  | Type        |stdDate         | No docs | A standard date parsing library. No more will you have to rely on Excel's interpreter. State the format, get the data.
-|![l](docs/assets/Status_G.png) | READY  | Type        |stdRegex        | No docs | A regex library with more features than standard e.g. named capture groups and free-spaces.
+|![l](docs/assets/Status_Y.png) | WIP    | Type        |stdDictionary   | None | A drop in replacement for VBScript's dictionary.
+|![l](docs/assets/Status_G.png) | READY  | Type        |stdDate         | None | A standard date parsing library. No more will you have to rely on Excel's interpreter. State the format, get the data.
+|![l](docs/assets/Status_G.png) | READY  | Type        |stdRegex        | None | A regex library with more features than standard e.g. named capture groups and free-spaces.
 |![l](docs/assets/Status_G.png) | READY  | Type        |stdLambda       | [docs](docs/stdLambda.md) | Build and create in-line functions. Execute them at a later stage.
-|![l](docs/assets/Status_G.png) | READY  | Type        |stdCallback     | No docs | Link to existing functions defined in VBA code, call them at a later stage.
-|![l](docs/assets/Status_G.png) | READY  | Type        |stdCOM          | No docs | A wrapper around a COM object which provides Reflection (through ITypeInfo), Interface querying, Calling interface methods (via DispID) and more. 
-|![l](docs/assets/Status_G.png) | READY  | Automation  |stdClipboard    | No docs | Clipboard management library. Set text, files, images and more to the clipboard.
-|![l](docs/assets/Status_R.png) | HOLD   | Automation  |stdHTTP         | No docs | A wrapper around Win HTTP libraries.
+|![l](docs/assets/Status_G.png) | READY  | Type        |stdCallback     | None | Link to existing functions defined in VBA code, call them at a later stage.
+|![l](docs/assets/Status_G.png) | READY  | Type        |stdCOM          | None | A wrapper around a COM object which provides Reflection (through ITypeInfo), Interface querying, Calling interface methods (via DispID) and more. 
+|![l](docs/assets/Status_G.png) | READY  | Automation  |stdClipboard    | None | Clipboard management library. Set text, files, images and more to the clipboard.
+|![l](docs/assets/Status_R.png) | HOLD   | Automation  |stdHTTP         | None | A wrapper around Win HTTP libraries.
 |![l](docs/assets/Status_G.png) | READY  | Automation  |stdWindow       | [docs](docs/stdWindow.md) | A handy wrapper around Win32 Window management APIs.
-|![l](docs/assets/Status_G.png) | READY  | Automation  |stdProcess      | No docs | Create and manage processes.
+|![l](docs/assets/Status_G.png) | READY  | Automation  |stdProcess      | None | Create and manage processes.
 |![l](docs/assets/Status_G.png) | READY  | Automation  |stdAcc          | [docs](docs/stdAcc.md) | Use Microsoft Active Accessibility framework within VBA - Very useful for automation.
-|![l](docs/assets/Status_G.png) | READY  | Automation  |stdWebSocket    | No docs | WebSocket automation. Currently uses IE, need to move to more stable runtime. Will be useful for modern automation e.g. chrome
-|![l](docs/assets/Status_Y.png) | WIP    | Excel       |xlTable         | No docs | Better tables for VBA, e.g. Map rows etc.
-|![l](docs/assets/Status_G.png) | READY  | DevTools    |stdPerformance  | No docs | Performance testing
+|![l](docs/assets/Status_G.png) | READY  | Automation  |stdWebSocket    | None | WebSocket automation. Currently uses IE, need to move to more stable runtime. Will be useful for modern automation e.g. chrome
+|![l](docs/assets/Status_Y.png) | WIP    | Excel       |xlTable         | None | Better tables for VBA, e.g. Map rows etc.
+|![l](docs/assets/Status_G.png) | READY  | DevTools    |stdPerformance  | None | Performance testing
 
 [The full roadmap](https://github.com/sancarn/stdVBA/projects/1) has more detailed information than here.
 
