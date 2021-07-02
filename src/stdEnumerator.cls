@@ -195,6 +195,10 @@ End Function
 '@returns {Collection} The enumerator's data as an array
 Public Function AsArray(Optional ByVal iType as vbVarType = vbVarType.vbVariant) as Variant
     Dim arrLen as long: arrLen = Length()
+    If arrLen = 0 Then
+        AsArray = Array()
+        Exit Function
+    End If
     Dim vRet as variant
     select case iType
         case vbVarType.vbBoolean
@@ -739,7 +743,11 @@ Public Function Cycle(ByVal iTimes as long, ByVal cb as stdICallable) as stdEnum
     set Cycle = Me
 End Function
 
-Public Function FindFirst(ByVal cb as stdICallable) as variant
+'Finds the first item which matches a certain condition
+'@param {ByVal stdICallable}   - Callback to check whether item matches condition
+'@param {ByVal Variant = Null} - Value to return if missing
+'@returns {Variant} Value found or value of isMissing if missing
+Public Function FindFirst(ByVal cb as stdICallable, optional ByVal ifMissing as variant = null) as variant
     Dim oRet as Collection: Set oRet = new Collection
     Dim v as variant: v = null
     Dim i as long: i = 0
@@ -752,7 +760,7 @@ Public Function FindFirst(ByVal cb as stdICallable) as variant
         end if
     Wend
 
-    FindFirst = Null
+    Call CopyVariant(FindFirst, ifMissing)
 End Function
 
 Public Property Get Item(ByVal index as Variant, optional byval byIndex as boolean = false) as variant

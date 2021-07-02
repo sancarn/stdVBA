@@ -799,14 +799,14 @@ End Property
 'Get/Set the X position of this window
 Public Property Get x() As Long
   If Exists Then
-    x = Me.RectWindow()(0)
+    x = Me.RectClient()(0)
   Else
     Err.Raise 1, "stdWindow#x", "Window does not exist."
   End If
 End Property
 Public Property Let x(ByVal vX As Long)
   If Exists Then
-    Dim rect As Variant: rect = RectWindow
+    Dim rect As Variant: rect = RectClient
     Call MoveWindow(pHandle, vX, rect(1), rect(2), rect(3), True)
   Else
     Err.Raise 1, "stdWindow#x [Let]", "Window does not exist."
@@ -816,14 +816,14 @@ End Property
 'Get/Set the Y position of this window
 Public Property Get y() As Long
   If Exists Then
-    y = RectWindow()(1)
+    y = RectClient()(1)
   Else
     Err.Raise 1, "stdWindow#y", "Window does not exist."
   End If
 End Property
 Public Property Let y(ByVal vY As Long)
   If Exists Then
-    Dim rect As Variant: rect = RectWindow
+    Dim rect As Variant: rect = RectClient
     Call MoveWindow(pHandle, rect(0), vY, rect(2), rect(3), True)
   Else
     Err.Raise 1, "stdWindow#y [Let]", "Window does not exist."
@@ -833,14 +833,14 @@ End Property
 'Get/Set the width of this window
 Public Property Get width() As Long
   If Exists Then
-    width = RectWindow()(2)
+    width = RectClient()(2)
   Else
     Err.Raise 1, "stdWindow#width", "Window does not exist."
   End If
 End Property
 Public Property Let width(ByVal vW As Long)
   If Exists Then
-    Dim rect As variant:: rect = RectWindow
+    Dim rect As variant:: rect = RectClient
     Call MoveWindow(pHandle, rect(0), rect(1), vW, rect(3), True)
   Else
     Err.Raise 1, "stdWindow#width [Let]", "Window does not exist."
@@ -850,14 +850,14 @@ End Property
 'Get/Set the height of this window
 Public Property Get height() As Long
   If Exists Then
-    height = RectWindow()(3)
+    height = RectClient()(3)
   Else
     Err.Raise 1, "stdWindow#height", "Window does not exist."
   End If
 End Property
 Public Property Let height(ByVal vH As Long)
   If Exists Then
-    Dim rect As variant:: rect = RectWindow
+    Dim rect As variant:: rect = RectClient
     Call MoveWindow(pHandle, rect(0), rect(1), rect(2), vH, True)
   Else
     Err.Raise 1, "stdWindow#height [Let]", "Window does not exist."
