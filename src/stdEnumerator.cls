@@ -127,6 +127,25 @@ Public Function CreateEmpty(optional byval iMaxLength as long = 1000000) as stdE
     Call CreateEmpty.protInit(EnumeratorType.FromIEnumVariant,iMaxLength,new Collection)
 End Function
 
+Public Function CreateFromListObject(ByVal lo as ListObject, optional byval iMaxLength as long = 1000000) as stdEnumerator
+    Dim c as Collection: set c = new Collection
+    if not lo.DataBodyRange is nothing then
+        Dim vHeader: vHeader = lo.HeaderRowRange.value
+        Dim vData: vData = lo.DataBodyRange.value
+        Dim i as long
+        For i = 1 to ubound(v,1)
+            Dim oRow as object: set oRow = CreateObject("Scripting.Dictionary")
+            For j = 1 to ubound(v,2)
+                oRow(vHeader(1,j)) = vData(i,j)
+            next
+            Call c.add(oRow)
+        next
+        set CreateFromListObject = CreateFromIEnumVariant(c)
+    else
+        set CreateFromListObject = CreateEmpty()
+    end if
+End Function
+
 'TODO: CreateFromDictionary
 'Public Function CreateFromDictionary(ByVal o as object, optional byval iMaxLength as long = 1000000) as stdEnumerator
 '    set CreateFromDictionary = new stdEnumerator
