@@ -100,33 +100,64 @@ Private pMaxLength as Long
 
 Private const VT_UNKNOWN = &Hd
 
+'Create an enumerator from a callable. Simply return either the next item, or null to indicate the end of the item set.
+'@param {ByVal stdICallable<(lastItem: variant,index: long)=> variant | null>} Callback - Callback which returns either the next item.
+'       If no next item, null should be returned.
+'@param {ByVal Long = 1000000} iMaxLength - Maximum length of enumerator. The enumerator will refuse to go beyond this number of items.
+'       Used in order to prevent runaway processes.
+'@returns {stdEnumerator} enumerator from callback
 Public Function CreateFromCallable(ByVal cb as stdICallable, optional byval iMaxLength as long = 1000000) as stdEnumerator
     set CreateFromCallable = new stdEnumerator
     Call CreateFromCallable.protInit(EnumeratorType.FromCallable,iMaxLength,cb)
 End Function
 
-'@param {stdICallable<()=>Array<Boolean,Long,Variant,Variant>>}
+'Creates an enumerator from a callable. This is more complex than non-verbose callable, however offers full flexibility of the loop.
+'@param {ByVal stdICallable<(lastItem: variant,index: long)=>Array<Boolean,Long,Variant,Variant>>} Callback - Callback which returns an array.
+'        The array should be of the form:  [hasANextItem, NextIndex, ValueToReturn, KeyToReturn]. This allows `ValueToReturn` to be null 
+'        unlike Non-verbose callable.
+'@param {ByVal Long = 1000000} iMaxLength - Maximum length of enumerator. The enumerator will refuse to go beyond this number of items.
+'       Used in order to prevent runaway processes.
+'@returns {stdEnumerator} enumerator from callback
 Public Function CreateFromCallableVerbose(ByVal cb as stdICallable, optional byval iMaxLength as long = 1000000) as stdEnumerator
     set CreateFromCallableVerbose = new stdEnumerator
     Call CreateFromCallableVerbose.protInit(EnumeratorType.FromCallableVerbose,iMaxLength,cb)
 End Function
 
-
+'Create an enumerator from an array
+'@param {ByVal Variant} v - the Array to create the enumerator from.
+'@param {ByVal Long = 1000000} iMaxLength - Maximum length of enumerator. The enumerator will refuse to go beyond this number of items.
+'       Used in order to prevent runaway processes.
+'@returns {stdEnumerator} An enumerator representing data in array
 Public Function CreateFromArray(ByVal v as variant, optional byval iMaxLength as long = 1000000) as stdEnumerator
     set CreateFromArray = new stdEnumerator
     Call CreateFromArray.protInit(EnumeratorType.FromArray,iMaxLength,v)
 End Function
 
+'Create an enumerator from an object which supports IEnumVARIANT.
+'@param {ByVal Object} o - the object to create the enumerator from. This object should support IEnumVARIANT
+'@param {ByVal Long = 1000000} iMaxLength - Maximum length of enumerator. The enumerator will refuse to go beyond this number of items.
+'       Used in order to prevent runaway processes.
+'@returns {stdEnumerator} An enumerator representing variants in the IEnumVARIANT
 Public Function CreateFromIEnumVariant(ByVal o as Object, optional byval iMaxLength as long = 1000000) as stdEnumerator
     set CreateFromIEnumVariant = new stdEnumerator
     Call CreateFromIEnumVariant.protInit(EnumeratorType.FromIEnumVariant,iMaxLength,o)
 End Function
 
+
+'Create an empty enumerator
+'@param {ByVal Long = 1000000} iMaxLength - Maximum length of enumerator. The enumerator will refuse to go beyond this number of items.
+'       Used in order to prevent runaway processes.
+'@returns {stdEnumerator} An empty enumerator
 Public Function CreateEmpty(optional byval iMaxLength as long = 1000000) as stdEnumerator
     set CreateEmpty = new stdEnumerator
     Call CreateEmpty.protInit(EnumeratorType.FromIEnumVariant,iMaxLength,new Collection)
 End Function
 
+'Create an enumerator from an Excel ListObject. Dictionaries are created for each ListRow with Header values as keys.
+'@param {ByVal ListObject} - ListObject to create enumerator from. 
+'@param {ByVal Long = 1000000} iMaxLength - Maximum length of enumerator. The enumerator will refuse to go beyond this number of items.
+'       Used in order to prevent runaway processes.
+'@returns {stdEnumerator} Enumerator representing ListObject data
 Public Function CreateFromListObject(ByVal lo as ListObject, optional byval iMaxLength as long = 1000000) as stdEnumerator
     Dim c as Collection: set c = new Collection
     if not lo.DataBodyRange is nothing then
@@ -152,6 +183,7 @@ End Function
 '    Call CreateFromDictionary.protInit(EnumeratorType.FromDictionary,iMaxLength,o)
 'End Function
 
+'Initialse the stdEnumerator
 Public Sub protInit(ByVal iEnumeratorType as long, ByVal iMaxLength as long, ParamArray v() As Variant)
     mode = iEnumeratorType
     pMaxLength = iMaxLength
@@ -316,6 +348,9 @@ Public Function ForEach(ByVal cb As stdICallable) As stdEnumerator
   set ForEach = me
 End Function
 
+'Call callback `cb` on each item in the enumerator. Creates a new enumerator from each value returned from `cb`.
+'@param {ByVal stdICallable} callback to map values to
+'@return {stdEnumerator} enumerator containing mapped values
 Public Function Map(ByVal cb As stdICallable) As stdEnumerator
   Dim oRet as Collection: Set oRet = new Collection
   Dim v as variant: v = null
@@ -328,6 +363,9 @@ Public Function Map(ByVal cb As stdICallable) As stdEnumerator
   set Map = stdEnumerator.CreateFromIEnumVariant(oRet)
 End Function
 
+'Returns a new enumerator containing all elements of `Me` for which the given callback returns true.
+'@param {ByVal stdICallable} callback to test condition for
+'@return {stdEnumerator} enumerator containing all elements of `Me` for which the given callback returns true.
 Public Function Filter(ByVal cb as stdICallable) as stdEnumerator
   Dim oRet as Collection: Set oRet = new Collection
   Dim v as variant: v = null
@@ -341,6 +379,10 @@ Public Function Filter(ByVal cb as stdICallable) as stdEnumerator
   set Filter = stdEnumerator.CreateFromIEnumVariant(oRet)
 End Function
 
+'Sort the enumerator contents by the value retrieved by either the values in the enumerator or the values returned by `cb`.
+'@params {ByVal stdICallable = nothing} If a callback provided, sorts items based on values returned by the callback. Otherwise sorts items based on
+'        values in enumerator
+'@returns {stdEnumerator} enumerator of sorted values
 Public Function Sort(Optional ByVal cb as stdICallable = nothing) as stdEnumerator
     Dim arr() as SortStruct
     Dim iIndex as Long: iIndex = 0
@@ -433,6 +475,10 @@ Public Function Sort(Optional ByVal cb as stdICallable = nothing) as stdEnumerat
     set sort = stdEnumerator.CreateFromIEnumVariant(ret)
 End Function
 
+'Returns a new enumerator by removing duplicate values from `Me`.
+'@params {ByVal stdICallable = nothing} If a callback provided, filters out duplicate items based on values returned by the callback. 
+'        Otherwise filters duplicate item based on their value.
+'@returns {stdEnumerator} enumerator of unique values
 Public Function Unique(optional byval cb as stdICallable = nothing) as stdEnumerator
   Dim oRet as Collection: Set oRet = new Collection
   Dim v as variant: v = null
@@ -472,6 +518,8 @@ Public Function Unique(optional byval cb as stdICallable = nothing) as stdEnumer
   set Unique = stdEnumerator.CreateFromIEnumVariant(oRet)
 End Function
 
+'Returns a new enumerator containing the reverse of the existing items in stdEnumerator.
+'@returns {stdEnumerator} enumerator of values in reverse order
 Public Function Reverse() as stdEnumerator
   Dim oRet as collection: set oRet = new Collection
   Dim v: v = AsArray()
@@ -483,6 +531,9 @@ Public Function Reverse() as stdEnumerator
   set Reverse = stdEnumerator.CreateFromIEnumVariant(oRet)
 End Function
 
+'Concatenates to enumerators of values.
+'@param {ByVal stdEnumerator} Enumerator to concat with that of `me`.
+'@returns {stdEnumerator} A concatenated array of values.
 Public Function Concat(ByVal obj as stdEnumerator) as stdEnumerator
     Dim oRet as Collection: Set oRet = new Collection
     Dim v as variant: v = null
@@ -498,6 +549,9 @@ Public Function Concat(ByVal obj as stdEnumerator) as stdEnumerator
     set Concat = stdEnumerator.CreateFromIEnumVariant(oRet)
 End Function
 
+'Join the elements of the enumerator joint with a delimeter
+'@param {ByVal sDelimiter = ","} Enumerator to concat with that of `me`.
+'@returns {string} A concatenated array of values.
 Public Function Join(Optional ByVal sDelimiter as string = ",") as string
     Dim sRet as string
     sRet = ""
@@ -514,6 +568,9 @@ Public Function Join(Optional ByVal sDelimiter as string = ",") as string
     Join = mid(sRet,len(sDelimiter)+1)
 End Function
 
+'Find the index of an element
+'@param {ByVal Variant} Element to find
+'@returns {long} Index of element.
 Public Function indexOf(ByVal tv as variant) as long
     Dim oRet as Collection: Set oRet = new Collection
     Dim v as variant: v = null
@@ -530,6 +587,9 @@ Public Function indexOf(ByVal tv as variant) as long
     indexOf = 0
 End Function
 
+'Find the last index of an element in the enumerator
+'@param {ByVal Variant} Element to find
+'@returns {long} Last index of element.
 Public Function lastIndexOf(ByVal tv as variant) as long
     Dim oRet as Collection: Set oRet = new Collection
     Dim v as variant: v = null
@@ -543,10 +603,16 @@ Public Function lastIndexOf(ByVal tv as variant) as long
     Wend
 End Function
 
+'Find whether an element is included in the enumerator
+'@param {ByVal Variant} Element to find
+'@returns {boolean} True if element is found, else false.
 Public Function includes(ByVal tv as variant) as boolean
     includes = indexOf(tv) > 0
 End Function
 
+'Ensure that all elements in an enumerator satisfy a condition.
+'@param {ByVal stdICallable} condition to check.
+'@returns {boolean} True if all elements satisfy the condition, else false.
 Public Function checkAll(ByVal cb as stdICallable) as boolean
     Dim oRet as Collection: Set oRet = new Collection
     Dim v as variant: v = null
@@ -562,6 +628,9 @@ Public Function checkAll(ByVal cb as stdICallable) as boolean
     Wend
 End Function
 
+'Ensure that any of the elements in an enumerator satisfy a condition.
+'@param {ByVal stdICallable} condition to check.
+'@returns {boolean} True if any element satisfies the condition, else false.
 Public Function checkAny(ByVal cb as stdICallable) as boolean
     Dim oRet as Collection: Set oRet = new Collection
     Dim v as variant: v = null
@@ -577,6 +646,9 @@ Public Function checkAny(ByVal cb as stdICallable) as boolean
     checkAny = false
 End Function
 
+'Ensure that none of the elements in an enumerator satisfy a condition.
+'@param {ByVal stdICallable} condition to check.
+'@returns {boolean} True if none of the elements satisfy the condition, else false.
 Public Function checkNone(ByVal cb as stdICallable) as boolean
     Dim oRet as Collection: Set oRet = new Collection
     Dim v as variant: v = null
@@ -592,6 +664,9 @@ Public Function checkNone(ByVal cb as stdICallable) as boolean
     checkNone = true
 End Function
 
+'Ensure that only one of the elements in an enumerator satisfy a condition.
+'@param {ByVal stdICallable} condition to check.
+'@returns {boolean} True if only one of the elements satisfy the condition, else false.
 Public Function checkOnlyOne(ByVal cb as stdICallable) as boolean
     Dim oRet as Collection: Set oRet = new Collection
     Dim v as variant: v = null
@@ -614,6 +689,16 @@ Public Function checkOnlyOne(ByVal cb as stdICallable) as boolean
     checkOnlyOne = true
 End Function
 
+'The reduce() method executes a reducer function (that you provide) on each element of the array, resulting in single output value.
+'The reducer function takes three arguments:
+'1. Accumultor
+'2. Current Value
+'3. Current Index/Key
+'Your reducer function's returned value is assigned to the accumulator, whose value is remembered across each iteration throughout the array,
+'and ultimately becomes the final, single resulting value.
+'@param {ByVal stdICallable} reducer function
+'@param {ByVal Variant = 0} initial value to use in reducer
+'@returns {boolean} True if all elements satisfy the condition, else false.
 Public Function reduce(ByVal cb as stdICallable, Optional ByVal vInitialValue as variant = 0) as variant
     Dim v as variant: v = null
     Dim i as long: i = 0
@@ -627,6 +712,9 @@ Public Function reduce(ByVal cb as stdICallable, Optional ByVal vInitialValue as
     Call CopyVariant(reduce,vRet)
 End Function
 
+'Count the number of times a condition is met
+'@param {ByVal stdICallable} The callable to test for
+'@returns {Long} The number of times a condition is met
 Public Function countBy(ByVal cb as stdICallable) as long
     Dim iRet as Long: iRet = 0
     Dim v as variant: v = null
@@ -639,6 +727,9 @@ Public Function countBy(ByVal cb as stdICallable) as long
     countBy = iRet
 End Function
 
+'Group elements in stdEnumerator based on the value return by a callback
+'@param {ByVal stdICallable} The callable to group elements by
+'@returns {Object} Creates a dictionary, who's keys lead to stdEnumerator's of elements matching that grouping.
 Public Function groupBy(ByVal cb as stdICallable) as object
     Dim oRet as Object: set oRet = CreateObject("Scripting.Dictionary")
     Dim key as variant
@@ -660,6 +751,9 @@ Public Function groupBy(ByVal cb as stdICallable) as object
     set groupBy = oRet
 End Function
 
+'Obtains the maximum value from the enumerator. If a callback is given the item which returns the largest value from the callback is returned.
+'@param {ByVal stdICallable = nothing} If callback given, callback to obtain max value of. Else max of the elements values are found.
+'@returns {variant} Value containing max data
 Public Function max(Optional ByVal cb as stdICallable = nothing) as variant
     Dim vRet as variant
     Dim vMaxValue as variant
@@ -689,6 +783,9 @@ Public Function max(Optional ByVal cb as stdICallable = nothing) as variant
     Call CopyVariant(max,vRet)
 End Function
 
+'Obtains the minimum value from the enumerator. If a callback is given the item which returns the largest value from the callback is returned.
+'@param {ByVal stdICallable = nothing} If callback given, callback to obtain min value of. Else min of the elements values are found.
+'@returns {variant} Value containing min data
 Public Function min(Optional ByVal cb as stdICallable = nothing) as variant
     Dim vRet as variant
     Dim vMaxValue as variant
@@ -718,6 +815,9 @@ Public Function min(Optional ByVal cb as stdICallable = nothing) as variant
     Call CopyVariant(min,vRet)
 End Function
 
+'Obtains the sum of the elements in an enumerator, or of the values returned by the callback.
+'@param {ByVal stdICallable = nothing} A callback returning an item to sum. If no callback supplied then the elements themselves will be summed
+'@returns {variant} The sum value
 Public Function sum(Optional ByVal cb as stdICallable = nothing) as variant
     Dim vRet as variant
     Dim oRet as Collection: Set oRet = new Collection
@@ -739,6 +839,8 @@ Public Function sum(Optional ByVal cb as stdICallable = nothing) as variant
     Call CopyVariant(sum,vRet)
 End Function
 
+'Flatten an enumerator of enumerators
+'@returns {stdEnumerator} a flattened enumerator (depth = 1)
 Public Function Flatten() as stdEnumerator
     set Flatten = stdEnumerator.CreateFromIEnumVariant(flattenChildrenRecurse(me))
 End Function
@@ -782,6 +884,10 @@ Public Function FindFirst(ByVal cb as stdICallable, optional ByVal ifMissing as 
     Call CopyVariant(FindFirst, ifMissing)
 End Function
 
+'Get the item at an index / key
+'@param {ByVal Variant} Index - An index / key of an element to obtain.
+'@param {ByVal Boolean} ByIndex - If true, then index of item is used, instead of potentially key.
+'@returns {Variant} Item returned at index/key
 Public Property Get Item(ByVal index as Variant, optional byval byIndex as boolean = false) as variant
     Dim oRet as Collection: Set oRet = new Collection
     Dim v as variant: v = null
@@ -806,6 +912,8 @@ Public Property Get Item(ByVal index as Variant, optional byval byIndex as boole
     Err.Raise 1, "stdEnumerator", "Error: No such item " & index & " in stdEnumerator."
 End Property 
 
+'Get the length of the enumerator
+'@returns {Long} Length of enumerator.
 Public Property Get Length() as Long
     Dim oRet as Collection: Set oRet = new Collection
     Dim v as variant: v = null
