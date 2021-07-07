@@ -13,6 +13,8 @@ Attribute VB_Exposed = False
 'set int = x.QueryInterface("")
 'retVar = int.CallVt(EMyInterface.MyFunction, vbReturnVar, param1, param2, param3, param4, ...)
 
+'TODO: Analyse and add anything missing from:
+' * https://referencesource.microsoft.com/#system.data/fx/src/data/System/Data/OleDb/OLEDB_Util.cs,4254532afac0bd58,references
 
 
 
