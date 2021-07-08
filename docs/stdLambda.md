@@ -188,7 +188,7 @@ Debug.Print arr.Map(stdLambda.Create("ThisWorkbook.Sheets($1)")) _
                .Map(stdLambda.Create("$1.Name")).join(",")            'Sheet1,Sheet2,Sheet3,...,Sheet10
 
 'Execute methods with lambda:
-Call stdArray.Create(Workbooks(1),Workbooks(2)).forEach(stdLambda.Create("$1#Save")
+Call stdArray.Create(Workbooks(1),Workbooks(2)).forEach(stdLambda.Create("$1.Save")
 
 'We even have if statement!
 With stdLambda.Create("if $1 then ""lisa"" else ""bart""")
@@ -223,10 +223,13 @@ You can also define functions which call members of objects. E.G.
 
 ```vb
 Sub test()
-    'Call properties with `.`
+    'Call properties or methods with `.`
     Debug.Print stdLambda.Create("$1.Name")(ThisWorkbook)  'returns ThisWorkbook.Name
-    'Call methods with `#`
-    Call stdLambda.Create("$1#Save")(ThisWorkbook)         'calls ThisWorkbook.Save
+    Call stdLambda.Create("$1.Save")(ThisWorkbook)         'calls ThisWorkbook.Save
+
+    'If you absolutely need to use `VbGet` use `.$` or if you need to use `VbMethod` use `.#` instead.
+    Debug.Print stdLambda.Create("$1.$Name")(ThisWorkbook)  'returns ThisWorkbook.Name
+    Call stdLambda.Create("$1.#Save")(ThisWorkbook)         'calls ThisWorkbook.Save
 End Sub
 
 ```

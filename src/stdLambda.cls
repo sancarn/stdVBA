@@ -95,9 +95,10 @@ Private Enum ISubType
     oPropLet = 26
     oPropSet = 27
     oMethodCall = 28
-    oEquality = 29    'Yet to be implemented
-    oIsOperator = 30  'Yet to be implemented
-    oEnum = 31        'Yet to be implemented
+    oFieldCall = 29
+    oEquality = 30    'Yet to be implemented
+    oIsOperator = 31  'Yet to be implemented
+    oEnum = 32        'Yet to be implemented
 End Enum
 
 'Special constant used in parsing:
@@ -112,6 +113,7 @@ Private scopes() As Variant
 Private scopesArgCount() As Variant
 Private scopeCount As Long
 Private funcScope As Long
+Private pEquation as string
 
 Private Enum LambdaType
     iStandardLambda = 1
@@ -185,6 +187,7 @@ Public Sub Init(ByVal iLambdaType As Long, ParamArray params() As Variant)
     Select Case iLambdaType
         Case LambdaType.iStandardLambda
             Dim sEquation As String: sEquation = params(0)
+            pEquation = sEquation
             bUsePerformanceCache = params(1)
             Dim bSandboxExtras As Boolean: bSandboxExtras = params(2)
             
@@ -209,12 +212,13 @@ Public Sub Init(ByVal iLambdaType As Long, ParamArray params() As Variant)
             bBound = True
             Set oBound = params(0)
             vBound = params(1)
+            pEquation = "BOUND..."
             
             'Function extensions
             Set oFunctExt = stdLambda.oFunctExt
             If bSandboxExtras OR oFunctExt is nothing Then set oFunctExt = CreateObject("Scripting.Dictionary")
         Case Else
-            'error?
+            Err.Raise 1, "stdLambda::Init", "No lambda with that type."
     End Select
 End Sub
 
@@ -343,8 +347,9 @@ Private Function getTokenDefinitions() As TokenDefinition()
     i = i + 1: arr(i) = getTokenDefinition("var", "[a-zA-Z][a-zA-Z0-9_]*")
     
     'Operators
-    i = i + 1: arr(i) = getTokenDefinition("propertyAccess", "\.")
-    i = i + 1: arr(i) = getTokenDefinition("methodAccess", "\#")
+    i = i + 1: arr(i) = getTokenDefinition("propertyAccess", "\.\$")
+    i = i + 1: arr(i) = getTokenDefinition("methodAccess", "(\.\#)")
+    i = i + 1: arr(i) = getTokenDefinition("fieldAccess", "\.")
     i = i + 1: arr(i) = getTokenDefinition("multiply", "\*")
     i = i + 1: arr(i) = getTokenDefinition("divide", "\/")
     i = i + 1: arr(i) = getTokenDefinition("power", "\^")
@@ -554,10 +559,10 @@ Private Sub parseArithmeticPriority4() '*, /
     Dim bLoop As Boolean: bLoop = True
     Do
         If optConsume("multiply") Then
-            Call parseArithmeticPriority5
+            Call parseArithmeticPriority4
             Call addOperation(oArithmetic, oMul, , -1)
         ElseIf optConsume("divide") Then
-            Call parseArithmeticPriority5
+            Call parseArithmeticPriority4
             Call addOperation(oArithmetic, oDiv, , -1)
         Else
             bLoop = False
@@ -662,10 +667,23 @@ Private Sub parseManyAccessors()
     Dim bLoop As Boolean: bLoop = True
     Do
         bLoop = False
+        if parseOptObjectField() then bLoop = True
         If parseOptObjectProperty() Then bLoop = True
         If parseOptObjectMethod() Then bLoop = True
     Loop While bLoop
 End Sub
+
+Private Function parseOptObjectField() as Boolean
+    parseOptObjectField = false
+    if optConsume("fieldAccess") then
+        Dim size As Integer: size = stackSize
+        Call addOperation(oPush, , consume("var"), 1)
+        Call parseOptParameters
+        Call addOperation(oObject, oFieldCall)
+        stackSize = size
+        parseOptObjectField = True
+    end if
+End Function
 
 Private Function parseOptObjectProperty() As Boolean
     parseOptObjectProperty = False
@@ -758,9 +776,9 @@ Private Function findVariable(varName As String) As Long
     While scope > 0
         If scopes(scope).exists(varName) Then
             If scope < funcScope Then
-                Throw ("Can't access """ & varName & """, functions can unfortunately not access data outside their block")
+                Call Throw("Can't access """ & varName & """, functions can unfortunately not access data outside their block")
             ElseIf scopesArgCount(scope).exists(varName) Then
-                Throw ("Expected a variable, but found a function for name " & varName)
+                Call Throw("Expected a variable, but found a function for name " & varName)
             Else
                 findVariable = stackSize - scopes(scope).item(varName)
                 scope = 0
@@ -789,7 +807,7 @@ Private Function parseFunctionAccess() As Boolean
         Wend
         Call consume("rBracket")
         If iArgCount <> argCount Then
-            Throw (argCount & " arguments should have been provided to " & funcName & " but only " & iArgCount & " were received")
+            Call Throw(argCount & " arguments should have been provided to " & funcName & " but only " & iArgCount & " were received")
         End If
         
         ' Add call and return data
@@ -844,7 +862,7 @@ Private Sub parseParameterDeclaration()
     Dim varName As String: varName = consume("var")
     Dim offset As Long: offset = findVariable(varName)
     If offset >= 0 Then
-        Throw ("You can't declare multiple parameters with the same name")
+        Call Throw("You can't declare multiple parameters with the same name")
     Else
         ' Reserve a spot for this parameter, it will be pushed by the caller
         stackSize = stackSize + 1
@@ -858,7 +876,7 @@ Private Function findFunction(varName As String, Optional ByRef argCount As Long
     While scope > 0
         If scopes(scope).exists(varName) Then
             If Not scopesArgCount(scope).exists(varName) Then
-                Throw ("Expected a function, but found a variable for name " & varName)
+                Call Throw("Expected a function, but found a variable for name " & varName)
             Else
                 findFunction = scopes(scope).item(varName)
                 argCount = scopesArgCount(scope).item(varName)
@@ -1098,6 +1116,7 @@ Private Sub objectCaller(ByRef stack() As Variant, ByRef stackPtr As Long, ByRef
     'Get caller type
     Dim callerType As VbCallType
     Select Case op.subType
+        Case ISubType.oFieldCall:   callerType = VbGet or VbMethod
         Case ISubType.oPropGet:     callerType = VbGet
         Case ISubType.oMethodCall:  callerType = VbMethod
         Case ISubType.oPropLet:     callerType = VbLet
@@ -1136,8 +1155,19 @@ Public Function stdCallByName(ByRef obj As Object, ByVal funcName As String, ByV
     #If Mac Then
         Call CopyVariant(stdCallByName, macCallByName(obj, funcName, callerType, args))
     #Else
+        'TODO: Better error handling (property or method <funcName> doesn't exist on object with type <typename(obj)>)
+        On Error GoTo ErrorInRTCCallByName
         Call CopyVariant(stdCallByName, rtcCallByName(obj, StrPtr(funcName), callerType, args, &H409))
     #End If
+    Exit Function
+ErrorInRTCCallByName:
+    Dim sCallerTypeName as string
+    select case callerType
+        case VbGet or VbMethod: sCallerTypeName = "Property or Method "
+        case VbGet: sCallerTypeName = "Property "
+        Case VbMethod: sCallerTypeName = "Method "
+    end select
+    Throw(sCallerTypeName & funcName & " doesn't exist on object with type " & typename(obj))
 End Function
 
 'Evaluates the built in standard functions
@@ -1321,7 +1351,7 @@ Private Function evaluateFunc(ByVal sFuncName As String, ByVal args As Variant) 
                 Next
             End If
         Case Else
-            Throw ("No such function: " & sFuncName)
+            Call Throw("No such function: " & sFuncName)
     End Select
 End Function
 
@@ -1625,11 +1655,12 @@ Private Sub CopyVariant(ByRef dest As Variant, ByVal value As Variant)
 End Sub
 
 
+'TODO: Better error handling
 'Throws an error
 '@param {string} The error message to be thrown
 '@returns {void}
 Private Sub Throw(ByVal sMessage As String)
-    MsgBox sMessage, vbCritical
+    Err.Raise 1, "stdLambda", sMessage, vbCritical
     End
 End Sub
 

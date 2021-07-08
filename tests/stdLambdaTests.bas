@@ -8,9 +8,18 @@ Sub testAll()
     Test.Assert "Arguments", stdLambda.Create("$1 + $2").Run(5, 9) = 14
     test.Assert "Property access", stdLambda.Create("$1.Range(""A1"")").Run(Sheets(1)).Address(true,true,xlA1,true) Is Sheets(1).Range("A1").Address(true,true,xlA1,true)
     
-    Call stdLambda.Create("$1#select").Run(Range("A1"))
+    'Call methods default
+    Call stdLambda.Create("$1.select").Run(Range("A1"))
     Test.Assert "Evaluate methods access", selection.Address(true,true,xlA1,true) = Range("A1").Address(true,true,xlA1,true)
+
+    'Call methods explicit
+    Call stdLambda.Create("$1.#select").Run(Range("A1"))
+    Test.Assert "Evaluate methods with method caller access", selection.Address(true,true,xlA1,true) = Range("A1").Address(true,true,xlA1,true)
     
+    'Call methods explicit (backwards compatbility)
+    Call stdLambda.Create("$1.#select").Run(Range("A1"))
+    Test.Assert "Evaluate methods with method caller access (deprecated)", selection.Address(true,true,xlA1,true) = Range("A1").Address(true,true,xlA1,true)
+
     'inline if
     Dim lambda As Variant
     Set lambda = stdLambda.Create("if $1 then 0 else if $2 then 1 else 1 + 1")
@@ -180,14 +189,14 @@ Sub testPerformanceStdLambda()
     Dim lambda As Variant
 
     iStart = Timer
-    Set lambda = stdLambda.Create("$1#Find(3)")
+    Set lambda = stdLambda.Create("$1.#Find(3)")
     For i = 1 To 10 ^ 3
         Call lambda.Run(Range("A:A"))
     Next
     Test.Assert "", "StdLambda: " & (Timer - iStart)
 
     iStart = Timer
-    Set lambda = stdLambdaOld.Create("$1#Find(3)")
+    Set lambda = stdLambdaOld.Create("$1.#Find(3)")
     For i = 1 To 10 ^ 3
         Call lambda.Run(Range("A:A"))
     Next
