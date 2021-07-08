@@ -20,7 +20,7 @@ Where:
 * `<Short description>` - Short description of the change / fix / feature
 * `<BODY>` to be provided if required
 
-Before `08/07/2020` a change log was not kept. We have  retrospectively gone back and populated a change log to `04/05/2020`. Any changes before this date will be missing from the change log, however they will still be identifiable from decent commit comments in `github history`. If interested use `git log --all`
+Before `08/07/2021` a change log was not kept. We have  retrospectively gone back and populated a change log to `04/05/2020`. Any changes before this date will be missing from the change log, however they will still be identifiable from decent commit comments in `github history`. If interested use `git log --all`
 
 # Change log since `2020-05-04`
 
