@@ -15,4 +15,5 @@ Sub MainTestAll()
     Call stdWindowTests.testAll
     Call stdProcessTests.testAll
     Call stdWebSocketTests.testAll
+    Call stdPerformanceTests.testAll
 End Sub

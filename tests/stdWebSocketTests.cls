@@ -15,7 +15,11 @@ Dim finished As Boolean
 Public Sub testAll()
   'Create socket
   Test.Topic "stdWebSocket"
+  finished = False
   Set x = stdWebSocket.Create("wss://echo.websocket.org")
+  While Not finished
+    DoEvents
+  Wend
 End Sub
 
 Private Sub x_OnOpen(ByVal oEventData As Variant)
