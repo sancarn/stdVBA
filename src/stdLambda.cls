@@ -141,7 +141,7 @@ Private pPerformanceCache as  object
 '    Debug.Print .Execute(20)
 'End With
 'Debug.Print stdLambda.Create("$1.Range(""A1"")").Execute(Sheets(1)).Address(True, True, xlA1, True)
-'Debug.Print stdLambda.Create("$1#join("","")").Execute(stdArray.Create(1,2))
+'Debug.Print stdLambda.Create("$1.join("","")").Execute(stdArray.Create(1,2))
 Public Function Create(ByVal sEquation As String, Optional ByVal bUsePerformanceCache As Boolean = False, Optional ByVal bSandboxExtras As Boolean = False) As stdLambda
     'Cache Lambda created
     If oCache Is Nothing Then Set oCache = CreateObject("Scripting.Dictionary")

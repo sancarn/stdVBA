@@ -153,6 +153,7 @@ Sub testAll()
     Test.Assert "Sum", e1.sum(stdLambda.Create("$1*2"))=90
     Test.Assert "FindFirst found", e2.FindFirst(stdLambda.Create("len($1)=6"))="tempor"
     Test.Assert "FindFirst not found", isNull(e2.FindFirst(stdLambda.Create("len($1)=42")))
+    Test.Assert "FindFirst not found return 0", e2.FindFirst(stdLambda.Create("len($1)=42"), 0) = 0
     Test.Assert "Sort", stdEnumerator.CreateFromArray(Array(1,3,5,4,2,6,9,7,8)).sort().join() = "1,2,3,4,5,6,7,8,9"
     Test.Assert "Sort w/ callback", e2.Sort(stdLambda.Create("len($1)")).Join = "do,ut,et,Ut,ad,ut,ex,ea,in,in,eu,in,id,sit,sed,non,qui,est,amet,elit,enim,quis,nisi,Duis,aute,esse,sint,sunt,anim,Lorem,ipsum,dolor,magna,minim,irure,dolor,velit,nulla,culpa,tempor,labore,dolore,aliqua,veniam,cillum,dolore,fugiat,mollit,eiusmod,nostrud,ullamco,laboris,aliquip,commodo,officia,laborum,pariatur,occaecat,proident,deserunt,consequat,voluptate,Excepteur,cupidatat,adipiscing,incididunt,consectetur,exercitation,reprehenderit"
     Test.Assert "Length", e1.Length=9
@@ -161,13 +162,13 @@ Sub testAll()
     'ForEach style tests
     Dim tCol as collection
     set tCol = new collection
-    Call e1.forEach(stdLambda.Create("$1#add($2)").bind(tCol))
+    Call e1.forEach(stdLambda.Create("$1.add($2)").bind(tCol))
     Test.Assert "ForEach", stdEnumerator.CreateFromIEnumVariant(tCol).join() = "1,2,3,4,5,6,7,8,9"
     set tCol = new collection
-    Call e1.forEach(stdLambda.Create("$1#add($2+$3)").bind(tCol))
+    Call e1.forEach(stdLambda.Create("$1.add($2+$3)").bind(tCol))
     Test.Assert "ForEach w\ Index", stdEnumerator.CreateFromIEnumVariant(tCol).join() = "2,4,6,8,10,12,14,16,18"
     set tCol = new collection
-    Call e1.cycle(2, stdLambda.Create("$1#add($2)").bind(tCol))
+    Call e1.cycle(2, stdLambda.Create("$1.add($2)").bind(tCol))
     Test.Assert "Cycle", stdEnumerator.CreateFromIEnumVariant(tCol).join() = "1,2,3,4,5,6,7,8,9,1,2,3,4,5,6,7,8,9"
 
     'Big flatten example:
@@ -183,8 +184,51 @@ Sub testAll()
     tCol(5).add 6
     Test.Assert "Flatten", stdEnumerator.CreateFromIEnumVariant(tCol).Flatten().join() = "1,2,3,4,5,6"
 
+    '0-size enumerator tests - we are mainly testing that these run and return the correct value
+    Dim eEmpty as stdEnumerator: set eEmpty = stdEnumerator.CreateEmpty()
+    Dim eTestLambda as stdLambda: set eTestLambda = stdLambda.Create("$1+1")
+    Dim vEmptyArr(): vEmptyArr = eEmpty.AsArray(): Test.Assert "Empty enumerator - AsArray() length = 0", ArrLen(vEmptyArr) = 0
+    Dim bEmptyArr() as Boolean: bEmptyArr = eEmpty.AsArray(vbBoolean): Test.Assert "Empty enumerator - AsArray() length = 0", ArrLen(bEmptyArr) = 0
+    Test.Assert "Empty enumerator - AsDictionary() returns Dictionary", Typename(eEmpty.AsDictionary()) = "Dictionary"
+    Test.Assert "Empty enumerator - Length", eEmpty.length = 0
+    Test.Assert "Empty enumerator - joins to empty string", eEmpty.join(",") = ""
+    Test.Assert "Empty enumerator - map returns empty", eEmpty.Map(eTestLambda).join(",") = ""
+    Test.Assert "Empty enumerator - AsCollection().count = 0", eEmpty.AsCollection().count = 0
+    Test.Assert "Empty enumerator - Filter() Length check", eEmpty.Filter(eTestLambda).length = 0
+    Test.Assert "Empty enumerator - Sort() Length check", eEmpty.Sort().length = 0
+    Test.Assert "Empty enumerator - Unique() Length check", eEmpty.Unique().length = 0
+    Test.Assert "Empty enumerator - Sort(...) Length check", eEmpty.Sort(eTestLambda).length = 0
+    Test.Assert "Empty enumerator - Unique(...) Length check", eEmpty.Unique(eTestLambda).length = 0
+    Test.Assert "Empty enumerator - Reverse() Length check", eEmpty.Reverse().length = 0
+    Test.Assert "Empty enumerator - Concat() check", eEmpty.concat(e3).join(",") = e3.join(",")
+    Test.Assert "Empty enumerator - indexOf() check", eEmpty.indexOf(1) = 0
+    Test.Assert "Empty enumerator - lastIndexOf() check", eEmpty.lastIndexOf(1) = 0
+    Test.Assert "Empty enumerator - includes() check", not eEmpty.includes(1)
+    Test.Assert "Empty enumerator - checkAll()", eEmpty.checkAll(eTestLambda)
+    Test.Assert "Empty enumerator - checkAny()", eEmpty.checkAny(eTestLambda) = false
+    Test.Assert "Empty enumerator - checkNone()", eEmpty.checkNone(eTestLambda)
+    Test.Assert "Empty enumerator - checkOnlyOne()", eEmpty.checkOnlyOne(eTestLambda) = false
+    Test.Assert "Empty enumerator - reduce(...)", eEmpty.reduce(eTestLambda) = 0
+    Test.Assert "Empty enumerator - reduce(...,Nothing)", eEmpty.reduce(eTestLambda,Nothing) is Nothing
+    Test.Assert "Empty enumerator - countBy(...)", eEmpty.countBy(eTestLambda) = 0
+    Test.Assert "Empty enumerator - groupByLambda(...)", eEmpty.groupBy(eTestLambda).count = 0
+    Test.Assert "Empty enumerator - max()"   , eEmpty.max() = 0
+    Test.Assert "Empty enumerator - max(...)", eEmpty.max(eTestLambda) = 0
+    Test.Assert "Empty enumerator - min()"   , eEmpty.min() = 0
+    Test.Assert "Empty enumerator - min(...)", eEmpty.min(eTestLambda) = 0
+    Test.Assert "Empty enumerator - sum()"   , eEmpty.sum() = 0
+    Test.Assert "Empty enumerator - sum(...)", eEmpty.sum(eTestLambda) = 0
+    Test.Assert "Empty enumerator - flatten()", eEmpty.Flatten().length = 0
+    Test.Assert "Empty enumerator - findFirst(...)", isNull(eEmpty.findFirst(eTestLambda))
+    Test.Assert "Empty enumerator - findFirst(...,Nothing)", eEmpty.findFirst(eTestLambda, nothing) is nothing
+
+
     Dim dict as object
     set dict = e1.groupBy(stdLambda.Create("if ($1 mod 2) = 0 then ""Even"" else ""Odd"""))
     Test.Assert "GroupBy - Even numbers", dict("Even").join() = "2,4,6,8"
     Test.Assert "GroupBy - Odd numbers" , dict("Odd").join() = "1,3,5,7,9"
 End Sub
+
+Private Function ArrLen(v as variant) as long
+    ArrLen = ubound(v) - lbound(v) + 1
+End Function

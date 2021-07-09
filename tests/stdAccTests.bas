@@ -10,7 +10,7 @@ Sub testAll()
   Dim tmp1 As stdAcc, tmp2 As stdAcc, tmpc As Collection
   
   'Continue searching but nothing found
-  With stdLambda.Create("$1#Add(): EAccFindResult.NoMatchFound")
+  With stdLambda.Create("$1.Add(): EAccFindResult.NoMatchFound")
     Set o = New stdAccTestHelper
     Set tmp1 = acc.FindFirst(.Bind(o))
     Test.Assert "Return 2 a" , (tmp1 Is Nothing)
@@ -24,7 +24,7 @@ Sub testAll()
   
   
   'Return any item
-  With stdLambda.Create("$1#Add(): EAccFindResult.MatchFound")
+  With stdLambda.Create("$1.Add(): EAccFindResult.MatchFound")
     Set o = New stdAccTestHelper
     Set tmp1 = acc.FindFirst(.Bind(o))
     Test.Assert "Return 1 a" , (tmp1.hwnd & "-" & tmp1.Role = acc.hwnd & "-" & acc.Role)
@@ -32,7 +32,7 @@ Sub testAll()
   End With
   
   'Nothing found, but cancel function
-  With stdLambda.Create("$1#Add(): EAccFindResult.NoMatchCancelSearch")
+  With stdLambda.Create("$1.Add(): EAccFindResult.NoMatchCancelSearch")
     Set o = New stdAccTestHelper
     Set tmp1 = acc.FindFirst(.Bind(o))
     Test.Assert "Return 2 a" , (tmp1 Is Nothing)
@@ -45,7 +45,7 @@ Sub testAll()
   End With
   
   'Nothing found, continue search, but don't search descendents
-  With stdLambda.Create("$1#Add(): if $3 > 0 then EAccFindResult.NoMatchSkipDescendents else EAccFindResult.NoMatchFound")
+  With stdLambda.Create("$1.Add(): if $3 > 0 then EAccFindResult.NoMatchSkipDescendents else EAccFindResult.NoMatchFound")
     Set o = New stdAccTestHelper
     Set tmp1 = acc.FindFirst(.Bind(o))
     Test.Assert "Return 3 a" , (tmp1 Is Nothing)

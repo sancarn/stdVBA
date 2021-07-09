@@ -111,7 +111,7 @@ Sub testAll()
     
     'ForEach(cb)
     set tmp = stdArray.Create(0)
-    Call arr.ForEach(stdLambda.Create("$1#push($2)").Bind(tmp))
+    Call arr.ForEach(stdLambda.Create("$1.push($2)").Bind(tmp))
     Test.Assert "ForEach", tmp.join() = "0,1,4,5,2,3"
 
     'Map(cb)

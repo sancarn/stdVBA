@@ -19,7 +19,7 @@ col.add 2
 Debug.Print stdEnumerator.CreateFromIEnumVariant(col).join() '=> 1,2
 
 'Create stdEnumerator on Workbooks collection-style object
-stdEnumerator.CreateFromIEnumVariant(Application.Workbooks).forEach(stdLambda.Create("$1#save"))
+stdEnumerator.CreateFromIEnumVariant(Application.Workbooks).forEach(stdLambda.Create("$1.save"))
 ```
 
 #### `CreateFromArray(ByVal vArray as variant, optional byval iMaxLength as long = 1000000) as stdEnumerator`

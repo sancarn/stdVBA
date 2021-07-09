@@ -640,7 +640,7 @@ With stdLambda.Create("$1+1+3*8/2*(2+2+3)")
     Debug.Print .Execute(20)
 End With
 Debug.Print stdLambda.Create("$1.Range(""A1"")").Execute(Sheets(1)).Address(True, True, xlA1, True)
-Debug.Print stdLambda.Create("$1#join("","")").Execute(stdArray.Create(1,2))
+Debug.Print stdLambda.Create("$1.join("","")").Execute(stdArray.Create(1,2))
 ```
 
 Use `bUsePerformanceCache` when looping over a large dataset (e.g. many rows of a table) and filtering on something very specific with little variance. Example:

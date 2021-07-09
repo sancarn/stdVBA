@@ -45,7 +45,7 @@ sub Main()
                  .Map(stdLambda.Create("$1.Name")).join(",")            'Sheet1,Sheet2,Sheet3,...,Sheet10
   
   'Execute methods with lambdas and enumerate over enumeratable collections:
-  Call stdEnumerator.Create(Application.Workbooks).forEach(stdLambda.Create("$1#Save")
+  Call stdEnumerator.Create(Application.Workbooks).forEach(stdLambda.Create("$1.Save")
   
   'We even have if statement!
   With stdLambda.Create("if $1 then ""lisa"" else ""bart""")
