@@ -137,3 +137,5 @@ Before `08/07/2021` a change log was not kept. We have  retrospectively gone bac
 * 2021-07-08 FIX         - Fixed an issue where `stdEnumerator#AsArray()` wouldn't return an array of the correct type when used with anything other than `VbVariant` as argument.
 * 2021-07-09 FIX         - Fixed an issue where `CriticalRaise` would occur in `stdCallback`, ending runtime, where it actually successfully ran.
 * 2021-07-09 FIX         - Fixed typo in `GetPictureFromClipboard()` from `if OpenClipboardTimeOut()>1 then` to `if OpenClipboardTimeOut() then`
+* 2021-07-09 BREAKING    - Reverting `2021-07-02 BREAKING` change. Use of `WindowRect` should be default, however `ClientRect` should also be allowed.
+* 2021-07-09 FEATURE     - Added optional Rect type parameter to x,y,width and height. Use `wnd.x(RectTypeClient) = ...` to modify with respect to the client rect.

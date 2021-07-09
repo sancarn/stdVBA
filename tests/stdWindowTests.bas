@@ -120,8 +120,13 @@ Sub testAll()
   Test.Assert "stdWindow#Visible - set true", uf.visible
 
   Test.Assert "stdWindow#state norm", desktop.state = normal
+  
+  'Note list objects can't be added while excel is minimised
   Application.WindowState = xlMinimized
-  Test.Assert "stdWindow#state min", app.state = minimised
+  Dim bTest: bTest = app.state = minimised
+  Application.WindowState = xlMaximized
+  Test.Assert "stdWindow#state min", bTest
+
   Application.WindowState = xlMaximized
   Test.Assert "stdWindow#state max", app.state = maximised
   'TODO: Test isFrozen == true

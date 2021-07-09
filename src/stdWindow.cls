@@ -198,6 +198,10 @@ Public Enum EWndState
   Maximised
   Minimised
 End Enum
+Public Enum EWndRectType
+  RectTypeWindow
+  RectTypeClient
+End Enum
 
 'SendInput() API helpers
 'TODO: Not used yet
@@ -795,18 +799,34 @@ Public Property Let RectWindow(ByVal rect As Variant)
     Err.Raise 1, "RectWindow [Let]", "Value must be an array of 4 doubles - left, top, width, height."
   End If
 End Property
+Public Property Get RectByType(optional iClWnd as EWndRectType) as Variant
+  select case iClWnd
+    case EWndRectType.RectTypeClient
+      RectByType = RectClient
+    case EWndRectType.RectTypeWindow
+      RectByType = RectWindow
+  end select
+End Property
+Public Property Let RectByType(optional iClWnd as EWndRectType, ByVal rect As Variant)
+  select case iClWnd
+    case EWndRectType.RectTypeClient
+      RectClient = Rect
+    case EWndRectType.RectTypeWindow
+      RectWindow = Rect
+  end select
+End Property
 
 'Get/Set the X position of this window
-Public Property Get x() As Long
+Public Property Get x(optional ByVal iClWnd as EWndRectType) As Long
   If Exists Then
-    x = Me.RectClient()(0)
+    x = Me.RectByType(iClWnd)(0)
   Else
     Err.Raise 1, "stdWindow#x", "Window does not exist."
   End If
 End Property
-Public Property Let x(ByVal vX As Long)
+Public Property Let x(optional ByVal iClWnd as EWndRectType, ByVal vX As Long)
   If Exists Then
-    Dim rect As Variant: rect = RectClient
+    Dim rect As Variant: rect = RectByType(iClWnd)
     Call MoveWindow(pHandle, vX, rect(1), rect(2), rect(3), True)
   Else
     Err.Raise 1, "stdWindow#x [Let]", "Window does not exist."
@@ -814,16 +834,16 @@ Public Property Let x(ByVal vX As Long)
 End Property
 
 'Get/Set the Y position of this window
-Public Property Get y() As Long
+Public Property Get y(optional ByVal iClWnd as EWndRectType) As Long
   If Exists Then
-    y = RectClient()(1)
+    y = RectByType(iClWnd)(1)
   Else
     Err.Raise 1, "stdWindow#y", "Window does not exist."
   End If
 End Property
-Public Property Let y(ByVal vY As Long)
+Public Property Let y(optional ByVal iClWnd as EWndRectType, ByVal vY As Long)
   If Exists Then
-    Dim rect As Variant: rect = RectClient
+    Dim rect As Variant: rect = RectByType(iClWnd)
     Call MoveWindow(pHandle, rect(0), vY, rect(2), rect(3), True)
   Else
     Err.Raise 1, "stdWindow#y [Let]", "Window does not exist."
@@ -831,16 +851,16 @@ Public Property Let y(ByVal vY As Long)
 End Property
 
 'Get/Set the width of this window
-Public Property Get width() As Long
+Public Property Get width(optional ByVal iClWnd as EWndRectType) As Long
   If Exists Then
-    width = RectClient()(2)
+    width = RectByType(iClWnd)(2)
   Else
     Err.Raise 1, "stdWindow#width", "Window does not exist."
   End If
 End Property
-Public Property Let width(ByVal vW As Long)
+Public Property Let width(optional ByVal iClWnd as EWndRectType, ByVal vW As Long)
   If Exists Then
-    Dim rect As variant:: rect = RectClient
+    Dim rect As variant:: rect = RectByType(iClWnd)
     Call MoveWindow(pHandle, rect(0), rect(1), vW, rect(3), True)
   Else
     Err.Raise 1, "stdWindow#width [Let]", "Window does not exist."
@@ -848,16 +868,16 @@ Public Property Let width(ByVal vW As Long)
 End Property
 
 'Get/Set the height of this window
-Public Property Get height() As Long
+Public Property Get height(optional ByVal iClWnd as EWndRectType) As Long
   If Exists Then
-    height = RectClient()(3)
+    height = RectByType(iClWnd)(3)
   Else
     Err.Raise 1, "stdWindow#height", "Window does not exist."
   End If
 End Property
-Public Property Let height(ByVal vH As Long)
+Public Property Let height(optional ByVal iClWnd as EWndRectType, ByVal vH As Long)
   If Exists Then
-    Dim rect As variant:: rect = RectClient
+    Dim rect As variant:: rect = RectByType(iClWnd)
     Call MoveWindow(pHandle, rect(0), rect(1), rect(2), vH, True)
   Else
     Err.Raise 1, "stdWindow#height [Let]", "Window does not exist."
@@ -1657,6 +1677,7 @@ Private Function MakeIntAtom(ByVal iAtom as long) as string
 End Function
 
 
+Private Function GetWndRect() as boolean
 
 
 
