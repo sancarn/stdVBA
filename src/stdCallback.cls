@@ -308,13 +308,9 @@ Public Function RunEx(ByVal vArr As Variant) As Variant
           vArgs = vArr
             
           'Call rtcCallByName
-          Dim hr As Long
-          hr = rtcCallByName(vRet, pCallback.oObject, StrPtr(pCallback.sMethodName), pCallback.iCallType, vArgs, &H409)
-            
-          'If error then raise
-          If hr < 0 Then
-            CriticalRaise "Error in rtcCallByName. Error number: " & hr
-          End If
+          On Error GoTo ErrorInRTCCallByName
+          Dim hr As Long: hr = rtcCallByName(vRet, pCallback.oObject, StrPtr(pCallback.sMethodName), pCallback.iCallType, vArgs, &H409)
+          On Error GoTo 0 
         Else
           CriticalRaise "Error in rtcCallByName. Arguments supplied to RunEx needs to be an array."
         End If
@@ -334,6 +330,9 @@ Public Function RunEx(ByVal vArr As Variant) As Variant
   Else
     CriticalRaise "No callback specified. Please initialise with a Create function."
   End If
+  Exit Function
+ErrorInRTCCallByName:
+  CriticalRaise Err.Description & " (" & Err.Number & ")"
 End Function
 
 
@@ -360,7 +359,7 @@ End Function
 Private Sub CriticalRaise(ByVal sMessage As String)
   'If stdError exists
     If VarType(stdError) Then
-      Call stdError.Raise("Can only create evaluators in Excel as they rely on Application.Evaluate()")
+      Call stdError.Raise(sMessage)
     Else
       Call Err.Raise(1, "stdCallback", sMessage)
     End If

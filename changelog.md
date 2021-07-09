@@ -133,3 +133,6 @@ Before `08/07/2021` a change log was not kept. We have  retrospectively gone bac
 * 2021-07-07 FIX         - Fixed bug in testing environment. Ensured that `Test.Range` existed in mainBuilder.
 * 2021-07-07 BREAKING    - `#` is no longer valid inside `stdLambda` expression. Use `.`, `.$` or `.#` instead.
 * 2021-07-07 FEATURE     - Added `pEquation` property to `stdLambda` - useful while debugging.
+* 2021-07-08 FIX         - Fixed an issue where `stdEnumerator#Sort()` through an error on empty arrays
+* 2021-07-08 FIX         - Fixed an issue where `stdEnumerator#AsArray()` wouldn't return an array of the correct type when used with anything other than `VbVariant` as argument.
+* 2021-07-09 FIX         - Fixed an issue where `CriticalRaise` would occur in `stdCallback`, ending runtime, where it actually successfully ran.
