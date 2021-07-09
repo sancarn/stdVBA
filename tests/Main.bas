@@ -13,6 +13,6 @@ Sub MainTestAll()
     Call stdClipboardTests.testAll
     Call stdRegexTests.testAll
     Call stdWindowTests.testAll
-    Call stdWebSocketTests.testAll
     Call stdProcessTests.testAll
+    Call stdWebSocketTests.testAll
 End Sub

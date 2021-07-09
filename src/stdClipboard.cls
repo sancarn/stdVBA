@@ -664,7 +664,7 @@ Private Function GetPictureFromClipboard(Optional ByVal lPicType As CLIPFORMAT) 
     'Check if the clipboard contains the required format
     If IsClipboardFormatAvailable(lPicType) Then
       'Get access to the clipboard
-      If OpenClipboardTimeout(Application.hwnd) > 0 Then
+      If OpenClipboardTimeout(Application.hwnd) Then
         'Get a handle to the image data
         hPtr = GetClipboardData(lPicType)
         If Not CBool(hPtr) Then Call CriticalRaise("GetPictureFromClipboard [PRIVATE]", "Unable to get clipboard data handle (DllError: " & Err.LastDllError & ")")
