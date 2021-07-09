@@ -76,7 +76,33 @@ Attribute VB_Exposed = False
 '    to_dict <-- requires stdDictioanry                                        ["a",1,"b",2].to_dict ==> {a:1, b:2}
 '    groupBy <-- requires stdDictionary
 
-
+#if Mac then
+    'Unfortunately I can't find any examples of creating an empty array on Mac :(. If you want to create Mac - compatable code don't use AsArray() with anything other than
+    'vbVariant data type.
+#else
+    #if VBA7 then
+        Private Declare PtrSafe Function createEmptyArrayBoolean     Lib "oleaut32" Alias "SafeArrayCreateVector" (Optional ByVal vt As VbVarType = vbBoolean  , Optional ByVal lLow As Long = 0, Optional ByVal lCount As Long = 0) as Boolean()
+        Private Declare PtrSafe Function createEmptyArrayByte        Lib "oleaut32" Alias "SafeArrayCreateVector" (Optional ByVal vt As VbVarType = vbByte     , Optional ByVal lLow As Long = 0, Optional ByVal lCount As Long = 0) as Byte()
+        Private Declare PtrSafe Function createEmptyArrayCurrency    Lib "oleaut32" Alias "SafeArrayCreateVector" (Optional ByVal vt As VbVarType = vbCurrency , Optional ByVal lLow As Long = 0, Optional ByVal lCount As Long = 0) as Currency()
+        Private Declare PtrSafe Function createEmptyArrayDate        Lib "oleaut32" Alias "SafeArrayCreateVector" (Optional ByVal vt As VbVarType = vbDate     , Optional ByVal lLow As Long = 0, Optional ByVal lCount As Long = 0) as Date()
+        Private Declare PtrSafe Function createEmptyArrayDouble      Lib "oleaut32" Alias "SafeArrayCreateVector" (Optional ByVal vt As VbVarType = vbDouble   , Optional ByVal lLow As Long = 0, Optional ByVal lCount As Long = 0) as Double()
+        Private Declare PtrSafe Function createEmptyArrayLong        Lib "oleaut32" Alias "SafeArrayCreateVector" (Optional ByVal vt As VbVarType = vbLong     , Optional ByVal lLow As Long = 0, Optional ByVal lCount As Long = 0) as Long()
+        Private Declare PtrSafe Function createEmptyArrayObject      Lib "oleaut32" Alias "SafeArrayCreateVector" (Optional ByVal vt As VbVarType = vbObject   , Optional ByVal lLow As Long = 0, Optional ByVal lCount As Long = 0) as Object()
+        Private Declare PtrSafe Function createEmptyArrayString      Lib "oleaut32" Alias "SafeArrayCreateVector" (Optional ByVal vt As VbVarType = vbString   , Optional ByVal lLow As Long = 0, Optional ByVal lCount As Long = 0) as String()
+        Private Declare PtrSafe Function createEmptyArrayVariant     Lib "oleaut32" Alias "SafeArrayCreateVector" (Optional ByVal vt As VbVarType = vbVariant  , Optional ByVal lLow As Long = 0, Optional ByVal lCount As Long = 0) as Variant()
+        Private Declare PtrSafe Function createEmptyArrayLongLong    Lib "oleaut32" Alias "SafeArrayCreateVector" (Optional ByVal vt As VbVarType = vbLongLong , Optional ByVal lLow As Long = 0, Optional ByVal lCount As Long = 0) as LongLong()
+    #else
+        Private Declare Function createEmptyArrayBoolean     Lib "oleaut32" Alias "SafeArrayCreateVector" (Optional ByVal vt As VbVarType = vbBoolean  , Optional ByVal lLow As Long = 0, Optional ByVal lCount As Long = 0) as Boolean()
+        Private Declare Function createEmptyArrayByte        Lib "oleaut32" Alias "SafeArrayCreateVector" (Optional ByVal vt As VbVarType = vbByte     , Optional ByVal lLow As Long = 0, Optional ByVal lCount As Long = 0) as Byte()
+        Private Declare Function createEmptyArrayCurrency    Lib "oleaut32" Alias "SafeArrayCreateVector" (Optional ByVal vt As VbVarType = vbCurrency , Optional ByVal lLow As Long = 0, Optional ByVal lCount As Long = 0) as Currency()
+        Private Declare Function createEmptyArrayDate        Lib "oleaut32" Alias "SafeArrayCreateVector" (Optional ByVal vt As VbVarType = vbDate     , Optional ByVal lLow As Long = 0, Optional ByVal lCount As Long = 0) as Date()
+        Private Declare Function createEmptyArrayDouble      Lib "oleaut32" Alias "SafeArrayCreateVector" (Optional ByVal vt As VbVarType = vbDouble   , Optional ByVal lLow As Long = 0, Optional ByVal lCount As Long = 0) as Double()
+        Private Declare Function createEmptyArrayLong        Lib "oleaut32" Alias "SafeArrayCreateVector" (Optional ByVal vt As VbVarType = vbLong     , Optional ByVal lLow As Long = 0, Optional ByVal lCount As Long = 0) as Long()
+        Private Declare Function createEmptyArrayObject      Lib "oleaut32" Alias "SafeArrayCreateVector" (Optional ByVal vt As VbVarType = vbObject   , Optional ByVal lLow As Long = 0, Optional ByVal lCount As Long = 0) as Object()
+        Private Declare Function createEmptyArrayString      Lib "oleaut32" Alias "SafeArrayCreateVector" (Optional ByVal vt As VbVarType = vbString   , Optional ByVal lLow As Long = 0, Optional ByVal lCount As Long = 0) as String()
+        Private Declare Function createEmptyArrayVariant     Lib "oleaut32" Alias "SafeArrayCreateVector" (Optional ByVal vt As VbVarType = vbVariant  , Optional ByVal lLow As Long = 0, Optional ByVal lCount As Long = 0) as Variant()
+    #end if
+#end if
 Private Enum EnumeratorType
     FromCallable
     FromCallableVerbose
@@ -247,7 +273,7 @@ End Function
 Public Function AsArray(Optional ByVal iType as vbVarType = vbVarType.vbVariant) as Variant
     Dim arrLen as long: arrLen = Length()
     If arrLen = 0 Then
-        AsArray = Array()
+        AsArray = CreateEmptyVBArray(iType)
         Exit Function
     End If
     Dim vRet as variant
@@ -384,95 +410,99 @@ End Function
 '        values in enumerator
 '@returns {stdEnumerator} enumerator of sorted values
 Public Function Sort(Optional ByVal cb as stdICallable = nothing) as stdEnumerator
-    Dim arr() as SortStruct
-    Dim iIndex as Long: iIndex = 0
-    Dim iFirstItem as long: iFirstItem = 1
-    Dim val as variant: val = null
-    Dim keyVal as variant: keyVal = null
-    While NextItem(keyVal, val,iIndex)
-        'Increment index
-        Redim Preserve arr(1 to iIndex)
+    If Length > 0 then
+        Dim arr() as SortStruct
+        Dim iIndex as Long: iIndex = 0
+        Dim iFirstItem as long: iFirstItem = 1
+        Dim val as variant: val = null
+        Dim keyVal as variant: keyVal = null
+        While NextItem(keyVal, val,iIndex)
+            'Increment index
+            Redim Preserve arr(1 to iIndex)
 
-        'Bind to SortStruct
-        if iIndex > 1 Then
-            'Initialise sorting struct
-            Call CopyVariant(arr(iIndex).value, val)
-            arr(iIndex).iIndex = iIndex
-            if cb is nothing then
-              arr(iIndex).sortValue = arr(iIndex).value
-            else
-              arr(iIndex).sortValue = cb.Run(arr(iIndex).value, keyVal)
-            end if
+            'Bind to SortStruct
+            if iIndex > 1 Then
+                'Initialise sorting struct
+                Call CopyVariant(arr(iIndex).value, val)
+                arr(iIndex).iIndex = iIndex
+                if cb is nothing then
+                arr(iIndex).sortValue = arr(iIndex).value
+                else
+                arr(iIndex).sortValue = cb.Run(arr(iIndex).value, keyVal)
+                end if
 
-            'Sort/Compare
-            Dim iCompareIndex as long: iCompareIndex = iFirstItem
+                'Sort/Compare
+                Dim iCompareIndex as long: iCompareIndex = iFirstItem
 
-            Do While iCompareIndex <> 0
-                'If sort value at current index is less than at compare index then but this index to compare index via next
-                if arr(iIndex).sortValue < arr(iCompareIndex).sortValue then
-                    'Bind this index to compare index via iNext property
-                    arr(iIndex).iNext = arr(iCompareIndex).iIndex
+                Do While iCompareIndex <> 0
+                    'If sort value at current index is less than at compare index then but this index to compare index via next
+                    if arr(iIndex).sortValue < arr(iCompareIndex).sortValue then
+                        'Bind this index to compare index via iNext property
+                        arr(iIndex).iNext = arr(iCompareIndex).iIndex
 
-                    'Rebind previous element if required
-                    if arr(iCompareIndex).iPrev <> 0 then
-                        'My new previous index is the previous elements previous index
-                        arr(iIndex).iPrev = arr(iCompareIndex).iPrev
-                        
-                        'The previous elements iNext should bind to me
-                        arr(arr(iIndex).iPrev).iNext = iIndex
-                        
-                        'The compare indexes iPrev should bind to me
-                        arr(iCompareIndex).iPrev = iIndex
-                    else
-                        'There is no previous element i.e. this is the first element, change iFirstItem, and link current index to iPrev of comparee
-                        arr(iCompareIndex).iPrev = iIndex
-                        iFirstItem = iIndex
-                    End if
-                    
-                    'No need to carry on searching for where item should go, exit do loop
-                    Exit Do
-                Else
-                    'Ensure next element defined, if not then we have a new next element
-                    if arr(iCompareIndex).iNext <> 0 then
-                        'Schedule next sorting check and keep searching
-                        iCompareIndex = arr(iCompareIndex).iNext
-                    else
-                        'Next element is not defined, therefore this is max
-                        'in this case set next of arr(iCompareIndex) to this
-                        'set prev of this to iCompareIndex
-                        arr(iCompareIndex).iNext = iIndex
-                        arr(iIndex).iPrev = iCompareIndex
+                        'Rebind previous element if required
+                        if arr(iCompareIndex).iPrev <> 0 then
+                            'My new previous index is the previous elements previous index
+                            arr(iIndex).iPrev = arr(iCompareIndex).iPrev
+                            
+                            'The previous elements iNext should bind to me
+                            arr(arr(iIndex).iPrev).iNext = iIndex
+                            
+                            'The compare indexes iPrev should bind to me
+                            arr(iCompareIndex).iPrev = iIndex
+                        else
+                            'There is no previous element i.e. this is the first element, change iFirstItem, and link current index to iPrev of comparee
+                            arr(iCompareIndex).iPrev = iIndex
+                            iFirstItem = iIndex
+                        End if
                         
                         'No need to carry on searching for where item should go, exit do loop
                         Exit Do
+                    Else
+                        'Ensure next element defined, if not then we have a new next element
+                        if arr(iCompareIndex).iNext <> 0 then
+                            'Schedule next sorting check and keep searching
+                            iCompareIndex = arr(iCompareIndex).iNext
+                        else
+                            'Next element is not defined, therefore this is max
+                            'in this case set next of arr(iCompareIndex) to this
+                            'set prev of this to iCompareIndex
+                            arr(iCompareIndex).iNext = iIndex
+                            arr(iIndex).iPrev = iCompareIndex
+                            
+                            'No need to carry on searching for where item should go, exit do loop
+                            Exit Do
+                        end if
                     end if
+                Loop
+            Else
+                'Initialise sorting struct
+                Call CopyVariant(arr(1).value, val)
+                if cb is nothing then
+                arr(1).sortValue = arr(1).value
+                else
+                arr(1).sortValue = cb.Run(arr(1).value, keyVal)
                 end if
-            Loop
-        Else
-            'Initialise sorting struct
-            Call CopyVariant(arr(1).value, val)
-            if cb is nothing then
-              arr(1).sortValue = arr(1).value
-            else
-              arr(1).sortValue = cb.Run(arr(1).value, keyVal)
+                arr(1).iIndex = 1
+                arr(1).iNext = 0
+                arr(1).iPrev = 0
             end if
-            arr(1).iIndex = 1
-            arr(1).iNext = 0
-            arr(1).iPrev = 0
-        end if
-    Wend
+        Wend
 
-    'Collect sorted elements
-    Dim ret as Collection
-    set ret = new Collection
-    Dim i as long: i = iFirstItem
-    While i <> 0
-        Call ret.add(arr(i).value)
-        i = arr(i).iNext
-    Wend
+        'Collect sorted elements
+        Dim ret as Collection
+        set ret = new Collection
+        Dim i as long: i = iFirstItem
+        While i <> 0
+            Call ret.add(arr(i).value)
+            i = arr(i).iNext
+        Wend
 
-    'Return sorted collection as stdEnumerator
-    set sort = stdEnumerator.CreateFromIEnumVariant(ret)
+        'Return sorted collection as stdEnumerator
+        set sort = stdEnumerator.CreateFromIEnumVariant(ret)
+    else
+        set sort = Me
+    end if
 End Function
 
 'Returns a new enumerator by removing duplicate values from `Me`.
@@ -1067,6 +1097,40 @@ Private Function NextItem(ByRef vNextKey as variant, ByRef vNextItem as Variant,
       end if
   end select
 End Function
+
+Private Function CreateEmptyVBArray(Optional ByVal varType as vbVarType = vbVariant) as Variant
+    #if Mac then
+        select case varType
+            case vbVariant:   CreateEmptyVBArray = Array()
+            case vbString:    CreateEmptyVBArray = Split("",",")
+            case vbByte
+                Dim b() as Byte
+                b = ""
+                CreateEmptyVBArray = b
+            case else
+                Err.Raise 1, "stdEnumerator#CreateEmpty()", "Creating Empty arrays of this type is currently unsupported on Mac"
+        end select
+    #else
+        'TODO: LongPtr?
+        select case varType
+            case vbVariant:   CreateEmptyVBArray = createEmptyArrayVariant()
+            case vbString:    CreateEmptyVBArray = createEmptyArrayString()
+            case vbByte:      CreateEmptyVBArray = createEmptyArrayByte()
+            case vbBoolean:   CreateEmptyVBArray = createEmptyArrayBoolean()
+            case vbCurrency:  CreateEmptyVBArray = createEmptyArrayCurrency()
+            case vbDate:      CreateEmptyVBArray = createEmptyArrayDate()
+            case vbDouble:    CreateEmptyVBArray = createEmptyArrayDouble()
+            case vbLong:      CreateEmptyVBArray = createEmptyArrayLong()
+            case vbObject:    CreateEmptyVBArray = createEmptyArrayObject()
+            #if Win64 then
+            case vbLongLong:  CreateEmptyVBArray = createEmptyArrayLongLong()
+            #end if
+            case else
+                Err.Raise 1, "stdEnumerator#CreateEmpty()", "Invalid vb vartype"
+        end select
+    #end if
+End Function
+
 
 'TODO: Implement raw API for working with IEnumVARIANT:
 Private Function getNewEnum(ByRef o as object) as IEnumVARIANT
