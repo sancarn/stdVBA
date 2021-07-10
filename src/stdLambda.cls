@@ -1201,8 +1201,8 @@ Private Function evaluateFunc(ByVal sFuncName As String, ByVal args As Variant) 
         Case "eval": evaluateFunc = stdLambda.Create(args(iArgStart)).Run()
 
         'Useful OOP constants
-        Case "thisworkbook": if vartype(ThisWorkbook) <> vbEmpty then Set evaluateFunc = ThisWorkbook
-        Case "application":  if vartype(Application) <> vbEmpty then  Set evaluateFunc = Application
+        Case "thisworkbook": if isObject(ThisWorkbook) then Set evaluateFunc = ThisWorkbook
+        Case "application":  if isObject(Application)  then  Set evaluateFunc = Application
 
         'MATH:
         '-----
