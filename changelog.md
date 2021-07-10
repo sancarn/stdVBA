@@ -112,7 +112,7 @@ Before `08/07/2021` a change log was not kept. We have  retrospectively gone bac
 * 2021-04-10 FEATURE     - Made callback of `stdEnumerator#unique` optional
 * 2021-04-10 FEATURE     - Made callback of `stdEnumerator#sort` optional
 * 2021-04-10 BREAKING    - `init` renamed to `protInit`. Unlikely to affect anyone.
-* 2021-04-10 BREAKING    - `withIndex` optional parameters removed from `stdEnumerator` and instead callbacks are always passed the index.
+* 2021-04-10 BREAKING    - `withIndex` optional parameters removed from `stdEnumerator` and instead callbacks are always passed the index. Any usage of `stdCallback` will now need to implement a 2nd and 3rd parameter for the key and index.
 * 2021-04-10 FIX         - Fix typo in `stdEnumerator#NextItem()` where `CallableVerbose` returned data to the wrong array on callback execute.
 * 2021-04-10 FIX         - Fixes to stdEnumeratorTests.bas to ensure all tests succeed
 * 2021-04-11 FIX         - `stdProcess`'s `Time` functions would crash if `pQueryInfoHandle=0`. Add a check and exit property.
@@ -121,7 +121,7 @@ Before `08/07/2021` a change log was not kept. We have  retrospectively gone bac
 * 2021-05-05 FEATURE     - Added stdCOM
 * 2021-05-18 FIX         - Ensure `stdLambda.oFuncExt` is always defined.
 * 2021-05-21 WIP         - Initial work to `stdTable` and `stdDictionary`
-* 2021-06-18 BREAKING    - Fixed Unintuitive right-to-left behavior of `stdLambda`. This is theoretically breaking, however unlikely to affect anyone negatively.
+* 2021-06-18 BREAKING    - Fixed Unintuitive right-to-left behavior of `stdLambda`. This is theoretically breaking, however unlikely to affect anyone negatively. Ultimately `8/2/2` will now return `2` (as it is running the equivalent of `(8/2)/2`) instead of `8` (as it used to run the equivalent of `8/(2/2)`). I.E. The change makes Math work as it does in VBA and most other programming languages.
 * 2021-06-27 FIX         - `stdArray#arr()` should use `CopyVariant` instead of `=`
 * 2021-06-27 FEATURE     - `stdEnumerator::CreateEmpty()` added.
 * 2021-06-27 FIX         - `stdEnumerator#protInit()` now works for 0-length enumerators.
@@ -131,11 +131,13 @@ Before `08/07/2021` a change log was not kept. We have  retrospectively gone bac
 * 2021-07-06 FEATURE     - Added `stdEnumerator::CreateFromListObject()`
 * 2021-07-06 WIP         - Started work on `IDispatch` wrapper using `stdCOM` 
 * 2021-07-07 FIX         - Fixed bug in testing environment. Ensured that `Test.Range` existed in mainBuilder.
-* 2021-07-07 BREAKING    - `#` is no longer valid inside `stdLambda` expression. Use `.`, `.$` or `.#` instead.
+* 2021-07-07 BREAKING    - `#` is no longer valid inside `stdLambda` expression. Use `.` (for method OR property access), `.$` (for property specific access) or `.#` (for method specific access). I.E. If you have code like `obj#method` you should change this to `obj.method` as `.`. In some rare cases you may have to use `.#` instead.
 * 2021-07-07 FEATURE     - Added `pEquation` property to `stdLambda` - useful while debugging.
 * 2021-07-08 FIX         - Fixed an issue where `stdEnumerator#Sort()` through an error on empty arrays
 * 2021-07-08 FIX         - Fixed an issue where `stdEnumerator#AsArray()` wouldn't return an array of the correct type when used with anything other than `VbVariant` as argument.
 * 2021-07-09 FIX         - Fixed an issue where `CriticalRaise` would occur in `stdCallback`, ending runtime, where it actually successfully ran.
 * 2021-07-09 FIX         - Fixed typo in `GetPictureFromClipboard()` from `if OpenClipboardTimeOut()>1 then` to `if OpenClipboardTimeOut() then`
-* 2021-07-09 BREAKING    - Reverting `2021-07-02 BREAKING` change. Use of `WindowRect` should be default, however `ClientRect` should also be allowed.
+* 2021-07-09 BREAKING    - Reverting `2021-07-02 BREAKING` change. Use of `WindowRect` should be default, however `ClientRect` should also be allowed. See next line for new feature.
 * 2021-07-09 FEATURE     - Added optional Rect type parameter to x,y,width and height. Use `wnd.x(RectTypeClient) = ...` to modify with respect to the client rect.
+* 2021-07-10 FIX         - Remove TODO statement from `stdLambda` evaluation loop. 
+* 2021-07-10 FIX         - Check for `Application` and `ThisWorkbook` existence. This brings `Word` and `VB6` compatibility.  
