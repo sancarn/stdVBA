@@ -8,8 +8,17 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
-'For testing purposes
+'Ensure Option-Explicit is disabled!! 
+'For VB6 compatibility we rely on the auto-definition of Application and ThisWorkbook
+'Option Explicit
+
+'Used for enabling some debugging features
+#Const devMode = True 
+
+'For Mac testing purposes only
 '#const Mac = true
+
+
 
 'Implement stdICallable interface
 Implements stdICallable
@@ -24,8 +33,6 @@ Implements stdICallable
     #End If
 #End If
 
-
-#Const devMode = True 'Used for enabling some debugging features
 
 'Tokens, token definitions and operations
 Private Type TokenDefinition
@@ -1063,7 +1070,8 @@ Private Function evaluate(ByRef ops() As Operation, ByVal vLastArgs As Variant) 
             Case iType.oPop
                 Call popV(stack, stackPtr)
             Case Else
-                opIndex = 10 ^ 6 'TODO: replace by infinity or something
+                'End loop - This occurs when opIndex > opCount 
+                opIndex = opCount+1
         End Select
     Wend
 
@@ -1193,8 +1201,8 @@ Private Function evaluateFunc(ByVal sFuncName As String, ByVal args As Variant) 
         Case "eval": evaluateFunc = stdLambda.Create(args(iArgStart)).Run()
 
         'Useful OOP constants
-        Case "thisworkbook": Set evaluateFunc = ThisWorkbook
-        Case "application":  Set evaluateFunc = Application
+        Case "thisworkbook": if vartype(ThisWorkbook) <> vbEmpty then Set evaluateFunc = ThisWorkbook
+        Case "application":  if vartype(Application) <> vbEmpty then  Set evaluateFunc = Application
 
         'MATH:
         '-----
