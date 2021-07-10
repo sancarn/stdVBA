@@ -224,7 +224,7 @@ Public Function CreateManyFromQuery(ByVal query As stdICallable) As Collection
   Set CreateManyFromQuery = ret
 End Function
 
-'Obtains a collection of processes which match the query given
+'Obtains a collection of all processes
 '@constructor
 '@returns {Collection<stdProcess>} All processes
 Public Function CreateAll() As Collection
@@ -255,9 +255,8 @@ End Function
 '@param {ByVal String = ""} - The process path
 '@param {ByVal Long   = 0} - The process module id
 '@returns {VOID}
-Public Sub protInitFromProcessId(ByVal argID As Long, Optional ByVal argName As String = "", Optional ByVal argPath As String = "", Optional ByVal argModuleID As Long = 0)
+Friend Sub protInitFromProcessId(ByVal argID As Long, Optional ByVal argName As String = "", Optional ByVal argPath As String = "", Optional ByVal argModuleID As Long = 0)
   pProcessId = argID
-  pModuleID = argModuleID
   pName = argName
   pPath = argPath
   If argModuleID = 0 Then pModuleID = getModuleIDByPid(argID)
@@ -280,11 +279,12 @@ Public Property Get id() As Long
   id = pProcessId
 End Property
 
-'Obtain the process module id
-'@returns {Long} - the process module id
-Public Property Get moduleID() As Long
-  moduleID = pModuleID
-End Property
+'TODO:
+''Obtain the process module id
+''@returns {Long} - the process module id
+'Public Property Get moduleID() As Long
+'  moduleID = pModuleID
+'End Property
 
 'TODO: SessionID
 'TODO: ThreadID
@@ -339,6 +339,7 @@ End Property
 
 
 'Get the datetime representing the time the process was started/created
+'TODO: Currently returns in UTC. Convert to standard time.
 '@returns {Date} The datetime representing the time the process was started/created
 Public Property Get TimeCreated() As Date
   Dim t1 As FileTime, t2 As FileTime, t3 As FileTime, t4 As FileTime
@@ -351,6 +352,7 @@ Public Property Get TimeCreated() As Date
 End Property
 
 'Get the datetime representing the time the process was quit
+'TODO: Currently returns in UTC. Convert to standard time.
 '@returns {Date} The datetime representing the time the process was quit
 Public Property Get TimeQuit() As Date
   Dim t1 As FileTime, t2 As FileTime, t3 As FileTime, t4 As FileTime
@@ -367,6 +369,7 @@ Public Property Get TimeQuit() As Date
 End Property
 
 'Get the amount of time that the process has executed in kernel mode
+'TODO: Currently returns in UTC. Convert to standard time.
 '@returns {Date} The datetime representing the kernel time
 Public Property Get TimeKernel() As Date
   Dim t1 As FileTime, t2 As FileTime, t3 As FileTime, t4 As FileTime
@@ -379,6 +382,7 @@ Public Property Get TimeKernel() As Date
 End Property
 
 'Get the amount of time that the process has executed in user mode
+'TODO: Currently returns in UTC. Convert to standard time.
 '@returns {Date} The datetime representing the user time
 Public Property Get TimeUser() As Date
   Dim t1 As FileTime, t2 As FileTime, t3 As FileTime, t4 As FileTime
@@ -439,14 +443,14 @@ End Sub
 'Get the process handle
 '@protected
 '@returns {LongPtr} the open process handle
-Public Property Get protProcessHandle() As LongPtr
+Friend Property Get protProcessHandle() As LongPtr
   protProcessHandle = pProcessHandle
 End Property
 
 'Call to OpenProcess() to save a handle in the class. Typically this is not required, thus this method is listed as protected.
 '@protected
 '@returns {VOID}
-Public Sub protProcessHandleCreate(ByVal access As EProcessAccess)
+Friend Sub protProcessHandleCreate(ByVal access As EProcessAccess)
   If pProcessHandle = 0 Then
     pProcessHandle = OpenProcess(access, 0, pProcessId)
   Else
@@ -457,7 +461,7 @@ End Sub
 'Call to CloseProcess() to close process handle
 '@protected
 '@returns {VOID}
-Public Sub protProcessHandleRelease()
+Friend Sub protProcessHandleRelease()
   Call CloseHandle(pProcessHandle)
   pProcessHandle = 0
 End Sub
@@ -489,6 +493,7 @@ Private Function getProcessNameById(ByVal lProcessID As Long) As String
   getProcessNameById = Left(entry.szexeFile, InStr(1, entry.szexeFile, vbNullChar) - 1)
 End Function
 
+'TODO: This method does not currently work as PROCESSENTRY32.th32ModuleID has been deprecated and always returns 0
 'Obtain the ModuleID from the ProcessID
 '@param {ByVal Long} - The process id
 '@returns {Long} - The module id
@@ -524,7 +529,7 @@ End Function
 'Obtain the full qualified path of a process from it's ProcessID
 '@param {ByVal Long} - The process id
 '@returns {String} - The fully qualified path to the process
-Public Function getProcessImageName(ByVal lProcessID As Long) As String
+Private Function getProcessImageName(ByVal lProcessID As Long) As String
   Dim hProcess As LongPtr
   hProcess = OpenProcess(EProcessAccess.PROCESS_QUERY_INFORMATION, 0, lProcessID)
   If hProcess Then
@@ -556,6 +561,7 @@ Private Function TimeFromFileTime(ByRef ft As FileTime) As Date
   Dim st As SystemTime
   If FileTimeToSystemTime(ft, st) Then
     With st
+      'TODO: use GetDynamicTimeZoneInformation() in combination with SystemTimeToTzSpecificLocalTimeEx() to convert to local timezone
       TimeFromFileTime = DateSerial(.wYear, .wMonth, .wDay) + TimeSerial(.wHour, .wMinute, .wSecond)
     End With
   Else

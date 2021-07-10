@@ -17,6 +17,7 @@ Where:
     * `WIP` if work in progress still
     * `DEV` a feature which should only be utilised by `stdVBA` developers.
     * `DEPRECATED` when a feature still supported but is deprecated.
+    * `NOTE` - any disclaimers etc.
 * `<Short description>` - Short description of the change / fix / feature
 * `<BODY>` to be provided if required
 
@@ -141,3 +142,7 @@ Before `08/07/2021` a change log was not kept. We have  retrospectively gone bac
 * 2021-07-09 FEATURE     - Added optional Rect type parameter to x,y,width and height. Use `wnd.x(RectTypeClient) = ...` to modify with respect to the client rect.
 * 2021-07-10 FIX         - Remove TODO statement from `stdLambda` evaluation loop. 
 * 2021-07-10 FIX         - Check for `Application` and `ThisWorkbook` existence. This brings `Word` and `VB6` compatibility.  
+* 2021-07-10 BREAKING    - All protected methods in `stdProcess` are now declared as `Friend` instead of `Public`.
+* 2021-07-10 FIX         - Removed `stdProcess#moduleID` as it was always returning `0`. Need to look into how to get `moduleID`s in a class based setting.
+* 2021-07-10 NOTE        - Added documentation note to all Time functions of stdProcess e.g. `stdProcess#TimeCreated()`, indicating that this function currently always returns time in UTC timezone.
+* 2021-07-10 BREAKING    - `stdProcess::getProcessImageName` set to `Private`. This function should never have been public. Replace with `stdProcess.Create(...).path`
