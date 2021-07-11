@@ -156,77 +156,29 @@ Sub testAll()
     Call iCallable.SendMessage("", bSuccess, Null)
     Test.Assert "SendMessage Fail Parameter set", Not bSuccess
 
-    'Ensure performance chaching is faster when params are the same:
-    oDict("number") = 1
-    
-    'Time without performance cache
-    iStart = Timer
-    With stdLambda.Create("$1.number+1")
-      For i = 1 To 10 ^ 4
-          Call .Run(oDict)
-      Next
-    End With
-    Dim timeA As Double: timeA = (Timer - iStart)
-    
-    'Time with performance cache
-    iStart = Timer
-    With stdLambda.Create("$1.number+1", True)
-      For i = 1 To 10 ^ 4
-          Call .Run(oDict)
-      Next
-    End With
-    Dim timeB As Double: timeB = (Timer - iStart)
-    
-    test.assert "Performance cache faster than without", TimeB < TimeA
-End Sub
-
-Sub testPerformanceStdLambda()
-    'Evaluate method access
-    Range("A1").value = 1
-    Range("A2").value = 2
-    Range("A3").value = 3
-    Range("A4").value = 4
-    Dim lambda As Variant
-
-    iStart = Timer
-    Set lambda = stdLambda.Create("$1.#Find(3)")
-    For i = 1 To 10 ^ 3
-        Call lambda.Run(Range("A:A"))
-    Next
-    Test.Assert "", "StdLambda: " & (Timer - iStart)
-
-    iStart = Timer
-    Set lambda = stdLambdaOld.Create("$1.#Find(3)")
-    For i = 1 To 10 ^ 3
-        Call lambda.Run(Range("A:A"))
-    Next
-    Test.Assert "", "StdLambdaOld: " & (Timer - iStart)
-End Sub
-
-Sub performanceTest2()
-    'Evaluate method access
-    Range("A1").value = 1
-    Range("A2").value = 2
-    Range("A3").value = 3
-    Range("A4").value = 4
-    Dim lambda As Variant
-    
-    Formula = "0+(3*(2+5)+5*8/2^(2+1))/26-1+(3*(2+5)+5*8/2^(2+1))/26-1+(3*(2+5)+5*8/2^(2+1))/26-1+(3*(2+5)+5*8/2^(2+1))/26-1+(3*(2+5)+5*8/2^(2+1))/26-1+(3*(2+5)+5*8/2^(2+1))/26-1+(3*(2+5)+5*8/2^(2+1))/26-1+(3*(2+5)+5*8/2^(2+1))/26-1"
-    Test.Assert "", "10^3 * """ & Formula & """"
-    
-    iStart = Timer
-    Set lambda = stdLambda.Create(Formula)
-    With lambda
-        For i = 1 To 10 ^ 3
-            Call .Run
+    'Only perform these on a full test as they are quite slow:
+    if Test.FullTest then
+        'Ensure performance chaching is faster when params are the same:
+        oDict("number") = 1
+        
+        'Time without performance cache
+        iStart = Timer
+        With stdLambda.Create("$1.number+1")
+        For i = 1 To 10 ^ 4
+            Call .Run(oDict)
         Next
-    End With
-    Test.Assert "", "StdLambda: " & (Timer - iStart)
-    
-    iStart = Timer
-    Set lambda = stdLambdaOld.Create(Formula)
-    For i = 1 To 10 ^ 3
-        Call lambda.Run
-    Next
-    Test.Assert "", "StdLambdaOld: " & (Timer - iStart)
+        End With
+        Dim timeA As Double: timeA = (Timer - iStart)
+        
+        'Time with performance cache
+        iStart = Timer
+        With stdLambda.Create("$1.number+1", True)
+        For i = 1 To 10 ^ 4
+            Call .Run(oDict)
+        Next
+        End With
+        Dim timeB As Double: timeB = (Timer - iStart)
+        
+        test.assert "Performance cache faster than without", TimeB < TimeA
+    end if
 End Sub

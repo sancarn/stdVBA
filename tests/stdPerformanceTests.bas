@@ -14,26 +14,29 @@ Sub testAll()
     End With
     Test.Assert "MeasuresKeys 2", Join(stdPerformance.MeasuresKeys,";") = "Test1;Test2"
 
-    Test.Range.Parent.Activate
-    DoEvents
-    With stdPerformance.measure("#1 Select and set")
-        For i = 1 to C_MAX
-            Test.Range.cells(1,1).select
-            selection.value = "hello"
-        Next
-    End With
+    'Only run in a full test
+    if Test.FullTest then
+        Test.Range.Parent.Activate
+        DoEvents
+        With stdPerformance.measure("#1 Select and set")
+            For i = 1 to C_MAX
+                Test.Range.cells(1,1).select
+                selection.value = "hello"
+            Next
+        End With
 
-    With stdPerformance.measure("#2 Set directly")
-        For i = 1 to C_MAX
-            Test.Range.cells(1,1).value = "hello"
-        next
-    End With
-    DoEvents
-    Test.ShOutput.Activate
+        With stdPerformance.measure("#2 Set directly")
+            For i = 1 to C_MAX
+                Test.Range.cells(1,1).value = "hello"
+            next
+        End With
+        DoEvents
+        Test.ShOutput.Activate
 
-    'GetMeasurement
-    Test.Assert "[Get] Measurement", stdPerformance.Measurement("#1 Select and set") > 0
-    
+        'GetMeasurement
+        Test.Assert "[Get] Measurement", stdPerformance.Measurement("#1 Select and set") > 0
+    end if
+
     'Clear all measurements
     stdPerformance.MeasuresClear
 
