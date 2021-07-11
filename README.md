@@ -118,6 +118,10 @@ This project is has been majorly maintained by 1 person, so progress is generall
 * Excel specific - `xlFileWatcher`, `xlProjectBuilder`, `xlTimer`, `xlShapeEvents`, `xlTable`
 * Runtimes - `stdCLR`, `stdPowershell`, `stdJavascript`, `stdOfficeJSBridge`
 
+As an indicator of where my focuses have been in the past year, take a look at the following heat map:
+
+![changesHeatMap](./docs/assets/changesHeatMap.png)
+
 ## Planned Global Objects:
 
 <!--
