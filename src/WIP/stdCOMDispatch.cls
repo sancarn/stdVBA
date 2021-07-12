@@ -150,6 +150,8 @@ Public Property Get dispGetIEnumVARIANT() as stdCOM
     Dim disp as stdCOM
     Set disp = Me.QueryKnownInterface(IDispatch)
     
+    Dim oIEnumVariant as IUnknown
+    set oIEnumVariant = dispInvoke(stdCOMDispIDNewEnum,VbGet | VbMethod)
 
     Exit Property
 CannotQuery:
