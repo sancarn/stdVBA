@@ -31,7 +31,7 @@ Sub testAll()
             next
         End With
         DoEvents
-        Test.ShOutput.Activate
+        Test.Activate
 
         'GetMeasurement
         Test.Assert "[Get] Measurement", stdPerformance.Measurement("#1 Select and set") > 0
