@@ -90,7 +90,9 @@ Attribute VB_Exposed = False
         Private Declare PtrSafe Function createEmptyArrayObject      Lib "oleaut32" Alias "SafeArrayCreateVector" (Optional ByVal vt As VbVarType = vbObject   , Optional ByVal lLow As Long = 0, Optional ByVal lCount As Long = 0) as Object()
         Private Declare PtrSafe Function createEmptyArrayString      Lib "oleaut32" Alias "SafeArrayCreateVector" (Optional ByVal vt As VbVarType = vbString   , Optional ByVal lLow As Long = 0, Optional ByVal lCount As Long = 0) as String()
         Private Declare PtrSafe Function createEmptyArrayVariant     Lib "oleaut32" Alias "SafeArrayCreateVector" (Optional ByVal vt As VbVarType = vbVariant  , Optional ByVal lLow As Long = 0, Optional ByVal lCount As Long = 0) as Variant()
-        Private Declare PtrSafe Function createEmptyArrayLongLong    Lib "oleaut32" Alias "SafeArrayCreateVector" (Optional ByVal vt As VbVarType = vbLongLong , Optional ByVal lLow As Long = 0, Optional ByVal lCount As Long = 0) as LongLong()
+        #if Win64 then
+            Private Declare PtrSafe Function createEmptyArrayLongLong    Lib "oleaut32" Alias "SafeArrayCreateVector" (Optional ByVal vt As VbVarType = vbLongLong , Optional ByVal lLow As Long = 0, Optional ByVal lCount As Long = 0) as LongLong()
+        #end if
     #else
         Private Declare Function createEmptyArrayBoolean     Lib "oleaut32" Alias "SafeArrayCreateVector" (Optional ByVal vt As VbVarType = vbBoolean  , Optional ByVal lLow As Long = 0, Optional ByVal lCount As Long = 0) as Boolean()
         Private Declare Function createEmptyArrayByte        Lib "oleaut32" Alias "SafeArrayCreateVector" (Optional ByVal vt As VbVarType = vbByte     , Optional ByVal lLow As Long = 0, Optional ByVal lCount As Long = 0) as Byte()
@@ -190,9 +192,9 @@ Public Function CreateFromListObject(ByVal lo as ListObject, optional byval iMax
         Dim vHeader: vHeader = lo.HeaderRowRange.value
         Dim vData: vData = lo.DataBodyRange.value
         Dim i as long
-        For i = 1 to ubound(v,1)
+        For i = 1 to ubound(vData,1)
             Dim oRow as object: set oRow = CreateObject("Scripting.Dictionary")
-            For j = 1 to ubound(v,2)
+            For j = 1 to ubound(vData,2)
                 oRow(vHeader(1,j)) = vData(i,j)
             next
             Call c.add(oRow)

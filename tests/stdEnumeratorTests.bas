@@ -95,6 +95,7 @@ Sub testAll()
     Dim e5 as stdEnumerator: set e5 = stdEnumerator.CreateFromCallableVerbose(stdLambda.Create("Array($2 <= 9, $2, $2, $2)"))    '1,2,3,4,5,6,7,8,9
     Dim e6 as stdEnumerator: set e6 = stdEnumerator.CreateFromCallableVerbose(stdLambda.Create("Array($2 <= 9, $2, $2, ""a"" & $2)"))
     
+    
     Dim vAsArray as variant: vAsArray = e3.AsArray()
     Dim vAsArrayLong as variant: vAsArrayLong  = e3.AsArray(vbLong)
     Dim vAsArrayString as variant: vAsArrayString  = e3.AsArray(vbString)
@@ -227,6 +228,19 @@ Sub testAll()
     set dict = e1.groupBy(stdLambda.Create("if ($1 mod 2) = 0 then ""Even"" else ""Odd"""))
     Test.Assert "GroupBy - Even numbers", dict("Even").join() = "2,4,6,8"
     Test.Assert "GroupBy - Odd numbers" , dict("Odd").join() = "1,3,5,7,9"
+
+    'Create from listobject test
+    Dim vLo(1 To 3, 1 To 3)
+    vLo(1, 1) = "id": vLo(1, 2) = "fruit": vLo(1, 3) = "count"
+    vLo(2, 1) = 1: vLo(2, 2) = "apples": vLo(2, 3) = 5
+    vLo(3, 1) = 2: vLo(3, 2) = "bananas": vLo(3, 3) = 3
+    Test.Range.Resize(3, 3).value = vLo
+    Dim shTest As Worksheet: Set shTest = Test.Range.Parent
+    Dim lo As ListObject: Set lo = shTest.ListObjects.Add(xlSrcRange, Test.Range.Resize(3, 3))
+    Dim e7 as stdEnumerator: Set e7 = stdEnumerator.CreateFromListObject(lo)
+    Test.Assert "stdEnumerator::CreateFromListObject() returns object", not e7 is nothing
+    Test.Assert "stdEnumerator::CreateFromListObject() correct characteristics", e7.map(stdLambda.Create("$1.id & ""-"" & $1.fruit")).join(" ") = "1-apples 2-bananas"
+    Call lo.delete
 End Sub
 
 Private Function ArrLen(v as variant) as long
