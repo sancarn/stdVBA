@@ -6,7 +6,7 @@ Attribute VB_Name = "stdStringBuilder"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = False
+Attribute VB_Exposed = true
 'StringBuilder
 '
 'StringBuilder is specifically designed to build large strings which are mainly made from boiler plate code.

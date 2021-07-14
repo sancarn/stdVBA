@@ -6,7 +6,7 @@ Attribute VB_Name = "stdRefArray"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = False
+Attribute VB_Exposed = true
 'Status WIP
 'High level wrapper around flood risk.
 'Ultimate goal is to make a class which calculates affordability, total project benefit, historic and overridden likelihood,

@@ -6,7 +6,7 @@ Attribute VB_Name = "stdDictioanry"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = False
+Attribute VB_Exposed = true
 
 ' This is built entirely on the following library by The Trick, a fantastic software engineer:
 ' // clsTrickHashTable.cls  - Hash table class

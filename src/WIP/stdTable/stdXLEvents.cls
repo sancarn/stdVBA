@@ -6,7 +6,7 @@ Attribute VB_Name = "stdXLEvents"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = False
+Attribute VB_Exposed = true
 Public Event SelectionChange(selOld As Object, selNew As Object)
 
 Public Event RangeSelectionChange(rOldRange As Range, rNewRange As Range)

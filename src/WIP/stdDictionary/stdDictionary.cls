@@ -6,7 +6,7 @@ Attribute VB_Name = "stdDictionary"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = False
+Attribute VB_Exposed = true
 
 'Hash size typically we are anticipating only 10 hashes being required. In reality the larger this number is the better in terms of
 'performance, however the more memory is consumed. If you're generating hundreds of dictionaries you want to keep this number as low as possible.

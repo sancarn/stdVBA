@@ -6,7 +6,7 @@ Attribute VB_Name = "stdIHashable"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = false
-Attribute VB_Exposed = False
+Attribute VB_Exposed = true
 
 Public Property Get Hash() as Variant: End Property
 Public Function isEqual(v as variant) as Boolean: End Function

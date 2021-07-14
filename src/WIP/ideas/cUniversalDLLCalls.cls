@@ -10,7 +10,7 @@ Attribute VB_Name = "cUniversalDLLCalls"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = True
 Attribute VB_PredeclaredId = False
-Attribute VB_Exposed = False
+Attribute VB_Exposed = true
 Option Explicit
 
 'Written by LaVolpe

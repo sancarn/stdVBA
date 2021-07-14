@@ -6,7 +6,7 @@ Attribute VB_Name = "JSON"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = False
+Attribute VB_Exposed = true
 ''
 ' VBA-JSON v2.3.1
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-JSON

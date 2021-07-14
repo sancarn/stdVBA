@@ -6,7 +6,7 @@ Attribute VB_Name = "stdSharepointSite"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = False
+Attribute VB_Exposed = true
 
 'P.S. Useful information about APIs can be found here:
 'http://sharepoint/sub/site/_vti_bin/Lists.asmx

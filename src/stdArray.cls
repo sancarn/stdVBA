@@ -6,7 +6,7 @@ Attribute VB_Name = "stdArray"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = False
+Attribute VB_Exposed = true
 '@TODO:
 '* Implement Exceptions throughout all Array functions.
 '* Fully implement pInitialised where necessary.

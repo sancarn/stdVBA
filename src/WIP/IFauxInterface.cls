@@ -10,7 +10,7 @@ Attribute VB_Name = "IFauxInterface"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = True
 Attribute VB_PredeclaredId = False
-Attribute VB_Exposed = False
+Attribute VB_Exposed = true
 
 'SRC: http://www.vbforums.com/showthread.php?785939-VB6-Creating-Using-COM-Interfaces-without-TLBs
 

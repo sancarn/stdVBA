@@ -6,7 +6,7 @@ Attribute VB_Name = "stdError"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = False
+Attribute VB_Exposed = true
 Public stack As stdArray
 Public RaiseClient As Object 'Allow Raise through a custom userform. Userform should expose a Raise(sMessage, Criticality, Title, StackTrace) method.
 Public Event OnStackAdd(ByRef oStack as stdArray, ByRef oElement as object)

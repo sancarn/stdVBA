@@ -6,7 +6,7 @@ Attribute VB_Name = "stdLambda"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = False
+Attribute VB_Exposed = true
 
 'Ensure Option-Explicit is disabled!! 
 'For VB6 compatibility we rely on the auto-definition of Application and ThisWorkbook

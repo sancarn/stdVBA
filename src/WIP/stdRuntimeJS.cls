@@ -6,7 +6,7 @@ Attribute VB_Name = "stdRuntimeJS"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = False
+Attribute VB_Exposed = true
 'FURTHER READING
 '------------------------------
 'https://www.autohotkey.com/boards/viewtopic.php?t=5739

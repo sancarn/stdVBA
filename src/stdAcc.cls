@@ -6,7 +6,7 @@ Attribute VB_Name = "stdAcc"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = False
+Attribute VB_Exposed = true
 
 'Spec: 
 'A class used to automate  objects which implement IAccessible

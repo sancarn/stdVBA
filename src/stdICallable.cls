@@ -6,7 +6,7 @@ Attribute VB_Name = "stdICallable"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = false
-Attribute VB_Exposed = False
+Attribute VB_Exposed = true
 
 'Call will call the passed function with param array
 Public Function Run(ParamArray params() as variant) as variant: End Function

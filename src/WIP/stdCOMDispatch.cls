@@ -6,7 +6,7 @@ Attribute VB_Name = "stdCOMIDispatch"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = False
+Attribute VB_Exposed = true
 
 Private pCOM as stdCOM
 Private pRIID as GUID   'rIID must be IID_NULL == GUID.Empty

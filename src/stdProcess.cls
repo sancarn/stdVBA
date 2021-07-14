@@ -6,7 +6,7 @@ Attribute VB_Name = "stdProcess"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = False
+Attribute VB_Exposed = true
 
 Private Declare PtrSafe Function CreateToolhelp32Snapshot Lib "Kernel32.dll" ( _
   ByVal dwFlags As Integer, _

@@ -6,7 +6,7 @@ Attribute VB_Name = "stdIni"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = False
+Attribute VB_Exposed = true
 Private IniPath As String
 Public Data As Object
 Public Comments As Object

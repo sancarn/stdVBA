@@ -10,7 +10,7 @@ Attribute VB_Name = "STD_Automation_DLL"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = True
 Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = False
+Attribute VB_Exposed = true
 Option Explicit
 
 ' for documentation on the main API DispCallFunc... http://msdn.microsoft.com/en-us/library/windows/desktop/ms221473%28v=vs.85%29.aspx

@@ -6,7 +6,7 @@ Attribute VB_Name = "stdSentry"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = False
+Attribute VB_Exposed = true
 
 
 'In numerous cases using excel we like to set standard options to optimise performance:

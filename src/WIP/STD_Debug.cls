@@ -6,7 +6,7 @@ Attribute VB_Name = "STD_Debug"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
-Attribute VB_Exposed = False
+Attribute VB_Exposed = true
 Private pFilePath As String
 Private pWarnings As New Collection
 Private pErrors As New Collection

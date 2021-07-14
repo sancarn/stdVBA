@@ -6,7 +6,7 @@ Attribute VB_Name = "stdDictionary"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = False
+Attribute VB_Exposed = true
 
 '----------------------------------------------
 ' HASHTABLE class module

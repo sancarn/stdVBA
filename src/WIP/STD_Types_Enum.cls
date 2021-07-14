@@ -6,7 +6,7 @@ Attribute VB_Name = "STD_Types_Enum"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = False
+Attribute VB_Exposed = true
 
 'Wrap - Attempt to extend class with IEnumVARIANT interface (not sure if this is possible)
 Public Sub Wrap(pointer as LongPtr)

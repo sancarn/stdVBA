@@ -6,7 +6,7 @@ Attribute VB_Name = "stdITableRow"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
-Attribute VB_Exposed = False
+Attribute VB_Exposed = true
 'Attribute Item.VB_UserMemId = 0
 
 Enum ETableRowSubject

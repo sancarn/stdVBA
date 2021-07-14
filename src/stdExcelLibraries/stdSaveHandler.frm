@@ -12,7 +12,7 @@ Attribute VB_Name = "stdSaveHandler"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = False
+Attribute VB_Exposed = true
 Private WithEvents pWorkbook As Workbook
 Attribute pWorkbook.VB_VarHelpID = -1
 Public Event BeforeShow(obj As stdSaveHandler)
