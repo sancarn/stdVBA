@@ -906,6 +906,7 @@ Public Property Get ProcessName() As String
 End Property
 
 'Get/Set the window's parent window:
+'@remark Important note RE: setting parents: https://devblogs.microsoft.com/oldnewthing/20130412-00/?p=4683 & https://devblogs.microsoft.com/oldnewthing/20130607-00/?p=4143
 Public Property Get Parent() As stdWindow
   #if VBA7 then
     Dim pHwnd As LongPtr
