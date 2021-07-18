@@ -343,6 +343,45 @@ Public Function AsArray(Optional ByVal iType as vbVarType = vbVarType.vbVariant)
     AsArray = vRet
 End Function
 
+'Returns the 2d array of data. Currently only works for items which are a dictionary.
+'@returns {Variant(1 to Length, 1 to keycount)} 2D Array of data including headers
+Public Function AsArray2D()
+    Dim vItem
+    Call CopyVariant(vItem, item(1,true))
+
+    Dim vRet() as variant
+
+    Dim vKeys as variant
+    if typename(vItem) = "Dictionary" then
+        vKeys = vItem.keys()
+        Dim iKeysLb as long: iKeysLb = lbound(vKeys)
+        Dim iKeysUb as long: iKeysUb = ubound(vKeys)
+        Redim vRet(0 to length,iKeysLb to iKeysUb)
+
+        'Create keys
+        Dim i as long
+        for i = iKeysLb to iKeysUb
+            vRet(0, i) = vKeys(i)
+        next
+
+        'Populate values
+        Dim v as variant: v = null
+        Dim kv as variant: kv = null 
+        i = 0
+        While NextItem(kv,v,i)
+            Dim j as long
+            for j = iKeysLb to iKeysUb
+                vRet(i,j) = v(vKeys(i))
+            next
+        Wend
+    else
+        Err.Raise 1, "stdEnumerator#As2DArray", "Type conversion not defined"
+    end if
+
+    'Return data
+    AsArray2D = vRet
+End Function
+
 'Returns the stored enumerator as a dictionary
 '@returns {Dictionary} Dictionary containing enumerator data
 Public Function AsDictionary() as Object

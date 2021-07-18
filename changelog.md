@@ -147,3 +147,4 @@ Before `08/07/2021` a change log was not kept. We have  retrospectively gone bac
 * 2021-07-10 stdProcess     NOTE        - Added documentation note to all Time functions of stdProcess e.g. `stdProcess#TimeCreated()`, indicating that this function currently always returns time in UTC timezone.
 * 2021-07-10 stdProcess     BREAKING    - `stdProcess::getProcessImageName` set to `Private`. This function should never have been public. Replace with `stdProcess.Create(...).path`
 * 2021-07-10 stdEnumerator  FIX         - Fixed issue with `stdEnumerator::CreateFromListObject()` - compile error due to lack of test. Test added nowand 100% working.
+* 2021-07-18 stdEnumerator  FEATURE     - Added `stdEnumerator#AsArray2D()`.
