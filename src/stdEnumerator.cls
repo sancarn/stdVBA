@@ -371,7 +371,7 @@ Public Function AsArray2D()
         While NextItem(kv,v,i)
             Dim j as long
             for j = iKeysLb to iKeysUb
-                vRet(i,j) = v(vKeys(i))
+                vRet(i,j) = v(vKeys(j))
             next
         Wend
     else
