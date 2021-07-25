@@ -182,27 +182,41 @@ Public Function CreateEmpty(optional byval iMaxLength as long = 1000000) as stdE
 End Function
 
 'Create an enumerator from an Excel ListObject. Dictionaries are created for each ListRow with Header values as keys.
-'@param {ByVal ListObject} - ListObject to create enumerator from. 
+'@param {ByVal ListObject} - ListObject to create enumerator from.
 '@param {ByVal Long = 1000000} iMaxLength - Maximum length of enumerator. The enumerator will refuse to go beyond this number of items.
 '       Used in order to prevent runaway processes.
 '@returns {stdEnumerator} Enumerator representing ListObject data
-Public Function CreateFromListObject(ByVal lo as ListObject, optional byval iMaxLength as long = 1000000) as stdEnumerator
-    Dim c as Collection: set c = new Collection
-    if not lo.DataBodyRange is nothing then
+Public Function CreateFromListObject(ByVal lo As ListObject, Optional ByVal iMaxLength As Long = 1000000) As stdEnumerator
+    Dim c As Collection: Set c = New Collection
+    If Not lo.DataBodyRange Is Nothing Then
+        'Get header and body data
+        Dim oRow As Object
         Dim vHeader: vHeader = lo.HeaderRowRange.value
         Dim vData: vData = lo.DataBodyRange.value
-        Dim i as long
-        For i = 1 to ubound(vData,1)
-            Dim oRow as object: set oRow = CreateObject("Scripting.Dictionary")
-            For j = 1 to ubound(vData,2)
-                oRow(vHeader(1,j)) = vData(i,j)
-            next
-            Call c.add(oRow)
-        next
-        set CreateFromListObject = CreateFromIEnumVariant(c)
-    else
-        set CreateFromListObject = CreateEmpty()
-    end if
+
+        If TypeName(vData) = "Variant()" Then
+            'Create rows for all rows
+            Dim i As Long
+            For i = 1 To UBound(vData, 1)
+                Set oRow = CreateObject("Scripting.Dictionary")
+                For j = 1 To UBound(vData, 2)
+                    oRow(vHeader(1, j)) = vData(i, j)
+                Next
+                Call c.Add(oRow)
+            Next
+        Else
+            'Create row for single value
+            Set oRow = CreateObject("Scripting.Dictionary")
+            oRow(vHeader) = vData
+            c.Add oRow
+        End If
+        
+        'Create from collection
+        Set CreateFromListObject = CreateFromIEnumVariant(c)
+    Else
+        'No rows, so return empty enumerator
+        Set CreateFromListObject = CreateEmpty()
+    End If
 End Function
 
 'TODO: CreateFromDictionary
