@@ -95,6 +95,7 @@ Private pCalculation as long
 'iMeasure definitions
 Private pStartTime as long
 Private pKeyName as string 
+Private pDivider as double
 
 'Measurement storage
 Private Type FakeDictItem
@@ -124,6 +125,7 @@ Public Sub Init(ByVal objType as EPerfObjType, ByVal params as variant)
   select case objType
     case iMeasure
       pKeyName = params(0)
+      pDivider = params(1)
       pStartTime = GetTickCount()
     case iOptimiser
       'Store vals
@@ -156,8 +158,8 @@ End Sub
 '    next
 '  End With
 '  ```
-Public Function Measure(ByVal sProc as string) as stdPerformance
-  set Measure = stdPerformance.Create(iMeasure, Array(sProc))
+Public Function Measure(ByVal sProc as string, Optional ByVal nCount as double=1) as stdPerformance
+  set Measure = stdPerformance.Create(iMeasure, Array(sProc,nCount))
 End Function
 
 'Optimise
@@ -255,7 +257,7 @@ Private Sub Class_Terminate()
     select case pObjType
       case iMeasure
         Dim pEndTime as long: pEndTime = GetTickCount()
-        Call stdPerformance.AddMeasurement(pKeyName, Abs(pEndTime - pStartTime))
+        Call stdPerformance.AddMeasurement(pKeyName, Abs(pEndTime - pStartTime)/pDivider)
       case iOptimiser
         'Store vals
         Application.ScreenUpdating = pScreenUpdating
