@@ -148,4 +148,5 @@ Before `08/07/2021` a change log was not kept. We have  retrospectively gone bac
 * 2021-07-10 stdProcess     BREAKING    - `stdProcess::getProcessImageName` set to `Private`. This function should never have been public. Replace with `stdProcess.Create(...).path`
 * 2021-07-10 stdEnumerator  FIX         - Fixed issue with `stdEnumerator::CreateFromListObject()` - compile error due to lack of test. Test added nowand 100% working.
 * 2021-07-18 stdEnumerator  FEATURE     - Added `stdEnumerator#AsArray2D()`.
+* 2021-07-25 stdEnumerator  FIX         - `stdEnumerator::CreateFromListObject()` Will now work on empty ListObjects, and 2x1 list objects.
 * 2021-08-05 stdPerformance FEATURE     - Added optional parameter to stdPerformance which acts as a divisor for the final time. I.E. `totalTime/nCount`. Useful where you also loop internally over something to get a time per operation.
