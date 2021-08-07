@@ -150,3 +150,4 @@ Before `08/07/2021` a change log was not kept. We have  retrospectively gone bac
 * 2021-07-18 stdEnumerator  FEATURE     - Added `stdEnumerator#AsArray2D()`.
 * 2021-07-25 stdEnumerator  FIX         - `stdEnumerator::CreateFromListObject()` Will now work on empty ListObjects, and 2x1 list objects.
 * 2021-08-05 stdPerformance FEATURE     - Added optional parameter to stdPerformance which acts as a divisor for the final time. I.E. `totalTime/nCount`. Useful where you also loop internally over something to get a time per operation.
+* 2021-08-05 stdPerformance FEATURE     - Made sure per operation message is supplied as well as the absolute time it took to call.

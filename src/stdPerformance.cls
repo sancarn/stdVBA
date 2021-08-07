@@ -196,10 +196,11 @@ End Function
 'AddMeasurement
 'If a time is added that was previously also added then the average of the times is calculated.
 '@param {String} - Name of measurement to add to global cache
-'@param {Long} - time to add to global cache
-Public Sub AddMeasurement(ByVal sKey as string, ByVal time as long)
+'@param {Double} - time to add to global cache
+'@param {Double} - number of operations (divisor)
+Public Sub AddMeasurement(ByVal sKey as string, ByVal time as Double, ByVal nCount as Double)
   if Me is stdPerformance then
-    Debug.Print sKey & ": " & time & " ms"
+    Debug.Print sKey & ": " & time & " ms" & iif(nCount>1," (" & (1000*time/nCount) & chr(181) & "s per operation)","")
     Dim ind as long: ind = getDictIndex(sKey)
     if ind = -1 then
       Call setDictItem(sKey, Array(time,1))
@@ -257,7 +258,7 @@ Private Sub Class_Terminate()
     select case pObjType
       case iMeasure
         Dim pEndTime as long: pEndTime = GetTickCount()
-        Call stdPerformance.AddMeasurement(pKeyName, Abs(pEndTime - pStartTime)/pDivider)
+        Call stdPerformance.AddMeasurement(pKeyName, Abs(pEndTime - pStartTime),pDivider)
       case iOptimiser
         'Store vals
         Application.ScreenUpdating = pScreenUpdating
