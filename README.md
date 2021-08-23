@@ -37,7 +37,7 @@ sub Main()
   'More advanced behaviour when including callbacks! And VBA Lamdas!!
   Debug.Print arr.Map(stdLambda.Create("$1+1")).join          '2,3,4,5,6,7,8,9,10,11
   Debug.Print arr.Reduce(stdLambda.Create("$1+$2"))           '55 ' I.E. Calculate the sum
-  Debug.Print arr.Reduce(stdLambda.Create("Max($1,$2)"))      '10 ' I.E. Calculate the maximum
+  Debug.Print arr.Reduce(stdLambda.Create("application.worksheetFunction.Max($1,$2)"))      '10 ' I.E. Calculate the maximum
   Debug.Print arr.Filter(stdLambda.Create("$1>=5")).join      '5,6,7,8,9,10
   
   'Execute property accessors with Lambda syntax
@@ -67,7 +67,7 @@ sub Main()
   
   'And getting all the matches....
   Dim sHaystack as string: sHaystack = "D-040-1425;D-029-0055;A-100-1351"
-  Debug.Print stdEnumerator.CreateFromEnumVARIANT(oRegex.MatchAll(sHaystack)).map(stdLambda.Create("$1.item(""county"")")).join 'D,D,A
+  Debug.Print stdEnumerator.CreateFromIEnumVARIANT(oRegex.MatchAll(sHaystack)).map(stdLambda.Create("$1.item(""county"")")).join 'D,D,A
   
   'Dump regex matches to range:
   '   D,040,040-1425
