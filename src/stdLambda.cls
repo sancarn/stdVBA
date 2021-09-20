@@ -1198,8 +1198,6 @@ Private Function evaluateFunc(ByVal sFuncName As String, ByVal args As Variant) 
     End If
     
     Select Case LCase(sFuncName)
-        Case "eval": evaluateFunc = stdLambda.Create(args(iArgStart)).Run()
-
         'Useful OOP constants
         Case "thisworkbook": if isObject(ThisWorkbook) then Set evaluateFunc = ThisWorkbook
         Case "application":  if isObject(Application)  then  Set evaluateFunc = Application
@@ -1358,6 +1356,8 @@ Private Function evaluateFunc(ByVal sFuncName As String, ByVal args As Variant) 
                   End If
                 Next
             End If
+        Case "eval": evaluateFunc = stdLambda.Create(args(iArgStart)).Run()
+        Case "lambda": set evaluateFunc = stdLambda.Create(args(iArgStart))
         Case Else
             Call Throw("No such function: " & sFuncName)
     End Select
@@ -1434,6 +1434,12 @@ Private Function Tokenise(ByVal sInput As String) As token()
     Tokenise = removeTokens(tokens, "space")
 End Function
 
+'Obtains a TokenDefinition from input params
+'@param {ByVal String} The name of the token
+'@param {ByVal String} The regex pattern to match durin tokenisation
+'@param {ByVal Boolean?=True} Should this token ignoreCase?
+'@param {ByVal Boolean?=False} Is this token a keyword?
+'@returns {TokenDefinition} The definition of the token
 Private Function getTokenDefinition(ByVal sName As String, ByVal sRegex As String, Optional ByVal ignoreCase As Boolean = True, Optional ByVal isKeyword As Boolean = False) As TokenDefinition
     getTokenDefinition.name = sName
     getTokenDefinition.Regex = sRegex & IIf(isKeyword, "\b", "")
