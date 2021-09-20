@@ -135,6 +135,11 @@ Public Function Sort(Optional ByVal cbSortBy As stdICallable = Nothing, Optional
     If Not bSortInPlace Then
         Set Sort = Me.Clone.Sort(cbSortBy, cbComparrason, iAlgorithm, True)
     Else
+        If Me.Length = 0 then
+          set Sort = Me
+          Exit Function
+        End if
+
         Dim arr() As SortStruct
         ReDim arr(1 To Me.Length) As SortStruct
         
