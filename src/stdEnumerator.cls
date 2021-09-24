@@ -534,9 +534,9 @@ Public Function Sort(Optional ByVal cb as stdICallable = nothing) as stdEnumerat
                 'Initialise sorting struct
                 Call CopyVariant(arr(1).value, val)
                 if cb is nothing then
-                arr(1).sortValue = arr(1).value
+                  arr(1).sortValue = arr(1).value
                 else
-                arr(1).sortValue = cb.Run(arr(1).value, keyVal)
+                  arr(1).sortValue = cb.Run(arr(1).value, keyVal)
                 end if
                 arr(1).iIndex = 1
                 arr(1).iNext = 0
@@ -1070,7 +1070,7 @@ End Function
 '@returns {Collection} Flattened collection of items
 Private Function flattenChildrenRecurse(ByVal parent as variant) as Collection
     Dim oRet as Collection: set oRet = new Collection
-    Dim child as variant
+    Dim child as variant, t as variant
     if typename(parent) = "stdEnumerator" then
         'Loop through children
         for each child in parent.AsCollection
