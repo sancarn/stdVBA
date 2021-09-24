@@ -146,8 +146,13 @@ Before `08/07/2021` a change log was not kept. We have  retrospectively gone bac
 * 2021-07-10 stdProcess     FIX         - Removed `stdProcess#moduleID` as it was always returning `0`. Need to look into how to get `moduleID`s in a class based setting.
 * 2021-07-10 stdProcess     NOTE        - Added documentation note to all Time functions of stdProcess e.g. `stdProcess#TimeCreated()`, indicating that this function currently always returns time in UTC timezone.
 * 2021-07-10 stdProcess     BREAKING    - `stdProcess::getProcessImageName` set to `Private`. This function should never have been public. Replace with `stdProcess.Create(...).path`
-* 2021-07-10 stdEnumerator  FIX         - Fixed issue with `stdEnumerator::CreateFromListObject()` - compile error due to lack of test. Test added nowand 100% working.
+* 2021-07-10 stdEnumerator  FIX         - Fixed issue with `stdEnumerator::CreateFromListObject()` - compile error due to lack of test. Test added now and 100% working.
 * 2021-07-18 stdEnumerator  FEATURE     - Added `stdEnumerator#AsArray2D()`.
 * 2021-07-25 stdEnumerator  FIX         - `stdEnumerator::CreateFromListObject()` Will now work on empty ListObjects, and 2x1 list objects.
 * 2021-08-05 stdPerformance FEATURE     - Added optional parameter to stdPerformance which acts as a divisor for the final time. I.E. `totalTime/nCount`. Useful where you also loop internally over something to get a time per operation.
 * 2021-08-05 stdPerformance FEATURE     - Made sure per operation message is supplied as well as the absolute time it took to call.
+* 2021-09-24 stdProcess     FIX         - Fixes massive slowdowns caused by legacy code.
+* 2021-09-24 stdWindow      FIX         - Fix in Let method of RectByType property.
+* 2021-09-24 stdWindow      FEATURE     - Added optional `iStaticDepthLimit` parameter to `FindFirst()` and `FindAll()`. Using this parameter you can quite easily limit your search to a certain depth. E.G. Search just the children with `iStaticDepthLimit:=1`.
+* 2021-09-24 stdWindow      FIX         - Activate now works for windows outside of the Excel process too.
+* 2021-09-24 stdWindow      FEATURE     - Added `SendKeysMessage()`, `SendKeysEvent()` and `SendKeysInput()` which can be used to send keys to a window. `SendKeysMessage` uses `PostMessageA`, `SendKeysEvent` uses `Keybd_event` and `SendKeysInput` uses `SendInput`.
