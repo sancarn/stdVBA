@@ -259,7 +259,7 @@ Friend Sub protInitFromProcessId(ByVal argID As Long, Optional ByVal argName As 
   pProcessId = argID
   pName = argName
   pPath = argPath
-  If argModuleID = 0 Then pModuleID = getModuleIDByPid(argID)
+  'If argModuleID = 0 Then pModuleID = getModuleIDByPid(argID)
   If Len(argName) = 0 Then pName = getProcessNameById(argID)
   If Len(argPath) = 0 Then pPath = getProcessImageName(argID)
   pQueryInfoHandle = OpenProcess(PROCESS_QUERY_INFORMATION, False, argID)
