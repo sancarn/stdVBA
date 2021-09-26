@@ -206,26 +206,6 @@ End Enum
 'SendInput() API helpers
 'TODO: Not used yet
 '========================================
-Private Enum apiTagInputType
-  INPUT_MOUSE = 0
-  INPUT_KEYBOARD = 1
-  INPUT_HARDWARE = 2
-End Enum
-Private Type apiKeyboardInput
-  wVirtualKey As Integer
-  wScanCode As Integer
-  dwFlags As Long
-  time As Long
-  #If VBA7 Then
-    dwExtraInfo As LongPtr
-  #Else
-    dwExtraInfo As Long
-  #End If
-End Type
-Private Type apiTagInput
-  iType As apiTagInputType
-  kbd As apiKeyboardInput
-End Type
 Private Enum KeyState
   tap
   up
@@ -302,10 +282,11 @@ Private Type KeyboardInput
   time As Long     'DWORD
   #If VBA7 Then    'ULONG_PTR
     dwExtraInfo As LongPtr
+    bPadding(1 To 12) As Byte '   12 extra bytes, because mouses take more.
   #Else
     dwExtraInfo As Long
+    bPadding(1 To 8) As Byte '   8 extra bytes, because mouses take more.
   #End If
-  bPadding(1 To 8) As Byte '   8 extra bytes, because mouses take more.
 End Type
 '========================================
 
@@ -444,9 +425,9 @@ End Type
   Private Declare PtrSafe Sub Sleep Lib "Kernel32" (ByVal dwMilliseconds As Long)
 #Else
   'Constructors
-  Private Declare PtrSafe Function GetDesktopWindow Lib "user32" () As Long
-  Private Declare PtrSafe Function IUnknown_GetWindow Lib "shlwapi" Alias "#172" (ByVal pIUnk As IUnknown, ByVal hwnd As Long) As Long
-  Private Declare PtrSafe Function WindowFromPoint Lib "user32" (ByVal x As Long, ByVal y As Long) As Long
+  Private Declare Function GetDesktopWindow Lib "user32" () As Long
+  Private Declare Function IUnknown_GetWindow Lib "shlwapi" Alias "#172" (ByVal pIUnk As IUnknown, ByVal hwnd As Long) As Long
+  Private Declare Function WindowFromPoint Lib "user32" (ByVal x As Long, ByVal y As Long) As Long
 
   'Getting window data
   Private Declare Function IsWindow Lib "user32" (ByVal hwnd As Long) As Long
@@ -1559,7 +1540,7 @@ Public Sub SendKeysInput(ByVal sKeys As String, Optional ByVal bRaw As Boolean =
         If key.iKeyState = tap Or key.iKeyState = down Then
           inputKey.dwFlags = 0
           If SendInput(1, inputKey, LenB(inputKey)) = 0 Then
-              Err.Raise 1, "SendKeysInput", "Input blocked by another thread"
+              Err.Raise Err.LastDllError, "SendKeysInput", "Input might be blocked by another thread (DLL Error: " & Err.LastDllError & ")"
           End If
           Call Sleep(keyDelay)
         End If
@@ -1568,7 +1549,7 @@ Public Sub SendKeysInput(ByVal sKeys As String, Optional ByVal bRaw As Boolean =
         If key.iKeyState = tap Or key.iKeyState = up Then
           inputKey.dwFlags = KEYEVENTF_KEYUP
           If SendInput(1, inputKey, LenB(inputKey)) = 0 Then
-              Err.Raise 1, "SendKeysInput", "Input blocked by another thread"
+              Err.Raise Err.LastDllError, "SendKeysInput", "Input might be blocked by another thread (DLL Error: " & Err.LastDllError & ")"
           End If
           Call Sleep(keyDelay)
         End If
