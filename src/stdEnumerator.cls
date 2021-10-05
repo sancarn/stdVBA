@@ -1018,7 +1018,27 @@ Public Property Get Length() as Long
     End if
 End Property
 
+'Get the first `iCount` elements of the collection. Useful for testing
+'@param {Long} The number of elements to retrieve
+'@returns {stdEnumerator} Enumerator containing the first `iCount` elements.
+'@example `stdEnumerator.CreateFromArray(Array(1,2,3,4,5,6,7,8,9)).First(3).Join(",") '=>1,2,3`
+Public Function First(ByVal iCount As Long) As stdEnumerator
+    Dim oRet As collection: Set oRet = New collection
+    Dim v As Variant: v = Null
+    Dim ti As Long: ti = 0
+    Dim kv As Variant: kv = Null
+    
+    While NextItem(kv, v, ti)
+        oRet.Add v
+        
+        'Reduce and check counter
+        iCount = iCount - 1
+        If iCount = 0 Then GoTo Jump
+    Wend
 
+Jump:
+    Set First = stdEnumerator.CreateFromIEnumVariant(oRet)
+End Function
 
 
 '===================================================================================================

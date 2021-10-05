@@ -156,3 +156,4 @@ Before `08/07/2021` a change log was not kept. We have  retrospectively gone bac
 * 2021-09-24 stdWindow      FEATURE     - Added optional `iStaticDepthLimit` parameter to `FindFirst()` and `FindAll()`. Using this parameter you can quite easily limit your search to a certain depth. E.G. Search just the children with `iStaticDepthLimit:=1`.
 * 2021-09-24 stdWindow      FIX         - Activate now works for windows outside of the Excel process too.
 * 2021-09-24 stdWindow      FEATURE     - Added `SendKeysMessage()`, `SendKeysEvent()` and `SendKeysInput()` which can be used to send keys to a window. `SendKeysMessage` uses `PostMessageA`, `SendKeysEvent` uses `Keybd_event` and `SendKeysInput` uses `SendInput`.
+* 2021-10-05 stdEnumerator  FEATURE     - Added `stdEnumerator#First(iCount)` useful for testing on a small subset of a large enumerator dataset.
