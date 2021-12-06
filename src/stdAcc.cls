@@ -334,6 +334,7 @@ Public Function CreateFromPath(ByVal sPath As String) As stdAcc
     'Loop over descendants
     Dim i As Integer
     For i = 0 To UBound(descendants)
+        If CLng(descendants(i)) > acc.children.Count Then Exit Function
         Set acc = acc.children(CLng(descendants(i)))
     Next i
     
