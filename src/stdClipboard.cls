@@ -105,6 +105,7 @@ End Enum
   Private Declare PtrSafe Function lstrlenW Lib "kernel32.dll" (ByVal lpString As LongPtr) As Long
   Private Declare PtrSafe Function lstrlenA Lib "kernel32.dll" (ByVal lpString As LongPtr) As Long
   Private Declare PtrSafe Function GetTickCount Lib "kernel32" () As Long
+  Private Declare PtrSafe Function RegisterClipboardFormatA Lib "kernel32" (ByVal lpString As String) As Long
 #Else
   Private Type PICTDESC
       size As Long
@@ -138,6 +139,7 @@ End Enum
   Private Declare Function lstrlenW Lib "kernel32.dll" (ByVal lpString As Long) As Long
   Private Declare Function lstrlenA Lib "kernel32.dll" (ByVal lpString As Long) As Long
   Private Declare Function GetTickCount Lib "kernel32" () As Long
+  Private Declare Function RegisterClipboardFormatA Lib "kernel32" (ByVal lpString As String) As Long
 #End If
 
 
@@ -298,6 +300,34 @@ Public Function IsFormatAvailable(ByVal iFormat As CLIPFORMAT) As Boolean
   Call OpenClipboardTimeout(Application.hwnd)
   IsFormatAvailable = IsClipboardFormatAvailable(iFormat)
   Call CloseClipboard
+End Function
+
+'Register a clipboard format and/or return it's identifier if already present.
+'@param {String} Name of format to obtain
+'@return {Long} Clipboard format identifier
+'@example {1} ```
+'  CF_RTF = stdClipboard.registerFormat("Rich Text Format")
+'  stdClipboard.value(CF_RTF) = "{\rtf1\ansi{\fonttbl\f0\fswiss Helvetica;}\f0\pard" & _ 
+'    "This is some {\b bold} text.\par" & _ 
+'  "}"
+'```
+'@example {2}
+'  CF_HTML = stdClipboard.registerFormat("HTML Format")
+'  stdClipboard.value(CF_HTML) = _ 
+'    "Version:0.9" & vbCrLf & _ 
+'    "StartHTML:00000000" & vbCrLf & _ 
+'    "EndHTML:00000000" & vbCrLf & _ 
+'    "StartFragment:00000000" & vbCrLf & _ 
+'    "EndFragment:00000000" & vbCrLf & _ 
+'    "<html><body>" & vbCrLf & _ 
+'    "<!--StartFragment -->" & vbCrLf & _ 
+'    "  hello <b>world</b>" & vbCrLf & _ 
+'    "<!--EndFragment-->\r\n" & vbCrLf & _ 
+'    "</body>\r\n" & vbCrLf & _ 
+'    "</html>"
+'```
+Public Function RegisterFormat(ByVal sFormatName as string) as Long
+  RegisterFormat = RegisterClipboardFormatA(sFormatName)
 End Function
 
 'Obtain the available formats as a Collection of strings

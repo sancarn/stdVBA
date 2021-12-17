@@ -792,7 +792,7 @@ Public Function reduce(ByVal cb as stdICallable, Optional ByVal vInitialValue as
     Call CopyVariant(vRet, vInitialValue)
     
     While NextItem(kv, v,i)
-        vRet = cb.Run(vRet,v,kv)
+        Call CopyVariant(vRet, cb.Run(vRet,v,kv))
     Wend
     Call CopyVariant(reduce,vRet)
 End Function
