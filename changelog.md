@@ -160,3 +160,10 @@ Before `08/07/2021` a change log was not kept. We have  retrospectively gone bac
 * 2021-12-06 stdAcc         FIX         - If acc path can't be found return `nothing`
 * 2021-12-17 stdEnumerator  FIX         - `Reduce` now works with object return values too.
 * 2021-12-17 stdClipboard   FEATURE     - Add ability to use custom clipboard formats.
+* 2021-12-20 stdCOM         FEATURE     - Add `IEnumVARIANT` vTableLayout
+* 2021-12-20 stdCOM         FEATURE     - Add `IEnumMoniker` vTableLayout
+* 2021-12-20 stdCOM         FEATURE     - Add `IMoniker` vTableLayout
+* 2021-12-20 stdCOM         FEATURE     - Add `Object` property to obtain an excel compatable object from the `stdCOM` object (including pointer dereferencing)
+* 2021-12-20 stdCOM         FEATURE     - Add `Pointer` property to obtain an object pointer to the wrapped object
+* 2021-12-20 stdCOM         FEATURE     - Add Optional Parameter to `Get Properties` which includes `GET`, `LET`, `SET` to output if true. Else it functions the same as before.
+* 2021-12-20 stdCOM         FEATURE     - Add `CreateFromActiveObjects` constructor which can be used to obtain all active objects registered to the running object table.
