@@ -643,7 +643,7 @@ Private Sub parseValuePriority1() 'numbers, $vars, strings, booleans, (expressio
     If peek("literalNumber") Then
         Call addOperation(oPush, , CDbl(consume("literalNumber")), 1)
     ElseIf peek("arg") Then
-        Call addOperation(oAccess, argument, consume("arg"), 1)
+        Call addOperation(oAccess, argument, val(mid(consume("arg"), 2)), 1)
         Call parseManyAccessors
     ElseIf peek("literalString") Then
         Call parseString
@@ -1026,7 +1026,7 @@ Private Function evaluate(ByRef ops() As Operation, ByVal vLastArgs As Variant) 
             Case iType.oAccess
                 Select Case op.subType
                     Case ISubType.argument
-                        Dim iArgIndex As Long: iArgIndex = val(Mid(op.value, 2)) + LBound(vLastArgs) - 1
+                        Dim iArgIndex As Long: iArgIndex = op.value + LBound(vLastArgs) - 1
                         If iArgIndex <= UBound(vLastArgs) Then
                             Call pushV(stack, stackPtr, vLastArgs(iArgIndex))
                         Else
