@@ -310,23 +310,25 @@ Public Function Match(ByVal sHaystack As String) As Object
   Dim oMatches As Object
   Set oMatches = p_regex.Execute(sHaystack)
   
-  'Create dictionary to store this match's data
   Dim oRet As Object
-  Set oRet = CreateObject("Scripting.Dictionary")
-
-  'Basic properties
-  oRet(0) = oMatches(0)
-  oRet("$COUNT") = oMatches(0).Submatches.Count
-  Set oRet("$RAW") = oMatches
-
-  'Loop over submatches and apply to dict
-  Dim i As Long
-  For i = 1 To p_namesDict.Count
-    oRet(i) = oMatches(0).Submatches(i - 1)
-    If Not IsEmpty(oMatches(0).Submatches(i - 1)) then
-      If Not IsEmpty(p_namesDict(i - 1).Submatches(0)) Then oRet(p_namesDict(i - 1).Submatches(0)) = oMatches(0).Submatches(i - 1)
-    End If
-  Next i
+  If oMatches.Count <> 0 Then
+    'Create dictionary to store this match's data
+    Set oRet = CreateObject("Scripting.Dictionary")
+  
+    'Basic properties
+    oRet(0) = oMatches(0)
+    oRet("$COUNT") = oMatches(0).Submatches.Count
+    Set oRet("$RAW") = oMatches
+  
+    'Loop over submatches and apply to dict
+    Dim i As Long
+    For i = 1 To p_namesDict.Count
+      oRet(i) = oMatches(0).Submatches(i - 1)
+      If Not IsEmpty(oMatches(0).Submatches(i - 1)) Then
+        If Not IsEmpty(p_namesDict(i - 1).Submatches(0)) Then oRet(p_namesDict(i - 1).Submatches(0)) = oMatches(0).Submatches(i - 1)
+      End If
+    Next i
+  End If
   
   'Return data
   Set Match = oRet

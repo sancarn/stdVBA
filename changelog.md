@@ -167,3 +167,5 @@ Before `08/07/2021` a change log was not kept. We have  retrospectively gone bac
 * 2021-12-20 stdCOM         FEATURE     - Add `Pointer` property to obtain an object pointer to the wrapped object
 * 2021-12-20 stdCOM         FEATURE     - Add Optional Parameter to `Get Properties` which includes `GET`, `LET`, `SET` to output if true. Else it functions the same as before.
 * 2021-12-20 stdCOM         FEATURE     - Add `CreateFromActiveObjects` constructor which can be used to obtain all active objects registered to the running object table.
+* 2022-03-09 stdRegex       FIX         - Fix to `stdRegex#Match()` when no match found.
+* 2022-03-09 stdDate        FIX         - Remove POSIX check for later `CreateFromPOSIX()` (TODO)

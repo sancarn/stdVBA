@@ -11,6 +11,7 @@ Attribute VB_Exposed = False
 'Class that wraps standard VBA DateTime functionality:
 '* Create from double
 '* Create from Year, Month, Day, Hour, Min, Second
+'* Create from POSIX datetime
 '* [DEFAULT PROP] Value; get and let as Double.
 '* [PROP] Seconds; get
 '* [PROP] Minutes; get
@@ -66,6 +67,7 @@ Public Function Create(Optional val as Date) as stdDate
   end if
 End Function
 
+'
 Public Function CreateFromUnits(Optional ByVal year As Integer = 0, Optional ByVal month As Integer = 0, Optional ByVal day As Integer = 0, Optional ByVal Hour As Integer = 0, Optional ByVal Minute As Integer = 0, Optional ByVal Second As Integer = 0) As stdDate
   if not pInitialised then
     set CreateFromUnits = Create(DateSerial(Year,Month,Day) + TimeSerial(Hour,Minute,Second))
@@ -73,6 +75,162 @@ Public Function CreateFromUnits(Optional ByVal year As Integer = 0, Optional ByV
     'Call STD.Errors.Raise("STD.Class",2)
   end if
 End Function
+
+'Tries to emulate: https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html
+'EEE  = Mon|Tue|Wd|Thu|Fri
+'E    = Monday|Tuesday|Wednesday|Thursday|Friday
+'For hh:mm:ss dd/MM/yyyy = 21:22:23 01/02/2019
+'yyyy = 2019     (?<Y4>\d{2}\d{2}?)
+'yy   = 19       (?<Y2>\d{1,2})
+'MMMM = February (?<M4>January|February|March|...)
+'MMM  = Feb      (?<M3>Jan|Feb|Mar|...)
+'MM   = 02       (?<M2>\d{1,2})
+'dd   = 01       (?<D2>\d{1,2})
+'hh   = 21       (?<H2>\d{1,2})
+'kk   = 09       (?<K2>\d{1,2})
+'a    = pm       (?<A1>am|pm)
+'mm   = 22       (?<MM>\d{1,2})
+'ss   = 23       (?<S2>\d{1,2})
+'zzzz = Grenich Mean Time (?<Z4>Grenich Mean Time|Pacific Standard Time|...)
+'zzz  = GMT      (?<Z3>GMT|PST|...)
+'All other values in java are unsupported
+'@param 
+'@returns {stdDate} Parsed date object
+Public Function CreateFromParse(ByVal Value As String, Optional strFormat As String = "") As stdDate
+  Dim d as long,m as long,y as long,h as long,mn as long,s as long
+
+  'Common formats:
+  If strFormat = "" Or strFormat like "dd[./-_]mm[./-_]yyyy" Then
+    'Parse assuming dd/mm/yyyy
+    d = CInt(Mid(Value, 1, 2))
+    m = CInt(Mid(Value, 4, 2))
+    y = CInt(Mid(Value, 7, 4))
+  ElseIf strFormat like "mm[./-_]dd[./-_]yyyy" Then
+    d = CInt(Mid(Value, 4, 2))
+    m = CInt(Mid(Value, 1, 2))
+    y = CInt(Mid(Value, 7, 4))
+    
+  ElseIf strFormat = "UTC" Then
+    'yyyy-MM-ddThh:mm:ss.llll  (llll = milliseconds, T = "T")
+    ms = CInt(Mid(Value, InStr(1, Value, ".")))
+    s  = CInt(Mid(Value, 18, 2))
+    mn = CInt(Mid(Value, 15, 2))
+    h  = CInt(Mid(Value, 12, 2))
+    d  = CInt(Mid(Value, 9, 2))
+    m  = CInt(Mid(Value, 6, 2))
+    y  = CInt(Mid(Value, 1, 4))
+    
+  ElseIf strFormat = "dd/mm/yyyy hh:mm:ss" Then
+    d = CInt(Mid(Value, 1, 2))
+    m = CInt(Mid(Value, 4, 2))
+    y = CInt(Mid(Value, 7, 4))
+    h   = CInt(Mid(Value, 12, 2))
+    mn = CInt(Mid(Value, 15, 2))
+    s = CInt(Mid(Value, 18, 2))
+  Else
+    
+    'USE REGEX:
+    'strFormat = Replace(strFormat, "EEE" , "(?<E3>Mon|Tue|Wd|Thu|Fri)")
+    'strFormat = Replace(strFormat, "EE"  , "(?<E2>Monday|Tuesday|Wednesday|Thursday|Friday)")
+    'strFormat = Replace(strFormat, "yyyy", "(?<Y4>\d{4})")
+    'strFormat = Replace(strFormat, "yy"  , "(?<Y2>\d{2})")
+    'strFormat = Replace(strFormat, "mmmm", "(?<M4>January|February|March|April|May|June|July|August|September|October|November|December)")
+    'strFormat = Replace(strFormat, "mmm" , "(?<M3>Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)")
+    'strFormat = Replace(strFormat, "mm"  , "(?<M2>\d{1,2})")
+    'strFormat = Replace(strFormat, "dd"  , "(?<D2>\d{1,2})")
+    'strFormat = Replace(strFormat, "hh"  , "(?<hh>\d{1,2})")
+    'strFormat = Replace(strFormat, "kk"  , "(?<kk>\d{1,2})")
+    'strFormat = Replace(strFormat, "aa"  , "(?<aa>am|pm)")
+    'strFormat = Replace(strFormat, "MM"  , "(?<MM>\d{1,2})")
+    'strFormat = Replace(strFormat, "ss"  , "(?<ss>\d{1,2})")
+    'strFormat = Replace(strFormat, "zzzz", "(?<Z4>" & TimeZoneDescs.keys().Join("|") & ")")
+    'strFormat = Replace(strFormat, "zzz" , "(?<Z3>" & TimeZones.keys().Join("|") & ")")
+    
+    strFormat = Replace(strFormat, "EEE", "(?<E3>Mon|Tue|Wd|Thu|Fri)")
+    strFormat = Replace(strFormat, "EE", "(?<E2>Monday|Tuesday|Wednesday|Thursday|Friday)")
+    strFormat = Replace(strFormat, "yyyy", "(?<Y4>\d{4})")
+    strFormat = Replace(strFormat, "yy", "(?<Y2>\d{2})")
+    strFormat = Replace(strFormat, "mmmm", "(?<M4>January|February|March|April|May|June|July|August|September|October|November|December)")
+    strFormat = Replace(strFormat, "mmm", "(?<M3>Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)")
+    strFormat = Replace(strFormat, "mm", "(?<M2>\d{1,2})")
+    strFormat = Replace(strFormat, "dd", "(?<D2>\d{1,2})")
+    strFormat = Replace(strFormat, "hh", "(?<hh>\d{1,2})")
+    strFormat = Replace(strFormat, "kk", "(?<kk>\d{1,2})")
+    strFormat = Replace(strFormat, "aa", "(?<aa>am|pm)")
+    strFormat = Replace(strFormat, "MM", "(?<mm>\d{1,2})")
+    strFormat = Replace(strFormat, "ss", "(?<ss>\d{1,2})")
+    
+    'If it has timezones
+    Dim hasTZs As Boolean
+    hasTZs = InStr(1, strFormat, "zzz")
+    If hasTZs Then
+      strFormat = Replace(strFormat, "zzzz", "(?<Z4>" & TimeZoneDescs.keys().Join("|") & ")")
+      strFormat = Replace(strFormat, "zzz", "(?<Z3>" & TimeZones.keys().Join("|") & ")")
+    End If
+    
+    'Parse using regex:
+    Dim match As Object
+    Set match = Me.RegexMatch(Value, strFormat, "i")
+    
+    Dim century As Long: century = CInt(year(Now()) / 100) * 100
+    
+    'Y2 is an odd format, e.g. If the current year is 2020 and you see 01-01-21 written down,
+    'you will likely thing this is the 1st Jan 2021. But if you see 01-01-91, you are more likely
+    'to see this as 1991 than 01-01-2091.
+    'The y2Error allows us to detect all dates whos year is less than the current decade + y2Error
+    'as belonging to that century.
+    Dim y2Error As Long: y2Error = 5
+    
+    'Parse datetime
+    If match("Y4") Then y = CInt(match("Y4"))
+    If match("Y2") Then y = IIf(CInt(match("Y2")) < (year(Now()) - century + y2Error), century + CInt(match("Y2")), century - 100 + CInt(match("Y2")))
+    If match("M4") Then m = stdDate.MonthsDict(match("M4"))
+    If match("M3") Then m = stdDate.MonthsShortDict(match("M3"))
+    If match("M2") Then m = CInt(match("M2"))
+    If match("D2") Then d = CInt(match("D2"))
+    If match("hh") Then h = CInt(match("hh"))
+    If match("MM") Then mn = CInt(match("MM"))
+    If match("ss") Then s = CInt(match("ss"))
+    
+    'Special:
+    If match("kk") And match("aa") Then h = IIf(match("aa") = "am", 0, 12) + CInt(match("kk"))
+    
+    If hasTZs Then
+      Err.Raise 0, "stdDate::Parse", "Error: Timezones Unimplemented. Waiting for swith to CoreTime"
+      'Call iniTimezones
+      'Dim offsetCoreTime As Double
+      'If match("zzzz") Then offsetCoreTime = match("zzzz") * foo
+      'If match("zzz") Then offsetCoreTime = match("zzz") * foo
+      'pCoreTime = pCoreTime - offsetCoreTime
+    End If
+  End If
+  
+  'Create return value from CreateFromUnits
+  set CreateFromParse = stdDate.CreateFromUnits(y, m, d, h, mn, s)
+End Function
+
+'TODO:
+'Create date from POSIX date
+'@param {Double} Date to convert
+'@returns {stdDate} Date object
+'@remark EPOCH == 00:00:00 01/01/1970
+'Public Function CreateFromPOSIX(ByVal date as double) as stdDate
+'  Err.Raise 0, "stdDate::Parse", "Currently WIP not yet functional"
+'  
+'  'Get value as double
+'  Dim dbl As Double
+'  dbl = CDbl(Value)
+'  
+'  
+'  ms = Int(dmod(dbl * 1000, 1000))
+'  s = Int(dmod(dbl, 60))
+'  mn = Int(dmod(dbl / 60, 60))
+'  h = Int(dmod(dbl / 60 / 60, 24))
+'  d = Int(dmod(dbl / 60 / 60 / 24, 365))
+'  'm '=...?
+'  'y '=...
+'End Function
+
 
 Public Property Get Value() as Double
 Attribute Value.Vb_UserMemId = 0
@@ -208,154 +366,7 @@ Public Function Format(strFormat As String) As String
 End Function
 
 
-'Tries to emulate: https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html
-'EEE  = Mon|Tue|Wd|Thu|Fri
-'E    = Monday|Tuesday|Wednesday|Thursday|Friday
 
-'For hh:mm:ss dd/MM/yyyy = 21:22:23 01/02/2019
-'yyyy = 2019     (?<Y4>\d{2}\d{2}?)
-'yy   = 19       (?<Y2>\d{1,2})
-'MMMM = February (?<M4>January|February|March|...)
-'MMM  = Feb      (?<M3>Jan|Feb|Mar|...)
-'MM   = 02       (?<M2>\d{1,2})
-'dd   = 01       (?<D2>\d{1,2})
-'hh   = 21       (?<H2>\d{1,2})
-'kk   = 09       (?<K2>\d{1,2})
-'a    = pm       (?<A1>am|pm)
-'mm   = 22       (?<MM>\d{1,2})
-'ss   = 23       (?<S2>\d{1,2})
-'zzzz = Grenich Mean Time (?<Z4>Grenich Mean Time|Pacific Standard Time|...)
-'zzz  = GMT      (?<Z3>GMT|PST|...)
-'All other values in java are unsupported
-Public Function CreateFromParse(Value As Variant, Optional strFormat As String = "") As stdDate
-  Dim d,m,y,h,mn,s as long
-  
-
-
-  'Common formats:
-  If strFormat = "" Or strFormat like "dd[./-_]mm[./-_]yyyy" Then
-    'Parse assuming dd/mm/yyyy
-    d = CInt(Mid(Value, 1, 2))
-    m = CInt(Mid(Value, 4, 2))
-    y = CInt(Mid(Value, 7, 4))
-  ElseIf strFormat like "mm[./-_]dd[./-_]yyyy" Then
-    d = CInt(Mid(Value, 4, 2))
-    m = CInt(Mid(Value, 1, 2))
-    y = CInt(Mid(Value, 7, 4))
-  ElseIf strFormat = "POSIX" Then 'EPOCH: 00:00:00 01/01/1970
-    Err.Raise 0, "stdDate::Parse", "Currently WIP not yet functional"
-    
-    'Get value as double
-    Dim dbl As Double
-    dbl = CDbl(Value)
-    
-    
-    ms = Int(dmod(dbl * 1000, 1000))
-    s = Int(dmod(dbl, 60))
-    mn = Int(dmod(dbl / 60, 60))
-    h = Int(dmod(dbl / 60 / 60, 24))
-    d = Int(dmod(dbl / 60 / 60 / 24, 365))
-    'm '=...?
-    'y '=...
-    
-  ElseIf strFormat = "UTC" Then
-    'yyyy-MM-ddThh:mm:ss.llll  (llll = milliseconds, T = "T")
-    ms = CInt(Mid(Value, InStr(1, Value, ".")))
-    s  = CInt(Mid(Value, 18, 2))
-    mn = CInt(Mid(Value, 15, 2))
-    h  = CInt(Mid(Value, 12, 2))
-    d  = CInt(Mid(Value, 9, 2))
-    m  = CInt(Mid(Value, 6, 2))
-    y  = CInt(Mid(Value, 1, 4))
-    
-  ElseIf strFormat = "dd/mm/yyyy hh:mm:ss" Then
-    d = CInt(Mid(Value, 1, 2))
-    m = CInt(Mid(Value, 4, 2))
-    y = CInt(Mid(Value, 7, 4))
-    h   = CInt(Mid(Value, 12, 2))
-    mn = CInt(Mid(Value, 15, 2))
-    s = CInt(Mid(Value, 18, 2))
-  Else
-    
-    'USE REGEX:
-    'strFormat = Replace(strFormat, "EEE" , "(?<E3>Mon|Tue|Wd|Thu|Fri)")
-    'strFormat = Replace(strFormat, "EE"  , "(?<E2>Monday|Tuesday|Wednesday|Thursday|Friday)")
-    'strFormat = Replace(strFormat, "yyyy", "(?<Y4>\d{4})")
-    'strFormat = Replace(strFormat, "yy"  , "(?<Y2>\d{2})")
-    'strFormat = Replace(strFormat, "mmmm", "(?<M4>January|February|March|April|May|June|July|August|September|October|November|December)")
-    'strFormat = Replace(strFormat, "mmm" , "(?<M3>Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)")
-    'strFormat = Replace(strFormat, "mm"  , "(?<M2>\d{1,2})")
-    'strFormat = Replace(strFormat, "dd"  , "(?<D2>\d{1,2})")
-    'strFormat = Replace(strFormat, "hh"  , "(?<hh>\d{1,2})")
-    'strFormat = Replace(strFormat, "kk"  , "(?<kk>\d{1,2})")
-    'strFormat = Replace(strFormat, "aa"  , "(?<aa>am|pm)")
-    'strFormat = Replace(strFormat, "MM"  , "(?<MM>\d{1,2})")
-    'strFormat = Replace(strFormat, "ss"  , "(?<ss>\d{1,2})")
-    'strFormat = Replace(strFormat, "zzzz", "(?<Z4>" & TimeZoneDescs.keys().Join("|") & ")")
-    'strFormat = Replace(strFormat, "zzz" , "(?<Z3>" & TimeZones.keys().Join("|") & ")")
-    
-    strFormat = Replace(strFormat, "EEE", "(?<E3>Mon|Tue|Wd|Thu|Fri)")
-    strFormat = Replace(strFormat, "EE", "(?<E2>Monday|Tuesday|Wednesday|Thursday|Friday)")
-    strFormat = Replace(strFormat, "yyyy", "(?<Y4>\d{4})")
-    strFormat = Replace(strFormat, "yy", "(?<Y2>\d{2})")
-    strFormat = Replace(strFormat, "mmmm", "(?<M4>January|February|March|April|May|June|July|August|September|October|November|December)")
-    strFormat = Replace(strFormat, "mmm", "(?<M3>Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)")
-    strFormat = Replace(strFormat, "mm", "(?<M2>\d{1,2})")
-    strFormat = Replace(strFormat, "dd", "(?<D2>\d{1,2})")
-    strFormat = Replace(strFormat, "hh", "(?<hh>\d{1,2})")
-    strFormat = Replace(strFormat, "kk", "(?<kk>\d{1,2})")
-    strFormat = Replace(strFormat, "aa", "(?<aa>am|pm)")
-    strFormat = Replace(strFormat, "MM", "(?<mm>\d{1,2})")
-    strFormat = Replace(strFormat, "ss", "(?<ss>\d{1,2})")
-    
-    'If it has timezones
-    Dim hasTZs As Boolean
-    hasTZs = InStr(1, strFormat, "zzz")
-    If hasTZs Then
-      strFormat = Replace(strFormat, "zzzz", "(?<Z4>" & TimeZoneDescs.keys().Join("|") & ")")
-      strFormat = Replace(strFormat, "zzz", "(?<Z3>" & TimeZones.keys().Join("|") & ")")
-    End If
-    
-    'Parse using regex:
-    Dim match As Object
-    Set match = Me.RegexMatch(Value, strFormat, "i")
-    
-    Dim century As Long: century = CInt(year(Now()) / 100) * 100
-    
-    'Y2 is an odd format, e.g. If the current year is 2020 and you see 01-01-21 written down,
-    'you will likely thing this is the 1st Jan 2021. But if you see 01-01-91, you are more likely
-    'to see this as 1991 than 01-01-2091.
-    'The y2Error allows us to detect all dates whos year is less than the current decade + y2Error
-    'as belonging to that century.
-    Dim y2Error As Long: y2Error = 5
-    
-    'Parse datetime
-    If match("Y4") Then y = CInt(match("Y4"))
-    If match("Y2") Then y = IIf(CInt(match("Y2")) < (year(Now()) - century + y2Error), century + CInt(match("Y2")), century - 100 + CInt(match("Y2")))
-    If match("M4") Then m = stdDate.MonthsDict(match("M4"))
-    If match("M3") Then m = stdDate.MonthsShortDict(match("M3"))
-    If match("M2") Then m = CInt(match("M2"))
-    If match("D2") Then d = CInt(match("D2"))
-    If match("hh") Then h = CInt(match("hh"))
-    If match("MM") Then mn = CInt(match("MM"))
-    If match("ss") Then s = CInt(match("ss"))
-    
-    'Special:
-    If match("kk") And match("aa") Then h = IIf(match("aa") = "am", 0, 12) + CInt(match("kk"))
-    
-    If hasTZs Then
-      Err.Raise 0, "stdDate::Parse", "Error: Timezones Unimplemented. Waiting for swith to CoreTime"
-      'Call iniTimezones
-      'Dim offsetCoreTime As Double
-      'If match("zzzz") Then offsetCoreTime = match("zzzz") * foo
-      'If match("zzz") Then offsetCoreTime = match("zzz") * foo
-      'pCoreTime = pCoreTime - offsetCoreTime
-    End If
-  End If
-  
-  'Create return value from CreateFromUnits
-  set CreateFromParse = stdDate.CreateFromUnits(y, m, d, h, mn, s)
-End Function
 
 'Private date funcs
 Private Function p_isLeap(ByVal yr As Integer) As Boolean
