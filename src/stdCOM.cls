@@ -6,7 +6,7 @@ Attribute VB_Name = "stdCOM"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = False
+Attribute VB_Exposed = True
 
 '
 'Dim x as stdCOM: set x = stdCOM.create(obj)
@@ -21,25 +21,39 @@ Attribute VB_Exposed = False
 #If VBA7 Then
     Private Declare PtrSafe Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (Destination As Any, Source As Any, ByVal Length As LongPtr)
     Private Declare PtrSafe Sub ZeroMemory Lib "kernel32" Alias "RtlZeroMemory" (Destination As Any, ByVal Length As Long)
-    Private Declare PtrSafe Function DispCallFunc Lib "oleAut32.dll" (ByVal pvInstance As LongPtr, ByVal offsetinVft As LongPtr, ByVal CallConv As Long, ByVal retTYP As Integer, ByVal paCNT As Long, ByRef paTypes As VbVarType, ByRef paValues As LongPtr, ByRef retVAR As Variant) As Long
+    Private Declare PtrSafe Function DispCallFunc Lib "oleaut32.dll" (ByVal pvInstance As LongPtr, ByVal offsetinVft As LongPtr, ByVal CallConv As Long, ByVal retTYP As Integer, ByVal paCNT As Long, ByRef paTypes As VbVarType, ByRef paValues As LongPtr, ByRef retVAR As Variant) As Long
     Private Declare PtrSafe Sub SetLastError Lib "kernel32.dll" (ByVal dwErrCode As Long)
     Private Declare PtrSafe Function IIDFromString Lib "ole32.dll" (ByVal pstCLS As LongPtr, ByRef iid As GUID) As Long
+    Private Declare PtrSafe Function CLSIDFromString Lib "ole32.dll" (ByVal pstCLS As LongPtr, ByRef iid As GUID) As Long
     
     'Iterate the ROT
     Private Declare PtrSafe Function GetRunningObjectTable Lib "ole32.dll" (ByVal dwReserved As Long, pROT As LongPtr) As Long
     Private Declare PtrSafe Function CreateBindCtx Lib "ole32.dll" (ByVal dwReserved As Long, pBindCtx As LongPtr) As Long
-    Private Declare PtrSafe Function SysReAllocString Lib "oleAut32.dll" (ByVal pBSTR As LongPtr, Optional ByVal pszStrPtr As LongPtr) As Long
+    Private Declare PtrSafe Function SysReAllocString Lib "oleaut32.dll" (ByVal pBSTR As LongPtr, Optional ByVal pszStrPtr As LongPtr) As Long
+    
+    'Register to ROT
+    Private Declare PtrSafe Function RegisterActiveObject32 Lib "oleaut32.dll" Alias "RegisterActiveObject" (ByVal pUnk As IUnknown, ByRef rclsid As GUID, ByVal dwFlags As Long, ByRef pdwRegister As Long) As Long
+    Private Declare PtrSafe Function RevokeActiveObject32 Lib "oleaut32.dll" Alias "RevokeActiveObject" (ByVal dwRegister As Long, ByVal pvReserved As LongPtr) As Long
+    Private Declare PtrSafe Function CoDisconnectObject Lib "ole32.dll" (ByVal pUnk As IUnknown, ByRef pvReserved As Long) As Long
+    Private Declare PtrSafe Function CLSIDFromProgID Lib "ole32.dll" (ByVal ProgID As LongPtr, ByRef rclsid As GUID) As Long
 #Else
     Private Declare Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (Destination As Any, Source As Any, ByVal Length As Long)
     Private Declare Sub ZeroMemory Lib "kernel32" Alias "RtlZeroMemory" (Destination As Any, ByVal Length As Long)
     Private Declare Function DispCallFunc Lib "oleAut32.dll" (ByVal pvInstance As Long, ByVal offsetinVft As Long, ByVal CallConv As Long, ByVal retTYP As Integer, ByVal paCNT As Long, ByRef paTypes As VbVarType, ByRef paValues As Long, ByRef retVAR As Variant) As Long
     Private Declare Sub SetLastError Lib "kernel32.dll" (ByVal dwErrCode As Long)
     Private Declare Function IIDFromString Lib "ole32.dll" (ByVal pstCLS As Long, ByRef iid As guid) As Long
+    Private Declare Function CLSIDFromString Lib "ole32.dll" (ByVal pstCLS As Long, ByRef iid As guid) As Long
     
     'Iterate the ROT
     Private Declare Function GetRunningObjectTable Lib "ole32.dll" (ByVal dwReserved As Long, pROT As Long) As Long
     Private Declare Function CreateBindCtx Lib "ole32.dll" (ByVal dwReserved As Long, pBindCtx As Long) As Long
     Private Declare Function SysReAllocString Lib "oleAut32.dll" (ByVal pBSTR As Long, Optional ByVal pszStrPtr As Long) As Long
+    
+    'Register to ROT
+    Private Declare Function RegisterActiveObject32 Lib "oleaut32.dll"  Alias "RegisterActiveObject" (ByVal pUnk As IUnknown, ByRef rclsid As GUID, ByVal dwFlags As Long, ByRef pdwRegister As Long) As Long
+    Private Declare Function RevokeActiveObject32 Lib "oleaut32.dll" Alias "RevokeActiveObject" (ByVal dwRegister As Long, ByVal pvReserved As Long) As Long
+    Private Declare Function CoDisconnectObject Lib "ole32.dll" (ByVal pUnk As IUnknown, ByRef pvReserved As Long) As Long
+    Private Declare Function CLSIDFromProgID Lib "ole32.dll" (ByVal ProgID As Long, ByRef rclsid As GUID) As Long
 #End If
 
 'GUID struct for QueryInterface
@@ -392,9 +406,10 @@ Public Enum EIMoniker
 End Enum
 
 
-Private Const S_OK = 0
+Private Const S_OK          As Long = 0
 Private Const E_NOINTERFACE As Long = &H80004002
 Private Const E_POINTER     As Long = &H80004003
+Private Const CC_STDCALL    As Long = 4
 
 #If Win64 Then
   Private Const PTRSIZE = 8
@@ -403,10 +418,25 @@ Private Const E_POINTER     As Long = &H80004003
   Private Const PTRSIZE = 4
   Private Const vbLongPtr = VbVarType.vbLong
 #End If
-Private Const CC_STDCALL As Long = 4
 
+
+'*******************
+'* STATE VARIABLES *
+'*******************
 Private pObjPtr As LongPtr
 Private oMeta As IUnknown
+Private pRegisteredOLEInstance As Long
+Private pRegisteredTimerOLEInstance As Long
+
+'**********
+'* EVENTS *
+'**********
+
+Public Event Tick()
+
+'****************
+'* CONSTRUCTORS *
+'****************
 
 'Create from an object
 '@param {ByRef IUnknown} Object to create raw COM object from
@@ -479,7 +509,7 @@ End Function
 'Obtain raw object from stdCOM wrapper
 '@example {1} `stdCOM.Create(Application).Object.Name`
 '@example {2} `stdCOM.CreateFromPtr(ObjPtr(Application)).Object.Name`
-Public Property Get Object() As Object
+Public Property Get Object() As IUnknown
   If oMeta Is Nothing Then
     Set Object = Deref(pObjPtr)
   Else
@@ -487,7 +517,19 @@ Public Property Get Object() As Object
   End If
 End Property
 
+'Obtain raw object from stdCOM wrapper
+'@example {1} `stdCOM.Create(Application).Object.Name`
+'@example {2} `stdCOM.CreateFromPtr(ObjPtr(Application)).Object.Name`
+'@throws {...} Unsupported interface IDispatch
+Public Property Get AsObject() As Object
+  If oMeta Is Nothing Then
+    Set AsObject = Deref(pObjPtr)
+  Else
+    Set AsObject = oMeta
+  End If
+End Property
 
+'Obtain pointer as LongPtr (VBA)/Long (VB6)
 #If VBA7 Then
   Public Property Get Pointer() As LongPtr
 #Else
@@ -500,6 +542,12 @@ End Property
   End If
 End Property
 
+'Call IUnknown::QueryInterface on the object
+'@param {String} Interface Identifier as string
+'@example ```
+'  'Get ITypeInfo
+'  set typeInfo = com.unkQueryInterface("00020401-0000-0000-C000-000000000046")
+'```
 Public Function unkQueryInterface(ByVal sIID As String) As stdCOM
   Dim IInterface As IUnknown
   Dim tGUID As GUID
@@ -519,14 +567,20 @@ Public Function unkQueryInterface(ByVal sIID As String) As stdCOM
   End If
 End Function
 
+'Call IUnknown::AddRef()
 Public Sub unkAddRef()
   CallVT EIUnknown.AddRef, vbLong
 End Sub
 
+'Call IUnknown::Release()
 Public Sub unkRelease()
   CallVT EIUnknown.Release, vbLong
 End Sub
 
+'Query the object for a known interface.
+'@param {EKnownInterfaces} Interface to query for
+'@returns {stdCOM} interface queried.
+'@throws {#1} "Interface IID not known."
 Public Function QueryKnownInterface(ByVal interface As EKnownInterfaces) As stdCOM
   Dim sIID As String: sIID = KnownIID(interface)
   If sIID <> "" Then
@@ -670,7 +724,72 @@ Public Property Get Properties(Optional bIncludeReadWriteType As Boolean = False
   Set Properties = oProperties
 End Property
 
+'Register the object held in stdCOM to the ROT as a CLSID or ProgID
+'@param {string} CLSID if required. If this arg isn't provided, a ProgID must be provided.
+'@param {string} ProgID if required. If this arg isn't provided, a CLSID must be provided.
+Public Sub RegisterActiveObject(Optional ByVal sCLSID As String = "", Optional ByVal ProgID As String = "")
+    Call RegisterActiveObjectEx(Object, pRegisteredOLEInstance, sCLSID, ProgID)
+End Sub
 
+'Revoke the previously registered object
+Public Sub RevokeActiveObject()
+    Call RevokeActiveObjectEx(Object, pRegisteredOLEInstance)
+End Sub
+
+'Start a timer which raises the OnTime event every x milliseconds.
+'@param {long} Number of milliseconds to wait before each Tick event
+Public Sub StartTimer(Optional ByVal iMilliseconds As Long = 500)
+    Dim sGUID As String: sGUID = getGUID()
+    Call RegisterActiveObjectEx(Me, pRegisteredTimerOLEInstance, "{" & sGUID & "}")
+    Dim sPowershell As String
+    
+    'Define C# block
+    sPowershell = "PowerShell -Command " & vbCrLf _
+    & "add-type -TypeDefinition @""" & vbCrLf _
+    & "  using System;" & vbCrLf _
+    & "  using System.Runtime.InteropServices;" & vbCrLf _
+    & "  public class COMHelper {" & vbCrLf _
+    & "    [DllImport(""oleaut32.dll"", PreserveSig=false)]" & vbCrLf _
+    & "    static extern void GetActiveObject(ref Guid   rclsid, IntPtr pvReserved, [MarshalAs(UnmanagedType.IUnknown)] out Object ppunk);" & vbCrLf _
+    & "    " & vbCrLf _
+    & "    [DllImport(""ole32.dll"")]" & vbCrLf _
+    & "    static extern int CLSIDFromString([MarshalAs(UnmanagedType.LPWStr)] string lpszProgID, out Guid pclsid);" & vbCrLf _
+    & "    " & vbCrLf _
+    & "    public static object getActiveObject(string sClsid){" & vbCrLf _
+    & "      Guid clsid;" & vbCrLf _
+    & "      CLSIDFromString(sClsid, out clsid);" & vbCrLf _
+    & "      " & vbCrLf _
+    & "      object obj;" & vbCrLf _
+    & "      GetActiveObject(ref clsid, IntPtr.Zero, out obj);" & vbCrLf _
+    & "      " & vbCrLf _
+    & "      return obj;" & vbCrLf _
+    & "    }" & vbCrLf _
+    & "  }" & vbCrLf _
+    & """@" & vbCrLf
+    
+    'Define powershell block
+    sPowershell = sPowershell _
+        & "$callee=[COMHelper]::getActiveObject({" & sGUID & "})" & vbCrLf _
+        & "$timer = New-Object Timers.Timer" & vbCrLf _
+        & "$timer.Interval=" & iMilliseconds & vbCrLf _
+        & "$timer.AutoReset = $true" & vbCrLf _
+        & "$timer.Enabled = $true" & vbCrLf _
+        & "Register-ObjectEvent -InputObject $timer -EventName Elapsed -Action {" & vbCrLf _
+        & "  Try {" & vbCrLf _
+        & "    $callee.protTimerTick()" & vbCrLf _
+        & "  }" & vbCrLf _
+        & "  catch {" & vbCrLf _
+        & "    Exit" & vbCrLf _
+        & "  }" & vbCrLf _
+        & "}" & vbCrLf
+        
+    Call Shell(sPowershell, vbHide)
+End Sub
+
+'Stop a previously started stdCOM timer
+Public Sub EndTimer()
+    Call RevokeActiveObjectEx(Me, pRegisteredTimerOLEInstance)
+End Sub
 
 '############################
 '# RAW METHODS / PROPERTIES #
@@ -716,18 +835,103 @@ End Function
 '*************
 '* PROTECTED *
 '*************
+'Initialise from object's IUnknown
+'@protected
 Friend Sub protInitFromObject(ByVal obj As IUnknown)
   pObjPtr = ObjPtr(obj)
   Set oMeta = obj
 End Sub
+
+'Initialise from pointer to object
+'@protected
 Friend Sub protInitFromPtr(ByVal ptr As LongPtr)
   pObjPtr = ptr
   Call unkAddRef
 End Sub
+
+'Forcefully raise the Tick event
+'@protected
+Public Sub protTimerTick()
+    RaiseEvent Tick
+End Sub
+
+'
+'@destructor
 Private Sub Class_Terminate()
+  'Revoke active objects
+  If pRegisteredOLEInstance > 0 Then Call RevokeActiveObjectEx(Me.Object, pRegisteredOLEInstance)
+  If pRegisteredTimerOLEInstance > 0 Then Call RevokeActiveObjectEx(Me, pRegisteredTimerOLEInstance)
+  
+  'Call unknown release (prevent memory leaks)
   If oMeta Is Nothing Then Call unkRelease
 End Sub
 
+'Register an object in the ROT
+'@param {ByRef IUnknown} Object to register to ROT
+'@param {ByRef long} ROT Cookie. This variable will be populated with data.
+'@param {string} CLSID if required. If this arg isn't provided, a ProgID must be provided.
+'@param {string} ProgID if required. If this arg isn't provided, a CLSID must be provided.
+Private Sub RegisterActiveObjectEx(obj As IUnknown, ByRef OLEInstance As Long, Optional ByVal sCLSID As String = "", Optional ByVal ProgID As String = "")
+    Const ACTIVEOBJECT_WEAK = 1
+
+    'Get clsid whether it be from CLSID string or ProgID
+    Dim clsid As GUID, result As Long
+    If ProgID <> "" Then
+        result = CLSIDFromProgID(StrPtr(ProgID), clsid)
+        If result <> S_OK Then
+          Select Case Hex(result)
+            Case "800401F3" 'CO_E_CLASSSTRING
+              Err.Raise 1, "", "The registered CLSID for the ProgID '" & ProgID & "' is invalid"
+            Case "80040151" 'REGDB_E_WRITEREGDB
+              Err.Raise 1, "", "An error occurred writing the CLSID to the registry. See Remarks https://docs.microsoft.com/en-us/windows/win32/api/combaseapi/nf-combaseapi-clsidfromprogid."
+          End Select
+        End If
+    ElseIf sCLSID <> "" Then
+        result = CLSIDFromString(StrPtr(sCLSID), clsid)
+        If result <> S_OK Then
+          Select Case Hex(result)
+            Case "800401F3" 'CO_E_CLASSSTRING
+              Err.Raise 1, "", "The CLSID was incorrectly formatted."
+            Case "80040154" 'REGDB_E_CLASSNOTREG
+              Err.Raise 1, "", "The CLSID corresponding to the class string was not found in the registry."
+            Case "80040150" 'REGDB_E_READREGDB
+              Err.Raise 1, "", "The registry could not be opened for reading."
+              
+          End Select
+        End If
+    Else
+        Err.Raise 7, "No CLSID or ProgId"
+    End If
+    
+    'Attempt to register object to ROT
+    If RegisterActiveObject32(obj, clsid, ACTIVEOBJECT_WEAK, OLEInstance) <> S_OK Then Err.Raise Err.LastDllError, "Object couldn't be registered"
+End Sub
+
+'Revoke an object in the ROT
+'@param {ByRef IUnknown} Object to revoke in ROT
+'@param {ByRef long} ROT Cookie.
+Private Sub RevokeActiveObjectEx(obj As IUnknown, ByRef OLEInstance As Long)
+    'Remove instance from ROT
+    If OLEInstance <> 0 Then
+      If RevokeActiveObject32(OLEInstance, 0) <> 0 Then
+        Debug.Print "Could not revoke?"
+      End If
+    End If
+    
+    'Disconnect any remote process connections being maintained on behalf of the active object pointer.
+    If CoDisconnectObject(obj, 0) <> 0 Then Debug.Print "Couldn't disconnect object " & TypeName(obj)
+End Sub
+
+'Obtain a new GUID
+Private Function getGUID() As String
+  getGUID = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx"
+  getGUID = Replace(getGUID, "y", Hex(Rnd() And &H3 Or &H8))
+  Dim i As Long: For i = 1 To 30
+    getGUID = Replace(getGUID, "x", Hex$(CLng(Rnd() * 15.9999)), 1, 1)
+  Next
+End Function
+
+'Map between EKnownInterfaces and Interface IIDs
 Private Function KnownIID(ByVal iIID As EKnownInterfaces) As String
   Select Case iIID
     Case IUnknown:                KnownIID = "00000000-0000-0000-C000-000000000046"
@@ -839,4 +1043,23 @@ End Function
   Set Deref = result                             'Set and add ref
   ZeroMemory result, LenB(memAddress)
 End Function
+
+
+'IDEA: for ProgID based registration
+'  RegisterProgID("...")
+'  RevokeProgID()
+'AHK Source
+'===================
+'RegisterIDs(CLSID, APPID)
+'{
+'  RegWrite, REG_SZ, HKCU, Software\Classes\%APPID%,, %APPID%
+'  RegWrite, REG_SZ, HKCU, Software\Classes\%APPID%\CLSID,, %CLSID%
+'  RegWrite, REG_SZ, HKCU, Software\Classes\CLSID\%CLSID%,, %APPID%
+'}
+'
+'RevokeIDs(CLSID, APPID)
+'{
+'  RegDelete, HKCU, Software\Classes\%APPID%
+'  RegDelete, HKCU, Software\Classes\CLSID\%CLSID%
+'}
 
