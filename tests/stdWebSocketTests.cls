@@ -7,39 +7,40 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
-Dim WithEvents x As stdWebSocket
-Attribute x.VB_VarHelpID = -1
-Dim check As Collection
-Dim finished As Boolean
+
 
 Public Sub testAll()
   'Create socket
   Test.Topic "stdWebSocket"
-  finished = False
-  Set x = stdWebSocket.Create("wss://echo.websocket.org")
-  While Not finished
-    DoEvents
-  Wend
+  
+  Dim ws as stdWebSocket 
+  Set ws = stdWebSocket.Create("ws://vi-server.org:1939/")
+  Call ws.send("hello world")
+  Test.Assert "Received text correct", ws.receive() = "MESSAGE: hello world"
+
+
+  Call ws.send("hello world", utf8)
+  Test.Assert "Received text correct utf8", ws.receive() = "MESSAGE: hello world"
+
+  'Partial and binary
+  Call ws.send("hello", , true)
+  Call ws.send(" world", , false)
+  Test.Assert "Received text correct partial", ws.receive() = "MESSAGE: hello world"
+
+  'Very large string 10 chars 1000 times = 10,000 char string response should be 10,008B long
+  Dim sMessage as string: sMessage = ""
+  For i = 1 to 999
+    Call ws.send("1234567890", , true)
+    sMessage = sMessage & "1234567890"
+  next
+  Call ws.send("1234567890", , false)
+  sMessage = "MESSAGE: " & sMessage & "1234567890"
+  Dim sRet as string: sRet = ws.receive()
+  Test.Assert "Test very large binary string", sRet = sMessage
+
+  'Ensure close
+  set ws = nothing
 End Sub
 
-Private Sub x_OnOpen(ByVal oEventData As Variant)
-  Test.Assert "OnOpen Event Type", oEventData.Type = "open"
-  Test.Assert "OnOpen Event Type Name", TypeName(oEventData) = "DispDOMEvent"
-  Call x.Send("Hello world!")
-End Sub
-Private Sub x_OnMessage(ByVal oEventData As Variant)
-  Test.Assert "OnMessage Event Type", oEventData.Type = "message"
-  Test.Assert "OnMessage Event Type Name", TypeName(oEventData) = "DispDOMMessageEvent"
-  Test.Assert "OnMessage Event Data", oEventData.data = "Hello world!"
-  Call x.CloseSocket
-End Sub
-Private Sub x_OnClose(ByVal oEventData As Variant)
-  Test.Assert "OnClose Type", oEventData.Type = "close"
-  Test.Assert "OnClose Type Name", TypeName(oEventData) = "DispDOMCloseEvent"
-  Call x.Disconnect
-  finished = True
-End Sub
-Private Sub x_OnError(ByVal oEventData As Variant)
-  
-End Sub
+
 

@@ -7,9 +7,9 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
+
 'Spec: 
 '
-
 'Functions implemented on this class:
 '=============================================
 '  CONSTRUCTORS
@@ -35,6 +35,8 @@ Attribute VB_Exposed = True
 '  OnError(ByVal eventData As Variant)
 '  OnMessage(ByVal eventData As Variant)
 
+' Acknowledgements
+' * This class, written by Sancarn, was an entire re-write of https://github.com/EagleAglow/vba-websocket-class
 
 
 
@@ -142,7 +144,7 @@ Private pPort as long
 '@constructor
 '@param {String} url - The websocket server url to connect to
 '@returns {stdWebSocket} - The created websocket
-'@example stdWebSocket.Create("wss://echo.websocket.org/")
+'@example stdWebSocket.Create("wss://ws.vi-server.org/mirror",1939)
 Public Function Create(ByVal url As String, ByVal port as string, optional byval agent as string = "stdVBA::stdWebSocket") As stdWebSocket
   Set Create = New stdWebSocket
   Call Create.protInit(url,port,agent)
@@ -464,3 +466,5 @@ Private Function Utf8BytesFromString(strInput As String) As Byte()
     nBytes = WideCharToMultiByte(CP_UTF8, 0&, StrPtr(strInput), -1, VarPtr(buff(0)), nBytes - 1, 0&, 0&)
     Utf8BytesFromString = buff
 End Function
+
+
