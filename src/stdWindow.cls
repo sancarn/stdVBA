@@ -534,14 +534,6 @@ Private Function CreateStaticPopup(ByVal x As Long, ByVal y As Long, ByVal width
   Err.Raise 1, "Create", "Not Implemented"
 End Function
 
-'Create a window from the desktop window
-'@constructor
-'@returns {stdWindow} Desktop window
-Public Function CreateFromDesktop() As stdWindow
-  Set CreateFromDesktop = New stdWindow
-  Call CreateFromDesktop.protInit(GetDesktopWindow())
-End Function
-
 'Create a window object from a window handle
 '@constructor
 '@param {ByVal LongPtr} Handle to window (hwnd) to create window object for
@@ -553,6 +545,29 @@ Public Function CreateFromHwnd(ByVal hwnd As Long) As stdWindow
 #End If
   Set CreateFromHwnd = New stdWindow
   Call CreateFromHwnd.protInit(hwnd)
+End Function
+
+'Creates an `stdWindow` object from the current running application (e.g. Excel / Word / Powerpoint).
+'@constructor
+'@returns {stdWindow}
+Public Function CreateFromApplication() As stdWindow
+    select case Application.Name
+        case "Microsoft Excel"
+            Set CreateFromApplication = CreateFromHwnd(Application.hwnd)
+        case "Microsoft Word"
+            Set CreateFromApplication = CreateFromHwnd(Application.ActiveWindow.Hwnd)
+        case "Microsoft PowerPoint"
+            Err.Raise 1, "stdAcc::CreateFromApplication()", "No built in way of finding powerpoint hwnd. We suggest using stdWindow to get hwnd, and create direct from hwnd instead " & Application.name
+        case else
+            Err.Raise 1, "stdAcc::CreateFromApplication()", "No implementation for getting application window of " & Application.name
+    end select
+End Function
+
+'Create a window from the desktop window
+'@constructor
+'@returns {stdWindow} Desktop window
+Public Function CreateFromDesktop() As stdWindow
+  Set CreateFromDesktop = CreateFromHwnd(GetDesktopWindow())
 End Function
 
 
@@ -610,6 +625,17 @@ Public Function CreateFromContextMenu() As stdWindow
   End If
 End Function
 
+#if FULL_INTELLISENSE then
+Public Function AsAcc() as stdAcc
+#else
+Public Function AsAcc() as Object
+#end if
+  if isObject(stdAcc) then
+    set AsAcc = stdAcc.CreateFromHwnd(pHandle)
+  else
+    Err.Raise 1, "", "This function requires stdAcc dependency."
+  end if
+End Function
 
 
 'Notes:

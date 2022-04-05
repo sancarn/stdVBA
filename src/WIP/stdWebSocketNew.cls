@@ -72,7 +72,7 @@ End Enum
   Private Declare PtrSafe Function WinHttpWebSocketCompleteUpgrade Lib "winhttp" ( ByVal hRequest As LongPtr, ByVal pContext As LongPtr ) As LongPtr
   Private Declare PtrSafe Function WinHttpCloseHandle Lib "winhttp" ( ByVal hRequest As LongPtr ) As Long
   Private Declare PtrSafe Function WinHttpWebSocketSend Lib "winhttp" ( ByVal hWebSocket As LongPtr, ByVal eEBufferType As Long, ByVal pvBuffer As LongPtr, ByVal dwBufferLength As Long ) As Long
-  Private Declare PtrSafe Function WinHttpWebSocketReceive Lib "winhttp" ( ByVal hWebSocket As LongPtr, ByRef pvBuffer As Any, ByVal dwBufferLength As Long, ByRef pdwBytesRead As LongPtr, ByRef peEBufferType As LongPtr ) As Long
+  Private Declare PtrSafe Function WinHttpWebSocketReceive Lib "winhttp" ( ByVal hWebSocket As LongPtr, ByRef pvBuffer As Any, ByVal dwBufferLength As Long, ByRef pdwBytesRead As Long, ByRef peEBufferType As Long ) As Long
   Private Declare PtrSafe Function WinHttpWebSocketClose Lib "winhttp" ( ByVal hWebSocket As LongPtr, ByVal usStatus As Integer, ByVal pvReason As LongPtr, ByVal dwReasonLength As Long ) As Long
   Private Declare PtrSafe Function WinHttpWebSocketQueryCloseStatus Lib "winhttp" ( ByVal hWebSocket As LongPtr, ByRef usStatus As Integer, ByRef pvReason As Any, ByVal dwReasonLength As Long, ByRef pdwReasonLengthConsumed As LongPtr ) As Long
   Private Declare PtrSafe Function WinHttpQueryHeaders Lib "winhttp" ( ByVal hRequest As LongPtr, ByVal dwInfoLevel As Long, ByVal pwszName As LongPtr, ByRef lpBuffer As Long, ByRef lpdwBufferLength As Long, ByRef lpdwIndex As Long ) As Long
@@ -84,6 +84,7 @@ End Enum
 
   'UTF8
   Private Declare PtrSafe Function MultiByteToWideChar Lib "kernel32" ( ByVal CodePage As Long, ByVal dwFlags As Long, ByVal lpMultiByteStr As LongPtr, ByVal cchMultiByte As Long, ByVal lpWideCharStr As LongPtr, ByVal cchWideChar As Long ) As Long
+  Private Declare PtrSafe Function WideCharToMultiByte Lib "kernel32" ( ByVal CodePage As Long, ByVal dwFlags As Long, ByVal lpWideCharStr As LongPtr, ByVal cchWideChar As Long, ByVal lpMultiByteStr As LongPtr, ByVal cbMultiByte As Long, ByVal lpDefaultChar As Long, ByVal lpUsedDefaultChar As Long ) As Long
 
   'Properties
   Private hConnection as LongPtr
@@ -113,6 +114,7 @@ End Enum
 
   'UTF8
   Private Declare Function MultiByteToWideChar Lib "kernel32" ( ByVal CodePage As Long, ByVal dwFlags As Long, ByVal lpMultiByteStr As Long, ByVal cchMultiByte As Long, ByVal lpWideCharStr As Long, ByVal cchWideChar As Long) As Long
+  Private Declare Function WideCharToMultiByte Lib "kernel32" ( ByVal CodePage As Long, ByVal dwFlags As Long, ByVal lpWideCharStr As Long, ByVal cchWideChar As Long, ByVal lpMultiByteStr As Long, ByVal cbMultiByte As Long, ByVal lpDefaultChar As Long, ByVal lpUsedDefaultChar As Long ) As Long
 
   'Properties
   Private hConnection as Long
@@ -145,8 +147,8 @@ Private pPort as long
 '@param {String} url - The websocket server url to connect to
 '@returns {stdWebSocket} - The created websocket
 '@example stdWebSocket.Create("wss://ws.vi-server.org/mirror",1939)
-Public Function Create(ByVal url As String, ByVal port as string, optional byval agent as string = "stdVBA::stdWebSocket") As stdWebSocket
-  Set Create = New stdWebSocket
+Public Function Create(ByVal url As String, ByVal port as string, optional byval agent as string = "stdVBA::stdWebSocket") As stdWebSocketNew
+  Set Create = New stdWebSocketNew
   Call Create.protInit(url,port,agent)
 End Function
 Public Sub protInit(ByVal url As String,ByVal port as string, ByVal agent as string)
@@ -179,10 +181,10 @@ End Property
 
 'Sends data through the WebSocket
 '@param {String | Bytes} data - The data to send
-'@param {EMessageType=Binary} Type - Type of data sent. Either Binary or UTF8
+'@param {EMessageType=Utf8} Type - Type of data sent. Either Binary or UTF8
 '@param {Boolean=False} PartialSend - set to true if you only wnat to send a partial message (i.e. a fragment), server will wait until this param is false again
-Public Sub Send(ByVal data as variant, optional ByVal iType as EMessageType, Optional ByVal bPartialSend as boolean = false)
-  if pState = WebSocketStatus.Connected then
+Public Sub Send(ByVal data as variant, optional ByVal iType as EMessageType = EMessageType.Utf8, Optional ByVal bPartialSend as boolean = false)
+  if pState = EWebSocketState.Connected then
     Dim bin() as byte, iBufferType as EBufferType
     select case iType
       case EMessageType.Binary
@@ -190,7 +192,8 @@ Public Sub Send(ByVal data as variant, optional ByVal iType as EMessageType, Opt
         bin = data
       case EMessageType.Utf8
         iBufferType = iif(bPartialSend, EBufferType.Utf8Fragment, EBufferType.Utf8Message)
-        bin = Utf8BytesFromString(data)
+        Dim sData as string: sData = data
+        bin = Utf8BytesFromString(sData)
       case else
         Err.Raise 1, "stdWebSocket::Send", "Unknown message type."
     end select
@@ -209,7 +212,7 @@ End Sub
 '@remark Will hang until server sends a response. Unfortunately can't peak for a response
 '@remark A list of WebSocket close statuses can be found at https://docs.microsoft.com/en-us/windows/win32/api/winhttp/ne-winhttp-winhttp_web_socket_close_status 
 Public Function Receive(Optional ByRef iType as EMessageType) as Variant
-  if pState = WebsocketStatus.Connected then
+  if pState = EWebSocketState.Connected then
     Dim buff() as Byte: Redim buff(1023)
     Dim iBuffLen as long: iBuffLen = 1024
     Dim dwBytesTransferred as long
@@ -229,8 +232,8 @@ Public Function Receive(Optional ByRef iType as EMessageType) as Variant
           iPos = 0
           While iEBufferType = EBufferType.BinaryFragment
             iPos = iPos + dwBytesTransferred
-            redim preserve buff(iPos + 1023)
-            iStatus = WinHttpWebSocketReceive(hWebSocket, buff(iPos), iPos + 1024, dwBytesTransferred, iEBufferType)
+            redim preserve buff(iPos + 1024)
+            iStatus = WinHttpWebSocketReceive(hWebSocket, buff(iPos), 1024, dwBytesTransferred, iEBufferType)
             Debug.Assert False 'TODO: Remove
           Wend
           iType = EMessageType.Binary
@@ -244,10 +247,10 @@ Public Function Receive(Optional ByRef iType as EMessageType) as Variant
         case EBufferType.Utf8Fragment
           'Buffer contains part of a Utf8 message, rest of Utf8 message is to follow, continue calling `WinHttpWebSocketReceive` until receiving `EBufferType.Utf8Message`
           iPos = 0
-          While iEBufferType = EBufferType.BinaryFragment
+          While iEBufferType = EBufferType.Utf8Fragment
             iPos = iPos + dwBytesTransferred
-            redim preserve buff(iPos + 1023)
-            iStatus = WinHttpWebSocketReceive(hWebSocket, buff(iPos), iPos + 1024, dwBytesTransferred, iEBufferType)
+            redim preserve buff(iPos + 1024)
+            iStatus = WinHttpWebSocketReceive(hWebSocket, buff(iPos), 1024, dwBytesTransferred, iEBufferType)
             Debug.Assert False 'TODO: Remove
           Wend
           iType = EMessageType.Utf8
@@ -284,6 +287,15 @@ Private Function Connect() as string
   If pState <> EWebSocketState.NotConnected then GoTo Fail_ActiveSocket
   if pURL = "" then GoTo Fail_Parameter
 
+  'TODO: For a given URL e.g. "ws://vi-server.org:1939/mirror" we need to convert this into:
+  '  sUrl  = "vi-server.org"  '<-- Note this URL must be in "PunyCode". Can make a call to `IdnToAscii` of `Normaliz.dll` for internationalisation. 
+  '  iPort = 1939
+  '  sPath = "mirro"
+  Dim sUrl as string:  sUrl = "vi-server.org"
+  Dim iPort as long:   iPort = 1939
+  Dim sPath as string: sPath = ""
+
+
   'Flag that we are connecting
   pState = EWebSocketState.Connecting
   
@@ -291,14 +303,14 @@ Private Function Connect() as string
   Const WINHTTP_FLAG_SYNC = &H0
   hSession = WinHttpOpen(StrPtr(pAgent), EHttpProxyType.DEFAULT_PROXY, 0, 0, WINHTTP_FLAG_SYNC)
   If hSession = 0 Then GoTo Fail_Session
-  
+
   'Connect to server
-  hConnection = WinHttpConnect(hSession, StrPtr(pURL), pPort, 0)
+  hConnection = WinHttpConnect(hSession, StrPtr(sURL), iPort, 0)
   if hConnection = 0 then GoTo Fail_Connection
 
   'Open GET request
   Dim sMethod as string: sMethod = "GET" ' ALWAYS FOR WEBSOCKET
-  hRequest = WinHttpOpenRequest(hConnection, StrPtr(sMethod), StrPtr(pPath), 0, 0, 0, 0)
+  hRequest = WinHttpOpenRequest(hConnection, StrPtr(sMethod), StrPtr(sPath), 0, 0, 0, 0)
   if hRequest = 0 then GoTo Fail_Request
 
   'Upgrade request to websocket
@@ -411,7 +423,7 @@ ForceClose:
   if hSession <> 0 then Call WinHttpCloseHandle(hSession)
 
   'Return true
-  pState = WebSocketStatus.NotConnected
+  pState = EWebSocketState.NotConnected
   Disconnect = ""
   Exit Function
 
@@ -429,19 +441,19 @@ End Function
 '@params {Byte()} UTF8 Bytes to cast to a string
 '@returns {string} UTF8 bytes in string representation
 Private Function Utf8BytesToString(abUtf8Array() As Byte) as string
-  Dim nBytes As Long
-  Dim nChars As Long
-  Dim strOut As String
-  Utf8BytesToString = ""
+  ' CodePage constant for UTF-8
+  Const CP_UTF8 = 65001
 
   ' Catch uninitialized input array
   if UBound(abUtf8Array) - LBound(abUtf8Array) + 1 > 0 then
     ' Get number of characters in output string
-    nChars = MultiByteToWideChar(CP_UTF8, 0&, VarPtr(abUtf8Array(0)), nBytes, 0&, 0&)
+    Dim nChars As Long: nChars = MultiByteToWideChar(CP_UTF8, 0&, VarPtr(abUtf8Array(0)), -1, 0&, 0&)
     ' Dimension output buffer to receive string
-    strOut = String(nChars, 0)
-    nChars = MultiByteToWideChar(CP_UTF8, 0&, VarPtr(abUtf8Array(0)), nBytes, StrPtr(strOut), nChars)
+    Dim strOut As String: strOut = String(nChars-1, 0)
+    nChars = MultiByteToWideChar(CP_UTF8, 0&, VarPtr(abUtf8Array(0)), -1, StrPtr(strOut), nChars)
     Utf8BytesToString = Left$(strOut, nChars)
+  else
+    Utf8BytesToString = ""
   end if
 End Function
 
@@ -449,6 +461,9 @@ End Function
 '@params {Byte()} string to cast to a UTF8 bytes
 '@returns {string} string as an array of UTF8 bytes
 Private Function Utf8BytesFromString(strInput As String) As Byte()
+    ' CodePage constant for UTF-8
+    Const CP_UTF8 = 65001
+
     Dim nBytes As Long
     Dim buff() As Byte
     

@@ -169,3 +169,7 @@ Before `08/07/2021` a change log was not kept. We have  retrospectively gone bac
 * 2021-12-20 stdCOM         FEATURE     - Add `CreateFromActiveObjects` constructor which can be used to obtain all active objects registered to the running object table.
 * 2022-03-09 stdRegex       FIX         - Fix to `stdRegex#Match()` when no match found.
 * 2022-03-09 stdDate        FIX         - Remove POSIX check for later `CreateFromPOSIX()` (TODO)
+* 2022-04-05 stdWindow      FEATURE     - Added `CreateFromApplication` to `stdWindow`
+* 2022-04-05 stdWindow      FEATURE     - Added `CreateFromDesktop` to `stdWindow`
+* 2022-04-05 stdWindow      FEATURE     - Added `AsAcc` to `stdWindow`
+* 2022-04-05 stdWindow      WIP         - Some WIP work with WebSockets
