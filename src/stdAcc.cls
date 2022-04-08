@@ -300,7 +300,7 @@ End Function
 '@param {IAccessible} Object implementing `IAccessible` interface.
 '@constructor
 '@returns {stdAcc}
-Public Function CreateFromIAccessible(ByRef obj As IAccessible) As stdAcc
+Public Function CreateFromIAccessible(ByVal obj As IAccessible) As stdAcc
     Set CreateFromIAccessible = New stdAcc
     set CreateFromIAccessible.protAccessible = obj
 End Function
@@ -1072,28 +1072,22 @@ End Sub
 'Creates a collection of stdAcc objects representing the children of the element
 '@returns {Collection<stdAcc>} The returned collection of children
 Private Function getChildrenAsIAcc() As Collection
-    Dim children As Collection
-    Set children = getAccChildren(protAccessible)
-    
-    Set getChildrenAsIAcc = New Collection
-    Dim child As Variant
-    For iChildID = 1 To protAccessible.accChildCount
-        'Check if child is an object, if it is set it, otherwise let it
-        if vartype(children(iChildID)) = vbObject Then
-            Set child = children(iChildID)
-        Else
-            child = children(iChildID)
-        end if
-
-        'Create proxy as required
-        If VarType(child) = vbLong then
-            getChildrenAsIAcc.Add createProxyChild(iChildID)
-        Else
-            Dim oAccessible As IAccessible
-            Set oAccessible = child
-            getChildrenAsIAcc.Add Me.CreateFromIAccessible(oAccessible)
-        End If
-    Next
+  'Get IAccessible children as Array of children
+  Dim vChildren()
+  ReDim vChildren(1 To protAccessible.accChildCount)
+  Dim iChildrenObtained as long
+  Call AccessibleChildren(obj, 0, obj.accChildCount, vChildren(1), iChildrenObtained)
+  
+  Set getChildrenAsIAcc = New Collection
+  Dim child As Variant
+  For iChildID = 1 To iChildrenObtained
+    'Check if child is an object, if it is set it, otherwise let it
+    if vartype(vChildren(iChildID)) = vbObject Then
+      getChildrenAsIAcc.Add CreateFromIAccessible(vChildren(iChildID))
+    Else
+      getChildrenAsIAcc.Add createProxyChild(vChildren(iChildID))
+    end if
+  Next
 End Function
 
 'Creates a proxy element under this element (this element is parent). Proxy elements get there information from the parent directly.
@@ -1102,25 +1096,6 @@ End Function
 Private Function createProxyChild(ByVal childID As Long) As stdAcc
     Set createProxyChild = New stdAcc
     Call createProxyChild.InitWithProxy(Me, childID)
-End Function
-
-'Get children as IAccessible
-'@param {Long} Child ID to create proxy element on
-'@returns {Collection<IAccessible|VT_I4>} Collection of child elements
-Private Function getAccChildren(obj As IAccessible) As Collection
-    Dim arr As Variant
-    ReDim arr(1 To obj.accChildCount)
-    
-    Dim d
-    Call AccessibleChildren(obj, 0, obj.accChildCount, arr(1), d)
-    
-    Dim col As Collection: set col = new collection
-    Dim i As Integer
-    For i = 1 To d    'note d is used not accChildCount, because sometimes AccessibleChildren does not return all children (no explanation for this?)
-        col.Add arr(i)
-    Next
-    
-    Set getAccChildren = col
 End Function
 
 'Escape string for compatibility with JSON
