@@ -209,7 +209,7 @@ Private Enum IAccessible_Methods
 End Enum
 
 Private isProxy As Boolean
-Private proxyParent As Object 'IAcc
+Private proxyParent As IAccessible 'IAcc
 Private proxyIndex As Long
 Private Lookups As Object
 
@@ -256,7 +256,7 @@ End Function
 '@param hwnd {ByVal LongPtr} Window handle to wrap
 '@returns {stdAcc} stdAcc object for the window 
 Public Function CreateFromHwnd(ByVal hwnd As LongPtr) As stdAcc
-    Dim acc as New stdAcc
+    Dim acc as stdAcc: set acc = new stdAcc
     Dim obj As IAccessible
     Set obj = IAccessibleFromHwnd(hwnd)
     set acc.protAccessible = obj
@@ -291,7 +291,7 @@ Public Function CreateFromDesktop() As stdAcc
     Dim accDesktop As IAccessible
     Set accDesktop = accThis.accParent
     
-    Dim acc As New stdAcc
+    Dim acc as stdAcc: set acc = new stdAcc
     set acc.protAccessible = accDesktop
     Set CreateFromDesktop = acc
 End Function
@@ -348,7 +348,7 @@ End Function
 '@returns {VOID}
 Public Sub InitWithProxy(ByRef oParent as stdAcc, ByVal index as long)
     isProxy = true
-    set proxyParent = oParent
+    set proxyParent = oParent.protAccessible
     proxyIndex = index
 End Sub
 
@@ -623,140 +623,180 @@ End Property
 '@param {long} y coord
 '@returns {stdAcc} element under point
 Public Property Get HitTest(ByVal x As Long, ByVal y As Long) As stdAcc
-    Set HitTest = New stdAcc
-    Dim NewAcc As Object
-    Call protAccessible.accHitTest(x, y, NewAcc)
-    set HitTest.protAccessible = NewAcc
+  Set HitTest = New stdAcc
+  Dim NewAcc As Object
+  Call protAccessible.accHitTest(x, y, NewAcc)
+  set HitTest.protAccessible = NewAcc
 End Property
 
 'Gets the value of the element
-'@returns {Variant} the current value of the element
-Public Property Get value() As Variant
-    On Error Resume Next
-    With protAccessible
-        If VarType(.accValue) = vbObject Then
-            Set value = .accValue
-        Else
-            Let value = .accValue
-        End If
-    End With
+'@returns {String} the current value of the element
+Public Property Get value() As String
+  'On Error Resume Next
+  if isProxy then
+    value = proxyParent.accValue(proxyIndex)
+  else
+    value = protAccessible.accValue(CHILDID_SELF)
+  end if
 End Property
 
 'Sets the value of the element
 '@param {Variant} the new value of the element
-Public Property Let value(val As Variant)
-    On Error Resume Next
-    With protAccessible
-        If VarType(.accValue) = vbObject Then
-            Set .accValue = val
-        Else
-            Let .accValue = val
-        End If
-    End with
+Public Property Let value(val As String)
+  'On Error Resume Next
+  if isProxy then
+    proxyParent.accValue(proxyIndex) = val
+  else
+    protAccessible.accValue(CHILDID_SELF) = val
+  end if
 End Property
 
 'Returns the name of the element
 '@returns {String} the name of the element
 Public Property Get name() As String
-    On Error Resume Next
-    name = protAccessible.accName
+  'On Error Resume Next
+  If isProxy Then
+    name = proxyParent.accName(proxyIndex)
+  Else
+    name = protAccessible.accName(CHILDID_SELF)
+  End If
 End Property
 
 'Returns the description of the default action of the element
 '@returns {String} the description of the default action of the element
 Public Property Get DefaultAction() As String
-    On Error Resume Next
-    DefaultAction = protAccessible.accDefaultAction
+  'On Error Resume Next
+  If isProxy Then
+    DefaultAction = proxyParent.accDefaultAction(proxyIndex)
+  else
+    DefaultAction = protAccessible.accDefaultAction(CHILDID_SELF)
+  end if
 End Property
 
 'Returns the role of the element
 '@returns {String} the role of the element
 Public Property Get Role() As String
-    On Error Resume Next
-    Role = Lookups("EAccRoles")("N2S")(protAccessible.AccRole)
+  'On Error Resume Next
+  if isProxy then
+    Role = Lookups("EAccRoles")("N2S")(proxyParent.accRole(proxyIndex))
+  else
+    Role = Lookups("EAccRoles")("N2S")(protAccessible.accRole(CHILDID_SELF))
+  end if
 End Property
 
 'Returns the state of the element
 '@returns {String} the state of the element
 Public Property Get State() As String
-    On Error Resume Next
-    State = Lookups("EAccStates")("N2S")(protAccessible.AccState)
+  'On Error Resume Next
+  if isProxy then
+    State = Lookups("EAccStates")("N2S")(proxyParent.accState(proxyIndex))
+  else
+    State = Lookups("EAccStates")("N2S")(protAccessible.accState(CHILDID_SELF))
+  end if
 End Property
 
 'Returns the state(s) of the element
 '@returns {Long} the state(s) of the element
 Public Property Get StateData() As Long
-    On Error Resume Next
-    StateData = protAccessible.AccState
+  'On Error Resume Next
+  if isProxy then
+    StateData = proxyParent.accState(proxyIndex)
+  else
+    StateData = protAccessible.accState(CHILDID_SELF)
+  end if
 End Property
 
 'Returns the description of the element
 '@returns {String} the description of the element
 Public Property Get Description() As String
-    On Error Resume Next
-    Description = protAccessible.accDescription
+  'On Error Resume Next
+  if isProxy then
+    Description = proxyParent.accDescription(proxyIndex)
+  else
+    Description = protAccessible.accDescription(CHILDID_SELF)
+  end if
 End Property
 
 'Returns the keyboard shortcut used to trigger the default action of the element
 '@returns {String} The keyboard shortcut used to trigger the default action of the element
 Public Property Get KeyboardShortcut() As String
-    On Error Resume Next
-    KeyboardShortcut = protAccessible.accKeyboardShortcut
+  'On Error Resume Next
+  if isProxy then
+    KeyboardShortcut = proxyParent.accKeyboardShortcut(proxyIndex)
+  else
+    KeyboardShortcut = protAccessible.accKeyboardShortcut(CHILDID_SELF)
+  end if
 End Property
 
 'Get the Focus of the UI element
 '@returns {Boolean} Whether the element has focus
 Public Property Get Focus() As Boolean
-    On Error Resume Next
-    Focus = protAccessible.accFocus
+  'On Error Resume Next
+  if isProxy then
+    Focus = proxyParent.accFocus(proxyIndex)
+  else
+    Focus = protAccessible.accFocus(CHILDID_SELF)
+  end if
 End Property
 
 'Set the Focus of the UI element
 '@param {Boolean} True if the element should be focussed, otherwise false
 Public Property Let Focus(ByVal val As Boolean)
-    On Error Resume Next
-    protAccessible.accFocus = val
+  'On Error Resume Next
+  if isProxy then
+    proxyParent.accFocus(proxyIndex) = val
+  else
+    protAccessible.accFocus(CHILDID_SELF) = val
+  end if
 End Property
 
 'Returns the help
 '@returns {String} the help
 Public Property Get Help() As String
-    On Error Resume Next
-    Help = protAccessible.accHelp
+  'On Error Resume Next
+  if isProxy then
+    Help = proxyParent.accHelp(proxyIndex)
+  else
+    Help = protAccessible.accHelp(CHILDID_SELF)
+  end if
 End Property
 
 'Returns the help topic
 '@returns {String} the help topic
-Public Property Get HelpTopic() As String
-    On Error Resume Next
-    HelpTopic = protAccessible.accHelpTopic
+Public Property Get HelpTopic(Optional ByVal sFile as string = "") As String
+  'On Error Resume Next
+  if isProxy then
+    HelpTopic = proxyParent.accHelpTopic(sFile, proxyIndex)
+  else
+    HelpTopic = protAccessible.accHelpTopic(sFile, CHILDID_SELF)
+  end if
 End Property
 
 'Returns a string containing numerous properties from stdAcc concatenated together.
 '@returns {String} Concatenation of Name, Value, DefaultAction, Description, Role, Help, HelpTopic and KeyboardShortcut.
 Public Property Get Text() As String
-    If Len(Me.name & Me.value & Me.DefaultAction & Me.Description & Me.Help & Me.HelpTopic & Me.KeyboardShortcut) > 0 Then
-        Text = "Name: """ & Me.name & """; " & _
-               "Value: """ & Me.value & """; " & _
-               "DefaultAction: """ & Me.DefaultAction & """; " & _
-               "Description: """ & Me.Description & """; " & _
-               "Role: """ & Me.Role & """; " & _
-               "Help: """ & Me.Help & """; " & _
-               "HelpTopic: """ & Me.HelpTopic & """; " & _
-               "KeyboardShortcut: """ & Me.KeyboardShortcut & """;"
-    Else
-        Text = ""
-    End If
+  If Len(Me.name & Me.value & Me.DefaultAction & Me.Description & Me.Help & Me.HelpTopic & Me.KeyboardShortcut) > 0 Then
+    Text = "Name: """ & Me.name & """; " & _
+            "Value: """ & Me.value & """; " & _
+            "DefaultAction: """ & Me.DefaultAction & """; " & _
+            "Description: """ & Me.Description & """; " & _
+            "Role: """ & Me.Role & """; " & _
+            "Help: """ & Me.Help & """; " & _
+            "HelpTopic: """ & Me.HelpTopic & """; " & _
+            "KeyboardShortcut: """ & Me.KeyboardShortcut & """;"
+  Else
+    Text = ""
+  End If
 End Property
 
 'Performs the default action of the IAccessible object
 '@returns {VOID}
 Public Sub DoDefaultAction()
-    If isProxy Then
-        Call proxyParent.accDoDefaultAction(proxyIndex)
-    Else
-        Call protAccessible.accDoDefaultAction
-    End If
+  If isProxy Then
+    Call proxyParent.accDoDefaultAction(proxyIndex)
+  Else
+    Call protAccessible.accDoDefaultAction(CHILDID_SELF)
+  End If
 End Sub
 
 'Sends a message to the window
@@ -835,7 +875,7 @@ Public Function getPath(Optional toAccessible As stdAcc = Nothing) As String
         Set acc = Me
         
         'Collection to store path
-        Dim col As New Collection
+        Dim col As Collection: set col = new collection
             
         'Collect parents
         While Not acc.Parent.name = "Desktop"
@@ -1074,7 +1114,7 @@ Private Function getAccChildren(obj As IAccessible) As Collection
     Dim d
     Call AccessibleChildren(obj, 0, obj.accChildCount, arr(1), d)
     
-    Dim col As New Collection
+    Dim col As Collection: set col = new collection
     Dim i As Integer
     For i = 1 To d    'note d is used not accChildCount, because sometimes AccessibleChildren does not return all children (no explanation for this?)
         col.Add arr(i)
