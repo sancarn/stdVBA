@@ -98,6 +98,45 @@ set enumerator = stdEnumerator.CreateFromCallable(stdLambda.Create("Array($2 <= 
 
 > Note: Currently `stdEnumerator` DOES NOT implement `IEnumVARIANT` and for this reason `for each item in myEnumerator` syntax **will not work**.
 
+### GUIDANCE
+
+#### Procedural Enumeration
+
+In later patches enumeration methods were added to the `stdEnumerator` library. These allow for enumeration methods similar to `for-each` syntax. This works as follows:
+
+```vb
+Dim eValues as stdEnumerator: set eValues = stdEnumerator.CreateFromArray(Array(1,2,3))
+
+Debug.print "Beg"
+
+Dim iValue as Long
+While eValues.enumNext(iValue)
+  Debug.Print iValue
+Wend
+
+Debug.print "End"
+```
+
+The result of which will be printed in the console:
+
+```
+Beg
+1
+2
+3
+End
+```
+
+With these methods you can easily and efficiently iterate over the `stdEnumerator` set and perform whatever manipulation/extraction. This is advantageous in situations where loading the entire dataset into would be slow or impossible. It is suggested that before looping over the collection you use `stdEnumerator#enumRefresh`. This will ensure the enumerator is set at the beginning of the dataset.
+
+```vb
+Dim iValue as Long
+Call eValues.enumRefresh()
+While eValues.enumNext(iValue)
+  Debug.Print iValue
+Wend
+```
+
 ### INSTANCE PROPERTIES
 
 #### `Item(ByVal index as Variant, optional byval byIndex as boolean = false) as variant`
@@ -119,6 +158,16 @@ Debug.Print enumerator.length
 ```
 
 ### INSTANCE METHODS
+
+#### `enumNext(ByRef vOut as Variant) as Boolean`
+
+Gets the next element from the enumerator relative to the cursor. If this function returns `true` a new value was retrieved. Else if it returns `false` the enumerator has reached the end of the collection.
+
+The next element is set to the inputted parameter `vOut`.
+
+#### `enumRefresh()`
+
+Set the enumerator cursor to the beginning of the collection.
 
 #### `asCollection()`
 
