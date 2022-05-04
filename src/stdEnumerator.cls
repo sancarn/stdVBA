@@ -126,6 +126,11 @@ Private pBaseArray as Variant
 Private pCallback as stdICallable
 Private pMaxLength as Long
 
+'Variables to allow procedural enumeration.
+Private p_enum_v As Variant
+Private p_enum_i As Long
+Private p_enum_kv As Variant
+
 Private const VT_UNKNOWN = &Hd
 
 'Create an enumerator from a callable. Simply return either the next item, or null to indicate the end of the item set.
@@ -268,6 +273,32 @@ Public Sub protInit(ByVal iEnumeratorType as long, ByVal iMaxLength as long, Par
             set pCallback   = v(0)
     end select
 End Sub
+
+' IEnumVariant methods
+
+'Refresh the dataset to the beginning
+Public Sub enumRefresh()
+    p_enum_v = Null
+    p_enum_i = 0
+    p_enum_kv = Null
+End Sub
+
+'Get the next value in the dataset
+'@param {ByRef Variant} The new value retrieved
+'@returns {Boolean} True if a value was retrieved, false if the end of the enumerator has been reached.
+'@usage Main usage in `While enumNext(myValue): ... : Wend` loops.
+Public Function enumNext(ByRef nextValue As Variant) As Boolean
+    If NextItem(p_enum_kv, p_enum_v, p_enum_i) Then
+        If IsObject(p_enum_v) Then
+            Set nextValue = p_enum_v
+        Else
+            Let nextValue = p_enum_v
+        End If
+        enumNext = True
+    Else
+        enumNext = False
+    End If
+End Function
 
 'Get this enumerator as a collection
 '@returns {Collection} The enumerator's data as a collection
