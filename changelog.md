@@ -179,4 +179,7 @@ Before `08/07/2021` a change log was not kept. We have  retrospectively gone bac
 * 2022-06-04 stdEnumerator  FEATURE     - Added methods for procedural enumeration of enumerators.
 * 2022-05-10 stdClipboard   FEATURE     - Added a Clear() method
 * 2022-05-10 stdClipboard   FIX         - Fixed xlPicture property 
-* 2022-05-10 stdClipboard   FEATURE     - Added a xlShapeAsPicture property
+* 2022-05-10 stdClipboard   FEATURE     - Added a xlShapeAsPicture property.
+* 2022-05-10 stdLambda      FEATURE     - Added a `dict` method, mainly for turning enumerators into enumerators of dictionaries.
+* 2022-05-10 stdLambda      FIX         - `stdArray` documentation, and remove deprecated methods.
+* 2022-05-10 stdLambda      FEATURE     - `stdArray.CreateFromString(str, delimiter)`

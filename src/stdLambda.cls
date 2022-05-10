@@ -1202,6 +1202,14 @@ Private Function evaluateFunc(ByVal sFuncName As String, ByVal args As Variant) 
         Case "thisworkbook": if isObject(ThisWorkbook) then Set evaluateFunc = ThisWorkbook
         Case "application":  if isObject(Application)  then  Set evaluateFunc = Application
 
+        'Data structures
+        Case "dict":
+            Dim oRetDict as object: set oRetDict = CreateObject("Scripting.Dictionary")
+            For i = iArgStart To UBound(args) Step 2
+                Call oRetDict.add(args(i), args(i+1))
+            next
+            set evaluateFunc = oRetDict
+
         'MATH:
         '-----
         Case "abs": evaluateFunc = VBA.Math.Abs(args(iArgStart))
