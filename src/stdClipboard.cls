@@ -35,8 +35,6 @@ Attribute VB_Exposed = False
 'IPictureFromHBitmap()
 'IPictureFromBlob()
 
- 
-
 
 Public Enum CLIPFORMAT
   CF_NOFORMAT = 0
@@ -279,11 +277,19 @@ Public Property Let value(ByVal iFormat As CLIPFORMAT, ByVal v As Variant)
   'If CBool(GlobalFree(hClipMemory)) Then If Err.LastDllError <> 0 Then Call CriticalRaise("Value [GET]", "Cannot free Global mem (DllError: " & Err.LastDllError & ")")
 End Property
 
+'Waits for the clipboard to be available
 Public Sub Await()
   While Not CBool(OpenClipboard(Application.hwnd))
     DoEvents
   Wend
   Call CloseClipboard
+End Sub
+
+'Clears the clipboard
+Public Sub Clear()
+  If Not CBool(OpenClipboardTimeout(Application.hwnd)) Then Call CriticalRaise("Value [LET]", "Unable to open clipboard (DllError: " & Err.LastDllError & ")")
+  If Not CBool(EmptyClipboard()) Then Call CriticalRaise("Value [LET]", "Cannot empty clipboard (DllError: " & Err.LastDllError & ")")
+  If Not CBool(CloseClipboard()) Then Call CriticalRaise("Value [LET]", "Unable to close clipboard (DllError: " & Err.LastDllError & ")")
 End Sub
 
 Public Property Get text() As String
@@ -402,12 +408,30 @@ End Property
 
 
 
-'Set the clipboard to an Excel picture object. This is a helper method and does nothing more than call xlPic.CopyPicture(1,2).
-'@param {ByVal Excel.IPicture} The picture to set the clipboard too.
-Public Property Set XLPicture(ByVal xlPic As Excel.IPicture)
-  'xlScreen = 1, xlBitmap = 2
-  Call xlPic.CopyPicture(1, 2)
+'Set the clipboard to an Excel picture object, and then proceeds to wait until the format is available.
+'@param {XLPictureAppearance} xlPrint or xlScreen
+'@param {XlCopyPictureFormat} xlBitmap or xlPicture
+'@param {Excel.IPicture} The picture to copy
+Public Property Set XLPicture(Optional ByVal iAppearance As XlPictureAppearance = xlScreen, Optional ByVal iFormat As XlCopyPictureFormat = xlBitmap, ByVal xlPic As Excel.IPicture)
+  Call Clear
+  Call xlPic.CopyPicture(iAppearance, 2)
+  While Not (IsFormatAvailable(CF_BITMAP) Or IsFormatAvailable(CF_METAFILEPICT))
+    DoEvents
+  Wend
 End Property
+
+'Copies a Excel shape as a picture, and then proceeds to wait until the format is available.
+'@param {XLPictureAppearance} xlPrint or xlScreen
+'@param {XlCopyPictureFormat} xlBitmap or xlPicture
+'@param {Excel.Shape} The shape to turn into an image
+Public Property Set XLShapeAsPicture(Optional iAppearance As XlPictureAppearance = xlScreen, Optional iFormat As XlCopyPictureFormat = XlCopyPictureFormat.xlBitmap, ByVal xlShp As Excel.Shape)
+  Call Clear
+  Call xlShp.CopyPicture(iAppearance, iFormat)
+  While Not (IsFormatAvailable(CF_BITMAP) Or IsFormatAvailable(CF_METAFILEPICT))
+    DoEvents
+  Wend
+End Property
+
 
 'Get or Set the clipboard to a selection of files paths. Paths provided as a collection for easy stdEnumerator wrapping.
 Public Property Get files() As Collection

@@ -177,3 +177,6 @@ Before `08/07/2021` a change log was not kept. We have  retrospectively gone bac
 * 2022-04-08 stdAcc         FIX         - Retrieval of `Name`, `Value`, `Description` etc. properties now includes `CHILDID_SELF`, which although isn't a required param, many Accessibility providers immediately fail if it isn't provided.
 * 2022-04-08 stdAcc         FIX         - Proxy objects are now supported in entirity across the API instead of just in `DoDefaultAction()` calls. So now you should be able to get `name`, `value`, `description` etc. of these elements too.
 * 2022-06-04 stdEnumerator  FEATURE     - Added methods for procedural enumeration of enumerators.
+* 2022-05-10 stdClipboard   FEATURE     - Added a Clear() method
+* 2022-05-10 stdClipboard   FIX         - Fixed xlPicture property 
+* 2022-05-10 stdClipboard   FEATURE     - Added a xlShapeAsPicture property
