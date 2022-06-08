@@ -183,3 +183,5 @@ Before `08/07/2021` a change log was not kept. We have  retrospectively gone bac
 * 2022-05-10 stdLambda      FEATURE     - Added a `dict` method, mainly for turning enumerators into enumerators of dictionaries.
 * 2022-05-10 stdLambda      FIX         - `stdArray` documentation, and remove deprecated methods.
 * 2022-05-10 stdLambda      FEATURE     - `stdArray.CreateFromString(str, delimiter)`
+* 2022-06-08 stdAcc         FIX         - In `getChildrenAsIacc()` fixed `obj` to `protAccessible`
+* 2022-06-08 stdWindow      FEATURE     - Added `/` character to `SendKeys()`

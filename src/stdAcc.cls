@@ -1076,7 +1076,7 @@ Private Function getChildrenAsIAcc() As Collection
   Dim vChildren()
   ReDim vChildren(1 To protAccessible.accChildCount)
   Dim iChildrenObtained as long
-  Call AccessibleChildren(obj, 0, obj.accChildCount, vChildren(1), iChildrenObtained)
+  Call AccessibleChildren(protAccessible, 0, protAccessible.accChildCount, vChildren(1), iChildrenObtained)
   
   Set getChildrenAsIAcc = New Collection
   Dim child As Variant
