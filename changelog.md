@@ -185,3 +185,9 @@ Before `08/07/2021` a change log was not kept. We have  retrospectively gone bac
 * 2022-05-10 stdLambda      FEATURE     - `stdArray.CreateFromString(str, delimiter)`
 * 2022-06-08 stdAcc         FIX         - In `getChildrenAsIacc()` fixed `obj` to `protAccessible`
 * 2022-06-08 stdWindow      FEATURE     - Added `/` character to `SendKeys()`
+* 2022-06-12 stdAcc         FIX         - Included a number of `On Error Resume Next` statements.
+* 2022-06-12 stdAcc         BREAKING    - `State` --> `States` and covers all states in supported by the acc element.
+* 2022-06-12 stdAcc         FIX         - `GetPath()` returns unknown instead of throwing an error to overcome some issues.
+* 2022-06-12 stdAcc         FIX         - Added `AwaitForElement` function.
+* 2022-06-12 stdWindow      BREAKING    - Changed `Quit()` to use `PostMessage(WM_CLOSE)`, added `ForceQuit()` calling `DestroyWindow` as previous.
+* 2022-06-12 stdWindow      BREAKING    - Added `AwaitForWindow` function.

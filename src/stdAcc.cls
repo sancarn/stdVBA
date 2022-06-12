@@ -632,7 +632,7 @@ End Property
 'Gets the value of the element
 '@returns {String} the current value of the element
 Public Property Get value() As String
-  'On Error Resume Next
+  On Error Resume Next 'FIX: Sometimes this is unsupported, so leave this error.
   if isProxy then
     value = proxyParent.accValue(proxyIndex)
   else
@@ -643,7 +643,6 @@ End Property
 'Sets the value of the element
 '@param {Variant} the new value of the element
 Public Property Let value(val As String)
-  'On Error Resume Next
   if isProxy then
     proxyParent.accValue(proxyIndex) = val
   else
@@ -654,7 +653,7 @@ End Property
 'Returns the name of the element
 '@returns {String} the name of the element
 Public Property Get name() As String
-  'On Error Resume Next
+  On Error Resume Next 'FIX: Sometimes this is unsupported, so leave this error.
   If isProxy Then
     name = proxyParent.accName(proxyIndex)
   Else
@@ -665,7 +664,7 @@ End Property
 'Returns the description of the default action of the element
 '@returns {String} the description of the default action of the element
 Public Property Get DefaultAction() As String
-  'On Error Resume Next
+  On Error Resume Next 'FIX: Sometimes this is unsupported, so leave this error.
   If isProxy Then
     DefaultAction = proxyParent.accDefaultAction(proxyIndex)
   else
@@ -676,7 +675,7 @@ End Property
 'Returns the role of the element
 '@returns {String} the role of the element
 Public Property Get Role() As String
-  'On Error Resume Next
+  On Error Resume Next 'FIXME: On extremely rare occasions the OLE object will disconnect / not expect automation. `On Error Resume Next` silences the error but this isn't a real fix.
   if isProxy then
     Role = Lookups("EAccRoles")("N2S")(proxyParent.accRole(proxyIndex))
   else
@@ -686,19 +685,23 @@ End Property
 
 'Returns the state of the element
 '@returns {String} the state of the element
-Public Property Get State() As String
-  'On Error Resume Next
-  if isProxy then
-    State = Lookups("EAccStates")("N2S")(proxyParent.accState(proxyIndex))
-  else
-    State = Lookups("EAccStates")("N2S")(protAccessible.accState(CHILDID_SELF))
-  end if
+Public Property Get States() As String
+  Dim iStateData As Long: iStateData = StateData
+  Dim oLookup As Object: Set oLookup = Lookups("EAccStates")("S2N")
+  Dim sStates As String, vKey as variant
+  For Each vKey In oLookup.keys()
+    If (oLookup(vKey) And iStateData) = oLookup(vKey) Then
+        sStates = sStates & vKey & ";"
+    End If
+  Next
+  
+  States = sStates
 End Property
 
 'Returns the state(s) of the element
 '@returns {Long} the state(s) of the element
 Public Property Get StateData() As Long
-  'On Error Resume Next
+  On Error Resume Next 'FIXME: On extremely rare occasions the OLE object will disconnect / not expect automation. `On Error Resume Next` silences the error but this isn't a real fix.
   if isProxy then
     StateData = proxyParent.accState(proxyIndex)
   else
@@ -709,7 +712,7 @@ End Property
 'Returns the description of the element
 '@returns {String} the description of the element
 Public Property Get Description() As String
-  'On Error Resume Next
+  On Error Resume Next 'FIX: Sometimes this is unsupported, so leave this error.
   if isProxy then
     Description = proxyParent.accDescription(proxyIndex)
   else
@@ -720,7 +723,7 @@ End Property
 'Returns the keyboard shortcut used to trigger the default action of the element
 '@returns {String} The keyboard shortcut used to trigger the default action of the element
 Public Property Get KeyboardShortcut() As String
-  'On Error Resume Next
+  On Error Resume Next 'FIX: Sometimes this is unsupported, so leave this error.
   if isProxy then
     KeyboardShortcut = proxyParent.accKeyboardShortcut(proxyIndex)
   else
@@ -764,7 +767,7 @@ End Property
 'Returns the help topic
 '@returns {String} the help topic
 Public Property Get HelpTopic(Optional ByVal sFile as string = "") As String
-  'On Error Resume Next
+  On Error Resume Next 'FIX: Sometimes this is unsupported, so leave this error.
   if isProxy then
     HelpTopic = proxyParent.accHelpTopic(sFile, proxyIndex)
   else
@@ -869,54 +872,48 @@ End Sub
 '@param {stdAcc} Stop creating path at this element
 '@returns {String} String representing path to element from either Desktop or toAccessible
 Public Function getPath(Optional toAccessible As stdAcc = Nothing) As String
-    On Error GoTo ErrorOccurred
-        'Initialise trace
-        Dim acc As stdAcc
-        Set acc = Me
+    'Initialise trace
+    Dim acc As stdAcc
+    Set acc = Me
+    
+    'Collection to store path
+    Dim col As Collection: Set col = New Collection
         
-        'Collection to store path
-        Dim col As Collection: set col = new collection
-            
-        'Collect parents
-        While Not acc.Parent.name = "Desktop"
-            Dim child As stdAcc
-            Dim index As Long: index = 0
-            Dim savedIndex As Long: savedIndex = 0
-            For Each child In acc.Parent.children
-                index = index + 1
-                If child.hwnd = acc.hwnd And child.Role = acc.Role Then
-                    savedIndex = index
-                    Exit For
-                End If
-            Next
-            
-            'Add index to stack
-            If savedIndex > 0 Then
-                col.Add savedIndex
-            Else
-                'In some scenarios this has occurred where acc tree has changed after initial pass. Not much we can do if this is the case.
-                Call Err.Raise(1, "", "Cannot find path because acc ancestor's parent-child relationship cannot be distinguished")
-                getPath = ""
-                Exit Function
+    'Collect parents
+    While Not acc.parent.name = "Desktop"
+        Dim child As stdAcc
+        Dim index As Long: index = 0
+        Dim savedIndex As Long: savedIndex = 0
+        For Each child In acc.parent.children
+            index = index + 1
+            If child.hwnd = acc.hwnd And child.Role = acc.Role Then
+                savedIndex = index
+                Exit For
             End If
-                    
-            'Elevate parent
-            Set acc = acc.Parent
-        Wend
+        Next
         
-        'Create path
-        Dim path As String
-        Dim i As Integer
-        For i = col.count To 1 Step -1
-            path = path & "." & col(i)
-        Next i
-        
-        'Return path
-        getPath = "D.W" & path
-    On Error GoTo 0
-    Exit Function
-ErrorOccurred:
-    Err.Raise 1, "stdAcc#getPath", "An unknown error occurred while finding stdAcc path." & vbCrLf & Err.Description
+        'Add index to stack
+        If savedIndex > 0 Then
+            col.add savedIndex
+        Else
+            'In some scenarios this has occurred where acc tree has changed after initial pass. Not much we can do if this is the case.
+            getPath = "UNKNOWN"
+            Exit Function
+        End If
+                
+        'Elevate parent
+        Set acc = acc.parent
+    Wend
+    
+    'Create path
+    Dim path As String
+    Dim i As Integer
+    For i = col.Count To 1 Step -1
+        path = path & "." & col(i)
+    Next i
+    
+    'Return path
+    getPath = "D.W" & path
 End Function
 
 'Returns this element and all descendents as a JSON string. Useful for debugging
@@ -944,9 +941,31 @@ Public Function toJSON() As String
         "children:[" & sChildren & "]}"
 End Function
 
+'Await for the existence of an element which meets a specified condition.
+'@param {stdICallable<stdAcc=>Boolean>} If this callback returns true, the function will immediately set the result of the function to the awaited element, otherwise will continue awaiting.
+'@param {stdICallable<stdAcc=>Boolean>} If this callback returns true, the function will immediately set the result of the function to `nothing`, oterwise will continue awaiting. If none is provided no error is checked.
+'@param {Long} Timeout in seconds. Defaults to -1 = NoTimeout. When timeout is reached the return value of the function is `nothing`
+'@returns {stdAcc} Element awaited for
+'@remark calls `Me.FindFirst(awaitFor)` to wait for element chosen
+Public Function AwaitForElement(awaitFor as stdICallable, Optional error as stdICallable = Nothing, Optional timeout As Long = -1) As stdAcc
+  Dim bCond As Boolean: bCond = True
+  Dim el As Object: Set el = Nothing
+  Dim oldTime As Date: oldTime = Now()
+  While bCond
+      Set el = Me.FindFirst(awaitFor)
+      If Not el Is Nothing Then bCond = False
+      If Not error Is Nothing Then
+          If error.Run(Me) Then bCond = False
+      End If
+      If timeout <> -1 And Second(Now() - oldTime) > timeout Then bCond = False
+      DoEvents
+  Wend
+  Set AwaitForElement = el
+End Function
+
 'Returns the lookups object
 '@returns {Dictionary<Dictionary<Dictionary<string|long>>>}
-Public Function protGetLookups()
+Friend Function protGetLookups()
     if Lookups is nothing then
         set Lookups = CreateObject("Scripting.Dictionary")
         set Lookups("EAccStates") = CreateLookupDict(Array( _ 

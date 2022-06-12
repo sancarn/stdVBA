@@ -1391,6 +1391,14 @@ End Function
 
 Public Sub Quit()
   If Exists Then
+    Call PostMessage(&H10&,0,0)
+  Else
+    Err.Raise 1, "Close", "Window does not exist."
+  End If
+End Sub
+
+Public Sub ForceQuit()
+  If Exists Then
     If DestroyWindow(pHandle) = 0 Then
       Err.Raise Err.LastDllError, "Close", "Failed to close window"
     End If
@@ -1454,7 +1462,7 @@ Public Sub PostMessage(ByVal wMsg As Long, ByVal wParam As Long, ByVal lParam As
     hwnd = pHandle
     If pHandle = GetDesktopWindow Then hwnd = &HFFFF
     
-    If Not PostMessageA(hwnd, wMsg, wParam, lParam) Then
+    If PostMessageA(hwnd, wMsg, wParam, lParam) =  0 Then
       Err.Raise 1, "PostMessage", "An unexpected error occurred while posting the message.", Err.LastDllError
     End If
   Else
@@ -1667,12 +1675,32 @@ Public Sub SendKeysMessage(ByVal sKeys As String, Optional ByVal keyDelay As Lon
   End If
 End Sub
 
+'Await for the existence of an window which meets a specified condition.
+'@param {stdICallable<stdWindow=>Boolean>} If this callback returns true, the function will immediately set the result of the function to the awaited window, otherwise will continue awaiting.
+'@param {stdICallable<stdWindow=>Boolean> = Nothing} If this callback returns true, the function will immediately set the result of the function to `nothing`, oterwise will continue awaiting. If none is provided no error is checked.
+'@param {Long=-1} Timeout in seconds. Defaults to -1 = NoTimeout. When timeout is reached the return value of the function is `nothing`
+'@returns {stdWindow} Window awaited for
+'@remark calls `Me.FindFirst(awaitFor)` to wait for element chosen
+Public Function AwaitForWindow(awaitFor As stdICallable, Optional error As stdICallable = Nothing, Optional timeout As Long = -1) As stdWindow
+  Dim bCond As Boolean: bCond = True
+  Dim el As Object: Set el = Nothing
+  Dim oldTime As Date: oldTime = Now()
+  While bCond
+      Set el = Me.FindFirst(awaitFor)
+      If Not el Is Nothing Then bCond = False
+      If Not error Is Nothing Then If error.Run(Me) Then bCond = False
+      If timeout <> -1 And Second(Now() - oldTime) > timeout Then bCond = False
+      DoEvents
+  Wend
+  Set AwaitForWindow = el
+End Function
+
 '================================================================================================
 '=      PROTECTED METHODS
 '================================================================================================
 
 'Obtain the next window given a stack
-Public Function protGetNextDescendent(ByVal stack As collection, ByVal DFS As Boolean, ByVal Prev As stdWindow) As stdWindow
+Friend Function protGetNextDescendent(ByVal stack As collection, ByVal DFS As Boolean, ByVal Prev As stdWindow) As stdWindow
   If stack.Count > 0 Then
     'Get the next window, use popCol if we want to do Depth First Search, else use shiftCol
     Dim oNext As stdWindow
@@ -1697,7 +1725,7 @@ End Function
 
 'Returns the lookups object
 '@returns {Dictionary<Dictionary<Dictionary<string|long>>>}
-Public Function protGetLookups()
+Friend Function protGetLookups()
     If Lookups Is Nothing Then
         'Notes:
         'EWndShowStyle is not needed, use isVisible, isMinimized and isMaximised
