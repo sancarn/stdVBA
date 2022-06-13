@@ -60,14 +60,37 @@ Attribute VB_Exposed = False
 '                      model? Not sure...
 
 
-Private Declare PtrSafe Function AccessibleObjectFromPoint Lib "oleacc" (ByVal x As Long, ByVal y As Long, ppoleAcc As IAccessible, pvarElement As Variant) As Long
-Private Declare PtrSafe Function AccessibleObjectFromWindow Lib "oleacc" (ByVal hwnd As LongPtr, ByVal dwId As Long, riid As tGUID, ppvObject As Object) As Long
-Private Declare PtrSafe Function AccessibleObjectFromEvent Lib "oleacc.dll" (hwnd As LongPtr, dwObjectId As Integer, dwChildID As Integer, ppacc As IAccessible, pVarChild As Object) As Long
-Private Declare PtrSafe Function AccessibleChildren Lib "oleacc" (ByVal paccContainer As IAccessible, ByVal iChildStart As Long, ByVal cChildren As Long, rgvarChildren As Variant, pcObtained As Long) As Long
-Private Declare PtrSafe Function WindowFromAccessibleObject Lib "oleacc" (ByVal pacc As IAccessible, ByRef pHwnd As LongPtr) As Long
-Private Declare PtrSafe Function GetCursorPos Lib "user32" (lpPoint As tPOINT) As Long 'For FromMouse()
-Private Declare PtrSafe Function APISendMessage Lib "user32" Alias "SendMessage" (ByVal hwnd As LongPtr, ByVal Msg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
+'For CreateFromMouse()
+#If VBA7 Then
+  Private Declare PtrSafe Function GetCursorPos Lib "user32.dll" (lpPoint As tPOINT) As Long
+  'FIX: stdAcc::CreateFromPoint() crashes on 64-bit.
+  'The reason is that in reality the first arg of `AccessibleObjectFromPoint` is a ByVal `tPOINT` structure. Unfortunately in VBA you can't pass
+  'structs by value. a ByRef struct won't do however, so instead we have to fake the data by picking args with the same size. In 32-bit you used to be able
+  'to use 2 longs (the 2 parts of the struct), however 64-bit doesn't appear to like this notation. Instead we have to use a LongLong type to get the job done.
+  #If Win64 Then
+    Private Declare PtrSafe Function AccessibleObjectFromPoint Lib "Oleacc" (ByVal arg1 As LongLong, ppacc As IAccessible, pvarChild As Variant) As Long
+  #Else
+    Private Declare PtrSafe Function AccessibleObjectFromPoint Lib "Oleacc" (ByVal lX As Long, ByVal lY As Long, ppacc As IAccessible, pvarChild As Variant) As Long
+  #End If
+#Else
+  Private Declare Function GetCursorPos Lib "user32.dll" (lpPoint As tPOINT) As Long
+  Private Declare Function AccessibleObjectFromPoint Lib "Oleacc" (ByVal lX As Long, ByVal lY As Long, ppacc As IAccessible, pvarChild As Variant) As Long
+#End If
 
+'
+#if VBA7 then
+  Private Declare PtrSafe Function AccessibleObjectFromWindow Lib "oleacc" (ByVal hwnd As LongPtr, ByVal dwId As Long, riid As tGUID, ppvObject As Object) As Long
+  Private Declare PtrSafe Function AccessibleObjectFromEvent Lib "oleacc.dll" (hwnd As LongPtr, dwObjectId As Integer, dwChildID As Integer, ppacc As IAccessible, pVarChild As Object) As Long
+  Private Declare PtrSafe Function AccessibleChildren Lib "oleacc" (ByVal paccContainer As IAccessible, ByVal iChildStart As Long, ByVal cChildren As Long, rgvarChildren As Variant, pcObtained As Long) As Long
+  Private Declare PtrSafe Function WindowFromAccessibleObject Lib "oleacc" (ByVal pacc As IAccessible, ByRef pHwnd As LongPtr) As Long
+  Private Declare PtrSafe Function APISendMessage Lib "user32" Alias "SendMessage" (ByVal hwnd As LongPtr, ByVal Msg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
+#else
+  Private Declare Function AccessibleObjectFromWindow Lib "oleacc" (ByVal hwnd As Long, ByVal dwId As Long, riid As tGUID, ppvObject As Object) As Long
+  Private Declare Function AccessibleObjectFromEvent Lib "oleacc.dll" (hwnd As Long, dwObjectId As Integer, dwChildID As Integer, ppacc As IAccessible, pVarChild As Object) As Long
+  Private Declare Function AccessibleChildren Lib "oleacc" (ByVal paccContainer As IAccessible, ByVal iChildStart As Long, ByVal cChildren As Long, rgvarChildren As Variant, pcObtained As Long) As Long
+  Private Declare Function WindowFromAccessibleObject Lib "oleacc" (ByVal pacc As IAccessible, ByRef pHwnd As Long) As Long
+  Private Declare Function APISendMessage Lib "user32" Alias "SendMessage" (ByVal hwnd As Long, ByVal Msg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
+#end if
 
 'Used while walking the Accessibility tree. Can be used to toggle between a Breadth first search and a depth first search.
 Public Enum EAccFindType
@@ -245,10 +268,7 @@ Public protAccessible As Object
 '@returns {stdAcc} Object at the specified point
 Public Function CreateFromPoint(ByVal x As Long, ByVal y As Long) As stdAcc
     Set CreateFromPoint = New stdAcc
-    Dim obj As IAccessible
-    Dim v As Variant
-    Call AccessibleObjectFromPoint(x, y, obj, v)
-    set CreateFromPoint.protAccessible = obj
+    set CreateFromPoint.protAccessible = AccessibilityObjectFromMouseEx()
 End Function
 
 'Creates an `stdAcc` object from a window handle.
@@ -1021,6 +1041,33 @@ Friend Function protGetLookups()
     set protGetLookups = lookups
 End Function
 
+
+
+#If Win64 Then
+  Public Function AccessibilityObjectFromMouseEx() As IAccesible
+    Dim pt As APIPoint, o As IAccessible, v As Variant
+    Call GetCursorPos(pt)
+    Call AccessibleObjectFromPoint(PointToLongLong(pt), o, v)
+    Set AccessibilityObjectFromMouseEx = o
+  End Function
+  Private Function PointToLongLong(pt As APIPoint) As LongLong
+    'If sign bit is set (10000000 00000000 00000000 00000000) then shifting by 4 bytes left will cause an overflow.
+    'Therefore exclude it (XOR part) but set the sign bit.
+    Dim sign As LongLong
+    If HiLong And &H80000000 Then
+      HiLong = HiLong Xor &H80000000
+      sign = &H8000000000000000^
+    End If
+    MakeLongLong = (pt.x * &H100000000^) Or (pt.y And &HFFFFFFFF) Or sign
+  End Function
+#Else
+  Public Function AccessibilityObjectFromMouseEx() As IAccesible
+    Dim pt As APIPoint, o As IAccessible, v As Variant
+    Call GetCursorPos(pt)
+    Call AccessibleObjectFromPoint(pt.x, pt.y, o, v)
+    Set AccessibilityObjectFromMouseEx = o
+  End Function
+#End If
 
 
 'TODO: Highlight() - Creates a userform with transparent background and red border

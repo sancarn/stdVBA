@@ -191,3 +191,4 @@ Before `08/07/2021` a change log was not kept. We have  retrospectively gone bac
 * 2022-06-12 stdAcc         FIX         - Added `AwaitForElement` function.
 * 2022-06-12 stdWindow      BREAKING    - Changed `Quit()` to use `PostMessage(WM_CLOSE)`, added `ForceQuit()` calling `DestroyWindow` as previous.
 * 2022-06-12 stdWindow      BREAKING    - Added `AwaitForWindow` function.
+* 2022-06-13 stdAcc         FIX         - Fix `stdAcc::CreateFromMouse()` on 64-bit
