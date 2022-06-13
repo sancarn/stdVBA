@@ -1044,7 +1044,7 @@ End Function
 
 
 #If Win64 Then
-  Public Function AccessibilityObjectFromMouseEx() As IAccesible
+  Public Function AccessibilityObjectFromMouseEx() As IAccessible
     Dim pt As APIPoint, o As IAccessible, v As Variant
     Call GetCursorPos(pt)
     Call AccessibleObjectFromPoint(PointToLongLong(pt), o, v)
@@ -1061,7 +1061,7 @@ End Function
     MakeLongLong = (pt.x * &H100000000^) Or (pt.y And &HFFFFFFFF) Or sign
   End Function
 #Else
-  Public Function AccessibilityObjectFromMouseEx() As IAccesible
+  Public Function AccessibilityObjectFromMouseEx() As IAccessible
     Dim pt As APIPoint, o As IAccessible, v As Variant
     Call GetCursorPos(pt)
     Call AccessibleObjectFromPoint(pt.x, pt.y, o, v)
