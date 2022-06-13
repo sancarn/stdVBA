@@ -1186,6 +1186,18 @@ Public Property Let Resizable(ByVal v As Boolean)
   End If
 End Property
 
+'Get/Set topmost
+Public Property Get isTopmost() as Boolean
+  const WS_EX_TOPMOST = &H8
+  isTopMost = (StyleEx And WS_EX_TOPMOST) = WS_EX_TOPMOST
+End Property
+Public Property Let isTopmost(ByVal v as boolean)
+  Const HWND_TOPMOST   = -1
+  Const HWND_NOTOPMOST = -2
+  Const SWP_NOSIZE     = &H1
+  Const SWP_NOMOVE     = &H2
+  Call SetWindowPos(pHandle, iif(v, HWND_TOPMOST, HWND_NOTOPMOST), 0, 0, 0, 0, SWP_NOMOVE or SWP_NOSIZE)
+End Property
 
 '================================================================================================
 '=      PUBLIC INSTANCE METHODS
