@@ -268,7 +268,7 @@ Public protAccessible As Object
 '@returns {stdAcc} Object at the specified point
 Public Function CreateFromPoint(ByVal x As Long, ByVal y As Long) As stdAcc
     Set CreateFromPoint = New stdAcc
-    set CreateFromPoint.protAccessible = AccessibilityObjectFromMouseEx()
+    set CreateFromPoint.protAccessible = AccessibilityObjectFromPointEx(x,y)
 End Function
 
 'Creates an `stdAcc` object from a window handle.
@@ -332,7 +332,7 @@ Public Function CreateFromMouse() As stdAcc
     Dim pT As tPOINT
     Dim success As Long
     success = GetCursorPos(pT)
-    Set CreateFromMouse = Me.CreateFromPoint(pT.x, pT.y)
+    Set CreateFromMouse = CreateFromPoint(pt.x,pt.y)
 End Function
 
 'Creates an `stdAcc` object for the element at a given path from the current element.
@@ -900,40 +900,44 @@ Public Function getPath(Optional toAccessible As stdAcc = Nothing) As String
     Dim col As Collection: Set col = New Collection
         
     'Collect parents
-    While Not acc.parent.name = "Desktop"
-        Dim child As stdAcc
-        Dim index As Long: index = 0
-        Dim savedIndex As Long: savedIndex = 0
-        For Each child In acc.parent.children
-            index = index + 1
-            If child.hwnd = acc.hwnd And child.Role = acc.Role Then
-                savedIndex = index
-                Exit For
-            End If
-        Next
-        
-        'Add index to stack
-        If savedIndex > 0 Then
-            col.add savedIndex
-        Else
-            'In some scenarios this has occurred where acc tree has changed after initial pass. Not much we can do if this is the case.
-            getPath = "UNKNOWN"
-            Exit Function
-        End If
-                
-        'Elevate parent
-        Set acc = acc.parent
-    Wend
-    
-    'Create path
-    Dim path As String
-    Dim i As Integer
-    For i = col.Count To 1 Step -1
-        path = path & "." & col(i)
-    Next i
-    
-    'Return path
-    getPath = "D.W" & path
+    if not acc.parent is nothing then
+      While Not acc.parent.name = "Desktop"
+          Dim child As stdAcc
+          Dim index As Long: index = 0
+          Dim savedIndex As Long: savedIndex = 0
+          For Each child In acc.parent.children
+              index = index + 1
+              If child.hwnd = acc.hwnd And child.Role = acc.Role Then
+                  savedIndex = index
+                  Exit For
+              End If
+          Next
+          
+          'Add index to stack
+          If savedIndex > 0 Then
+              col.add savedIndex
+          Else
+              'In some scenarios this has occurred where acc tree has changed after initial pass. Not much we can do if this is the case.
+              getPath = "UNKNOWN"
+              Exit Function
+          End If
+                  
+          'Elevate parent
+          Set acc = acc.parent
+      Wend
+      
+      'Create path
+      Dim path As String
+      Dim i As Integer
+      For i = col.Count To 1 Step -1
+          path = path & "." & col(i)
+      Next i
+      
+      'Return path
+      getPath = "D.W" & path
+    else
+      getPath = "D"
+    end if
 End Function
 
 'Returns this element and all descendents as a JSON string. Useful for debugging
@@ -1044,28 +1048,42 @@ End Function
 
 
 #If Win64 Then
-  Public Function AccessibilityObjectFromMouseEx() As IAccessible
-    Dim pt As APIPoint, o As IAccessible, v As Variant
-    Call GetCursorPos(pt)
-    Call AccessibleObjectFromPoint(PointToLongLong(pt), o, v)
-    Set AccessibilityObjectFromMouseEx = o
+  'Get an IAccessible object from a screen point
+  '@param {Long} X - X coordinate (Horizontal)
+  '@param {Long} Y - Y coordinate (Vertical)
+  '@returns {IAccessible} Accessibility object
+  Private Function AccessibilityObjectFromPointEx(ByVal x as long, ByVal y as long) As IAccessible
+    Dim o As IAccessible, v As Variant
+    Call AccessibleObjectFromPoint(PointToLongLong(x,y), o, v)
+    Set AccessibilityObjectFromPointEx = o
   End Function
-  Private Function PointToLongLong(pt As APIPoint) As LongLong
+
+  'Convert a Point's X (Long) and Y (Long) into a `LongLong`
+  '@param {Long} X - X coordinate (Horizontal)
+  '@param {Long} Y - Y coordinate (Vertical)
+  '@remark You may notice that we are putting the arguments x and y into the function in the reverse order.
+  '        I believe this is because stdCall convention puts arguments onto the stack in the reverse order, but in this case
+  '        Since we are providing a single argument, we have to do that instead of the compiler. This ordering has been confirmed
+  '        experimentally, this is just my hypothesis for this weird ordering.
+  Private Function PointToLongLong(ByVal x as long, ByVal y as long) As LongLong
     'If sign bit is set (10000000 00000000 00000000 00000000) then shifting by 4 bytes left will cause an overflow.
     'Therefore exclude it (XOR part) but set the sign bit.
     Dim sign As LongLong
-    If HiLong And &H80000000 Then
-      HiLong = HiLong Xor &H80000000
+    If y And &H80000000 Then
+      y = y Xor &H80000000
       sign = &H8000000000000000^
     End If
-    MakeLongLong = (pt.x * &H100000000^) Or (pt.y And &HFFFFFFFF) Or sign
+    PointToLongLong = (y * &H100000000^) Or (x And &HFFFFFFFF) Or sign
   End Function
 #Else
-  Public Function AccessibilityObjectFromMouseEx() As IAccessible
-    Dim pt As APIPoint, o As IAccessible, v As Variant
-    Call GetCursorPos(pt)
-    Call AccessibleObjectFromPoint(pt.x, pt.y, o, v)
-    Set AccessibilityObjectFromMouseEx = o
+  'Get an IAccessible object from a screen point
+  '@param {Long} X - X coordinate (Horizontal)
+  '@param {Long} Y - Y coordinate (Vertical)
+  '@returns {IAccessible} Accessibility object
+  Private Function AccessibilityObjectFromPointEx(ByVal x as long, ByVal y as long) As IAccessible
+    Dim o As IAccessible, v As Variant
+    Call AccessibleObjectFromPoint(x, y, o, v)
+    Set AccessibilityObjectFromPointEx = o
   End Function
 #End If
 
