@@ -495,8 +495,8 @@ Public Function Join(Optional ByVal delimeter As String = ",") As String
 End Function
 
 'Get/Let/Set item
-'@param {integer} The location to get/set the item
-Public Property Get item(ByVal i As Integer) As Variant
+'@param {long} The location to get/set the item
+Public Property Get item(ByVal i As long) As Variant
 Attribute item.VB_UserMemId = 0
     'item(1) = 1st element
     'item(2) = 2nd element
@@ -504,25 +504,25 @@ Attribute item.VB_UserMemId = 0
     CopyVariant item, pArr(i)
     
 End Property
-Public Property Set item(ByVal i As Integer, ByVal item As Object)
+Public Property Set item(ByVal i As long, ByVal item As Object)
   set pArr(i) = item
 End Property
-Public Property Let item(ByVal i As Integer, ByVal item As Variant)
+Public Property Let item(ByVal i As long, ByVal item As Variant)
   pArr(i) = item
 End Property
 
 'Copy a variant into the array's ith element. This saves from having to test the item and call the correct `set` keyword
 '@param {Long} The index at which the item's data should be set
 '@param {ByRef Variant} Item to set at the index
-Public Sub PutItem(ByVal i As Integer, ByRef item As Variant)
+Public Sub PutItem(ByVal i As long, ByRef item As Variant)
   CopyVariant pArr(i), item
 End Sub
 
 'Obtain the index of an element
 '@param {Variant} Element to find
 '@param {Ingeger?=1} Location to start search for element.
-'@returns {integer} Index of element
-Public Function indexOf(ByVal el As Variant, Optional ByVal start As Integer = 1) as integer
+'@returns {long} Index of element
+Public Function indexOf(ByVal el As Variant, Optional ByVal start As long = 1) as long
   Dim elIsObj As Boolean, i As Long, item As Variant, itemIsObj As Boolean
   
   'Is element an object?
@@ -557,7 +557,7 @@ End Function
 
 'Obtain the last index of an element
 '@param {Variant} Element to find
-'@returns {integer} Last index of element
+'@returns {long} Last index of element
 Public Function lastIndexOf(ByVal el As Variant)
   Dim elIsObj As Boolean, i As Long, item As Variant, itemIsObj As Boolean
   
@@ -593,8 +593,8 @@ End Function
 
 'Returns true if the array contains an item
 '@param {Variant} Item to find
-'@param {Integer?=1} Index to start search for item at. (Internally uses indexOf())
-Public Function includes(ByVal el As Variant, Optional ByVal startFrom As Integer = 1) As Boolean
+'@param {long?=1} Index to start search for item at. (Internally uses indexOf())
+Public Function includes(ByVal el As Variant, Optional ByVal startFrom As long = 1) As Boolean
   includes = indexOf(el, startFrom) >= startFrom
 End Function
 
@@ -626,7 +626,7 @@ End Function
 
 Public Function IsSome(ByVal cb As stdICallable) As Boolean
   If pInitialised Then
-    Dim i As Integer
+    Dim i As long
     For i = 1 To pLength
       Dim bFlag as Boolean
       bFlag = cb.Run(pArr(i))
@@ -644,7 +644,7 @@ End Function
 
 Public Sub ForEach(ByVal cb As stdICallable)
   If pInitialised Then
-    Dim i As Integer
+    Dim i As long
     For i = 1 To pLength
       Call cb.Run(pArr(i))
     Next
@@ -658,7 +658,7 @@ Public Function Map(ByVal cb As stdICallable) As stdArray
     Dim pMap As stdArray
     Set pMap = Me.Clone()
     
-    Dim i As Integer
+    Dim i As long
     For i = 1 To pLength
       'BUGFIX: Sometimes required, not sure when
       Dim v As Variant
@@ -705,7 +705,7 @@ Public Function Reduce(ByVal cb As stdICallable, Optional ByVal initialValue As 
   If pInitialised Then
     Reduce = initialValue
     
-    Dim i As Integer
+    Dim i As long
     For i = 1 To pLength
       'BUGFIX: Sometimes required, not sure when
       Dim el As Variant
