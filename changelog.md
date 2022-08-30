@@ -195,5 +195,6 @@ Before `08/07/2021` a change log was not kept. We have  retrospectively gone bac
 * 2022-06-13 stdAcc         FIX         - Fix incorrect parameter order for `stdAcc` helper method `PointToLongLong()`. Without the fix, incorrect elements were being selected by their location.
 * 2022-06-13 stdAcc         FIX         - Fix Added check that acc is desktop to `getPath()`.
 * 2022-06-13 stdWindow      FEATURE     - Added `Get/Let isTopMost`, useful for userforms.
+* 2022-07-21 stdArray       FIX         - Fix `pLength` is defined as `Long` but numerous accessors defined as `integer`
 * 2022-08-31 stdArray       BREAKING    - Fixed #58. `stdArray`'s `reduce` behavior exhibits unexpected behavior when initialValue is missing. 
 * 2022-08-31 stdEnumerator  BREAKING    - Fixed #58. `stdEnumerator`'s `reduce` behavior exhibits unexpected behavior when initialValue is missing. 
