@@ -819,9 +819,17 @@ Public Function reduce(ByVal cb as stdICallable, Optional ByVal vInitialValue as
     Dim v as variant: v = null
     Dim i as long: i = 0
     Dim kv as variant: kv = null
-    Dim vRet as variant
-    Call CopyVariant(vRet, vInitialValue)
     
+    'Obtain initial value
+    Dim vRet as variant
+    if isMissing(initialValue) then 
+        Call NextItem(kv, v,i)
+        Call CopyVariant(vRet, v)
+    else
+        Call CopyVariant(vRet, initialValue)
+    end if
+    
+    'Reduce
     While NextItem(kv, v,i)
         Call CopyVariant(vRet, cb.Run(vRet,v,kv))
     Wend
