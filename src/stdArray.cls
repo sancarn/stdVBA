@@ -700,13 +700,28 @@ Public Function Unique(Optional ByVal cb As stdICallable = Nothing) As stdArray
   Set Unique = ret
 End Function
 
-
-Public Function Reduce(ByVal cb As stdICallable, Optional ByVal initialValue As Variant=0) As Variant
+Public Function Reduce(ByVal cb As stdICallable, Optional ByVal initialValue As Variant) As Variant
+  Dim iStart as long
   If pInitialised Then
-    Reduce = initialValue
+    if pLength > 0 then
+      if isMissing(initialValue) then 
+        Call CopyVariant(Reduce, pArr(1))
+        iStart = 2
+      else
+        Call CopyVariant(Reduce, initialValue)
+        iStart = 1
+      end if
+    else
+      if isMissing(initialValue) then
+        Reduce = Empty
+      else
+        Call CopyVariant(Reduce, initialValue)
+      end if
+      Exit Function
+    end if 
     
     Dim i As long
-    For i = 1 To pLength
+    For i = iStart To pLength
       'BUGFIX: Sometimes required, not sure when
       Dim el As Variant
       CopyVariant el, pArr(i)
@@ -718,6 +733,7 @@ Public Function Reduce(ByVal cb As stdICallable, Optional ByVal initialValue As 
     'Error
   End If
 End Function
+
 
 Public Function Filter(ByVal cb As stdICallable) As stdArray
     Dim ret As stdArray
