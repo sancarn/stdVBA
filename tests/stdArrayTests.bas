@@ -13,6 +13,13 @@ Sub testAll()
     Test.Assert "Check item 2", arr.item(2) = 2
     Test.Assert "Check item 3", arr.item(3) = 3
 
+    Dim vIter, iCount as long: iCount = 0
+    For each vIter in arr
+        iCount=iCount+1
+        Test.Assert "Check item is number", isNumber(vIter)
+    next
+    Test.Assert "Check loop triggered", iCount = 3
+
     set arr = stdArray.CreateFromArray(Array(1,2,3))
     Test.Assert "Check CreateFromArray 1", arr.item(1) = 1
     Test.Assert "Check CreateFromArray 2", arr.item(2) = 2

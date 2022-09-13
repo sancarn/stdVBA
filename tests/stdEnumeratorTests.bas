@@ -95,7 +95,6 @@ Sub testAll()
     Dim e5 as stdEnumerator: set e5 = stdEnumerator.CreateFromCallableVerbose(stdLambda.Create("Array($2 <= 9, $2, $2, $2)"))    '1,2,3,4,5,6,7,8,9
     Dim e6 as stdEnumerator: set e6 = stdEnumerator.CreateFromCallableVerbose(stdLambda.Create("Array($2 <= 9, $2, $2, ""a"" & $2)"))
     
-    
     Dim vAsArray as variant: vAsArray = e3.AsArray()
     Dim vAsArrayLong as variant: vAsArrayLong  = e3.AsArray(vbLong)
     Dim vAsArrayString as variant: vAsArrayString  = e3.AsArray(vbString)
@@ -108,6 +107,12 @@ Sub testAll()
     Test.Assert "AsDictionary()", e6.AsDictionary()("a1") = 1
     Test.Assert "AsCollection()", oAsCol.count = e3.length and typename(oAsCol) = "Collection"
     
+    Dim vIter, iCount as long: iCount = 0
+    For each vIter in e3
+        iCount=iCount+1
+        Test.Assert "Check item is number", isNumber(vIter)
+    next
+    Test.Assert "Check loop triggered", iCount = 9
 
     'We'll be using join a lot for tests so test this first:
     Test.Assert "CreateFromIEnumVariant + Join", e1.Join() = "1,2,3,4,5,6,7,8,9"
