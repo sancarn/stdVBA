@@ -198,3 +198,5 @@ Before `08/07/2021` a change log was not kept. We have  retrospectively gone bac
 * 2022-07-21 stdArray       FIX         - Fix `pLength` is defined as `Long` but numerous accessors defined as `integer`
 * 2022-08-31 stdArray       BREAKING    - Fixed #58. `stdArray`'s `reduce` behavior exhibits unexpected behavior when initialValue is missing. 
 * 2022-08-31 stdEnumerator  BREAKING    - Fixed #58. `stdEnumerator`'s `reduce` behavior exhibits unexpected behavior when initialValue is missing. 
+* 2022-09-13 stdArray       FEATURE     - Added quasi-support for `for each v in arr: ... : next` syntax, via `AsCollection`. Awaiting a future full implementation.
+* 2022-09-13 stdEnumerator  FEATURE     - Added quasi-support for `for each v in enumerator: ... : next` syntax, via `AsCollection`. Awaiting a future full implementation.

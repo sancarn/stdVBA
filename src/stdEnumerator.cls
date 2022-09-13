@@ -276,6 +276,17 @@ End Sub
 
 ' IEnumVariant methods
 
+'For-each compatibility
+'@protected
+'@returns {IEnumVARIANT} An enumerator with methods enumNext, enumRefresh etc.
+'@usage `For each obj in myEnum: ... : next`
+'@TODO: Use custom IEnumVARIANT instead of casting to Collection
+Public Property Get NewEnum() As IUnknown
+Attribute NewEnum.VB_UserMemId = -4
+    Static oEnumCol As Collection: If oEnumCol Is Nothing Then Set oEnumCol = Me.AsCollection()
+    Set NewEnum = oEnumCol.[_NewEnum]
+End Property
+
 'Refresh the dataset to the beginning
 Public Sub enumRefresh()
     p_enum_v = Null

@@ -127,6 +127,27 @@ Friend Sub init(ByVal iInitialLength As Long, ByVal iChunking As Long)
   End If
 End Sub
 
+'Obtain a collection from the data contained within the array. Primarily used for NewEnum() method.
+'@returns {Collection} Collection from Array
+Public Function AsCollection() as Collection
+  set AsCollection = new Collection
+  Dim i as long
+  For i = 1 To Me.Length
+    AsCollection.add pArr(i)
+  next
+End function
+
+'For-each compatibility
+'@protected
+'@returns {IEnumVARIANT} An enumerator with methods enumNext, enumRefresh etc.
+'@usage `For each obj in myEnum: ... : next`
+'@TODO: Use custom IEnumVARIANT instead of casting to Collection
+Public Property Get NewEnum() As IUnknown
+Attribute NewEnum.VB_UserMemId = -4
+    Static oEnumCol As Collection: If oEnumCol Is Nothing Then Set oEnumCol = Me.AsCollection()
+    Set NewEnum = oEnumCol.[_NewEnum]
+End Property
+
 'Obtain the length of the array
 Public Property Get Length() As Long
     Length = pLength
