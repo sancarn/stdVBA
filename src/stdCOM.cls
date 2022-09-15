@@ -297,7 +297,7 @@ End Enum
 '3      HRESULT  Register            ([in]  DWORD grfFlags, [in] IUnknown *punkObject, [in] IMoniker *pmkObjectName, [out] DWORD *pdwRegister)
 '4      HRESULT  Revoke              ([in]  DWORD dwRegister)
 '5      HRESULT  IsRunning           ([in]  IMoniker *pmkObjectName)
-'6      HRESULT  GetObject           ([in]  IMoniker *pmkObjectName, [out] IUnknown **ppunkObject)
+'6      HRESULT  GetObject_           ([in]  IMoniker *pmkObjectName, [out] IUnknown **ppunkObject)
 '7      HRESULT  NoteChangeTime      ([in]  DWORD dwRegister,[in] FILETIME *pfiletime)
 '8      HRESULT  GetTimeOfLastChange ([in]  IMoniker *pmkObjectName, [out] FILETIME *pfiletime)
 '9      HRESULT  EnumRunning         ([out] IEnumMoniker **ppenumMoniker)
@@ -308,7 +308,7 @@ Public Enum EIRunningObjectTable
   Register
   Revoke
   IsRunning
-  GetObject
+  GetObject_
   NoteChangeTime
   GetTimeOfLastChange
   EnumRunning
@@ -487,9 +487,9 @@ Public Function CreateFromActiveObjects() As Collection
     'Get DisplayName and Object
     Dim sName As String: If moniker.CallVT(EIMoniker.GetDisplayName, vbLong, varPtr(pBindCtx), varPtr(pMoniker), varPtr(pName)) = S_OK Then _
         sName = GetStrFromPtrW(pName)
-    Call ROT.CallVT(EIRunningObjectTable.GetObject, vbLong, pMoniker, varPtr(pMonikerObject))                          '*Interface
+    Call ROT.CallVT(EIRunningObjectTable.GetObject_, vbLong, pMoniker, varPtr(pMonikerObject))                          '*Interface
     Dim obj As stdCOM: Set obj = stdCOM.CreateFromPtr(pMonikerObject)                                                  'stdCOM<Interface>
-    'Dim obj As stdCOM: Set obj = ROT.CallVTW(EIRunningObjectTable.GetObject, vbLong, pMoniker, Null)                  'stdCOM<Interface>
+    'Dim obj As stdCOM: Set obj = ROT.CallVTW(EIRunningObjectTable.GetObject_, vbLong, pMoniker, Null)                  'stdCOM<Interface>
     
     'Wrap return value in dictionary for easy enumeration with stdLambda
     Dim oDict As Object: Set oDict = CreateObject("Scripting.Dictionary")
@@ -597,12 +597,12 @@ End Function
 '@example {myCom.TypeInfo.CallVT(EITypeInfo.GetTypeAttr, vbLong, VarPtr(lPtr))}
 Public Property Get TypeInfo() As stdCOM
   On Error GoTo CannotQuery
-    Set TypeInfo = Me.QueryKnownInterface(ITypeInfo)
+    Set TypeInfo = QueryKnownInterface(ITypeInfo)
     Exit Property
 CannotQuery:
   On Error GoTo UnknownError
   'Attempt to query from IDispatch
-  With Me.QueryKnownInterface(IDispatch)
+  With QueryKnownInterface(IDispatch)
     Dim pTypeInfo As IUnknown
     Dim hResult As Long: hResult = .CallVT(EIDispatch.GetTypeInfo, vbLongPtr, NULL_PTR, NULL_PTR, varPtr(pTypeInfo))
     If hResult <> S_OK Then Err.Raise hResult, "InterfaceInfo", "stdCOM::InterfaceInfo"

@@ -200,3 +200,6 @@ Before `08/07/2021` a change log was not kept. We have  retrospectively gone bac
 * 2022-08-31 stdEnumerator  BREAKING    - Fixed #58. `stdEnumerator`'s `reduce` behavior exhibits unexpected behavior when initialValue is missing. 
 * 2022-09-13 stdArray       FEATURE     - Added quasi-support for `for each v in arr: ... : next` syntax, via `AsCollection`. Awaiting a future full implementation.
 * 2022-09-13 stdEnumerator  FEATURE     - Added quasi-support for `for each v in enumerator: ... : next` syntax, via `AsCollection`. Awaiting a future full implementation.
+* 2022-09-14 stdCOM         FIX         - `GetObject` enum renamed to `GetObject_` due to compatibility issue with `GetObject()`
+* 2022-09-15 stdCOM         FIX         - Fix a VBA bug, remove `Me.` which was preventing in-class error handling from working correctly, which ultimately meant that `TypeInfo` wasn't calling the `IDispatch::GetTypeInfo`. Now that it does, TypeInfo will work on VBA classes too!
+* 2022-09-15 Templates      FEATURE     - Added a folder containing class and module templates
