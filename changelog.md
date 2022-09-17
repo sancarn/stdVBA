@@ -203,3 +203,4 @@ Before `08/07/2021` a change log was not kept. We have  retrospectively gone bac
 * 2022-09-14 stdCOM         FIX         - `GetObject` enum renamed to `GetObject_` due to compatibility issue with `GetObject()`
 * 2022-09-15 stdCOM         FIX         - Fix a VBA bug, remove `Me.` which was preventing in-class error handling from working correctly, which ultimately meant that `TypeInfo` wasn't calling the `IDispatch::GetTypeInfo`. Now that it does, TypeInfo will work on VBA classes too!
 * 2022-09-15 Templates      FEATURE     - Added a folder containing class and module templates
+* 2022-09-17 All            FIX         - Fix VBA error handling issue which occurs when `Break on Class Module` is ticked, where error handling loses state on error raise. See #61 for details. 
