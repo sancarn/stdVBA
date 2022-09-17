@@ -798,15 +798,15 @@ End Property
 'Returns a string containing numerous properties from stdAcc concatenated together.
 '@returns {String} Concatenation of Name, Value, DefaultAction, Description, Role, Help, HelpTopic and KeyboardShortcut.
 Public Property Get Text() As String
-  If Len(Me.name & Me.value & Me.DefaultAction & Me.Description & Me.Help & Me.HelpTopic & Me.KeyboardShortcut) > 0 Then
-    Text = "Name: """ & Me.name & """; " & _
-            "Value: """ & Me.value & """; " & _
-            "DefaultAction: """ & Me.DefaultAction & """; " & _
-            "Description: """ & Me.Description & """; " & _
-            "Role: """ & Me.Role & """; " & _
-            "Help: """ & Me.Help & """; " & _
-            "HelpTopic: """ & Me.HelpTopic & """; " & _
-            "KeyboardShortcut: """ & Me.KeyboardShortcut & """;"
+  If Len(name() & value() & DefaultAction() & Description() & Help() & HelpTopic() & KeyboardShortcut()) > 0 Then
+    Text = "Name: """ & name() & """; " & _
+            "Value: """ & value() & """; " & _
+            "DefaultAction: """ & DefaultAction() & """; " & _
+            "Description: """ & Description() & """; " & _
+            "Role: """ & Role() & """; " & _
+            "Help: """ & Help() & """; " & _
+            "HelpTopic: """ & HelpTopic() & """; " & _
+            "KeyboardShortcut: """ & KeyboardShortcut() & """;"
   Else
     Text = ""
   End If
@@ -829,8 +829,8 @@ End Sub
 '@param {Long} LParam to send
 '@returns {Long} Return value
 Public Function SendMessage(ByVal Msg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
-    If Me.hwnd > 0 Then
-        SendMessage = APISendMessage(Me.hwnd, Msg, wParam, lParam)
+    If hwnd() > 0 Then
+        SendMessage = APISendMessage(hwnd(), Msg, wParam, lParam)
     Else
         Err.Raise 1, "No hwnd on this window"
     End If
@@ -947,21 +947,21 @@ Public Function toJSON() As String
     Dim sChildren As String
     sChildren = ""
     Dim acc As stdAcc
-    For Each acc In Me.children
+    For Each acc In children()
         sChildren = sChildren & "," & acc.toJSON()
     Next
     sChildren = Mid(sChildren, 2)
     
     'Convert to json
     toJSON = "{" & _
-        "name:""" & jsonEscape(Me.name) & """," & _
-        "desc:""" & jsonEscape(Me.Description) & """," & _
-        "value:""" & jsonEscape(Me.value) & """," & _
-        "role:""" & jsonEscape(Me.Role) & """," & _
-        "state:""" & jsonEscape(Me.State) & """," & _
-        "ks:""" & jsonEscape(Me.KeyboardShortcut) & """," & _
-        "help:""" & jsonEscape(Me.Help) & """," & _
-        "ht:""" & jsonEscape(Me.HelpTopic) & """," & _
+        "name:""" & jsonEscape(name()) & """," & _
+        "desc:""" & jsonEscape(Description()) & """," & _
+        "value:""" & jsonEscape(value()) & """," & _
+        "role:""" & jsonEscape(Role()) & """," & _
+        "state:""" & jsonEscape(State()) & """," & _
+        "ks:""" & jsonEscape(KeyboardShortcut()) & """," & _
+        "help:""" & jsonEscape(Help()) & """," & _
+        "ht:""" & jsonEscape(HelpTopic()) & """," & _
         "children:[" & sChildren & "]}"
 End Function
 
@@ -976,7 +976,7 @@ Public Function AwaitForElement(awaitFor as stdICallable, Optional error as stdI
   Dim el As Object: Set el = Nothing
   Dim oldTime As Date: oldTime = Now()
   While bCond
-      Set el = Me.FindFirst(awaitFor)
+      Set el = FindFirst(awaitFor)
       If Not el Is Nothing Then bCond = False
       If Not error Is Nothing Then
           If error.Run(Me) Then bCond = False

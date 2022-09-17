@@ -283,7 +283,7 @@ End Sub
 '@TODO: Use custom IEnumVARIANT instead of casting to Collection
 Public Property Get NewEnum() As IUnknown
 Attribute NewEnum.VB_UserMemId = -4
-    Static oEnumCol As Collection: If oEnumCol Is Nothing Then Set oEnumCol = Me.AsCollection()
+    Static oEnumCol As Collection: If oEnumCol Is Nothing Then Set oEnumCol = AsCollection()
     Set NewEnum = oEnumCol.[_NewEnum]
 End Property
 

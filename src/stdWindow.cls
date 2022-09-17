@@ -905,7 +905,7 @@ End Property
 'Get/Set the X position of this window
 Public Property Get x(Optional ByVal iClWnd As EWndRectType) As Long
   If Exists Then
-    x = Me.RectByType(iClWnd)(0)
+    x = RectByType(iClWnd)(0)
   Else
     Err.Raise 1, "stdWindow#x", "Window does not exist."
   End If
@@ -1568,7 +1568,7 @@ Public Sub SendKeysInput(ByVal sKeys As String, Optional ByVal bRaw As Boolean =
   Const KEYEVENTF_KEYUP = &H2
   Dim keys() As KeyToken: keys = TokeniseKeys(sKeys, bAutoRelease)
   If Exists Then
-    Me.Activate
+    Activate()
     
     'Loop over all keys
     Dim iKey As Long
@@ -1619,7 +1619,7 @@ Public Sub SendKeysEvent(ByVal sKeys As String, Optional ByVal keyDelay As Long 
   If Exists Then
     Call setThreadInput(True)
       'Activate window
-      Call Me.Activate
+      Call Activate()
       Call Sleep(keyDelay)
       
       'Use keybd event
@@ -1698,7 +1698,7 @@ Public Function AwaitForWindow(awaitFor As stdICallable, Optional error As stdIC
   Dim el As Object: Set el = Nothing
   Dim oldTime As Date: oldTime = Now()
   While bCond
-      Set el = Me.FindFirst(awaitFor)
+      Set el = FindFirst(awaitFor)
       If Not el Is Nothing Then bCond = False
       If Not error Is Nothing Then If error.Run(Me) Then bCond = False
       If timeout <> -1 And Second(Now() - oldTime) > timeout Then bCond = False

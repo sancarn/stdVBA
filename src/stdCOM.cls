@@ -619,7 +619,7 @@ Public Property Get InterfaceInfo() As Collection
   Static pInterfaceInfo As Collection
   If pInterfaceInfo Is Nothing Then
     'Wrap pTypeInfo in stdCOM
-    Dim oTypeInfo As stdCOM: Set oTypeInfo = Me.TypeInfo
+    Dim oTypeInfo As stdCOM: Set oTypeInfo = TypeInfo()
     
     #If Win64 Then
       Dim lPtr As LongLong
@@ -859,7 +859,7 @@ End Sub
 '@destructor
 Private Sub Class_Terminate()
   'Revoke active objects
-  If pRegisteredOLEInstance > 0 Then Call RevokeActiveObjectEx(Me.Object, pRegisteredOLEInstance)
+  If pRegisteredOLEInstance > 0 Then Call RevokeActiveObjectEx(Object(), pRegisteredOLEInstance)
   If pRegisteredTimerOLEInstance > 0 Then Call RevokeActiveObjectEx(Me, pRegisteredTimerOLEInstance)
   
   'Call unknown release (prevent memory leaks)

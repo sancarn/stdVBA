@@ -72,7 +72,7 @@ Public Function Raise(Optional ByVal sMessage As String = "", Optional ByVal Cri
     'Stop process if critical
     If isCritical Then
       'Reset stack
-      Me.RefreshStack
+      RefreshStack()
       
       End
     End If
@@ -81,9 +81,9 @@ Public Function Raise(Optional ByVal sMessage As String = "", Optional ByVal Cri
 ErrorOccurred:
     'Ensure the error is raised
     Set RaiseClient = Nothing
-    Me.AddStack "stdError::Raise()"
+    Call AddStack("stdError::Raise()")
         Raise = Raise("stdError::Raise() Error in oMsgClient::Raise() " & Err.Description)
-    Me.PopStack
+    Call PopStack()
 End Function
 
 
