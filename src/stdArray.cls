@@ -132,7 +132,7 @@ End Sub
 Public Function AsCollection() as Collection
   set AsCollection = new Collection
   Dim i as long
-  For i = 1 To Me.Length
+  For i = 1 To Length()
     AsCollection.add pArr(i)
   next
 End function
@@ -144,7 +144,7 @@ End function
 '@TODO: Use custom IEnumVARIANT instead of casting to Collection
 Public Property Get NewEnum() As IUnknown
 Attribute NewEnum.VB_UserMemId = -4
-    Static oEnumCol As Collection: If oEnumCol Is Nothing Then Set oEnumCol = Me.AsCollection()
+    Static oEnumCol As Collection: If oEnumCol Is Nothing Then Set oEnumCol = AsCollection()
     Set NewEnum = oEnumCol.[_NewEnum]
 End Property
 
@@ -183,20 +183,20 @@ End Sub
 '@returns {stdArray<T>}
 Public Function Sort(Optional ByVal cbSortBy As stdICallable = Nothing, Optional ByVal cbComparrason As stdICallable = Nothing, Optional ByVal iAlgorithm As Long = 0, Optional ByVal bSortInPlace As Boolean = False) As stdArray
     If Not bSortInPlace Then
-        Set Sort = Me.Clone.Sort(cbSortBy, cbComparrason, iAlgorithm, True)
+        Set Sort = Clone().Sort(cbSortBy, cbComparrason, iAlgorithm, True)
     Else
-        If Me.Length = 0 then
+        If Length() = 0 then
           set Sort = Me
           Exit Function
         End if
 
         Dim arr() As SortStruct
-        ReDim arr(1 To Me.Length) As SortStruct
+        ReDim arr(1 To Length()) As SortStruct
         
         Dim i As Long
         
         'Copy array to sort structures
-        For i = 1 To Me.Length
+        For i = 1 To Length()
             Call CopyVariant(arr(i).Value, pArr(i))
             If cbSortBy Is Nothing Then
                 Call CopyVariant(arr(i).SortValue, pArr(i))
@@ -214,7 +214,7 @@ Public Function Sort(Optional ByVal cbSortBy As stdICallable = Nothing, Optional
         End Select
         
         'Copy sort structures to array
-        For i = 1 To Me.Length
+        For i = 1 To Length()
             Call CopyVariant(pArr(i), arr(i).Value)
         Next
         
@@ -234,7 +234,7 @@ Private Sub Sort_QuickSort(ByRef pvarArray() As SortStruct, Optional cbComparris
     
     If plngRight = 0 Then
         plngLeft = 1
-        plngRight = Me.Length
+        plngRight = Length()
     End If
     lngFirst = plngLeft
     lngLast = plngRight
@@ -677,7 +677,7 @@ End Sub
 Public Function Map(ByVal cb As stdICallable) As stdArray
   If pInitialised Then
     Dim pMap As stdArray
-    Set pMap = Me.Clone()
+    Set pMap = Clone()
     
     Dim i As long
     For i = 1 To pLength
@@ -704,9 +704,9 @@ Public Function Unique(Optional ByVal cb As stdICallable = Nothing) As stdArray
   'Collect keys
   Dim vKeys As stdArray
   If cb Is Nothing Then
-    Set vKeys = Me.Clone
+    Set vKeys = Clone()
   Else
-    Set vKeys = Me.Map(cb)
+    Set vKeys = Map(cb)
   End If
   
   'Unique by key

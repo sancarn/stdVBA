@@ -1184,12 +1184,12 @@ End Function
 '@returns The result
 Private Function evaluateFunc(ByVal sFuncName As String, ByVal args As Variant) As Variant
     Dim iArgStart As Long: iArgStart = LBound(args)
-    If TypeName(Me.oFunctExt) = "Dictionary" Then
-        If Me.oFunctExt.exists(sFuncName) Then
+    If TypeName(oFunctExt()) = "Dictionary" Then
+        If oFunctExt().exists(sFuncName) Then
             Dim vInjectedVar As Variant
             Call CopyVariant(vInjectedVar, oFunctExt(sFuncName))
             If TypeOf vInjectedVar Is stdICallable Then
-                Call CopyVariant(evaluateFunc, Me.oFunctExt(sFuncName).RunEx(args))
+                Call CopyVariant(evaluateFunc, oFunctExt(sFuncName).RunEx(args))
             Else
                 Call CopyVariant(evaluateFunc, vInjectedVar)
             End If
