@@ -140,7 +140,7 @@ Private Type PROCESSENTRY32
   th32ModuleID As Long
   cntThreads As Long
   th32ParentProcessID As Long
-  pcPriClassBase As Long
+  pcPriClassBase As Single
   dwFlags As Long
   szexeFile As String * MAX_PATH
 End Type
