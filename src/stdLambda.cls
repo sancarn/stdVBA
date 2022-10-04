@@ -181,6 +181,7 @@ Public Function BindGlobal(ByVal sGlobalName as string, ByVal variable as Varian
     If bBound Then
         Call oBound.BindGlobal(sGlobalName, variable)
     Else
+        If oFunctExt is nothing then Set oFunctExt = CreateObject("Scripting.Dictionary")
         If IsObject(variable) Then
             Set oFunctExt(sGlobalName) = variable
         Else
