@@ -1568,7 +1568,7 @@ Public Sub SendKeysInput(ByVal sKeys As String, Optional ByVal bRaw As Boolean =
   Const KEYEVENTF_KEYUP = &H2
   Dim keys() As KeyToken: keys = TokeniseKeys(sKeys, bAutoRelease)
   If Exists Then
-    Activate()
+    Call Activate
     
     'Loop over all keys
     Dim iKey As Long

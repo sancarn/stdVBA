@@ -798,15 +798,15 @@ End Property
 'Returns a string containing numerous properties from stdAcc concatenated together.
 '@returns {String} Concatenation of Name, Value, DefaultAction, Description, Role, Help, HelpTopic and KeyboardShortcut.
 Public Property Get Text() As String
-  If Len(name() & value() & DefaultAction() & Description() & Help() & HelpTopic() & KeyboardShortcut()) > 0 Then
-    Text = "Name: """ & name() & """; " & _
-            "Value: """ & value() & """; " & _
-            "DefaultAction: """ & DefaultAction() & """; " & _
-            "Description: """ & Description() & """; " & _
-            "Role: """ & Role() & """; " & _
-            "Help: """ & Help() & """; " & _
-            "HelpTopic: """ & HelpTopic() & """; " & _
-            "KeyboardShortcut: """ & KeyboardShortcut() & """;"
+  If Len(name & value & DefaultAction & Description & Help & HelpTopic & KeyboardShortcut) > 0 Then
+    Text = "Name: """ & name & """; " & _
+            "Value: """ & value & """; " & _
+            "DefaultAction: """ & DefaultAction & """; " & _
+            "Description: """ & Description & """; " & _
+            "Role: """ & Role & """; " & _
+            "Help: """ & Help & """; " & _
+            "HelpTopic: """ & HelpTopic & """; " & _
+            "KeyboardShortcut: """ & KeyboardShortcut & """;"
   Else
     Text = ""
   End If
