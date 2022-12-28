@@ -21,7 +21,7 @@ Attribute VB_Exposed = True
 #If VBA7 Then
     Private Declare PtrSafe Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (Destination As Any, Source As Any, ByVal Length As LongPtr)
     Private Declare PtrSafe Sub ZeroMemory Lib "kernel32" Alias "RtlZeroMemory" (Destination As Any, ByVal Length As Long)
-    Private Declare PtrSafe Function DispCallFunc Lib "oleaut32.dll" (ByVal pvInstance As LongPtr, ByVal offsetinVft As LongPtr, ByVal CallConv As Long, ByVal retTYP As Integer, ByVal paCNT As Long, ByRef paTypes As VbVarType, ByRef paValues As LongPtr, ByRef retVAR As Variant) As Long
+    Private Declare PtrSafe Function DispCallFunc Lib "oleAut32.dll" (ByVal pvInstance As LongPtr, ByVal offsetinVft As LongPtr, ByVal CallConv As Long, ByVal retTYP As Integer, ByVal paCNT As Long, ByRef paTypes As VbVarType, ByRef paValues As LongPtr, ByRef retVAR As Variant) As Long
     Private Declare PtrSafe Sub SetLastError Lib "kernel32.dll" (ByVal dwErrCode As Long)
     Private Declare PtrSafe Function IIDFromString Lib "ole32.dll" (ByVal pstCLS As LongPtr, ByRef iid As GUID) As Long
     Private Declare PtrSafe Function CLSIDFromString Lib "ole32.dll" (ByVal pstCLS As LongPtr, ByRef iid As GUID) As Long
@@ -29,20 +29,21 @@ Attribute VB_Exposed = True
     'Iterate the ROT
     Private Declare PtrSafe Function GetRunningObjectTable Lib "ole32.dll" (ByVal dwReserved As Long, pROT As LongPtr) As Long
     Private Declare PtrSafe Function CreateBindCtx Lib "ole32.dll" (ByVal dwReserved As Long, pBindCtx As LongPtr) As Long
-    Private Declare PtrSafe Function SysReAllocString Lib "oleaut32.dll" (ByVal pBSTR As LongPtr, Optional ByVal pszStrPtr As LongPtr) As Long
+    Private Declare PtrSafe Function SysReAllocString Lib "oleAut32.dll" (ByVal pBSTR As LongPtr, Optional ByVal pszStrPtr As LongPtr) As Long
     
     'Register to ROT
-    Private Declare PtrSafe Function RegisterActiveObject32 Lib "oleaut32.dll" Alias "RegisterActiveObject" (ByVal pUnk As IUnknown, ByRef rclsid As GUID, ByVal dwFlags As Long, ByRef pdwRegister As Long) As Long
-    Private Declare PtrSafe Function RevokeActiveObject32 Lib "oleaut32.dll" Alias "RevokeActiveObject" (ByVal dwRegister As Long, ByVal pvReserved As LongPtr) As Long
+    Private Declare PtrSafe Function RegisterActiveObject32 Lib "oleAut32.dll" Alias "RegisterActiveObject" (ByVal pUnk As IUnknown, ByRef rclsid As GUID, ByVal dwFlags As Long, ByRef pdwRegister As Long) As Long
+    Private Declare PtrSafe Function RevokeActiveObject32 Lib "oleAut32.dll" Alias "RevokeActiveObject" (ByVal dwRegister As Long, ByVal pvReserved As LongPtr) As Long
     Private Declare PtrSafe Function CoDisconnectObject Lib "ole32.dll" (ByVal pUnk As IUnknown, ByRef pvReserved As Long) As Long
     Private Declare PtrSafe Function CLSIDFromProgID Lib "ole32.dll" (ByVal ProgID As LongPtr, ByRef rclsid As GUID) As Long
 #Else
     Private Declare Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (Destination As Any, Source As Any, ByVal Length As Long)
     Private Declare Sub ZeroMemory Lib "kernel32" Alias "RtlZeroMemory" (Destination As Any, ByVal Length As Long)
-    Private Declare Function DispCallFunc Lib "oleAut32.dll" (ByVal pvInstance As Long, ByVal offsetinVft As Long, ByVal CallConv As Long, ByVal retTYP As Integer, ByVal paCNT As Long, ByRef paTypes As VbVarType, ByRef paValues As Long, ByRef retVAR As Variant) As Long
+    'FIX: The use of `VbVarType` for the type of `paTypes` on 32 bit causes Invalid Callee error. Workaround is to use `Integer` instead as below.
+    Private Declare Function DispCallFunc Lib "oleAut32.dll" (ByVal pvInstance As Long, ByVal offsetinVft As Long, ByVal CallConv As Long, ByVal retTYP As Integer, ByVal paCNT As Long, ByRef paTypes As Integer, ByRef paValues As Long, ByRef retVAR As Variant) As Long
     Private Declare Sub SetLastError Lib "kernel32.dll" (ByVal dwErrCode As Long)
-    Private Declare Function IIDFromString Lib "ole32.dll" (ByVal pstCLS As Long, ByRef iid As guid) As Long
-    Private Declare Function CLSIDFromString Lib "ole32.dll" (ByVal pstCLS As Long, ByRef iid As guid) As Long
+    Private Declare Function IIDFromString Lib "ole32.dll" (ByVal pstCLS As Long, ByRef iid As GUID) As Long
+    Private Declare Function CLSIDFromString Lib "ole32.dll" (ByVal pstCLS As Long, ByRef iid As GUID) As Long
     
     'Iterate the ROT
     Private Declare Function GetRunningObjectTable Lib "ole32.dll" (ByVal dwReserved As Long, pROT As Long) As Long
@@ -50,8 +51,8 @@ Attribute VB_Exposed = True
     Private Declare Function SysReAllocString Lib "oleAut32.dll" (ByVal pBSTR As Long, Optional ByVal pszStrPtr As Long) As Long
     
     'Register to ROT
-    Private Declare Function RegisterActiveObject32 Lib "oleaut32.dll"  Alias "RegisterActiveObject" (ByVal pUnk As IUnknown, ByRef rclsid As GUID, ByVal dwFlags As Long, ByRef pdwRegister As Long) As Long
-    Private Declare Function RevokeActiveObject32 Lib "oleaut32.dll" Alias "RevokeActiveObject" (ByVal dwRegister As Long, ByVal pvReserved As Long) As Long
+    Private Declare Function RegisterActiveObject32 Lib "oleAut32.dll" Alias "RegisterActiveObject" (ByVal pUnk As IUnknown, ByRef rclsid As GUID, ByVal dwFlags As Long, ByRef pdwRegister As Long) As Long
+    Private Declare Function RevokeActiveObject32 Lib "oleAut32.dll" Alias "RevokeActiveObject" (ByVal dwRegister As Long, ByVal pvReserved As Long) As Long
     Private Declare Function CoDisconnectObject Lib "ole32.dll" (ByVal pUnk As IUnknown, ByRef pvReserved As Long) As Long
     Private Declare Function CLSIDFromProgID Lib "ole32.dll" (ByVal ProgID As Long, ByRef rclsid As GUID) As Long
 #End If
@@ -390,7 +391,7 @@ Public Enum EIMoniker
   GetSizeMax
   BindToObject
   BindToStorage
-  Reduce
+  reduce
   ComposeWith
   Enumm
   IsEqual
@@ -414,16 +415,17 @@ Private Const CC_STDCALL    As Long = 4
 #If Win64 Then
   Private Const PTRSIZE = 8
   Private Const vbLongPtr = VbVarType.vbLongLong
+  Private pObjPtr As LongPtr
 #Else
   Private Const PTRSIZE = 4
   Private Const vbLongPtr = VbVarType.vbLong
+  Private pObjPtr As Long
 #End If
 
 
 '*******************
 '* STATE VARIABLES *
 '*******************
-Private pObjPtr As LongPtr
 Private oMeta As IUnknown
 Private pRegisteredOLEInstance As Long
 Private pRegisteredTimerOLEInstance As Long
@@ -474,20 +476,20 @@ Public Function CreateFromActiveObjects() As Collection
   If CLng(CreateBindCtx(0, pBindCtx)) <> S_OK Then Exit Function                                   '*IBindCtx
   Dim CTX As stdCOM: Set CTX = stdCOM.CreateFromPtr(pBindCtx)                                      'stdCOM<IBindCtx>
   Dim ROT As stdCOM: Set ROT = stdCOM.CreateFromPtr(pROT).QueryKnownInterface(IRunningObjectTable) 'stdCOM<IRunningObjectTable>
-  Call ROT.CallVT(EIRunningObjectTable.EnumRunning, vbLong, varPtr(pEnumMoniker))                  '*IEnumMoniker
+  Call ROT.CallVT(EIRunningObjectTable.EnumRunning, vbLong, VarPtr(pEnumMoniker))                  '*IEnumMoniker
   Dim e As stdCOM: Set e = stdCOM.CreateFromPtr(pEnumMoniker)                                      'stdCOM<IEnumMoniker>
   'Dim e As stdCOM: Set e = ROT.CallVTW(EIRunningObjectTable.EnumRunning, vbLong, Null)            'stdCOM<IEnumMoniker>
   
   'Enumerate ROT
   Dim nCount As Long: nCount = 1&
   Dim nCountFetched As Long: nCountFetched = 1& 'Note: This has to be set else a crash occurs
-  While e.CallVT(EIEnumMoniker.Nextt, vbLong, nCount, varPtr(pMoniker), varPtr(nCountFetched)) = S_OK     '*IMoniker
+  While e.CallVT(EIEnumMoniker.Nextt, vbLong, nCount, VarPtr(pMoniker), VarPtr(nCountFetched)) = S_OK     '*IMoniker
     Dim moniker As stdCOM: Set moniker = stdCOM.CreateFromPtr(pMoniker)                                   'stdCOM<IMoniker>
     
     'Get DisplayName and Object
-    Dim sName As String: If moniker.CallVT(EIMoniker.GetDisplayName, vbLong, varPtr(pBindCtx), varPtr(pMoniker), varPtr(pName)) = S_OK Then _
+    Dim sName As String: If moniker.CallVT(EIMoniker.GetDisplayName, vbLong, VarPtr(pBindCtx), VarPtr(pMoniker), VarPtr(pName)) = S_OK Then _
         sName = GetStrFromPtrW(pName)
-    Call ROT.CallVT(EIRunningObjectTable.GetObject_, vbLong, pMoniker, varPtr(pMonikerObject))                          '*Interface
+    Call ROT.CallVT(EIRunningObjectTable.GetObject_, vbLong, pMoniker, VarPtr(pMonikerObject))                          '*Interface
     Dim obj As stdCOM: Set obj = stdCOM.CreateFromPtr(pMonikerObject)                                                  'stdCOM<Interface>
     'Dim obj As stdCOM: Set obj = ROT.CallVTW(EIRunningObjectTable.GetObject_, vbLong, pMoniker, Null)                  'stdCOM<Interface>
     
@@ -552,7 +554,7 @@ Public Function unkQueryInterface(ByVal sIID As String) As stdCOM
   Dim IInterface As IUnknown
   Dim tGUID As GUID
   If IIDFromString(StrPtr(sIID), tGUID) = S_OK Then
-    Dim hResult As Long: hResult = CallVT(EIUnknown.QueryInterface, vbLong, varPtr(tGUID.Data1), varPtr(IInterface))
+    Dim hResult As Long: hResult = CallVT(EIUnknown.QueryInterface, vbLong, VarPtr(tGUID.Data1), VarPtr(IInterface))
     If hResult = S_OK Then
       Set unkQueryInterface = stdCOM.Create(IInterface)
     ElseIf hResult = E_POINTER Then
@@ -604,7 +606,7 @@ CannotQuery:
   'Attempt to query from IDispatch
   With QueryKnownInterface(IDispatch)
     Dim pTypeInfo As IUnknown
-    Dim hResult As Long: hResult = .CallVT(EIDispatch.GetTypeInfo, vbLongPtr, NULL_PTR, NULL_PTR, varPtr(pTypeInfo))
+    Dim hResult As Long: hResult = .CallVT(EIDispatch.GetTypeInfo, vbLongPtr, NULL_PTR, NULL_PTR, VarPtr(pTypeInfo))
     If hResult <> S_OK Then Err.Raise hResult, "InterfaceInfo", "stdCOM::InterfaceInfo"
     Set TypeInfo = stdCOM.Create(pTypeInfo)
   End With
@@ -629,7 +631,7 @@ Public Property Get InterfaceInfo() As Collection
       Const CountPos As Long = 11
     #End If
     'Get TypeAttribute
-    Call oTypeInfo.CallVT(EITypeInfo.GetTypeAttr, vbLong, varPtr(lPtr))
+    Call oTypeInfo.CallVT(EITypeInfo.GetTypeAttr, vbLong, VarPtr(lPtr))
     
     'Fix bug in VBA/VB6 engine - for some reason the next CopyMemory statement will set the following
     'value to nothing
@@ -652,13 +654,13 @@ Public Property Get InterfaceInfo() As Collection
     Dim i As Long
     For i = 0 To tTypeAttr.cFuncs - 1
       lPtr = 0
-      Call oTypeInfo.CallVT(EITypeInfo.GetFuncDesc, vbLong, i, varPtr(lPtr))
+      Call oTypeInfo.CallVT(EITypeInfo.GetFuncDesc, vbLong, i, VarPtr(lPtr))
       If lPtr <> 0 Then
         CopyMemory tFuncDesc, ByVal lPtr, iFuncMemSize
         Call oTypeInfo.CallVT(EITypeInfo.ReleaseFuncDesc, vbLong, lPtr)
         
         Dim sName As String: sName = vbNullString
-        Call oTypeInfo.CallVT(EITypeInfo.GetDocumentation, vbLong, tFuncDesc.memid, varPtr(sName), NULL_PTR, NULL_PTR, NULL_PTR)
+        Call oTypeInfo.CallVT(EITypeInfo.GetDocumentation, vbLong, tFuncDesc.memid, VarPtr(sName), NULL_PTR, NULL_PTR, NULL_PTR)
         oRet.Add Array(sName, tFuncDesc.INVOKEKIND, i, tFuncDesc.memid)
       End If
       If (i Mod 50) = 0 Then DoEvents
@@ -749,14 +751,14 @@ Public Sub StartTimer(Optional ByVal iMilliseconds As Long = 500)
     & "  using System;" & vbCrLf _
     & "  using System.Runtime.InteropServices;" & vbCrLf _
     & "  public class COMHelper {" & vbCrLf _
-    & "    [DllImport(""oleaut32.dll"", PreserveSig=false)]" & vbCrLf _
-    & "    static extern void GetActiveObject(ref Guid   rclsid, IntPtr pvReserved, [MarshalAs(UnmanagedType.IUnknown)] out Object ppunk);" & vbCrLf _
+    & "    [DllImport(""oleAut32.dll"", PreserveSig=false)]" & vbCrLf _
+    & "    static extern void GetActiveObject(ref GUID   rclsid, IntPtr pvReserved, [MarshalAs(UnmanagedType.IUnknown)] out Object ppunk);" & vbCrLf _
     & "    " & vbCrLf _
     & "    [DllImport(""ole32.dll"")]" & vbCrLf _
-    & "    static extern int CLSIDFromString([MarshalAs(UnmanagedType.LPWStr)] string lpszProgID, out Guid pclsid);" & vbCrLf _
+    & "    static extern int CLSIDFromString([MarshalAs(UnmanagedType.LPWStr)] string lpszProgID, out GUID pclsid);" & vbCrLf _
     & "    " & vbCrLf _
     & "    public static object getActiveObject(string sClsid){" & vbCrLf _
-    & "      Guid clsid;" & vbCrLf _
+    & "      GUID clsid;" & vbCrLf _
     & "      CLSIDFromString(sClsid, out clsid);" & vbCrLf _
     & "      " & vbCrLf _
     & "      object obj;" & vbCrLf _
@@ -799,30 +801,39 @@ End Sub
 '@param {Long}      The offset of the method to call. IUnknown::QueryInterface=0; IUnknown::AddRef=1; IUnknown::Release=2; IDispatch::Invoke=6
 '@param {VbVarType} Return value of function, typically Long (HResult) for COM Object calls
 '@paramArray Arguments to send to function.
-Public Function CallVT(ByVal iOffset As Long, ByVal ReturnType As VbVarType, ParamArray A() As Variant) As Variant
+Public Function CallVT(ByVal VTableOffset As Long, ByVal ReturnType As VbVarType, ParamArray FunctionParameters() As Variant) As Variant
     'Create array from params
-    Dim vParam() As Variant: vParam = A
+    Dim vParam() As Variant: vParam = FunctionParameters
+    Dim iParamCount As Long: iParamCount = UBound(vParam) - LBound(vParam) + 1
     
-    'Create array of pointers to params, and array of types for DispCallFunc
-    Dim lIdx As Long
-    Dim vType() As VbVarType
-    ReDim vType(0 To UBound(vParam) + 1) As VbVarType
+    'Create array of types and pointers to vars, for function call
     #If Win64 Then
       Dim vPtr() As LongLong
-      ReDim vPtr(0 To UBound(vParam) + 1) As LongLong
+      Dim vType() As VbVarType
     #Else
       Dim vPtr() As Long
-      ReDim vPtr(0 To UBound(vParam) + 1) As Long
+      Dim vType() As Integer 'FIX: On 32-bit use of vbVarType for the type parameter will fail
     #End If
     
-    For lIdx = 0 To UBound(vParam)
-        vType(lIdx) = VarType(vParam(lIdx))
-        vPtr(lIdx) = varPtr(vParam(lIdx))
-    Next
-
+    'Populate array of pointers to params, and array of types for DispCallFunc
+    If iParamCount = 0 Then
+      ReDim vType(0 To 0)
+      ReDim vPtr(0 To 0)
+    Else
+      ReDim vType(0 To iParamCount - 1)
+      ReDim vPtr(0 To iParamCount - 1)
+    
+      Dim lIdx As Long
+      For lIdx = 0 To iParamCount - 1
+        vType(lIdx) = varType(vParam(lIdx))
+        vPtr(lIdx) = VarPtr(vParam(lIdx))
+      Next
+    End If
+    
     'Call function
     Dim hResult As Long
-    hResult = DispCallFunc(pObjPtr, iOffset * PTRSIZE, CC_STDCALL, ReturnType, lIdx, vType(0), vPtr(0), CallVT)
+    hResult = DispCallFunc(pObjPtr, VTableOffset * PTRSIZE, CC_STDCALL, ReturnType, iParamCount, vType(0), vPtr(0), vv)
+    
     If hResult < 0 Then
         Err.Raise hResult, "DispCallFunc"
     End If
@@ -1010,7 +1021,7 @@ End Function
 #Else
     Private Function GetStrFromPtrW(ByVal ptr As Long) As String
 #End If
-    SysReAllocString varPtr(GetStrFromPtrW), ptr
+    SysReAllocString VarPtr(GetStrFromPtrW), ptr
 End Function
 
 
@@ -1039,7 +1050,7 @@ End Function
   Private Function Deref(ByVal memAddress As Long) As Object
 #End If
   Dim result As Object
-  CopyMemory result, ByVal varPtr(memAddress), LenB(memAddress)
+  CopyMemory result, ByVal VarPtr(memAddress), LenB(memAddress)
   Set Deref = result                             'Set and add ref
   ZeroMemory result, LenB(memAddress)
 End Function

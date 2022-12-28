@@ -205,3 +205,4 @@ Before `08/07/2021` a change log was not kept. We have  retrospectively gone bac
 * 2022-09-15 Templates      FEATURE     - Added a folder containing class and module templates
 * 2022-09-17 All            FIX         - Fix VBA error handling issue which occurs when `Break on Class Module` is ticked, where error handling loses state on error raise. See #61 for details. 
 * 2022-12-28 stdArray       FIX         - Reduce now works for returning objects. E.G. `arr(arr(1,2,3),arr(4,5,6)).reduce(stdLambda.Create("$1.concat($2)"))` works to flatten an array
+* 2022-12-28 stdCOM         FIX         - Error in `CallVT` fixed for 32-bit.
