@@ -748,7 +748,7 @@ Public Function Reduce(ByVal cb As stdICallable, Optional ByVal initialValue As 
       CopyVariant el, pArr(i)
 
       'Reduce
-      Reduce = cb.Run(Reduce, el)
+      CopyVariant Reduce, cb.Run(Reduce, el)
     Next
   Else
     'Error
