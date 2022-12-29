@@ -791,7 +791,7 @@ Public Function Count(Optional ByVal cb As stdICallable = nothing) As Long
   end if
 End Function
 
-Public Function Group(ByVal cb As stdICallable) As Object
+Public Function GroupBy(ByVal cb As stdICallable) As Object
     'Array to store result in
     Dim result As Object
     Set result = CreateObject("Scripting.Dictionary")
@@ -811,7 +811,7 @@ Public Function Group(ByVal cb As stdICallable) As Object
     Next
 
     'Return result
-    Set Group = result
+    Set GroupBy = result
 End Function
 
 Public Function Max(Optional ByVal cb As stdICallable = nothing, Optional ByVal startingValue As Variant = Empty) as variant
