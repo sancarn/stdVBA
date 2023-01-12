@@ -207,3 +207,4 @@ Before `08/07/2021` a change log was not kept. We have  retrospectively gone bac
 * 2022-12-28 stdArray       FIX         - Reduce now works for returning objects. E.G. `arr(arr(1,2,3),arr(4,5,6)).reduce(stdLambda.Create("$1.concat($2)"))` works to flatten an array
 * 2022-12-28 stdCOM         FIX         - Error in `CallVT` fixed for 32-bit.
 * 2022-12-29 stdArray       BREAKING    - `stdArray` alignment with `stdEnumerator`, rename method `Group` to `GroupBy`.
+* 2022-01-12 stdHTTP        FEATURE     - Added `stdHTTP`. Ability to create HTTP requests with support for `stdICallable` authenticators.
