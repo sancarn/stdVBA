@@ -34,7 +34,7 @@ Private Enum SetCredentialsType
 End Enum
 
 Private Enum ProxySetting
-  Default = 0
+  default = 0
   PreConfig = 0
   Direct = 1
   Proxy = 2
@@ -154,7 +154,7 @@ End Enum
   End Enum
   Private Declare Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (ByVal lpDest As LongPtr, ByVal lpSource As LongPtr, ByVal iCount As Long)
   Private Declare Function SysAllocString Lib "oleaut32" (ByVal pwsz As LongPtr) As LongPtr
-  Private Declare Sub SysFreeString Lib "oleaut32" (ByVal pwsz as LongPtr)
+  Private Declare Sub SysFreeString Lib "oleaut32" (ByVal pwsz As LongPtr)
   Private Declare Function GlobalFree Lib "kernel32" (ByVal p As LongPtr) As LongPtr
   Private Declare Function WinHttpGetIEProxyConfigForCurrentUser Lib "WinHTTP.dll" (ByRef proxyConfig As IE_PROXY_CONFIG) As Long
   Private Declare Function WinHttpGetProxyForUrl Lib "WinHTTP.dll" (ByVal hSession As LongPtr, ByVal pszUrl As LongPtr, ByRef pAutoProxyOptions As AUTOPROXY_OPTIONS, ByRef pProxyInfo As PROXY_INFO) As Long
@@ -231,16 +231,16 @@ Public Function CreateOptions(Optional Body As String = "", Optional Headers As 
   oRet.CompareMode = vbTextCompare
   
   If Headers Is Nothing Then Set Headers = CreateHeaders()
-  If Not Headers.exists("Content-Type") Then
+  If Not Headers.Exists("Content-Type") Then
     Dim sContentType As String
-    If (ContentTypeDefault And ContentType_HTML) = ContentType_HTML Then sContentType = sContentType & "text/html; "
-    If (ContentTypeDefault And ContentType_Plain) = ContentType_Plain Then sContentType = sContentType & "text/plain; "
-    If (ContentTypeDefault And ContentType_JSON) = ContentType_JSON Then sContentType = sContentType & "application/json; "
-    If (ContentTypeDefault And ContentType_XML) = ContentType_XML Then sContentType = sContentType & "application/xml; text/xml; "
-    If (ContentTypeDefault And ContentType_CSV) = ContentType_CSV Then sContentType = sContentType & "text/csv; "
-    If (ContentTypeDefault And ContentType_ZIP) = ContentType_ZIP Then sContentType = sContentType & "application/zip; "
-    If (ContentTypeDefault And ContentType_Binary) = ContentType_Binary Then sContentType = sContentType & "application/octet-stream; "
-    If sContentType <> "" Then Headers("Content-Type") = sContentType
+    If (ContentTypeDefault And ContentType_HTML) = ContentType_HTML Then sContentType = sContentType & "; text/html"
+    If (ContentTypeDefault And ContentType_Plain) = ContentType_Plain Then sContentType = sContentType & "; text/plain"
+    If (ContentTypeDefault And ContentType_JSON) = ContentType_JSON Then sContentType = sContentType & "; application/json"
+    If (ContentTypeDefault And ContentType_XML) = ContentType_XML Then sContentType = sContentType & "; application/xml; text/xml"
+    If (ContentTypeDefault And ContentType_CSV) = ContentType_CSV Then sContentType = sContentType & "; text/csv"
+    If (ContentTypeDefault And ContentType_ZIP) = ContentType_ZIP Then sContentType = sContentType & "; application/zip"
+    If (ContentTypeDefault And ContentType_Binary) = ContentType_Binary Then sContentType = sContentType & "; application/octet-stream"
+    If sContentType <> "" Then Headers("Content-Type") = Mid(sContentType, 3)
   End If
   Set oRet("Headers") = Headers
   
@@ -270,7 +270,7 @@ End Property
 
 Public Property Get ResponseStatus()
   On Error GoTo Processing
-  ResponseStatus = pHTTP.Status
+  ResponseStatus = pHTTP.status
   Exit Property
 Processing:
   ResponseStatus = 0
@@ -319,7 +319,7 @@ Friend Sub protInit(ByVal sURL As String, Optional ByVal RequestMethod As String
     pHTTP.Option(WinHttpRequestOption.SslErrorIgnoreFlags) = 0
     pHTTP.Option(WinHttpRequestOption.EnableHttpsToHttpRedirects) = False
   End If
-  pHTTP.Option(WinHttpRequestOption.EnableRedirects) = options(EnableRedirects)
+  pHTTP.Option(WinHttpRequestOption.EnableRedirects) = options("EnableRedirects")
   
   Dim vKey
   For Each vKey In options("Headers").keys()
@@ -345,23 +345,59 @@ Friend Property Get protHSession() As LongPtr
   End If
 End Property
 
+Public Function URIEncode(ByVal strInput As String) As String
+  Dim bytInput() As Byte
+  Dim strOutput As String
+  Dim i As Long
 
+  bytInput = StrConv(strInput, vbFromUnicode)
 
+  strOutput = ""
+  For i = 0 To UBound(bytInput)
+    If (bytInput(i) >= 48 And bytInput(i) <= 57) Or _
+       (bytInput(i) >= 65 And bytInput(i) <= 90) Or _
+       (bytInput(i) >= 97 And bytInput(i) <= 122) Then
+      strOutput = strOutput & Chr(bytInput(i))
+    Else
+      strOutput = strOutput & "%" & right("0" & Hex(bytInput(i)), 2)
+    End If
+  Next i
 
-
-
-
-
-
-Public Function t()
-  t = t & "^(?:(http[s]?|ftp):/)?/?"  ' METHOD
-  t = t & "([^:^/^?^#\\s]+)"          ' HOSTNAME
-  t = t & "(?::(\\d+))?"              ' PORT
-  t = t & "([^?^#.*]+)?"              ' PATH
-  t = t & "(\\?[^#.]*)?"              ' QUERY
-  t = t & "(#[\\w\\-]+)?$"            ' ID
+  URIEncode = strOutput
 End Function
 
+Public Function URIDecode(ByVal strInput As String) As String
+    Dim strOutput As String: strOutput = ""
+    Dim intPos As Long: intPos = 1
+    Do Until intPos > Len(strInput)
+        If Mid$(strInput, intPos, 1) = "%" Then
+            strOutput = strOutput & Chr(CLng("&H" & Mid$(strInput, intPos + 1, 2)))
+            intPos = intPos + 3
+        Else
+            strOutput = strOutput & Mid$(strInput, intPos, 1)
+            intPos = intPos + 1
+        End If
+    Loop
+    URIDecode = strOutput
+End Function
+
+
+
+
+
+
+
+
+
+
+
+
+'  t = t & "^(?:(http[s]?|ftp):/)?/?"  ' METHOD
+'  t = t & "([^:^/^?^#\\s]+)"          ' HOSTNAME
+'  t = t & "(?::(\\d+))?"              ' PORT
+'  t = t & "([^?^#.*]+)?"              ' PATH
+'  t = t & "(\\?[^#.]*)?"              ' QUERY
+'  t = t & "(#[\\w\\-]+)?$"            ' ID
 
 Private Function LoadAutoProxy(ByVal request As Object, Optional sURL As String = "http://google.com", Optional ByVal options As Object = Nothing) As ErrorInfo
   Dim info As ProxyInfoEx: info = GetProxyCurrentUser(sURL)
