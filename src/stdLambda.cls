@@ -1367,6 +1367,7 @@ Private Function evaluateFunc(ByVal sFuncName As String, ByVal args As Variant) 
             End If
         Case "eval": evaluateFunc = stdLambda.Create(args(iArgStart)).Run()
         Case "lambda": set evaluateFunc = stdLambda.Create(args(iArgStart))
+        Case "isnumeric": evaluateFunc = isNumeric(args(iArgStart))
         Case Else
             Call Throw("No such function: " & sFuncName)
     End Select
