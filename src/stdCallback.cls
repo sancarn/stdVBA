@@ -94,9 +94,21 @@ Implements stdICallable
 'Direct call convention of VBA.CallByName
 #If VBA7 Then
   'VBE7 is interchangable with msvbvm60.dll    however VBE7.dll appears to always be present where as msvbvm60 is only occasionally present.
+  Private Declare PtrSafe Function DispCallFunc Lib "oleAut32.dll" (ByVal pvInstance As LongPtr, ByVal offsetinVft As LongPtr, ByVal CallConv As Long, ByVal retTYP As Integer, ByVal paCNT As Long, ByRef paTypes As VbVarType, ByRef paValues As LongPtr, ByRef retVAR As Variant) As Long
   Private Declare PtrSafe Function rtcCallByName Lib "VBE7.dll" (ByRef vRet As Variant, ByVal cObj As Object, ByVal sMethod As LongPtr, ByVal eCallType As VbCallType, ByRef pArgs() As Variant, ByVal lcid As Long) As Long
 #Else
+  Private Declare Function DispCallFunc Lib "oleAut32.dll" (ByVal pvInstance As Long, ByVal offsetinVft As Long, ByVal CallConv As Long, ByVal retTYP As Integer, ByVal paCNT As Long, ByRef paTypes As Integer, ByRef paValues As Long, ByRef retVAR As Variant) As Long
   Private Declare Function rtcCallByName Lib "msvbvm60" (ByRef vRet As Variant, ByVal cObj As Object, ByVal sMethod As LongPtr, ByVal eCallType As VbCallType, ByRef pArgs() As Variant, ByVal lcid As Long) As Long
+  
+  Enum LongPtr
+    [_]
+  End Enum
+#End If
+
+#If Win64 Then
+  Private Const vbLongPtr = vbLongLong
+#Else
+  Private Const vbLongPtr = vbLong
 #End If
 
 Dim pInitialised As Boolean
@@ -109,7 +121,16 @@ Private Enum ParentType
   object = 2
   Formula = 3
   Bound = 4
+  Pointer = 5
 End Enum
+
+Private Type TCBByPointer
+  iMethodAddress As LongPtr
+  bPredictTypes As Boolean
+  iReturnType As VbVarType
+  iParamTypes() As VbVarType
+End Type
+
 Private Type CallbackStruct
   iType As ParentType
   sModuleName As String
@@ -118,6 +139,7 @@ Private Type CallbackStruct
   iCallType As VbCallType
   sFormula As String
   vBoundArgs As Variant
+  CBByPointer As TCBByPointer
 End Type
 Private pCallback As CallbackStruct
 
@@ -144,28 +166,28 @@ Attribute Create.VB_Description = "Creates an instance of this class."
   End If
   
   Set Create = New stdCallback
-  Call Create.Init(iType, Parent, name, cType)
+  Call Create.protInit(iType, Parent, name, cType)
 End Function
 
 'Create callback from Module function directly
 Public Function CreateFromModule(ByVal sParentName As String, ByVal sMethodName As String) As stdCallback
 Attribute CreateFromModule.VB_Description = "Create callback from module method."
   Set CreateFromModule = New stdCallback
-  Call CreateFromModule.Init(ParentType.Module, sParentName, sMethodName)
+  Call CreateFromModule.protInit(ParentType.Module, sParentName, sMethodName)
 End Function
 
 'Create callback from object and method name
 Public Function CreateFromObjectMethod(ByRef object As Object, ByVal sMethodName As String) As stdCallback
 Attribute CreateFromObjectMethod.VB_Description = "Create callback from object method."
   Set CreateFromObjectMethod = New stdCallback
-  Call CreateFromObjectMethod.Init(ParentType.object, object, sMethodName, VbCallType.VbMethod)
+  Call CreateFromObjectMethod.protInit(ParentType.object, object, sMethodName, VbCallType.VbMethod)
 End Function
 
 'Create callback from object and property name
 Public Function CreateFromObjectProperty(ByRef object As Object, ByVal sPropName As String, ByVal cType As VbCallType) As stdCallback
 Attribute CreateFromObjectProperty.VB_Description = "Create callback from object property."
   Set CreateFromObjectProperty = New stdCallback
-  Call CreateFromObjectProperty.Init(ParentType.object, object, sPropName, cType)
+  Call CreateFromObjectProperty.protInit(ParentType.object, object, sPropName, cType)
 End Function
 
 'CreateEvaluator from
@@ -178,8 +200,18 @@ Attribute CreateEvaluator.VB_Description = "Create callback from Excel formula. 
   End If
 End Function
 
-Friend Sub Init(iParentType As Long, ParamArray params() As Variant) 'Parent As Variant, Name As String
-Attribute Init.VB_Description = "Initialises this object. This should not be called directly unless building a ctor routine e.g. Create()."
+'Create callback from function pointer
+#If VBA7 Then
+  Public Function CreateFromPointer(ByVal MethodPointer As LongPtr, Optional ByVal iRetType As VbVarType = 0, Optional vParamTypes = Null) As stdCallback
+#Else
+  Public Function CreateFromPointer(ByVal MethodPointer As Long, Optional ByVal iRetType As VbVarType = 0, Optional vParamTypes = Null) As stdCallback
+#End If
+  Set CreateFromPointer = New stdCallback
+  Call CreateFromPointer.protInit(ParentType.Pointer, MethodPointer, iRetType, vParamTypes)
+End Function
+
+Friend Sub protInit(iParentType As Long, ParamArray params() As Variant) 'Parent As Variant, Name As String
+Attribute protInit.VB_Description = "Initialises this object. This should not be called directly unless building a ctor routine e.g. Create()."
   If Not pInitialised Then
     Select Case iParentType
       Case ParentType.Module
@@ -199,6 +231,19 @@ Attribute Init.VB_Description = "Initialises this object. This should not be cal
         Else
           pCallback.vBoundArgs = Array()
         End If
+      Case ParentType.Pointer
+        pCallback.iType = iParentType
+        With pCallback.CBByPointer
+          .iMethodAddress = params(0)
+          .iReturnType = params(1)
+          .bPredictTypes = IsNull(params(2))
+          If Not .bPredictTypes Then
+            ReDim .iParamTypes(0 To UBound(params(2)))
+            For i = 0 To UBound(params(2))
+              .iParamTypes(i) = params(2)(i)
+            Next
+          End If
+        End With
       Case Else
         CriticalRaise "Invalid module type submitted"
     End Select
@@ -227,20 +272,20 @@ End Function
 Public Function BindEx(ByVal params As Variant) As stdCallback
   Set BindEx = New stdCallback
   Dim callable As stdICallable: Set callable = Me
-  Call BindEx.Init(ParentType.Bound, callable, params)
+  Call BindEx.protInit(ParentType.Bound, callable, params)
 End Function
 
-Private Function stdICallable_SendMessage(ByVal sMessage as string, ByRef success as Boolean, ByVal params as variant) as Variant
-    select case sMessage
-        case "obj"
-            set stdICallable_SendMessage = Me
-            success = true
-        case "className"
+Private Function stdICallable_SendMessage(ByVal sMessage As String, ByRef success As Boolean, ByVal params As Variant) As Variant
+    Select Case sMessage
+        Case "obj"
+            Set stdICallable_SendMessage = Me
+            success = True
+        Case "className"
             stdICallable_SendMessage = "stdCallback"
-            success = true
-        case else
-            success = false 
-    end select
+            success = True
+        Case Else
+            success = False
+    End Select
 End Function
 
 
@@ -310,7 +355,7 @@ Public Function RunEx(ByVal vArr As Variant) As Variant
           'Call rtcCallByName
           On Error GoTo ErrorInRTCCallByName
           Dim hr As Long: hr = rtcCallByName(vRet, pCallback.oObject, StrPtr(pCallback.sMethodName), pCallback.iCallType, vArgs, &H409)
-          On Error GoTo 0 
+          On Error GoTo 0
         Else
           CriticalRaise "Error in rtcCallByName. Arguments supplied to RunEx needs to be an array."
         End If
@@ -318,6 +363,62 @@ Public Function RunEx(ByVal vArr As Variant) As Variant
         Dim callable As stdICallable
         Set callable = pCallback.oObject
         Call CopyVariant(vRet, callable.RunEx(vArr))
+      Case ParentType.Pointer
+        'Create array of types and pointers to vars, for function call
+        #If Win64 Then
+          Dim vPtr() As LongLong
+          Dim vType() As VbVarType
+        #Else
+          Dim vPtr() As Long
+          Dim vType() As Integer 'FIX: On 32-bit use of vbVarType for the type parameter will fail
+        #End If
+        
+        'Create array from params
+        Dim vParam() As Variant: vParam = vArr
+        Dim iParamCount As Long: iParamCount = UBound(vParam) - LBound(vParam) + 1
+        
+        'Initialise vType based on whether it should be predicted or not
+        Dim lIdx As Long
+        With pCallback.CBByPointer
+          If .bPredictTypes Then
+            If iParamCount = 0 Then
+              ReDim vType(0 To 0)
+            Else
+              ReDim vType(0 To iParamCount - 1)
+              For lIdx = 0 To iParamCount - 1
+                vType(lIdx) = VarType(vParam(lIdx))
+              Next
+            End If
+          Else
+            If (UBound(.iParamTypes) - LBound(.iParamTypes) + 1) <> iParamCount Then
+              Err.Raise 1, "", "Contradicting number of variables passed into callback compared to initialisation"
+            End If
+            
+            ReDim vType(0 To iParamCount - 1)
+            For lIdx = 0 To iParamCount - 1
+              vType(lIdx) = .iParamTypes(i)
+            Next
+          End If
+                
+          'Populate array of pointers to params, and array of types for DispCallFunc
+          If iParamCount = 0 Then
+            ReDim vPtr(0 To 0)
+          Else
+            ReDim vPtr(0 To iParamCount - 1)
+            For lIdx = 0 To iParamCount - 1
+              vPtr(lIdx) = VarPtr(vParam(lIdx))
+            Next
+          End If
+          
+          'Call function
+          Dim hResult As Long
+          hResult = DispCallFunc(0, .iMethodAddress, CC_STDCALL, .iReturnType, iParamCount, vType(0), vPtr(0), vRet)
+        End With
+        
+        If hResult < 0 Then
+            Err.Raise hResult, "DispCallFunc", "Error when calling function pointer?"
+        End If
+
       Case Else
         CriticalRaise "Cannot call callback. Invalid parent type assigned (" & iParentType & ")."
       End Select

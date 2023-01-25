@@ -209,3 +209,4 @@ Before `08/07/2021` a change log was not kept. We have  retrospectively gone bac
 * 2022-12-29 stdArray       BREAKING    - `stdArray` alignment with `stdEnumerator`, rename method `Group` to `GroupBy`.
 * 2022-01-12 stdHTTP        FEATURE     - Added `stdHTTP`. Ability to create HTTP requests with support for `stdICallable` authenticators.
 * 2023-01-20 stdLambda      FEATURE     - Added `isNumeric` to `stdLambda` function tree.
+* 2023-01-25 stdCallback    FEATURE     - Added `CreateFromPointer` to `stdCallback`, which allows using `AddressOf` to call modules instead of names.

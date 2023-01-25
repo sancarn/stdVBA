@@ -1,8 +1,16 @@
 Attribute VB_Name = "stdCallbackTests"
+#If Win64 Then
+  Private Const vbLongPtr = vbLongLong
+#Else
+  Private Const vbLongPtr = vbLong
+#End If
+
+Private mTest As String
+
 Public Sub testAll()
   Test.Topic "stdCallback"
 
-  With stdCallback.CreateFromModule("stdCallbackTests", "testCallbackTest")
+  With stdCallback.CreateFromModule("stdCallbackTests", "stdCallbackTest")
     'Run tests
     Dim v As Variant
     v = .Run(1, 2, 3, 4)
@@ -19,21 +27,8 @@ Public Sub testAll()
     End If
   End With
 
-  'Test object method
-  With stdCallback.CreateFromObjectMethod(Test, "TestMethod")
-    'TODO: Test method executes
-  End With
-
-  'Test object property
-  With stdCallback.CreateFromObjectProperty(Test, "TestProperty", VbGet)
-    'TODO: Test method executes
-  End With
-
-  'Historic evaluator method
-  Test.Assert "CreateEvaluator --> stdLambda", TypeOf stdCallback.CreateEvaluator("1") Is stdICallable
-
   'Test stdLambda::bind()
-  With stdCallback.CreateFromModule("stdCallbackTests", "testCallbackTest").Bind(1)
+  With stdCallback.CreateFromModule("stdCallbackTests", "stdCallbackTest").Bind(1)
     Test.Assert "stdCallback::Bind() 1 Example", Join(.Run(2, 3), "|") = "1|2|3"
     With .Bind(2)
         Test.Assert "stdCallback::Bind() 2 Example", Join(.Run(3), "|") = "1|2|3"
@@ -43,7 +38,7 @@ Public Sub testAll()
     End With
     
     'In a historical version of stdLambda these would fail:
-    Test.Assert "stdCallback::Bind() 4 Ensure creation of new bindings doesn't erase old bindings", Join(stdCallback.CreateFromModule("stdCallbackTests", "testCallbackTest").Run(1, 2, 3), "|") = "1|2|3"
+    Test.Assert "stdCallback::Bind() 4 Ensure creation of new bindings doesn't erase old bindings", Join(stdCallback.CreateFromModule("stdCallbackTests", "stdCallbackTest").Run(1, 2, 3), "|") = "1|2|3"
     Test.Assert "stdCallback::Bind() 5 Ensure creation of new bindings doesn't erase old bindings", Join(.Run(2, 3), "|") = "1|2|3"
     
     'Can also bind multiple arguments simultaneously
@@ -51,11 +46,70 @@ Public Sub testAll()
       Test.Assert "stdCallback::Bind() 6 multiple arg binding", Join(.Run(), "|") = "1|2|hello"
     End With
   End With
+  
+  mTest = ""
+  With stdCallback.CreateFromPointer(AddressOf stdCallbackTest_Sub)
+    Call .Run
+    Test.Assert "stdCallback::CreateFromPointer 1 Sub no args", mTest = "hello"
+  End With
+  
+  Const sSet As String = "hello"
+  
+  mTest = ""
+  With stdCallback.CreateFromPointer(AddressOf stdCallbackTest_SubArg)
+    Call .Run(sSet)
+    Test.Assert "stdCallback::CreateFromPointer 2 Sub ByVal string arg, predicted param types", mTest = sSet
+  End With
+  
+  mTest = ""
+  With stdCallback.CreateFromPointer(AddressOf stdCallbackTest_SubArgByRef)
+    Call .Run(VarPtr(sSet))
+    Test.Assert "stdCallback::CreateFromPointer 3 Sub ByRef string arg, predicted param types", mTest = sSet
+  End With
+  
+  Const vSet As Variant = "hello"
+  
+  mTest = ""
+  With stdCallback.CreateFromPointer(AddressOf stdCallbackTest_SubArgVariant, , Array(vbVariant))
+    Call .Run(vSet)
+    Test.Assert "stdCallback::CreateFromPointer 4 Sub ByVal variant arg, non-predicted param types", mTest = sSet
+  End With
+  
+  mTest = ""
+  With stdCallback.CreateFromPointer(AddressOf stdCallbackTest_SubArgByRefVariant)
+    Call .Run(VarPtr(vSet))
+    Test.Assert "stdCallback::CreateFromPointer 5 Sub ByRef variant arg, predicted param types", mTest = sSet
+  End With
+  
+  With stdCallback.CreateFromPointer(AddressOf stdCallbackTest_Return, vbString)
+    Test.Assert "stdCallback::CreateFromPointer 6 Function returns correct data", .Run("Jim") = "Jim_jr"
+  End With
+  
 End Sub
 
 
 
-Public Function testCallbackTest(ParamArray params() As Variant) As Variant
+Public Function stdCallbackTest(ParamArray params() As Variant) As Variant
   Dim v As Variant: v = params
-  testCallbackTest = v
+  stdCallbackTest = v
+End Function
+
+Public Sub stdCallbackTest_Sub()
+  mTest = "hello"
+End Sub
+Public Sub stdCallbackTest_SubArg(ByVal s As String)
+  mTest = s
+End Sub
+Public Sub stdCallbackTest_SubArgByRef(s As String)
+  mTest = s
+End Sub
+Public Sub stdCallbackTest_SubArgVariant(ByVal s)
+  mTest = s
+End Sub
+Public Sub stdCallbackTest_SubArgByRefVariant(s)
+  mTest = s
+End Sub
+
+Public Function stdCallbackTest_Return(ByVal name As String) As String
+  stdCallbackTest_Return = name & "_jr"
 End Function
