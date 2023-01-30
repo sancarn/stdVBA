@@ -954,15 +954,15 @@ Public Function toJSON() As String
     
     'Convert to json
     toJSON = "{" & _
-        "name:""" & jsonEscape(name()) & """," & _
-        "desc:""" & jsonEscape(Description()) & """," & _
-        "value:""" & jsonEscape(value()) & """," & _
-        "role:""" & jsonEscape(Role()) & """," & _
-        "state:""" & jsonEscape(State()) & """," & _
-        "ks:""" & jsonEscape(KeyboardShortcut()) & """," & _
-        "help:""" & jsonEscape(Help()) & """," & _
-        "ht:""" & jsonEscape(HelpTopic()) & """," & _
-        "children:[" & sChildren & "]}"
+        """name"":""" & jsonEscape(name()) & """," & _
+        """desc"":""" & jsonEscape(Description()) & """," & _
+        """value"":""" & jsonEscape(value()) & """," & _
+        """role"":""" & jsonEscape(Role()) & """," & _
+        """states"":""" & jsonEscape(States()) & """," & _
+        """ks"":""" & jsonEscape(KeyboardShortcut()) & """," & _
+        """help"":""" & jsonEscape(Help()) & """," & _
+        """ht"":""" & jsonEscape(HelpTopic()) & """," & _
+        """children"":[" & sChildren & "]}"
 End Function
 
 'Await for the existence of an element which meets a specified condition.

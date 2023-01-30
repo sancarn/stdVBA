@@ -72,7 +72,7 @@ Public Function Raise(Optional ByVal sMessage As String = "", Optional ByVal Cri
     'Stop process if critical
     If isCritical Then
       'Reset stack
-      RefreshStack()
+      Call RefreshStack
       
       End
     End If
