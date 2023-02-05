@@ -33,9 +33,31 @@ Public Function Create(ByVal sPath As String) As stdShell
     
     'Create shell item
     Set Create = New stdShell
-    Call Create.Init(tPaths, tType)
+    Call Create.protInit(tPaths, tType)
 End Function
-Public Sub Init(paramPaths() As String, pType As StdShellType)
+
+'Create new file as shell object
+'@constructor
+'@param {string} Path to file to create
+'@returns {stdShell} Shell object of file
+Public Function CreateFile(ByVal sPath as string, Optional ByVal sContents as string) as stdShell
+    Dim ff as Long: ff = FreeFile()
+    Open sPath as #ff
+        if sContents <> "" then Print #ff, sContents
+    Close #ff
+    set CreateFile = Create(sPath)
+End Sub
+
+'Create and return directory as shell object
+'@constructor
+'@param {string} Path to folder to create
+'@returns {stdShell} Shell object of directory
+Public Function CreateDir(ByVal sPath as string) as stdShell
+    MkDir sPath
+    Set CreateDir = Create(sPath)
+End Function
+
+Friend Sub protInit(paramPaths() As String, pType As StdShellType)
     sPaths = paramPaths
     iType = pType
 End Sub
@@ -75,12 +97,11 @@ End Function
 
 'Attempts to read data from a file
 '@returns {Byte()} - Bytes read from file
-Public Function ReadText() As Byte()
+Public Function ReadText() As String
     If iType = File Then
         Dim ff As Long: ff = FreeFile
         Open sPath For Input As #ff
-            Dim s As String
-            s = Input$(LOF(ff), #ff)
+            ReadText = Input$(LOF(ff), #ff)
         Close #ff
     Else
         CriticalFail "Cannot read this item as it is not a file"
