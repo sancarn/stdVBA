@@ -14,13 +14,14 @@ Public Enum StdShellType
 End Enum
 
 Private sPaths() As String
+Private sPath As String 'only populated if File or Dir
 Public iType As StdShellType
 
 '@constructor
 '@param sPath {String} - The path to wrap a shell object around.
 Public Function Create(ByVal sPath As String) As stdShell
     'Get paths array
-    Dim tPaths(1) As String: tPaths(1) = sPath
+    Dim tPaths(0 To 0) As String: tPaths(0) = sPath
     
     'Get type of shell item
     Dim tType As StdShellType
@@ -40,19 +41,19 @@ End Function
 '@constructor
 '@param {string} Path to file to create
 '@returns {stdShell} Shell object of file
-Public Function CreateFile(ByVal sPath as string, Optional ByVal sContents as string) as stdShell
-    Dim ff as Long: ff = FreeFile()
-    Open sPath as #ff
-        if sContents <> "" then Print #ff, sContents
+Public Function CreateFile(ByVal sPath As String, Optional ByVal sContents As String) As stdShell
+    Dim ff As Long: ff = FreeFile()
+    Open sPath For Append As #ff
+        If sContents <> "" Then Print #ff, sContents
     Close #ff
-    set CreateFile = Create(sPath)
-End Sub
+    Set CreateFile = Create(sPath)
+End Function
 
 'Create and return directory as shell object
 '@constructor
 '@param {string} Path to folder to create
 '@returns {stdShell} Shell object of directory
-Public Function CreateDir(ByVal sPath as string) as stdShell
+Public Function CreateDir(ByVal sPath As String) As stdShell
     MkDir sPath
     Set CreateDir = Create(sPath)
 End Function
@@ -60,7 +61,20 @@ End Function
 Friend Sub protInit(paramPaths() As String, pType As StdShellType)
     sPaths = paramPaths
     iType = pType
+    Select Case iType
+      Case File, Dir
+        sPath = sPaths(0)
+    End Select
 End Sub
+
+Public Property Get Size() As Long
+  Select Case iType
+    Case File
+      Size = FileLen(sPath)
+    Case Else
+      Err.Raise 1, "", "Not implemented"
+  End Select
+End Property
 
 Public Property Get Children() As stdEnumerator
     Dim vRet As Collection
@@ -72,9 +86,9 @@ Public Property Get Children() As stdEnumerator
         
         'Get child paths
         Dim sPath As String
-        sPath = VBA.Dir(sPath & IIf(Right(sPath, 1) = "\", "*", "\*"))
+        sPath = VBA.Dir(sPath & iif(Right(sPath, 1) = "\", "*", "\*"))
         While sPath <> ""
-            Call vRet.Add(stdShell.Create(sPath))
+            Call vRet.add(stdShell.Create(sPath))
             sPath = VBA.Dir
         Wend
     End If
@@ -91,7 +105,7 @@ Public Function Read() As Byte()
             Read = Input(LOF(ff), #ff)
         Close #ff
     Else
-        CriticalFail "Cannot read this item as it is not a file"
+        Err.Raise 1, "", "Cannot read this item as it is not a file"
     End If
 End Function
 
@@ -104,7 +118,7 @@ Public Function ReadText() As String
             ReadText = Input$(LOF(ff), #ff)
         Close #ff
     Else
-        CriticalFail "Cannot read this item as it is not a file"
+        Err.Raise 1, "", "Cannot read this item as it is not a file"
     End If
 End Function
 
@@ -118,7 +132,7 @@ Public Function Append(ByVal data As Variant) As Boolean
             Print #ff, data
         Close #ff
     Else
-        CriticalFail "Cannot append data to this item as it is not a file"
+        Err.Raise 1, "", "Cannot append data to this item as it is not a file"
     End If
 End Function
 
@@ -132,7 +146,7 @@ Public Function Overwrite(ByVal data As Variant) As Boolean
             Print #ff, data
         Close #ff
     Else
-        CriticalFail "Cannot write data to this item as it is not a file"
+        Err.Raise 1, "", "Cannot write data to this item as it is not a file"
     End If
 End Function
 
@@ -144,7 +158,7 @@ Public Function Clear() As Boolean
         Open sPath For Output As #ff
         Close #ff
     Else
-        CriticalFail "Cannot clear data from this item as it is not a file"
+        Err.Raise 1, "", "Cannot clear data from this item as it is not a file"
     End If
 End Function
 
@@ -154,7 +168,7 @@ End Function
 Public Function Find(ByVal callable As stdICallable, Optional ByVal bRecurse As Boolean = True) As stdShell
     If iType = Dir Then
         'Get children as collection
-        Dim col As Collection: Set col = Children.Object
+        Dim col As Collection: Set col = Children.AsCollection
         
         Dim shellItem As stdShell
         While Not CollectionShift(col, shellItem) Is Nothing
@@ -165,7 +179,7 @@ Public Function Find(ByVal callable As stdICallable, Optional ByVal bRecurse As 
                     Exit Function
                 End If
                 
-                If child.iType = Dir Then col.Add child
+                If child.iType = Dir Then col.add child
             Next
         Wend
     End If
@@ -174,17 +188,17 @@ Public Function FindAll(ByVal callable As stdICallable) As stdEnumerator
     Dim vRet As Collection: Set vRet = New Collection
     If iType = Dir Then
         'Get children as collection
-        Dim col As Collection: Set col = Children.Object
+        Dim col As Collection: Set col = Children.AsCollection
         
         Dim shellItem As stdShell
         While Not CollectionShift(col, shellItem) Is Nothing
             Dim child As stdShell
             For Each child In shellItem.Children
                 If callable.Run(child) Then
-                    vRet.Add child
+                    vRet.add child
                 End If
                 
-                If child.iType = Dir Then col.Add child
+                If child.iType = Dir Then col.add child
             Next
         Wend
     End If
@@ -192,7 +206,7 @@ Public Function FindAll(ByVal callable As stdICallable) As stdEnumerator
 End Function
 
 Private Function CollectionShift(ByRef col As Collection, ByRef shellItem As stdShell) As stdShell
-    Set CollectionPop = col.item(1)
-    Set shellItem = col.item(1)
+    Set CollectionPop = col.Item(1)
+    Set shellItem = col.Item(1)
     Call col.Remove(1)
 End Function
