@@ -7,11 +7,18 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+
 Public Enum StdShellType
     File
     Dir
     Multifile
 End Enum
+Public Enum stdShellHashType
+    HashTypeMD5
+    HashTypeSHA1
+    HashTypeSHA256
+End Enum
+
 
 Private sPaths() As String
 Private sPath As String 'only populated if File or Dir
@@ -76,7 +83,7 @@ Public Property Get Size() As Long
   End Select
 End Property
 
-Public Property Get Children() As stdEnumerator
+Public Property Get Children() As Collection
     Dim vRet As Collection
     If iType = File Then
         Set vRet = New Collection
@@ -86,14 +93,14 @@ Public Property Get Children() As stdEnumerator
         
         'Get child paths
         Dim sPath As String
-        sPath = VBA.Dir(sPath & iif(Right(sPath, 1) = "\", "*", "\*"))
+        sPath = VBA.Dir(sPath & IIf(Right(sPath, 1) = "\", "*", "\*"))
         While sPath <> ""
             Call vRet.add(stdShell.Create(sPath))
             sPath = VBA.Dir
         Wend
     End If
     
-    Set Children = stdEnumerator.CreateFromIEnumVariant(vRet)
+    Set Children = vRet
 End Property
 
 'Attempts to read data from a file
@@ -162,6 +169,52 @@ Public Function Clear() As Boolean
     End If
 End Function
 
+'Obtain a hash value for file contents
+'@param {stdShellHashType} The type of hash to create
+'@returns {String} Hex string representing hash.
+Public Function Hash(ByVal iHashType As stdShellHashType) As String
+    'Obtain hash encoder
+    Dim hashEncoder As Object, iHashLength As Long
+    Select Case iHashType
+        Case HashTypeMD5
+            Set hashEncoder = CreateObject("System.Security.Cryptography.MD5CryptoServiceProvider")
+            iHashLength = 16
+        Case HashTypeSHA1
+            Set hashEncoder = CreateObject("System.Security.Cryptography.SHA1CryptoServiceProvider")
+            iHashLength = 20
+        Case HashTypeSHA256
+            Set hashEncoder = CreateObject("System.Security.Cryptography.SHA256Managed")
+            iHashLength = 32
+    End Select
+    
+    Dim blockSize As Long: blockSize = 2 ^ 16
+    Dim ff As Long: ff = FreeFile
+    
+    'Progressively build hash 1024 bytes at a time
+    Open sPath For Binary Access Read As #ff
+        If LOF(ff) < blockSize Then blockSize = ((LOF(ff) + 1024) \ 1024) * 1024
+        Dim buffer() As Byte: ReDim buffer(blockSize - 1)
+        
+        Dim i As Long
+        For i = 1 To LOF(ff) \ blockSize
+            Get ff, , buffer
+            hashEncoder.TransformBlock buffer, 0, blockSize, buffer, 0
+        Next
+        Get ff, , buffer
+        hashEncoder.TransformFinalBlock buffer, 0, LOF(ff) Mod blockSize
+        buffer = hashEncoder.Hash
+        hashEncoder.Clear
+    Close #ff
+    
+    'Output hash as hex string
+    Hash = ""
+    For i = 0 To (iHashLength - 1)
+        Hash = Hash & IIf(buffer(i) < 16, "0", "") & Hex(buffer(i))
+    Next
+End Function
+
+
+
 
 'Attempts to clear the file
 '
@@ -184,7 +237,7 @@ Public Function Find(ByVal callable As stdICallable, Optional ByVal bRecurse As 
         Wend
     End If
 End Function
-Public Function FindAll(ByVal callable As stdICallable) As stdEnumerator
+Public Function FindAll(ByVal callable As stdICallable) As Collection
     Dim vRet As Collection: Set vRet = New Collection
     If iType = Dir Then
         'Get children as collection
@@ -202,7 +255,7 @@ Public Function FindAll(ByVal callable As stdICallable) As stdEnumerator
             Next
         Wend
     End If
-    Set FindAll = stdEnumerator.CreateFromIEnumVariant(vRet)
+    Set FindAll = vRet
 End Function
 
 Private Function CollectionShift(ByRef col As Collection, ByRef shellItem As stdShell) As stdShell

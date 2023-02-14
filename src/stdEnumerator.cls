@@ -224,6 +224,25 @@ Public Function CreateFromListObject(ByVal lo As ListObject, Optional ByVal iMax
     End If
 End Function
 
+'Create a stdEnumerator from a tree of objects
+'@param {Object} The parent / root node
+'@param {stdICallable} A callback which returns the children of each individual node.
+'@returns {stdEnumerator} Flat enumerator of all objects in the tree.
+Public Function CreateFromTree(ByVal oRoot as object, ByVal getChildren as stdICallable) as stdEnumerator
+    Dim cRet as Collection: set cRet = new Collection
+    cRet.add oRoot
+    
+    'Obtain flat collection from tree
+    Dim oObj as object
+    for each oObj in cRet
+        for each child in getChildren.Run(oObj)
+            cRet.add child
+        next
+    next
+
+    set CreateFromTree = stdEnumerator.CreateFromIEnumVariant(cRet)
+End Function
+
 'TODO: CreateFromDictionary
 'Public Function CreateFromDictionary(ByVal o as object, optional byval iMaxLength as long = 1000000) as stdEnumerator
 '    set CreateFromDictionary = new stdEnumerator
