@@ -74,6 +74,15 @@ Friend Sub protInit(paramPaths() As String, pType As StdShellType)
     End Select
 End Sub
 
+Public Property Get Path() as string
+    Select Case iType
+        Case File, Dir
+            Path = sPath
+        Case else
+            Err.Raise 1, "", ""
+    end select
+End Property
+
 Public Property Get Size() As Long
   Select Case iType
     Case File
@@ -92,11 +101,11 @@ Public Property Get Children() As Collection
         Set vRet = New Collection
         
         'Get child paths
-        Dim sPath As String
-        sPath = VBA.Dir(sPath & IIf(Right(sPath, 1) = "\", "*", "\*"))
-        While sPath <> ""
-            Call vRet.add(stdShell.Create(sPath))
-            sPath = VBA.Dir
+        Dim tsPath As String
+        tsPath = VBA.Dir(sPath & IIf(Right(sPath, 1) = "\", "*", "\*"), vbNormal Or vbDirectory)
+        While tsPath <> ""
+            If tsPath <> "." And tsPath <> ".." Then Call vRet.Add(stdShell.Create(sPath & "\" & tsPath))
+            tsPath = VBA.Dir()
         Wend
     End If
     

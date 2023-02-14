@@ -228,19 +228,21 @@ End Function
 '@param {Object} The parent / root node
 '@param {stdICallable} A callback which returns the children of each individual node.
 '@returns {stdEnumerator} Flat enumerator of all objects in the tree.
-Public Function CreateFromTree(ByVal oRoot as object, ByVal getChildren as stdICallable) as stdEnumerator
-    Dim cRet as Collection: set cRet = new Collection
-    cRet.add oRoot
+Public Function CreateFromTree(ByVal oRoot As Object, ByVal getChildren As stdICallable) As stdEnumerator
+    Dim cRet As Collection: Set cRet = New Collection
+    cRet.Add oRoot
     
     'Obtain flat collection from tree
-    Dim oObj as object
-    for each oObj in cRet
-        for each child in getChildren.Run(oObj)
-            cRet.add child
-        next
-    next
+    Dim iObj As Long, oObj As Object
+    While iObj < cRet.Count
+        iObj = iObj + 1
+        Set oObj = cRet(iObj)
+        For Each child In getChildren.Run(oObj)
+            cRet.Add child
+        Next
+    Wend
 
-    set CreateFromTree = stdEnumerator.CreateFromIEnumVariant(cRet)
+    Set CreateFromTree = stdEnumerator.CreateFromIEnumVariant(cRet)
 End Function
 
 'TODO: CreateFromDictionary
