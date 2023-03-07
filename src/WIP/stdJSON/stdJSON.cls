@@ -163,7 +163,7 @@ Private Type json_Options
     ' The solidus (/) is not required to be escaped, use this option to escape them as \/ in ConvertToJson
     EscapeSolidus As Boolean
 End Type
-Public JsonOptions As json_Options
+Private JsonOptions As json_Options
 
 ' ============================================= '
 ' Public Methods
@@ -187,9 +187,9 @@ Public Function Parse(ByVal JsonString As String) As Object
     json_SkipSpaces JsonString, json_Index
     Select Case VBA.Mid$(JsonString, json_Index, 1)
     Case "{"
-        Set ParseJson = json_ParseObject(JsonString, json_Index)
+        Set Parse = json_ParseObject(JsonString, json_Index)
     Case "["
-        Set ParseJson = json_ParseArray(JsonString, json_Index)
+        Set Parse = json_ParseArray(JsonString, json_Index)
     Case Else
         ' Error: Invalid JSON string
         Err.Raise 10001, "JSON::Parse()", json_ParseErrorMessage(JsonString, json_Index, "Expecting '{' or '['")
@@ -466,11 +466,11 @@ End Function
 ' Private Functions
 ' ============================================= '
 
-Private Function json_ParseObject(json_String As String, ByRef json_Index As Long) As Dictionary
+Private Function json_ParseObject(json_String As String, ByRef json_Index As Long) As Object
     Dim json_Key As String
     Dim json_NextChar As String
 
-    Set json_ParseObject = New Dictionary
+    Set json_ParseObject = CreateObject("Scripting.Dictionary")
     json_SkipSpaces json_String, json_Index
     If VBA.Mid$(json_String, json_Index, 1) <> "{" Then
         Err.Raise 10001, "JSON::ParseObject", json_ParseErrorMessage(json_String, json_Index, "Expecting '{'")
