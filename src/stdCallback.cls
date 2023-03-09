@@ -94,15 +94,14 @@ Implements stdICallable
 'Direct call convention of VBA.CallByName
 #If VBA7 Then
   'VBE7 is interchangable with msvbvm60.dll    however VBE7.dll appears to always be present where as msvbvm60 is only occasionally present.
-  Private Declare PtrSafe Function DispCallFunc Lib "oleAut32.dll" (ByVal pvInstance As LongPtr, ByVal offsetinVft As LongPtr, ByVal CallConv As Long, ByVal retTYP As Integer, ByVal paCNT As Long, ByRef paTypes As VbVarType, ByRef paValues As LongPtr, ByRef retVAR As Variant) As Long
+  Private Declare PtrSafe Function DispCallFunc Lib "oleAut32.dll" (ByVal pvInstance As LongPtr, ByVal offsetinVft As LongPtr, ByVal CallConv As Long, ByVal retTYP As Integer, ByVal paCNT As Long, ByVal paTypes As LongPtr, ByVal paValues As LongPtr, ByRef retVAR As Variant) As Long
   Private Declare PtrSafe Function rtcCallByName Lib "VBE7.dll" (ByRef vRet As Variant, ByVal cObj As Object, ByVal sMethod As LongPtr, ByVal eCallType As VbCallType, ByRef pArgs() As Variant, ByVal lcid As Long) As Long
 #Else
-  Private Declare Function DispCallFunc Lib "oleAut32.dll" (ByVal pvInstance As Long, ByVal offsetinVft As Long, ByVal CallConv As Long, ByVal retTYP As Integer, ByVal paCNT As Long, ByRef paTypes As Integer, ByRef paValues As Long, ByRef retVAR As Variant) As Long
-  Private Declare Function rtcCallByName Lib "msvbvm60" (ByRef vRet As Variant, ByVal cObj As Object, ByVal sMethod As LongPtr, ByVal eCallType As VbCallType, ByRef pArgs() As Variant, ByVal lcid As Long) As Long
-  
-  Enum LongPtr
+  Private Enum LongPtr
     [_]
   End Enum
+  Private Declare Function DispCallFunc Lib "oleAut32.dll" (ByVal pvInstance As Long, ByVal offsetinVft As Long, ByVal CallConv As Long, ByVal retTYP As Integer, ByVal paCNT As Long, ByVal paTypes As LongPtr, ByVal paValues As LongPtr, ByRef retVAR as variant) As Long
+  Private Declare Function rtcCallByName Lib "msvbvm60" (ByRef vRet As Variant, ByVal cObj As Object, ByVal sMethod As LongPtr, ByVal eCallType As VbCallType, ByRef pArgs() As Variant, ByVal lcid As Long) As Long
 #End If
 
 #If Win64 Then
@@ -365,13 +364,8 @@ Public Function RunEx(ByVal vArr As Variant) As Variant
         Call CopyVariant(vRet, callable.RunEx(vArr))
       Case ParentType.Pointer
         'Create array of types and pointers to vars, for function call
-        #If Win64 Then
-          Dim vPtr() As LongLong
-          Dim vType() As VbVarType
-        #Else
-          Dim vPtr() As Long
-          Dim vType() As Integer 'FIX: On 32-bit use of vbVarType for the type parameter will fail
-        #End If
+        Dim vPtr() As LongPtr
+        Dim vType() As integer
         
         'Create array from params
         Dim vParam() As Variant: vParam = vArr
@@ -412,7 +406,7 @@ Public Function RunEx(ByVal vArr As Variant) As Variant
           
           'Call function
           Dim hResult As Long
-          hResult = DispCallFunc(0, .iMethodAddress, CC_STDCALL, .iReturnType, iParamCount, vType(0), vPtr(0), vRet)
+          hResult = DispCallFunc(0, .iMethodAddress, CC_STDCALL, .iReturnType, iParamCount, VarPtr(vType(0)), VarPtr(vPtr(0)), vRet)
         End With
         
         If hResult < 0 Then
