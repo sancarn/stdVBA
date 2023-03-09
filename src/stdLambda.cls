@@ -963,8 +963,8 @@ Private Function evaluate(ByRef ops() As Operation, ByVal vLastArgs As Variant) 
                 Call pushV(stack, stackPtr, v3)
             'Comparison
             Case iType.oComparison
-                v2 = popV(stack, stackPtr)
-                v1 = popV(stack, stackPtr)
+                Call CopyVariant(v2, popV(stack, stackPtr))
+                Call CopyVariant(v1, popV(stack, stackPtr))
                 Select Case op.subType
                     Case ISubType.oEql
                         v3 = v1 = v2
@@ -980,6 +980,8 @@ Private Function evaluate(ByRef ops() As Operation, ByVal vLastArgs As Variant) 
                         v3 = v1 <= v2
                     Case ISubType.oLike
                         v3 = v1 Like v2
+                    Case ISubType.oIs
+                        v3 = v1 is v2
                     Case Else
                         v3 = Empty
                 End Select

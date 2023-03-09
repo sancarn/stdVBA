@@ -214,3 +214,4 @@ Before `08/07/2021` a change log was not kept. We have  retrospectively gone bac
 * 2023-01-30 stdAcc         FIX         - Fix compile error left over from `Me.` removal on `2022-09-15`.
 * 2023-02-14 stdEnumerator  FEATURE     - Added function `CreateFromTree()`. Can use this to generate enumerators straight from `stdAcc` or `stdShell`
 * 2023-02-14 stdShell       FEATURE     - Added `Hash` function to obtain `SHA1`, `SHA256`, `MD5` hashes.
+* 2023-03-09 stdLambda      FIX         - Fix `is` operator not working properly.
