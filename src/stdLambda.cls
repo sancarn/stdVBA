@@ -1036,7 +1036,11 @@ Private Function evaluate(ByRef ops() As Operation, ByVal vLastArgs As Variant) 
                             Call Throw("Argument " & iArgIndex & " not supplied to Lambda.")
                         End If
                     Case Else
-                        Call pushV(stack, stackPtr, stack(stackPtr - op.value))
+                        'HACK: bug where if stack(stackPtr-op.value) was an object, then array will become locked. Array locking occurs by compiler to try to protect	
+                        'instances when re-allocation would move the array, and thus corrupt the pointers. By copying the variant we redivert the compiler's efforts,	
+                        'but we might actually open ourselves to errors... @issue	
+                        Dim vAccessVar: Call CopyVariant(vAccessVar, stack(stackPtr - op.value))	
+                        Call pushV(stack, stackPtr, vAccessVar)
                 End Select
             Case iType.oSet
                 v1 = popV(stack, stackPtr)
@@ -1060,9 +1064,9 @@ Private Function evaluate(ByRef ops() As Operation, ByVal vLastArgs As Variant) 
             Case iType.oReturn
                 Select Case op.subType
                     Case ISubType.withValue
-                        v1 = popV(stack, stackPtr)
+                        Call CopyVariant(v1, popV(stack, stackPtr))
                         opIndex = stack(stackPtr - 1)
-                        stack(stackPtr - 1) = v1
+                        Call CopyVariant(stack(stackPtr - 1), v1)
                     Case Else
                         opIndex = popV(stack, stackPtr)
                 End Select
@@ -1172,13 +1176,20 @@ Public Function stdCallByName(ByRef obj As Object, ByVal funcName As String, ByV
     #End If
     Exit Function
 ErrorInRTCCallByName:
-    Dim sCallerTypeName as string
-    select case callerType
-        case VbGet or VbMethod: sCallerTypeName = "Property or Method "
-        case VbGet: sCallerTypeName = "Property "
-        Case VbMethod: sCallerTypeName = "Method "
-    end select
-    Throw(sCallerTypeName & funcName & " doesn't exist on object with type " & typename(obj))
+    'HACK: Rarely objects which are poorly implemented might throw missing member errors. This can for instance happen with RecordSet. This try loop is an attempt to catch this
+    Dim iTry as Long: iTry = iTry + 1
+    if iTry < 5 then
+        Dim sCallerTypeName as string
+        select case callerType
+            case VbGet or VbMethod: sCallerTypeName = "Property or Method "
+            case VbGet: sCallerTypeName = "Property "
+            Case VbMethod: sCallerTypeName = "Method "
+        end select
+        Err.Raise Err.Number, "", sCallerTypeName & funcName & " doesn't exist on object with type " & typename(obj)
+        Resume
+    else
+        Resume
+    end if
 End Function
 
 'Evaluates the built in standard functions
