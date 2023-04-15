@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 #If Mac Then
-    Private pSettingsCache As Dictionary
+    Private pSettingsCache As Collection
 #Else
     Private pSettingsCache As Object
 #End If
@@ -39,15 +39,25 @@ Public Event OnChange(ByVal sIdentity As String, ByVal sKey As String, ByVal val
 
 Public Function Create(Optional sSheetName As String = "shStdSettings", Optional sTableName As String = "StdSettingsTable") As stdSettings
     #If Mac Then
-        If pSettingsCache Is Nothing Then Set pSettingsCache = New Dictionary
+        If pSettingsCache Is Nothing Then Set pSettingsCache = New Collection
     #Else
         If pSettingsCache Is Nothing Then Set pSettingsCache = CreateObject("Scripting.Dictionary")
     #End If
     
-    If Not IsEmpty(pSettingsCache(sSheetName & ";" & sTableName)) Then
-        Set Create = pSettingsCache(sSheetName & ";" & sTableName)
-        Exit Function
-    End If
+    #If Mac Then
+        If MACKeyExists(sSheetName & ";" & sTableName) Then
+            If Not IsEmpty(pSettingsCache(sSheetName & ";" & sTableName)) Then
+                Set Create = pSettingsCache(sSheetName & ";" & sTableName)
+                Exit Function
+            End If
+        End If
+    #Else
+        'PC ONLY
+        If Not IsEmpty(pSettingsCache(sSheetName & ";" & sTableName)) Then
+            Set Create = pSettingsCache(sSheetName & ";" & sTableName)
+            Exit Function
+        End If
+    #End If
     
     
     Dim SettingsSheet As Worksheet
@@ -98,11 +108,31 @@ Public Function Create(Optional sSheetName As String = "shStdSettings", Optional
     Call ret.Init(SettingsSheet, SettingsTable)
     
     'Cache ret
-    Set pSettingsCache(sSheetName & ";" & sTableName) = ret
+    #If Mac Then
+        pSettingsCache.Add ret, key:=sSheetName & ";" & sTableName
+    #Else
+        Set pSettingsCache(sSheetName & ";" & sTableName) = ret
+    #End If
     
     'Return settings object
     Set Create = ret
 End Function
+
+'(Mac Only) Find item in Collection
+#If Mac Then
+    Private Function MACKeyExists(collKey As String) As Boolean
+        On Error Resume Next
+        Dim itemVal
+        itemVal = pSettingsCache(collKey)
+        If Err.Number <> 0 Then
+            MACKeyExists = False
+            Err.Clear
+        Else
+            MACKeyExists = True
+        End If
+        On Error GoTo 0
+    End Function
+#End If
 
 'Initialise object
 Friend Sub Init(Sheet As Worksheet, Table As ListObject)
@@ -129,17 +159,17 @@ Public Function Import() As Boolean
 End Function
 
 'GETTING SETTINGS
-Public Property Get system(KEY As String) As Range
+Public Property Get system(key As String) As Range
     If pInitialised Then
-        Set system = GetSettingsRange("System", KEY)
+        Set system = GetSettingsRange("System", key)
     Else
         'Error
     End If
 End Property
 
-Public Property Get user(KEY As String) As Range
+Public Property Get user(key As String) As Range
     If pInitialised Then
-        Set user = GetSettingsRange(pIdentity, KEY)
+        Set user = GetSettingsRange(pIdentity, key)
         Exit Property
     Else
         'Error
@@ -147,20 +177,20 @@ Public Property Get user(KEY As String) As Range
 End Property
 
 'SETTING SETTINGS
-Public Property Let system(KEY As String, val As Variant)
+Public Property Let system(key As String, val As Variant)
     If pInitialised Then
-        GetSettingsRange("System", KEY).value = val
-        RaiseEvent OnChange("System", KEY, val)
+        GetSettingsRange("System", key).value = val
+        RaiseEvent OnChange("System", key, val)
         Exit Property
     Else
         'Error
     End If
 End Property
 
-Public Property Let user(KEY As String, val As Variant)
+Public Property Let user(key As String, val As Variant)
     If pInitialised Then
-        GetSettingsRange(pIdentity, KEY).value = val
-        RaiseEvent OnChange(pIdentity, KEY, val)
+        GetSettingsRange(pIdentity, key).value = val
+        RaiseEvent OnChange(pIdentity, key, val)
         Exit Property
     Else
         'Error
