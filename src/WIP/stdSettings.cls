@@ -7,7 +7,11 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
-Private pSettingsCache As Object
+#If Mac Then
+    Private pSettingsCache As Collection
+#Else
+    Private pSettingsCache As Object
+#End If
 
 Private pSettingsSheet As Worksheet
 
@@ -27,17 +31,33 @@ Private pSettingsTable As ListObject
 '    "<domain>\<user>"
 Private pIdentity As String
 Private pInitialised As Boolean
-Public Event OnChange(ByVal sIdentity As String, ByVal sKey As String, ByVal Value As Variant)
+Public Event OnChange(ByVal sIdentity As String, ByVal sKey As String, ByVal value As Variant)
+
 
 'TODO:
 '* Use custom XML parts for storing settings instead of sheets.
 
-Public Function Create(Optional sSheetName As String = "shStdSettings", Optional sTableName As String = "StdSettingsTable") As StdSettings
-    If pSettingsCache Is Nothing Then Set pSettingsCache = CreateObject("Scripting.Dictionary")
-    If Not IsEmpty(pSettingsCache(sSheetName & ";" & sTableName)) Then
-        Set Create = pSettingsCache(sSheetName & ";" & sTableName)
-        Exit Function
-    End If
+Public Function Create(Optional sSheetName As String = "shStdSettings", Optional sTableName As String = "StdSettingsTable") As stdSettings
+    #If Mac Then
+        If pSettingsCache Is Nothing Then Set pSettingsCache = New Collection
+    #Else
+        If pSettingsCache Is Nothing Then Set pSettingsCache = CreateObject("Scripting.Dictionary")
+    #End If
+    
+    #If Mac Then
+        If MACKeyExists(sSheetName & ";" & sTableName) Then
+            If Not IsEmpty(pSettingsCache(sSheetName & ";" & sTableName)) Then
+                Set Create = pSettingsCache(sSheetName & ";" & sTableName)
+                Exit Function
+            End If
+        End If
+    #Else
+        'PC ONLY
+        If Not IsEmpty(pSettingsCache(sSheetName & ";" & sTableName)) Then
+            Set Create = pSettingsCache(sSheetName & ";" & sTableName)
+            Exit Function
+        End If
+    #End If
     
     
     Dim SettingsSheet As Worksheet
@@ -64,11 +84,15 @@ Public Function Create(Optional sSheetName As String = "shStdSettings", Optional
             
             'Set codename
             On Error Resume Next
-                ThisWorkbook.VBProject.VBComponents(SettingsSheet.CodeName).Name = sSheetName
+                #If Mac Then
+                    'Don't bother
+                #Else
+                    ThisWorkbook.VBProject.VBComponents(SettingsSheet.CodeName).Name = sSheetName
+                #End If
             On Error GoTo 0
             
             'Initialise table list object
-            SettingsSheet.Range("A1:D1").Value = Split("Identity;Key;Value;Tags", ";")
+            SettingsSheet.Range("A1:D1").value = Split("Identity;Key;Value;Tags", ";")
             Dim tbl As ListObject
             Set tbl = .ListObjects.Add(xlSrcRange, SettingsSheet.Range("$A$1:$D$2"), , xlYes)
             tbl.Name = sTableName
@@ -79,16 +103,36 @@ Public Function Create(Optional sSheetName As String = "shStdSettings", Optional
     Set SettingsTable = SettingsSheet.ListObjects(sTableName)
     
     'Create settings object
-    Dim ret As StdSettings
-    Set ret = New StdSettings
+    Dim ret As stdSettings
+    Set ret = New stdSettings
     Call ret.Init(SettingsSheet, SettingsTable)
     
     'Cache ret
-    Set pSettingsCache(sSheetName & ";" & sTableName) = ret
+    #If Mac Then
+        pSettingsCache.Add ret, key:=sSheetName & ";" & sTableName
+    #Else
+        Set pSettingsCache(sSheetName & ";" & sTableName) = ret
+    #End If
     
     'Return settings object
     Set Create = ret
 End Function
+
+'(Mac Only) Find item in Collection
+#If Mac Then
+    Private Function MACKeyExists(collKey As String) As Boolean
+        On Error Resume Next
+        Dim itemVal
+        itemVal = pSettingsCache(collKey)
+        If Err.Number <> 0 Then
+            MACKeyExists = False
+            Err.Clear
+        Else
+            MACKeyExists = True
+        End If
+        On Error GoTo 0
+    End Function
+#End If
 
 'Initialise object
 Friend Sub Init(Sheet As Worksheet, Table As ListObject)
@@ -135,7 +179,7 @@ End Property
 'SETTING SETTINGS
 Public Property Let system(key As String, val As Variant)
     If pInitialised Then
-        GetSettingsRange("System", key).Value = val
+        GetSettingsRange("System", key).value = val
         RaiseEvent OnChange("System", key, val)
         Exit Property
     Else
@@ -145,7 +189,7 @@ End Property
 
 Public Property Let user(key As String, val As Variant)
     If pInitialised Then
-        GetSettingsRange(pIdentity, key).Value = val
+        GetSettingsRange(pIdentity, key).value = val
         RaiseEvent OnChange(pIdentity, key, val)
         Exit Property
     Else
@@ -156,12 +200,19 @@ End Property
 
 Private Function GetIdentity() As String
     Dim identity As String
-    GetIdentity = Environ("USERDNSDOMAIN") & "\" & Environ("USERNAME")
+    #If Mac Then
+        'Not going to get domain easily on a mac, so adding in the SandboxGroupId instead
+        GetIdentity = Environ("DOTNET_SANDBOX_APPLICATION_GROUP_ID") & Application.PathSeparator & Environ("LOGNAME")
+    #Else
+        'recommend change "\" to Application.PathSeparator
+        
+        GetIdentity = Environ("USERDNSDOMAIN") & "\" & Environ("USERNAME")
+    #End If
 End Function
 
 Private Function GetSettingsRange(ByVal sIdentity As String, ByVal sKey As String) As Range
     Dim arr As Variant
-    arr = pSettingsTable.DataBodyRange.Value
+    arr = pSettingsTable.DataBodyRange.value
     
     'Try to find property in list
     For i = 1 To UBound(arr, 1)
@@ -176,7 +227,7 @@ Private Function GetSettingsRange(ByVal sIdentity As String, ByVal sKey As Strin
     'If it doesn't exist, add it
     Dim lr As ListRow
     Set lr = pSettingsTable.ListRows.Add()
-    lr.Range.Value = Array(sIdentity, sKey, "", "")
+    lr.Range.value = Array(sIdentity, sKey, "", "")
     Set GetSettingsRange = lr.Range(1, 3)
     Exit Function
 End Function
