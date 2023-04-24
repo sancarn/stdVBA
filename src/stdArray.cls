@@ -14,11 +14,14 @@ Attribute VB_Exposed = False
 '* Add methods from ruby
 '* Documentation of methods
 
-#If VBA6 Then
+#If Mac Then
+  Private Declare PtrSafe Function CopyMemory Lib "/usr/lib/libc.dylib" Alias "memmove" (Destination As Any, Source As Any, ByVal Length As LongPtr) As LongPtr
+#ElseIf VBA6 Then
   Private Declare PtrSafe Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (ByVal Destination As LongPtr, ByVal Source As LongPtr, ByVal Length As Long)
 #Else
   Private Declare Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (ByVal Destination As Long, ByVal Source As Long, ByVal Length As Long)
 #End If
+
 Private Enum SortDirection
     Ascending = 1
     Descending = 2
