@@ -16,4 +16,5 @@ Sub MainTestAll()
     Call stdProcessTests.testAll
     Call stdWebSocketTests.testAll
     Call stdPerformanceTests.testAll
+    Call stdStringBuilderTests.testAll
 End Sub
