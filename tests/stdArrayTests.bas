@@ -16,7 +16,7 @@ Sub testAll()
     Dim vIter, iCount as long: iCount = 0
     For each vIter in arr
         iCount=iCount+1
-        Test.Assert "Check item is number", isNumber(vIter)
+        Test.Assert "Check item is number", isNumeric(vIter)
     next
     Test.Assert "Check loop triggered", iCount = 3
 
