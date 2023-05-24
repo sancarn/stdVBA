@@ -13,6 +13,17 @@ Enum EStandardResourceType
   StandardFolder
 End Enum
 
+Enum EResourceHashType
+  HashTypeMD5
+  HashTypeSHA1
+  HashTypeSHA256
+End Enum
+
+
+'Obtain name of resource
+'@return {String} The name of the resource
+Public Property Get Name() as string: End Property
+
 'Obtain a path to the resource
 '@returns {String} The path to this resource
 Public Property Get Path() as string: End Property
@@ -36,24 +47,32 @@ Public Property Get isContentSupported() as boolean: End Property
 '@throws {#438} Should only be when `isContentSupported` returns `false`.
 '@remarks {1} A container may have contents.
 '@devRemarks {1} Return `""` if no content 
-Public Property Get Contents(Optional ByVal iByteCount as Long) as Byte(): End Property
-Public Property Let Contents(Optional ByVal iByteCount as Long) as Byte(): End Property
+Public Property Get Contents(Optional ByVal iStartAt as Long, Optional ByVal iByteCount as Long) as Byte(): End Property
+Public Property Let Contents(Optional ByVal iStartAt as Long, Optional ByVal iByteCount as Long) as Byte(): End Property
+
+'The total size in Bytes of the resource
+'@returns {Long} The total size in bytes of the resource
+Public Property Get Size() as Long: End Property
+
+'Obtain hash of resource
+'@return {String} The hash of the resource
+Public Property Get Hash(Optional iType as EResourceHashType) as string: End Property
 
 'Obtains a collection of children
 '@returns {Collection<stdIResource>}
-Public Property Get ChildrenCollection() as Collection: End Function
+Public Property Get Children() as Collection: End Function
 
 'Copies the current resource to another existing resource container.
 '@param {stdIResource} The resource to copy this resource to.
 '@throws {...}
-Public Sub CopyToResource(ByVal res as stdIResource): End Sub
+Public Sub CopyTo(ByVal res as stdIResource): End Sub
 '_ Example implementation:
-'_   Function CopyToResource(res as stdIResource)
+'_   Function CopyTo(res as stdIResource)
 '_     resType = iif(me.isContainer, StandardFolder, StandardFile)
 '_     Call res.CreateChildEx(me.name, xxx, me.contents, true)
 '_   End Function
 '_ Example2 MultiFile implementation:
-'_   Function CopyToResource(res as stdIResource)
+'_   Function CopyTo(res as stdIResource)
 '_     For res in me.resources
 '_       resType = iif(res.isContainer, StandardFolder, StandardFile)
 '_       Call res.CreateChildEx(file.name, xxx, me.contents, true)
@@ -63,8 +82,11 @@ Public Sub CopyToResource(ByVal res as stdIResource): End Sub
 'Moves the current resource to another existing resource container.
 '@param {stdIResource} The resource to move this resource to.
 '@throws {...}
-Public Sub MoveToResource(ByVal res as stdIResource): End Sub
+Public Sub MoveTo(ByVal res as stdIResource): End Sub
 
+'Deletes the file
+'@throws {...}
+Public Sub Delete(): End Sub
 
 '@param {string} Name of the resource to create. I.E. FileName / FolderName
 '@param {EStandardResourceType}  
