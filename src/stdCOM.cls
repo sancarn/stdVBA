@@ -556,7 +556,11 @@ Public Function unkQueryInterface(ByVal sIID As String) As stdCOM
   If IIDFromString(StrPtr(sIID), tGUID) = S_OK Then
     Dim hResult As Long: hResult = CallVT(EIUnknown.QueryInterface, vbLong, VarPtr(tGUID.Data1), VarPtr(IInterface))
     If hResult = S_OK Then
-      Set unkQueryInterface = stdCOM.Create(IInterface)
+      if IInterface is nothing then 
+        set unkQueryInterface = nothing
+      else
+        Set unkQueryInterface = stdCOM.Create(IInterface)
+      end if
     ElseIf hResult = E_POINTER Then
       Set unkQueryInterface = Nothing
     ElseIf hResult = E_NOINTERFACE Then
@@ -586,8 +590,9 @@ End Sub
 Public Function QueryKnownInterface(ByVal interface As EKnownInterfaces) As stdCOM
   Dim sIID As String: sIID = KnownIID(interface)
   If sIID <> "" Then
-    Set QueryKnownInterface = unkQueryInterface(sIID)
-    Call QueryKnownInterface.unkAddRef
+    Dim oRet as stdCOM: Set oRet = unkQueryInterface(sIID)
+    if not oRet is nothing then Call oRet.unkAddRef
+    set QueryKnownInterface = oRet
   Else
     Err.Raise 1, "stdCOM::QueryKnownInterface", "Interface IID not known."
   End If
@@ -600,6 +605,7 @@ End Function
 Public Property Get TypeInfo() As stdCOM
   On Error GoTo CannotQuery
     Set TypeInfo = QueryKnownInterface(ITypeInfo)
+    If TypeInfo Is Nothing Then GoTo CannotQuery
     Exit Property
 CannotQuery:
   On Error GoTo UnknownError
@@ -608,7 +614,7 @@ CannotQuery:
     Dim pTypeInfo As IUnknown
     Dim hResult As Long: hResult = .CallVT(EIDispatch.GetTypeInfo, vbLongPtr, NULL_PTR, NULL_PTR, VarPtr(pTypeInfo))
     If hResult <> S_OK Then Err.Raise hResult, "InterfaceInfo", "stdCOM::InterfaceInfo"
-    Set TypeInfo = stdCOM.Create(pTypeInfo)
+    if not pTypeInfo is nothing then Set TypeInfo = stdCOM.Create(pTypeInfo)
   End With
   Exit Property
 UnknownError:
