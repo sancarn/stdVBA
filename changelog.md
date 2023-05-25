@@ -216,3 +216,5 @@ Before `08/07/2021` a change log was not kept. We have  retrospectively gone bac
 * 2023-02-14 stdShell       FEATURE     - Added `Hash` function to obtain `SHA1`, `SHA256`, `MD5` hashes.
 * 2023-03-09 stdLambda      FIX         - Fix `is` operator not working properly.
 * 2023-05-25 stdCOM         FIX         - Fix crash in 64 bit when trying to obtain `TypeInfo`. Cause: `IUnknown::AddRef` being called on `Nothing`.
+* 2023-05-25 stdArray       FIX         - Shift works with arrays of objects too.
+* 2023-05-25 stdEnumerator  FEATURE     - Added `=ListObject`, `=ListRow` and `=ListColumns` to `stdEnumerator.CreateFromListObject()` method allowing easy updating of source data i.e. `Application.Intersect(row("=ListRow").Range,row("=ListColumns")("Age").range).value = 10`.

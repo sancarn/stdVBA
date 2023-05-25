@@ -207,6 +207,9 @@ Public Function CreateFromListObject(ByVal lo As ListObject, Optional ByVal iMax
                 For j = 1 To UBound(vData, 2)
                     oRow(vHeader(1, j)) = vData(i, j)
                 Next
+                Set oRow("=ListRow") = lo.ListRows(i)
+                Set oRow("=ListObject") = lo
+                Set oRow("=ListColumns") = lo.ListColumns
                 Call c.Add(oRow)
             Next
         Else

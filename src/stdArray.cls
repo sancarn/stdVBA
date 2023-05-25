@@ -399,7 +399,7 @@ Public Function Shift() As Variant
   CopyVariant Shift, pArr(1)
   Dim i As Long
   For i = 1 To pLength - 1
-    pArr(i) = pArr(i + 1)
+    Call CopyVariant(pArr(i), pArr(i+1))
   Next
   pLength = pLength -1
 End Function
