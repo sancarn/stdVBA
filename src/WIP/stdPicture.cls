@@ -257,25 +257,6 @@ End Function
 '@example TBC
 Public Function CreateFromSTDOLEIPicture(ByVal picture As stdole.IPicture) As stdPicture
   Set CreateFromSTDOLEIPicture = CreateFromHBitmap(picture.Handle)
-'    Set CreateFromSTDOLEIPicture = New stdPicture
-'
-'    'Create ADODB Stream
-'    Const adTypeBinary As Long = 1
-'    Dim oStream As Object: Set oStream = CreateObject("ADODB.Stream")
-'    oStream.Type = adTypeBinary
-'    oStream.Open
-'
-'    'Obtain IStream object
-'    Dim oIStream As IUnknown: Set oIStream = unkQueryInterface(oStream, "0000000c-0000-0000-C000-000000000046")
-'
-'    'Save picture to stream
-'    Call picture.SaveAsFile(oIStream, True, 0)
-'
-'    'Create picture from stream bytes
-'    If oStream.size = 0 Then Exit Function
-'    oStream.Position = 0
-'    Dim bData() As Byte: bData = oStream.Read
-'    Set CreateFromSTDOLEIPicture = CreateFromBinary(bData)
 End Function
 
 Public Function CreateFromShape(ByVal shp As Object) As stdPicture
