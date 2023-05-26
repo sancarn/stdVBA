@@ -25,7 +25,9 @@ Attribute VB_Exposed = False
 '   * https://www.mrexcel.com/board/threads/working-with-images-in-vba-displaying-png-files.1224206/#post-5987712
 '     * Demonstrates File   -> Stdole.Stdpicture using WIA (including png, bmp, gif, ...)
 ' * Lots of useful stuff here: https://www.vbforums.com/showthread.php?630193-vb6-Alpha-Image-Control-v2-Final-Update-(15-Jan-2012)
-'
+' * TODO: Convert to GDIP instead of WIA e.g: https://www.mrexcel.com/board/threads/using-listbox-value-to-display-png-in-image-box.1103057/
+'   GDIP is faster. WIA is apparently intentionally slow...
+
 
 
 
@@ -44,6 +46,7 @@ Attribute VB_Exposed = False
 'stdPicture::CreateFromPicture(...)                                                                               'Create from StdOle.StdPicture
 'stdPicture::CreateFromPictureDisp(...)                                                                           'Create from StdOle.StdOle.IPictureDisp
 'stdPicture::CreateFromClipboard()                                                                                'Create image from clipboard
+'<#stdPicture>.CreateFromSVG()                                                                                     ???
 '<#stdPicture>.ToClipboard()                                                                                      'Copies to clipboard
 '<#stdPicture>.ToFile(sFilePath as string)                                                                        'Exports to file
 '<#stdPicture>.ToUIComponent()                                                                                    'Converts to UserForm Component
@@ -63,115 +66,115 @@ Attribute VB_Exposed = False
 '<#stdPicture>.DrawPolyBezier(...)                                                                                'Draws cubic Bézier curves by using the endpoints and control points specified by the lppt parameter.
 '<#stdPicture>.Resize()
 '<#stdPicture>.Crop()
-'<#stdPicture>.CreateFromSVG()?
+
 Public Enum stdPicFormat
-    stdPicFormatDefault
-    stdPicFormatBMP
-    stdPicFormatPNG
-    stdPicFormatGIF
-    stdPicFormatJPEG
-    stdPicFormatTIFF
+  stdPicFormatDefault
+  stdPicFormatBMP
+  stdPicFormatPNG
+  stdPicFormatGIF
+  stdPicFormatJPEG
+  stdPicFormatTIFF
 End Enum
 
 #If Win64 Then
-    Private Const NULL_PTR = 0^
+  Private Const NULL_PTR = 0^
 #Else
-    Private Const NULL_PTR = 0&
+  Private Const NULL_PTR = 0&
 #End If
 
 'Clipboard Management
 #If VBA7 Then
-    Private Declare PtrSafe Function IsClipboardFormatAvailable Lib "user32" (ByVal wFormat As Integer) As Long
-    Private Declare PtrSafe Function OpenClipboard Lib "user32" (Optional ByVal hWnd As LongPtr = 0^) As Long
-    Private Declare PtrSafe Function CloseClipboard Lib "user32" () As Long
-    Private Declare PtrSafe Function EmptyClipboard Lib "user32" () As Long
-    Private Declare PtrSafe Function GetClipboardData Lib "user32" (ByVal wFormat As Integer) As LongPtr
+  Private Declare PtrSafe Function IsClipboardFormatAvailable Lib "user32" (ByVal wFormat As Integer) As Long
+  Private Declare PtrSafe Function OpenClipboard Lib "user32" (Optional ByVal hWnd As LongPtr = 0^) As Long
+  Private Declare PtrSafe Function CloseClipboard Lib "user32" () As Long
+  Private Declare PtrSafe Function EmptyClipboard Lib "user32" () As Long
+  Private Declare PtrSafe Function GetClipboardData Lib "user32" (ByVal wFormat As Integer) As LongPtr
 
-    Private Declare PtrSafe Function GlobalAlloc Lib "kernel32" (ByVal wFlags As Long, ByVal dwBytes As Long) As LongPtr
-    Private Declare PtrSafe Function GlobalLock Lib "kernel32" (ByVal hMem As LongPtr) As LongPtr
-    Private Declare PtrSafe Function GlobalUnlock Lib "kernel32" (ByVal hMem As LongPtr) As Long
-    Private Declare PtrSafe Function GlobalSize Lib "kernel32" (ByVal hMem As LongPtr) As Long
-    Private Declare PtrSafe Function GlobalFree Lib "kernel32" (ByVal hMem As LongPtr) As LongPtr
-    
-    'Obtain image bytes from clipboard
-    Private Declare PtrSafe Function GetDC Lib "user32" (ByVal hWnd As LongPtr) As LongPtr
-    Private Declare PtrSafe Function ReleaseDC Lib "user32" (ByVal hWnd As LongPtr, ByVal hDC As LongPtr) As LongPtr
-    Private Declare PtrSafe Function GetObjectAPI Lib "gdi32" Alias "GetObjectA" (ByVal hObject As LongPtr, ByVal nCount As Long, lpObject As Any) As Long
-    Private Declare PtrSafe Function CreateDIBSection Lib "gdi32" (ByVal hDC As LongPtr, pbmi As BITMAPINFO, ByVal iUsage As Long, ByVal ppvBits As LongPtr, ByVal hSection As LongPtr, ByVal dwOffset As Long) As LongPtr
-    Private Declare PtrSafe Function GetDIBits Lib "gdi32" (ByVal aHDC As LongPtr, ByVal hBitmap As LongPtr, ByVal nStartScan As Long, ByVal nNumScans As Long, lpBits As Any, lpBI As BITMAPINFO, ByVal wUsage As Long) As Long
-    Private Declare PtrSafe Function DeleteObject Lib "gdi32" (ByVal hObject As LongPtr) As Long
+  Private Declare PtrSafe Function GlobalAlloc Lib "kernel32" (ByVal wFlags As Long, ByVal dwBytes As Long) As LongPtr
+  Private Declare PtrSafe Function GlobalLock Lib "kernel32" (ByVal hMem As LongPtr) As LongPtr
+  Private Declare PtrSafe Function GlobalUnlock Lib "kernel32" (ByVal hMem As LongPtr) As Long
+  Private Declare PtrSafe Function GlobalSize Lib "kernel32" (ByVal hMem As LongPtr) As Long
+  Private Declare PtrSafe Function GlobalFree Lib "kernel32" (ByVal hMem As LongPtr) As LongPtr
+  
+  'Obtain image bytes from clipboard
+  Private Declare PtrSafe Function GetDC Lib "user32" (ByVal hWnd As LongPtr) As LongPtr
+  Private Declare PtrSafe Function ReleaseDC Lib "user32" (ByVal hWnd As LongPtr, ByVal hDC As LongPtr) As LongPtr
+  Private Declare PtrSafe Function GetObjectAPI Lib "gdi32" Alias "GetObjectA" (ByVal hObject As LongPtr, ByVal nCount As Long, lpObject As Any) As Long
+  Private Declare PtrSafe Function CreateDIBSection Lib "gdi32" (ByVal hDC As LongPtr, pbmi As BITMAPINFO, ByVal iUsage As Long, ByVal ppvBits As LongPtr, ByVal hSection As LongPtr, ByVal dwOffset As Long) As LongPtr
+  Private Declare PtrSafe Function GetDIBits Lib "gdi32" (ByVal aHDC As LongPtr, ByVal hBitmap As LongPtr, ByVal nStartScan As Long, ByVal nNumScans As Long, lpBits As Any, lpBI As BITMAPINFO, ByVal wUsage As Long) As Long
+  Private Declare PtrSafe Function DeleteObject Lib "gdi32" (ByVal hObject As LongPtr) As Long
 
-    Private Declare PtrSafe Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (ByVal Destination As LongPtr, ByVal Source As LongPtr, ByVal Length As Long)
-    Private Declare PtrSafe Function GetTickCount Lib "kernel32" () As Long
+  Private Declare PtrSafe Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (ByVal Destination As LongPtr, ByVal Source As LongPtr, ByVal Length As Long)
+  Private Declare PtrSafe Function GetTickCount Lib "kernel32" () As Long
 
-    Private Declare PtrSafe Function DispCallFunc Lib "oleAut32.dll" (ByVal pvInstance As LongPtr, ByVal offsetinVft As LongPtr, ByVal CallConv As Long, ByVal retTYP As Integer, ByVal paCNT As Long, ByRef paTypes As VbVarType, ByRef paValues As LongPtr, ByRef retVAR As Variant) As Long
+  Private Declare PtrSafe Function DispCallFunc Lib "oleAut32.dll" (ByVal pvInstance As LongPtr, ByVal offsetinVft As LongPtr, ByVal CallConv As Long, ByVal retTYP As Integer, ByVal paCNT As Long, ByRef paTypes As VbVarType, ByRef paValues As LongPtr, ByRef retVAR As Variant) As Long
 #Else
-    Enum LongPtr
-        [_]
-    End Enum
+  Enum LongPtr
+    [_]
+  End Enum
 
-    Private Declare Function IsClipboardFormatAvailable Lib "user32" (ByVal wFormat As Integer) As Long
-    Private Declare Function OpenClipboard Lib "user32" (Optional ByVal hwnd As LongPtr = 0^) As Long
-    Private Declare Function CloseClipboard Lib "user32" () As Long
-    Private Declare Function EmptyClipboard Lib "user32" () As Long
-    Private Declare Function GetClipboardData Lib "user32" (ByVal wFormat As Integer) As LongPtr
+  Private Declare Function IsClipboardFormatAvailable Lib "user32" (ByVal wFormat As Integer) As Long
+  Private Declare Function OpenClipboard Lib "user32" (Optional ByVal hwnd As LongPtr = 0^) As Long
+  Private Declare Function CloseClipboard Lib "user32" () As Long
+  Private Declare Function EmptyClipboard Lib "user32" () As Long
+  Private Declare Function GetClipboardData Lib "user32" (ByVal wFormat As Integer) As LongPtr
 
-    Private Declare Function GlobalAlloc Lib "kernel32" (ByVal wFlags As Long, ByVal dwBytes As Long) As LongPtr
-    Private Declare Function GlobalLock Lib "kernel32" (ByVal hMem As LongPtr) As LongPtr
-    Private Declare Function GlobalUnlock Lib "kernel32" (ByVal hMem As LongPtr) As Long
-    Private Declare Function GlobalSize Lib "kernel32" (ByVal hMem As LongPtr) As Long
-    Private Declare Function GlobalFree Lib "kernel32" (ByVal hMem As LongPtr) As LongPtr
-    
-    'Obtain image bytes from clipboard
-    Private Declare Function GetDC Lib "user32" (ByVal hWnd As LongPtr) As LongPtr
-    Private Declare Function ReleaseDC Lib "user32" (ByVal hWnd As LongPtr, ByVal hDC As LongPtr) As LongPtr
-    Private Declare Function GetObjectAPI Lib "gdi32" Alias "GetObjectA" (ByVal hObject As LongPtr, ByVal nCount As Long, lpObject As Any) As Long
-    Private Declare Function CreateDIBSection Lib "gdi32" (ByVal hDC As LongPtr, pbmi As BITMAPINFO, ByVal iUsage As Long, ByVal ppvBits As LongPtr, ByVal hSection As LongPtr, ByVal dwOffset As Long) As LongPtr
-    Private Declare Function GetDIBits Lib "gdi32" (ByVal aHDC As LongPtr, ByVal hBitmap As LongPtr, ByVal nStartScan As Long, ByVal nNumScans As Long, lpBits As Any, lpBI As BITMAPINFO, ByVal wUsage As Long) As Long
-    Private Declare Function DeleteObject Lib "gdi32" (ByVal hObject As LongPtr) As Long
-    
-    Private Declare Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (ByVal Destination As LongPtr, ByVal Source As LongPtr, ByVal Length As Long)
-    Private Declare Function GetTickCount Lib "kernel32" () As Long
+  Private Declare Function GlobalAlloc Lib "kernel32" (ByVal wFlags As Long, ByVal dwBytes As Long) As LongPtr
+  Private Declare Function GlobalLock Lib "kernel32" (ByVal hMem As LongPtr) As LongPtr
+  Private Declare Function GlobalUnlock Lib "kernel32" (ByVal hMem As LongPtr) As Long
+  Private Declare Function GlobalSize Lib "kernel32" (ByVal hMem As LongPtr) As Long
+  Private Declare Function GlobalFree Lib "kernel32" (ByVal hMem As LongPtr) As LongPtr
+  
+  'Obtain image bytes from clipboard
+  Private Declare Function GetDC Lib "user32" (ByVal hWnd As LongPtr) As LongPtr
+  Private Declare Function ReleaseDC Lib "user32" (ByVal hWnd As LongPtr, ByVal hDC As LongPtr) As LongPtr
+  Private Declare Function GetObjectAPI Lib "gdi32" Alias "GetObjectA" (ByVal hObject As LongPtr, ByVal nCount As Long, lpObject As Any) As Long
+  Private Declare Function CreateDIBSection Lib "gdi32" (ByVal hDC As LongPtr, pbmi As BITMAPINFO, ByVal iUsage As Long, ByVal ppvBits As LongPtr, ByVal hSection As LongPtr, ByVal dwOffset As Long) As LongPtr
+  Private Declare Function GetDIBits Lib "gdi32" (ByVal aHDC As LongPtr, ByVal hBitmap As LongPtr, ByVal nStartScan As Long, ByVal nNumScans As Long, lpBits As Any, lpBI As BITMAPINFO, ByVal wUsage As Long) As Long
+  Private Declare Function DeleteObject Lib "gdi32" (ByVal hObject As LongPtr) As Long
+  
+  Private Declare Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (ByVal Destination As LongPtr, ByVal Source As LongPtr, ByVal Length As Long)
+  Private Declare Function GetTickCount Lib "kernel32" () As Long
 
-    'FIX: The use of `VbVarType` for the type of `paTypes` on 32 bit causes Invalid Callee error. Workaround is to use `Integer` instead as below.
-    Private Declare Function DispCallFunc Lib "oleAut32.dll" (ByVal pvInstance As Long, ByVal offsetinVft As Long, ByVal CallConv As Long, ByVal retTYP As Integer, ByVal paCNT As Long, ByRef paTypes As Integer, ByRef paValues As Long, ByRef retVAR As Variant) As Long
+  'FIX: The use of `VbVarType` for the type of `paTypes` on 32 bit causes Invalid Callee error. Workaround is to use `Integer` instead as below.
+  Private Declare Function DispCallFunc Lib "oleAut32.dll" (ByVal pvInstance As Long, ByVal offsetinVft As Long, ByVal CallConv As Long, ByVal retTYP As Integer, ByVal paCNT As Long, ByRef paTypes As Integer, ByRef paValues As Long, ByRef retVAR As Variant) As Long
 #End If
 Private Const CF_BITMAP = 2
 
 Private Type BITMAP
-    bmType As Long
-    bmWidth As Long
-    bmHeight As Long
-    bmWidthBytes As Long
-    bmPlanes As Integer
-    bmBitsPixel As Integer
-    bmBits As LongPtr
+  bmType As Long
+  bmWidth As Long
+  bmHeight As Long
+  bmWidthBytes As Long
+  bmPlanes As Integer
+  bmBitsPixel As Integer
+  bmBits As LongPtr
 End Type
 
 Private Type BITMAPFILEHEADER
-    bfType As String * 2&
-    bfSize As Long
-    bfReserved1 As Integer
-    bfReserved2 As Integer
-    bfOffBits As Long
+  bfType As String * 2&
+  bfSize As Long
+  bfReserved1 As Integer
+  bfReserved2 As Integer
+  bfOffBits As Long
 End Type
 
 Private Type BITMAPINFOHEADER
-    biSize As Long
-    biWidth As Long
-    biHeight As Long
-    biPlanes As Integer
-    biBitCount As Integer
-    biCompression As Long
-    biSizeImage As Long
-    biXPelsPerMeter As Long
-    biYPelsPerMeter As Long
-    biClrUsed As Long
-    biClrImportant As Long
+  biSize As Long
+  biWidth As Long
+  biHeight As Long
+  biPlanes As Integer
+  biBitCount As Integer
+  biCompression As Long
+  biSizeImage As Long
+  biXPelsPerMeter As Long
+  biYPelsPerMeter As Long
+  biClrUsed As Long
+  biClrImportant As Long
 End Type
 
 Private Type BITMAPINFO
-    bmiheader As BITMAPINFOHEADER
+  bmiheader As BITMAPINFOHEADER
 End Type
 
 
@@ -185,41 +188,67 @@ Private pCurrentFormat As stdPicFormat
 '****************
 '* Constructors *
 '****************
+
+'Creates a stdPicture object from a byte array
+'@param {ByRef Array<Byte>} Bytes of Bitmap/Jpeg/Png/... image
+'@returns {stdPicture} Picture object representing data
+'@example ```
+'  Dim b() as Byte: Redim b(1 to 100)
+'  Call stdPicture.CreateFromBinary(b).saveAs("H:\test1.png", stdPicFormatPNG)
+'```
 Public Function CreateFromBinary(ByRef b() As Byte) As stdPicture
-    Set CreateFromBinary = New stdPicture
-    With CreateObject("WIA.Vector")
-        .BinaryData = b
-        Call CreateFromBinary.protInit(.imageFile)
-    End With
+  Set CreateFromBinary = New stdPicture
+  With CreateObject("WIA.Vector")
+    .BinaryData = b
+    Call CreateFromBinary.protInit(.imageFile)
+  End With
 End Function
 
+
+'Creates a stdPicture object from a file
+'@param {String} Path of file
+'@returns {stdPicture} Picture object representing data
+'@example stdPicture.CreateFromFile("H:\test1.bmp").saveAs("H:\test1.png", stdPicFormatPNG)
 Public Function CreateFromFile(ByVal sPath As String) As stdPicture
-    Set CreateFromFile = New stdPicture
-    Set wia = CreateObject("WIA.ImageFile")
-    Call wia.LoadFile(sPath)
-    Call CreateFromFile.protInit(wia)
+  Set CreateFromFile = New stdPicture
+  Set wia = CreateObject("WIA.ImageFile")
+  Call wia.LoadFile(sPath)
+  Call CreateFromFile.protInit(wia)
 End Function
 
+'Creates a stdPicture object from a url
+'@param {String} Url of file
+'@returns {stdPicture} Picture object representing data
+'@example stdPicture.CreateFromURL("https://raw.githubusercontent.com/sancarn/awesome-vba/main/resources/VBALogo.png").saveAs("H:\test.png", stdPicFormatPNG)
 Public Function CreateFromUrl(ByVal sURL As String) As stdPicture
-    Set CreateFromUrl = New stdPicture
-    Dim HTTP As Object: Set HTTP = CreateObject("WinHttp.WinHttpRequest.5.1")
-    HTTP.Open "GET", TargetURL, False
-    'TODO: AutoProxy?
-    HTTP.send
-    If HTTP.status = 200 Then
-        Dim body() As Byte: body = HTTP.responseBody
-        Set CreateFromUrl = CreateFromBinary(body)
-    Else
-        Err.Raise 1, "", "Could not get file (HTTP Status: " & HTTP.status & ")"
-    End If
+  Set CreateFromUrl = New stdPicture
+  Dim HTTP As Object: Set HTTP = CreateObject("WinHttp.WinHttpRequest.5.1")
+  HTTP.Open "GET", TargetURL, False
+  'TODO: AutoProxy?
+  HTTP.send
+  If HTTP.status = 200 Then
+    Dim body() As Byte: body = HTTP.responseBody
+    Set CreateFromUrl = CreateFromBinary(body)
+  Else
+    Err.Raise 1, "", "Could not get file (HTTP Status: " & HTTP.status & ")"
+  End If
 End Function
 
+'Creates a stdPicture object from a file
+'@param {LongPtr} hBitmap (handle to Bitmap)
+'@returns {stdPicture} Picture object representing data
+'@example ```
+'  Dim bmp as LongPtr: bmp = TODO:
+'  stdPicture.CreateFromHBitmap(bmp).saveAs("H:\test.png", stdPicFormatPNG)
+'```
 Public Function CreateFromHBitmap(ByVal hBitmap As LongPtr) As stdPicture
   Dim b() As Byte: b = getHBitmapBytes(hBitmap) ' Obtain byte array
   Set CreateFromHBitmap = CreateFromBinary(b) 'Initialise from binary
 End Function
 
-'@example TBC
+'Creates a stdPicture from the image in the clipboard
+'@returns {stdPicture} Picture object representing data
+'@example stdPicture.CreateFromClipboard().saveAs("H:\test.png", stdPicFormatPNG)
 Public Function CreateFromClipboard() As stdPicture
   'Open clipboard
   If Not CBool(OpenClipboardTimeout(Application.hWnd)) Then Call Err.Raise(1, "Value [GET]", "Unable to open clipboard (DllError: " & Err.LastDllError & ")")
@@ -237,88 +266,183 @@ Public Function CreateFromClipboard() As stdPicture
   If sErrorText <> "" Then Call Err.Raise(1, "Value [GET]", sErrorText)
 End Function
 
-'@example TBC
+'Creates a stdPicture object from a stdole.IPictureDisp object
+'@param {stdole.IPictureDisp} Object to create picture from
+'@returns {stdPicture} Picture object representing data
+'@example TODO:
 Public Function CreateFromSTDOLEIPictureDisp(ByVal picture As stdole.IPictureDisp) As stdPicture
   Set CreateFromSTDOLEIPictureDisp = CreateFromHBitmap(picture.Handle)
 End Function
 
-'@example TBC
+'Creates a stdPicture object from a stdole.stdPicture object
+'@param {stdole.stdPicture} Object to create picture from
+'@returns {stdPicture} Picture object representing data
+'@example stdPicture.CreateFromSTDOLEStdPicture(Userform1.Picture).saveAs("H:\test.png", stdPicFormatPNG)
 Public Function CreateFromSTDOLEStdPicture(ByVal picture As stdole.stdPicture) As stdPicture
   Set CreateFromSTDOLEStdPicture = CreateFromHBitmap(picture.Handle)
 End Function
 
-'@example TBC
+'Creates a stdPicture object from a stdole.IPicture object
+'@param {stdole.IPicture} Object to create picture from
+'@returns {stdPicture} Picture object representing data
+'@example TODO:
+Public Function CreateFromSTDOLEIPicture(ByVal picture As stdole.IPicture) As stdPicture
+  Set CreateFromSTDOLEIPicture = CreateFromHBitmap(picture.Handle)
+End Function
+
+'Creates a stdPicture object from a Excel.IPicture object
+'@param {Excel.IPicture} Object to create picture from
+'@returns {stdPicture} Picture object representing data
+'@example TODO:
 Public Function CreateFromExcelIPicture(ByVal picture As Excel.IPicture) As stdPicture
   Call picture.CopyPicture(, xlBitmap)
   Set CreateFromExcelIPicture = CreateFromClipboard()
 End Function
 
-'@param {stdole.IPicture}
-'@example TBC
-Public Function CreateFromSTDOLEIPicture(ByVal picture As stdole.IPicture) As stdPicture
-  Set CreateFromSTDOLEIPicture = CreateFromHBitmap(picture.Handle)
-End Function
-
+'Creates a stdPicture object from a Shape object
+'@param {Object<(Excel|Word|PowerPoint).Shape>} Object to create picture from
+'@returns {stdPicture} Picture object representing data
+'@example TODO:
 Public Function CreateFromShape(ByVal shp As Object) As stdPicture
-    Select Case Application.Name
-        Case "Microsoft Excel"
-            Dim xlShp As Excel.Shape: Set xlShp = shp
-            Call xlShp.CopyPicture(, XlCopyPictureFormat.xlBitmap)
-            Set CreateFromShape = stdPicture.CreateFromClipboard()
-    End Select
+  Select Case Application.Name
+    Case "Microsoft Excel"
+      Dim xlShp As Excel.Shape: Set xlShp = shp
+      Call xlShp.CopyPicture(, XlCopyPictureFormat.xlBitmap)
+      Set CreateFromShape = stdPicture.CreateFromClipboard()
+  End Select
 End Function
 
+'Creates a stdPicture object from a Chart object
+'@param {Object<(Excel|Word|PowerPoint).Chart>} Object to create picture from
+'@returns {stdPicture} Picture object representing data
 Public Function CreateFromChart(ByVal chart As Object) As stdPicture
-    Select Case Application.Name
-        Case "Microsoft Excel"
-            Dim xlChart As Excel.chart: Set xlChart = chart
-            Call xlChart.CopyPicture(, XlCopyPictureFormat.xlBitmap)
-            Set CreateFromChart = stdPicture.CreateFromClipboard()
-    End Select
+  Select Case Application.Name
+    Case "Microsoft Excel"
+      Dim xlChart As Excel.chart: Set xlChart = chart
+      Call xlChart.CopyPicture(, XlCopyPictureFormat.xlBitmap)
+      Set CreateFromChart = stdPicture.CreateFromClipboard()
+  End Select
 End Function
 
+'Initialised stdPicture from WIA object
 '@param {Object<WIA.ImageFile>}
 Public Sub protInit(ByVal imageFile As Object)
-    Set pImageFile = imageFile
+  Set pImageFile = imageFile
 End Sub
 
+'Obtain binary data of the image in any format required
+'@param {eFormat=Default} The format the data should be in.
+'@returns {Byte()} Binary data of image
 Public Property Get Binary(Optional ByVal eFormat As stdPicFormat = stdPicFormatDefault) As Byte()
-    'If default, leave in current format
-    If eFormat = stdPicFormatDefault Then
-        Binary = pImageFile.FileData.BinaryData
-    Else
-        'Obtain required format
-        Dim sFormatUID As String
-        Select Case eFormat
-            Case stdPicFormatBMP:  sFormatUID = "{B96B3CAB-0728-11D3-9D7B-0000F81EF32E}"
-            Case stdPicFormatPNG:  sFormatUID = "{B96B3CAF-0728-11D3-9D7B-0000F81EF32E}"
-            Case stdPicFormatGIF:  sFormatUID = "{B96B3CB0-0728-11D3-9D7B-0000F81EF32E}"
-            Case stdPicFormatJPEG: sFormatUID = "{B96B3CAE-0728-11D3-9D7B-0000F81EF32E}"
-            Case stdPicFormatTIFF: sFormatUID = "{B96B3CB1-0728-11D3-9D7B-0000F81EF32E}"
-        End Select
+  'If default, leave in current format
+  If eFormat = stdPicFormatDefault Then
+    Binary = pImageFile.FileData.BinaryData
+  Else
+    'Obtain required format
+    Dim sFormatUID As String
+    Select Case eFormat
+      Case stdPicFormatBMP:  sFormatUID = "{B96B3CAB-0728-11D3-9D7B-0000F81EF32E}"
+      Case stdPicFormatPNG:  sFormatUID = "{B96B3CAF-0728-11D3-9D7B-0000F81EF32E}"
+      Case stdPicFormatGIF:  sFormatUID = "{B96B3CB0-0728-11D3-9D7B-0000F81EF32E}"
+      Case stdPicFormatJPEG: sFormatUID = "{B96B3CAE-0728-11D3-9D7B-0000F81EF32E}"
+      Case stdPicFormatTIFF: sFormatUID = "{B96B3CB1-0728-11D3-9D7B-0000F81EF32E}"
+    End Select
 
-        With CreateObject("WIA.ImageProcess")
-            .Filters.Add .FilterInfos("Convert").FilterID
-            .Filters(.Filters.Count).Properties("FormatID").Value = sFormatUID
-            Binary = .Apply(pImageFile).FileData.BinaryData
-        End With
-    End If
+    With CreateObject("WIA.ImageProcess")
+      .Filters.Add .FilterInfos("Convert").FilterID
+      .Filters(.Filters.Count).Properties("FormatID").Value = sFormatUID
+      Binary = .Apply(pImageFile).FileData.BinaryData
+    End With
+  End If
 End Property
 
+
+'Set binary data of the image in any format required
+'@param {eFormat} The format the data should be in.
+'@param {ByRef Byte()} Binary data of image
+'@planned TODO:
 Public Property Let Binary(ByVal eFormat As stdPicFormat, ByRef b() As Byte)
-  Err.Raise 1, , "Not implemented"
+  With CreateObject("WIA.Vector")
+    .BinaryData = b
+    Call protInit(.imageFile)
+  End With
 End Property
 
+'Save image as file
+'@param {String} Path to new file
+'@param {eFormat=Default} The required format of the file. Default is the current assosciated format.
 Public Sub saveAs(ByVal sSaveAsFile As String, Optional ByVal eFormat As stdPicFormat = stdPicFormatDefault)
-    Dim ff As Long: ff = FreeFile()
-    Open sSaveAsFile For Binary As #ff
-        Put #ff, 1, Binary(eFormat)
-    Close #ff
+  Dim ff As Long: ff = FreeFile()
+  Open sSaveAsFile For Binary As #ff
+    Put #ff, 1, Binary(eFormat)
+  Close #ff
 End Sub
 
-Public Sub copyToClipboard()
-
+'
+'@planned TODO:
+Public Sub toClipboard()
+  Err.Raise 1, , "Not implemented"
 End Sub
+
+'Save a copy in a temporary file and return the path of this file
+'@param {eFormat} The format the data should be in.
+'@returns {String} The path to the temporary file.
+Public Function toTempFile(Optional ByVal eFormat As stdPicFormat = stdPicFormatDefault) as string
+  Dim sExt As String
+  Select Case eFormat
+    Case stdPicFormatBMP:  sExt = "bmp"
+    Case stdPicFormatPNG:  sExt = "png"
+    Case stdPicFormatGIF:  sExt = "gif"
+    Case stdPicFormatJPEG: sExt = "jpeg"
+    Case stdPicFormatTIFF: sExt = "tiff"
+  End Select
+  Dim sPath as string: sPath = Environ("Temp") & "\" & getGUID() & "." & sExt
+  Call saveAs(sPath, eFormat)
+  toTempFile = sPath
+End Function
+
+'Adds the picture to the sheet
+'@param {Worksheet} Worksheet to add image to
+'@param {Double=0} Top coord of the newly placed image
+'@param {Double=0} Left coord of the newly placed image
+'@param {MsoPictureCompress} Whether to compress the image on import.
+'@returns {Object<Picture>} Picture object
+Public Function toSheet(ByVal ws as Worksheet, Optional ByVal Top as Double = 0 , Optional ByVal Left as Double = 0, optional ByVal compress as MsoPictureCompress) as Object
+  set toSheet = ws.Shapes.AddPicture2(toTempFile(), false, 0, Top, Left, , , compress)
+End Function
+
+'Update a UI control's background picture
+'@param {Object<Control>}
+Public Sub toUIControl(Byval oControl as object)
+  set oControl.Picture = STDOLE_StdPicture
+End Sub
+
+'@planned TODO:
+Public Function toDataUrl(Optional ByVal eFormat As stdPicFormat = stdPicFormatDefault) as string
+  Err.raise 1, , "Not implemented"
+End Function
+
+Public Sub toShapeFill(ByVal shp As Object)
+  Select Case Application.Name
+    Case "Microsoft Excel"
+      Dim xlShp As Excel.Shape: Set xlShp = shp
+      Call xlShp.Fill.UserPicture(toTempFile())
+  End Select
+End Sub
+
+'Obtain a stdole.StdPicture
+'@returns {stdole.StdPicture} Obtain the image as a stdole.StdPicture
+Public Property Get STDOLE_StdPicture() as stdole.StdPicture
+  set toSTDOLEStdPicture = pImageFile.FileData.Picture
+End Property
+
+'Obtain a HBitmap
+'@returns {stdole.StdPicture} Obtain the image as a stdole.StdPicture
+'@remark You are in charge of freeing this pointer.
+Public Property Get HBitmap() as LongPtr
+  set HBitmap = STDOLE_StdPicture.Handle
+End Property
+
 
 
 
@@ -624,4 +748,14 @@ Private Function OpenClipboardTimeout(ByVal hWnd As Long, Optional ByVal dwTimeo
     'Do Excel events
     DoEvents
   Wend
+End Function
+
+'Generates a new GUID
+Private Function getGUID() As String
+  Call Randomize 'Ensure random GUID generated
+  getGUID = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx"
+  getGUID = Replace(getGUID, "y", Hex(Rnd() And &H3 Or &H8))
+  Dim i As Long: For i = 1 To 30
+    getGUID = Replace(getGUID, "x", Hex$(Int(Rnd() * 16)), 1, 1)
+  Next
 End Function
