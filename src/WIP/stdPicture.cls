@@ -408,7 +408,7 @@ End Function
 '@param {MsoPictureCompress} Whether to compress the image on import.
 '@returns {Object<Picture>} Picture object
 Public Function toSheet(ByVal ws as Worksheet, Optional ByVal Top as Double = 0 , Optional ByVal Left as Double = 0, optional ByVal compress as MsoPictureCompress) as Object
-  set toSheet = ws.Shapes.AddPicture2(toTempFile(), false, 0, Top, Left, , , compress)
+  set toSheet = ws.Shapes.AddPicture2(toTempFile(), false, 0, Top, Left, -1, -1, compress)
 End Function
 
 'Update a UI control's background picture
@@ -440,7 +440,7 @@ End Property
 '@returns {stdole.StdPicture} Obtain the image as a stdole.StdPicture
 '@remark You are in charge of freeing this pointer.
 Public Property Get HBitmap() as LongPtr
-  set HBitmap = STDOLE_StdPicture.Handle
+  HBitmap = STDOLE_StdPicture.Handle
 End Property
 
 
