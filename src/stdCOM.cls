@@ -16,12 +16,16 @@ Attribute VB_Exposed = True
 'TODO: Analyse and add anything missing from:
 ' * https://referencesource.microsoft.com/#system.data/fx/src/data/System/Data/OleDb/OLEDB_Util.cs,4254532afac0bd58,references
 
-
+#If Win64 Then
+  Const NULL_PTR as LongLong = 0^
+#Else
+  Const NULL_PTR As Long = 0&
+#End If
 
 #If VBA7 Then
     Private Declare PtrSafe Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (Destination As Any, Source As Any, ByVal Length As LongPtr)
     Private Declare PtrSafe Sub ZeroMemory Lib "kernel32" Alias "RtlZeroMemory" (Destination As Any, ByVal Length As Long)
-    Private Declare PtrSafe Function DispCallFunc Lib "oleAut32.dll" (ByVal pvInstance As LongPtr, ByVal offsetinVft As LongPtr, ByVal CallConv As Long, ByVal retTYP As Integer, ByVal paCNT As Long, ByRef paTypes As VbVarType, ByRef paValues As LongPtr, ByRef retVAR As Variant) As Long
+    Private Declare PtrSafe Function DispCallFunc Lib "oleAut32.dll" (ByVal pvInstance As LongPtr, ByVal offsetinVft As LongPtr, ByVal CallConv As Long, ByVal retTYP As Integer, ByVal paCNT As Long, ByVal paTypes As LongPtr, ByVal paValues As LongPtr, ByRef retVAR As Variant) As Long
     Private Declare PtrSafe Sub SetLastError Lib "kernel32.dll" (ByVal dwErrCode As Long)
     Private Declare PtrSafe Function IIDFromString Lib "ole32.dll" (ByVal pstCLS As LongPtr, ByRef iid As GUID) As Long
     Private Declare PtrSafe Function CLSIDFromString Lib "ole32.dll" (ByVal pstCLS As LongPtr, ByRef iid As GUID) As Long
@@ -37,10 +41,13 @@ Attribute VB_Exposed = True
     Private Declare PtrSafe Function CoDisconnectObject Lib "ole32.dll" (ByVal pUnk As IUnknown, ByRef pvReserved As Long) As Long
     Private Declare PtrSafe Function CLSIDFromProgID Lib "ole32.dll" (ByVal ProgID As LongPtr, ByRef rclsid As GUID) As Long
 #Else
+    Private Enum LongPtr
+      [_]
+    End Enum
     Private Declare Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (Destination As Any, Source As Any, ByVal Length As Long)
     Private Declare Sub ZeroMemory Lib "kernel32" Alias "RtlZeroMemory" (Destination As Any, ByVal Length As Long)
     'FIX: The use of `VbVarType` for the type of `paTypes` on 32 bit causes Invalid Callee error. Workaround is to use `Integer` instead as below.
-    Private Declare Function DispCallFunc Lib "oleAut32.dll" (ByVal pvInstance As Long, ByVal offsetinVft As Long, ByVal CallConv As Long, ByVal retTYP As Integer, ByVal paCNT As Long, ByRef paTypes As Integer, ByRef paValues As Long, ByRef retVAR As Variant) As Long
+    Private Declare Function DispCallFunc Lib "oleAut32.dll" (ByVal pvInstance As LongPtr, ByVal offsetinVft As LongPtr, ByVal CallConv As Long, ByVal retTYP As Integer, ByVal paCNT As Long, ByVal paTypes As LongPtr, ByVal paValues As LongPtr, ByRef retVAR As Variant) As Long
     Private Declare Sub SetLastError Lib "kernel32.dll" (ByVal dwErrCode As Long)
     Private Declare Function IIDFromString Lib "ole32.dll" (ByVal pstCLS As Long, ByRef iid As GUID) As Long
     Private Declare Function CLSIDFromString Lib "ole32.dll" (ByVal pstCLS As Long, ByRef iid As GUID) As Long
@@ -628,6 +635,10 @@ Public Property Get InterfaceInfo() As Collection
   If pInterfaceInfo Is Nothing Then
     'Wrap pTypeInfo in stdCOM
     Dim oTypeInfo As stdCOM: Set oTypeInfo = TypeInfo()
+    If oTypeInfo Is Nothing Then
+        Set InterfaceInfo = New Collection
+        Exit Property
+    End If
     
     #If Win64 Then
       Dim lPtr As LongLong
@@ -645,7 +656,7 @@ Public Property Get InterfaceInfo() As Collection
     
     'Only fill the type size which is required, otherwise we'd use LENB(tTypeAttr)
     Dim tTypeAttr As TYPEATTR
-    CopyMemory tTypeAttr, ByVal lPtr, CountPos * PTRSIZE
+    CopyMemory tTypeAttr, ByVal lPtr, LenB(tTypeAttr)
     
     'Release TypeAttribute
     Call oTypeInfo.CallVT(EITypeInfo.ReleaseTypeAttr, vbLong, lPtr)
@@ -813,14 +824,13 @@ Public Function CallVT(ByVal VTableOffset As Long, ByVal ReturnType As VbVarType
     Dim iParamCount As Long: iParamCount = UBound(vParam) - LBound(vParam) + 1
     
     'Create array of types and pointers to vars, for function call
-    #If Win64 Then
-      Dim vPtr() As LongLong
-      Dim vType() As VbVarType
+    #If VBA7 Then
+      Dim vPtr() As LongPtr
     #Else
       Dim vPtr() As Long
-      Dim vType() As Integer 'FIX: On 32-bit use of vbVarType for the type parameter will fail
     #End If
-    
+    Dim vType() As Integer
+
     'Populate array of pointers to params, and array of types for DispCallFunc
     If iParamCount = 0 Then
       ReDim vType(0 To 0)
@@ -838,7 +848,7 @@ Public Function CallVT(ByVal VTableOffset As Long, ByVal ReturnType As VbVarType
     
     'Call function
     Dim hResult As Long
-    hResult = DispCallFunc(pObjPtr, VTableOffset * PTRSIZE, CC_STDCALL, ReturnType, iParamCount, vType(0), vPtr(0), vv)
+    hResult = DispCallFunc(pObjPtr, VTableOffset * PTRSIZE, CC_STDCALL, ReturnType, iParamCount, VarPtr(vType(0)), VarPtr(vPtr(0)), vv)
     
     If hResult < 0 Then
         Err.Raise hResult, "DispCallFunc"
