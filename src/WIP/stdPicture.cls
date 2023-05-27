@@ -85,7 +85,7 @@ End Enum
 'Clipboard Management
 #If VBA7 Then
   Private Declare PtrSafe Function IsClipboardFormatAvailable Lib "user32" (ByVal wFormat As Integer) As Long
-  Private Declare PtrSafe Function OpenClipboard Lib "user32" (Optional ByVal hWnd As LongPtr = 0^) As Long
+  Private Declare PtrSafe Function OpenClipboard Lib "user32" (Optional ByVal hWnd As LongPtr = NULL_PTR) As Long
   Private Declare PtrSafe Function CloseClipboard Lib "user32" () As Long
   Private Declare PtrSafe Function EmptyClipboard Lib "user32" () As Long
   Private Declare PtrSafe Function GetClipboardData Lib "user32" (ByVal wFormat As Integer) As LongPtr
@@ -114,7 +114,7 @@ End Enum
   End Enum
 
   Private Declare Function IsClipboardFormatAvailable Lib "user32" (ByVal wFormat As Integer) As Long
-  Private Declare Function OpenClipboard Lib "user32" (Optional ByVal hwnd As LongPtr = 0^) As Long
+  Private Declare Function OpenClipboard Lib "user32" (Optional ByVal hwnd As LongPtr = NULL_PTR) As Long
   Private Declare Function CloseClipboard Lib "user32" () As Long
   Private Declare Function EmptyClipboard Lib "user32" () As Long
   Private Declare Function GetClipboardData Lib "user32" (ByVal wFormat As Integer) As LongPtr
