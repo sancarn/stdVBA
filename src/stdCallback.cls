@@ -175,6 +175,12 @@ Attribute CreateFromModule.VB_Description = "Create callback from module method.
   Call CreateFromModule.protInit(ParentType.Module, sParentName, sMethodName)
 End Function
 
+Public Function CreateFromWorkbookModule(ByVal sWorkbookPath as string, ByVal sModuleName as string, ByVal sMethodName as string) as stdCallback
+Attribute CreateFromWorkbookModule.VB_Description = "Create callback from extenrnal workbook module method."
+  Set CreateFromWorkbookModule = new stdCallback
+  Call CreateFromWorkbookModule.protInit(ParentType.Module, "'" & sWorkbookPath & "'!" & sModuleName, sMethodName)
+End Function
+
 'Create callback from object and method name
 Public Function CreateFromObjectMethod(ByRef object As Object, ByVal sMethodName As String) As stdCallback
 Attribute CreateFromObjectMethod.VB_Description = "Create callback from object method."
