@@ -965,26 +965,30 @@ Private Function evaluate(ByRef ops() As Operation, ByVal vLastArgs As Variant) 
             Case iType.oComparison
                 Call CopyVariant(v2, popV(stack, stackPtr))
                 Call CopyVariant(v1, popV(stack, stackPtr))
-                Select Case op.subType
-                    Case ISubType.oEql
-                        v3 = v1 = v2
-                    Case ISubType.oNeq
-                        v3 = v1 <> v2
-                    Case ISubType.oGt
-                        v3 = v1 > v2
-                    Case ISubType.oGte
-                        v3 = v1 >= v2
-                    Case ISubType.oLt
-                        v3 = v1 < v2
-                    Case ISubType.oLte
-                        v3 = v1 <= v2
-                    Case ISubType.oLike
-                        v3 = v1 Like v2
-                    Case ISubType.oIs
-                        v3 = v1 is v2
-                    Case Else
-                        v3 = Empty
-                End Select
+                if vartype(v1) = vbError or vartype(v2) = vbError then
+                    v3 = false
+                else
+                    Select Case op.subType
+                        Case ISubType.oEql
+                            v3 = v1 = v2
+                        Case ISubType.oNeq
+                            v3 = v1 <> v2
+                        Case ISubType.oGt
+                            v3 = v1 > v2
+                        Case ISubType.oGte
+                            v3 = v1 >= v2
+                        Case ISubType.oLt
+                            v3 = v1 < v2
+                        Case ISubType.oLte
+                            v3 = v1 <= v2
+                        Case ISubType.oLike
+                            v3 = v1 Like v2
+                        Case ISubType.oIs
+                            v3 = v1 is v2
+                        Case Else
+                            v3 = Empty
+                    End Select
+                end if
                 Call pushV(stack, stackPtr, v3)
             'Logic
             Case iType.oLogic
