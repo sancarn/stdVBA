@@ -1395,6 +1395,16 @@ Public Function FindAll(ByVal query As stdICallable, Optional ByVal searchType A
     Wend
 End Function
 
+'Obtain all text from a window
+'@returns {string} All captions from a window concatenated together (DFS-ordering)
+Public Function getAllText() As String
+  Dim s As String: s = Me.Caption
+  Dim wnd As stdWindow
+  For Each wnd In Me.GetDescendents()
+    If wnd.Visible Then s = s & vbCrLf & wnd.Caption
+  Next
+  getAllText = s
+End Function
 
 
 '--------------------------------------------------------------------------------

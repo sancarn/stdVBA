@@ -220,3 +220,4 @@ Before `08/07/2021` a change log was not kept. We have  retrospectively gone bac
 * 2023-05-25 stdEnumerator  FEATURE     - Added `=ListObject`, `=ListRow` and `=ListColumns` to `stdEnumerator.CreateFromListObject()` method allowing easy updating of source data i.e. `Application.Intersect(row("=ListRow").Range,row("=ListColumns")("Age").range).value = 10`.
 * 2023-05-27 stdCOM         FIX         - Various fixes for 32-bit Office, specifically within error trapping and obtaining TypeInfo.
 * 2023-05-30 stdLambda      FIX         - Comparrison error when an error was compared with a primitive, now returns false.
+* 2023-07-03 stdWindow      FEATURE     - Added `getAllText` to `stdWindow`.
