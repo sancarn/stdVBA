@@ -222,3 +222,4 @@ Before `08/07/2021` a change log was not kept. We have  retrospectively gone bac
 * 2023-05-30 stdLambda      FIX         - Comparrison error when an error was compared with a primitive, now returns false.
 * 2023-07-03 stdWindow      FEATURE     - Added `getAllText` to `stdWindow`.
 * 2023-07-05 xlVBA          REMOVED     - Moved to stdVBA-Examples, as it made more sense to be built off existing stdVBA libraries.
+* 2023-07-09 stdWindow      FIX         - Added check in `setThreadInput` if thread input is already available. If so setting/unsetting is skipped.
