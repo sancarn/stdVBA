@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
-'Spec: 
+'Spec:
 'A class used to automate  objects which implement IAccessible
 '
 '
@@ -68,9 +68,9 @@ Attribute VB_Exposed = False
   'structs by value. a ByRef struct won't do however, so instead we have to fake the data by picking args with the same size. In 32-bit you used to be able
   'to use 2 longs (the 2 parts of the struct), however 64-bit doesn't appear to like this notation. Instead we have to use a LongLong type to get the job done.
   #If Win64 Then
-    Private Declare PtrSafe Function AccessibleObjectFromPoint Lib "Oleacc" (ByVal arg1 As LongLong, ppacc As IAccessible, pvarChild As Variant) As Long
+    Private Declare PtrSafe Function AccessibleObjectFromPoint Lib "oleacc" (ByVal arg1 As LongLong, ppacc As IAccessible, pVarChild As Variant) As Long
   #Else
-    Private Declare PtrSafe Function AccessibleObjectFromPoint Lib "Oleacc" (ByVal lX As Long, ByVal lY As Long, ppacc As IAccessible, pvarChild As Variant) As Long
+    Private Declare PtrSafe Function AccessibleObjectFromPoint Lib "oleacc" (ByVal lX As Long, ByVal lY As Long, ppacc As IAccessible, pVarChild As Variant) As Long
   #End If
 #Else
   Private Declare Function GetCursorPos Lib "user32.dll" (lpPoint As tPOINT) As Long
@@ -78,19 +78,35 @@ Attribute VB_Exposed = False
 #End If
 
 '
-#if VBA7 then
+#If VBA7 Then
   Private Declare PtrSafe Function AccessibleObjectFromWindow Lib "oleacc" (ByVal hwnd As LongPtr, ByVal dwId As Long, riid As tGUID, ppvObject As Object) As Long
   Private Declare PtrSafe Function AccessibleObjectFromEvent Lib "oleacc.dll" (hwnd As LongPtr, dwObjectId As Integer, dwChildID As Integer, ppacc As IAccessible, pVarChild As Object) As Long
   Private Declare PtrSafe Function AccessibleChildren Lib "oleacc" (ByVal paccContainer As IAccessible, ByVal iChildStart As Long, ByVal cChildren As Long, rgvarChildren As Variant, pcObtained As Long) As Long
   Private Declare PtrSafe Function WindowFromAccessibleObject Lib "oleacc" (ByVal pacc As IAccessible, ByRef pHwnd As LongPtr) As Long
   Private Declare PtrSafe Function APISendMessage Lib "user32" Alias "SendMessage" (ByVal hwnd As LongPtr, ByVal Msg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
-#else
+  Private Declare PtrSafe Function CoTaskMemFree Lib "ole32" (ByVal pv As LongPtr) As Long
+  Private Declare PtrSafe Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (ByVal Destination As LongPtr, ByVal Source As LongPtr, ByVal Length As LongPtr)
+  Private Declare PtrSafe Function DispCallFunc Lib "oleAut32.dll" (ByVal pvInstance As LongPtr, ByVal offsetinVft As LongPtr, ByVal CallConv As Long, ByVal retTYP As Integer, ByVal paCNT As Long, ByVal paTypes As LongPtr, ByVal paValues As LongPtr, ByRef retVAR As Variant) As Long
+  Private Declare PtrSafe Function IIDFromString Lib "ole32.dll" (ByVal pstCLS As LongPtr, ByRef iid As GUID) As Long
+#Else
   Private Declare Function AccessibleObjectFromWindow Lib "oleacc" (ByVal hwnd As Long, ByVal dwId As Long, riid As tGUID, ppvObject As Object) As Long
   Private Declare Function AccessibleObjectFromEvent Lib "oleacc.dll" (hwnd As Long, dwObjectId As Integer, dwChildID As Integer, ppacc As IAccessible, pVarChild As Object) As Long
   Private Declare Function AccessibleChildren Lib "oleacc" (ByVal paccContainer As IAccessible, ByVal iChildStart As Long, ByVal cChildren As Long, rgvarChildren As Variant, pcObtained As Long) As Long
   Private Declare Function WindowFromAccessibleObject Lib "oleacc" (ByVal pacc As IAccessible, ByRef pHwnd As Long) As Long
   Private Declare Function APISendMessage Lib "user32" Alias "SendMessage" (ByVal hwnd As Long, ByVal Msg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
-#end if
+  Private Declare Function CoTaskMemFree Lib "ole32" (ByVal pv As Long) As Long
+  Private Declare Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (ByVal Destination As Long, ByVal Source As Long, ByVal Length As LongPtr)
+  Private Declare Function DispCallFunc Lib "oleAut32.dll" (ByVal pvInstance As Long, ByVal offsetinVft As Long, ByVal CallConv As Long, ByVal retTYP As Integer, ByVal paCNT As Long, ByVal paTypes As Long, ByVal paValues As Long, ByRef retVAR As Variant) As Long
+  Private Declare Function IIDFromString Lib "ole32.dll" (ByVal pstCLS As Long, ByRef iid As GUID) As Long
+#End If
+
+'GUID struct for QueryInterface
+Private Type GUID
+    Data1 As Long
+    Data2 As Integer
+    Data3 As Integer
+    Data4(0 To 7) As Byte
+End Type
 
 'Used while walking the Accessibility tree. Can be used to toggle between a Breadth first search and a depth first search.
 Public Enum EAccFindType
@@ -611,6 +627,19 @@ Public Property Get hwnd() As LongPtr
     Exit Property
 handle_error:
     hwnd = 0
+End Property
+
+'Get a unique identifier for an element.
+'@returns {string} Hex string identifier for element.
+'@example `stdAcc.CreateFromMouse().Identity`
+Public Property Get Identity() As String
+  On Error GoTo Fallback
+  Dim accIdent As IUnknown: Set accIdent = unkQueryInterface(protAccessible, "{7852B78D-1CFD-41C1-A615-9C0C85960B5F}")
+  If Not accIdent Is Nothing Then Identity = accGetIdentity(accIdent)
+  Exit Property
+Fallback:
+  'TODO: Fallback identity
+  Identity = "Unknown"
 End Property
 
 'Return the location of the element as a collection
@@ -1314,3 +1343,110 @@ Private Function COMErrorDescription(ByVal code As Long) As String
     End If
     COMErrorDescription = pErrorCodes(Hex(code))
 End Function
+
+
+
+Private Function accGetIdentity(ByRef accIdent As IUnknown) As String
+  Const GetIdentityOffset As Long = 3
+  Dim accIdentPtr As LongPtr
+  Dim accIdentLen As Long
+  Dim hResult As Long: hResult = DispCallFuncEx(accIdent, GetIdentityOffset, vbLong, 0, VarPtr(accIdentPtr), VarPtr(accIdentLen))
+  If hResult = 0 Then
+    Dim ptr As LongPtr
+    Dim accIdentByt() As Byte
+    ReDim accIdentByt(0 To accIdentLen)
+    Call CopyMemory(VarPtr(accIdentByt(0)), accIdentPtr, accIdentLen)
+    Call CoTaskMemFree(accIdentPtr)
+
+    Dim s As String: s = Space(accIdentLen * 2)
+    Dim i As Long: For i = 0 To accIdentLen - 1
+      Mid(s, i * 2 + 1, 2) = IIf(accIdentByt(i) < 10, "0", "") & Hex(accIdentByt(i))
+    Next
+
+    accGetIdentity = s
+  End If
+End Function
+
+Private Function unkQueryInterface(ByRef unk As IUnknown, ByVal sIID As String) As IUnknown
+  Const IUnknownQueryInterface = 0
+  Const S_OK          As Long = 0
+  Const E_NOINTERFACE As Long = &H80004002
+  Const E_POINTER     As Long = &H80004003
+
+  Dim IInterface As IUnknown
+  Dim tIID As GUID
+  If IIDFromString(StrPtr(sIID), tIID) = S_OK Then
+    On Error Resume Next
+    Dim hResult As Long: hResult = DispCallFuncEx(unk, IUnknownQueryInterface, vbLong, VarPtr(tIID.Data1), VarPtr(IInterface))
+    On Error GoTo 0
+    If hResult = S_OK Then
+      If IInterface Is Nothing Then
+        Set unkQueryInterface = Nothing
+      Else
+        Set unkQueryInterface = IInterface
+      End If
+    ElseIf hResult = E_POINTER Then
+      Set unkQueryInterface = Nothing
+    ElseIf hResult = E_NOINTERFACE Then
+      Err.Raise E_NOINTERFACE, "stdCOM", "IUnknown::QueryInterface - Interface not implemented."
+    Else
+      Err.Raise hResult, "stdCOM", "IUnknown::QueryInterface - Unknown error occurred."
+    End If
+  Else
+    Err.Raise Err.LastDllError, "stdCOM", "IUnknown::QueryInterface - Cannot retrieve IID from String."
+  End If
+End Function
+
+'Call a function in the VTable of the object at a specified offset
+'@param {Long}      The offset of the method to call. IUnknown::QueryInterface=0; IUnknown::AddRef=1; IUnknown::Release=2; IDispatch::Invoke=6
+'@param {VbVarType} Return value of function, typically Long (HResult) for COM Object calls
+'@paramArray Arguments to send to function.
+Public Function DispCallFuncEx(ByRef unk As IUnknown, ByVal VTableOffset As Long, ByVal ReturnType As VbVarType, ParamArray FunctionParameters() As Variant) As Variant
+    #If Win64 Then
+      Const PTRSIZE = 8
+    #Else
+      Const PTRSIZE = 4
+    #End If
+    Const CC_STDCALL As Long = 4
+
+    'Create array from params
+    Dim vParam() As Variant: vParam = FunctionParameters
+    Dim iParamCount As Long: iParamCount = UBound(vParam) - LBound(vParam) + 1
+
+    'Create array of types and pointers to vars, for function call
+    #If VBA7 Then
+      Dim vPtr() As LongPtr
+    #Else
+      Dim vPtr() As Long
+    #End If
+    Dim vType() As Integer
+
+    'Populate array of pointers to params, and array of types for DispCallFunc
+    If iParamCount = 0 Then
+      ReDim vType(0 To 0)
+      ReDim vPtr(0 To 0)
+    Else
+      ReDim vType(0 To iParamCount - 1)
+      ReDim vPtr(0 To iParamCount - 1)
+
+      Dim lIdx As Long
+      For lIdx = 0 To iParamCount - 1
+        vType(lIdx) = VarType(vParam(lIdx))
+        vPtr(lIdx) = VarPtr(vParam(lIdx))
+      Next
+    End If
+
+    'Call function
+    Dim ox As LongPtr: ox = ObjPtr(unk)
+    Dim hResult As Long
+    hResult = DispCallFunc(ox, VTableOffset * PTRSIZE, CC_STDCALL, ReturnType, iParamCount, VarPtr(vType(0)), VarPtr(vPtr(0)), vv)
+    If IsObject(vv) Then
+      Set DispCallFuncEx = vv
+    Else
+      Let DispCallFuncEx = vv
+    End If
+    If hResult < 0 Then
+        Err.Raise hResult, "DispCallFunc", "Error in calling DispCallFunc"
+    End If
+End Function
+
