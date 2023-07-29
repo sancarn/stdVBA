@@ -224,3 +224,4 @@ Before `08/07/2021` a change log was not kept. We have  retrospectively gone bac
 * 2023-07-05 xlVBA          REMOVED     - Moved to stdVBA-Examples, as it made more sense to be built off existing stdVBA libraries.
 * 2023-07-09 stdWindow      FIX         - Added check in `setThreadInput` if thread input is already available. If so setting/unsetting is skipped.
 * 2023-07-30 stdAcc         FEATURE     - Added `Identity` obtained from `IAccIdentity::GetIdentityString` which obtains a Unique ID for each an accessibility element! I.E. there is no longer need for `Path` (which is unstable) to uniquely define elements.
+* 2023-07-39 stdWindow      FEATURE     - Added `StyleTexts` and `StyleExTexts` properties to `stdWindow`

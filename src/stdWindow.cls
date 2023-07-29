@@ -1052,6 +1052,20 @@ Public Property Let Style(ByVal newStyle As Long)
   End If
 End Property
 
+'Obtain a semi-colon delimited list of styles
+'@returns {String} semi-colon delimited list of style names e.g. "WS_BORDER;WS_CAPTION"
+Public Property Get StyleTexts() as String
+  Dim iStyle as Long: iStyle = Style
+  static vKeys   as variant: if isEmpty(vKeys)   then vKeys   = Lookups("EWndStyles").keys()
+  static vStyles as variant: if isEmpty(vStyles) then vStyles = Lookups("EWndStyles").items()
+  
+  Dim s as string
+  Dim i as long: For i = 0 to ubound(vKeys)
+    if iStyle and vStyles(i) then s = s & vKeys(i) & ";"
+  next
+  StyleTexts = s
+End Property
+
 'Get/Set the extended style of the window
 Public Property Get StyleEx() As Long
   If Exists Then
@@ -1073,6 +1087,20 @@ Public Property Let StyleEx(ByVal newStyle As Long)
   Else
     Err.Raise 1, "StyleEx [Let]", "Window does not exist."
   End If
+End Property
+
+'Obtain a semi-colon delimited list of styles
+'@returns {String} semi-colon delimited list of styleex names e.g. "WS_EX_APPWINDOW;WS_EX_TOPMOST"
+Public Property Get StyleExTexts() as String
+  Dim iStyleEx as Long: iStyleEx = StyleEx
+  static vKeys   as variant: if isEmpty(vKeys)   then vKeys   = Lookups("EWndExStyles").keys()
+  static vStyles as variant: if isEmpty(vStyles) then vStyles = Lookups("EWndExStyles").items()
+  
+  Dim s as string
+  Dim i as long: For i = 0 to ubound(vKeys)
+    if iStyleEx and vStyles(i) then s = s & vKeys(i) & ";"
+  next
+  StyleExTexts = s
 End Property
 
 #If VBA7 Then
