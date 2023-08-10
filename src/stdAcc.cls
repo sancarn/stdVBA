@@ -586,11 +586,10 @@ End Function
 '@returns {stdAcc} Parent of this element
 Public Property Get Parent() As stdAcc
     If isProxy Then
-        Set Parent = proxyParent
+        Set Parent = stdAcc.CreateFromIAccessible(proxyParent)
     else
         On Error GoTo handle_error
-            Set Parent = New stdAcc
-            set Parent.protAccessible = protAccessible.accParent
+            Set Parent = stdAcc.CreateFromIAccessible(protAccessible.accParent)
         On Error GoTo 0
     End if
     Exit Property

@@ -12,8 +12,6 @@ Implements stdICallable
 
 'TODO:
 '* Full implementation of Pointer
-'* Full implementation of Lambda (Will likely require stdVBAExpression library)
-'* StdRun
 '* CallCallback module function calling - is there a better way than application.run?
 
 'OBJECT TESTING:
