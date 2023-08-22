@@ -40,6 +40,12 @@ Attribute VB_Exposed = True
     Private Declare PtrSafe Function RevokeActiveObject32 Lib "oleAut32.dll" Alias "RevokeActiveObject" (ByVal dwRegister As Long, ByVal pvReserved As LongPtr) As Long
     Private Declare PtrSafe Function CoDisconnectObject Lib "ole32.dll" (ByVal pUnk As IUnknown, ByRef pvReserved As Long) As Long
     Private Declare PtrSafe Function CLSIDFromProgID Lib "ole32.dll" (ByVal ProgID As LongPtr, ByRef rclsid As GUID) As Long
+
+    'WinRT
+    Private Declare PtrSafe Function WindowsCreateString Lib "Combase.dll" (ByVal sourceString As LongPtr, ByVal Length As Long, ByRef hString As LongPtr) As Long
+    Private Declare PtrSafe Function WindowsDeleteString Lib "Combase.dll" (ByVal sourceString As LongPtr) As Long
+    Private Declare PtrSafe Function RoGetActivationFactory Lib "Combase.dll" (ByVal activatableClassId As LongPtr, ByRef riid As GUID, ByRef factory As Long) As Long
+    Private Declare PtrSafe Function RoActivateInstance Lib "Combase.dll" (ByVal activatableClassId As LongPtr, ByRef instance As LongPtr) As Long
 #Else
     Private Enum LongPtr
       [_]
@@ -62,6 +68,12 @@ Attribute VB_Exposed = True
     Private Declare Function RevokeActiveObject32 Lib "oleAut32.dll" Alias "RevokeActiveObject" (ByVal dwRegister As Long, ByVal pvReserved As Long) As Long
     Private Declare Function CoDisconnectObject Lib "ole32.dll" (ByVal pUnk As IUnknown, ByRef pvReserved As Long) As Long
     Private Declare Function CLSIDFromProgID Lib "ole32.dll" (ByVal ProgID As Long, ByRef rclsid As GUID) As Long
+
+    'WinRT
+    Private Declare Function WindowsCreateString Lib "Combase.dll" (ByVal sourceString As LongPtr, ByVal Length As Long, ByRef hString As LongPtr) As Long
+    Private Declare Function WindowsDeleteString Lib "Combase.dll" (ByVal sourceString As LongPtr) As Long
+    Private Declare Function RoGetActivationFactory Lib "Combase.dll" (ByVal activatableClassId As LongPtr, ByRef riid As GUID, ByRef factory As Long) As Long
+    Private Declare Function RoActivateInstance Lib "Combase.dll" (ByVal activatableClassId As LongPtr, ByRef instance As LongPtr) As Long
 #End If
 
 'GUID struct for QueryInterface
@@ -508,6 +520,25 @@ Public Function CreateFromActiveObjects() As Collection
   Wend
   
   Set CreateFromActiveObjects = ret
+End Function
+
+'Create `stdCOM` object from WinRT Activatable ClassID.
+'@param {string} An activatable WinRT class ID.
+'@returns {stdCOM} A COM wrapper for the object.
+'@example `stdCOM.CreateFromWinRTClassID("Windows.Storage.Pickers.FolderPicker")`
+Public Function CreateFromWinRTClassID(ByVal sActivatableClassId as string) as stdCOM
+  Dim hString as LongPtr
+  if WindowsCreateString(StrPtr(sActivatableClassId), Len(sActivatableClassId), hString) <> S_OK then Err.Raise 1, "stdCOM::CreateFromWinRTClassID", "Cannot create HSTRING"
+  if hString = NULL_PTR then Err.Raise 1, "stdCOM::CreateFromWinRTClassID", "Cannot create HSTRING"
+
+  'Obtain stdCOM object
+  Dim pIInspectable as LongPtr
+  if RoActivateInstance(hString, pIInspectable) <> S_OK then Err.Raise 1, "stdCOM::CreateFromWinRTClassID", "Cannot activate class ID"
+  if pIInspectable = 0 then Err.Raise 1, "stdCOM::CreateFromWinRTClassID", "Cannot activate class ID"
+  set CreateFromWinRTClassID = CreateFromPtr(pIInspectable)
+
+  'Delete string
+  Call WindowsDeleteString(hString)
 End Function
 
 
