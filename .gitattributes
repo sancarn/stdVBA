@@ -9,3 +9,6 @@
 
 # VBA extensions - Mark as binary
 *.frx binary
+
+# AutoHotKey
+*.ahk -text filter=crlf
