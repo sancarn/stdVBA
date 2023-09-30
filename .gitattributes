@@ -1,5 +1,5 @@
 # By default, auto detect text files and perform LF normalization
-* text=auto
+* text=auto eol=lf
 
 # VBA extensions - Enforce CRLF using a filter
   # To make sure the filter is active, run the command: git config include.path ../.gitconfig
