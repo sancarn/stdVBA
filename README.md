@@ -251,7 +251,7 @@ Please make sure code contributions follow the following guidelines:
 * `Attribute VB_Name` should follow the STD convention e.g. `"stdMyClass"`
 * Follow the STD constructor convention `stdMyClass.Create(...)`.
 * Ensure there are plenty of comments where required.
-* Ensure lines end in `\r\n` and not `\n` only.
+* Ensure lines end in `\r\n` and not `\n` only. You can enable the Git filter in charge of making this automatic conversion by running `git config include.path ../.gitconfig`
 
 As long as these standard conventions are met, the rest is up to you! Just try to be as general as possible! We're not necessarily looking for optimised code, at the moment we're just looking for code that works!
 
