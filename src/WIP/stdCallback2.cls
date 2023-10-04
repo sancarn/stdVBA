@@ -58,6 +58,7 @@ Public Enum ECallbackType
 End Enum
 Private Enum ECallbackType2
   EByClone=4
+  EByBind=5
 End Enum
 
 '[IDispatch](https://en.wikipedia.org/wiki/IDispatch)  extends IUnknown
@@ -100,10 +101,15 @@ Private Type dispInfo
   argsCount as Long        'RUNTIME   | count of args passed to function and present in args
 End Type
 
+Private Type existingInfo
+  cb as stdCallback2
+End Type
+
 Private Type TThis
   ctype as ECallbackType
   decl as dispCallFuncInfo
   disp as dispInfo
+  existing as existingInfo
 End Type
 Private This as TThis
 
@@ -141,8 +147,9 @@ Public Function Clone() as stdCallback2
   Call Clone.protInit(EByClone, oClone)
 End Function
 
-Public Function Bind(ParamArray vParams()) as stdCallback
-
+Public Function Bind(ParamArray vParams()) as stdCallback2
+  set Bind = new stdCallback2
+  Bind.protInit(EByExisting, Me, vParams)
 End Function
 
 'Create callback from a module member.
@@ -182,6 +189,8 @@ Private Enum ParamEnumeration
   byPointer_RetType = 2
   byPointer_ParamTypes = 3
   byPointer_CallConv = 4
+  byExisting_CB = 1
+  byExisting_AppendParams = 2
 End Enum
 
 Friend Sub protInit(callbackType As ECallbackType, ParamArray params() As Variant)
@@ -189,7 +198,7 @@ Friend Sub protInit(callbackType As ECallbackType, ParamArray params() As Varian
   select case callbackType
     Case EByObjectMember
       'Byval o as object, ByVal sMemberName as string, ByVal cType as vbCallType
-      set this.disp.obj      = unkQueryInterface(params(byObjectMember_object), "{00020400-0000-0000-C000-000000000046}")
+      set this.disp.obj      = params(byObjectMember_object)
       this.disp.id           = getDispID(this.disp.obj, params(byObjectMember_MemberName))
       this.disp.invokeFlag   = params(byObjectMember_CallType)
       this.decl.Instance     = objptr(this.disp.obj)
@@ -207,7 +216,7 @@ Friend Sub protInit(callbackType As ECallbackType, ParamArray params() As Varian
       this.decl.ParamTypes   = params(byPointer_ParamTypes)
     Case EByApplicationRun
       Const EApplication_Run = 50
-      set this.disp.obj      = unkQueryInterface(Application, "{00020400-0000-0000-C000-000000000046}")
+      set this.disp.obj      = Application
       this.disp.id           = getDispID(this.disp.obj, "Run")
       this.disp.invokeFlag   = vbMethod
       this.decl.Instance     = objptr(this.disp.obj)
@@ -232,6 +241,8 @@ Friend Sub protInit(callbackType As ECallbackType, ParamArray params() As Varian
         set this.disp.obj      = .item("this.disp.obj")
       end with
     case EByExisting
+      set this.existing.cb = params(byExisting_CB)
+      this.decl.aValues = params(byExisting_AppendParams)
   end select
 End Sub
 
@@ -261,6 +272,47 @@ Private Function stdICallable_RunEx(ByVal params As Variant) As Variant
 End Function
 
 
-Private Sub ExecuteCallback(ByRef params as variant, ByRef returnValue as Variant)
+Friend Sub ExecuteCallback(ByRef params as variant, ByRef returnValue as Variant)
+  'Push all params to aValues
+  Dim vParams: vParams = ConcatArr(this.decl.aValues, params)
+  
+  'If Bound callback
+  if This.ctype = EByExisting then
+    this.existing.cb.ExecuteCallback(vParams, returnValue)
+    Exit Function
+  end if
 
+  'If type is IDispatch
+  select case this.ctype
+    case EByObjectMember, EByApplicationRun
+      vParams = ConvertToDispParams(vParams)
+  end select
+End Sub
+
+Private Function ConcatArr(ByRef arr1, ByRef arr2) as Variant
+  Dim iLb as long: iLB = lbound(arr1)
+  Dim iUB as long: iUB = ubound(arr1)
+  Dim iLen as Long: iLen = iUB - iLB + 1
+  Dim iLBn as Long: iLBn = lbound(arr2)
+  Dim iUBn as Long: iUBn = ubound(arr2)
+  Dim iLenn as Long: iLenn = iUBn - iLBn + 1
+  Dim iCount as Long: iCount = iLen+iLenn
+  Dim v(): Redim v(1 to iCount)
+  Dim iStart as Long: iStart = 1
+  For i = iStart to iLen
+    Call CopyVariant(v(i), arr1(i-iStart+iLB))
+  next
+  iStart = iLen+1
+  For i = iStart to iCount
+    Call CopyVariant(v(i), arr2(i-iStart+iLBn))
+  next
+  ConcatArr = v
+End Function
+
+Public Sub CopyVariant(ByRef output, ByVal input)
+  if isObject(input) then
+    set output = input
+  else
+    let output = input
+  end if
 End Sub

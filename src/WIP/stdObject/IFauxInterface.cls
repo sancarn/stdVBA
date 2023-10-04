@@ -1,7 +1,6 @@
 VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
-  Persistable = 0  'NotPersistable
   DataBindingBehavior = 0  'vbNone
   DataSourceBehavior  = 0  'vbNone
   MTSTransactionMode  = 0  'NotAnMTSObject
@@ -13,6 +12,7 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 
 'SRC: http://www.vbforums.com/showthread.php?785939-VB6-Creating-Using-COM-Interfaces-without-TLBs
+
 ' --------------------------------------------------------------------------------------------------------
 ' This class is a replication of COM objects and the object returned from this class can
 '   be passed to DLLs/COM classes that expect a valid COM interface handle/pointer.
@@ -134,11 +134,6 @@ Private m_Interface As Collection                       ' created interface poin
 Private m_ActiveInterfaces As Long                      ' active interfaces; default=all
 ' --------------------------------------------------------------------------------------------------------
 
-'stdObject Definitions:
-Private data as Collection
-Private MethodDict as Object
-Const S_OK = 0
-Const E_NOTIMPL = &H80004001
 
 ' --------------------------------------------------------------------------------------------------------
 '//////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -511,10 +506,6 @@ Private Sub Class_Initialize()
     '    '///// IFileDialogEvents - don't include IUnknown
     '    Private Function pvIFileDialogEvents_OnFileOk(ByVal pUnk As Long, ...) As Long
     '     '    and then the remaining 6 methods
-
-    'stdObject definitions:
-    set MethodDict = CreateObject("Scripting.Dictionary")
-    Call pvAddInterface("IDispatch","{00020400-0000-0000-C000-000000000046}",4,1,3,5,8)
 End Function
 
 ' ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -591,38 +582,3 @@ End Function
 
 
 
-
-
-
-'Implements IDispatch interface
-'Dim o as stdObject
-'set o = stdObject.create()
-'set o.a = stdObject.create()
-'o.b = 1
-'o.c = 2
-'
-'
-Function GetTypeInfoCount(pctInfo as long) as long
-  GetTypeInfoCount = E_NOTIMPL
-end function
-Function GetTypeInfo(itinfo as long, lcid as long, pptinfo as object) as long
-  GetTypeInfo = E_NOTIMPL
-end function
-Function GetIDsOfNames(riid as variant, ByRef rgszNames() as string, cNames as Long, lcid as Long, ByRef rgDispId() as Long) as Long
-  Dim i as long
-  For i = Lbound(rgszNames) to UBound(rgszNames)
-    if MethodDict(rgszNames(i)) then
-      rgDispId(i) = MethodDict(rgszNames(i))
-    else
-      MaxID = MaxID + 1
-      MethodDict(rgszNames(i)) = MaxID
-      rgDispId(i) = MaxID
-      data.add vbNull
-    end if
-  Next i
-  GetIDsOfNames = S_OK
-End Function
-Function Invoke(dispIdMember as Long, riid as long, lcid as long, wFlags as long, ByRef pDispParams() as variant, ByRef pVarResult as variant, ByRef pExcepInfo as Variant, ByRef puArgErr as Long) as long
-  Call VariantCopy(pVarResult, data(dispIdMember))
-  Invoke = S_OK
-End Function

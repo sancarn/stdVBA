@@ -1,12 +1,11 @@
 VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
-  Persistable = 0  'NotPersistable
   DataBindingBehavior = 0  'vbNone
   DataSourceBehavior  = 0  'vbNone
   MTSTransactionMode  = 0  'NotAnMTSObject
 END
-Attribute VB_Name = "STD_Automation_DLL"
+Attribute VB_Name = "stdDLL"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = True
 Attribute VB_PredeclaredId = True
@@ -229,63 +228,7 @@ Public Function CallFunction_DLL(ByVal LibName As String, ByVal FunctionName As 
     
 End Function
 
-Public Function CallFunction_COM(ByVal InterfacePointer As Long, ByVal VTableOffset As Long, _
-                            ByVal FunctionReturnType As CALLRETURNTUYPE_ENUM, _
-                            ByVal CallConvention As CALLINGCONVENTION_ENUM, _
-                            ParamArray FunctionParameters() As Variant) As Variant
-                            
-' Used to call active-x or COM objects, not standard dlls
 
-' Return value. Will be a variant containing a value of FunctionReturnType
-'   If this method fails, the return value will always be Empty. This can be verified by checking
-'       the Err.LastDLLError value. It will be non-zero if the function failed else zero.
-'   If the method succeeds, there is no guarantee that the Interface function you called succeeded. The
-'       success/failure of that function would be indicated by this method's return value.
-'       Typically, success is returned as S_OK (zero) and any other value is an error code.
-'   If calling a sub vs function & this method succeeds, the return value will be zero.
-'   Summarizing: if method fails to execute, Err.LastDLLError value will be non-zero
-'       If method executes ok, if the return value is zero, method succeeded else return is error code
-
-' Parameters:
-'   InterfacePointer. A pointer to an object/class, i.e., ObjPtr(IPicture)
-'       Passing invalid pointers likely to result in crashes
-'   VTableOffset. The offset from the passed InterfacePointer where the virtual function exists.
-'       These offsets are generally in multiples of 4. Value cannot be negative.
-'   For the remaining parameters, see the details withn the CallFunction_DLL method.
-'       They are the same with one exception: strings. Pass the string variable name or value
-
-    '// minimal sanity check for these 4 parameters:
-    If InterfacePointer = 0& Or VTableOffset < 0& Then Exit Function
-    If Not (FunctionReturnType And &HFFFF0000) = 0& Then Exit Function ' can only be 4 bytes
-
-    Dim pIndex As Long, pCount As Long
-    Dim vParamPtr() As Long, vParamType() As Integer
-    Dim vRtn As Variant, vParams() As Variant
-    
-    vParams() = FunctionParameters()                    ' copy passed parameters, if any
-    pCount = Abs(UBound(vParams) - LBound(vParams) + 1&)
-    If pCount = 0& Then                                 ' no return value (sub vs function)
-        ReDim vParamPtr(0 To 0)
-        ReDim vParamType(0 To 0)
-    Else
-        ReDim vParamPtr(0 To pCount - 1&)               ' need matching array of parameter types
-        ReDim vParamType(0 To pCount - 1&)              ' and pointers to the parameters
-        For pIndex = 0& To pCount - 1&
-            vParamPtr(pIndex) = VarPtr(vParams(pIndex))
-            vParamType(pIndex) = VarType(vParams(pIndex))
-        Next
-    End If
-                                                        ' call the function now
-    pIndex = DispCallFunc(InterfacePointer, VTableOffset, CallConvention, FunctionReturnType, _
-                          pCount, vParamType(0), vParamPtr(0), vRtn)
-        
-    If pIndex = 0& Then                                 ' 0 = S_OK
-        CallFunction_COM = vRtn                         ' return result
-    Else
-        SetLastError pIndex                             ' set error & return Empty
-    End If
-
-End Function
 
 Public Function PointerToStringA(ByVal ANSIpointer As Long) As String
     ' courtesy function provided for your use as needed
