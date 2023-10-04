@@ -1,4 +1,6 @@
 Attribute VB_Name = "stdHTTPTests"
+'@lang VBA
+
 Public Sub TestMain()
   Test.Topic "stdHTTP"
   

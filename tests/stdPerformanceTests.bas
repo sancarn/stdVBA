@@ -1,4 +1,5 @@
 Attribute VB_Name = "stdPerformanceTests"
+'@lang VBA
 
 Const C_MAX as long = 1000
 Sub testAll()

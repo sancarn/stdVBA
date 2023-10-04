@@ -1,4 +1,6 @@
 Attribute VB_Name = "timerTest"
+'@lang VBA
+
 'CODE GENERATED FOR `stdTimer`
 
 #Const DEBUGGING = True

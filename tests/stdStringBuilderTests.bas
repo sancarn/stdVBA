@@ -1,4 +1,6 @@
 Attribute VB_Name = "stdStringBuilderTests"
+'@lang VBA
+
 Sub testAll()
     Test.Topic "stdStringBuilder"
 

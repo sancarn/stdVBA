@@ -1,4 +1,6 @@
 Attribute VB_Name = "stdRegexTests"
+'@lang VBA
+
 Sub testAll()
     test.Topic "stdRegex"
     

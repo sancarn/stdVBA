@@ -1,4 +1,6 @@
 Attribute VB_Name = "stdCallbackTests"
+'@lang VBA
+
 #If Win64 Then
   Private Const vbLongPtr = vbLongLong
 #Else

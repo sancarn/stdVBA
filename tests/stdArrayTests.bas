@@ -1,4 +1,5 @@
 Attribute VB_Name = "stdArrayTests"
+'@lang VBA
 
 Sub testAll()
     Test.Topic "stdArray"

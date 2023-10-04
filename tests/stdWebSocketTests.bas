@@ -1,4 +1,6 @@
 Attribute VB_Name = "stdWebSocketTests"
+'@lang VBA
+
 Public Sub testAll()
   'Create socket
   Test.Topic "stdWebSocket"

@@ -1,4 +1,6 @@
 Attribute VB_Name = "stdProcessTests"
+'@lang VBA
+
 Private proc As stdProcess
 Private bProcWaited As Boolean
 Public Sub testAll()

@@ -1,4 +1,6 @@
 Attribute VB_Name = "stdLambdaTests"
+'@lang VBA
+
 Sub testAll()
     test.Topic "stdLambda"
     

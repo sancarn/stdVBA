@@ -1,4 +1,5 @@
 Attribute VB_Name = "stdAccTests"
+'@lang VBA
 
 Sub testAll()
   Test.Topic "stdAcc"

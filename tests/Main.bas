@@ -1,5 +1,6 @@
 
 Attribute VB_Name = "Main"
+'@lang VBA
 
 Sub MainTestAll()
     Test.refresh

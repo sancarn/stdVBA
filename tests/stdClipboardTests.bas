@@ -1,4 +1,6 @@
 Attribute VB_Name = "stdClipboardTests"
+'@lang VBA
+
 Sub testAll()
     Test.Topic "stdClipboard"
     

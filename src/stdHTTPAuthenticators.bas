@@ -1,4 +1,6 @@
 Attribute VB_Name = "stdHTTPAuthenticators"
+'@lang VBA
+
 Type DigestAuthInfo
   Realm As String
   nonce As String

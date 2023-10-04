@@ -1,20 +1,7 @@
 Attribute VB_Name = "stdWindowTests"
-'@class stdWindow
-'@description A class for managing windows
-'@example:
-'   With stdWindow.CreateFromDesktop()
-'     Dim notepad as stdWindow
-'     set notepad = .Find(stdLambda.Create("$1.Caption = ""Untitled - Notepad"" and $1.ProcessName = ""notepad.exe"""))
-'     nodepad.SendKeysInput("hello world")
-'     nodepad.SendKeysInput("^a")
-'     nodepad.SendKeysInput("^c")
-'     Debug.Print stdClipboard.Text
-'   End With
-'
-'   'Make a userform resizable
-'   MyForm.show
-'   stdWindow.CreateFromIUnknown(MyForm).resizable = true
-'
+'@lang VBA
+
+
 'Spec:
 ' CONSTRUCTORS
 '   [ ] Create(sClassName,sCaption,dwStyle, x, y, Width, Height, hWndParent, hMenu, hInstance, lpParam) as stdWindow

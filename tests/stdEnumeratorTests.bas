@@ -1,4 +1,6 @@
 Attribute VB_Name = "stdEnumeratorTests"
+'@lang VBA
+
 Sub testAll()
     test.Topic "stdEnumerator"
     
