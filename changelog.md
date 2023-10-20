@@ -227,3 +227,4 @@ Before `08/07/2021` a change log was not kept. We have  retrospectively gone bac
 * 2023-07-39 stdWindow      FEATURE     - Added `StyleTexts` and `StyleExTexts` properties to `stdWindow`
 * 2023-07-39 stdReg         FEATURE     - Added `stdReg` for Windows Registry viewing (WIP: and editing).
 * 2023-08-22 stdCOM         FEATURE     - Added `stdCOM::CreateFromWinRTClassID`, which allows for use of WinRT classes in VBA.
+* 2023-10-20 stdReg         FEATURE     - Added `Property Let Value()`

@@ -36,11 +36,7 @@ Attribute VB_Exposed = True
 'However some of the terminology in this source code refers to values
 
 
-#If VBA7 = 0 Then
-    Private Enum LongPtr
-      [_]
-    End Enum
-#End If
+
 
 Public Enum ERegistryType
     iCalculate = 0
@@ -91,18 +87,31 @@ Private Enum ESystemError
 End Enum
 
 
+
+
 #If VBA7 Then
     Private Declare PtrSafe Function RegOpenKeyExA Lib "advapi32.dll" (ByVal key As ERegistryRoot, ByVal lpSubKey As String, ByVal ulOptions As Long, ByVal samDesired As Long, ByRef phkResult As LongPtr) As Long
     Private Declare PtrSafe Function RegQueryValueExA Lib "advapi32.dll" (ByVal hKey As LongPtr, ByVal sValueName As String, ByVal lpReserved As LongPtr, ByVal lpType As LongPtr, ByVal lpData As LongPtr, ByRef lpcbData As Long) As Long
     Private Declare PtrSafe Function RegEnumKeyExA Lib "advapi32" (ByVal hKey As LongPtr, ByVal dwIndex As Long, ByVal lpName As String, ByRef lpcbName As Long, ByVal lpReserved As LongPtr, ByVal lpClass As LongPtr, ByVal lpsbClass As LongPtr, ByVal lpftLastWriteTime As LongPtr) As Long
     Private Declare PtrSafe Function RegEnumValueA Lib "advapi32" (ByVal hKey As LongPtr, ByVal dwIndex As Long, ByVal lpName As String, ByRef lpcbName As Long, ByVal lpReserved As LongPtr, ByVal lpType As LongPtr, ByVal lpData As LongPtr, ByVal lpcbData As LongPtr) As Long
     Private Declare PtrSafe Function RegCloseKey Lib "advapi32.dll" (ByVal hKey As LongPtr) As Long
+    Private Declare PtrSafe Function RegSetValueExA Lib "advapi32.dll" (ByVal hKey As LongPtr, ByVal lpValueName As String, ByVal Reserved As Long, ByVal dwType As Long, ByVal lpData As LongPtr, ByVal cbData As Long) As Long
 #Else
+    Private Enum LongPtr
+      [_]
+    End Enum
     Private Declare Function RegOpenKeyExA Lib "advapi32.dll" (ByVal key As ERegistryRoot, ByVal lpSubKey As String, ByVal ulOptions As Long, ByVal samDesired As Long, ByRef phkResult As LongPtr) As Long
     Private Declare Function RegQueryValueExA Lib "advapi32.dll" (ByVal hKey As LongPtr, ByVal sValueName As String, ByVal lpReserved As LongPtr, ByVal lpType As LongPtr, ByVal lpData As LongPtr, ByRef lpcbData As Long) As Long
     Private Declare Function RegEnumKeyExA Lib "advapi32" (ByVal hKey As LongPtr, ByVal dwIndex As Long, ByVal lpName As String, ByRef lpcbName As Long, ByVal lpReserved As LongPtr, ByVal lpClass As LongPtr, ByVal lpsbClass As LongPtr, ByVal lpftLastWriteTime As LongPtr) As Long
     Private Declare Function RegEnumValueA Lib "advapi32" (ByVal hKey As LongPtr, ByVal dwIndex As Long, ByVal lpName As String, ByRef lpcbName As Long, ByVal lpReserved As LongPtr, ByVal lpType As LongPtr, ByVal lpData As LongPtr, ByVal lpcbData As LongPtr) As Long
     Private Declare Function RegCloseKey Lib "advapi32.dll" (ByVal hKey As LongPtr) As Long
+    Private Declare Function RegSetValueExA Lib "advapi32.dll" (ByVal hKey As LongPtr, ByVal lpValueName As String, ByVal Reserved As Long, ByVal dwType As Long, ByVal lpData As LongPtr, ByVal cbData As Long) As Long
+#End If
+
+#If Win64 Then
+  Private const NULL_PTR as LongLong = 0^
+#Else
+  Private Const NULL_PTR As Long = 0
 #End If
 
 
@@ -114,6 +123,7 @@ Private Type TThis
   access As ERegistryAccess
   query As String
   queryHandle As LongPtr
+  writeHandle As LongPtr
   name As String
   valtype As ERegistryValueType
 End Type
@@ -400,8 +410,42 @@ Public Property Get value() As Variant
   If iStatus <> 0 Then Err.Raise 2, "stdReg", "ERROR: Cannot get value (0x" & Hex(iStatus) & ")"
 End Property
 Public Property Let value(vNew As Variant)
-  'TODO: Call RegSetValueExA
-  Err.Raise 1, "stdReg", "Not implemented"
+  If This.Type <> ERegistryType.iItem Then Err.Raise 3, "", "ERROR: Only stdReg items have values"
+  Call pRegistryInitWriteHandle
+  
+  Dim iStatus As Long
+  Select Case This.valtype
+    Case ERegistryValueType.Value_Binary
+      Dim bNew() As Byte: bNew = vNew
+      Dim lb As Long: lb = LBound(bNew)
+      Dim ub As Long: ub = UBound(bNew)
+      iStatus = RegSetValueExA(This.writeHandle, This.name, 0, ERegistryValueType.Value_Binary, VarPtr(bNew(lb)), ub - lb + 1)
+    Case ERegistryValueType.Value_DWORD
+      Dim DWORD As Long: DWORD =  vNew
+      iStatus = RegSetValueExA(This.writeHandle, This.name, 0, ERegistryValueType.Value_DWORD, VarPtr(DWORD), LenB(DWORD))
+    Case ERegistryValueType.Value_DWORD_BE
+      Dim DWORD_BE As Long: DWORD_BE =  vNew
+      'TODO: SWAP
+      iStatus = 666
+      if iStatus = ERROR_SUCCESS Then iStatus = RegQueryValueExA(This.queryHandle, This.name, 0, 0, VarPtr(DWORD_BE), LenB(DWORD))
+    Case ERegistryValueType.Value_None
+      iStatus = RegSetValueExA(This.writeHandle, This.name, 0, ERegistryValueType.Value_None, 0, 0)
+    Case ERegistryValueType.Value_QWORD
+      Dim QWORD As Currency: QWORD = vNew
+      iStatus = RegSetValueExA(This.writeHandle, This.name, 0, ERegistryValueType.Value_QWORD, VarPtr(QWORD), LenB(QWORD))
+    Case ERegistryValueType.Value_String, ERegistryValueType.Value_String_WithEnvVars, ERegistryValueType.Value_Link
+      Dim bSZ() As Byte: bSZ = vNew
+      Dim ilb As Long: ilb = LBound(bSZ)
+      Dim iub As Long: iub = UBound(bSZ)
+      iStatus = RegSetValueExA(This.writeHandle, This.name, 0, This.valtype, VarPtr(bSZ(ilb)), iub-ilb+1)
+    Case ERegistryValueType.Value_String_Array
+      'TODO: TBC 
+      Err.Raise 1, "stdReg", "ERROR: Not implemented"
+    Case Else
+      Err.Raise 1, "stdReg", "ERROR: Unknown value type"
+  End Select
+  
+  If iStatus <> 0 Then Err.Raise 2, "stdReg", "ERROR: Cannot set value (0x" & Hex(iStatus) & ")"
 End Property
 
 'Set value and change type
@@ -413,6 +457,14 @@ End Sub
 '*******************
 '* Private Helpers *
 '*******************
+
+Private Sub pRegistryInitWriteHandle()
+  If This.writeHandle = NULL_PTR Then
+    If RegOpenKeyExA(This.root, This.query, 0, ERegistryAccess.PERM_WRITE, This.writeHandle) <> ERROR_SUCCESS Then
+      Err.Raise 1, "stdReg", "ERROR: Insufficient permissions to write to this registry key."
+    End If
+  End If
+End Sub
 
 Private Function pRegistryQueryValueType() As ERegistryValueType
   Dim iType As ERegistryValueType
