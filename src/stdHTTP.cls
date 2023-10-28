@@ -336,7 +336,11 @@ Friend Sub protInit(ByVal sURL As String, Optional ByVal RequestMethod As String
   'Execute request
   pHTTP.Send options("Body")
 End Sub
+#If VBA7 then
 Friend Property Get protHSession() As LongPtr
+#else
+Friend Property Get protHSession() As Long
+#end if
   If Me Is stdHTTP Then
     Static hSession As LongPtr: If hSession = 0 Then hSession = WinHttpOpen(0, 1, 0, 0, 0)
     protHSession = hSession
