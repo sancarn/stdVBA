@@ -82,6 +82,8 @@ Public Function CreateFromString(ByVal sJSON as string, optional ByVal AllowUnqu
       set CreateFromString = parseJSONObject(sJSON)
     case "["
       set CreateFromString = parseJSONArray(sJSON)
+    case else
+      Err.Raise 1, "stdJSON::CreateFromString()", "ERROR: Expecting '{' or '[' but found '" & mid(sJson,1,1) & "'"
   end select
 End Function
 
@@ -269,12 +271,12 @@ Public Function ToString(optional byval pretty as boolean = false, optional byva
     sNewLine = vbCrLf
   end if
 
-  Dim s as string
+  Dim s as StringBuffer: s = StringBuffer_Create(64)
   select case This.iType
     case eJSONObject
-      s = s & sRootIndent & "{" & sNewLine
+      Call StringBuffer_Append(s, sRootIndent & "{" & sNewLine) 
     case eJSONArray
-      s = s & sRootIndent & "[" & sNewLine
+      Call StringBuffer_Append(s, sRootIndent & "[" & sNewLine)
   end select
 
   Dim i as Long, ub as Long
@@ -289,8 +291,10 @@ Public Function ToString(optional byval pretty as boolean = false, optional byva
         else
           sValue = simpleStringify(vVals(i))
         end if
-        Dim sLine as string: sLine = sChildIndent & """" & vKeys(i) & """:" & sValue
-        s = s & sLine & iif(i<ub, ",", "") & sNewLine
+        'Concatenation of small strings is faster than calling Append, so optimise on this
+        Call StringBuffer_Append(s, sChildIndent & """" & vKeys(i) & """:")
+        Call StringBuffer_Append(s, sValue)
+        Call StringBuffer_Append(s, iif(i<ub, ",", "") & sNewLine)
       next
     case eJSONArray
       i = 0
@@ -299,22 +303,24 @@ Public Function ToString(optional byval pretty as boolean = false, optional byva
       For each vItem in this.children
         i=i+1
         if typeof vItem is stdJSON then
-          sValue = vItem.ToString()
+          sValue = vItem.ToString(pretty, prettyIndent*depth, depth+1)
         else
           sValue = simpleStringify(vItem)
         end if
-        s = s & sChildIndent & sValue & iif(i<ub, ",", "") & sNewLine
+        Call StringBuffer_Append(s, sChildIndent)
+        Call StringBuffer_Append(s, sValue)
+        Call StringBuffer_Append(s, iif(i<ub, ",", "") & sNewLine)
       next
   end select
   
   select case This.iType
     case eJSONObject
-      s = s & sRootIndent & "}"
+      Call StringBuffer_Append(s, sRootIndent & "}" & sNewLine)
     case eJSONArray
-      s = s & sRootIndent & "]"
+      Call StringBuffer_Append(s, sRootIndent & "]" & sNewLine)
   end select
 
-  ToString = s
+  ToString = StringBuffer_ToString(s)
 End Function
 
 'Convert the JSON to pretty string
@@ -574,9 +580,9 @@ End Function
 
 
 
-Private Function StringBuffer_Create() as StringBuffer
-  StringBuffer_Create.value = String$(50, " ")
-  StringBuffer_Create.count = 50
+Private Function StringBuffer_Create(Optional ByVal Initial as Long = 16) as StringBuffer
+  StringBuffer_Create.value = String$(Initial, " ")
+  StringBuffer_Create.count = Initial
   StringBuffer_Create.index = 1
 End Function
 
