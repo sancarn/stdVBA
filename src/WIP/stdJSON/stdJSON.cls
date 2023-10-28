@@ -85,8 +85,14 @@ Public Function CreateFromString(ByVal sJSON as string, optional ByVal AllowUnqu
   end select
 End Function
 
+'@remark TODO: consider parsing open file num to `parseJSONObject` instead
 Public Function CreateFromFile(ByVal sJSONFile as string) as stdJSON
-  Err.Raise 1, "stdJSON::CreateFromFile()", "TODO: Not implemented"
+  Dim sJSON as string
+  Dim ff As Long: ff = FreeFile
+  Open sJSONFile For Input As #ff
+      sJSON = Input(LOF(ff), #ff)
+  Close #ff
+  set CreateFromFile = CreateFromString(sJSON)
 End Function
 
 Public Function CreateFromVariant(ByVal vData as Variant) as stdJSON
@@ -110,6 +116,7 @@ Friend Sub protInitFromVariant(ByRef vData as Variant)
     case vbObject
       select case typename(vData)
         case "Collection"
+          this.iType = eJSONArray
           set this.children = new Collection
 
           Dim oCollection as Collection: set oCollection = vData
@@ -119,6 +126,7 @@ Friend Sub protInitFromVariant(ByRef vData as Variant)
             next
           End With
         case "Dictionary"
+          this.iType = eJSONObject
           set this.children = CreateObject("Scripting.Dictionary")
 
           'Get keys and values...
@@ -134,6 +142,7 @@ Friend Sub protInitFromVariant(ByRef vData as Variant)
       end select
     case else
       if isArray(vData) then
+        this.iType = eJSONArray
         Dim iLB as Long: iLB = LBound(vData)
         Dim iUB as Long: iUB = UBound(vData)
         set this.children = new Collection
@@ -219,16 +228,53 @@ Public Property Get Item(ByVal keyOrIndex as Variant) as Variant
       Call CopyVariant(Item, this.children.item(keyOrIndex))
   end select
 End Property
+Public Property Let Item(ByVal keyOrIndex as Variant, v as Variant)
+  select case this.iType
+    case eJSONObject
+      this.children.item(keyOrIndex) = v
+    case eJSONArray
+      this.children.item(keyOrIndex) = v
+  end select
+End Property
+Public Property Set Item(ByVal keyOrIndex as Variant, v as Variant)
+  select case this.iType
+    case eJSONObject
+      set this.children.item(keyOrIndex) = v
+    case eJSONArray
+      set this.children.item(keyOrIndex) = v
+  end select
+End Property
+
+' 'Obtain the item for a key or index
+' '@param {string} Query - JsonPath query to get/set variable
+' '@remark see https://github.com/json-path/JsonPath for details
+' '@TODO: implementation - might be better in it's own class
+' Private Property Get ItemByPath(ByVal query as string) as Variant
+  
+' End Property
+' Private Property Let ItemByPath(ByVal keyOrIndex as Variant, v as Variant)
+  
+' End Property
+' Private Property Set ItemByPath(ByVal keyOrIndex as Variant, v as Variant)
+  
+' End Property
 
 'Convert the JSON to string
 '@returns {String} JSON encoded data.
-Public Function ToString() as String
+Public Function ToString(optional byval pretty as boolean = false, optional byval prettyIndent as long = 2, optional depth as long = 1) as String
+  Dim sRootIndent as string, sChildIndent as string, sNewLine as string
+  if pretty then 
+    sChildIndent = string$(depth*prettyIndent, " ")
+    sRootIndent = string$((depth-1)*prettyIndent," ")
+    sNewLine = vbCrLf
+  end if
+
   Dim s as string
   select case This.iType
     case eJSONObject
-      s = s & "{"
+      s = s & sRootIndent & "{" & sNewLine
     case eJSONArray
-      s = s & "["
+      s = s & sRootIndent & "[" & sNewLine
   end select
 
   Dim i as Long, ub as Long
@@ -239,13 +285,12 @@ Public Function ToString() as String
       ub = ubound(vKeys)
       For i = 0 to ub
         if typeof vVals(i) is stdJSON then
-          sValue = vVals(i).ToString()
+          sValue = vVals(i).ToString(pretty, prettyIndent*depth, depth+1)
         else
           sValue = simpleStringify(vVals(i))
         end if
-        
-        Dim sLine as string: sLine = """" & vKeys(i) & """:" & sValue
-        s = s & sLine & iif(i<ub, ",", "")
+        Dim sLine as string: sLine = sChildIndent & """" & vKeys(i) & """:" & sValue
+        s = s & sLine & iif(i<ub, ",", "") & sNewLine
       next
     case eJSONArray
       i = 0
@@ -258,15 +303,15 @@ Public Function ToString() as String
         else
           sValue = simpleStringify(vItem)
         end if
-        s = s & sValue & iif(i<ub, ",", "")
+        s = s & sChildIndent & sValue & iif(i<ub, ",", "") & sNewLine
       next
   end select
   
   select case This.iType
     case eJSONObject
-      s = s & "}"
+      s = s & sRootIndent & "}"
     case eJSONArray
-      s = s & "]"
+      s = s & sRootIndent & "]"
   end select
 
   ToString = s
@@ -274,14 +319,11 @@ End Function
 
 'Convert the JSON to pretty string
 '@returns {String} JSON encoded data.
-Public Function ToPrettyString(optional byval indent as long) as String
-  Err.Raise 1, "stdJSON::ToPrettyString()", "TODO: Not implemented"
-End Function
-
-'Convert the JSON to pretty string
-'@returns {String} JSON encoded data.
 Public Sub ToFile(ByVal sPath as string, Optional ByVal prettyIndent as Long = 0)
-  Err.Raise 1, "stdJSON::ToFile()", "TODO: Not implemented"
+  Dim ff As Long: ff = FreeFile
+  Open sPath For Output As #ff
+      Print #ff, data
+  Close #ff
 End Sub
 
 'Convert to VBA Object
@@ -391,7 +433,7 @@ Private Function parseJSONArray(ByRef sJSON as string, Optional ByRef index as L
     if parserOptConsume(",", sJSON, index) then Call parserIgnoreSpaces(sJSON, index)
   Wend
   Call parserConsume("]", sJSON, index)
-  set parseJSONObject = json
+  set parseJSONArray = json
 End Function
 
 Private Function parseJSONObjectKey(ByRef sJSON as string, ByRef index as Long) as string
