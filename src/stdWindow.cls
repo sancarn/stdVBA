@@ -424,72 +424,71 @@ End Type
   Private Declare PtrSafe Function GetMessageExtraInfo Lib "user32" () As LongPtr
   Private Declare PtrSafe Sub Sleep Lib "Kernel32" (ByVal dwMilliseconds As Long)
 #Else
+  Private Enum LongPtr
+    [_]
+  End Enum
   'Constructors
-  Private Declare Function GetDesktopWindow Lib "user32" () As Long
-  Private Declare Function IUnknown_GetWindow Lib "shlwapi" Alias "#172" (ByVal pIUnk As IUnknown, ByVal hwnd As Long) As Long
-  Private Declare Function WindowFromPoint Lib "user32" (ByVal x As Long, ByVal y As Long) As Long
+  Private Declare Function GetDesktopWindow Lib "user32" () As LongPtr
+  Private Declare Function IUnknown_GetWindow Lib "shlwapi" Alias "#172" (ByVal pIUnk As IUnknown, ByVal hwnd As LongPtr) As Long
+  Private Declare Function WindowFromPoint Lib "user32" (ByVal x As Long, ByVal y As Long) As LongPtr
 
   'Getting window data
-  Private Declare Function IsWindow Lib "user32" (ByVal hwnd As Long) As Long
-  Private Declare Function IsWindowVisible Lib "user32" (ByVal hwnd As Long) As Long
-  Private Declare Function IsIconic Lib "user32" (ByVal hwnd As Long) As Long
-  Private Declare Function IsHungAppWindow Lib "user32" (ByVal hwnd As Long) As Long
-  Private Declare Function IsZoomed Lib "user32" (ByVal hwnd As Long) As Long
-  Private Declare Function GetWindowText Lib "user32" Alias "GetWindowTextA" (ByVal hwnd As Long, ByVal lpString As String, ByVal cch As Long) As Long
-  Private Declare Function GetClassName Lib "user32" Alias "GetClassNameA" (ByVal hwnd As Long, ByVal lpClassName As String, ByVal nMaxCount As Long) As Long
-  Private Declare Function GetClientRect Lib "user32" (ByVal hwnd As Long, ByRef pRect As apiRect) As Long
-  Private Declare Function GetWindowRect Lib "user32" (ByVal hwnd As Long, ByRef pRect As apiRect) As Long
-  Private Declare Function GetWindowInfo Lib "user32" (ByVal hwnd As Long, ByRef pInf As apiWindowInfo) As Long
-  Private Declare Function GetParent Lib "user32" (ByVal hwnd As Long) As Long
-  Private Declare Function SetParent Lib "user32" (ByVal hwnd As Long, ByVal hWndParent As Long) As Long
-  Private Declare Function GetWindowDC Lib "user32" (ByVal hwnd As Long) As Long
-  Private Declare Function GetWindowLongA Lib "user32" (ByVal hwnd As Long, ByVal nIndex As apiWindowLongType) As Long
-  Private Declare Function GetWindowLongA Lib "user32" (ByVal hwnd As Long, ByVal nIndex As apiWindowLongType) As Long
-  Private Declare Function SetWindowLongA Lib "user32" (ByVal hwnd As Long, ByVal nIndex As apiWindowLongType, ByVal dwNewLong As Long) As Long
-  Private Declare Function SetWindowLongA Lib "user32" (ByVal hwnd As Long, ByVal nIndex As apiWindowLongType, ByVal dwNewPtr As Long) As Long
-  Private Declare Function GetAncestor Lib "user32" (ByVal hwnd As Long, ByVal nIndex As apiWindowAncestorType) As Long
-  Private Declare Function FindWindowExA Lib "user32" (ByVal hwnd As Long, ByVal hwndChildAfter As Long, ByVal lpszClass As String, ByVal lpszWindow As String) As Long
-  Private Declare Function SetWindowPos Lib "user32" (ByVal hwnd As Long, ByVal hwndInsertAfter As Long, ByVal x As Long, ByVal y As Long, ByVal width As Long, ByVal height As Long, ByVal flags As Long) As Long
-  Private Declare Function MoveWindow Lib "user32" (ByVal hwnd As Long, ByVal x As Long, ByVal y As Long, ByVal width As Long, ByVal height As Long, ByVal bRepaint As Boolean) As Long
-  Private Declare Function SetForegroundWindow Lib "user32" (ByVal hwnd As Long) As Long
+  Private Declare Function IsWindow Lib "user32" (ByVal hwnd As LongPtr) As Long
+  Private Declare Function IsWindowVisible Lib "user32" (ByVal hwnd As LongPtr) As Long
+  Private Declare Function IsIconic Lib "user32" (ByVal hwnd As LongPtr) As Long
+  Private Declare Function IsHungAppWindow Lib "user32" (ByVal hwnd As LongPtr) As Long
+  Private Declare Function IsZoomed Lib "user32" (ByVal hwnd As LongPtr) As Long
+  Private Declare Function GetWindowText Lib "user32" Alias "GetWindowTextA" (ByVal hwnd As LongPtr, ByVal lpString As String, ByVal cch As Long) As Long
+  Private Declare Function GetClassName Lib "user32" Alias "GetClassNameA" (ByVal hwnd As LongPtr, ByVal lpClassName As String, ByVal nMaxCount As Long) As Long
+  Private Declare Function GetClientRect Lib "user32" (ByVal hwnd As LongPtr, ByRef pRect As apiRect) As Long
+  Private Declare Function GetWindowRect Lib "user32" (ByVal hwnd As LongPtr, ByRef pRect As apiRect) As Long
+  Private Declare Function GetWindowInfo Lib "user32" (ByVal hwnd As LongPtr, ByRef pInf As apiWindowInfo) As Long
+  Private Declare Function GetParent Lib "user32" (ByVal hwnd As LongPtr) As LongPtr
+  Private Declare Function SetParent Lib "user32" (ByVal hwnd As LongPtr, ByVal hWndParent As LongPtr) As LongPtr
+  Private Declare Function GetWindowDC Lib "user32" (ByVal hwnd As LongPtr) As LongPtr
+  Private Declare Function GetWindowLongA Lib "user32" (ByVal hwnd As LongPtr, ByVal nIndex As apiWindowLongType) As Long
+  Private Declare Function GetWindowLongPtrA Lib "user32" (ByVal hwnd As LongPtr, ByVal nIndex As apiWindowLongType) As LongPtr
+  Private Declare Function SetWindowLongA Lib "user32" (ByVal hwnd As LongPtr, ByVal nIndex As apiWindowLongType, ByVal dwNewLong As Long) As Long
+  Private Declare Function SetWindowLongPtrA Lib "user32" (ByVal hwnd As LongPtr, ByVal nIndex As apiWindowLongType, ByVal dwNewPtr As LongPtr) As Long
+  Private Declare Function GetAncestor Lib "user32" (ByVal hwnd As LongPtr, ByVal nIndex As apiWindowAncestorType) As LongPtr
+  Private Declare Function FindWindowExA Lib "user32" (ByVal hwnd As LongPtr, ByVal hwndChildAfter As LongPtr, ByVal lpszClass As String, ByVal lpszWindow As String) As LongPtr
+  Private Declare Function SetWindowPos Lib "user32" (ByVal hwnd As LongPtr, ByVal hwndInsertAfter As LongPtr, ByVal x As Long, ByVal y As Long, ByVal width As Long, ByVal height As Long, ByVal flags As Long) As Long
+  Private Declare Function MoveWindow Lib "user32" (ByVal hwnd As LongPtr, ByVal x As Long, ByVal y As Long, ByVal width As Long, ByVal height As Long, ByVal bRepaint As Boolean) As Long
+  Private Declare Function SetForegroundWindow Lib "user32" (ByVal hwnd As LongPtr) As Long
   
   'Redrawing window, UpdateWindow can also be used but isn't as safe...
-  Private Declare Function RedrawWindow Lib "user32" (ByVal hwnd As Long, ByVal lprcUpdate As Long, ByVal hrgnUpdate As Long, ByVal flags As Long) As Long
+  Private Declare Function RedrawWindow Lib "user32" (ByVal hwnd As LongPtr, ByVal lprcUpdate As LongPtr, ByVal hrgnUpdate As LongPtr, ByVal flags As Long) As Long
 
   'Get children / siblings / parent
-  Private Declare Function GetWindow Lib "user32" (ByVal hwnd As Long, ByVal wCmd As apiWindowRelationship) As Long
+  Private Declare Function GetWindow Lib "user32" (ByVal hwnd As LongPtr, ByVal wCmd As apiWindowRelationship) As LongPtr
 
   'Get process related data
-  Private Declare Function GetWindowThreadProcessId Lib "user32" (ByVal hwnd As Long, ByRef ldpwProcessId As Long) As Long
-  Private Declare Function GetWindowModuleFileName Lib "user32" Alias "GetWindowModuleFileNameA" (ByVal hwnd As Long, ByVal pszFileName As String, ByVal cchFileNameMax As Long) As Long
-  Private Declare Function GetCurrentThreadId Lib "Kernel32" Alias "GetCurrentThreadID" () As Long
+  Private Declare Function GetWindowThreadProcessId Lib "user32" (ByVal hwnd As LongPtr, ByRef ldpwProcessId As Long) As Long
+  Private Declare Function GetWindowModuleFileName Lib "user32" Alias "GetWindowModuleFileNameA" (ByVal hwnd As LongPtr, ByVal pszFileName As String, ByVal cchFileNameMax As Long) As Long
+  Private Declare Function GetCurrentThreadId Lib "Kernel32" () As Long
   Private Declare Function AttachThreadInput Lib "user32" (ByVal idAttach As Long, ByVal idAttachTo As Long, ByVal fAttach As Long) As Long
-
+  
   'Setting window data
-  Private Declare Function SetWindowText Lib "user32" Alias "SetWindowTextA" (ByVal hwnd As Long, ByVal lpString As String) As Long
+  Private Declare Function SetWindowText Lib "user32" Alias "SetWindowTextA" (ByVal hwnd As LongPtr, ByVal lpString As String) As Long
 
   'Automating windows
-  Private Declare Function SendMessageA Lib "user32" (ByVal hwnd As Long, ByVal wMsg As Long, ByVal wParam As Any, ByVal lParam As Any) As Long
-  Private Declare Function PostMessageA Lib "user32" (ByVal hwnd As Long, ByVal wMsg As Long, ByVal wParam As Any, ByVal lParam As Any) As Long
-  Private Declare Function ShowWindow Lib "user32" (ByVal hwnd As Long, ByVal nCmdShow As EWndShowStyle) As Long
-  Private Declare Function BringWindowToTop Lib "user32" (ByVal hwnd As Long) As Long
-  Private Declare Function DestroyWindow Lib "user32" (ByVal hwnd As Long) As Long
+  Private Declare Function SendMessageA Lib "user32" (ByVal hwnd As LongPtr, ByVal wMsg As Long, ByVal wParam As Any, ByVal lParam As Any) As Long
+  Private Declare Function PostMessageA Lib "user32" (ByVal hwnd As LongPtr, ByVal wMsg As Long, ByVal wParam As Any, ByVal lParam As Any) As Long
+  Private Declare Function ShowWindow Lib "user32" (ByVal hwnd As LongPtr, ByVal nCmdShow As EWndShowStyle) As Long
+  Private Declare Function BringWindowToTop Lib "user32" (ByVal hwnd As LongPtr) As Long
+  Private Declare Function DestroyWindow Lib "user32" (ByVal hwnd As LongPtr) As Long
 
   'SendKeys
   Private Declare Function MapVirtualKeyA Lib "user32" (ByVal uCode As Long, ByVal uMapType As Long) As Long
-  Private Declare Sub keybd_event Lib "user32" (ByVal bVK As Byte, ByVal bScan As Byte, ByVal dwFlags As Long, ByVal dwExtraInfo As Long)
-  Private Declare Function SendInput Lib "user32" (ByVal cInputs As Long, ByRef pInputs As KeyboardInput, ByVal cbSize As Long) As Long
-  Private Declare Function GetMessageExtraInfo Lib "user32" () As Long
+  Private Declare Sub keybd_event Lib "user32" (ByVal bVK As Byte, ByVal bScan As Byte, ByVal dwFlags As Long, ByVal dwExtraInfo As LongPtr)
+  Private Declare Function SendInput Lib "user32" (ByVal cInputs As Long, ByRef pInput As KeyboardInput, ByVal cbSize As Long) As Long
+  Private Declare Function GetMessageExtraInfo Lib "user32" () As LongPtr
   Private Declare Sub Sleep Lib "Kernel32" (ByVal dwMilliseconds As Long)
 #End If
 
 
-#If VBA7 Then
-  Private pHandle As LongPtr
-#Else
-  Private pHandle As Long
-#End If
 
+Private pHandle As LongPtr
 Private pInitialized As Boolean
 Private Lookups As Object
 
@@ -549,7 +548,7 @@ End Function
 
 'Creates an `stdWindow` object from the current running application (e.g. Excel / Word / Powerpoint).
 '@constructor
-'@returns {stdWindow}
+'@returns {stdWindow}PowerPoint
 Public Function CreateFromApplication() As stdWindow
     select case Application.Name
         case "Microsoft Excel"
@@ -591,11 +590,7 @@ End Function
 '@param {ByVal IUnknown} Object which implements GetWindow() method
 '@returns {stdWindow} Window specified by object
 Public Function CreateFromIUnknown(ByVal obj As IUnknown) As stdWindow
-  #If VBA7 Then
-    Dim hwnd As LongPtr
-  #Else
-    Dim hwnd As Long
-  #End If
+  Dim hwnd As LongPtr
   Dim hResult As Long
   hResult = IUnknown_GetWindow(obj, VarPtr(hwnd))
   If hResult = 0 Then
@@ -612,11 +607,7 @@ End Function
 '@constructor
 '@returns {stdWindow} Window object representing the ContextMenu
 Public Function CreateFromContextMenu() As stdWindow
-  #If VBA7 Then
-    Dim hwnd As LongPtr
-  #Else
-    Dim hwnd As Long
-  #End If
+  Dim hwnd As LongPtr
   hwnd = FindWindowExA(Null, Null, MakeIntAtom(&H8000&), vbNullString)
   If hwnd <> 0 Then
     Set CreateFromContextMenu = CreateFromHwnd(hwnd)
@@ -794,22 +785,15 @@ Public Property Get children() As collection
     Set ret = New collection
 
     'Attempt to get a child window
-    #If VBA7 Then
-      Dim childHandle As LongPtr
-    #Else
-      Dim childHandle As Long
-    #End If
+    Dim childHandle As LongPtr
+    
     childHandle = GetWindow(pHandle, GW_CHILD)
 
     'If a child window exists, find all children
     If childHandle <> 0 Then
       'Quickly add all hwnds to an array
       'This is a fast operation, object creation is anticipated to be a slower operation, thus is left till afterwards
-      #If VBA7 Then
-        Dim childHandles() As LongPtr
-      #Else
-        Dim childHandles() As Long
-      #End If
+      Dim childHandles() As LongPtr
 
       Dim i As Long: i = -1
       Do While (childHandle <> 0)
@@ -993,12 +977,7 @@ End Property
 
 'Get/Set the window's parent window:
 Public Property Get parent() As stdWindow
-  #If VBA7 Then
-    Dim pHwnd As LongPtr
-  #Else
-    Dim pHwnd As Long
-  #End If
-  pHwnd = GetParent(pHandle)
+  Dim pHwnd As LongPtr: pHwnd = GetParent(pHandle)
   If pHwnd <> 0 Then
     Set parent = stdWindow.CreateFromHwnd(GetParent(pHandle))
   ElseIf Class <> "#32769" Then
@@ -1011,12 +990,7 @@ Public Property Set parent(ByVal win As stdWindow)
   ElseIf Not win.Exists Then
     Err.Raise 1, "Parent [Set]", "New parent window no longer exists."
   Else
-    #If VBA7 Then
-      Dim hOldParent As LongPtr
-    #Else
-      Dim hOldParent As Long
-    #End If
-    hOldParent = SetParent(pHandle, win.handle)
+    Dim hOldParent As LongPtr: hOldParent = SetParent(pHandle, win.handle)
   End If
 End Property
 
@@ -1504,12 +1478,7 @@ End Function
 Public Sub PostMessage(ByVal wMsg As Long, ByVal wParam As Long, ByVal lParam As Long)
   If Exists Then
     'If desktop then broadcasts
-    #If VBA7 Then
-      Dim hwnd As LongPtr
-    #Else
-      Dim hwnd As Long
-    #End If
-    hwnd = pHandle
+    Dim hwnd As LongPtr: hwnd = pHandle
     If pHandle = GetDesktopWindow Then hwnd = &HFFFF
     
     If PostMessageA(hwnd, wMsg, wParam, lParam) =  0 Then
