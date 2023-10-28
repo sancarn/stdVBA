@@ -65,11 +65,22 @@ End Type
 ' End Type
 
 
+'Create a JSON object
+'@constructor
+'@param {Optional EStdJSONType = eJSONObject} The type of json object to create. Default is JSON object, i.e. {}.
+'@returns {stdJSON} stdJSON object of the specified type.
 Public Function Create(Optional ByVal iType as EStdJsonType = eJSONObject) as stdJSON
   set Create = new stdJSON
   Call Create.protInit(iType)
 End Function
 
+'Create a JSON object from string
+'@constructor
+'@param {string} string to create json from
+'@param {Boolean} Allow unquoted keys? E.G. "{a:""hello""}"
+'@param {Boolean} Allow single quoted strings? E.G. "{'a':'hello'}"
+'@param {Boolean} Store Large numbers >16 chars as string instead of doubles. This may be useful if precision is important.
+'@returns {stdJSON} stdJSON object from string.
 Public Function CreateFromString(ByVal sJSON as string, optional ByVal AllowUnquotedKeys as boolean = false, optional ByVal AllowSingleQuoteStrings as boolean = false, optional ByVal StoreLargeNumsAsString as boolean = false) as stdJSON
   'Save parser props...
   this.parserProps.AllowUnquotedKeys = AllowUnquotedKeys
@@ -87,6 +98,10 @@ Public Function CreateFromString(ByVal sJSON as string, optional ByVal AllowUnqu
   end select
 End Function
 
+'Create a JSON object from file
+'@constructor
+'@param {string} Path to file containing json data
+'@returns {stdJSON} stdJSON object from file data.
 '@remark TODO: consider parsing open file num to `parseJSONObject` instead
 Public Function CreateFromFile(ByVal sJSONFile as string) as stdJSON
   Dim sJSON as string
@@ -97,11 +112,18 @@ Public Function CreateFromFile(ByVal sJSONFile as string) as stdJSON
   set CreateFromFile = CreateFromString(sJSON)
 End Function
 
+'Create a JSON object from VB variant
+'@constructor
+'@param {Variant} Variant to convert to JSON, e.g. Collection, Dictionary or Array
+'@returns {stdJSON} stdJSON object from variant data.
 Public Function CreateFromVariant(ByVal vData as Variant) as stdJSON
   set CreateFromVariant = new stdJSON
   Call CreateFromVariant.protInitFromVariant(vData)
 End Function
 
+'Initialise stdJSON object
+'@protected
+'@constructor
 Friend Sub protInit(ByRef iType as EStdJsonType)
   This.iType = iType
   select case iType
@@ -111,6 +133,10 @@ Friend Sub protInit(ByRef iType as EStdJsonType)
       set this.children = new Collection
   end select
 End Sub
+
+'Initialise stdJSON object from variant
+'@protected
+'@constructor
 Friend Sub protInitFromVariant(ByRef vData as Variant)
   Dim i as Long: i = 0
   Dim vItem as variant
@@ -223,6 +249,7 @@ End Property
 'Obtain the item for a key or index
 '@param {Variant} Either a string key (if eJSONObject) or index as long (if eJSONArray)
 Public Property Get Item(ByVal keyOrIndex as Variant) as Variant
+Attribute Item.VB_UserMemId = 0
   select case this.iType
     case eJSONObject
       Call CopyVariant(Item, this.children.item(keyOrIndex))
@@ -374,6 +401,23 @@ End Function
 Private Property Get ChildrenCol() as Collection
   set ChildrenCol = this.Children
 End Property
+
+'Allow `for each x in json` syntax
+'@returns {IEnumVariant} The enumerator to iterate over
+Public Function NewEnum() As IUnknown
+Attribute NewEnum.VB_UserMemId = -4
+Attribute NewEnum.VB_MemberFlags = "40"
+  select case This.iType
+    case eJSONObject
+      Set NewEnum = This.children.[_NewEnum]
+    case eJSONArray
+      set NewEnum = This.children.[_NewEnum]
+  end select
+End Function
+
+'*******************
+'* PRIVATE HELPERS *
+'*******************
 
 'Helper: Copy variant from one location to another
 Private Sub CopyVariant(ByRef dest as Variant, ByVal src as Variant)
