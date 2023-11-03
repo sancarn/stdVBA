@@ -530,7 +530,7 @@ Private Function parseString(ByRef sJSON as string, Optional ByRef index as Long
           case "t": Call StringBuffer_Append(buffer, vbTab)
           case "u"
             Dim WCode as string: WCode = parserConsumeAny(sJSON, index, 4)
-            Call StringBuffer_Append(buffer, ChrW(WCode))
+            Call StringBuffer_Append(buffer, ChrW("&H" & WCode))
         end select
       case else
         Call StringBuffer_Append(buffer, char)
