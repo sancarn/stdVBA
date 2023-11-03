@@ -25,22 +25,31 @@ Attribute VB_Exposed = False
 '   End Sub
 '   Function createFiber(ByVal url as string) as stdFiber
 '       Dim fib as stdFiber: set fib = stdFiber.Create()
+'       set fib.meta("status") = getStatusUpdater()
 '       fib.add stdCallback.CreateFromMethods("", "step1_GetRequest").bind(url)
 '       fib.add stdCallback.CreateFromMethods("", "step2_AwaitStatus")
 '       fib.add stdCallback.CreateFromMethods("", "step3_ReturnData")
+'       fib.addErrorHandler stdCallback.CreateFromMethods("", "stepX_OnError")
 '       set createFiber = fib
 '   End Function
-'   Public Function step1_GetRequest(ByVal fib as stdFiber, ByVal url as string) as boolean
+'   Public Function step1_GetRequest(ByVal url as string, ByVal fib as stdFiber) as boolean
+'       fib.meta("status").value = "step1"
 '       'Store information in bespoke fiber procedure metadata
 '       set fib.meta("req") = stdHTTP.Create(url, HTTPAsync)
 '       step1_GetRequest = true
 '   End Function
 '   Public Function step2_AwaitStatus(ByVal fib as stdFiber) as boolean
+'       fib.meta("status").value = "step2"
 '       step1_GetRequest = fib.meta("req").status <> 0
 '   End Function
 '   Public Function step3_ReturnData(ByVal fib as stdFiber) as boolean
 '       Call fib.resolve(fib.meta("req").ResponseText)
+'       fib.meta("status").value = "Complete"
 '   End Function
+'   Public Sub stepX_OnError(ByVal fib as stdFiber)
+'       fib.meta("status").value = fib.ErrorText
+'   End Sub
+
 '```
 '@example {2. Use of agents}:
 '```vb
@@ -64,7 +73,7 @@ Attribute VB_Exposed = False
 '     fib.agent("ie").visible = true
 '     step1_CreateAgent = true
 '   End Function
-'   Function step2_Navigate(ByVal fib as stdFiber, ByVal url as string) as Boolean
+'   Function step2_Navigate(ByVal url as string, ByVal fib as stdFiber) as Boolean
 '     fib.agent("ie").Navigate(url)
 '   End Function
 '   Function step3_Await(ByVal fib as stdFiber) as Boolean
@@ -88,7 +97,9 @@ Private Type TThis
   isFinished as boolean
   result as Variant
   errorText as string
+  errorHandler as stdICallable
   agent as object
+
 End Type
 Private This as TThis
 
@@ -115,13 +126,17 @@ Public Function add(ByVal processStep as stdICallable) as stdFiber
   set add = Me
 End Function
 
+Public Function addErrorHandler(ByVal handler as stdICallable) as stdFiber
+  set this.errorHandler = handler
+  set addErrorHandler = Me
+End Function
+
 'Calls current sub-process in the fiber procedure. Advances the queue if the ran sub-process is finished.
 '@returns {Boolean} True if this fiber procedure has finished execution (i.e. future stepping not required anymore)
 Friend Function protStep(Byval agent as Object) as Boolean
+  Dim oMe As Object: Set oMe = Me
   On Error GoTo ErrorHandler
     set this.agent = agent
-
-    Dim oMe As Object: Set oMe = Me
     if this.procs(this.procStep).Run(oMe) then 
       this.procStep = this.procStep + 1
       this.isFinished = this.procStep > this.procsCount
@@ -130,9 +145,11 @@ Friend Function protStep(Byval agent as Object) as Boolean
     Exit Function
   On Error GoTo 0
 ErrorHandler:
+  protStep = True
   this.isFinished = true
   this.result = Null
   this.ErrorText = Err.Description & "(" & Err.Number & ", " & Err.Source & ")"
+  Call this.errorHandler.Run(oMe)
 End Function
 
 'Usually called by a sub-process, this will mark the fiber procedure as finished, and return the passed result
@@ -181,6 +198,7 @@ End Property
 '@param {Variant<Collection|Array|stdArray|stdEnumerator>} Fiber procedures to execute over
 '@param {Long} the number of fiber runtimes to create (or number of fiber procedures to run concurrently)
 '@returns {Collection} Collection of results of ran fiber procedures. You can use the variant from param1 if you need to check for errors using ErrorText.
+'@TODO: Consider whether return data is correct. If we create fibers from table, how would we refer back to errornous records on the table?
 Public Function runFibers(ByVal vFibers as variant, Optional byval numFibers as Long = 1) as Collection
   'Intiialise
   Dim fibers as TFiberQueue: fibers = TFiberQueue_Create(vFibers)
