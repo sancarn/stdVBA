@@ -357,6 +357,7 @@ End Function
 '@example `Debug.Print stdAcc.CreateFromApplication().CreateFromPath("3.1").name`
 Public Function CreateFromPath(ByVal sPath As String) As stdAcc
     'If starting with "." remove it
+    If left(sPath, 1) = "P" Then sPath = Mid(sPath, 2)
     If left(sPath, 1) = "." Then sPath = Mid(sPath, 2)
     
     'Get descendants list
@@ -368,14 +369,17 @@ Public Function CreateFromPath(ByVal sPath As String) As stdAcc
     Set acc = Me
     
     'Loop over descendants
-    Dim i As Integer
-    For i = 0 To UBound(descendants)
-        If CLng(descendants(i)) > acc.children.Count Then Exit Function
-        Set acc = acc.children(CLng(descendants(i)))
-    Next i
+    On Error GoTo ExitFunction 'theoretically this should never error, but still sometimes does...
+      Dim i As Integer
+      For i = 0 To UBound(descendants)
+          If CLng(descendants(i)) > acc.children.Count Then Exit Function
+          Set acc = acc.children(CLng(descendants(i)))
+      Next i
+    On Error GoTo 0
     
     'Return descendant
     Set CreateFromPath = acc
+ExitFunction:
 End Function
 
 'Initialises an stdAcc object as a `Proxy` object, who's methods are implemented on the parent instead of on the element itself
