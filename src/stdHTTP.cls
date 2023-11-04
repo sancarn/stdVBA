@@ -264,8 +264,16 @@ Public Function Await() As stdHTTP
     VBA.DoEvents
   Wend
 End Function
+
+
 Public Property Get isFinished() As Boolean
-  isFinished = pHTTP.WaitForResponse(0.001)
+  if pHTTP.status = 202 then 'No content
+    isFinished = true
+  else
+    On Error GoTo Skip 'Sometimes responseBodyt isn't ready, so let's check that too.
+    isFinished = pHTTP.WaitForResponse(0.001) And pHTTP.ResponseBody()(0) >= 0
+  end if
+Skip:
 End Property
 
 Public Property Get ResponseStatus()

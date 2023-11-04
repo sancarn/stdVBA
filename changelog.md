@@ -234,3 +234,4 @@ Before `08/07/2021` a change log was not kept. We have  retrospectively gone bac
 * 2023-11-03 stdFiber       FEATURE     - Added Error handler callback to `stdFiber`.
 * 2023-11-04 stdJSON        FEATURE     - Added `stdJSON#Exists()`, to check if a key exists.
 * 2023-11-04 stdAcc         FEATURE     - `P.1.2...` paths allows in `CreateFromPath()`, and added some error checking
+* 2023-11-04 stdHTTP        FIX         - Would sometimes error which requesting response body indicating that the body wasn't ready yet. This has been wrapped into the `isFinished` check
