@@ -221,6 +221,7 @@ Public Function runFibers(ByVal vFibers as variant, Optional byval numFibers as 
         end if
       elseif running(i).protStep(agents(i)) then
         set running(i) = nothing
+        isFinished = False
       else
         isFinished = false
       end if
@@ -305,5 +306,5 @@ End Function
 '@param {ByRef TFiberQueue} The queue to check
 '@returns {Boolean} The result
 Private Function TFiberQueue_HasNext(ByRef queue as TFiberQueue) as Boolean
-  TFiberQueue_HasNext = queue.index <= queue.count
+  TFiberQueue_HasNext = queue.index < queue.count
 End Function
