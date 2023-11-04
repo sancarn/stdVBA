@@ -2266,6 +2266,8 @@ Private Function VKeyFromString(ByRef s As String) As EVirtualKey
     Case "LALT": VKeyFromString = EVirtualKey.VK_LALT
     Case "RALT": VKeyFromString = EVirtualKey.VK_RALT
     Case "/": VKeyFromString = EVirtualKey.VK_OEM_2
+    Case ";": VKeyFromString = EVirtualKey.VK_OEM_1
+    Case ",": VKeyFromString = EVirtualKey.VK_OEM_COMMA
     Case Else
       Err.Raise 1, "VKeyFromString()", "No key """ & s & """"
   End Select
