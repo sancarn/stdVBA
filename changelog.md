@@ -232,3 +232,4 @@ Before `08/07/2021` a change log was not kept. We have  retrospectively gone bac
 * 2023-10-30 stdFiber       FEATURE     - Added `stdFiber` allowing concurrent programming.
 * 2023-11-03 stdJSON        FIX         - Fix for unicode characters in strings.
 * 2023-11-03 stdFiber       FEATURE     - Added Error handler callback to `stdFiber`.
+* 2023-11-03 stdJSON        FEATURE     - Added `stdJSON#Exists()`, to check if a key exists.

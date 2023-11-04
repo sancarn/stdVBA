@@ -247,7 +247,7 @@ Public Property Get Length() as Long
 End Property
 
 'Obtain the item for a key or index
-'@param {Variant} Either a string key (if eJSONObject) or index as long (if eJSONArray)
+'@param {Variant<string|long>} Either a string key (if eJSONObject) or index as long (if eJSONArray)
 Public Property Get Item(ByVal keyOrIndex as Variant) as Variant
 Attribute Item.VB_UserMemId = 0
   select case this.iType
@@ -271,6 +271,17 @@ Public Property Set Item(ByVal keyOrIndex as Variant, v as Variant)
       set this.children.item(keyOrIndex) = v
     case eJSONArray
       set this.children.item(keyOrIndex) = v
+  end select
+End Property
+
+'Obtain the item for a key or index
+'@param {Variant<string|long>} Either a string key (if eJSONObject) or index as long (if eJSONArray)
+Public Property Get Exists(ByVal keyOrIndex as Variant) as Boolean
+  select case this.iType
+    case eJSONObject
+      Exists = this.children.exists(keyOrIndex)
+    case eJSONArray
+      Exists = keyOrIndex <= this.children.count and keyOrIndex > 0
   end select
 End Property
 
