@@ -238,3 +238,4 @@ Before `08/07/2021` a change log was not kept. We have  retrospectively gone bac
 * 2023-11-04 stdWindow      FIX         - Added `;` and `,` to string to vkey translation for `SendKeys`
 * 2023-11-04 stdFiber       FIX         - Fixed bug where `stdFiber` wouldn't kill fiber runtimes correctly.
 * 2023-11-08 stdFiber       FEATURE     - Added `Reset`, `ResetCount` and `StepDuration` properties to fiber, providing more refined control over runtime.
+* 2023-11-08 stdLambda      FEATURE     - Added `Space()` and `String()` functions to `stdLambda`
