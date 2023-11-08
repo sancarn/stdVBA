@@ -237,4 +237,4 @@ Before `08/07/2021` a change log was not kept. We have  retrospectively gone bac
 * 2023-11-04 stdHTTP        FIX         - Would sometimes error which requesting response body indicating that the body wasn't ready yet. This has been wrapped into the `isFinished` check
 * 2023-11-04 stdWindow      FIX         - Added `;` and `,` to string to vkey translation for `SendKeys`
 * 2023-11-04 stdFiber       FIX         - Fixed bug where `stdFiber` wouldn't kill fiber runtimes correctly.
-
+* 2023-11-08 stdFiber       FEATURE     - Added `Reset`, `ResetCount` and `StepDuration` properties to fiber, providing more refined control over runtime.

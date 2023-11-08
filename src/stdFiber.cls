@@ -87,19 +87,26 @@ Private Type TFiberQueue
   count as long
   queue() as stdFiber
 End Type
+Private Type TProc
+  proc as stdICallable
+  name as string
+  startTime as Date
+End Type
 
+'TODO: Consider sectioning off data between runtime data TFiberRuntime (procStartTime, meta, agent, ...) and TFiberBuildTime (name, procsCount, procs)
 Private Type TThis
   name as string
   procStep as Long
   procsCount as long
-  procs() as stdICallable
+  resetCount as long
+  procs() as TProc
+  fiberStartTime as Date
   meta as object
   isFinished as boolean
   result as Variant
   errorText as string
   errorHandler as stdICallable
   agent as object
-
 End Type
 Private This as TThis
 
@@ -118,11 +125,15 @@ End Sub
 
 'Add a step/sub-process to the fiber
 '@param {stdICallable<(stdFiber)=>boolean>} Callback process / step, consumes the fiber parent, returns `true` if caller can proceed to next step. returns `false` otherwise.
+'@param {string} stepName - The name of the step. This can be used for resetting and error reporting purposes.
 '@returns {stdFiber} A fiber procedure - A reference to the fiber the step has been added to
-Public Function add(ByVal processStep as stdICallable) as stdFiber
+Public Function add(ByVal processStep as stdICallable, Optional ByVal stepName as string = "") as stdFiber
   this.procsCount = this.procsCount + 1
   Redim Preserve this.procs(1 to this.procsCount)
-  set this.procs(this.procsCount) = processStep
+  With this.procs(this.procsCount)
+    set .proc = processStep
+    .name = stepName
+  end with
   set add = Me
 End Function
 
@@ -132,12 +143,16 @@ Public Function addErrorHandler(ByVal handler as stdICallable) as stdFiber
 End Function
 
 'Calls current sub-process in the fiber procedure. Advances the queue if the ran sub-process is finished.
+'@param {Object<Dictionary>} An object storing information unique to the runtime agent. This agent is bound to the fiber, allowing use of window or accessibility elements initialised on the agent.
 '@returns {Boolean} True if this fiber procedure has finished execution (i.e. future stepping not required anymore)
 Friend Function protStep(Byval agent as Object) as Boolean
   Dim oMe As Object: Set oMe = Me
   On Error GoTo ErrorHandler
+    If this.fiberStartTime = 0 then this.fiberStartTime = now()
+    if this.procs(this.procStep).startTime = 0 then this.procs(this.procStep).startTime = now()
+    
     set this.agent = agent
-    if this.procs(this.procStep).Run(oMe) then 
+    if this.procs(this.procStep).proc.Run(oMe) then 
       this.procStep = this.procStep + 1
       this.isFinished = this.procStep > this.procsCount
     end if
@@ -159,6 +174,32 @@ Public Sub Resolve(ByVal vResult as variant)
   Call CopyVariant(this.result, vResult)
 End Sub
 
+'Reset to a specific step
+'@param {string} Step name to jump to
+Public Sub Reset(Optional ByVal sName As string = "")
+  this.resetCount = this.resetCount + 1
+  if sName <> "" then
+    Dim i as long
+    For i = 1 to this.procsCount
+      if this.procs(i).name = sName then
+        Dim j as Long
+        For j = i to this.procStep
+          this.procs(j).startTime = 0
+        next
+        This.procStep = i
+        exit sub
+      end if
+    next
+  else
+    this.procStep = 1
+  end if
+End Sub
+
+'Obtain the number of times this fiber has reset
+Public Property Get ResetCount() as Long
+  ResetCount = this.resetCount
+End Property
+
 'Obtain the result of this fiber
 Public Property Get Result() as Variant
   Call CopyVariant(Result, this.result)
@@ -177,6 +218,10 @@ End Property
 'Obtain the current step which the fiber procedure is at.
 Public Property Get Step() as Long
   Step = procStep
+End Property
+
+Public Property Get StepDuration as Long
+  StepDuration = DateDiff("s", this.procs(this.procStep).startTime, now())
 End Property
 
 'Obtains whether the fiber has finished or not
@@ -199,6 +244,8 @@ End Property
 '@param {Long} the number of fiber runtimes to create (or number of fiber procedures to run concurrently)
 '@returns {Collection} Collection of results of ran fiber procedures. You can use the variant from param1 if you need to check for errors using ErrorText.
 '@TODO: Consider whether return data is correct. If we create fibers from table, how would we refer back to errornous records on the table?
+'@TODO: add param AgentInitHandler   for initialising of agent objects, this is called only once per agent.
+'@TODO: add param AgentDestroyHandler  for destroying of agent objects / clean up, this is called only once per agent.
 Public Function runFibers(ByVal vFibers as variant, Optional byval numFibers as Long = 1) as Collection
   'Intiialise
   Dim fibers as TFiberQueue: fibers = TFiberQueue_Create(vFibers)
