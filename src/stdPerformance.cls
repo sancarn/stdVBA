@@ -106,21 +106,23 @@ Private FakeDict() as FakeDictItem
 
 'Create
 '@constructor
-'@param {EPerfObjType} - Type of performance object to create. iMeasure - used for measuring performance, iOptimiser - used for optimising performance 
-'@param {Variant()} - Additional params supplied as array.
-'@returns {stdPerformance<EPerfObjType>} - Object termination has special behaviour. See Measure and Optimise methods for further details.
-Public Function Create(ByVal objType as EPerfObjType, ByVal params as Variant) as stdPerformance
+'@param objType - Type of performance object to create. iMeasure - used for measuring performance, iOptimiser - used for optimising performance 
+'@param params as Variant<Array<Variant>> - Additional params supplied as array.
+'@returns stdPerformance<EPerfObjType> - Object termination has special behaviour. See Measure and Optimise methods for further details.
+'@remark 2023-11-23 This function is not intended to be called directly and thus has been made private. Use the Measure or Optimise methods instead. If absolutely required use `protInit`.
+Private Function Create(ByVal objType as EPerfObjType, ByVal params as Variant) as stdPerformance
   Set Create = new stdPerformance
-  Call Create.init(objType, params)
+  Call Create.protInit(objType, params)
 End Function
 
-'Init
-'PROTECTED - Don't call this method unless you know what you are doing.
 'Initialises the class
 '@protected
-'@param {EPerfObjType} - Type of performance object to create. iMeasure - used for measuring performance, iOptimiser - used for optimising performance 
-'@param {Variant()} - Additional params supplied as array.
-Public Sub Init(ByVal objType as EPerfObjType, ByVal params as variant)
+'@param objType - Type of performance object to initialise.
+'
+'* iMeasure - used for measuring performance
+'* iOptimiser - used for optimising performance 
+'@param params as Variant<Array<Variant>> - Additional params supplied as array.
+Public Sub protInit(ByVal objType as EPerfObjType, ByVal params as variant)
   pObjType = objType
   select case objType
     case iMeasure
@@ -142,46 +144,58 @@ Public Sub Init(ByVal objType as EPerfObjType, ByVal params as variant)
           pCalculation = Application.Calculation
           Application.Calculation = params(2)
       end select
-
   end select
 End Sub
 
 'Measure
 '@constructor
-'@param {String} - Name of method or block to measure
-'@returns {stdPerformance<iMeasure>} - Object which upon termination, adds measurement of block to global cache
-'@usage
-'  ```vb
-'  With stdPerformance.Measure("Hello world")
-'    For i = 1 to 1000
-'      Debug.print "Hello world"
-'    next
-'  End With
-'  ```
+'@param sProc   - Name of method or block to measure
+'@param nCount  - Number of times the block will be ran (used to calculate average time), default = 1.
+'@returns stdPerformance<iMeasure> - Object which upon termination, adds measurement of block to global cache
+'@example
+'```vb
+'With stdPerformance.Measure("Some test expression")
+'  Dim v
+'  For i = 1 to 1000
+'    v = expressionToTest()
+'  next
+'End With
+'```
+'@example
+'```vb
+'Const C_MAX as Long = 1000
+'With stdPerformance.Measure("Some test expression", C_MAX)
+'  Dim v
+'  For i = 1 to C_MAX
+'    v = expressionToTest()
+'  next
+'End With
+'```
 Public Function Measure(ByVal sProc as string, Optional ByVal nCount as double=1) as stdPerformance
   set Measure = stdPerformance.Create(iMeasure, Array(sProc,nCount))
 End Function
 
 'Optimise
 '@constructor
-'@param {Boolean} - ScreenUpdating set value
-'@param {Boolean} - EnableEvents set value
-'@returns {stdPerformance<iOptimiser>} - Object termination has special behaviour. See Measure and Optimise methods for further details.
+'@param ScreenUpdating  - ScreenUpdating set value
+'@param EnableEvents    - EnableEvents set value
+'@param Calculation     - Calculation set value
+'@returns stdPerformance<iOptimiser> - Object termination has special behaviour. See Measure and Optimise methods for further details.
 '@note Calculation is defined as long instead of xlCalculation so the function continues to work without compile error in Word, Powerpoint etc.
-'@usage
-'  ```vb
-'  With stdPerformance.Optimise
-'    'some heavy code here
-'  End With
-'  ```
+'@example
+'```vb
+'With stdPerformance.Optimise
+'  'some heavy code here
+'End With
+'```
 Public Function Optimise(Optional ByVal ScreenUpdating as boolean = false, Optional ByVal EnableEvents as boolean = false, Optional ByVal Calculation as long = -4135) as stdPerformance
   set Optimise = stdPerformance.Create(iOptimiser, Array(ScreenUpdating,EnableEvents,Calculation))
 End Function
 
 
-'Measurement
-'@param {String} - Name of measurement to get
-'@returns {Double} - Average measurement time
+'Obtain a measurement
+'@param sKey - Name of measurement to get
+'@returns - Average measurement time
 Public Property Get Measurement(ByVal sKey As String) As Double
   If Me Is stdPerformance Then
     Dim v: v = getDictItem(sKey)
@@ -194,10 +208,11 @@ Public Property Get Measurement(ByVal sKey As String) As Double
 End Function
 
 'AddMeasurement
-'If a time is added that was previously also added then the average of the times is calculated.
-'@param {String} - Name of measurement to add to global cache
-'@param {Double} - time to add to global cache
-'@param {Double} - number of operations (divisor)
+'@protected
+'@param sKey   - Name of measurement to add to global cache
+'@param time   - time to add to global cache
+'@param nCount - number of operations (divisor)
+'@remark If a time is added that was previously also added then the average of the times is calculated.
 Public Sub AddMeasurement(ByVal sKey as string, ByVal time as Double, ByVal nCount as Double)
   if Me is stdPerformance then
     Debug.Print sKey & ": " & time & " ms" & iif(nCount>1," (" & (1000*time/nCount) & chr(181) & "s per operation)","")
@@ -214,14 +229,13 @@ Public Sub AddMeasurement(ByVal sKey as string, ByVal time as Double, ByVal nCou
   end if
 End Sub
 
-'MeasuresClear
-'Clears all procedures/blocks and times that have been measured
+'MeasuresClear - Clears all procedures/blocks and times that have been measured
 Public Sub MeasuresClear()
   ReDim FakeDict(0 to 0)
 End Sub
 
 'MeasuresKeys
-'@returns {string()} - Array containing the procedures or blocks that have been measured.
+'@returns Array<String> - Array containing the procedures or blocks that have been measured.
 Public Property Get MeasuresKeys() as string()
   if Me is stdPerformance then
     if ubound(FakeDict) = 0 then
@@ -283,8 +297,8 @@ End Sub
 
 'getDictIndex
 'Returns the index where a particular key is stored
-'@param {string} - Key to find in dictionary
-'@returns {long} = Index of key in dictionary
+'@param key - Key to find in dictionary
+'@returns   - Index of key in dictionary
 Private Function getDictIndex(ByVal key as string) as Long
   On Error GoTo ErrorOccurred
     Dim i as long
@@ -301,9 +315,9 @@ End Function
 
 'setDictItem
 'Set an item within a dictionary to a particular value
-'@param {string} - Key to find in dictionary
-'@param {variant} - Value to set dictionary too
-'@param {optional long} - Index of item. If not given getDictIndex() is used
+'@param key - Key to find in dictionary
+'@param v   - Value to set dictionary too
+'@param ind - Index of item. If not given `getDictIndex()` is used
 Private Sub setDictItem(ByVal key as string, ByVal v as variant, Optional ByVal ind as long = -1)
   'get index of item in fake dict
   if ind = -1 then ind = getDictIndex(key)
@@ -325,8 +339,8 @@ End Sub
 
 'getUB
 'gets the upper bound of an array, if the array is uninitialised return -1
-'@param {ByRef FakeDictItem()} Array of dict items
-'@returns {Long} - Upper bound of array OR -1 if not initialised
+'@param items as Array<FakeDictItem> - Array of dict items.
+'@returns - Upper bound of array OR -1 if not initialised
 Private Function getUB(ByRef items() As FakeDictItem) As Long
     On Error GoTo ErrorOccurred
         getUB = UBound(items)
@@ -337,8 +351,8 @@ End Function
 
 'getDictIndex
 'Returns the item paired with some key
-'@param {string} - Key to find in dictionary
-'@returns {variant} = Item stored at key
+'@param key - Key to find in dictionary
+'@returns - Item stored at key
 Private Function getDictItem(ByVal key as string) as variant
   Dim ind as Long: ind = getDictIndex(key)
   if ind <> -1 then 

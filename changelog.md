@@ -239,3 +239,16 @@ Before `08/07/2021` a change log was not kept. We have  retrospectively gone bac
 * 2023-11-04 stdFiber       FIX         - Fixed bug where `stdFiber` wouldn't kill fiber runtimes correctly.
 * 2023-11-08 stdFiber       FEATURE     - Added `Reset`, `ResetCount` and `StepDuration` properties to fiber, providing more refined control over runtime.
 * 2023-11-08 stdLambda      FEATURE     - Added `Space()` and `String()` functions to `stdLambda`
+* 2023-11-29 AllModules     DOCS        - Added `VBDocsGen`. See `docs.json` in the root of the project.
+* 2023-11-29 AllModules     DOCS        - Refactored all comments to comply with `VBDocsGen`.
+* 2023-11-29 AllModules     DOCS        - Added `Convert To TThis` declarations around the codebase where not converted.
+* 2023-11-29 stdAcc         FIX         - Compile compatibility with 32-bit
+* 2023-11-29 stdCOM         FIX         - Compile compatibility with 32-bit
+* 2023-11-29 stdProcess     FIX         - Compile compatibility with 32-bit
+* 2023-11-29 stdWindow      FIX         - Compile compatibility with 32-bit
+* 2023-11-29 stdArray       FEATURE     - Added `Slice` and `Splice` functions
+* 2023-11-29 stdWindow      FEATURE     - More application options added to `CreateFromApplication`.
+* 2023-11-29 stdWindow      FEATURE     - `CreateFromIAccessible` added
+
+
+

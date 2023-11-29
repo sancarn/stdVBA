@@ -194,24 +194,25 @@ Private Type ProxyInfoEx
   Error As ErrorInfo
 End Type
 
+'@TODO: Convert to TThis
 Private pHTTP As Object
 
 
 'Create a HTTP request
-'@param {String} The url to query
-'@param {String} Typically "GET", "POST", "PUT", "DELETE", but can be any string which the server responds to
-'@param {EHTTPSynchronisity} The Threading approach. Either HTTPSync (Synchronous) or HTTPAsync (Asynchronous).
-'@param {Object<Dictionary>} Options - Use `stdHTTP.CreateOptions()` to generate these.
-'@param {Object<TBC>} Authenticator -
-'@return {stdHTTP} A http request object
+'@param sURL - The url to query
+'@param RequestMethod - Typically "GET", "POST", "PUT", "DELETE", but can be any string which the server responds to
+'@param ThreadingStyle - The Threading approach. Either HTTPSync (Synchronous) or HTTPAsync (Asynchronous).
+'@param options as Object<Dictionary> - Use `stdHTTP.CreateOptions()` to generate these.
+'@param Authenticator as stdICallable<(HTTP: Object, RequestMethod: String, URL: String, ThreadingStyle: Long, options: Object)=>Void> - A callable object which will be called before the request is sent. This can be used to add authentication headers, etc.
+'@return - A http request object
 Public Function Create(ByVal sURL As String, Optional ByVal RequestMethod As String = "GET", Optional ByVal ThreadingStyle As EHTTPSynchronisity = HTTPSync, Optional ByVal options As Object = Nothing, Optional ByVal Authenticator As stdICallable = Nothing) As stdHTTP
   Set Create = New stdHTTP
   Call Create.protInit(sURL, RequestMethod, ThreadingStyle, options, Authenticator)
 End Function
 
 'Create HTTP request headers
-'@ParamArray Headers to load into the http request in the form key1, value1, key2, value2, ...
-'@returns {Object<Dictionary>}
+'@Param v - Headers to load into the http request in the form key1, value1, key2, value2, ...
+'@returns Object<Dictionary> - A dictionary of headers
 Public Function CreateHeaders(ParamArray v()) As Object
   Dim oRet As Object
   Set oRet = CreateObject("Scripting.Dictionary")
@@ -225,6 +226,16 @@ Public Function CreateHeaders(ParamArray v()) As Object
   Set CreateHeaders = oRet
 End Function
 
+'Create HTTP request options
+'@param Body - The body of the request
+'@param Headers as Object<Dictionary> - The headers of the request
+'@param Cookies as Object<Dictionary> - The cookies of the request
+'@param ContentTypeDefault - The default content type of the request
+'@param Insecure - Whether to ignore SSL errors
+'@param EnableRedirects - Whether to follow redirects
+'@param TimeoutMS - The timeout of the request in milliseconds
+'@param AutoProxy - Whether to use the system proxy settings
+'@returns Object<Dictionary> - A dictionary of options
 Public Function CreateOptions(Optional Body As String = "", Optional Headers As Object = Nothing, Optional Cookies As Object = Nothing, Optional ByVal ContentTypeDefault As EHTTPContentType, Optional Insecure As Boolean = False, Optional EnableRedirects As Boolean = True, Optional ByVal TimeoutMS As Long = 5000, Optional ByVal AutoProxy As Boolean = True)
   Dim oRet As Object
   Set oRet = CreateObject("Scripting.Dictionary")
@@ -258,6 +269,8 @@ Public Function CreateOptions(Optional Body As String = "", Optional Headers As 
   Set CreateOptions = oRet
 End Function
 
+'Await for the request to finish. This is only necessary for asynchronous requests.
+'@returns - The request/response object
 Public Function Await() As stdHTTP
   Set Await = Me
   While Not isFinished
@@ -265,7 +278,8 @@ Public Function Await() As stdHTTP
   Wend
 End Function
 
-
+'Get whether the request has finished. This is only necessary for asynchronous requests.
+'@returns - `True` if the request has finished, `False` otherwise.
 Public Property Get isFinished() As Boolean
   if pHTTP.status = 202 then 'No content
     isFinished = true
@@ -276,6 +290,8 @@ Public Property Get isFinished() As Boolean
 Skip:
 End Property
 
+'Get the response status code
+'@returns - The response status code
 Public Property Get ResponseStatus()
   On Error GoTo Processing
   ResponseStatus = pHTTP.status
@@ -283,6 +299,9 @@ Public Property Get ResponseStatus()
 Processing:
   ResponseStatus = 0
 End Property
+
+'Get the response status text
+'@returns - The response status text
 Public Property Get ResponseStatusText()
   On Error GoTo Skip
   ResponseStatusText = pHTTP.StatusText
@@ -294,13 +313,22 @@ Skip:
     Case Else: ResponseStatusText = "Error: " & sErrDescription
   End Select
 End Property
+
+'Get the response text
+'@returns - The response text
 Public Property Get ResponseText()
   ResponseText = pHTTP.ResponseText
 End Property
+
+'Get the response body
+'@returns - The response body
 Public Property Get ResponseBody()
   ResponseBody = pHTTP.ResponseBody
 End Property
 
+'Get a response header by name
+'@param sHeader - The name of the header to get
+'@returns - The response header
 Public Property Get ResponseHeader(ByVal sHeader As String) As Variant
   If IsObject(pHTTP.GetResponseHeader(sHeader)) Then
     Set ResponseHeader = pHTTP.GetResponseHeader(sHeader)
@@ -308,10 +336,20 @@ Public Property Get ResponseHeader(ByVal sHeader As String) As Variant
     ResponseHeader = pHTTP.GetResponseHeader(sHeader)
   End If
 End Property
+
+'Get all response headers
+'@returns - All response headers
 Public Property Get ResponseHeaders() As Object
   Set ResponseHeaders = pHTTP.GetAllResponseHeaders
 End Property
 
+'Initialize the request
+'@protected
+'@param sURL - The url to query
+'@param RequestMethod - Typically "GET", "POST", "PUT", "DELETE", but can be any string which the server responds to
+'@param ThreadingStyle - The Threading approach. Either HTTPSync (Synchronous) or HTTPAsync (Asynchronous).
+'@param Options as Object<Dictionary> - Use `stdHTTP.CreateOptions()` to generate these.
+'@param Authenticator as stdICallable<(HTTP: Object, RequestMethod: String, URL: String, ThreadingStyle: Long, options: Object)=>Void> - A callable object which will be called before the request is sent. This can be used to add authentication headers, etc.
 Friend Sub protInit(ByVal sURL As String, Optional ByVal RequestMethod As String = "GET", Optional ByVal ThreadingStyle As EHTTPSynchronisity, Optional ByVal options As Object = Nothing, Optional ByVal Authenticator As stdICallable = Nothing)
   If options Is Nothing Then Set options = CreateOptions()
   Set pHTTP = CreateObject("WinHttp.WinHttpRequest.5.1")
@@ -344,6 +382,10 @@ Friend Sub protInit(ByVal sURL As String, Optional ByVal RequestMethod As String
   'Execute request
   pHTTP.Send options("Body")
 End Sub
+
+'Get the HSesssion
+'@protected
+'@returns - The HSesssion
 #If VBA7 then
 Friend Property Get protHSession() As LongPtr
 #else
@@ -357,6 +399,9 @@ Friend Property Get protHSession() As Long
   End If
 End Property
 
+'Encode a string for use in a URL
+'@param strInput - The string to encode
+'@returns - The encoded string
 Public Function URIEncode(ByVal strInput As String) As String
   Dim bytInput() As Byte
   Dim strOutput As String
@@ -378,6 +423,9 @@ Public Function URIEncode(ByVal strInput As String) As String
   URIEncode = strOutput
 End Function
 
+'Decode a string from a URL
+'@param strInput - The string to decode
+'@returns - The decoded string
 Public Function URIDecode(ByVal strInput As String) As String
     Dim strOutput As String: strOutput = ""
     Dim intPos As Long: intPos = 1

@@ -111,6 +111,7 @@ End Enum
 'Special constant used in parsing:
 Const UniqueConst As String = "3207af79-30df-4890-ade1-640f9f28f309"
 
+'@TODO: Convert to TThis
 Private tokens() As token
 Private iTokenIndex As Long
 Private operations() As Operation
@@ -140,58 +141,56 @@ Private vBound As Variant
 Private bUsePerformanceCache as Boolean
 Private pPerformanceCache as  object
 
-''Usage:
-'Debug.Print stdLambda.Create("1+3*8/2*(2+2+3)").Execute()
+'Create a stdLambda object from a string equation
+'@constructor
+'@param sEquation - The equation to parse
+'@param bUsePerformanceCache - Whether to cache the parsed equation for performance
+'@param bSandboxExtras - Whether to allow extra functions to be called
+'@returns - A first class object representing the equation. Can be called with `.Run(param1, param2, ...)` or `.RunEx(params)`
+'@example ```vb
+'Debug.Print stdLambda.Create("1+3*8/2*(2+2+3)").Run()
 'With stdLambda.Create("$1+1+3*8/2*(2+2+3)")
-'    Debug.Print .Execute(10)
-'    Debug.Print .Execute(15)
-'    Debug.Print .Execute(20)
+'    Debug.Print .Run(10)
+'    Debug.Print .Run(15)
+'    Debug.Print .Run(20)
 'End With
-'Debug.Print stdLambda.Create("$1.Range(""A1"")").Execute(Sheets(1)).Address(True, True, xlA1, True)
-'Debug.Print stdLambda.Create("$1.join("","")").Execute(stdArray.Create(1,2))
+'Debug.Print stdLambda.Create("$1.Range(""A1"")").Run(Sheets(1)).Address(True, True, xlA1, True)
+'Debug.Print stdLambda.Create("$1.join("","")").Run(stdArray.Create(1,2))
+'```
 Public Function Create(ByVal sEquation As String, Optional ByVal bUsePerformanceCache As Boolean = False, Optional ByVal bSandboxExtras As Boolean = False) As stdLambda
     'Cache Lambda created
     If oCache Is Nothing Then Set oCache = CreateObject("Scripting.Dictionary")
     Dim sID As String: sID = bUsePerformanceCache & "-" & bSandboxExtras & ")" & sEquation
     If Not oCache.exists(sID) Then
         Set oCache(sID) = New stdLambda
-        Call oCache(sID).Init(LambdaType.iStandardLambda, sEquation, bUsePerformanceCache, bSandboxExtras)
+        Call oCache(sID).protInit(LambdaType.iStandardLambda, sEquation, bUsePerformanceCache, bSandboxExtras)
     End If
     
     'Return cached lambda
     Set Create = oCache(sID)
 End Function
 
+'Create a stdLambda object from an Array of strings
+'@constructor
+'@param sEquation as Variant<Array<String>> - The equation to parse
+'@param bUsePerformanceCache - Whether to cache the parsed equation for performance
+'@param bSandboxExtras - Whether to allow extra functions to be called
+'@returns - A first class object representing the equation. Can be called with `.Run(param1, param2, ...)` or `.RunEx(params)`
+'@example ```vb
+'Debug.Print stdLambda.CreateMultiline(Array( _ 
+'  "let x = 8/2*(2+2+3)", _ 
+'  "1+3*x"
+')).Run()
+'```
 Public Function CreateMultiline(ByRef sEquation As Variant, Optional ByVal bUsePerformanceCache As Boolean = False, Optional ByVal bSandboxExtras As Boolean = False) As stdLambda
     Set CreateMultiline = Create(Join(sEquation, " "), bUsePerformanceCache, bSandboxExtras)
 End Function
 
-Public Function BindEx(ByVal params As Variant) As stdLambda
-    Set BindEx = New stdLambda
-    Dim callable As stdICallable: Set callable = Me
-    Call BindEx.Init(LambdaType.iBoundLambda, callable, params)
-End Function
-
-'Bind a global variable to the function
-'@param {String} - New global name
-'@param {Variant}- Data to store in global variable
-'@returns {stdLambda} The lambda existing lambda
-Public Function BindGlobal(ByVal sGlobalName as string, ByVal variable as Variant) as stdLambda
-    set BindGlobal = Me
-    If bBound Then
-        Call oBound.BindGlobal(sGlobalName, variable)
-    Else
-        If oFunctExt is nothing then Set oFunctExt = CreateObject("Scripting.Dictionary")
-        If IsObject(variable) Then
-            Set oFunctExt(sGlobalName) = variable
-        Else
-            Let oFunctExt(sGlobalName) = variable
-        End If
-    End If
-End Function
-
-
-Public Sub Init(ByVal iLambdaType As Long, ParamArray params() As Variant)
+'Initialise the lambda
+'@protected
+'@param iLambdaType as LambdaType - Type of lambda to initialise
+'@param params - Parameters to initialise the lambda with
+Public Sub protInit(ByVal iLambdaType As Long, ParamArray params() As Variant)
     Select Case iLambdaType
         Case LambdaType.iStandardLambda
             Dim sEquation As String: sEquation = params(0)
@@ -230,27 +229,9 @@ Public Sub Init(ByVal iLambdaType As Long, ParamArray params() As Variant)
     End Select
 End Sub
 
-Private Function stdICallable_Run(ParamArray params() As Variant) As Variant
-    If Not bBound Then
-        'Execute top-down parser
-        Call CopyVariant(stdICallable_Run, evaluate(operations, params))
-    Else
-        Call CopyVariant(stdICallable_Run, oBound.RunEx(ConcatArrays(vBound, params)))
-    End If
-End Function
-Private Function stdICallable_RunEx(ByVal params As Variant) As Variant
-    If Not isArray(params) Then
-        Err.Raise 1, "params to be supplied as array of arguments", ""
-    End If
-    
-    If Not bBound Then
-        'Execute top-down parser
-        Call CopyVariant(stdICallable_RunEx, evaluate(operations, params))
-    Else
-        Call CopyVariant(stdICallable_RunEx, oBound.RunEx(ConcatArrays(vBound, params)))
-    End If
-End Function
-
+'Run the lambda from passed parameters
+'@param params as Array<Variant> - Array of parameters to run the lambda with
+'@returns - The result of the lambda
 Function Run(ParamArray params() As Variant) As Variant
 Attribute Run.VB_UserMemId = 0
     If Not bBound Then
@@ -261,6 +242,9 @@ Attribute Run.VB_UserMemId = 0
     End If
 End Function
 
+'Run the lambda from an array of parameters
+'@param params as Variant<Array<Variant>> - Array of parameters to run the lambda with
+'@returns - The result of the lambda
 Function RunEx(ByVal params As Variant) As Variant
     If Not bBound Then
         If Not isArray(params) Then
@@ -274,20 +258,80 @@ Function RunEx(ByVal params As Variant) As Variant
     End If
 End Function
 
-'Bind a parameter to the function
-Private Function stdICallable_Bind(ParamArray params() As Variant) As stdICallable
-    Set stdICallable_Bind = BindEx(params)
-End Function
+'Bind parameters to the function.  Arguments will be passed in the order they are supplied, before any arguments supplied to the function.
+'@param params as Array<Variant> - Parameters to bind to the lambda.
+'@returns - The lambda 
 Public Function Bind(ParamArray params() As Variant) As stdLambda
     Set Bind = BindEx(params)
 End Function
 
-'Low-dependency function calling
-'@protected
-'@param {ByVal String}       - Message to send
-'@param {ByRef Boolean}      - Success of message. If message wasn't processed return false.
-'@param {Paramarray Variant} - Parameters to pass along with message
-'@returns {Variant} - Anything returned by the function
+'Bind an array of parameters to the function. Arguments will be passed in the order they are supplied, before any arguments supplied to the function.
+'@param params as Variant<Array<Variant>> - Array of parameters to bind
+'@returns - The lambda existing lambda
+Public Function BindEx(ByVal params As Variant) As stdLambda
+    Set BindEx = New stdLambda
+    Dim callable As stdICallable: Set callable = Me
+    Call BindEx.protInit(LambdaType.iBoundLambda, callable, params)
+End Function
+
+'Bind a named global variable to the function
+'@param sGlobalName - New global name
+'@param variable - Data to store in global variable
+'@returns - The lambda existing lambda
+Public Function BindGlobal(ByVal sGlobalName as string, ByVal variable as Variant) as stdLambda
+    set BindGlobal = Me
+    If bBound Then
+        Call oBound.BindGlobal(sGlobalName, variable)
+    Else
+        If oFunctExt is nothing then Set oFunctExt = CreateObject("Scripting.Dictionary")
+        If IsObject(variable) Then
+            Set oFunctExt(sGlobalName) = variable
+        Else
+            Let oFunctExt(sGlobalName) = variable
+        End If
+    End If
+End Function
+
+'Implementation of stdICallable::Run
+'@param params as Array<Variant> - Parameters to run the lambda with
+'@returns - The result of the lambda
+Private Function stdICallable_Run(ParamArray params() As Variant) As Variant
+    If Not bBound Then
+        'Execute top-down parser
+        Call CopyVariant(stdICallable_Run, evaluate(operations, params))
+    Else
+        Call CopyVariant(stdICallable_Run, oBound.RunEx(ConcatArrays(vBound, params)))
+    End If
+End Function
+
+'Implementation of stdICallable::RunEx
+'@param params as Variant<Array<Variant>> - Array of parameters to run the lambda with
+'@returns - The result of the lambda
+Private Function stdICallable_RunEx(ByVal params As Variant) As Variant
+    If Not isArray(params) Then
+        Err.Raise 1, "params to be supplied as array of arguments", ""
+    End If
+    
+    If Not bBound Then
+        'Execute top-down parser
+        Call CopyVariant(stdICallable_RunEx, evaluate(operations, params))
+    Else
+        Call CopyVariant(stdICallable_RunEx, oBound.RunEx(ConcatArrays(vBound, params)))
+    End If
+End Function
+
+'Implementation of stdICallable::Bind
+'@param params as Array<Variant> - Parameters to bind to the lambda.
+'@returns - The bound lambda
+Private Function stdICallable_Bind(ParamArray params() As Variant) As stdICallable
+    Set stdICallable_Bind = BindEx(params)
+End Function
+
+'Late-bound, no dependency, function calling
+'@param sMessage as "obj"|"className"|"bindGlobal" - Message to send. "obj" returns the object, "className" returns the class name, "bindGlobal" binds a global variable to the lambda.
+'@param success  - Success of message. If message wasn't processed return false.
+'@param params   - Parameters to pass along with message
+'@returns - Anything returned by the function
 Private Function stdICallable_SendMessage(ByVal sMessage as string, ByRef success as boolean, ByVal params as variant) as Variant
     select case sMessage
         case "obj"
@@ -312,7 +356,9 @@ End Function
 '================
 
 
-'Tokeniser helpers
+'Get token definitions, a mapping of token names to regexes. This is used in the tokenisation process.
+'@private
+'@returns - Array of token definitions
 Private Function getTokenDefinitions() As TokenDefinition()
     Dim arr() As TokenDefinition
     ReDim arr(1 To 99)
@@ -382,6 +428,10 @@ End Function
 '
 '===========
 
+'Continually parse statements until some endToken is reached.
+'@private
+'@param endToken as Array<String> - Names of tokens which should be checked to stop parsing statements
+'@remark - Entry point for parsing
 Private Sub parseBlock(ParamArray endToken() As Variant)
     Call addScope
     Dim size As Integer: size = stackSize + 1
@@ -406,6 +456,7 @@ Private Sub parseBlock(ParamArray endToken() As Variant)
     scopeCount = scopeCount - 1
 End Sub
 
+'Increment the number of scopes and initialise them. Scopes are used to store variables, functions and function arg counts.
 Private Sub addScope()
     scopeCount = scopeCount + 1
     Dim scope As Long: scope = scopeCount
@@ -415,6 +466,9 @@ Private Sub addScope()
     Set scopesArgCount(scope) = CreateObject("Scripting.Dictionary")
 End Sub
 
+'Parse a statement of code.
+'@remark - A statement consists of either a variable assignment, a function declaration or an expression
+'(typically this wouldn't classify as a statement, but for the purpose of stdLambda and simplifying parsing it does).
 Private Sub parseStatement()
     If peek("var") And peek("equal", 2) Then
         Call parseAssignment
@@ -425,11 +479,34 @@ Private Sub parseStatement()
     End If
 End Sub
 
+'Parse expression.
+'@remark - Parsing an expression is split into a number of stages, each with a different priority.
+'This is to ensure that the correct order of operations is followed. E.G. think about the expression `1+2*3`. We want to ensure
+'that the multiplication is performed before the addition. This is done by parsing the expression in a specific order. The order
+'is defined by the priority of the operation. The order of operations is as follows:
+'1. Logical XOR
+'2. Logical OR
+'3. Logical AND
+'4. Logical NOT
+'5. Comparison (=, <>, <, <=, >, >=, is, Like)
+'6. Concatenation (&)
+'7. Arithmetic (+, -)
+'8. Arithmetic (mod)
+'9. Arithmetic (*, /)
+'10. Arithmetic (Unary +, -) e.g. -1
+'11. Arithmetic (^)
+'12. Arithmetic (Unary +, -) (for RHS of power operator) e.g. 2^-1
+'13. Flow (if then else)
+'14. Value (numbers, $vars, strings, booleans, brackets)
+'@remark - The order of priority is opposite to the order of evaluation. I.E. Comparrison is evaluated before Logical AND allowing 
+'expressions such as `1<2 and 2<3` to be evaluated correctly without requiring bracketing. It's important to note however that all
+'comparrisons have the same priority. This means that `1<2<3` will be evaluated as `(1<2)<3` which is not the same as `1<(2<3)`.
 Private Sub parseExpression()
     Call parseLogicPriority1
 End Sub
 
-Private Sub parseLogicPriority1() 'xor
+'Parse Logical XOR
+Private Sub parseLogicPriority1()
     Call parseLogicPriority2
     Dim bLoop As Boolean: bLoop = True
     Do
@@ -442,7 +519,8 @@ Private Sub parseLogicPriority1() 'xor
     Loop While bLoop
 End Sub
 
-Private Sub parseLogicPriority2() 'or
+'Parse Logical OR
+Private Sub parseLogicPriority2()
     Call parseLogicPriority3
     Dim bLoop As Boolean: bLoop = True
     Do
@@ -455,7 +533,8 @@ Private Sub parseLogicPriority2() 'or
     Loop While bLoop
 End Sub
 
-Private Sub parseLogicPriority3() 'and
+'Parse Logical AND
+Private Sub parseLogicPriority3()
     Call parseLogicPriority4
     Dim bLoop As Boolean: bLoop = True
     Do
@@ -468,6 +547,7 @@ Private Sub parseLogicPriority3() 'and
     Loop While bLoop
 End Sub
 
+'Parse Logical NOT
 Private Sub parseLogicPriority4() 'not
     Dim invert As Variant: invert = vbNull
     While optConsume("not")
@@ -485,7 +565,8 @@ Private Sub parseLogicPriority4() 'not
     End If
 End Sub
 
-Private Sub parseComparisonPriority1() '=, <>, <, <=, >, >=, is, Like
+'Parse comparison operators (=, <>, <, <=, >, >=, is, Like)
+Private Sub parseComparisonPriority1()
     Call parseArithmeticPriority1
     Dim bLoop As Boolean: bLoop = True
     Do
@@ -519,6 +600,7 @@ Private Sub parseComparisonPriority1() '=, <>, <, <=, >, >=, is, Like
     Loop While bLoop
 End Sub
 
+'Parse concatenation operator (&)
 Private Sub parseArithmeticPriority1() '&
     Call parseArithmeticPriority2
     Dim bLoop As Boolean: bLoop = True
@@ -532,7 +614,8 @@ Private Sub parseArithmeticPriority1() '&
     Loop While bLoop
 End Sub
 
-Private Sub parseArithmeticPriority2() '+, -
+'Parse + and - operators
+Private Sub parseArithmeticPriority2()
     Call parseArithmeticPriority3
     Dim bLoop As Boolean: bLoop = True
     Do
@@ -548,7 +631,7 @@ Private Sub parseArithmeticPriority2() '+, -
     Loop While bLoop
 End Sub
 
-
+'Parse mod operator
 Private Sub parseArithmeticPriority3() 'mod
     Call parseArithmeticPriority4
     Dim bLoop As Boolean: bLoop = True
@@ -562,7 +645,8 @@ Private Sub parseArithmeticPriority3() 'mod
     Loop While bLoop
 End Sub
 
-Private Sub parseArithmeticPriority4() '*, /
+'Parse * and / operators
+Private Sub parseArithmeticPriority4()
     Call parseArithmeticPriority5
     Dim bLoop As Boolean: bLoop = True
     Do
@@ -578,7 +662,8 @@ Private Sub parseArithmeticPriority4() '*, /
     Loop While bLoop
 End Sub
 
-Private Sub parseArithmeticPriority5() '+, - (unary)
+'Parse unary + and - operators (i.e. -1) 
+Private Sub parseArithmeticPriority5()
     If optConsume("subtract") Then
         Call parseArithmeticPriority5 'recurse
         Call addOperation(oArithmetic, oNeg)
@@ -589,6 +674,7 @@ Private Sub parseArithmeticPriority5() '+, - (unary)
     End If
 End Sub
 
+'Parse power (^) operator
 Private Sub parseArithmeticPriority6() '^
     Call parseFlowPriority1
     Do
@@ -601,7 +687,8 @@ Private Sub parseArithmeticPriority6() '^
     Loop While bLoop
 End Sub
 
-Private Sub parseArithmeticPriority6andahalf() '+, - (unary)
+'Parse unary + and - operators on the RHS of a power operator (i.e. 2^-1)
+Private Sub parseArithmeticPriority6andahalf()
     If optConsume("subtract") Then
         Call parseArithmeticPriority6andahalf 'recurse
         Call addOperation(oArithmetic, oNeg)
@@ -612,7 +699,8 @@ Private Sub parseArithmeticPriority6andahalf() '+, - (unary)
     End If
 End Sub
 
-Private Sub parseFlowPriority1() 'if then else
+'Parse flow control (if ... then ... else ... end)
+Private Sub parseFlowPriority1()
     If optConsume("if") Then
         Call parseExpression
         Dim skipThenJumpIndex As Integer: skipThenJumpIndex = addOperation(oJump, ifFalse, , -1)
@@ -639,8 +727,9 @@ Private Sub parseFlowPriority1() 'if then else
     End If
 End Sub
 
-Private Sub parseValuePriority1() 'numbers, $vars, strings, booleans, (expressions)
-
+'Parse evaluation of numbers, arguments, strings, booleans, variable names and brackets. Will also parse accessors on these values.
+'i.e. `varName.someMethod(1,2,3).someProp`
+Private Sub parseValuePriority1()
     If peek("literalNumber") Then
         Call addOperation(oPush, , CDbl(consume("literalNumber")), 1)
     ElseIf peek("arg") Then
@@ -663,6 +752,9 @@ Private Sub parseValuePriority1() 'numbers, $vars, strings, booleans, (expressio
     End If
 End Sub
 
+'Parse a call to a standard in-built function and add it to the stack
+'@remark - This is a special case of a function call. It is parsed differently because it is a built-in function and not 
+'an in-code defined function.
 Private Function parseFunction() As Variant
     Call addOperation(oPush, , consume("var"), 1)
     Dim size As Integer: size = stackSize
@@ -671,6 +763,8 @@ Private Function parseFunction() As Variant
     stackSize = size
 End Function
 
+'Parse object field, property and method accessors. Specifically allows for more than one accessor to be chained together
+'i.e. `obj.someMethod(1,"hi").someProp`
 Private Sub parseManyAccessors()
     Dim bLoop As Boolean: bLoop = True
     Do
@@ -681,6 +775,8 @@ Private Sub parseManyAccessors()
     Loop While bLoop
 End Sub
 
+'Parse an object's method or property call (i.e. `obj.someMethod` or `obj.someProp`) and add it to the operations stack
+'@returns - Whether a method or property was found
 Private Function parseOptObjectField() as Boolean
     parseOptObjectField = false
     if optConsume("fieldAccess") then
@@ -693,6 +789,8 @@ Private Function parseOptObjectField() as Boolean
     end if
 End Function
 
+'Parse an object's property access (i.e. Obj.someProp) and add it to the operations stack
+'@returns - Whether a property was found
 Private Function parseOptObjectProperty() As Boolean
     parseOptObjectProperty = False
     If optConsume("propertyAccess") Then
@@ -705,6 +803,8 @@ Private Function parseOptObjectProperty() As Boolean
     End If
 End Function
 
+'Parse an object's method call (i.e. Obj.someMethod) and add it to the operations stack
+'@returns - Whether a method was found
 Private Function parseOptObjectMethod() As Boolean
     parseOptObjectMethod = False
     If optConsume("methodAccess") Then
@@ -717,6 +817,9 @@ Private Function parseOptObjectMethod() As Boolean
     End If
 End Function
 
+'Parse a function call's parameters and add them to the operations stack
+'@returns - Whether parameters were found
+'@remark Parsing parameters is "optional" in the sense that if no parameters are found, the function call will remain parsed.
 Private Function parseOptParameters() As Boolean
     parseOptParameters = False
     If optConsume("lBracket") Then
@@ -736,6 +839,7 @@ Private Function parseOptParameters() As Boolean
     End If
 End Function
 
+'Parse a string literal and add it to the operations stack
 Private Sub parseString()
     Dim sRes As String: sRes = consume("literalString")
     sRes = Mid(sRes, 2, Len(sRes) - 2)
@@ -743,6 +847,8 @@ Private Sub parseString()
     Call addOperation(oPush, , sRes, 1)
 End Sub
 
+'Parse whether a function call or variable access is being made and add it to the operations stack
+'@returns - Whether a named variable or function was found in the scope
 Private Function parseScopeAccess() As Boolean
     If peek("lBracket", 2) Then
         parseScopeAccess = parseFunctionAccess()
@@ -751,6 +857,8 @@ Private Function parseScopeAccess() As Boolean
     End If
 End Function
 
+'Parse the access of a named variable's value and add it to the operations stack
+'@returns - Whether a variable was found in the scope
 Private Function parseVariableAccess() As Boolean
     parseVariableAccess = False
     Dim varName As String: varName = consume("var")
@@ -763,6 +871,7 @@ Private Function parseVariableAccess() As Boolean
     End If
 End Function
 
+'Parse an assignment and add it to the current scope and operations stack
 Private Sub parseAssignment()
     Dim varName As String: varName = consume("var")
     Call consume("equal")
@@ -778,6 +887,9 @@ Private Sub parseAssignment()
     End If
 End Sub
 
+'Find the position on the Operations stack of a variable by name
+'@param varName - Name of variable to find
+'@returns - The position of the variable on the Operations stack
 Private Function findVariable(varName As String) As Long
     Dim scope As Long: scope = scopeCount
     findVariable = -1
@@ -795,7 +907,9 @@ Private Function findVariable(varName As String) As Long
         scope = scope - 1
     Wend
 End Function
-'todo:
+
+'Parse a named scoped in-code defined function call and add it to the current scope and operations stack
+'@returns - Whether a function was found
 Private Function parseFunctionAccess() As Boolean
     parseFunctionAccess = False
     Dim funcName As String: funcName = consume("var")
@@ -825,7 +939,8 @@ Private Function parseFunctionAccess() As Boolean
         iTokenIndex = iTokenIndex - 1 ' Revert token consumption
     End If
 End Function
-'todo:
+
+'Parse a function declaration and add it to the current scope and operations stack
 Private Sub parseFunctionDeclaration()
     ' Create a dedicated scope for this funcion
     Call addScope
@@ -865,7 +980,8 @@ Private Sub parseFunctionDeclaration()
     scopeCount = scopeCount - 1
     funcScope = prevFuncScope
 End Sub
-'todo:
+
+'Parse a parameter declaration and add it to the current scope
 Private Sub parseParameterDeclaration()
     Dim varName As String: varName = consume("var")
     Dim offset As Long: offset = findVariable(varName)
@@ -878,6 +994,10 @@ Private Sub parseParameterDeclaration()
     End If
 End Sub
 
+'Find function by name
+'@param varName as string - Name of function to find
+'@param argCount as long - Number of arguments the function takes (out)
+'@returns - The position of the function in the Operations array
 Private Function findFunction(varName As String, Optional ByRef argCount As Long) As Long
     Dim scope As Long: scope = scopeCount
     findFunction = -1
@@ -903,8 +1023,9 @@ End Function
 '==============
 
 'Evaluates the given list of operations
-'@param {Operation()} operations  The operations to evaluate
-'@returns {Variant} The result of the operations
+'@param ops as Array<Operation> - operations  The operations to evaluate
+'@param vLastArgs as Array<Variant> - The last arguments passed to the function
+'@returns - The result of the operations
 Private Function evaluate(ByRef ops() As Operation, ByVal vLastArgs As Variant) As Variant
     Dim stack() As Variant
     ReDim stack(0 To 5)
@@ -1099,9 +1220,9 @@ Private Function evaluate(ByRef ops() As Operation, ByVal vLastArgs As Variant) 
 End Function
 
 'Retrieves the arguments from the stack
-'@param {ByRef Variant()} stack     The stack to get the data from and add the result to
-'@param {ByRef Long} stackPtr       The pointer that indicates the position of the top of the stack
-'@returns {Variant()} The args list
+'@param stack    - The stack to get the data from and add the result to
+'@param stackPtr - The pointer that indicates the position of the top of the stack
+'@returns Variant<Array<Variant>> - The args list
 Private Function getArgs(ByRef stack() As Variant, ByRef stackPtr As Long) As Variant
     Dim argCount As Variant: argCount = stack(stackPtr - 1)
     Dim args() As Variant
@@ -1124,9 +1245,9 @@ Private Function getArgs(ByRef stack() As Variant, ByRef stackPtr As Long) As Va
 End Function
 
 'Calls an object method/setter/getter/letter
-'@param {ByRef Variant()} stack     The stack to get the data from and add the result to
-'@param {ByRef Long} stackPtr       The pointer that indicates the position of the top of the stack
-'@param {ByRef Operation} op        The operation to execute
+'@param stack    - The stack to get the data from and add the result to
+'@param stackPtr - The pointer that indicates the position of the top of the stack
+'@param op       - The operation to execute
 Private Sub objectCaller(ByRef stack() As Variant, ByRef stackPtr As Long, ByRef op As Operation)
     'Get the name and arguments
     Dim args() As Variant: args = getArgs(stack, stackPtr)
@@ -1149,12 +1270,12 @@ Private Sub objectCaller(ByRef stack() As Variant, ByRef stackPtr As Long, ByRef
 End Sub
 
 'Calls an object method/setter/getter/letter. Treats dictionary properties as direct object properties, I.E. `A.B` ==> `A.item("B")`
-'@param {ByRef Object} - The object to call
-'@param {ByVal String} - The method name to call
-'@param {ByVal VbCallType} - The property/method call type
-'@param {ByVal Variant()}  - An array of arguments. This function supports up to 30 arguments, akin to Application.Run
-'@returns Variant - The return value of the called function
-Public Function stdCallByName(ByRef obj As Object, ByVal funcName As String, ByVal callerType As VbCallType, ByRef args() As Variant) As Variant
+'@param obj - The object to call
+'@param funcName - The method name to call
+'@param callerType - The property/method call type
+'@param args  - An array of arguments. This function supports up to 30 arguments, akin to Application.Run
+'@returns  - The return value of the called function
+Private Function stdCallByName(ByRef obj As Object, ByVal funcName As String, ByVal callerType As VbCallType, ByRef args() As Variant) As Variant
     'If Dictionary and
     If TypeName(obj) = "Dictionary" Then
         Select Case funcName

@@ -445,6 +445,7 @@ Private Const CC_STDCALL    As Long = 4
 '*******************
 '* STATE VARIABLES *
 '*******************
+'@TODO: Convert to TThis
 Private oMeta As IUnknown
 Private pRegisteredOLEInstance As Long
 Private pRegisteredTimerOLEInstance As Long
@@ -460,26 +461,32 @@ Public Event Tick()
 '****************
 
 'Create from an object
-'@param {ByRef IUnknown} Object to create raw COM object from
-'@returns {stdCOM} A wrapper around a raw COM object
+'@constructor
+'@param obj - Object to create raw COM object from
+'@returns - A wrapper around a raw COM object
 Public Function Create(ByRef obj As IUnknown) As stdCOM
   Set Create = New stdCOM
   Call Create.protInitFromObject(obj)
 End Function
 
 'Create from a pointer
-'@param {LongPtr} Object pointer to wrap in a raw COM object
-'@returns {stdCOM} A wrapper around a raw COM object
-'@remark ```
-'  Specifically this function reuires a `*Interface` pointer. E.G. `*IUnknown`/`*IDispatch`/`*ITypeInfo`. If your DLL function provides a `[out] **Interface` object the
-'  typical method is to pass in a varptr to the dll function as follows `Call SomeDLLCall(VarPtr(myPointer)): ... later ...: stdCOM.CreateFromPtr(myPointer)`
-'```
-Public Function CreateFromPtr(ByVal ptr As LongPtr) As stdCOM
+'@constructor
+'@param ptr - Object pointer to wrap in a raw COM object
+'@returns - A wrapper around a raw COM object
+'@remark Specifically this function reuires a `*Interface` pointer. E.G. `*IUnknown`/`*IDispatch`/`*ITypeInfo`. If your DLL function provides a `[out] **Interface` object the
+'typical method is to pass in a varptr to the dll function as follows `Call SomeDLLCall(VarPtr(myPointer)): ... later ...: stdCOM.CreateFromPtr(myPointer)`
+#if VBA7 then
+  Public Function CreateFromPtr(ByVal ptr As LongPtr) As stdCOM
+#else
+  Public Function CreateFromPtr(ByVal ptr As Long) As stdCOM
+#end if
   Set CreateFromPtr = New stdCOM
   Call CreateFromPtr.protInitFromPtr(ptr)
 End Function
 
 'Create `stdCOM` objects from existing objects in the RunningObjectTable (ROT)
+'@constructor
+'@returns - A collection of `stdCOM` objects
 '@remark This function is heavily inspired off code provided by `Jaafar Tribak`
 '@devRemark stdCOM objects will auto-release when not needed
 Public Function CreateFromActiveObjects() As Collection
@@ -523,8 +530,9 @@ Public Function CreateFromActiveObjects() As Collection
 End Function
 
 'Create `stdCOM` object from WinRT Activatable ClassID.
-'@param {string} An activatable WinRT class ID.
-'@returns {stdCOM} A COM wrapper for the object.
+'@constructor
+'@param sActivatableClassId - An activatable WinRT class ID.
+'@returns - A COM wrapper for the object.
 '@example `stdCOM.CreateFromWinRTClassID("Windows.Storage.Pickers.FolderPicker")`
 Public Function CreateFromWinRTClassID(ByVal sActivatableClassId as string) as stdCOM
   Dim hString as LongPtr
@@ -547,8 +555,9 @@ End Function
 '#################################
 
 'Obtain raw object from stdCOM wrapper
-'@example {1} `stdCOM.Create(Application).Object.Name`
-'@example {2} `stdCOM.CreateFromPtr(ObjPtr(Application)).Object.Name`
+'@returns - Raw object
+'@example `stdCOM.Create(Application).Object.Name`
+'@example `stdCOM.CreateFromPtr(ObjPtr(Application)).Object.Name`
 Public Property Get Object() As IUnknown
   If oMeta Is Nothing Then
     Set Object = Deref(pObjPtr)
@@ -558,8 +567,9 @@ Public Property Get Object() As IUnknown
 End Property
 
 'Obtain raw object from stdCOM wrapper
-'@example {1} `stdCOM.Create(Application).Object.Name`
-'@example {2} `stdCOM.CreateFromPtr(ObjPtr(Application)).Object.Name`
+'@returns - `IDispatch` for object
+'@example `stdCOM.Create(Application).Object.Name`
+'@example `stdCOM.CreateFromPtr(ObjPtr(Application)).Object.Name`
 '@throws {...} Unsupported interface IDispatch
 Public Property Get AsObject() As Object
   If oMeta Is Nothing Then
@@ -570,6 +580,7 @@ Public Property Get AsObject() As Object
 End Property
 
 'Obtain pointer as LongPtr (VBA)/Long (VB6)
+'@returns - Pointer to object
 #If VBA7 Then
   Public Property Get Pointer() As LongPtr
 #Else
@@ -582,8 +593,12 @@ End Property
   End If
 End Property
 
-'Call IUnknown::QueryInterface on the object
-'@param {String} Interface Identifier as string
+'Call `IUnknown::QueryInterface` on the object
+'@param sIID - Interface Identifier as string
+'@returns - `stdCOM` object for interface
+'@throws {...} "IUnknown::QueryInterface - Cannot retrieve IID from String."
+'@throws {...} "IUnknown::QueryInterface - Interface not implemented."
+'@throws {...} "IUnknown::QueryInterface - Unknown error occurred."
 '@example ```
 '  'Get ITypeInfo
 '  set typeInfo = com.unkQueryInterface("00020401-0000-0000-C000-000000000046")
@@ -611,7 +626,7 @@ Public Function unkQueryInterface(ByVal sIID As String) As stdCOM
   End If
 End Function
 
-'Call IUnknown::AddRef()
+'Call `IUnknown::AddRef()`
 Public Sub unkAddRef()
   CallVT EIUnknown.AddRef, vbLong
 End Sub
@@ -622,9 +637,9 @@ Public Sub unkRelease()
 End Sub
 
 'Query the object for a known interface.
-'@param {EKnownInterfaces} Interface to query for
-'@returns {stdCOM} interface queried.
-'@throws {#1} "Interface IID not known."
+'@param interface - Known interface to query for
+'@returns - interface queried.
+'@throws {...} "Interface IID not known."
 Public Function QueryKnownInterface(ByVal interface As EKnownInterfaces) As stdCOM
   Dim sIID As String: sIID = KnownIID(interface)
   If sIID <> "" Then
@@ -638,8 +653,8 @@ End Function
 
 
 'Obtain Type Information from object
-'@returns {stdCOM<ITypeInfo>} TypeInfo structure for this object
-'@example {myCom.TypeInfo.CallVT(EITypeInfo.GetTypeAttr, vbLong, VarPtr(lPtr))}
+'@returns stdCOM<ITypeInfo> - TypeInfo structure for this object
+'@example `myCom.TypeInfo.CallVT(EITypeInfo.GetTypeAttr, vbLong, VarPtr(lPtr))`
 Public Property Get TypeInfo() As stdCOM
   On Error GoTo CannotQuery
     Set TypeInfo = QueryKnownInterface(ITypeInfo)
@@ -660,7 +675,7 @@ UnknownError:
 End Property
 
 'Obtain all properties and methods of an object via it's TypeInfo
-'@returns {Collection<Variant()<string, vbCallType, long, long>>} Collection of arrays containing Method/Property name, CallType, Index in type info and DispID
+'@returns Collection<Array<string, vbCallType, long, long>> - Collection of arrays containing Method/Property name, CallType, Index in type info and DispID
 Public Property Get InterfaceInfo() As Collection
   Static pInterfaceInfo As Collection
   If pInterfaceInfo Is Nothing Then
@@ -723,7 +738,7 @@ UnknownError:
 End Property
 
 'Obtain a collection of all method names on an object
-'@returns {Collection<string>} Collection of method names
+'@returns Collection<string> - Collection of method names
 Public Property Get Methods() As Collection
   Static oMethods As Collection
   If oMethods Is Nothing Then
@@ -739,8 +754,8 @@ Public Property Get Methods() As Collection
 End Property
 
 'Obtain a collection of all property names on an object
-'@param {Optional Boolean=false} Include GET/LET/SET/UNK prefixes representing call conv
-'@returns {Collection<string>} Collection of property names
+'@param bIncludeReadWriteType - Include GET/LET/SET/UNK prefixes representing call conv
+'@returns Collection<string> - Collection of property names
 '@example ```
 '  for each vProp in stdCOM.Create(Application).Properties
 '    Debug.Print vProp
@@ -775,8 +790,8 @@ Public Property Get Properties(Optional bIncludeReadWriteType As Boolean = False
 End Property
 
 'Register the object held in stdCOM to the ROT as a CLSID or ProgID
-'@param {string} CLSID if required. If this arg isn't provided, a ProgID must be provided.
-'@param {string} ProgID if required. If this arg isn't provided, a CLSID must be provided.
+'@param sCLSID - CLSID if required. If this arg isn't provided, a ProgID must be provided.
+'@param ProgID - ProgID if required. If this arg isn't provided, a CLSID must be provided.
 Public Sub RegisterActiveObject(Optional ByVal sCLSID As String = "", Optional ByVal ProgID As String = "")
     Call RegisterActiveObjectEx(Object, pRegisteredOLEInstance, sCLSID, ProgID)
 End Sub
@@ -787,7 +802,9 @@ Public Sub RevokeActiveObject()
 End Sub
 
 'Start a timer which raises the OnTime event every x milliseconds.
-'@param {long} Number of milliseconds to wait before each Tick event
+'@param iMilliseconds - Number of milliseconds to wait before each Tick event
+'@remark Uses powershell to create a timer which calls the `IUnknown::protTimerTick` method on the object.
+'@TODO: Stop using powershell and use a native timer
 Public Sub StartTimer(Optional ByVal iMilliseconds As Long = 500)
     Dim sGUID As String: sGUID = getGUID()
     Call RegisterActiveObjectEx(Me, pRegisteredTimerOLEInstance, "{" & sGUID & "}")
@@ -846,9 +863,16 @@ End Sub
 '############################
 
 'Call a function in the VTable of the object at a specified offset
-'@param {Long}      The offset of the method to call. IUnknown::QueryInterface=0; IUnknown::AddRef=1; IUnknown::Release=2; IDispatch::Invoke=6
-'@param {VbVarType} Return value of function, typically Long (HResult) for COM Object calls
-'@paramArray Arguments to send to function.
+'@param VTableOffset                         - The offset of the method to call. IUnknown::QueryInterface=0; IUnknown::AddRef=1; IUnknown::Release=2; IDispatch::Invoke=6
+'@param ReturnType                           - Return value of function, typically Long (HResult) for COM Object calls
+'@param FunctionParameters as Array<Variant> - Arguments to send to function.
+'@returns                                    - Return value of function
+'@throws {...} "DispCallFunc - Unknown error occurred."
+'@example ```
+'  Dim pITypeInfo As IUnknown
+'  Dim hResult As Long: hResult = com.CallVT(EIUnknown.QueryInterface, vbLong, VarPtr(tGUID.Data1), VarPtr(pITypeInfo))
+'  If hResult <> S_OK Then Err.Raise hResult, "InterfaceInfo", "stdCOM::InterfaceInfo"
+'```
 Public Function CallVT(ByVal VTableOffset As Long, ByVal ReturnType As VbVarType, ParamArray FunctionParameters() As Variant) As Variant
     'Create array from params
     Dim vParam() As Variant: vParam = FunctionParameters
@@ -882,19 +906,16 @@ Public Function CallVT(ByVal VTableOffset As Long, ByVal ReturnType As VbVarType
     hResult = DispCallFunc(pObjPtr, VTableOffset * PTRSIZE, CC_STDCALL, ReturnType, iParamCount, VarPtr(vType(0)), VarPtr(vPtr(0)), vv)
     
     If hResult < 0 Then
-        Err.Raise hResult, "DispCallFunc"
+        Err.Raise hResult, "DispCallFunc", "DispCallFunc - Unknown error occurred."
     End If
 End Function
-
-
-
-
 
 '*************
 '* PROTECTED *
 '*************
 'Initialise from object's IUnknown
 '@protected
+'@param obj - Object to create raw COM object from
 Friend Sub protInitFromObject(ByVal obj As IUnknown)
   pObjPtr = ObjPtr(obj)
   Set oMeta = obj
@@ -902,6 +923,7 @@ End Sub
 
 'Initialise from pointer to object
 '@protected
+'@param ptr - Pointer to object
 Friend Sub protInitFromPtr(ByVal ptr As LongPtr)
   pObjPtr = ptr
   Call unkAddRef
@@ -925,10 +947,10 @@ Private Sub Class_Terminate()
 End Sub
 
 'Register an object in the ROT
-'@param {ByRef IUnknown} Object to register to ROT
-'@param {ByRef long} ROT Cookie. This variable will be populated with data.
-'@param {string} CLSID if required. If this arg isn't provided, a ProgID must be provided.
-'@param {string} ProgID if required. If this arg isn't provided, a CLSID must be provided.
+'@param obj         - Object to register to ROT
+'@param OLEInstance - ROT Cookie. This variable will be populated with data.
+'@param sCLSID      - CLSID if required. If this arg isn't provided, a ProgID must be provided.
+'@param ProgID      - ProgID if required. If this arg isn't provided, a CLSID must be provided.
 Private Sub RegisterActiveObjectEx(obj As IUnknown, ByRef OLEInstance As Long, Optional ByVal sCLSID As String = "", Optional ByVal ProgID As String = "")
     Const ACTIVEOBJECT_WEAK = 1
 
@@ -966,8 +988,8 @@ Private Sub RegisterActiveObjectEx(obj As IUnknown, ByRef OLEInstance As Long, O
 End Sub
 
 'Revoke an object in the ROT
-'@param {ByRef IUnknown} Object to revoke in ROT
-'@param {ByRef long} ROT Cookie.
+'@param obj         - Object to revoke from ROT
+'@param OLEInstance - ROT Cookie. This variable will be populated with data.
 Private Sub RevokeActiveObjectEx(obj As IUnknown, ByRef OLEInstance As Long)
     'Remove instance from ROT
     If OLEInstance <> 0 Then
@@ -981,6 +1003,7 @@ Private Sub RevokeActiveObjectEx(obj As IUnknown, ByRef OLEInstance As Long)
 End Sub
 
 'Obtain a new GUID
+'@returns - GUID as string
 Private Function getGUID() As String
   getGUID = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx"
   getGUID = Replace(getGUID, "y", Hex(Rnd() And &H3 Or &H8))
@@ -990,6 +1013,8 @@ Private Function getGUID() As String
 End Function
 
 'Map between EKnownInterfaces and Interface IIDs
+'@param iIID - Known interface to query for
+'@returns - IID as string
 Private Function KnownIID(ByVal iIID As EKnownInterfaces) As String
   Select Case iIID
     Case IUnknown:                KnownIID = "00000000-0000-0000-C000-000000000046"
@@ -1063,6 +1088,8 @@ Private Function KnownIID(ByVal iIID As EKnownInterfaces) As String
 End Function
 
 'Deref pointer to string helper
+'@param ptr - Pointer to string
+'@returns - String
 #If VBA7 Then
     Private Function GetStrFromPtrW(ByVal ptr As LongPtr) As String
 #Else
@@ -1072,36 +1099,20 @@ End Function
 End Function
 
 
-'  'Deref pointer to IUnknown helper
-'  '@devRemark DO NOT RETURN `result`
-'  #If VBA7 Then
-'    Private Function Deref(ByVal memAddress As LongPtr) As Object
-'      Dim pAddress As LongPtr
-'  #Else
-'    Private Function Deref(ByVal memAddress As Long) As Object
-'      Dim pAddress As Long
-'  #End If
-'    pAddress = varPtr(memAddress)
-'
-'    Dim result As Object
-'    CopyMemory result, ByVal pAddress, LenB(pAddress)
-'    Set Deref = result                             'Set and add ref
-'    ZeroMemory result, LenB(pAddress)
-'  End Function
-
 'Deref pointer to IUnknown helper
+'@param memAddress - Pointer to IUnknown
+'@returns - IUnknown
 '@devRemark DO NOT RETURN `result`
 #If VBA7 Then
-  Private Function Deref(ByVal memAddress As LongPtr) As Object
+  Private Function Deref(ByVal memAddress As LongPtr) As IUnknown
 #Else
-  Private Function Deref(ByVal memAddress As Long) As Object
+  Private Function Deref(ByVal memAddress As Long) As IUnknown
 #End If
-  Dim result As Object
+  Dim result As IUnknown
   CopyMemory result, ByVal VarPtr(memAddress), LenB(memAddress)
   Set Deref = result                             'Set and add ref
   ZeroMemory result, LenB(memAddress)
 End Function
-
 
 'IDEA: for ProgID based registration
 '  RegisterProgID("...")

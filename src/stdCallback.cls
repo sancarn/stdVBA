@@ -108,6 +108,7 @@ Implements stdICallable
   Private Const vbLongPtr = vbLong
 #End If
 
+'@TODO: Convert to TThis
 Dim pInitialised As Boolean
 ' Dim pCallback As Collection
 ' Dim pCompiledLambda As Collection
@@ -151,6 +152,12 @@ Public Event AfterRun(ByRef callback As stdCallback, ByRef sResult As Variant)
 
 
 'Create a callback object from module type string, translate to enum and initialise callback
+'@constructor
+'@param mType                            - The type of module to create the callback from. Can be either "Module" or "Object"
+'@param Parent as Variant<String|Object> - The parent object to create the callback from. If mType is "Module" then this should be a string, otherwise it should be an object.
+'@param name                             - The name of the method to create the callback from.
+'@param cType                            - The call type to use when calling the method. Defaults to VbCallType.VbMethod
+'@returns                                - A 1st class callback function object
 Public Function Create(mType As String, Parent As Variant, name As String, Optional cType As Integer = VbCallType.VbMethod) As stdCallback
 Attribute Create.VB_Description = "Creates an instance of this class."
   Dim iType As ParentType
@@ -167,12 +174,22 @@ Attribute Create.VB_Description = "Creates an instance of this class."
 End Function
 
 'Create callback from Module function directly
+'@constructor
+'@param sParentName - The name of the module to create the callback from.
+'@param sMethodName - The name of the method to create the callback from.
+'@returns           - A 1st class callback function object
 Public Function CreateFromModule(ByVal sParentName As String, ByVal sMethodName As String) As stdCallback
 Attribute CreateFromModule.VB_Description = "Create callback from module method."
   Set CreateFromModule = New stdCallback
   Call CreateFromModule.protInit(ParentType.Module, sParentName, sMethodName)
 End Function
 
+'Create callback from Workbook module function directly
+'@constructor
+'@param sWorkbookPath - The path of the workbook to create the callback from.
+'@param sModuleName   - The name of the module to create the callback from.
+'@param sMethodName   - The name of the method to create the callback from.
+'@returns             - A 1st class callback function object
 Public Function CreateFromWorkbookModule(ByVal sWorkbookPath as string, ByVal sModuleName as string, ByVal sMethodName as string) as stdCallback
 Attribute CreateFromWorkbookModule.VB_Description = "Create callback from extenrnal workbook module method."
   Set CreateFromWorkbookModule = new stdCallback
@@ -180,6 +197,10 @@ Attribute CreateFromWorkbookModule.VB_Description = "Create callback from extenr
 End Function
 
 'Create callback from object and method name
+'@constructor
+'@param object      - The object to create the callback from.
+'@param sMethodName - The name of the method to create the callback from.
+'@returns           - A 1st class callback function object
 Public Function CreateFromObjectMethod(ByRef object As Object, ByVal sMethodName As String) As stdCallback
 Attribute CreateFromObjectMethod.VB_Description = "Create callback from object method."
   Set CreateFromObjectMethod = New stdCallback
@@ -187,6 +208,11 @@ Attribute CreateFromObjectMethod.VB_Description = "Create callback from object m
 End Function
 
 'Create callback from object and property name
+'@constructor
+'@param object      - The object to create the callback from.
+'@param sPropName   - The name of the property to create the callback from.
+'@param cType       - The call type to use when calling the method. Defaults to VbCallType.VbGet
+'@returns           - A 1st class callback function object
 Public Function CreateFromObjectProperty(ByRef object As Object, ByVal sPropName As String, ByVal cType As VbCallType) As stdCallback
 Attribute CreateFromObjectProperty.VB_Description = "Create callback from object property."
   Set CreateFromObjectProperty = New stdCallback
@@ -194,6 +220,10 @@ Attribute CreateFromObjectProperty.VB_Description = "Create callback from object
 End Function
 
 'CreateEvaluator from
+'@constructor
+'@deprecated
+'@param sFormula - The formula to create the callback from.
+'@returns        - A 1st class callback function object
 Public Function CreateEvaluator(ByVal sFormula As String) As stdICallable
 Attribute CreateEvaluator.VB_Description = "Create callback from Excel formula. This method is VBA Only"
   If IsObject(stdLambda) Then
@@ -204,6 +234,11 @@ Attribute CreateEvaluator.VB_Description = "Create callback from Excel formula. 
 End Function
 
 'Create callback from function pointer
+'@constructor
+'@param MethodPointer                     - The address of the function to create the callback from.
+'@param iRetType                          - The return type of the function to create the callback from.
+'@param vParamTypes as Array<VbVarType>   - The parameter types of the function to create the callback from.
+'@returns                                 - A 1st class callback function object
 #If VBA7 Then
   Public Function CreateFromPointer(ByVal MethodPointer As LongPtr, Optional ByVal iRetType As VbVarType = 0, Optional vParamTypes = Null) As stdCallback
 #Else
@@ -213,7 +248,12 @@ End Function
   Call CreateFromPointer.protInit(ParentType.Pointer, MethodPointer, iRetType, vParamTypes)
 End Function
 
-Friend Sub protInit(iParentType As Long, ParamArray params() As Variant) 'Parent As Variant, Name As String
+'Initialise the callback object
+'@constructor
+'@protected
+'@param iParentType - The type of parent to create the callback from. Can be either ParentType.Module or ParentType.object
+'@param params      - The parameters to initialise the callback with. This should not be called directly unless building a ctor routine e.g. Create().
+Friend Sub protInit(iParentType As Long, ParamArray params() As Variant)
 Attribute protInit.VB_Description = "Initialises this object. This should not be called directly unless building a ctor routine e.g. Create()."
   If Not pInitialised Then
     Select Case iParentType
@@ -257,10 +297,16 @@ Attribute protInit.VB_Description = "Initialises this object. This should not be
   pInitialised = True
 End Sub
 
-
+'Run the function
+'@param params - The parameters to run the function with
+'@returns      - The result of the function
 Private Function stdICallable_Run(ParamArray params() As Variant) As Variant
   Call CopyVariant(stdICallable_Run, RunEx(params))
 End Function
+
+'Run the function with a array of parameters
+'@param params as Variant<Array<Variant>> - The parameters to run the function with
+'@returns                                 - The result of the function
 Private Function stdICallable_RunEx(ByVal params As Variant) As Variant
   Call CopyVariant(stdICallable_RunEx, RunEx(params))
 End Function
@@ -278,6 +324,10 @@ Public Function BindEx(ByVal params As Variant) As stdCallback
   Call BindEx.protInit(ParentType.Bound, callable, params)
 End Function
 
+'Get information about the callback
+'@param sMessage as "obj"|"className" - The message to send to the callback. "obj" returns the callback object, "className" returns the name of the class.
+'@param success as Boolean            - Whether the message was successfully sent
+'@param params as Variant             - The parameters to send to the callback
 Private Function stdICallable_SendMessage(ByVal sMessage As String, ByRef success As Boolean, ByVal params As Variant) As Variant
     Select Case sMessage
         Case "obj"
@@ -291,14 +341,19 @@ Private Function stdICallable_SendMessage(ByVal sMessage As String, ByRef succes
     End Select
 End Function
 
-
+'Run the function
+'@defaultMember
+'@param params - The parameters to run the function with
+'@returns      - The result of the function
 Public Function Run(ParamArray params() As Variant)
 Attribute Run.VB_Description = "Runs the specified callback."
 Attribute Run.VB_UserMemId = 0
   Call CopyVariant(Run, RunEx(params))
 End Function
 
-'Default Property:
+'Run the function with a array of parameters
+'@param params as Variant<Array<Variant>> - The parameters to run the function with
+'@returns                                 - The result of the function
 Public Function RunEx(ByVal vArr As Variant) As Variant
   If pInitialised And pCallback.iType Then
     If pCallback.iType = ParentType.Bound Then
@@ -434,10 +489,6 @@ ErrorInRTCCallByName:
   CriticalRaise Err.Description & " (" & Err.Number & ")"
 End Function
 
-
-
-
-
 Private Function Serialize(data As Variant) As String
   Select Case TypeName(data)
     Case "Integer", "Double", "Float", "Date"
@@ -471,8 +522,8 @@ End Function
 
 
 'Copies one variant to a destination
-'@param {ByRef Variant} dest Destination to copy variant to
-'@param {Variant} value Source to copy variant from.
+'@param dest  - Destination to copy variant to
+'@param value - Source to copy variant from.
 '@perf This appears to be a faster variant of "oleaut32.dll\VariantCopy" + it's multi-platform
 Private Sub CopyVariant(ByRef dest As Variant, ByVal value As Variant)
   If IsObject(value) Then
@@ -484,8 +535,9 @@ End Sub
 
 
 'Used by Bind() for binding arguments ontop of BoundArgs and binding bound args to passed arguments
-'@param {Variant()} The 1st array which will
-'@param {Variant()} The 2nd array which will be concatenated after the 1st
+'@param Arr1 as Variant() - The 1st array which will
+'@param Arr2 as Variant() - The 2nd array which will be concatenated after the 1st
+'@returns                 - The concatenated array
 '@complexity O(1)
 Private Function ConcatArrays(ByVal Arr1 As Variant, ByVal Arr2 As Variant) As Variant
     Dim ub1 As Long: ub1 = UBound(Arr1)

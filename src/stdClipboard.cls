@@ -300,8 +300,8 @@ Public Property Let text(ByVal s As String)
 End Property
 
 'Check whether a given format is available based on the clipboards current data.
-'@param {ByVal CLIPFORMAT} - The format to check support for.
-'@returns {Boolean} True if the format is allowed, false otherwise
+'@param iFormat - The format to check support for.
+'@returns - `True` if the format is allowed, `false` otherwise
 Public Function IsFormatAvailable(ByVal iFormat As CLIPFORMAT) As Boolean
   Call OpenClipboardTimeout(Application.hwnd)
   IsFormatAvailable = IsClipboardFormatAvailable(iFormat)
@@ -309,36 +309,36 @@ Public Function IsFormatAvailable(ByVal iFormat As CLIPFORMAT) As Boolean
 End Function
 
 'Register a clipboard format and/or return it's identifier if already present.
-'@param {String} Name of format to obtain
-'@return {Long} Clipboard format identifier
-'@example {1} ```
-'  CF_RTF = stdClipboard.registerFormat("Rich Text Format")
-'  stdClipboard.value(CF_RTF) = "{\rtf1\ansi{\fonttbl\f0\fswiss Helvetica;}\f0\pard" & _ 
-'    "This is some {\b bold} text.\par" & _ 
-'  "}"
+'@param sFormatName - Name of format to obtain
+'@return - Clipboard format identifier
+'@example ```vb
+'CF_RTF = stdClipboard.registerFormat("Rich Text Format")
+'stdClipboard.value(CF_RTF) = "{\rtf1\ansi{\fonttbl\f0\fswiss Helvetica;}\f0\pard" & _ 
+'  "This is some {\b bold} text.\par" & _ 
+'"}"
 '```
-'@example {2}
-'  CF_HTML = stdClipboard.registerFormat("HTML Format")
-'  stdClipboard.value(CF_HTML) = _ 
-'    "Version:0.9" & vbCrLf & _ 
-'    "StartHTML:00000000" & vbCrLf & _ 
-'    "EndHTML:00000000" & vbCrLf & _ 
-'    "StartFragment:00000000" & vbCrLf & _ 
-'    "EndFragment:00000000" & vbCrLf & _ 
-'    "<html><body>" & vbCrLf & _ 
-'    "<!--StartFragment -->" & vbCrLf & _ 
-'    "  hello <b>world</b>" & vbCrLf & _ 
-'    "<!--EndFragment-->\r\n" & vbCrLf & _ 
-'    "</body>\r\n" & vbCrLf & _ 
-'    "</html>"
+'@example ```vb
+'CF_HTML = stdClipboard.registerFormat("HTML Format")
+'stdClipboard.value(CF_HTML) = _ 
+'  "Version:0.9" & vbCrLf & _ 
+'  "StartHTML:00000000" & vbCrLf & _ 
+'  "EndHTML:00000000" & vbCrLf & _ 
+'  "StartFragment:00000000" & vbCrLf & _ 
+'  "EndFragment:00000000" & vbCrLf & _ 
+'  "<html><body>" & vbCrLf & _ 
+'  "<!--StartFragment -->" & vbCrLf & _ 
+'  "  hello <b>world</b>" & vbCrLf & _ 
+'  "<!--EndFragment-->\r\n" & vbCrLf & _ 
+'  "</body>\r\n" & vbCrLf & _ 
+'  "</html>"
 '```
 Public Function RegisterFormat(ByVal sFormatName as string) as Long
   RegisterFormat = RegisterClipboardFormatA(sFormatName)
 End Function
 
 'Obtain the available formats as a Collection of strings
-'@returns {Collection} The format names you can use for the current clipboard data.
-'@see stdClipboard::formatIDs() to get ids used in Value() from these data.
+'@returns Collection<String> - The format names you can use for the current clipboard data.
+'@remark see `stdClipboard::formatIDs()` to get ids used in Value() from these data.
 Public Property Get formats() As Collection
   Dim iFormat As CLIPFORMAT: iFormat = CF_NOFORMAT
   Dim ret As Collection: Set ret = New Collection
@@ -358,8 +358,8 @@ Public Property Get formats() As Collection
 End Property
 
 'Obtain the available format IDs which can be used with value() function
-'@returns {Collection} Formats allowed. We use Collection for easy enumeration with stdEnumerator.
-'@see stdClipboard::formats() to get the corresponding names from these data.
+'@returns Collection<Long> - Formats allowed. We use Collection for easy enumeration with stdEnumerator.
+'@see `stdClipboard::formats()` to get the corresponding names from these data.
 Public Property Get formatIDs() As Collection
   Dim iFormat As CLIPFORMAT: iFormat = CF_NOFORMAT
   Dim ret As Collection: Set ret = New Collection
@@ -378,7 +378,8 @@ Public Property Get formatIDs() As Collection
   Set formatIDs = ret
 End Property
 
-'Get or set the clipboard as/to an IPicture object
+'Get/Set the clipboard as/to an IPicture object
+'@returns - The picture stored on the clipboard
 Public Property Get Picture() As stdole.IPicture
   If IsClipboardFormatAvailable(CF_BITMAP) Then
     Set Picture = GetPictureFromClipboard(CF_BITMAP)
@@ -409,9 +410,9 @@ End Property
 
 
 'Set the clipboard to an Excel picture object, and then proceeds to wait until the format is available.
-'@param {XLPictureAppearance} xlPrint or xlScreen
-'@param {XlCopyPictureFormat} xlBitmap or xlPicture
-'@param {Excel.IPicture} The picture to copy
+'@param iAppearance - xlPrint or xlScreen
+'@param iFormat - xlBitmap or xlPicture
+'@param xlPic - The picture to copy
 Public Property Set XLPicture(Optional ByVal iAppearance As XlPictureAppearance = xlScreen, Optional ByVal iFormat As XlCopyPictureFormat = xlBitmap, ByVal xlPic As Excel.IPicture)
   Call Clear
   Call xlPic.CopyPicture(iAppearance, 2)
@@ -421,9 +422,9 @@ Public Property Set XLPicture(Optional ByVal iAppearance As XlPictureAppearance 
 End Property
 
 'Copies a Excel shape as a picture, and then proceeds to wait until the format is available.
-'@param {XLPictureAppearance} xlPrint or xlScreen
-'@param {XlCopyPictureFormat} xlBitmap or xlPicture
-'@param {Excel.Shape} The shape to turn into an image
+'@param iAppearance - xlPrint or xlScreen
+'@param iFormat - xlBitmap or xlPicture
+'@param xlShp - The shape to turn into an image
 Public Property Set XLShapeAsPicture(Optional iAppearance As XlPictureAppearance = xlScreen, Optional iFormat As XlCopyPictureFormat = XlCopyPictureFormat.xlBitmap, ByVal xlShp As Excel.Shape)
   Call Clear
   Call xlShp.CopyPicture(iAppearance, iFormat)
@@ -434,6 +435,7 @@ End Property
 
 
 'Get or Set the clipboard to a selection of files paths. Paths provided as a collection for easy stdEnumerator wrapping.
+'@returns Collection<String> - The collection of file paths stored in the clipboard
 Public Property Get files() As Collection
   Set files = New Collection
   Dim sFiles() As String: sFiles = protGetFilesArr()
@@ -451,7 +453,7 @@ Public Property Set files(ByVal vFiles As Collection)
 End Property
 
 'Set the clipboard to a selection of Files passed in as an array
-'@param {ByVal Variant()} A set of files as an array
+'@param vFiles as Variant<Array<Variant>> - A set of files as an array
 Public Sub SetFilesArr(ByVal vFiles As Variant)
   Dim sFiles As String, i As Long
   For i = LBound(vFiles) To UBound(vFiles)
@@ -461,15 +463,15 @@ Public Sub SetFilesArr(ByVal vFiles As Variant)
   Call protSetFilesText(sFiles)
 End Sub
 
+'Internal method for setting the clipboard to a selection of Files passed in as a raw file string
+'Realistically it might be better for this method to use Value LET directly.
+'@protected
+'@param sFiles - Files string delimited by vbNullChar and ending in 2x vbNullChar
 #If Win64 Then
 Public Sub protSetFilesText(ByVal sFiles As String)
     MsgBox "Not implemented. Current version produces crash for unknown reasons.", vbCritical
 End Sub
 #Else
-'Internal method for setting the clipboard to a selection of Files passed in as a raw file string
-'Realistically it might be better for this method to use Value LET directly.
-'@protected
-'@param {ByVal String} Files string delimited by vbNullChar and ending in 2x vbNullChar
 Public Sub protSetFilesText(ByVal sFiles As String)
   #If VBA7 Then
     Dim hClipMemory     As LongPtr
@@ -511,8 +513,7 @@ End Sub
 
 'Get the file paths of files stored on the clipboard
 '@protected
-'@param {ByVal String} Files string delimited by vbNullChar and ending in 2 vbNullChar
-'@returns {String()} The array of file paths stored in the clipboard
+'@returns Array<String> - The array of file paths stored in the clipboard
 Public Function protGetFilesArr() As String()
   #If VBA7 Then
     Dim hClipMemory     As LongPtr
@@ -546,7 +547,7 @@ End Function
 
 
 'Raise a paste event to a window with handle hWnd
-'@param {ByVal LongPtr/Long} hWnd to send paste event to
+'@param hWnd - Window to send paste event to
 #If VBA7 Then
 Public Sub SendPaste(ByVal hwnd As LongPtr)
 #Else
@@ -557,7 +558,7 @@ Public Sub SendPaste(ByVal hwnd As Long)
 End Sub
 
 'Raise a copy event to a window with handle hWnd
-'@param {ByVal LongPtr/Long} hWnd to send copy event to
+'@param hWnd - Window to send copy event to
 #If VBA7 Then
 Public Sub SendCopy(ByVal hwnd As LongPtr)
 #Else
@@ -574,6 +575,8 @@ End Sub
 '  xlBitmap = 2
 '  xlPicture = -4147
 'End Enum
+'@param CopyPictureFormat - The xlCopyPictureFormat to convert
+'@returns CLIPFORMAT - The CLIPFORMAT to use
 Public Function GetClipFormatFromCopyPictureFormat(ByVal CopyPictureFormat As Long) As CLIPFORMAT
   Const xxlBitmap = 2
   Const xxlPicture = -4147
@@ -592,8 +595,9 @@ End Function
 '******************************************************************
 
 'Raises an error in stdError if available, else it will be raised in Err
-'@param {ByVal String} The Function name, to be concatenated with "stdClipboard::" to determine the source.
-'@param {ByVal String} The message to relay to the user.
+'@private
+'@param sFuncName - The name of the function raising the error
+'@param sMessage - The error message to raise
 Private Sub CriticalRaise(ByVal sFuncName As String, ByVal sMessage As String)
   Call CloseClipboard
   'If stdError exists
@@ -607,9 +611,10 @@ End Sub
 
 
 'Returns a byte array stored at a pointer using RtlMoveMemory
-'@param {ByVal LongPtr/Long} The pointer to copy bytes at
-'@param {ByVal Long} The size of the buffer to copy
-'@returns {Byte()} The bytes stired at the pointer
+'@private
+'@param pointer - The pointer to the data
+'@param size - The size of the data
+'@returns Array<Byte> - The data stored at the pointer
 #If VBA7 Then
 Private Function BytesFromPointer(ByVal pointer As LongPtr, ByVal size As Long) As Byte()
 #Else
@@ -626,8 +631,9 @@ Private Function BytesFromPointer(ByVal pointer As Long, ByVal size As Long) As 
 End Function
 
 'Obtain the Unicode string held at a particular pointer
-'@param {ByVal LongPtr/Long} The pointer to copy bytes at
-'@returns {String} The string copied
+'@private
+'@param hLPTSTR - The pointer to the unicode string
+'@returns - The unicode string stored at the pointer
 #If VBA7 Then
 Private Function StringFromPointerW(ByVal hLPTSTR As LongPtr) As String
 #Else
@@ -641,8 +647,9 @@ Private Function StringFromPointerW(ByVal hLPTSTR As Long) As String
 End Function
 
 'Obtain the string held at a particular pointer
-'@param {ByVal LongPtr/Long} The pointer to copy bytes at
-'@returns {String} The string copied
+'@private
+'@param hLPTSTR - The pointer to the ascii string
+'@returns - The ascii string stored at the pointer
 #If VBA7 Then
 Private Function StringFromPointerA(ByVal hLPTSTR As LongPtr) As String
 #Else
@@ -655,6 +662,10 @@ Private Function StringFromPointerA(ByVal hLPTSTR As Long) As String
   End If
 End Function
 
+'Get the name of a clipboard format
+'@private
+'@param iFormat - The clipboard format to get the name of
+'@returns - The name of the clipboard format
 Private Function GetClipboardFormatName(ByVal iFormat As Long) As String
   Select Case iFormat
     Case CLIPFORMAT.CF_UNICODETEXT: GetClipboardFormatName = "CF_UNICODETEXT"
@@ -701,8 +712,9 @@ End Function
 '******************************************************************
 
 'Obtain a picture object from the clipboard
-'@param {ByVal CLIPFORMAT} - The format of the picture stored in the clipboard
-'@returns {stdole.IPicture}   - Picture object representing clipboard data
+'@private
+'@param lPicType - The type of picture to obtain
+'@returns - The picture object stored on the clipboard
 Private Function GetPictureFromClipboard(Optional ByVal lPicType As CLIPFORMAT) As stdole.IPicture
     'Define pointers
     #If VBA7 Then
@@ -748,10 +760,11 @@ Private Function GetPictureFromClipboard(Optional ByVal lPicType As CLIPFORMAT) 
 End Function
 
 'Obtains an stdole.IPicture object from the handle supplied. This is used in conjunction with GetPictureFromClipboard()
-'@param {ByVal LongPtr/Long} - The HBITMAP handle identifying the bitmap assigned to the picture object.
-'@param {ByVal LongPtr/Long} - The HPALETTE handle identifying the color palette for the bitmap. Can be created with CreatePallette(LOGPALETTE) function from Gdi32.dll
-'@param {Byval CLIPFORMAT}   - The format of the picture stored in the clipboard
-'@returns {stdole.IPicture}     - Picture object representing clipboard data
+'@private
+'@param hPic - The handle to the picture
+'@param hPal - The handle to the palette
+'@param lPicType - The type of picture to obtain
+'@returns - The picture object stored on the clipboard
 #If VBA7 Then
 Private Function CreatePicture(ByVal hPic As LongPtr, ByVal hPal As LongPtr, ByVal lPicType As CLIPFORMAT) As stdole.IPicture
 #Else
@@ -789,8 +802,9 @@ Private Function CreatePicture(ByVal hPic As Long, ByVal hPal As Long, ByVal lPi
 End Function
 
 'Given an OLE Error ID, obtain a description of what this ID means:
-'@param {ByVal Long} - The error ID obtained from OLE
-'@returns {String} - Description of what the id means
+'@private
+'@param lErrNum - The error number to obtain a description for
+'@returns - The description of the error
 Private Function fnOLEError(ByVal lErrNum As Long) As String
   'OLECreatePictureIndirect return values
   Const E_ABORT = &H80004004
@@ -807,35 +821,35 @@ Private Function fnOLEError(ByVal lErrNum As Long) As String
   
   
   Select Case lErrNum
-  Case E_ABORT
+    Case E_ABORT
       fnOLEError = " Aborted"
-  Case E_ACCESSDENIED
+    Case E_ACCESSDENIED
       fnOLEError = " Access Denied"
-  Case E_FAIL
+    Case E_FAIL
       fnOLEError = " General Failure"
-  Case E_HANDLE
+    Case E_HANDLE
       fnOLEError = " Bad/Missing Handle"
-  Case E_INVALIDARG
+    Case E_INVALIDARG
       fnOLEError = " Invalid Argument"
-  Case E_NOINTERFACE
+    Case E_NOINTERFACE
       fnOLEError = " No Interface"
-  Case E_NOTIMPL
+    Case E_NOTIMPL
       fnOLEError = " Not Implemented"
-  Case E_OUTOFMEMORY
+    Case E_OUTOFMEMORY
       fnOLEError = " Out of Memory"
-  Case E_POINTER
+    Case E_POINTER
       fnOLEError = " Invalid Pointer"
-  Case E_UNEXPECTED
+    Case E_UNEXPECTED
       fnOLEError = " Unknown Error"
-  Case S_OK
+    Case S_OK
       fnOLEError = " Success!"
   End Select
 End Function
 
 'Copies one variant to a destination
-'@param {ByRef Variant} dest Destination to copy variant to
-'@param {Variant} value Source to copy variant from.
-'@perf This appears to be a faster variant of "oleaut32.dll\VariantCopy" + it's multi-platform
+'@private
+'@param dest - The destination to copy to
+'@param value - The value to copy
 Private Sub CopyVariant(ByRef dest As Variant, ByVal value As Variant)
   If IsObject(value) Then
     Set dest = value
@@ -846,9 +860,10 @@ End Sub
 
 
 'Tries to open the clipbaord with a timeout
-'@param {long} hWnd to open clipboard in
-'@param {long} number of milliseconds to wait
-'@returns {boolean} true if clipboard is open, false if clipboard couldn't be opened
+'@private
+'@param hwnd - The window handle to open the clipboard for
+'@param dwTimeoutMilliseconds - The timeout in milliseconds
+'@returns - `True` if the clipboard was opened, `False` if the timeout expired
 Private Function OpenClipboardTimeout(ByVal hwnd As Long, Optional ByVal dwTimeoutMilliseconds As Long = 5000) As Boolean
   Dim iStart As Long: iStart = GetTickCount()
   Dim bOpen As Boolean, bExpired As Boolean

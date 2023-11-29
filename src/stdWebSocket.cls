@@ -51,9 +51,14 @@ Public Listeners As Collection 'Collection<stdICallable>
 '@example stdWebSocket.Create("wss://echo.websocket.org/")
 Public Function Create(ByVal url As String) As stdWebSocket
   Set Create = New stdWebSocket
-  Call Create.Init(url)
+  Call Create.protInit(url)
 End Function
-Public Sub Init(ByVal url As String)
+
+'Initializes the object
+'@protected
+'@param {String} url - The websocket url to track.
+'@example `ws.protInit("wss://echo.websocket.org/")`
+Public Sub protInit(ByVal url As String)
   'Create IE object
   Set ie = CreateObject("InternetExplorer.Application")
 
@@ -97,19 +102,20 @@ Public Sub Init(ByVal url As String)
 End Sub
 
 'Gets the url of the websocket
+'@return - The url of the websocket
 Public Property Get url() As String
   url = pURL
 End Property
 
 'Sends data through the WebSocket
-'@param {String} data - The data to send
+'@param data - The data to send
 Public Sub Send(ByVal data As Variant)
   Call document.ws.Send(data)
 End Sub
 
 'Closes the WebSocket connection
-'@param {Long} Code - A numeric value indicating the status code explaining why the connection is being closed. If this parameter is not specified, a default value of 1005 is assumed. See the [list of status](https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent#status_codes) code of CloseEvent for permitted values.
-'@param {String} Reason - A human-readable string explaining why the connection is closing.
+'@param Code - A numeric value indicating the status code explaining why the connection is being closed. If this parameter is not specified, a default value of 1005 is assumed. See the [list of status](https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent#status_codes) code of CloseEvent for permitted values.
+'@param Reason - A human-readable string explaining why the connection is closing.
 Public Sub CloseSocket(Optional ByVal Code As Long = 1000, Optional ByVal reason As String = "")
   Call document.ws.Close(Code, reason)
 End Sub
@@ -124,8 +130,8 @@ End Sub
 
 'Handles socket events
 '@protected
-'@param {String} sEventName - The name of the event ("Open", "Close", "Error" or "Message")
-'@param {Object} oEventData - Data to forward to event handler.
+'@param sEventName - The name of the event ("Open", "Close", "Error" or "Message")
+'@param oEventData - Data to forward to event handler.
 Public Sub handleEvent(ByVal sEventName As String, ByVal oEventData As Object)
   RaiseEvent EventRaised(sEventName, oEventData)
   Select Case sEventName

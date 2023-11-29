@@ -31,6 +31,7 @@ Private Type SortStruct
   SortValue as variant
 End Type
 
+'@TODO: Convert to TThis
 Private pArr() As Variant
 Private pProxyLength As Long
 Private pLength As Long
@@ -49,9 +50,9 @@ Public Event AfterRemove(ByRef arr as stdArray, ByVal iIndex as long)
 Public Event AfterClone(ByRef clone as stdArray)
 Public Event AfterCreate(ByRef arr as stdArray)
 
-'Create a stdArray object from params
-'@param {paramarray variant()} The items of the array
-'@returns {stdArray<variant>} A stdArray from the parameters.
+'Create a `stdArray` object from params
+'@param params - The items of the array
+'@returns stdArray<variant> - A `stdArray` from the parameters.
 Public Function Create(ParamArray params() As Variant) As stdArray
     Set Create = New stdArray
     
@@ -59,7 +60,7 @@ Public Function Create(ParamArray params() As Variant) As stdArray
     Dim lb As Long: lb = LBound(params)
     Dim ub As Long: ub = UBound(params)
     
-    Call Create.init(ub - lb + 1, 10)
+    Call Create.protInit(ub - lb + 1, 10)
     
     For i = lb To ub
         Call Create.Push(params(i))
@@ -69,11 +70,11 @@ Public Function Create(ParamArray params() As Variant) As stdArray
     RaiseEvent AfterCreate(Create)
 End Function
 
-'Create a stdArray object from params
-'@param {Long} The length of the initial private array created
-'@param {Long} The number of items the private array is increased by when required.
-'@param {paramarray variant()} The items of the array
-'@returns {stdArray<variant>} A stdArray from the parameters.
+'Create a `stdArray` object from params
+'@param iInitialLength - The length of the initial private array created
+'@param iChunking - The number of items the private array is increased by when required.
+'@param params - The items of the array
+'@returns stdArray<variant> - A `stdArray` from the parameters.
 Public Function CreateWithOptions(ByVal iInitialLength As Long, ByVal iChunking As Long, ParamArray params() As Variant) As stdArray
     Set CreateWithOptions = New stdArray
     
@@ -81,7 +82,7 @@ Public Function CreateWithOptions(ByVal iInitialLength As Long, ByVal iChunking 
     Dim lb As Long: lb = LBound(params)
     Dim ub As Long: ub = UBound(params)
     
-    Call CreateWithOptions.init(iInitialLength, iChunking)
+    Call CreateWithOptions.protInit(iInitialLength, iChunking)
     For i = lb To ub
         Call CreateWithOptions.Push(params(i))
     Next
@@ -90,16 +91,16 @@ Public Function CreateWithOptions(ByVal iInitialLength As Long, ByVal iChunking 
     RaiseEvent AfterCreate(Create)
 End Function
 
-'Create a stdArray object from a VBA array
-'@param {variant()} Variant array to create a `stdArray` object from.
-'@returns {stdArray<variant>} Returns `stdArray` of variants. 
+'Create a `stdArray` object from a VBA array
+'@param arr - Variant array to create a `stdArray` object from.
+'@returns stdArray<variant> - Returns `stdArray` of variants. 
 Public Function CreateFromArray(ByVal arr As Variant) As stdArray
     Set CreateFromArray = New stdArray
     
     Dim i As Long
     Dim lb As Long: lb = LBound(arr)
     Dim ub As Long: ub = UBound(arr)
-    Call CreateFromArray.init(ub - lb + 1, 10)
+    Call CreateFromArray.protInit(ub - lb + 1, 10)
     
     For i = lb To ub
         Call CreateFromArray.Push(arr(i))
@@ -110,17 +111,18 @@ Public Function CreateFromArray(ByVal arr As Variant) As stdArray
 End Function
 
 'Create an array by splitting a string
-'@param {string}      Haystack to split
-'@param {string?=","} Delimiter
-'@returns {stdArray<string>} A list of strings
+'@param sHaystack  - Haystack to split
+'@param sDelimiter - Delimiter
+'@returns stdArray<String> - A list of strings
 Public Function CreateFromString(ByVal sHaystack as string, Optional byval sDelimiter as string = ",") as stdArray
   set CreateFromString = CreateFromArray(split(sHaystack, sDelimiter))
 End Function
 
 'Initialise array
-'@param {Long} The length of the initial private array created
-'@param {Long} The number of items the private array is increased by when required.
-Friend Sub init(ByVal iInitialLength As Long, ByVal iChunking As Long)
+'@protected
+'@param iInitialLength - The length of the initial private array created
+'@param iChunking      - The number of items the private array is increased by when required.
+Public Sub protInit(ByVal iInitialLength As Long, ByVal iChunking As Long)
   If iChunking > iInitialLength Then iInitialLength = iChunking
   If Not pInitialised Then
     pProxyLength = iInitialLength
@@ -131,7 +133,7 @@ Friend Sub init(ByVal iInitialLength As Long, ByVal iChunking As Long)
 End Sub
 
 'Obtain a collection from the data contained within the array. Primarily used for NewEnum() method.
-'@returns {Collection} Collection from Array
+'@returns Collection - Collection from Array
 Public Function AsCollection() as Collection
   set AsCollection = new Collection
   Dim i as long
@@ -142,9 +144,9 @@ End function
 
 'For-each compatibility
 '@protected
-'@returns {IEnumVARIANT} An enumerator with methods enumNext, enumRefresh etc.
-'@usage `For each obj in myEnum: ... : next`
-'@TODO: Use custom IEnumVARIANT instead of casting to Collection
+'@returns IEnumVARIANT - An enumerator with methods enumNext, enumRefresh etc.
+'@example `For each obj in myEnum: ... : next`
+'@TODO: Use custom `IEnumVARIANT` instead of casting to `Collection`
 Public Property Get NewEnum() As IUnknown
 Attribute NewEnum.VB_UserMemId = -4
     Static oEnumCol As Collection: If oEnumCol Is Nothing Then Set oEnumCol = AsCollection()
@@ -152,22 +154,26 @@ Attribute NewEnum.VB_UserMemId = -4
 End Property
 
 'Obtain the length of the array
+'@returns Long - Length of the array
 Public Property Get Length() As Long
     Length = pLength
 End Property
 
 'Obtain the length of the private array which stores the data of this array class
+'@protected
+'@returns Long - Length of the private array
 Public Property Get zProxyLength() As Long
     zProxyLength = pProxyLength
 End Property
 
 'Resize the array to a length
-'@param {Long} The length of the desired array
+'@param iLength - The length of the desired array
 Public Sub Resize(ByVal iLength As Long)
   pLength = iLength
 End Sub
 
 'Rechunk the private array to the length / number of items.
+'@protected
 Public Sub Rechunk()
   Dim fNumChunks As Double, iNumChunks As Long
   fNumChunks = pLength / pChunking
@@ -179,11 +185,11 @@ End Sub
 
 
 'Sort the array
-'@param {stdICallable<(variant)=>variant>} A mapping function which should map whatever the input is to whatever variant the array should be sorted on.  
-'@param {stdICallable<(variant,variant)=>boolean>} Comparrison function which consumes 2 variants and generates a boolean. See implementation of `Sort_QuickSort` for details. 
-'@param {long}    Currently only 1 algorithm: 0 - Quicksort
-'@param {boolean} Sort the array in place. Sorting in-place is prefferred if possible as it is much more performant.
-'@returns {stdArray<T>}
+'@param cbSortBy as stdICallable<(variant)=>variant>              - A mapping function which should map whatever the input is to whatever variant the array should be sorted on.  
+'@param cbComparrason as stdICallable<(variant,variant)=>boolean> - Comparrison function which consumes 2 variants and generates a boolean. See implementation of `Sort_QuickSort` for details. 
+'@param iAlgorithm                                                - Currently only 1 algorithm: 0 - Quicksort
+'@param bSortInPlace                                              - Sort the array in place. Sorting in-place is prefferred if possible as it is much more performant.
+'@returns stdArray                                                - A sorted array
 Public Function Sort(Optional ByVal cbSortBy As stdICallable = Nothing, Optional ByVal cbComparrason As stdICallable = Nothing, Optional ByVal iAlgorithm As Long = 0, Optional ByVal bSortInPlace As Boolean = False) As stdArray
     If Not bSortInPlace Then
         Set Sort = Clone().Sort(cbSortBy, cbComparrason, iAlgorithm, True)
@@ -227,8 +233,13 @@ Public Function Sort(Optional ByVal cbSortBy As stdICallable = Nothing, Optional
 End Function
 
 'QuickSort3
-' Src: https://www.vbforums.com/showthread.php?473677-VB6-Sorting-algorithms-%28sort-array-sorting-arrays%29
-' Omit plngLeft & plngRight; they are used internally during recursion
+'@private
+'@param pvarArray                                                 - Array to sort
+'@param cbComparrison as stdICallable<(variant,variant)=>boolean> - Comparrison function which consumes 2 variants and generates a boolean. See implementation of `Sort_QuickSort` for details.
+'@param plngLeft                                                  - Left index of array to sort
+'@param plngRight                                                 - Right index of array to sort
+'@remark Omit plngLeft & plngRight; they are used internally during recursion
+'@dev https://www.vbforums.com/showthread.php?473677-VB6-Sorting-algorithms-%28sort-array-sorting-arrays%29
 Private Sub Sort_QuickSort(ByRef pvarArray() As SortStruct, Optional cbComparrison As stdICallable = nothing, Optional ByVal plngLeft As Long, Optional ByVal plngRight As Long)
     Dim lngFirst As Long
     Dim lngLast As Long
@@ -271,10 +282,8 @@ Private Sub Sort_QuickSort(ByRef pvarArray() As SortStruct, Optional cbComparris
     If lngFirst < plngRight Then Sort_QuickSort pvarArray, cbComparrison, lngFirst, plngRight
 End Sub
 
-
-
-
 'Obtain the array as a regular VBA array
+'@returns Variant - A VBA array
 Public Property Get arr() As Variant
     if pLength = 0 then
       arr = Array()
@@ -300,9 +309,9 @@ Public Property Let arr(v As Variant)
 End Property
 
 'Add an element to the end of the array
-'@param {variant} The element to add to the end of the array.
-'@returns {stdArray} me
-'TODO: Add multiple elements with push
+'@param el - The element to add to the end of the array.
+'@returns - A reference to the array to allow chaining.
+'@TODO: Add multiple elements with push
 Public Function Push(ByVal el As Variant) as stdArray
   If pInitialised Then
     'Before Add event
@@ -328,7 +337,7 @@ Public Function Push(ByVal el As Variant) as stdArray
 End Function
 
 'Remove an element from the end of the array
-'@returns {variant} The element removed from the array
+'@returns - The element removed from the array
 Public Function Pop() As Variant
     If pInitialised Then
         If pLength > 0 Then
@@ -351,8 +360,8 @@ Public Function Pop() As Variant
 End Function
 
 'Remove the ith element from the array
-'@param {Long} Index of the element to remove
-'@returns {Variant} The element removed
+'@param index - Index of the element to remove
+'@returns - The element removed
 Public Function Remove(ByVal index As Long) As Variant
   'Ensure initialised
   If pInitialised Then
@@ -391,8 +400,8 @@ Public Function Remove(ByVal index As Long) As Variant
   End If
 End Function
 
-'Remove and return element from the start of the array
-'@returns {variant} Element removed
+'Remove and return the first element from the array
+'@returns - Element removed
 Public Function Shift() As Variant
   'Would be good to use CopyMemory here
   
@@ -404,9 +413,9 @@ Public Function Shift() As Variant
   pLength = pLength -1
 End Function
 
-'Insert an element onto the start of the array
-'@param {Variant} Value to append to the start of the array
-'@returns {stdArray} me
+'Add an element to the start of the array
+'@param val - Value to append to the start of the array
+'@returns - A reference to the array to allow chaining.
 Public Function Unshift(val As Variant) As stdArray
   'Would be good to use CopyMemory here
   
@@ -434,25 +443,89 @@ Public Function Unshift(val As Variant) As stdArray
   Set Unshift = Me
 End Function
 
-'TODO:
-'Public Function Slice() As stdArray
-'  
-'End Function
+'Obtain a slice of the array
+'@param iStart - Start index of the slice
+'@param iEnd   - End index of the slice
+'@returns - A slice of the array
+Public Function Slice(ByVal iStart As Long, ByVal iEnd As Long) As stdArray
+  If pInitialised Then
+    If iStart <= pLength And iEnd <= pLength Then
+      If iStart <= iEnd Then
+        Dim ret As stdArray
+        Set ret = stdArray.CreateWithOptions(iEnd - iStart + 1, pChunking)
+        
+        Dim i As Long
+        For i = iStart To iEnd
+          Call ret.Push(pArr(i))
+        Next
+        
+        Set Slice = ret
+      Else
+        'Error
+      End If
+    Else
+      'Error
+    End If
+  Else
+    'Error
+  End If
+End Function
 
-'TODO:
-'Public Function Splice() As stdArray
-'  
-'End Function
+'Splice the array
+'@param iStart - Start index of the splice
+'@param iDeleteCount - Number of elements to delete
+'@param newElements - Elements to add to the array
+'@returns - An array containing the deleted elements
+Public Function Splice(ByVal iStart As Long, ByVal iDeleteCount As Long, ByVal newElements As stdArray) As stdArray
+  If pInitialised Then
+    If iStart <= pLength Then
+      If iStart + iDeleteCount <= pLength Then
+        Dim ret As stdArray
+        Set ret = stdArray.CreateWithOptions(iDeleteCount, pChunking)
+        
+        Dim i As Long
+        For i = 1 To iDeleteCount
+          Call ret.Push(pArr(iStart + i - 1))
+        Next
+        
+        Dim iNewLength As Long
+        iNewLength = pLength - iDeleteCount + newElements.Length
+        If iNewLength > pProxyLength Then
+          pProxyLength = iNewLength + pChunking
+          ReDim Preserve pArr(1 To pProxyLength) As Variant
+        End If
+        
+        For i = pLength To iStart + iDeleteCount Step -1
+          pArr(i + newElements.Length - iDeleteCount) = pArr(i)
+        Next
+        
+        For i = LBound(newElements) To UBound(newElements)
+          pArr(iStart + i - 1) = newElements(i)
+        Next
+        
+        pLength = iNewLength
+        
+        Set Splice = ret
+      Else
+        'Error
+      End If
+    Else
+      'Error
+    End If
+  Else
+    'Error
+  End If
+End Function
 
 'Creates a new instance of the same array
-'@returns {stdArray}
+'@returns - A new instance of the same array
 Public Function Clone() As stdArray
   If pInitialised Then
       If pInitialised Then
         'Similar to CreateFromArray() but passing length through also:
         Set Clone = New stdArray
         
-        Call Clone.init(pLength, 10)
+        Call Clone.protInit(pLength, 10)
         
         Dim i As Long
         For i = 1 To pLength
@@ -469,7 +542,7 @@ Public Function Clone() As stdArray
 End Function
 
 'Returns a new array with all elements in reverse order
-'@returns {stdArray}
+'@returns - A new array with all elements in reverse order
 Public Function Reverse() As stdArray
     'TODO: Need to find a better more low level approach to creating arrays from existing arrays/preventing redim for methods like this
     Dim ret As stdArray
@@ -481,8 +554,8 @@ Public Function Reverse() As stdArray
 End Function
 
 'Concatenate an existing array of elements onto the end of this array
-'@param {stdArray} Array whose elements we wish to append to the end of this array
-'@returns {stdArray} New composite array.
+'@param arr - Array whose elements we wish to append to the end of this array
+'@returns - New composite array.
 Public Function Concat(ByVal arr As stdArray) As stdArray
   Dim x As stdArray
   Set x = Clone()
@@ -498,7 +571,8 @@ Public Function Concat(ByVal arr As stdArray) As stdArray
 End Function
 
 'Join each of the elements of this array together as a string
-'@param {string} Delimiter to insert between strings
+'@param delimiter - Delimiter to insert between strings
+'@returns - A string containing all elements of the array joined together with the delimiter
 Public Function Join(Optional ByVal delimeter As String = ",") As String
   If pInitialised Then
       If pLength > 0 Then
@@ -519,14 +593,11 @@ Public Function Join(Optional ByVal delimeter As String = ",") As String
 End Function
 
 'Get/Let/Set item
-'@param {long} The location to get/set the item
+'@defaultMember
+'@param i - The location to get/set the item
 Public Property Get item(ByVal i As long) As Variant
 Attribute item.VB_UserMemId = 0
-    'item(1) = 1st element
-    'item(2) = 2nd element
-    'etc.
     CopyVariant item, pArr(i)
-    
 End Property
 Public Property Set item(ByVal i As long, ByVal item As Object)
   set pArr(i) = item
@@ -536,16 +607,16 @@ Public Property Let item(ByVal i As long, ByVal item As Variant)
 End Property
 
 'Copy a variant into the array's ith element. This saves from having to test the item and call the correct `set` keyword
-'@param {Long} The index at which the item's data should be set
-'@param {ByRef Variant} Item to set at the index
+'@param i    - The index at which the item's data should be set
+'@param item - Item to set at the index
 Public Sub PutItem(ByVal i As long, ByRef item As Variant)
   CopyVariant pArr(i), item
 End Sub
 
 'Obtain the index of an element
-'@param {Variant} Element to find
-'@param {Ingeger?=1} Location to start search for element.
-'@returns {long} Index of element
+'@param el - Element to find
+'@param start - Location to start search for element.
+'@returns - Index of element
 Public Function indexOf(ByVal el As Variant, Optional ByVal start As long = 1) as long
   Dim elIsObj As Boolean, i As Long, item As Variant, itemIsObj As Boolean
   
@@ -580,9 +651,9 @@ Public Function indexOf(ByVal el As Variant, Optional ByVal start As long = 1) a
 End Function
 
 'Obtain the last index of an element
-'@param {Variant} Element to find
-'@returns {long} Last index of element
-Public Function lastIndexOf(ByVal el As Variant)
+'@param el - Element to find
+'@returns - Last index of element
+Public Function lastIndexOf(ByVal el As Variant) as Long
   Dim elIsObj As Boolean, i As Long, item As Variant, itemIsObj As Boolean
   
   'Is element an object?
@@ -616,19 +687,21 @@ Public Function lastIndexOf(ByVal el As Variant)
 End Function
 
 'Returns true if the array contains an item
-'@param {Variant} Item to find
-'@param {long?=1} Index to start search for item at. (Internally uses indexOf())
+'@param el        - Item to find
+'@param startFrom - Index to start search for item at. (Internally uses indexOf())
+'@returns - True if the array contains the item
 Public Function includes(ByVal el As Variant, Optional ByVal startFrom As long = 1) As Boolean
   includes = indexOf(el, startFrom) >= startFrom
 End Function
 
+'**************************************************
+'* Iterative Functions (All require stdICallable) *
+'**************************************************
 
-
-
-
-'Iterative Functions (All require stdICallable):
-
-'Example: if incidents.IsEvery(cbValid) then ...
+'Check if all elements in the array pass a test
+'@param cb as stdICallable<(element: Variant)=>Boolean> - Callback to run on each element
+'@returns - True if all elements pass the test
+'@example `if incidents.IsEvery(cbValid) then ...`
 Public Function IsEvery(ByVal cb As stdICallable) As Boolean
   If pInitialised Then
     Dim i As Long
@@ -648,6 +721,10 @@ Public Function IsEvery(ByVal cb As stdICallable) As Boolean
   End If
 End Function
 
+'Check if any elements in the array pass a test
+'@param cb as stdICallable<(element: Variant)=>Boolean> - Callback to run on each element
+'@returns - True if any elements pass the test
+'@example `if incidents.IsSome(cbValid) then ...`
 Public Function IsSome(ByVal cb As stdICallable) As Boolean
   If pInitialised Then
     Dim i As long
@@ -666,6 +743,9 @@ Public Function IsSome(ByVal cb As stdICallable) As Boolean
   End If
 End Function
 
+'Call a callback on each element of the array
+'@param c as stdICallable<(element: Variant)=>Void> - Callback to run on each element
+'@example `incidents.ForEach(cbPrint)`
 Public Sub ForEach(ByVal cb As stdICallable)
   If pInitialised Then
     Dim i As long
@@ -677,6 +757,10 @@ Public Sub ForEach(ByVal cb As stdICallable)
   End If
 End Sub
 
+'Call a callback on each element of the array and return a new array with the results
+'@param cb as stdICallable<(element: Variant)=>Variant> - Callback to run on each element
+'@returns - A new array with the results of the callback
+'@example `incidents.Map(cbGetId)`
 Public Function Map(ByVal cb As stdICallable) As stdArray
   If pInitialised Then
     Dim pMap As stdArray
@@ -698,8 +782,11 @@ Public Function Map(ByVal cb As stdICallable) As stdArray
   End If
 End Function
 
-
-'OPTIMISE: Needs optimisation. Currently very sub-optimal
+'Remove all non-unqiue elements from the array. Given some callback to generate a key for each element, this method will remove all elements which have the same key.
+'@param cb as stdICallable<(element: Variant)=>Variant> - Callback to generate a key for each element
+'@returns - A new array with all non-unique elements removed
+'@example `incidents.Unique(cbGetId)`
+'@TODO: Needs optimisation. Currently very sub-optimal
 Public Function Unique(Optional ByVal cb As stdICallable = Nothing) As stdArray
   Dim ret As stdArray: Set ret = stdArray.CreateWithOptions(pLength, pChunking)
   Dim retL As stdArray: Set retL = CreateWithOptions(pLength, pChunking)
@@ -724,6 +811,13 @@ Public Function Unique(Optional ByVal cb As stdICallable = Nothing) As stdArray
   Set Unique = ret
 End Function
 
+'Executes a user-supplied "reducer" callback function on each element of the array, in order, passing in the return
+'value from the calculation on the preceding element. The final result of running the reducer across all elements
+'of the array is a single value.
+'@param cb as stdICallable<(accumulator: Variant, element: Variant) => Variant> - Reducer callback to run on each element
+'@param initialValue - Initial value to pass to the reducer callback
+'@returns - The final value returned by the reducer callback
+'@example `values.Reduce(cbSum, 0)`
 Public Function Reduce(ByVal cb As stdICallable, Optional ByVal initialValue As Variant) As Variant
   Dim iStart as long
   If pInitialised Then
@@ -758,7 +852,9 @@ Public Function Reduce(ByVal cb As stdICallable, Optional ByVal initialValue As 
   End If
 End Function
 
-
+'Filter the array based on a condition
+'@param cb as stdICallable<(element: Variant)=>Boolean> - Callback to run on each element. If the callback returns true, the element is included in the returned array.
+'@returns - A new array containing only the elements which passed the filter
 Public Function Filter(ByVal cb As stdICallable) As stdArray
     Dim ret As stdArray
     Set ret = stdArray.CreateWithOptions(pLength, pChunking)
@@ -779,6 +875,9 @@ Public Function Filter(ByVal cb As stdICallable) As stdArray
     End If
 End Function
 
+'Count the number of elements in the array. If a callback is provided, the number of elements which pass the callback is returned.
+'@param cb as stdICallable<(element: Variant)=>Boolean> - Callback to run on each element. If the callback returns true, the element is included in the count.
+'@returns - The number of elements in the array. If a callback is provided, the number of elements which pass the callback is returned.
 Public Function Count(Optional ByVal cb As stdICallable = nothing) As Long
   if cb is nothing then
     Count = Length
@@ -794,6 +893,9 @@ Public Function Count(Optional ByVal cb As stdICallable = nothing) As Long
   end if
 End Function
 
+'Group the elements of the array by some key generated by a callback
+'@param cb as stdICallable<(element: Variant)=>Variant> - Callback to run on each element. The return value of this callback is used as the key to group the elements by.
+'@returns Object<Dictionary<Variant, stdArray<Variant>>> - The keys of the dictionary are the keys generated by the callback. The values of the dictionary are arrays containing the elements which were grouped by the key.
 Public Function GroupBy(ByVal cb As stdICallable) As Object
     'Array to store result in
     Dim result As Object
@@ -817,6 +919,10 @@ Public Function GroupBy(ByVal cb As stdICallable) As Object
     Set GroupBy = result
 End Function
 
+'Obtain the maximum value in the array
+'@param cb as stdICallable<(element: Variant)=>Variant> - Callback to run on each element. The return value of this callback is used to determine the maximum value.
+'@param startingValue - The starting value to compare against. If not provided, the first element of the array is used.
+'@returns - The maximum value in the array
 Public Function Max(Optional ByVal cb As stdICallable = nothing, Optional ByVal startingValue As Variant = Empty) as variant
   Dim vRet, vMaxValue, v
   vMaxValue = startingValue: vRet = startingValue
@@ -843,6 +949,11 @@ Public Function Max(Optional ByVal cb As stdICallable = nothing, Optional ByVal 
 
   Call CopyVariant(Max,vRet)
 End Function
+
+'Obtain the minimum value in the array
+'@param cb as stdICallable<(element: Variant)=>Variant> - Callback to run on each element. The return value of this callback is used to determine the minimum value.
+'@param startingValue - The starting value to compare against. If not provided, the first element of the array is used.
+'@returns - The minimum value in the array
 Public Function Min(Optional ByVal cb As stdICallable = nothing, Optional ByVal startingValue As Variant = Empty) as variant
   Dim vRet, vMinValue, v
   vMinValue = startingValue: vRet = startingValue

@@ -129,22 +129,42 @@ Private Type TThis
 End Type
 Private This As TThis
 
-'Constructors
+'Create a new stdReg object from a path with required access
+'@param path - Path to registry key or value
+'@param access - Access required to open key i.e. `PERM_READ`, `PERM_WRITE`, `PERM_ALL_ACCESS`
+'@param normalisePath - If `true`, then path will be normalised to use `"\"` as path separator
+'@returns - `stdReg` object
 Public Function Create(ByVal path As String, Optional ByVal access As ERegistryAccess = ERegistryAccess.PERM_READ, Optional ByVal normalisePath As Boolean = True) As stdReg
   Set Create = New stdReg
   Call Create.protInit(path, ERegistryType.iCalculate, access, normalisePath)
 End Function
 
+'Create a new stdReg object from a key path with required access
+'@param path - Path to registry key
+'@param access - Access required to open key i.e. `PERM_READ`, `PERM_WRITE`, `PERM_ALL_ACCESS`
+'@param normalisePath - If `true`, then path will be normalised to use `"\"` as path separator
+'@returns - `stdReg` object representing registry key
 Public Function CreateFromKey(ByVal path As String, Optional ByVal access As ERegistryAccess = ERegistryAccess.PERM_READ, Optional ByVal normalisePath As Boolean = True) As stdReg
   Set CreateFromKey = New stdReg
   Call CreateFromKey.protInit(path, ERegistryType.iKey, access, normalisePath)
 End Function
 
+'Create a new stdReg object from a value path with required access
+'@param path - Path to registry value
+'@param access - Access required to open key i.e. `PERM_READ`, `PERM_WRITE`, `PERM_ALL_ACCESS`
+'@param normalisePath - If `true`, then path will be normalised to use `"\"` as path separator
+'@returns - `stdReg` object representing registry value
 Public Function CreateFromItem(ByVal path As String, Optional ByVal access As ERegistryAccess = ERegistryAccess.PERM_READ, Optional ByVal normalisePath As Boolean = True) As stdReg
   Set CreateFromItem = New stdReg
   Call CreateFromItem.protInit(path, ERegistryType.iItem, access, normalisePath)
 End Function
 
+'Create a new stdReg object from a key path with required access
+'@protected
+'@param path - Path to registry key
+'@param iType - Type of stdReg object to create i.e. `iKey`, `iItem`
+'@param access - Access required to open key i.e. `PERM_READ`, `PERM_WRITE`, `PERM_ALL_ACCESS`
+'@param normalisePath - If `true`, then path will be normalised to use `"\"` as path separator
 Friend Sub protInit(ByVal path As String, Optional ByVal iType As ERegistryType = 0, Optional ByVal access As ERegistryAccess = ERegistryAccess.PERM_READ, Optional ByVal normalisePath As Boolean = True)
   Static roots As Variant: If IsEmpty(roots) Then roots = Array( _
     "HKEY_CLASSES_ROOT", HKEY_CLASSES_ROOT, _
@@ -237,6 +257,7 @@ End Sub
 '*******************
 
 'Obtain name of registry key
+'@returns - Name of registry key
 Public Property Get name() As String
   If This.name = "" Then
     name = "(Default)"
@@ -245,18 +266,26 @@ Public Property Get name() As String
   End If
 End Property
 
+'Obtain type of registry object. Either `ERegistryType.iKey` or `ERegistryType.iItem`.
+'@returns - Type of registry Either `ERegistryType.iKey` or `ERegistryType.iItem`.
 Public Property Get RegType() As ERegistryType
   RegType = This.Type
 End Property
 
+'Obtain whether registry key/item is root
+'@returns - Whether registry key/item is root
 Public Property Get isRoot() As Boolean
   isRoot = This.query = ""
 End Property
 
+'Obtain the path of the registry key/item
+'@returns - Path of the registry key/item
 Public Property Get path() As String
   path = This.path & IIf(right(This.path, 9) <> "(Default)" And This.name = "", "(Default)", "")
 End Property
 
+'Obtain the parent of the registry key/item
+'@returns - Parent of the registry key/item
 Public Property Get Parent() As stdReg
   If isRoot Then
     Set Parent = Nothing
@@ -272,7 +301,9 @@ End Property
 '***************
 
 'Get all keys and items
-'@returns {Collection<stdReg>} Collection of stdReg keys and items
+'@returns Collection<stdReg> - Collection of stdReg keys and items
+'@throws 1, "ERROR: Only stdReg keys have subkeys"
+'@throws 1, "ERROR: Only stdReg keys have items"
 Public Property Get children() As Collection
   Set children = Keys
   
@@ -283,7 +314,8 @@ Public Property Get children() As Collection
 End Property
 
 'Get all subkeys
-'@returns {Collection<stdReg>} Collection of stdReg keys
+'@returns Collection<stdReg> - Collection of stdReg keys
+'@throws 1, "ERROR: Only stdReg keys have subkeys"
 Public Property Get Keys() As Collection
   Set Keys = New Collection
   Select Case This.Type
@@ -299,11 +331,14 @@ Public Property Get Keys() As Collection
           Call Keys.Add(CreateFromKey(This.path & "\" & left(sName, iSize)))
         End If
       Loop While result = ERROR_SUCCESS
+    Case Else
+      Err.Raise 1, "stdReg", "ERROR: Only stdReg keys have subkeys"
   End Select
 End Property
 
 'Get all items
-'@returns {Collection<stdReg>} Collection of stdReg items
+'@returns Collection<stdReg> - Collection of stdReg items
+'@throws 1, "ERROR: Only stdReg keys have items"
 Public Property Get Items() As Collection
   Set Items = New Collection
   Select Case This.Type
@@ -319,6 +354,8 @@ Public Property Get Items() As Collection
           Call Items.Add(CreateFromItem(This.path & "\" & left(sName, iSize)))
         End If
       Loop While result = ERROR_SUCCESS
+    case else
+      Err.Raise 1, "stdReg", "ERROR: Only stdReg keys have items"
   End Select
 End Property
 
@@ -326,8 +363,9 @@ End Property
 '* ITEM METHODS *
 '****************
 
-'@returns {ERegistryValueType} Type of stdReg Item
-'@throws 1, "Not a value"
+'Get the item type of this stdReg Item
+'@returns - Type of stdReg Item
+'@throws 1, "ERROR: Only stdReg items have values"
 Public Property Get ItemType() As ERegistryValueType
   If This.Type = iItem Then
     ItemType = This.valtype
@@ -337,6 +375,7 @@ Public Property Get ItemType() As ERegistryValueType
 End Property
 
 'Get / Set value
+'@returns - Value of stdReg Item
 '@throws 1, "stdReg", "ERROR: Unknown value type"
 '@throws 2, "stdReg", "ERROR: Cannot get value (0x" & Hex(iStatus) & ")"
 '@throws 3, "", "ERROR: Only stdReg items have values"
@@ -449,6 +488,8 @@ Public Property Let value(vNew As Variant)
 End Property
 
 'Set value and change type
+'@param vNew  - Value to set item to
+'@param iType - Type of value to set
 Public Sub SetValue(ByVal vNew As Variant, ByVal iType As ERegistryValueType)
   Err.Raise 1, "stdReg", "Not implemented"
 End Sub
@@ -458,6 +499,8 @@ End Sub
 '* Private Helpers *
 '*******************
 
+'Initialise write handle
+'@private
 Private Sub pRegistryInitWriteHandle()
   If This.writeHandle = NULL_PTR Then
     If RegOpenKeyExA(This.root, This.query, 0, ERegistryAccess.PERM_WRITE, This.writeHandle) <> ERROR_SUCCESS Then
@@ -466,15 +509,25 @@ Private Sub pRegistryInitWriteHandle()
   End If
 End Sub
 
+'Query value type
+'@private
+'@returns - Value type of registry item
 Private Function pRegistryQueryValueType() As ERegistryValueType
   Dim iType As ERegistryValueType
   Call RegQueryValueExA(This.queryHandle, This.name, 0, VarPtr(iType), 0, 0)
   pRegistryQueryValueType = iType
 End Function
+
+'Query value size
+'@private
+'@returns - Size of registry item
 Private Function pRegistryQueryValueSize() As Long
   Call RegQueryValueExA(This.queryHandle, This.name, 0, 0, 0, pRegistryQueryValueSize)
 End Function
 
+'Close handles
+'@destructor
+'@private
 Private Sub Class_Terminate()
   Call RegCloseKey(This.queryHandle)
 End Sub

@@ -67,8 +67,8 @@ End Type
 
 'Create a JSON object
 '@constructor
-'@param {Optional EStdJSONType = eJSONObject} The type of json object to create. Default is JSON object, i.e. {}.
-'@returns {stdJSON} stdJSON object of the specified type.
+'@param iType - The type of json object to create. Default is JSON object, i.e. {}.
+'@returns - stdJSON object of the specified type.
 Public Function Create(Optional ByVal iType as EStdJsonType = eJSONObject) as stdJSON
   set Create = new stdJSON
   Call Create.protInit(iType)
@@ -76,11 +76,11 @@ End Function
 
 'Create a JSON object from string
 '@constructor
-'@param {string} string to create json from
-'@param {Boolean} Allow unquoted keys? E.G. "{a:""hello""}"
-'@param {Boolean} Allow single quoted strings? E.G. "{'a':'hello'}"
-'@param {Boolean} Store Large numbers >16 chars as string instead of doubles. This may be useful if precision is important.
-'@returns {stdJSON} stdJSON object from string.
+'@param sJSON                   - string to create json from
+'@param AllowUnquotedKeys       - Allow unquoted keys? E.G. "{a:""hello""}"
+'@param AllowSingleQuoteStrings - Allow single quoted strings? E.G. "{'a':'hello'}"
+'@param StoreLargeNumsAsString  - Store Large numbers >16 chars as string instead of doubles. This may be useful if precision is important.
+'@returns - `stdJSON` object from string.
 Public Function CreateFromString(ByVal sJSON as string, optional ByVal AllowUnquotedKeys as boolean = false, optional ByVal AllowSingleQuoteStrings as boolean = false, optional ByVal StoreLargeNumsAsString as boolean = false) as stdJSON
   'Save parser props...
   this.parserProps.AllowUnquotedKeys = AllowUnquotedKeys
@@ -100,9 +100,9 @@ End Function
 
 'Create a JSON object from file
 '@constructor
-'@param {string} Path to file containing json data
-'@returns {stdJSON} stdJSON object from file data.
-'@remark TODO: consider parsing open file num to `parseJSONObject` instead
+'@param sJSONFile - Path to file containing json data
+'@returns - stdJSON object from file data.
+'@TODO: consider parsing open file num to `parseJSONObject` instead
 Public Function CreateFromFile(ByVal sJSONFile as string) as stdJSON
   Dim sJSON as string
   Dim ff As Long: ff = FreeFile
@@ -114,8 +114,8 @@ End Function
 
 'Create a JSON object from VB variant
 '@constructor
-'@param {Variant} Variant to convert to JSON, e.g. Collection, Dictionary or Array
-'@returns {stdJSON} stdJSON object from variant data.
+'@param vData - Variant to convert to JSON, e.g. Collection, Dictionary or Array
+'@returns - stdJSON object from variant data.
 Public Function CreateFromVariant(ByVal vData as Variant) as stdJSON
   set CreateFromVariant = new stdJSON
   Call CreateFromVariant.protInitFromVariant(vData)
@@ -124,6 +124,7 @@ End Function
 'Initialise stdJSON object
 '@protected
 '@constructor
+'@param iType - The type of json object to create. Default is JSON object, i.e. {}.
 Friend Sub protInit(ByRef iType as EStdJsonType)
   This.iType = iType
   select case iType
@@ -137,6 +138,7 @@ End Sub
 'Initialise stdJSON object from variant
 '@protected
 '@constructor
+'@param vData - Variant to convert to JSON, e.g. `Collection`, `Dictionary` or `Array`
 Friend Sub protInitFromVariant(ByRef vData as Variant)
   Dim i as Long: i = 0
   Dim vItem as variant
@@ -184,8 +186,8 @@ Friend Sub protInitFromVariant(ByRef vData as Variant)
 End Sub
 
 'Add a key and value to an object, or a value to an array
-'@param {ParamArray}
-'@returns {stdJSON} if value was a stdJSON, this is returned, else `Nothing`.
+'@param v - if This is an eJSONObject, the Key and Value to add. Else the value to add to the eJSONArray.
+'@returns - if value was a stdJSON, this is returned, else `Nothing`.
 '@remark Uses `protAddItem_JSONArray` when `This.iType == eJSONArray`; and `protAddItem_JSONObject` when `This.iType == eJSONObject`.
 Public Function Add(ParamArray v()) as stdJSON
   select case This.iType
@@ -199,9 +201,9 @@ Public Function Add(ParamArray v()) as stdJSON
 End Function
 
 'Create and add an array to the JSON object/array.
-'@param {Optional string} If `this.iType == eJSONObject` then this is the key it should be assigned to. Else this param is unused.
-'@param {Optional Variant<Array|Collection>} If provided the object will be pre-filled with data
-'@returns {stdJSON} The array created
+'@param key - If `this.iType == eJSONObject` then this is the key it should be assigned to. Else this param is unused.
+'@param fromVar as Variant<Array|Collection> - If provided the object will be pre-filled with data
+'@returns - The array created
 '@example ` .AddArray(fromVar:=Array(1,2,3))`
 Public Function AddArray(Optional ByVal key as string = "", optional ByVal fromVar as variant) as stdJSON
   'Create array
@@ -224,8 +226,8 @@ Public Function AddArray(Optional ByVal key as string = "", optional ByVal fromV
 End Function
 
 'Create and add an object to the JSON object/array.
-'@param {string} If `this.iType == eJSONObject` then this is the key it should be assigned to. Else this param is unused.
-'@returns {stdJSON} The object created
+'@param key - If `this.iType == eJSONObject` then this is the key it should be assigned to. Else this param is unused.
+'@returns - The object created
 Public Function AddObject(Optional ByVal key as string = "") as stdJSON
   'Create JSObject
   Dim oRet as stdJSON: set oRet = stdJSON.Create(eJSONObject)
@@ -241,13 +243,13 @@ Public Function AddObject(Optional ByVal key as string = "") as stdJSON
 End Function
 
 'Obtain the length of this JSON object
-'@returns {Long} The length of the JSON object
+'@returns - The length of the JSON object
 Public Property Get Length() as Long
   Length = this.children.count
 End Property
 
 'Obtain the item for a key or index
-'@param {Variant<string|long>} Either a string key (if eJSONObject) or index as long (if eJSONArray)
+'@param keyOrIndex as Variant<string|long> - Either a string key (if eJSONObject) or index as long (if eJSONArray)
 Public Property Get Item(ByVal keyOrIndex as Variant) as Variant
 Attribute Item.VB_UserMemId = 0
   select case this.iType
@@ -275,7 +277,8 @@ Public Property Set Item(ByVal keyOrIndex as Variant, v as Variant)
 End Property
 
 'Obtain the item for a key or index
-'@param {Variant<string|long>} Either a string key (if eJSONObject) or index as long (if eJSONArray)
+'@param keyOrIndex as Variant<string|long> - Either a string key (if eJSONObject) or index as long (if eJSONArray)
+'@returns - Whether the key or index exists
 Public Property Get Exists(ByVal keyOrIndex as Variant) as Boolean
   select case this.iType
     case eJSONObject
@@ -300,7 +303,10 @@ End Property
 ' End Property
 
 'Convert the JSON to string
-'@returns {String} JSON encoded data.
+'@param pretty - If true, pretty print the JSON
+'@param prettyIndent - If pretty, the indent to use
+'@param depth - If pretty, the depth to start at
+'@returns - JSON encoded data.
 Public Function ToString(optional byval pretty as boolean = false, optional byval prettyIndent as long = 2, optional depth as long = 1) as String
   Dim sRootIndent as string, sChildIndent as string, sNewLine as string
   if pretty then 
@@ -361,8 +367,9 @@ Public Function ToString(optional byval pretty as boolean = false, optional byva
   ToString = StringBuffer_ToString(s)
 End Function
 
-'Convert the JSON to pretty string
-'@returns {String} JSON encoded data.
+'Dump the JSON data to a file
+'@param sPath - Path to file to dump JSON data to
+'@param prettyIndent - If pretty, the indent to use
 Public Sub ToFile(ByVal sPath as string, Optional ByVal prettyIndent as Long = 0)
   Dim ff As Long: ff = FreeFile
   Open sPath For Output As #ff
@@ -371,7 +378,7 @@ Public Sub ToFile(ByVal sPath as string, Optional ByVal prettyIndent as Long = 0
 End Sub
 
 'Convert to VBA Object
-'@returns {Object<Collection|Dictionary>} Dictionary if eJSONObject, Collection if eJSONArray
+'@returns Object<Collection|Dictionary> - `Dictionary` if `eJSONObject`, `Collection` if `eJSONArray`
 Public Function ToVBObject() as Object
   Dim ret as Object
   select case This.iType
@@ -409,6 +416,7 @@ Public Function ToVBObject() as Object
 End Function
 
 'Helper: For type safety, obtain this this.children as collection
+'@returns {Collection} The children collection
 Private Property Get ChildrenCol() as Collection
   set ChildrenCol = this.Children
 End Property
@@ -431,6 +439,8 @@ End Function
 '*******************
 
 'Helper: Copy variant from one location to another
+'@param dest - Destination variant
+'@param src - Source variant
 Private Sub CopyVariant(ByRef dest as Variant, ByVal src as Variant)
   if isObject(src) then
     set dest = src
@@ -440,6 +450,8 @@ Private Sub CopyVariant(ByRef dest as Variant, ByVal src as Variant)
 End Sub
 
 'Helper: stringify a simple construct
+'@param value - The value to stringify
+'@returns {string} The stringified value
 Private Function simpleStringify(ByVal value as variant) as string
   select case vartype(value)
     case vbNull
@@ -465,6 +477,10 @@ End Function
 '* PARSING *
 '***********
 
+'Parser: Parse a JSON object
+'@param sJSON - The JSON string to parse
+'@param index - The index to start parsing from
+'@returns - The parsed JSON object
 Private Function parseJSONObject(ByRef sJSON as string, Optional ByRef index as Long = 1) as stdJSON
   set json = stdJSON.Create(eJSONObject)
   Call parserConsume("{", sJSON, index)
@@ -483,6 +499,10 @@ Private Function parseJSONObject(ByRef sJSON as string, Optional ByRef index as 
   set parseJSONObject = json
 End Function
 
+'Parser: Parse a JSON array
+'@param sJSON - The JSON string to parse
+'@param index - The index to start parsing from
+'@returns - The parsed JSON array
 Private Function parseJSONArray(ByRef sJSON as string, Optional ByRef index as Long = 1) as stdJSON
   set json = stdJSON.Create(eJSONArray)
   Call parserConsume("[", sJSON, index)
@@ -497,6 +517,10 @@ Private Function parseJSONArray(ByRef sJSON as string, Optional ByRef index as L
   set parseJSONArray = json
 End Function
 
+'Parser: Parse a JSON object key
+'@param sJSON - The JSON string to parse
+'@param index - The index to start parsing from
+'@returns - The parsed JSON object key
 Private Function parseJSONObjectKey(ByRef sJSON as string, ByRef index as Long) as string
   Dim char as string: char = parserPeekStr(sJSON, index)
   if char = """" then 
@@ -515,6 +539,10 @@ Private Function parseJSONObjectKey(ByRef sJSON as string, ByRef index as Long) 
   end if
 End Function
 
+'Parser: Parse a JSON string
+'@param sJSON - The JSON string to parse
+'@param index - The index to start parsing from
+'@returns - The parsed JSON string
 Private Function parseString(ByRef sJSON as string, Optional ByRef index as Long = 1) as String
   Dim buffer as StringBuffer: buffer = StringBuffer_Create()
   Dim char as string
@@ -551,6 +579,10 @@ Private Function parseString(ByRef sJSON as string, Optional ByRef index as Long
   parseString = StringBuffer_ToString(buffer)
 End Function
 
+'Parser: Parse a JSON value
+'@param value - The value to parse
+'@param sJSON - The JSON string to parse
+'@param index - The index to start parsing from
 Private Sub parseValue(ByRef value as Variant, ByRef sJSON as string, ByRef index as Long)
   Dim char as string: char = parserPeekStr(sJSON, index)
   select case char
@@ -574,6 +606,10 @@ Private Sub parseValue(ByRef value as Variant, ByRef sJSON as string, ByRef inde
   end select
 End Sub
 
+'Parser: Parse a JSON number
+'@param sJSON - The JSON string to parse
+'@param index - The index to start parsing from
+'@returns - The parsed JSON number
 Private Function parseNumber(ByRef sJSON as string, ByRef index as Long) as Double
   Dim char as string: char = parserPeekStr(sJSON, index)
   Dim sNum as string: sNum = ""
@@ -593,6 +629,8 @@ End Function
 
 
 'Parser helper: Ignore spaces in JSON string
+'@param sJSON - The JSON string to parse
+'@param index - The index to start parsing from
 Private Sub parserIgnoreSpaces(ByRef sJSON as string, ByRef index as Long)
   While Mid(sJSON, index, 1) = " "
     index = index + 1
@@ -600,6 +638,10 @@ Private Sub parserIgnoreSpaces(ByRef sJSON as string, ByRef index as Long)
 End Sub
 
 'Parser helper: Consumes some characters from the JSON string only if they match the string
+'@param sChar - The string to consume
+'@param sJSON - The JSON string to parse
+'@param index - The index to start parsing from
+'@param iLength - The length of the string to consume
 Private Sub parserConsume(ByVal sChar As String, ByRef sJSON as string, ByRef index as Long, Optional ByVal iLength as Long = 1)
     If mid(sJSON,index,iLength) = sChar Then
       index = index + iLength
@@ -609,22 +651,38 @@ Private Sub parserConsume(ByVal sChar As String, ByRef sJSON as string, ByRef in
 End Sub
 
 'Parser helper: Consumes some characters from the JSON string
+'@param sJSON - The JSON string to parse
+'@param index - The index to start parsing from
+'@param iLength - The length of the string to consume
+'@returns - The consumed string
 Private Function parserConsumeAny(ByRef sJSON as string, ByRef index as Long, Optional ByVal iLength as Long = 1) as string
   parserConsumeAny = mid(sJSON,index,iLength)
   index = index + iLength
 End Function
 
 'Parser helper: Checks whether the token at iTokenIndex is of the given type
+'@param sChar - The string to check
+'@param sJSON - The JSON string to parse
+'@param index - The index to start parsing from
+'@param iLength - The length of the string to check
+'@returns - Whether the token at iTokenIndex is of the given type
 Private Function parserPeek(ByVal sChar As String, ByRef sJSON as string, ByRef index as Long, Optional ByVal iLength as Long = 1) As Boolean
     parserPeek = mid(sJSON,index,iLength) = sChar
 End Function
 
 'Parser helper: Obtains a character without consuming the token
+'@param sJSON - The JSON string to parse
+'@param index - The index to start parsing from
+'@returns - The character at iTokenIndex
 Private Function parserPeekStr(ByRef sJSON as string, ByRef index as Long) As String
     parserPeekStr = mid(sJSON,index,1)
 End Function
 
 'Parser helper: Combines peek and consume, consuming a token only if matched, without throwing an error if not
+'@param sChar - The string to consume
+'@param sJSON - The JSON string to parse
+'@param index - The index to start parsing from
+'@returns - Whether the token at iTokenIndex is of the given type
 Private Function parserOptConsume(ByVal sChar As String, ByRef sJSON as string, ByRef index as Long) As Boolean
     Dim matched as boolean: matched = parserPeek(sChar, sJSON, index)
     If matched Then
@@ -634,17 +692,26 @@ Private Function parserOptConsume(ByVal sChar As String, ByRef sJSON as string, 
 End Function
 
 
-
+'Create a stringbuffer
+'@param Initial - The initial size of the buffer
+'@returns - The stringbuffer
 Private Function StringBuffer_Create(Optional ByVal Initial as Long = 16) as StringBuffer
   StringBuffer_Create.value = String$(Initial, " ")
   StringBuffer_Create.count = Initial
   StringBuffer_Create.index = 1
 End Function
 
+'Convert a stringbuffer to a string
+'@param buffer - The stringbuffer to convert
+'@returns - The stringbuffer as a string
 Private Function StringBuffer_ToString(ByRef buffer as StringBuffer) as string
   StringBuffer_ToString = left(buffer.value, buffer.index - 1)
 End Function
 
+'Append a string to a stringbuffer
+'@param buffer - The stringbuffer to append to
+'@param sToAppend - The string to append
+'@remark If the stringbuffer is not large enough, it will be upsized
 Private Sub StringBuffer_Append(ByRef buffer as StringBuffer, ByVal sToAppend as string)
   Dim lenToAppend as Long: lenToAppend = Len(sToAppend)
   if buffer.index + lenToAppend > buffer.count then
@@ -654,6 +721,9 @@ Private Sub StringBuffer_Append(ByRef buffer as StringBuffer, ByVal sToAppend as
   buffer.index = buffer.index + lenToAppend
 End Sub
 
+'Upsize a stringbuffer
+'@param buffer - The stringbuffer to upsize
+'@param minIncrease - The minimum amount to increase the buffer by
 Private Sub StringBuffer_Upsize(ByRef buffer as StringBuffer, Optional ByVal minIncrease as Long)
   minIncrease = iif(buffer.count > minIncrease, buffer.count, minIncrease)
   buffer.count = buffer.count + minIncrease

@@ -247,6 +247,7 @@ Private Enum IAccessible_Methods
     put_accValue
 End Enum
 
+'@TODO: Convert to TThis
 Private isProxy As Boolean
 Private proxyParent As IAccessible 'IAcc
 Private proxyIndex As Long
@@ -276,12 +277,15 @@ Const CHILDID_SELF = 0&
 '@protected 
 Public protAccessible As Object
 
-'Constructors:
+'****************
+'* Constructors *
+'****************
+
 'Creates an `stdAcc` object from an `X` and `Y` point location on the screen.
 '@constructor
-'@param x {ByVal Long} X Coordinate
-'@param y {ByVal Long} Y Coordinate
-'@returns {stdAcc} Object at the specified point
+'@param x - X Coordinate
+'@param y - Y Coordinate
+'@returns stdAcc - Object at the specified point
 Public Function CreateFromPoint(ByVal x As Long, ByVal y As Long) As stdAcc
     Set CreateFromPoint = New stdAcc
     set CreateFromPoint.protAccessible = AccessibilityObjectFromPointEx(x,y)
@@ -289,8 +293,8 @@ End Function
 
 'Creates an `stdAcc` object from a window handle.
 '@constructor
-'@param hwnd {ByVal LongPtr} Window handle to wrap
-'@returns {stdAcc} stdAcc object for the window 
+'@param hwnd - Window handle to wrap
+'@returns stdAcc - stdAcc object for the window 
 Public Function CreateFromHwnd(ByVal hwnd As LongPtr) As stdAcc
     Dim acc as stdAcc: set acc = new stdAcc
     Dim obj As IAccessible
@@ -301,7 +305,7 @@ End Function
 
 'Creates an `stdAcc` object from the current running application (e.g. Excel / Word / Powerpoint).
 '@constructor
-'@returns {stdAcc}
+'@returns stdAcc
 Public Function CreateFromApplication() As stdAcc
     select case Application.Name
         case "Microsoft Excel"
@@ -317,7 +321,7 @@ End Function
 
 'Creates an `stdAcc` object from the desktop.
 '@constructor
-'@returns {stdAcc}
+'@returns stdAcc
 Public Function CreateFromDesktop() As stdAcc
     'Get this application's accessibility object
     Dim accThis As IAccessible
@@ -333,9 +337,9 @@ Public Function CreateFromDesktop() As stdAcc
 End Function
 
 'Creates an `stdAcc` object from an object which implements `IAccessible`.
-'@param {IAccessible} Object implementing `IAccessible` interface.
 '@constructor
-'@returns {stdAcc}
+'@param obj - Object implementing `IAccessible` interface.
+'@returns stdAcc
 Public Function CreateFromIAccessible(ByVal obj As IAccessible) As stdAcc
     Set CreateFromIAccessible = New stdAcc
     set CreateFromIAccessible.protAccessible = obj
@@ -343,7 +347,7 @@ End Function
 
 'Creates an `stdAcc` object for the element the mouse currently hovers over.
 '@constructor
-'@returns {stdAcc}
+'@returns stdAcc
 Public Function CreateFromMouse() As stdAcc
     Dim pT As tPOINT
     Dim success As Long
@@ -353,7 +357,7 @@ End Function
 
 'Creates an `stdAcc` object for the element at a given path from the current element.
 '@constructor
-'@returns {stdAcc}
+'@returns stdAcc
 '@example `Debug.Print stdAcc.CreateFromApplication().CreateFromPath("3.1").name`
 Public Function CreateFromPath(ByVal sPath As String) As stdAcc
     'If starting with "." remove it
@@ -385,7 +389,6 @@ End Function
 'Initialises an stdAcc object as a `Proxy` object, who's methods are implemented on the parent instead of on the element itself
 '@constructor
 '@protected
-'@returns {VOID}
 Public Sub InitWithProxy(ByRef oParent as stdAcc, ByVal index as long)
     isProxy = true
     set proxyParent = oParent.protAccessible
@@ -394,7 +397,7 @@ End Sub
 
 
 'Get all descendents of the stdAcc control
-'@returns {Collection} Collection of descendents
+'@returns Collection<stdAcc> - Collection of descendents
 Public Function GetDescendents() As Collection
     'Create collection which will be returned
     Dim c As Collection
@@ -417,29 +420,32 @@ Public Function GetDescendents() As Collection
 End Function
 
 'Search the IAccessible tree for elements which match a certain criteria. Return the first element found.
-'@param {ByVal stdICallable<(stdAcc,depth)=>EAccFindResult>} Callback returning
-'  EAccFindResult options:
-'    EAccFindResult.NoMatchFound/0/False             - Not found, countinue walking
-'    EAccFindResult.MatchFound/1/-1/True             - Found, return this element
-'    EAccFindResult.NoMatchCancelSearch/2            - Not found, cancel search
-'    EAccFindResult.NoMatchSkipDescendents/3,else    - Not found, don't search descendents
-'    EAccFindResult.MatchFoundSearchDescendents/4    - Same as EAccFindResult.MatchFound
-'@param {EAccFindType=1} - The type of search, 0 for Breadth First Search (BFS) and 1 for Depth First Search (DFS).
+'@param query as stdICallable<(stdAcc,depth)=>EAccFindResult> - Callback returning `EAccFindResult` options:
+'
+'* `EAccFindResult.NoMatchFound`/`0`/`False`        - Not found, countinue walking
+'* `EAccFindResult.MatchFound`/`1`/`-1`/`True`      - Found, return this element
+'* `EAccFindResult.NoMatchCancelSearch`/`2`         - Not found, cancel search
+'* `EAccFindResult.NoMatchSkipDescendents`/`3`      - Not found, don't search descendents
+'* `EAccFindResult.MatchFoundSearchDescendents`/`4` - Same as `EAccFindResult.MatchFound` in this case.
+'@param searchType - The type of search to perform, either Breadth First Search (BFS) or Depth First Search (DFS).
 ' To understand the difference between BFS and DFS take this tree:
-'        A
-'       / \
-'      B   C
-'     /   / \
-'    D   E   F
-' A BFS will walk this tree in the following order: A, B, C, D, E, F
-' A DFS will walk this tree in a different order:   A, C, F, E, B, D
-'@examples
-' ```
-' 'Find where name is "hello" and class is "world":
-' el.FindFirst(stdLambda.Create("$1.name=""hello"" and $1.class=""world"""))
-' 'Find first element named "hello" at depth > 4:
-' el.FindFirst(stdLambda.Create("$1.name = ""hello"" AND $2 > 4"))
-' ```
+'```
+'     A
+'    / \
+'   B   C
+'  /   / \
+' D   E   F
+'```
+'
+'* A BFS will walk this tree in the following order: A, B, C, D, E, F
+'* A DFS will walk this tree in a different order:   A, C, F, E, B, D
+'@returns {stdAcc} - Element found.
+'@examples ```
+''Find where name is "hello" and class is "world":
+'el.FindFirst(stdLambda.Create("$1.name=""hello"" and $1.class=""world"""))
+''Find first element named "hello" at depth > 4:
+'el.FindFirst(stdLambda.Create("$1.name = ""hello"" AND $2 > 4"))
+'```
 Public Function FindFirst(ByVal query As stdICallable, optional byval searchType as EAccFindType=EAccFindType.DepthFirst) As stdAcc
     Dim stack() As tFindNode
     ReDim stack(0 To 0)
@@ -500,29 +506,32 @@ Public Function FindFirst(ByVal query As stdICallable, optional byval searchType
 End Function
 
 'Search the IAccessible tree for elements which match a certain criteria. Return all elements found.
-'@param {ByVal stdICallable<(stdAcc,depth)=>EAccFindResult>} Callback returning
-'  EAccFindResult options:
-'    EAccFindResult.NoMatchFound/0/False             - Not found, countinue walking
-'    EAccFindResult.MatchFound/1/-1/True             - Found, return this element, won't search descendents of elements found
-'    EAccFindResult.NoMatchCancelSearch/2            - Not found, cancel search
-'    EAccFindResult.NoMatchSkipDescendents/3,else    - Not found, don't search descendents
-'    EAccFindResult.MatchFoundSearchDescendents/4    - Found, return this element, but continue searching descendents
-'@param {EAccFindType} - The type of search, 0 for Breadth First Search (BFS) and 1 for Depth First Search (DFS).
+'@param query as stdICallable<(stdAcc,depth)=>EAccFindResult> - Callback returning `EAccFindResult` options:
+'
+'* `EAccFindResult.NoMatchFound`/`0`/`False`           - Not found, countinue walking.
+'* `EAccFindResult.MatchFound`/`1`/`-1`/`True`         - Found, return this element, won't search descendents of elements found.
+'* `EAccFindResult.NoMatchCancelSearch`/`2`            - Not found, cancel search.
+'* `EAccFindResult.NoMatchSkipDescendents`/`3`         - Not found, don't search descendents.
+'* `EAccFindResult.MatchFoundSearchDescendents`/`4`    - Found, return this element, but continue searching descendents.
+'@param searchType - The type of search, either Breadth First Search (BFS) or Depth First Search (DFS).
 ' To understand the difference between BFS and DFS take this tree:
-'        A
-'       / \
-'      B   C
-'     /   / \
-'    D   E   F
-' A BFS will walk this tree in the following order: A, B, C, D, E, F
-' A DFS will walk this tree in a different order:   A, C, F, E, B, D
-'@examples
-' ```
-' 'Find where name is "hello" and class is "world":
-' el.FindAll(stdLambda.Create("$1.name=""hello"" and $1.class=""world"""))
-' 'Find all elements with depth <= 4:
-' el.FindAll(stdLambda.Create("if $2 < 4 then 4 else if $2 = 4 then 1 else 3"))
-' ```
+'```
+'     A
+'    / \
+'   B   C
+'  /   / \
+' D   E   F
+'```
+'
+'* A BFS will walk this tree in the following order: A, B, C, D, E, F.
+'* A DFS will walk this tree in a different order:   A, C, F, E, B, D.
+'@returns Collection<stdAcc> - Collection of elements found.
+'@examples ```
+''Find where name is "hello" and class is "world":
+'el.FindAll(stdLambda.Create("$1.name=""hello"" and $1.class=""world"""))
+''Find all elements with depth <= 4:
+'el.FindAll(stdLambda.Create("if $2 < 4 then 4 else if $2 = 4 then 1 else 3"))
+'```
 Public Function FindAll(ByVal query As stdICallable, optional byval searchType as EAccFindType=EAccFindType.DepthFirst) As Collection
     Dim stack() As tFindNode
     ReDim stack(0 To 0)
@@ -587,7 +596,7 @@ Public Function FindAll(ByVal query As stdICallable, optional byval searchType a
 End Function
 
 'Return the parent of the IAccessible object
-'@returns {stdAcc} Parent of this element
+'@returns stdAcc - Parent of this element
 Public Property Get Parent() As stdAcc
     If isProxy Then
         Set Parent = stdAcc.CreateFromIAccessible(proxyParent)
@@ -602,7 +611,7 @@ handle_error:
 End Property
 
 'Return the children of the IAccessible object
-'@returns {Collection<stdAcc>} Children of this element
+'@returns Collection<stdAcc> - Children of this element
 Public Property Get children() As Collection
     On Error GoTo ErrorHandler
         Set children = getChildrenAsIAcc()
@@ -613,10 +622,12 @@ ErrorHandler:
 End Property
 
 'Return the hwnd of the IAccessible object
-'@returns {LongPtr} hwnd of this element
-'Return the hwnd of the IAccessible object
-'@returns {LongPtr} hwnd of this element
-Public Property Get hwnd() As LongPtr
+'@returns LongPtr - hwnd of this element
+#if VBA7 then
+  Public Property Get hwnd() As LongPtr
+#Else
+  Public Property Get hwnd() As Long
+#End If
     On Error GoTo handle_error
         Dim lHwnd As LongPtr
         Dim res As Long
@@ -633,7 +644,7 @@ handle_error:
 End Property
 
 'Get a unique identifier for an element.
-'@returns {string} Hex string identifier for element.
+'@returns string - Hex string identifier for element.
 '@example `stdAcc.CreateFromMouse().Identity`
 Public Property Get Identity() As String
   On Error GoTo Fallback
@@ -646,7 +657,7 @@ Fallback:
 End Property
 
 'Return the location of the element as a collection
-'@returns {Collection<Long>} the location of the element. Has 5 named keys: "Width", "Height", "Left", "Top" and "Parent"
+'@returns Collection<Long|stdAcc> - The location of the element. Collection has 5 named keys: "Width", "Height", "Left", "Top" and "Parent". "Parent" refers to the element itself.
 Public Property Get Location() As Collection
     On Error GoTo ErrorHandler
         'Get location from protAccessible
@@ -671,9 +682,9 @@ End Property
 
 'Return the element under the specified location
 'TODO: Is this needed?
-'@param {long} x coord
-'@param {long} y coord
-'@returns {stdAcc} element under point
+'@param x - x coord
+'@param y - y coord
+'@returns stdAcc - element under point
 Public Property Get HitTest(ByVal x As Long, ByVal y As Long) As stdAcc
   Set HitTest = New stdAcc
   Dim NewAcc As Object
@@ -681,8 +692,8 @@ Public Property Get HitTest(ByVal x As Long, ByVal y As Long) As stdAcc
   set HitTest.protAccessible = NewAcc
 End Property
 
-'Gets the value of the element
-'@returns {String} the current value of the element
+'Gets/Sets the value of the element
+'@returns String - the current value of the element
 Public Property Get value() As String
   On Error Resume Next 'FIX: Sometimes this is unsupported, so leave this error.
   if isProxy then
@@ -691,9 +702,6 @@ Public Property Get value() As String
     value = protAccessible.accValue(CHILDID_SELF)
   end if
 End Property
-
-'Sets the value of the element
-'@param {Variant} the new value of the element
 Public Property Let value(val As String)
   if isProxy then
     proxyParent.accValue(proxyIndex) = val
@@ -703,7 +711,7 @@ Public Property Let value(val As String)
 End Property
 
 'Returns the name of the element
-'@returns {String} the name of the element
+'@returns String - the name of the element
 Public Property Get name() As String
   On Error Resume Next 'FIX: Sometimes this is unsupported, so leave this error.
   If isProxy Then
@@ -714,7 +722,7 @@ Public Property Get name() As String
 End Property
 
 'Returns the description of the default action of the element
-'@returns {String} the description of the default action of the element
+'@returns String - the description of the default action of the element
 Public Property Get DefaultAction() As String
   On Error Resume Next 'FIX: Sometimes this is unsupported, so leave this error.
   If isProxy Then
@@ -725,7 +733,7 @@ Public Property Get DefaultAction() As String
 End Property
 
 'Returns the role of the element
-'@returns {String} the role of the element
+'@returns String - the role of the element
 Public Property Get Role() As String
   On Error Resume Next 'FIXME: On extremely rare occasions the OLE object will disconnect / not expect automation. `On Error Resume Next` silences the error but this isn't a real fix.
   if isProxy then
@@ -736,7 +744,7 @@ Public Property Get Role() As String
 End Property
 
 'Returns the state of the element
-'@returns {String} the state of the element
+'@returns String - the state of the element
 Public Property Get States() As String
   Dim iStateData As Long: iStateData = StateData
   Dim oLookup As Object: Set oLookup = Lookups("EAccStates")("S2N")
@@ -751,7 +759,7 @@ Public Property Get States() As String
 End Property
 
 'Returns the state(s) of the element
-'@returns {Long} the state(s) of the element
+'@returns Long - the state(s) of the element
 Public Property Get StateData() As Long
   On Error Resume Next 'FIXME: On extremely rare occasions the OLE object will disconnect / not expect automation. `On Error Resume Next` silences the error but this isn't a real fix.
   if isProxy then
@@ -762,7 +770,7 @@ Public Property Get StateData() As Long
 End Property
 
 'Returns the description of the element
-'@returns {String} the description of the element
+'@returns String - the description of the element
 Public Property Get Description() As String
   On Error Resume Next 'FIX: Sometimes this is unsupported, so leave this error.
   if isProxy then
@@ -773,9 +781,9 @@ Public Property Get Description() As String
 End Property
 
 'Returns the keyboard shortcut used to trigger the default action of the element
-'@returns {String} The keyboard shortcut used to trigger the default action of the element
+'@returns String - The keyboard shortcut used to trigger the default action of the element
 Public Property Get KeyboardShortcut() As String
-  On Error Resume Next 'FIX: Sometimes this is unsupported, so leave this error.
+  On Error Resume Next 'FIX: Sometimes this is unsupported, so leave this error handling.
   if isProxy then
     KeyboardShortcut = proxyParent.accKeyboardShortcut(proxyIndex)
   else
@@ -784,7 +792,7 @@ Public Property Get KeyboardShortcut() As String
 End Property
 
 'Get the Focus of the UI element
-'@returns {Boolean} Whether the element has focus
+'@returns Boolean - Whether the element has focus
 Public Property Get Focus() As Boolean
   'On Error Resume Next
   if isProxy then
@@ -795,7 +803,7 @@ Public Property Get Focus() As Boolean
 End Property
 
 'Set the Focus of the UI element
-'@param {Boolean} True if the element should be focussed, otherwise false
+'@param Boolean - `True` if the element should be focussed, otherwise `false`
 Public Property Let Focus(ByVal val As Boolean)
   'On Error Resume Next
   if isProxy then
@@ -806,7 +814,7 @@ Public Property Let Focus(ByVal val As Boolean)
 End Property
 
 'Returns the help
-'@returns {String} the help
+'@returns String - the help for the element
 Public Property Get Help() As String
   'On Error Resume Next
   if isProxy then
@@ -817,7 +825,7 @@ Public Property Get Help() As String
 End Property
 
 'Returns the help topic
-'@returns {String} the help topic
+'@returns String - the help topic for the element
 Public Property Get HelpTopic(Optional ByVal sFile as string = "") As String
   On Error Resume Next 'FIX: Sometimes this is unsupported, so leave this error.
   if isProxy then
@@ -828,7 +836,7 @@ Public Property Get HelpTopic(Optional ByVal sFile as string = "") As String
 End Property
 
 'Returns a string containing numerous properties from stdAcc concatenated together.
-'@returns {String} Concatenation of Name, Value, DefaultAction, Description, Role, Help, HelpTopic and KeyboardShortcut.
+'@returns String - Concatenation of Name, Value, DefaultAction, Description, Role, Help, HelpTopic and KeyboardShortcut.
 Public Property Get Text() As String
   If Len(name & value & DefaultAction & Description & Help & HelpTopic & KeyboardShortcut) > 0 Then
     Text = "Name: """ & name & """; " & _
@@ -844,8 +852,7 @@ Public Property Get Text() As String
   End If
 End Property
 
-'Performs the default action of the IAccessible object
-'@returns {VOID}
+'Performs the default action of the `IAccessible` object
 Public Sub DoDefaultAction()
   If isProxy Then
     Call proxyParent.accDoDefaultAction(proxyIndex)
@@ -855,11 +862,11 @@ Public Sub DoDefaultAction()
 End Sub
 
 'Sends a message to the window
-'TODO: Move this out to stdWindow when ready `stdWindow.Create(hwnd).sendMessage(...)`
-'@param {Long} Message to send
-'@param {Long} WParam to send
-'@param {Long} LParam to send
-'@returns {Long} Return value
+'@deprecated Use `stdWindow#SendMessage()` instead.
+'@param Msg - Message to send
+'@param wParam - WParam to send
+'@param lParam - LParam to send
+'@returns Long - Return value
 Public Function SendMessage(ByVal Msg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
     If hwnd() > 0 Then
         SendMessage = APISendMessage(hwnd(), Msg, wParam, lParam)
@@ -868,8 +875,7 @@ Public Function SendMessage(ByVal Msg As Long, ByVal wParam As Long, ByVal lPara
     End If
 End Function
 
-'Print the text of all child elements
-'@returns {VOID}
+'Print the text of all child elements. Useful for debugging.
 Public Sub PrintChildTexts()
     Dim child As stdAcc
     Dim iIndex As Long: iIndex = 0
@@ -880,11 +886,10 @@ Public Sub PrintChildTexts()
 End Sub
 
 'Prints all descendent texts. Useful for debugging. Also includes all paths of all descendents which can be very beneficial.
-'@param {ByVal String = ""} Optional File path to dump text to
-'@param {ByVal Boolean = True} Optional whether to print output to debug window or not.
-'@param {ByVal String = "P"} Optional prefix path (sometimes you might wnat to use Me.getPath(...))
-'@param {ByVal Long = 0} Filenum to output too, typically this will be left unprovided
-'@returns {VOID}
+'@param sToFilePath   - File path to dump text to.
+'@param bPrintToDebug - Whether to print output to debug window or not.
+'@param sPath         - Prefix path (sometimes you might wnat to use Me.getPath(...))
+'@param fileNum       - Filenum to output too, typically this will be left unprovided
 Public Sub PrintDescTexts(Optional ByVal sToFilePath as string = "", Optional ByVal bPrintToDebug as boolean = true, Optional ByVal sPath As String = "P", Optional ByVal fileNum as long = 0)
     'Open file is file name passed and file num not given
     Dim bFileOpened as boolean
@@ -921,8 +926,8 @@ Public Sub PrintDescTexts(Optional ByVal sToFilePath as string = "", Optional By
 End Sub
 
 'Returns the path to an element
-'@param {stdAcc} Stop creating path at this element
-'@returns {String} String representing path to element from either Desktop or toAccessible
+'@param toAccessible - Stop creating path at this element
+'@returns String - String representing path to element from either Desktop or toAccessible.
 Public Function getPath(Optional toAccessible As stdAcc = Nothing) As String
     'Initialise trace
     Dim acc As stdAcc
@@ -973,7 +978,7 @@ Public Function getPath(Optional toAccessible As stdAcc = Nothing) As String
 End Function
 
 'Returns this element and all descendents as a JSON string. Useful for debugging
-'@returns {String} JSON representation of element tree
+'@returns String - JSON representation of element tree
 Public Function toJSON() As String
     'Get children string
     Dim sChildren As String
@@ -998,11 +1003,11 @@ Public Function toJSON() As String
 End Function
 
 'Await for the existence of an element which meets a specified condition.
-'@param {stdICallable<stdAcc=>Boolean>} If this callback returns true, the function will immediately set the result of the function to the awaited element, otherwise will continue awaiting.
-'@param {stdICallable<stdAcc=>Boolean>} If this callback returns true, the function will immediately set the result of the function to `nothing`, oterwise will continue awaiting. If none is provided no error is checked.
-'@param {Long} Timeout in seconds. Defaults to -1 = NoTimeout. When timeout is reached the return value of the function is `nothing`
-'@returns {stdAcc} Element awaited for
-'@remark calls `Me.FindFirst(awaitFor)` to wait for element chosen
+'@param awaitFor as stdICallable<(stdAcc)=>Boolean> - If this callback returns true, the function will immediately set the result of the function to the awaited element, otherwise will continue awaiting.
+'@param error as stdICallable<(stdAcc)=>Boolean>    - If this callback returns true, the function will immediately set the result of the function to `nothing`, oterwise will continue awaiting. If none is provided no error is checked.
+'@param timeout                                   - Timeout in seconds. Default = NoTimeout. When timeout is reached the return value of the function is `nothing`
+'@returns stdAcc                                  - Element awaited for
+'@remark calls `Me.FindFirst(awaitFor)` to wait for chosen element
 Public Function AwaitForElement(awaitFor as stdICallable, Optional error as stdICallable = Nothing, Optional timeout As Long = -1) As stdAcc
   Dim bCond As Boolean: bCond = True
   Dim el As Object: Set el = Nothing
@@ -1020,7 +1025,7 @@ Public Function AwaitForElement(awaitFor as stdICallable, Optional error as stdI
 End Function
 
 'Returns the lookups object
-'@returns {Dictionary<Dictionary<Dictionary<string|long>>>}
+'@returns {Dictionary<string,Dictionary<string,Dictionary<string,long>>>}
 Friend Function protGetLookups()
     if Lookups is nothing then
         set Lookups = CreateObject("Scripting.Dictionary")

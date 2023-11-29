@@ -8,11 +8,12 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
+'@module
 '`stdFiber` allows production of partitioned asynchronous procedures which can be run within a fiber runtime.
 '`stdFiber.Create()` is used to create our fiber procedures
 '`stdFiber.runFibers()` is used to run our fiber procedures within a fiber runtime.
 'Fibers can be useful especially when dealing with asynchronous functions
-'@example {1. Simple fiber example}:
+'@example **1. Simple fiber example**:
 '```vb
 '   Sub main()
 '       Dim fibers as new Collection
@@ -51,7 +52,7 @@ Attribute VB_Exposed = False
 '   End Sub
 
 '```
-'@example {2. Use of agents}:
+'@example **2. Use of agents**:
 '```vb
 '   Sub main()
 '     Dim fibers as new Collection
@@ -81,6 +82,7 @@ Attribute VB_Exposed = False
 '   End Function
 '   '...
 '```
+
 
 Private Type TFiberQueue
   index as long
@@ -112,11 +114,17 @@ Private This as TThis
 
 'Create a fiber
 '@constructor
-'@returns {stdFiber} A fiber procedure - a wrapper around a number of procedures used for concurrent programming.
+'@param sName - The name of the fiber
+'@returns - A fiber procedure - a wrapper around a number of procedures used for concurrent programming.
 Public Function Create(ByVal sName as string) as stdFiber
   set Create = new stdFiber
   Call Create.protInit(sName)
 End Function
+
+'Create a fiber
+'@constructor
+'@protected
+'@param sName - The name of the fiber
 Friend Sub protInit(ByVal sName as string)
   this.name = sName
   this.procStep = 1
@@ -124,9 +132,9 @@ Friend Sub protInit(ByVal sName as string)
 End Sub
 
 'Add a step/sub-process to the fiber
-'@param {stdICallable<(stdFiber)=>boolean>} Callback process / step, consumes the fiber parent, returns `true` if caller can proceed to next step. returns `false` otherwise.
-'@param {string} stepName - The name of the step. This can be used for resetting and error reporting purposes.
-'@returns {stdFiber} A fiber procedure - A reference to the fiber the step has been added to
+'@param processStep as stdICallable<(stdFiber)=>boolean> - Callback process / step, consumes the fiber parent, returns `true` if caller can proceed to next step. returns `false` otherwise.
+'@param stepName - The name of the step. This can be used for resetting and error reporting purposes.
+'@returns - A fiber procedure - A reference to the fiber the step has been added to
 Public Function add(ByVal processStep as stdICallable, Optional ByVal stepName as string = "") as stdFiber
   this.procsCount = this.procsCount + 1
   Redim Preserve this.procs(1 to this.procsCount)
@@ -137,14 +145,17 @@ Public Function add(ByVal processStep as stdICallable, Optional ByVal stepName a
   set add = Me
 End Function
 
+'Add an error handler to the fiber
+'@param handler as stdICallable<(stdFiber)=>void> - Callback to run when an error occurs in the fiber
+'@returns - A fiber procedure - A reference to the fiber the step has been added to, to allow chaining
 Public Function addErrorHandler(ByVal handler as stdICallable) as stdFiber
   set this.errorHandler = handler
   set addErrorHandler = Me
 End Function
 
 'Calls current sub-process in the fiber procedure. Advances the queue if the ran sub-process is finished.
-'@param {Object<Dictionary>} An object storing information unique to the runtime agent. This agent is bound to the fiber, allowing use of window or accessibility elements initialised on the agent.
-'@returns {Boolean} True if this fiber procedure has finished execution (i.e. future stepping not required anymore)
+'@param agent as Object<Dictionary> - An object storing information unique to the runtime agent. This agent is bound to the fiber, allowing use of window or accessibility elements initialised on the agent.
+'@returns - `True` if this fiber procedure has finished execution (i.e. future stepping not required anymore).
 Friend Function protStep(Byval agent as Object) as Boolean
   Dim oMe As Object: Set oMe = Me
   On Error GoTo ErrorHandler
@@ -168,14 +179,14 @@ ErrorHandler:
 End Function
 
 'Usually called by a sub-process, this will mark the fiber procedure as finished, and return the passed result
-'@param {Variant} The result to return
+'@param vResult - The result to return
 Public Sub Resolve(ByVal vResult as variant)
   this.isFinished = true
   Call CopyVariant(this.result, vResult)
 End Sub
 
 'Reset to a specific step
-'@param {string} Step name to jump to
+'@param sName - Step name to jump to (if not specified, will reset to first step).
 Public Sub Reset(Optional ByVal sName As string = "")
   this.resetCount = this.resetCount + 1
   if sName <> "" then
@@ -195,54 +206,64 @@ Public Sub Reset(Optional ByVal sName As string = "")
   end if
 End Sub
 
-'Obtain the number of times this fiber has reset
+'Obtain the number of times this fiber has reset.
+'@returns - The number of times this fiber has been reset.
 Public Property Get ResetCount() as Long
   ResetCount = this.resetCount
 End Property
 
 'Obtain the result of this fiber
+'@returns - The result of this fiber
 Public Property Get Result() as Variant
   Call CopyVariant(Result, this.result)
 End Property
 
 'Obtain errors if any as string
+'@returns - The error text
 Public Property Get ErrorText() As string
   ErrorText = this.errorText
 End Property
 
 'Obtain the metadata object, usually used by the sub-process
+'@returns - The metadata object
 Public Property Get Meta() as Object
   set Meta = this.Meta
 End Property
 
 'Obtain the current step which the fiber procedure is at.
+'@returns - The current step
 Public Property Get Step() as Long
   Step = procStep
 End Property
 
+'Obtains the duration of the fiber procedure
+'@returns - The duration of the fiber procedure in seconds
 Public Property Get StepDuration as Long
   StepDuration = DateDiff("s", this.procs(this.procStep).startTime, now())
 End Property
 
 'Obtains whether the fiber has finished or not
+'@returns - `True` if the fiber has finished, `False` otherwise
 Public Property Get isFinished() as Boolean
   isFinished = this.isFinished
 End Property
 
 'Obtain the name of the fiber
+'@returns - The name of the fiber
 Public Property Get Name() as string
   Name = this.Name
 End Property
 
 'Obtain the agent information I.E. information unique to the runtime running this fiber
+'@returns - The agent information. 
 Public Property Get Agent() as Object
   set Agent = this.Agent
 End Property
 
 'Run a collection/stdArray/stdEnumerator of fiber procedures, across a number of concurrent running fiber runtimes, returning all results as a collection.
-'@param {Variant<Collection|Array|stdArray|stdEnumerator>} Fiber procedures to execute over
-'@param {Long} the number of fiber runtimes to create (or number of fiber procedures to run concurrently)
-'@returns {Collection} Collection of results of ran fiber procedures. You can use the variant from param1 if you need to check for errors using ErrorText.
+'@param vFibers as Variant<Collection|Array|stdArray|stdEnumerator> - Fiber procedures to execute over
+'@param numFibers - the number of fiber runtimes to create (or number of fiber procedures to run concurrently)
+'@returns - Collection of results of ran fiber procedures. You can use the variant from param1 if you need to check for errors using ErrorText.
 '@TODO: Consider whether return data is correct. If we create fibers from table, how would we refer back to errornous records on the table?
 '@TODO: add param AgentInitHandler   for initialising of agent objects, this is called only once per agent.
 '@TODO: add param AgentDestroyHandler  for destroying of agent objects / clean up, this is called only once per agent.
@@ -291,8 +312,8 @@ End Function
 '***********
 
 'Copy variant from vSrc to vDest
-'@param {ByRef Variant} Destination
-'@param {ByVal Variant} Source
+'@param vDest - Destination
+'@param vSrc  - Source
 Private Sub CopyVariant(ByRef vDest, ByVal vSrc)
   if isObject(vSrc) then
     set vDest = vSrc
@@ -302,8 +323,8 @@ Private Sub CopyVariant(ByRef vDest, ByVal vSrc)
 End Sub
 
 'Creates a queue of fiber procedures (TFiberQueue)
-'@param {Variant<Collection|Array|stdArray|stdEnumerator>} Fibers to execute over
-'@returns {TFiberQueue} Queue representing fibers
+'@param vFibers as Variant<Collection|Array|stdArray|stdEnumerator> - Fibers to execute over
+'@returns - Queue representing fibers
 Private Function TFiberQueue_Create(ByRef vFibers as Variant) as TFiberQueue
   TFiberQueue_Create.index = 0
   Dim i as long
@@ -342,16 +363,16 @@ Private Function TFiberQueue_Create(ByRef vFibers as Variant) as TFiberQueue
 End Function    
 
 'Gets the next element in a queue
-'@param {ByRef TFiberQueue} The queue to get the item from
-'@returns {Boolean} The resultant fiber
+'@param queue - The queue to get the item from
+'@returns - The resultant fiber
 Private Function TFiberQueue_Get(ByRef queue as TFiberQueue) as stdFiber
   queue.index = queue.index+1
   set TFiberQueue_Get = queue.queue(queue.index)
 End Function
 
 'Checks if a next element exists in a queue
-'@param {ByRef TFiberQueue} The queue to check
-'@returns {Boolean} The result
+'@param queue - The queue to check
+'@returns - The result
 Private Function TFiberQueue_HasNext(ByRef queue as TFiberQueue) as Boolean
   TFiberQueue_HasNext = queue.index < queue.count
 End Function

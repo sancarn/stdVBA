@@ -146,7 +146,7 @@ Private Type PROCESSENTRY32
 End Type
 
 
-
+'@TODO: Convert to TThis
 Private pProcessCache As Object
 
 Private pProcessId As Long
@@ -154,14 +154,18 @@ Private pModuleID As Long
 Private pName As String
 Private pPath As String
 
-Private pProcessHandle As LongPtr
-Private pQueryInfoHandle As LongPtr
-
+#if VBA7 then
+  Private pProcessHandle As LongPtr
+  Private pQueryInfoHandle As LongPtr
+#else
+  Private pProcessHandle As Long
+  Private pQueryInfoHandle As Long
+#end if
 'Launches a process and creates a stdProcess object for it
 '@constructor
-'@param {ByVal String} - The command to create the process
-'@param {ByVal vbAppWinStyle} - The style to show the window
-'@returns {stdProcess} - The launched process
+'@param sCMD     - The command to create the process
+'@param winStyle - The style to show the window
+'@returns        - The launched process
 Public Function Create(ByVal sCmd As String, Optional ByVal winStyle As VbAppWinStyle = VbAppWinStyle.vbHide) As stdProcess
   Set Create = New stdProcess
   Call Create.protInitFromProcessId(Shell(sCmd, winStyle))
@@ -169,8 +173,8 @@ End Function
 
 'Creates a process from a given process id
 '@constructor
-'@param {ByVal Long} - the process id
-'@returns {stdProcess} the queried process
+'@param pID - the process id
+'@returns   - the queried process
 Public Function CreateFromProcessId(ByVal pID As Long) As stdProcess
   Set CreateFromProcessId = New stdProcess
   Call CreateFromProcessId.protInitFromProcessId(pID)
@@ -178,8 +182,8 @@ End Function
 
 'Obtains a the first process which matches the query given
 '@constructor
-'@param {stdICallable} - The query to search processes for
-'@returns {stdProcess} the queried process
+'@param query - The query to search processes for
+'@returns     - the queried process
 Public Function CreateFromQuery(ByVal query As stdICallable) As stdProcess
   Dim pEntry As PROCESSENTRY32: pEntry.dwSize = LenB(pEntry)
   Dim snapshot As LongPtr: snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, ByVal 0&)
@@ -202,8 +206,8 @@ End Function
 
 'Obtains a collection of processes which match the query given
 '@constructor
-'@param {stdICallable} - The query to search processes for
-'@returns {Collection<stdProcess>}
+'@param query - The query to search processes for
+'@returns Collection<stdProcess> - the queried processes
 Public Function CreateManyFromQuery(ByVal query As stdICallable) As Collection
   Dim pEntry As PROCESSENTRY32: pEntry.dwSize = LenB(pEntry)
   Dim snapshot As LongPtr: snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, ByVal 0&)
@@ -226,7 +230,7 @@ End Function
 
 'Obtains a collection of all processes
 '@constructor
-'@returns {Collection<stdProcess>} All processes
+'@returns Collection<stdProcess> - All processes
 Public Function CreateAll() As Collection
   Dim pEntry As PROCESSENTRY32: pEntry.dwSize = LenB(pEntry)
   Dim snapshot As LongPtr: snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, ByVal 0&)
@@ -250,11 +254,10 @@ End Function
 'Initialises a process object from process id and other data. Optional args are generated if not supplied
 '@protected
 '@constructor
-'@param {ByVal argID} - The process id
-'@param {ByVal String = ""} - The process name
-'@param {ByVal String = ""} - The process path
-'@param {ByVal Long   = 0} - The process module id
-'@returns {VOID}
+'@param argID       - The process id
+'@param argName     - The process name
+'@param argPath     - The process path
+'@param argModuleID - The process module id
 Friend Sub protInitFromProcessId(ByVal argID As Long, Optional ByVal argName As String = "", Optional ByVal argPath As String = "", Optional ByVal argModuleID As Long = 0)
   pProcessId = argID
   pName = argName
@@ -265,6 +268,7 @@ Friend Sub protInitFromProcessId(ByVal argID As Long, Optional ByVal argName As 
   pQueryInfoHandle = OpenProcess(PROCESS_QUERY_INFORMATION, False, argID)
 End Sub
 
+'@destructor
 Private Sub Class_Terminate()
   Call CloseHandle(pQueryInfoHandle)
 End Sub
@@ -274,7 +278,7 @@ End Sub
 '================================================================================================
 
 'Obtain the process id
-'@returns {Long} - the process id
+'@returns  - the process id
 Public Property Get id() As Long
   id = pProcessId
 End Property
@@ -290,19 +294,19 @@ End Property
 'TODO: ThreadID
 
 'Obtain the process name
-'@returns {Long} - the process name
+'@returns - the process name
 Public Property Get name() As String
   name = pName
 End Property
 
 'Obtain the process path
-'@returns {Long} - the process path
+'@returns - the process path
 Public Property Get path() As String
   path = pPath
 End Property
 
 'Returns the Winmgmts object representing the process
-'@returns {Object<SWbemObjectEx>}
+'@returns Object<SWbemObjectEx> - The Winmgmts object representing the process
 Public Property Get Winmgmt() As Object
   Static cache As Object
   If cache Is Nothing Then Set cache = GetObject("WINMGMTS:\\.\ROOT\cimv2:Win32_Process.Handle=" & pProcessId)
@@ -310,19 +314,19 @@ Public Property Get Winmgmt() As Object
 End Property
 
 'Attempts to return the command line of the application. Please note [the command line may have changed](https://devblogs.microsoft.com/oldnewthing/20091125-00/?p=15923).
-'@returns {String} The string which originally contained the command line arguments passed to this application.
+'@returns - The string which originally contained the command line arguments passed to this application.
 Public Property Get CommandLine() As String
   If Not Winmgmt Is Nothing Then CommandLine = Winmgmt.CommandLine
 End Property
 
 'Returns whether the process is still running or not
-'@returns {Boolean} True if the process is still running, false otherwise
+'@returns - `true` if the process is still running, `false` otherwise
 Public Property Get isRunning() As Boolean
   isRunning = GetProcessVersion(pProcessId) > 0
 End Function
 
 'Returns whether the process is critical or not
-'@returns {Boolean} True if the process is critical, false otherwise
+'@returns - `true` if the process is critical, `false` otherwise
 Public Property Get isCritical() As Boolean
   'Note: IsProcessCritical can return a weird boolean where `bool` and `Not bool` both result in `True`, which is nonsense...
   'for this reason we explicitely cast to a long here...
@@ -332,15 +336,15 @@ Public Property Get isCritical() As Boolean
 End Function
 
 'Get the process' priority
-'@returns {EProcessPriority} the process' priority
+'@returns - the process' priority
 Public Property Get Priority() As EProcessPriority
   Priority = GetPriorityClass(pQueryInfoHandle)
 End Property
 
 
 'Get the datetime representing the time the process was started/created
-'TODO: Currently returns in UTC. Convert to standard time.
-'@returns {Date} The datetime representing the time the process was started/created
+'@returns - The datetime representing the time the process was started/created
+'@TODO: Currently returns in UTC. Convert to standard time.
 Public Property Get TimeCreated() As Date
   Dim t1 As FileTime, t2 As FileTime, t3 As FileTime, t4 As FileTime
   if pQueryInfoHandle = 0 then exit property
@@ -352,8 +356,8 @@ Public Property Get TimeCreated() As Date
 End Property
 
 'Get the datetime representing the time the process was quit
-'TODO: Currently returns in UTC. Convert to standard time.
-'@returns {Date} The datetime representing the time the process was quit
+'@returns - The datetime representing the time the process was quit
+'@TODO: Currently returns in UTC. Convert to standard time.
 Public Property Get TimeQuit() As Date
   Dim t1 As FileTime, t2 As FileTime, t3 As FileTime, t4 As FileTime
   if pQueryInfoHandle = 0 then exit property
@@ -369,8 +373,8 @@ Public Property Get TimeQuit() As Date
 End Property
 
 'Get the amount of time that the process has executed in kernel mode
-'TODO: Currently returns in UTC. Convert to standard time.
-'@returns {Date} The datetime representing the kernel time
+'@returns - The datetime representing the kernel time
+'@TODO: Currently returns in UTC. Convert to standard time.
 Public Property Get TimeKernel() As Date
   Dim t1 As FileTime, t2 As FileTime, t3 As FileTime, t4 As FileTime
   if pQueryInfoHandle = 0 then exit property
@@ -382,8 +386,8 @@ Public Property Get TimeKernel() As Date
 End Property
 
 'Get the amount of time that the process has executed in user mode
-'TODO: Currently returns in UTC. Convert to standard time.
-'@returns {Date} The datetime representing the user time
+'@returns - The datetime representing the user time
+'@TODO: Currently returns in UTC. Convert to standard time.
 Public Property Get TimeUser() As Date
   Dim t1 As FileTime, t2 As FileTime, t3 As FileTime, t4 As FileTime
   if pQueryInfoHandle = 0 then exit property
@@ -395,7 +399,7 @@ Public Property Get TimeUser() As Date
 End Property
 
 'Get the exit code of this process. Note, an exit code is only ever received if the process has ended. Check isRunning prior to calling this function.
-'@returns {Long} the exit code provided at runtime
+'@returns - the exit code provided at runtime
 Public Property Get ExitCode() As Long
   'Note: GetExitCodeProcess can return a weird boolean where `bool` and `Not bool` both result in `True`, which is nonsense...
   'for this reason we explicitely cast to a long here...
@@ -409,7 +413,7 @@ End Property
 '================================================================================================
 
 'Wait till the process closes
-'@returns {VOID}
+'@param ExitCode - The exit code to use when terminating the process
 Public Sub forceQuit(Optional ByVal ExitCode As Long = 0)
   Call protProcessHandleCreate(PROCESS_TERMINATE)
   If pProcessHandle = 0 Then Exit Sub
@@ -423,7 +427,6 @@ Public Sub forceQuit(Optional ByVal ExitCode As Long = 0)
 End Sub
 
 'Wait till the process closes
-'@returns {VOID}
 Public Sub waitTilClose()
   While isRunning
     DoEvents
@@ -442,14 +445,17 @@ End Sub
 
 'Get the process handle
 '@protected
-'@returns {LongPtr} the open process handle
-Friend Property Get protProcessHandle() As LongPtr
+'@returns - the open process handle
+#if VBA7 then
+  Friend Property Get protProcessHandle() As LongPtr
+#else
+  Friend Property Get protProcessHandle() As Long
+#end if
   protProcessHandle = pProcessHandle
 End Property
 
 'Call to OpenProcess() to save a handle in the class. Typically this is not required, thus this method is listed as protected.
 '@protected
-'@returns {VOID}
 Friend Sub protProcessHandleCreate(ByVal access As EProcessAccess)
   If pProcessHandle = 0 Then
     pProcessHandle = OpenProcess(access, 0, pProcessId)
@@ -460,7 +466,6 @@ End Sub
 
 'Call to CloseProcess() to close process handle
 '@protected
-'@returns {VOID}
 Friend Sub protProcessHandleRelease()
   Call CloseHandle(pProcessHandle)
   pProcessHandle = 0
@@ -469,9 +474,9 @@ End Sub
 '================================================================================================
 '=      HELPERS
 '================================================================================================
-'Obtain a Dictionary object used for Querying.
-'@param {PROCESSENTRY32} - The PROCESSENTRY32 entry to convert to a dictionary.
-'@returns {Dictionary<string: variant>} - Dictionary of process information
+'Obtain a stdProcess object from a PROCESSENTRY32 entry
+'@param entry - The PROCESSENTRY32 entry to convert to a dictionary.
+'@returns - The stdProcess object representing the process
 Private Function getProcessFromEntry(entry As PROCESSENTRY32) As stdProcess
   Dim ret As stdProcess
   Set ret = New stdProcess
@@ -486,25 +491,26 @@ Private Function getProcessFromEntry(entry As PROCESSENTRY32) As stdProcess
 End Function
 
 'Obtain the Process name from the ProcessID
-'@param {ByVal Long} - The process id
-'@returns {Long} - The process name
+'@param lProcessID - The process id
+'@returns          - The process name
 Private Function getProcessNameById(ByVal lProcessID As Long) As String
   Dim entry As PROCESSENTRY32: entry = getCachedProcessEntry(lProcessID)
   getProcessNameById = Left(entry.szexeFile, InStr(1, entry.szexeFile, vbNullChar) - 1)
 End Function
 
-'TODO: This method does not currently work as PROCESSENTRY32.th32ModuleID has been deprecated and always returns 0
 'Obtain the ModuleID from the ProcessID
-'@param {ByVal Long} - The process id
-'@returns {Long} - The module id
+'@param lProcessID - The process id
+'@returns          - The module id
+'@TODO: This method does not currently work as PROCESSENTRY32.th32ModuleID has been deprecated and always returns 0
 Private Function getModuleIDByPid(ByVal lProcessID As Long) As Long
   Dim entry As PROCESSENTRY32: entry = getCachedProcessEntry(lProcessID)
   getModuleIDByPid = entry.th32ModuleID
 End Function
 
 'Obtain the PROCESSENTRY32 struct from the ProcessID
-'@param {ByVal Long} - The process id
-'@returns {PROCESSENTRY32} - The PROCESSENTRY32 representing the process' data
+'@param lProcessID - The process id
+'@param Override   - If `true`, the cache will be ignored and the process will be re-queried, otherwise the cache will be used.
+'@returns          - The PROCESSENTRY32 representing the process' data
 Private Function getCachedProcessEntry(ByVal lProcessID As Long, Optional ByVal Override As Boolean = False) As PROCESSENTRY32
   Static pEntry As PROCESSENTRY32
   Static stcProcessID As Long
@@ -527,8 +533,8 @@ Private Function getCachedProcessEntry(ByVal lProcessID As Long, Optional ByVal 
 End Function
 
 'Obtain the full qualified path of a process from it's ProcessID
-'@param {ByVal Long} - The process id
-'@returns {String} - The fully qualified path to the process
+'@param lProcessID - The process id
+'@returns          - The fully qualified path to the process
 Private Function getProcessImageName(ByVal lProcessID As Long) As String
   Dim hProcess As LongPtr
   hProcess = OpenProcess(EProcessAccess.PROCESS_QUERY_INFORMATION, 0, lProcessID)
@@ -555,13 +561,13 @@ Private Function getProcessImageName(ByVal lProcessID As Long) As String
 End Function
 
 'Convert a FileTime struct into an Excel DateTime value.
-'@param {FileTime} The filetime to get the Excel date of
-'@returns {Date} The Excel date represented by the FileTime
+'@param ft - The filetime to get the Excel date of
+'@returns  - The Excel date represented by the FileTime
+'@TODO: use GetDynamicTimeZoneInformation() in combination with SystemTimeToTzSpecificLocalTimeEx() to convert to local timezone
 Private Function TimeFromFileTime(ByRef ft As FileTime) As Date
   Dim st As SystemTime
   If FileTimeToSystemTime(ft, st) Then
     With st
-      'TODO: use GetDynamicTimeZoneInformation() in combination with SystemTimeToTzSpecificLocalTimeEx() to convert to local timezone
       TimeFromFileTime = DateSerial(.wYear, .wMonth, .wDay) + TimeSerial(.wHour, .wMinute, .wSecond)
     End With
   Else

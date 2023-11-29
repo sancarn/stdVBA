@@ -8,21 +8,28 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = false
 Attribute VB_Exposed = False
 
-'Call will call the passed function with param array
+'Run the function with supplied parameters
+'@param params - The parameters to run the function with
+'@returns      - The result of the function
 Public Function Run(ParamArray params() as variant) as variant: End Function
 
-'Call function with supplied array of params
+'Run the function with a array of parameters
+'@param params as Variant<Array<Variant>> - The parameters to run the function with
+'@returns                                 - The result of the function
 Public Function RunEx(ByVal params as variant) as variant: End Function
 
-'Bind a parameter to the function
+'Bind a set of parameters to the function call
+'@param params - The parameters to bind to the function
+'@returns      - A new function with the parameters bound
 Public Function Bind(ParamArray params() as variant) as stdICallable: End Function
 
-'Making late-bound calls to stdICallable members
+'Making late-bound calls to `stdICallable` members. Each object which implements `stdICallable`
+'will support a different set of latebound calls.
 '@protected
-'@param {ByVal String} - Message to send
-'@param {ByRef Boolean} - Whether the call was successful
-'@param {ByVal Variant} - Any variant, typically parameters as an array. Passed along with the message.
-'@returns {Variant} - Any return value.
+'@param sMessage - Message to send. Standard messages include "obj" returning the object, "className" returning the class name. Other messages are implementation specific.
+'@param success  - Whether the call was successful
+'@param params   - Any variant, typically parameters as an array. Passed along with the message.
+'@returns - Any return value.
 Public Function SendMessage(ByVal sMessage as string, ByRef success as boolean, ByVal params as variant) as Variant: End Function
 
 'Ideally we would want to get a pointer to the function... However, getting a pointer to an object method is

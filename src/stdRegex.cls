@@ -72,6 +72,7 @@ Attribute VB_Exposed = False
 '   Range("A1:B1").value = Array("ID-Date","Count")
 '   Range("A2").Resize(ubound(vResult,1),2).value = vResult
 
+'@TODO: Convert to TThis
 Private p_initialised As Boolean
 Private p_pattern As String
 Private p_cPattern As String
@@ -83,11 +84,13 @@ Private p_regex As Object
 'Creates a regex object given a pattern and flags.
 '@constructor
 '
-'@param {string}  Pattern - The pattern to match
-'@param {string}  Flags - Optional flags to apply
-'@return {stdRegex} Regular expression object
+'@param pattern - The pattern to match
+'@param flags   - Optional flags to apply
+'@returns - Regular expression object
 '@example
-'    stdRegex.Create("A\d+","i")
+'```vb
+'stdRegex.Create("A\d+","i")
+'```
 Public Function Create(ByVal pattern As String, Optional ByVal flags As String = "") As stdRegex
   If Not Me Is stdRegex Then
     Call stdError.Raise("Constructor called on object not class")
@@ -101,7 +104,7 @@ Public Function Create(ByVal pattern As String, Optional ByVal flags As String =
     'Call to [friend] init requires type information, can't use dict directly
     Dim r As stdRegex
     Set r = New stdRegex
-    Call r.init(pattern, flags)
+    Call r.protInit(pattern, flags)
     
     'Set cache
     Set cache(sKey) = r
@@ -115,12 +118,13 @@ End Function
 
 'Initialises the class from within the static superclass. This method is meant for internal use only. Use at your own risk.
 '@protected
-'
-'@param {string}  Pattern - The pattern to match
-'@param {string}  Flags - Optional flags to apply
+'@param pattern - The pattern to match
+'@param flags - Optional flags to apply
 '@example
-'    obj.init("A\d+","i")
-Friend Sub init(ByVal pattern As String, ByVal flags As String)
+'```vb
+'obj.protInit("A\d+","i")
+'```
+Friend Sub protInit(ByVal pattern As String, ByVal flags As String)
   If Me Is stdRegex Then
     stdError.Raise ("Cannot run init on class")
     Exit Sub
@@ -213,6 +217,7 @@ End Sub
 
 
 'Get/Set pattern for regex
+'@returns - Pattern for regex
 Public Property Get pattern() As String
   If Me Is stdRegex Then
     stdError.Raise ("Property called on class not object")
@@ -233,6 +238,7 @@ End Property
 
 
 'Get/Set Flags for regex
+'@returns - Flags for regex
 Public Property Get flags() As String
   If Me Is stdRegex Then
     stdError.Raise ("Property called on class not object")
@@ -253,17 +259,15 @@ End Property
 
 
 'Given a text string, return whether the source regex is present
-'
-'@param {string}  sHaystack - Text to search for regex in.
-'@return {Boolean} True if the regex is present, false if the regex is not present
+'@param sHaystack - Text to search for regex in.
+'@return - `True` if the regex pattern is present, `false` otherwise.
 '@example
-'Regex:
-'    \d{5}-ST[A-Z]\d
-'
-'Data:
-'    * The site with id 12345-STA1 is one hell of a cool site.
-'Result:
-'    True
+'For a regex of: `\d{5}-ST[A-Z]\d`
+'With data:
+'```
+'* The site with id 12345-STA1 is one hell of a cool site.
+'```
+'The result is: `True`
 Public Function Test(ByVal sHaystack As String) As Boolean
   If Me Is stdRegex Then
     stdError.Raise ("Method called on class not object")
@@ -276,30 +280,30 @@ End Function
 
 
 'Given a text string, return the first match.
-'
-'@param {string}  sHaystack - Text to search for regex in.
-'@return {Dictionary} A dictionary containing the match, submatches, named matches, Count and Raw match object
+'@param  sHaystack - Text to search for regex in.
+'@return Object<Dictionary<string|number,string>> - A dictionary containing the match, submatches, named matches, Count and Raw match object
 '@example
-'Regex:
-'    (?<id>\d{5}-ST[A-Z]\d) - (?<desc>.*)
-'
-'Data:
-'    Some sites were in critical condition
-'    * 12345-STA1 - Large crack through pipe.
-'    * 12323-STB9 - Acid leakage polluting watercourse.
-'    and some others were largely ok:
-'    * 23565-STC2
-'    * 62346-STZ9
-'Result:
-'    {
-'      0: "12345-STA1 - Large crack through pipe.",
-'      "id":"12345-STA1",
-'      1: "12345-STA1",
-'      "desc": "Large crack through pipe."
-'      2: "Large crack through pipe.",
-'      "$COUNT":2,
-'      "$RAW": {...}
-'    }
+'For Regex: `(?<id>\d{5}-ST[A-Z]\d) - (?<desc>.*)` and data:
+'```
+'Some sites were in critical condition
+'* 12345-STA1 - Large crack through pipe.
+'* 12323-STB9 - Acid leakage polluting watercourse.
+'and some others were largely ok:
+'* 23565-STC2
+'* 62346-STZ9
+'```
+'Produces result:
+'```json
+'{
+'  0: "12345-STA1 - Large crack through pipe.",
+'  "id":"12345-STA1",
+'  1: "12345-STA1",
+'  "desc": "Large crack through pipe."
+'  2: "Large crack through pipe.",
+'  "$COUNT":2,
+'  "$RAW": {...}
+'}
+'```
 Public Function Match(ByVal sHaystack As String) As Object
   If Me Is stdRegex Then
     stdError.Raise ("Method called on class not object")
@@ -337,22 +341,27 @@ End Function
 
 
 'Given a text string, return all strings which match the source regex pattern.
-'
-'@param {string}  sHaystack - Text to search for regex in.
-'@return {Collection<Dictionary>} An array of strings which match the regex.
+'@param sHaystack - Text to search for regex in.
+'@return Collection<Object<Dictionary<string|number,string>>> - An array of strings which match the regex.
 '@example
-'Regex:
-'    \d{5}-ST[A-Z]\d
-'
-'Data:
-'    Some sites were in critical condition
-'    * 12345-STA1 - Large crack through pipe.
-'    * 12323-STB9 - Acid leakage polluting watercourse.
-'    and some others were largely ok:
-'    * 23565-STC2
-'    * 62346-STZ9
-'Result:
-'    [{0: "12345-STA1", ...}, {0: "12323-STB9", ...}, {0: "23565-STC2", ...}, {0: "62346-STZ9", ...}]
+'For regex: `\d{5}-ST[A-Z]\d` and data:
+'```
+'Some sites were in critical condition
+'* 12345-STA1 - Large crack through pipe.
+'* 12323-STB9 - Acid leakage polluting watercourse.
+'and some others were largely ok:
+'* 23565-STC2
+'* 62346-STZ9
+'```
+'Will result in an array of matches like:
+'```json
+'[
+'  {0: "12345-STA1", ...},
+'  {0: "12323-STB9", ...},
+'  {0: "23565-STC2", ...}, 
+'  {0: "62346-STZ9", ...}
+']
+'```
 Public Function MatchAll(ByVal sHaystack As String) As Collection
   If Me Is stdRegex Then
     stdError.Raise ("Method called on class not object")
@@ -406,29 +415,28 @@ End Function
 
 'Given a Haystack and a Replacer, Replace all matches with the source regex with the format given in the Replacer.
 '
-'@param {string}  sHaystack - Text to search for regex in.
-'@param {string}  sReplacer - Format of replacement text.
-'@return {string} The haystack with replaced details.
+'@param sHaystack - Text to search for regex in.
+'@param sReplacer - Format of replacement text.
+'@return - The haystack with replaced details.
 '@example
-'Regex:
-'    (?<id>\d{5}-ST[A-Z]\d))\s+(?<count>\d+)\s+(?<date>../../....)
-'
-'Data:
-'    Here is some cool data:
-'    12345-STA1  123    10/02/2019
-'    12323-STB9  2123   01/01/2005
-'    and here is some more:
-'    23565-STC2  23     ??/??/????
-'    62346-STZ9  5      01/05/1932
-'Replacer: (to csv with column re-order)
-'    $id,$date,$count
-'Result:
-'    Here is some cool data:
-'    12345-STA1,10/02/2019,123
-'    12323-STB9,01/01/2005,2123
-'    and here is some more:
-'    23565-STC2,??/??/????,23
-'    62346-STZ9,01/05/1932,5
+'For regex: `(?<id>\d{5}-ST[A-Z]\d))\s+(?<count>\d+)\s+(?<date>../../....)` and data: 
+'```
+'Here is some cool data:
+'12345-STA1  123    10/02/2019
+'12323-STB9  2123   01/01/2005
+'and here is some more:
+'23565-STC2  23     ??/??/????
+'62346-STZ9  5      01/05/1932
+'```
+'With replacer `$id,$date,$count` will result in:
+'```
+'Here is some cool data:
+'12345-STA1,10/02/2019,123
+'12323-STB9,01/01/2005,2123
+'and here is some more:
+'23565-STC2,??/??/????,23
+'62346-STZ9,01/05/1932,5
+'```
 Public Function Replace(ByVal sHaystack As String, ByVal sReplacer As String) As String
   If Me Is stdRegex Then
     stdError.Raise ("Method called on class not object")
@@ -453,25 +461,24 @@ End Function
 
 'Given a Haystack and a Format, Generate a string containing all matches in the format provided.
 '
-'@param {string}  sHaystack - Text to search for regex in.
-'@param {string}  sFormat   - Format of output list.
-'@return {string} A list of strings matched.
+'@param  sHaystack - Text to search for regex in.
+'@param  sFormat   - Format of output list.
+'@return - A list of strings matched.
 '@example
-'Regex:
-'    (?<id>\d{5}-ST[A-Z]\d))\s+(?<count>\d+)\s+(?<date>../../....)
-'
-'Data:
-'    12345-STA1  123    10/02/2019
-'    12323-STB9  2123   01/01/2005
-'    23565-STC2  23     ??/??/????
-'    62346-STZ9  5      01/05/1932
-'Format: (to csv with column re-order)
-'    $id,$date,$count\n
-'Result:
-'    12345-STA1,10/02/2019,123
-'    12323-STB9,01/01/2005,2123
-'    23565-STC2,??/??/????,23
-'    62346-STZ9,01/05/1932,5
+'For regex: `(?<id>\d{5}-ST[A-Z]\d))\s+(?<count>\d+)\s+(?<date>../../....)` and data:
+'```
+'12345-STA1  123    10/02/2019
+'12323-STB9  2123   01/01/2005
+'23565-STC2  23     ??/??/????
+'62346-STZ9  5      01/05/1932
+'```
+'With format: `$id,$date,$count\n` will result in:
+'```
+'12345-STA1,10/02/2019,123
+'12323-STB9,01/01/2005,2123
+'23565-STC2,??/??/????,23
+'62346-STZ9,01/05/1932,5
+'```
 Public Function List(ByVal sHaystack As String, ByVal sFormat As String) As String
   If Me Is stdRegex Then
     stdError.Raise ("Method called on class not object")
@@ -496,9 +503,9 @@ End Function
 
 
 'Supplied with a haystack to search, ListArr will return a 2d array of data where the rows represent each match, and the columns represent the formats passed into vFormats parameter
-'@param {ByVal String} Haystack to search
-'@param {ByVal Array<String>} Array of formats to print into seperate columns. E.G. `Array("$id-$date","$detail")`
-'@returns {Array[2d]<String>} All matches as a 2d array. Useful especially for dumping matches to Excel.
+'@param sHaystack - Haystack to search
+'@param vFormats as Variant<Array<String>> - Array of formats to print into seperate columns. E.G. `Array("$id-$date","$detail")`
+'@returns Variant<Array[2d]<String>> - All matches as a 2d array. Useful especially for dumping matches to Excel.
 Public Function ListArr(ByVal sHaystack as string, ByVal vFormats as variant) as variant
   If Me Is stdRegex Then
     Call stdError.Raise("Method called on class not object")
@@ -535,9 +542,9 @@ End Function
 '*******************
 
 'Supplied with a format string and match object, dump the required information from the match object to the string, and return it.
-'@param {ByVal Dictionary} Match dictionary with numerical keys for each match, key 0 is whole match and also named matches.
-'@param {ByVal string} Format to return data in. Indexed submatches to be extracted using $1, $2, ... . Named submatches to be extracted using $name syntax. \r\n will be 
-'@returns {String} String formatted with data from match object.
+'@param match as Object<Dictionary> - Match dictionary with numerical keys for each match, key 0 is whole match and also named matches.
+'@param sFormat - Format to return data in. Indexed submatches to be extracted using $1, $2, ... . Named submatches to be extracted using $name syntax. \r\n will be 
+'@returns - String formatted with data from match object.
 Private Function FormatFromMatch(ByVal match as object, ByVal sFormat as string) as string
   'TODO: Make this more efficient, ideally we'd only loop through the format once
 
@@ -569,17 +576,17 @@ End Function
 
 
 'Escape chars within a string
-'@param {ByVal String} Haystack to search
-'@param {ByVal String} Char to escape
-'@returns {String} Escaped string
+'@param sHaystack - Haystack to search
+'@param sChar - Char to escape
+'@returns - Escaped string
 Private Function SaveEscape(ByVal sHaystack As String, ByVal sChar As String) As String
   SaveEscape = VBA.Replace(VBA.Replace(sHaystack, "\\", ";f934b47b-b799-4f52-9b4c-f170a82b52fe;"), "\" & sChar, ";6632df85-1730-4159-a742-5b0c8c526ab8;")
 End Function
 
 'Convert a string with escaped chars to those without escaped chars
-'@param {ByVal String} Haystack to search
-'@param {ByVal String} Char to un-escape
-'@returns {String} Unescaped string
+'@param {sHaystack - Haystack to search
+'@param sChar - Char to un-escape
+'@returns - Unescaped string
 Private Function LoadEscape(ByVal sHaystack As String, ByVal sChar As String) As String
   LoadEscape = VBA.Replace(VBA.Replace(sHaystack, ";f934b47b-b799-4f52-9b4c-f170a82b52fe;", "\\"), ";6632df85-1730-4159-a742-5b0c8c526ab8;", "\" & sChar)
 End Function
