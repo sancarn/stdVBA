@@ -250,11 +250,16 @@ Public Function CreateFromTree(ByVal oRoot As Object, ByVal getChildren As stdIC
     Set CreateFromTree = stdEnumerator.CreateFromIEnumVariant(cRet)
 End Function
 
-'TODO: CreateFromDictionary
-'Public Function CreateFromDictionary(ByVal o as object, optional byval iMaxLength as long = 1000000) as stdEnumerator
-'    set CreateFromDictionary = new stdEnumerator
-'    Call CreateFromDictionary.protInit(EnumeratorType.FromDictionary,iMaxLength,o)
-'End Function
+'Create a stdEnumerator from a dictionary
+'@constructor
+'@param o - The dictionary to create the enumerator from.
+'@param iMaxLength - Maximum length of enumerator. The enumerator will refuse to go beyond this number of items. Used in order to prevent runaway processes.
+'@returns - An enumerator representing the dictionary data
+'@TODO: Finish function - requires key handling. Might be a bit of a pain as it requires refactoring to work with collection keys among other things.
+Private Function CreateFromDictionary(ByVal o as object, optional byval iMaxLength as long = 1000000) as stdEnumerator
+    set CreateFromDictionary = new stdEnumerator
+    'Call CreateFromDictionary.protInit(EnumeratorType.FromDictionary,iMaxLength,o)
+End Function
 
 'Initialse the stdEnumerator
 '@constructor
@@ -737,7 +742,7 @@ Public Function Join(Optional ByVal sDelimiter as string = ",") as string
 End Function
 
 'Find the index of an element
-'@param tb - Element to find.
+'@param tv - Element to find.
 '@returns - Index of element.
 Public Function indexOf(ByVal tv as variant) as long
     Dim oRet as Collection: Set oRet = new Collection
@@ -1211,6 +1216,7 @@ End Function
 '@param vNextItem     - Previous/Next Item
 '@param iCurrentIndex - Previous/Next Index
 '@returns             - Whether a new item was succesfully obtained or not.
+'@TODO: Use DispCallFunc to call IEnumVariant::Next instead of converting to array
 Private Function NextItem(ByRef vNextKey as variant, ByRef vNextItem as Variant, ByRef iCurrentIndex as long) as Boolean
   iCurrentIndex = iCurrentIndex+1
   select case mode
@@ -1319,69 +1325,3 @@ Private Sub resetEnumVariant(ByRef o as IEnumVARIANT)
     
 End Sub
 
-''Feel this will be impossible currently, perhaps possible with DispCallFunc to call raw Next, Skip, Clone, Reset methods:
-''    Dim x as IEnumVARIANT
-''    set x = pEnumObject.[_NewEnum]
-''    DispCallFunc(x,1,...) 'Call QueryInterface
-''    DispCallFunc(x,2,...) 'Call AddRef
-''    DispCallFunc(x,3,...) 'Call Release
-''    DispCallFunc(x,4,...) 'Call Next
-''    DispCallFunc(x,5,...) 'Call Skip
-''    DispCallFunc(x,6,...) 'Call Reset
-''    DispCallFunc(x,7,...) 'Call Clone
-'
-'
-'
-'   Public Function FeedItem(v As Variant)
-'       Call oRetArray.push(v)
-'   End Function
-'   
-'   'Incompatible with oEnumVariant
-'   Public Function NextItem() As Variant
-'       mode = iMode
-'       If mode = FromForEach Then
-'           
-'       ElseIf mode = FromCallback Then
-'           
-'       ElseIf mode = FromIEnumVariant Then
-'           Set NextItem = oEnumVariant.Next()
-'       End If
-'   End Function
-'   Public Function NextItems() As stdArray
-'       mode = iMode
-'       Set NextItems = stdArray.Create()
-'       If mode = FromForEach Then
-'           
-'       ElseIf mode = FromCallback Then
-'           
-'       ElseIf mode = FromIEnumVariant Then
-'           Dim x As IEnumVARIANT
-'           Set x = oEnumVariant.Clone
-'           
-'           Z = x.Next
-'           While Z
-'               Call NextItems.push(Z)
-'               Z = x.Next
-'           Wend
-'       End If
-'   End Function
-'   Public Function PeekItem() As Variant
-'       If mode = FromForEach Then
-'           
-'       ElseIf mode = FromCallback Then
-'           
-'       ElseIf mode = FromIEnumVariant Then
-'           Dim x As IEnumVARIANT
-'           Set x = oEnumVariant.Clone
-'           Set PeekItem = x.Next
-'       End If
-'   End Function
-'   Public Function PeekItems() As stdArray
-'       
-'   End Function
-'   Public Function Rewind() As stdEnumerator
-'       
-'   End Function
-'   Public Function Size() As Long
-'   
-'   End Function

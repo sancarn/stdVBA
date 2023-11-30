@@ -33,11 +33,25 @@ Attribute VB_Exposed = True
 '    [X] OnMessage(data)
 '    [X] EventRaised(name,data)
 
-
+'Event raised when any of the below events are raised
+'@param sEventName as "Open"|"Close"|"Error"|"Message" - The name of the event.
+'@param eventData - Data to forward to event handler.
 Public Event EventRaised(ByVal sEventName As String, ByVal eventData As Variant)
+
+'Event raised when the websocket is opened
+'@param eventData - Data to forward to event handler.
 Public Event OnOpen(ByVal eventData As Variant)
+
+'Event raised when the websocket is closed
+'@param eventData - Data to forward to event handler.
 Public Event OnClose(ByVal eventData As Variant)
+
+'Event raised when the websocket has an error
+'@param eventData - Data to forward to event handler.
 Public Event OnError(ByVal eventData As Variant)
+
+'Event raised when the websocket receives a message
+'@param eventData - Data to forward to event handler.
 Public Event OnMessage(ByVal eventData As Variant)
 
 Private ie As Object
@@ -47,7 +61,8 @@ Public Listeners As Collection 'Collection<stdICallable>
 
 'Creates and returns a new WebSocket object
 '@constructor
-'@param {String} url - The websocket url to track.
+'@param url - The websocket url to track.
+'@return - The new WebSocket object.
 '@example stdWebSocket.Create("wss://echo.websocket.org/")
 Public Function Create(ByVal url As String) As stdWebSocket
   Set Create = New stdWebSocket
@@ -56,7 +71,7 @@ End Function
 
 'Initializes the object
 '@protected
-'@param {String} url - The websocket url to track.
+'@param url - The websocket url to track.
 '@example `ws.protInit("wss://echo.websocket.org/")`
 Public Sub protInit(ByVal url As String)
   'Create IE object

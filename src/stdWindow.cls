@@ -601,8 +601,8 @@ End Function
 
 'Create a window object from an IUnknown object.
 '@constructor
-'@param {ByVal IUnknown} Object which implements GetWindow() method
-'@returns {stdWindow} Window specified by the object.
+'@param obj - Object which implements GetWindow() method
+'@returns - Window specified by the object.
 '@remark - Uses IUserWindow::GetWindow() to get the window handle. This is implemented by `IOleWindow`, `IInternetSecurityMgrSite` and `IShellView`.
 '@remark - A `UserForm` is an example of an object which implements `IOleWindow`.
 Public Function CreateFromIUnknown(ByVal obj As IUnknown) As stdWindow

@@ -211,7 +211,7 @@ Public Function Create(ByVal sURL As String, Optional ByVal RequestMethod As Str
 End Function
 
 'Create HTTP request headers
-'@Param v - Headers to load into the http request in the form key1, value1, key2, value2, ...
+'@param v - Headers to load into the http request in the form key1, value1, key2, value2, ...
 '@returns Object<Dictionary> - A dictionary of headers
 Public Function CreateHeaders(ParamArray v()) As Object
   Dim oRet As Object
