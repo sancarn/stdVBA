@@ -316,7 +316,7 @@ End Function
 
 'Register a clipboard format and/or return it's identifier if already present.
 '@param sFormatName - Name of format to obtain
-'@return - Clipboard format identifier
+'@returns - Clipboard format identifier
 '@example ```vb
 'CF_RTF = stdClipboard.registerFormat("Rich Text Format")
 'stdClipboard.value(CF_RTF) = "{\rtf1\ansi{\fonttbl\f0\fswiss Helvetica;}\f0\pard" & _ 

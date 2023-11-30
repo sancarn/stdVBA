@@ -1251,6 +1251,7 @@ End Property
 '@param hook - Hook function e.g `AddressOf MyHookFunction`
 '@param hInstance - Instance handle of the hook function
 '@param dwThreadID - Thread ID of the hook function
+'@returns - Handle to the hook
 #If VBA7 Then
 Public Function SetHook(ByVal idHook As apiWindowHookType, ByVal hook As LongPtr, hInstance As LongPtr, dwThreadID As Long) As LongPtr
 #Else
@@ -1280,6 +1281,7 @@ End Function
 ' * A BFS will walk this tree in the following order: A, B, C, D, E, F
 ' * A DFS will walk this tree in a different order:   A, C, F, E, B, D
 '@param iStaticDepthLimit - Static depth limit. E.G. if you want to search children only, set this value to 1
+'@returns - First element found, or `Nothing` if no element found.
 '@examples
 ' ```vb
 ' 'Find where name is "hello" and class is "world":
@@ -1369,6 +1371,7 @@ End Function
 ' * A BFS will walk this tree in the following order: A, B, C, D, E, F
 ' * A DFS will walk this tree in a different order:   A, C, F, E, B, D
 '@param iStaticDepthLimit - Static depth limit. E.G. if you want to search children only, set this value to 1
+'@returns Collection<stdWindow> - Collection of elements found, or `Nothing` if no element found.
 '@examples
 ' ```vb
 ' 'Find where name is "hello" and class is "world":

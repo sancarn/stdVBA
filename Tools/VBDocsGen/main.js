@@ -216,7 +216,7 @@ files.forEach(file => {
         methods: []
     };
 
-    const docsFinder = /(?<comments>(?:\'.*\r?\n)*)Public (?:(?<type>Function|Sub|Event|Property) ?(?<access>Get|Let|Set)?) (?<name>\w+)\((?<params>[^)]*)\)(?: as (?<retType>\w+))?/gmi;
+    const docsFinder = /(?<comments>(?:\'.*\r?\n)*)(?<!')Public (?:(?<type>Function|Sub|Event|Property) ?(?<access>Get|Let|Set)?) (?<name>\w+)\((?<params>[^)]*)\)(?: as (?<retType>\w+))?/gmi;
     const matches = Array.from(content.matchAll(docsFinder));
     matches.forEach(match => {
         if(match.processed) return;
@@ -261,7 +261,7 @@ files.forEach(file => {
         //obtain return type from comment if present, otherwise from code
         let returnType = match.groups.retType;
         if(!!commentGroups.returns) returnType = commentGroups.returns[0].data.type;
-        if(match.groups.type.toLowerCase() == "sub") returnType = "Void";
+        if(["sub", "event"].includes(match.groups.type.toLowerCase())) returnType = "Void";
 
         //Add method to module
         myMethod = {

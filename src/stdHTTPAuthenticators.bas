@@ -53,6 +53,7 @@ End Sub
 'Digest Authenticator
 '@param Username - The username supplied by the user during Bind()
 '@param Password - The password supplied by the user during Bind()
+'@param sDomain - The domain to authenticate against supplied by the user during Bind()
 '@param pHTTP - The HTTP object from the stdHTTP.Create() call
 '@param RequestMethod - The HTTP method from the stdHTTP.Create() call
 '@param sURL - The URL from the stdHTTP.Create() call
@@ -60,7 +61,7 @@ End Sub
 '@param options - The options object from the stdHTTP.Create() call
 '@example `stdHTTP.Create("https://postman-echo.com/digest-auth", Authenticator:=stdCallback.CreateFromModule("stdHTTPAuthenticators", "DigestAuthenticator").Bind("postman", "password", "postman-echo.com"))`
 '@TODO: Complete this
-Public Sub DigestAuthenticator(ByVal Username As String, ByVal Password As String, ByVal pHTTP As Object, ByVal sDomain As String, ByVal RequestMethod As String, ByVal sURL As String, ByVal ThreadingStyle As Long, ByVal options As Object)
+Public Sub DigestAuthenticator(ByVal Username As String, ByVal Password As String, ByVal sDomain As String, ByVal pHTTP As Object,  ByVal RequestMethod As String, ByVal sURL As String, ByVal ThreadingStyle As Long, ByVal options As Object)
   Err.Raise 1, "", "Work in progress - This does not work yet"
   Static cache As Object: If cache Is Nothing Then Set cache = CreateObject("Scripting.Dictionary")
   If Not cache.exists(sDomain) Then

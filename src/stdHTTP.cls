@@ -204,7 +204,7 @@ Private pHTTP As Object
 '@param ThreadingStyle - The Threading approach. Either HTTPSync (Synchronous) or HTTPAsync (Asynchronous).
 '@param options as Object<Dictionary> - Use `stdHTTP.CreateOptions()` to generate these.
 '@param Authenticator as stdICallable<(HTTP: Object, RequestMethod: String, URL: String, ThreadingStyle: Long, options: Object)=>Void> - A callable object which will be called before the request is sent. This can be used to add authentication headers, etc.
-'@return - A http request object
+'@returns - A http request object
 Public Function Create(ByVal sURL As String, Optional ByVal RequestMethod As String = "GET", Optional ByVal ThreadingStyle As EHTTPSynchronisity = HTTPSync, Optional ByVal options As Object = Nothing, Optional ByVal Authenticator As stdICallable = Nothing) As stdHTTP
   Set Create = New stdHTTP
   Call Create.protInit(sURL, RequestMethod, ThreadingStyle, options, Authenticator)

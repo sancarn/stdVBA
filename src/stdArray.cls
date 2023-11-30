@@ -628,6 +628,7 @@ End Function
 'Get/Let/Set item
 '@defaultMember
 '@param i - The location to get/set the item
+'@returns - The item at the location
 Public Property Get item(ByVal i As long) As Variant
 Attribute item.VB_UserMemId = 0
     CopyVariant item, pArr(i)

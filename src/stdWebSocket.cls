@@ -62,7 +62,7 @@ Public Listeners As Collection 'Collection<stdICallable>
 'Creates and returns a new WebSocket object
 '@constructor
 '@param url - The websocket url to track.
-'@return - The new WebSocket object.
+'@returns - The new WebSocket object.
 '@example stdWebSocket.Create("wss://echo.websocket.org/")
 Public Function Create(ByVal url As String) As stdWebSocket
   Set Create = New stdWebSocket
@@ -117,7 +117,7 @@ Public Sub protInit(ByVal url As String)
 End Sub
 
 'Gets the url of the websocket
-'@return - The url of the websocket
+'@returns - The url of the websocket
 Public Property Get url() As String
   url = pURL
 End Property

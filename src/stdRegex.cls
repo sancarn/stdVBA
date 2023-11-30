@@ -260,7 +260,7 @@ End Property
 
 'Given a text string, return whether the source regex is present
 '@param sHaystack - Text to search for regex in.
-'@return - `True` if the regex pattern is present, `false` otherwise.
+'@returns - `True` if the regex pattern is present, `false` otherwise.
 '@example
 'For a regex of: `\d{5}-ST[A-Z]\d`
 'With data:
@@ -281,7 +281,7 @@ End Function
 
 'Given a text string, return the first match.
 '@param  sHaystack - Text to search for regex in.
-'@return Object<Dictionary<string|number,string>> - A dictionary containing the match, submatches, named matches, Count and Raw match object
+'@returns Object<Dictionary<string|number,string>> - A dictionary containing the match, submatches, named matches, Count and Raw match object
 '@example
 'For Regex: `(?<id>\d{5}-ST[A-Z]\d) - (?<desc>.*)` and data:
 '```
@@ -342,7 +342,7 @@ End Function
 
 'Given a text string, return all strings which match the source regex pattern.
 '@param sHaystack - Text to search for regex in.
-'@return Collection<Object<Dictionary<string|number,string>>> - An array of strings which match the regex.
+'@returns Collection<Object<Dictionary<string|number,string>>> - An array of strings which match the regex.
 '@example
 'For regex: `\d{5}-ST[A-Z]\d` and data:
 '```
@@ -417,7 +417,7 @@ End Function
 '
 '@param sHaystack - Text to search for regex in.
 '@param sReplacer - Format of replacement text.
-'@return - The haystack with replaced details.
+'@returns - The haystack with replaced details.
 '@example
 'For regex: `(?<id>\d{5}-ST[A-Z]\d))\s+(?<count>\d+)\s+(?<date>../../....)` and data: 
 '```
@@ -463,7 +463,7 @@ End Function
 '
 '@param  sHaystack - Text to search for regex in.
 '@param  sFormat   - Format of output list.
-'@return - A list of strings matched.
+'@returns - A list of strings matched.
 '@example
 'For regex: `(?<id>\d{5}-ST[A-Z]\d))\s+(?<count>\d+)\s+(?<date>../../....)` and data:
 '```

@@ -1021,6 +1021,7 @@
           }
         ],
         "returns": {
+          "type": "Void",
           "description": ""
         },
         "deprecation": {
@@ -1059,6 +1060,7 @@
           }
         ],
         "returns": {
+          "type": "Void",
           "description": ""
         },
         "deprecation": {
@@ -1115,6 +1117,7 @@
           }
         ],
         "returns": {
+          "type": "Void",
           "description": ""
         },
         "deprecation": {
@@ -1162,6 +1165,7 @@
           }
         ],
         "returns": {
+          "type": "Void",
           "description": ""
         },
         "deprecation": {
@@ -1218,6 +1222,7 @@
           }
         ],
         "returns": {
+          "type": "Void",
           "description": ""
         },
         "deprecation": {
@@ -1256,6 +1261,7 @@
           }
         ],
         "returns": {
+          "type": "Void",
           "description": ""
         },
         "deprecation": {
@@ -1285,6 +1291,7 @@
           }
         ],
         "returns": {
+          "type": "Void",
           "description": ""
         },
         "deprecation": {
@@ -1314,6 +1321,7 @@
           }
         ],
         "returns": {
+          "type": "Void",
           "description": ""
         },
         "deprecation": {
@@ -2042,8 +2050,7 @@
           }
         ],
         "returns": {
-          "type": "Variant",
-          "description": ""
+          "description": "The item at the location"
         },
         "deprecation": {
           "status": false,
@@ -2579,6 +2586,7 @@
           }
         ],
         "returns": {
+          "type": "Void",
           "description": ""
         },
         "deprecation": {
@@ -2617,6 +2625,7 @@
           }
         ],
         "returns": {
+          "type": "Void",
           "description": ""
         },
         "deprecation": {
@@ -3189,8 +3198,7 @@
           }
         ],
         "returns": {
-          "type": "Long",
-          "description": ""
+          "description": "Clipboard format identifier"
         },
         "deprecation": {
           "status": false,
@@ -4228,8 +4236,7 @@
           }
         ],
         "returns": {
-          "type": "{stdEnumerator} An empty enumerator",
-          "description": ""
+          "description": "An empty enumerator"
         },
         "deprecation": {
           "status": false,
@@ -4306,45 +4313,6 @@
         ],
         "returns": {
           "description": "Flat enumerator of all objects in the tree."
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "examples": [],
-        "remarks": []
-      },
-      {
-        "name": "CreateFromDictionary",
-        "type": "Function",
-        "constructor": true,
-        "isDefaultMember": false,
-        "protected": false,
-        "access": null,
-        "description": "",
-        "params": [
-          {
-            "name": "o",
-            "type": "object",
-            "description": "",
-            "referenceType": "ByVal",
-            "paramArray": false,
-            "optional": false,
-            "defaultValue": null
-          },
-          {
-            "name": "iMaxLength",
-            "type": "long",
-            "description": "",
-            "referenceType": "byval",
-            "paramArray": false,
-            "optional": true,
-            "defaultValue": "1000000"
-          }
-        ],
-        "returns": {
-          "type": "stdEnumerator",
-          "description": ""
         },
         "deprecation": {
           "status": false,
@@ -4612,8 +4580,7 @@
           }
         ],
         "returns": {
-          "type": "stdEnumerator",
-          "description": ""
+          "description": "Enumerator containing mapped values"
         },
         "deprecation": {
           "status": false,
@@ -4642,8 +4609,7 @@
           }
         ],
         "returns": {
-          "type": "stdEnumerator",
-          "description": ""
+          "description": "Enumerator containing all elements of `Me` for which the given callback returns `true`."
         },
         "deprecation": {
           "status": false,
@@ -4799,7 +4765,7 @@
           {
             "name": "tv",
             "type": "variant",
-            "description": "",
+            "description": "Element to find.",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -5355,155 +5321,6 @@
           "`stdEnumerator.CreateFromArray(Array(1,2,3,4,5,6,7,8,9)).First(3).Join(\",\") '=>1,2,3`"
         ],
         "remarks": []
-      },
-      {
-        "name": "FeedItem",
-        "type": "Function",
-        "constructor": true,
-        "isDefaultMember": false,
-        "protected": false,
-        "access": null,
-        "description": "",
-        "params": [
-          {
-            "name": "v",
-            "type": "Variant",
-            "description": "",
-            "referenceType": "ByRef",
-            "paramArray": false,
-            "optional": false,
-            "defaultValue": null
-          }
-        ],
-        "returns": {
-          "description": ""
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "examples": [],
-        "remarks": []
-      },
-      {
-        "name": "NextItem",
-        "type": "Function",
-        "constructor": true,
-        "isDefaultMember": false,
-        "protected": false,
-        "access": null,
-        "description": "",
-        "params": [],
-        "returns": {
-          "type": "Variant",
-          "description": ""
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "examples": [],
-        "remarks": []
-      },
-      {
-        "name": "NextItems",
-        "type": "Function",
-        "constructor": true,
-        "isDefaultMember": false,
-        "protected": false,
-        "access": null,
-        "description": "",
-        "params": [],
-        "returns": {
-          "type": "stdArray",
-          "description": ""
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "examples": [],
-        "remarks": []
-      },
-      {
-        "name": "PeekItem",
-        "type": "Function",
-        "constructor": true,
-        "isDefaultMember": false,
-        "protected": false,
-        "access": null,
-        "description": "",
-        "params": [],
-        "returns": {
-          "type": "Variant",
-          "description": ""
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "examples": [],
-        "remarks": []
-      },
-      {
-        "name": "PeekItems",
-        "type": "Function",
-        "constructor": true,
-        "isDefaultMember": false,
-        "protected": false,
-        "access": null,
-        "description": "",
-        "params": [],
-        "returns": {
-          "type": "stdArray",
-          "description": ""
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "examples": [],
-        "remarks": []
-      },
-      {
-        "name": "Rewind",
-        "type": "Function",
-        "constructor": true,
-        "isDefaultMember": false,
-        "protected": false,
-        "access": null,
-        "description": "",
-        "params": [],
-        "returns": {
-          "type": "stdEnumerator",
-          "description": ""
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "examples": [],
-        "remarks": []
-      },
-      {
-        "name": "Size",
-        "type": "Function",
-        "constructor": true,
-        "isDefaultMember": false,
-        "protected": false,
-        "access": null,
-        "description": "",
-        "params": [],
-        "returns": {
-          "type": "Long",
-          "description": ""
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "examples": [],
-        "remarks": []
       }
     ]
   },
@@ -5511,135 +5328,6 @@
     "name": "stdFiber",
     "fileName": "stdFiber.cls",
     "methods": [
-      {
-        "name": "step1_GetRequest",
-        "type": "Function",
-        "constructor": true,
-        "isDefaultMember": false,
-        "protected": false,
-        "access": null,
-        "description": "",
-        "params": [
-          {
-            "name": "url",
-            "type": "string",
-            "description": "",
-            "referenceType": "ByVal",
-            "paramArray": false,
-            "optional": false,
-            "defaultValue": null
-          },
-          {
-            "name": "fib",
-            "type": "stdFiber",
-            "description": "",
-            "referenceType": "ByVal",
-            "paramArray": false,
-            "optional": false,
-            "defaultValue": null
-          }
-        ],
-        "returns": {
-          "type": "boolean",
-          "description": ""
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "examples": [],
-        "remarks": []
-      },
-      {
-        "name": "step2_AwaitStatus",
-        "type": "Function",
-        "constructor": true,
-        "isDefaultMember": false,
-        "protected": false,
-        "access": null,
-        "description": "",
-        "params": [
-          {
-            "name": "fib",
-            "type": "stdFiber",
-            "description": "",
-            "referenceType": "ByVal",
-            "paramArray": false,
-            "optional": false,
-            "defaultValue": null
-          }
-        ],
-        "returns": {
-          "type": "boolean",
-          "description": ""
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "examples": [],
-        "remarks": []
-      },
-      {
-        "name": "step3_ReturnData",
-        "type": "Function",
-        "constructor": true,
-        "isDefaultMember": false,
-        "protected": false,
-        "access": null,
-        "description": "",
-        "params": [
-          {
-            "name": "fib",
-            "type": "stdFiber",
-            "description": "",
-            "referenceType": "ByVal",
-            "paramArray": false,
-            "optional": false,
-            "defaultValue": null
-          }
-        ],
-        "returns": {
-          "type": "boolean",
-          "description": ""
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "examples": [],
-        "remarks": []
-      },
-      {
-        "name": "stepX_OnError",
-        "type": "Sub",
-        "constructor": true,
-        "isDefaultMember": false,
-        "protected": false,
-        "access": null,
-        "description": "",
-        "params": [
-          {
-            "name": "fib",
-            "type": "stdFiber",
-            "description": "",
-            "referenceType": "ByVal",
-            "paramArray": false,
-            "optional": false,
-            "defaultValue": null
-          }
-        ],
-        "returns": {
-          "type": "Void",
-          "description": ""
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "examples": [],
-        "remarks": []
-      },
       {
         "name": "Create",
         "type": "Function",
@@ -6048,8 +5736,7 @@
           }
         ],
         "returns": {
-          "type": "stdHTTP",
-          "description": ""
+          "description": "A http request object"
         },
         "deprecation": {
           "status": false,
@@ -6070,7 +5757,7 @@
           {
             "name": "v",
             "type": "Variant",
-            "description": "",
+            "description": "Headers to load into the http request in the form key1, value1, key2, value2, ...",
             "referenceType": "ByRef",
             "paramArray": false,
             "optional": false,
@@ -6419,7 +6106,7 @@
           {
             "name": "pHTTP",
             "type": "Object",
-            "description": "",
+            "description": "The HTTP object from the stdHTTP.Create() call",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -6428,7 +6115,7 @@
           {
             "name": "RequestMethod",
             "type": "String",
-            "description": "",
+            "description": "The HTTP method from the stdHTTP.Create() call",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -6437,7 +6124,7 @@
           {
             "name": "sURL",
             "type": "String",
-            "description": "",
+            "description": "The URL from the stdHTTP.Create() call",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -6446,7 +6133,7 @@
           {
             "name": "ThreadingStyle",
             "type": "Long",
-            "description": "",
+            "description": "The threading style from the stdHTTP.Create() call",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -6455,7 +6142,7 @@
           {
             "name": "options",
             "type": "Object",
-            "description": "",
+            "description": "The options object from the stdHTTP.Create() call",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -6487,7 +6174,7 @@
           {
             "name": "Username",
             "type": "String",
-            "description": "",
+            "description": "The username supplied by the user during Bind()",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -6496,7 +6183,7 @@
           {
             "name": "Password",
             "type": "String",
-            "description": "",
+            "description": "The password supplied by the user during Bind()",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -6505,7 +6192,7 @@
           {
             "name": "pHTTP",
             "type": "Object",
-            "description": "",
+            "description": "The HTTP object from the stdHTTP.Create() call",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -6514,7 +6201,7 @@
           {
             "name": "RequestMethod",
             "type": "String",
-            "description": "",
+            "description": "The HTTP method from the stdHTTP.Create() call",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -6523,7 +6210,7 @@
           {
             "name": "sURL",
             "type": "String",
-            "description": "",
+            "description": "The URL from the stdHTTP.Create() call",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -6532,7 +6219,7 @@
           {
             "name": "ThreadingStyle",
             "type": "Long",
-            "description": "",
+            "description": "The threading style from the stdHTTP.Create() call",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -6541,7 +6228,7 @@
           {
             "name": "options",
             "type": "Object",
-            "description": "",
+            "description": "The options object from the stdHTTP.Create() call",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -6575,7 +6262,7 @@
           {
             "name": "HeaderName",
             "type": "String",
-            "description": "",
+            "description": "The name of the header to set supplied by the user during Bind()",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -6584,7 +6271,7 @@
           {
             "name": "Token",
             "type": "String",
-            "description": "",
+            "description": "The token to set the header to supplied by the user during Bind()",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -6593,7 +6280,7 @@
           {
             "name": "pHTTP",
             "type": "Object",
-            "description": "",
+            "description": "The HTTP object from the stdHTTP.Create() call",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -6602,7 +6289,7 @@
           {
             "name": "RequestMethod",
             "type": "String",
-            "description": "",
+            "description": "The HTTP method from the stdHTTP.Create() call",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -6611,7 +6298,7 @@
           {
             "name": "sURL",
             "type": "String",
-            "description": "",
+            "description": "The URL from the stdHTTP.Create() call",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -6620,7 +6307,7 @@
           {
             "name": "ThreadingStyle",
             "type": "Long",
-            "description": "",
+            "description": "The threading style from the stdHTTP.Create() call",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -6629,7 +6316,7 @@
           {
             "name": "options",
             "type": "Object",
-            "description": "",
+            "description": "The options object from the stdHTTP.Create() call",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -6661,7 +6348,7 @@
           {
             "name": "Username",
             "type": "String",
-            "description": "",
+            "description": "The username supplied by the user during Bind()",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -6670,16 +6357,7 @@
           {
             "name": "Password",
             "type": "String",
-            "description": "",
-            "referenceType": "ByVal",
-            "paramArray": false,
-            "optional": false,
-            "defaultValue": null
-          },
-          {
-            "name": "pHTTP",
-            "type": "Object",
-            "description": "",
+            "description": "The password supplied by the user during Bind()",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -6688,7 +6366,16 @@
           {
             "name": "sDomain",
             "type": "String",
-            "description": "",
+            "description": "The domain to authenticate against supplied by the user during Bind()",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "pHTTP",
+            "type": "Object",
+            "description": "The HTTP object from the stdHTTP.Create() call",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -6697,7 +6384,7 @@
           {
             "name": "RequestMethod",
             "type": "String",
-            "description": "",
+            "description": "The HTTP method from the stdHTTP.Create() call",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -6706,7 +6393,7 @@
           {
             "name": "sURL",
             "type": "String",
-            "description": "",
+            "description": "The URL from the stdHTTP.Create() call",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -6715,7 +6402,7 @@
           {
             "name": "ThreadingStyle",
             "type": "Long",
-            "description": "",
+            "description": "The threading style from the stdHTTP.Create() call",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -6724,7 +6411,7 @@
           {
             "name": "options",
             "type": "Object",
-            "description": "",
+            "description": "The options object from the stdHTTP.Create() call",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -6876,56 +6563,6 @@
         ],
         "returns": {
           "description": "Any return value."
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "examples": [],
-        "remarks": []
-      },
-      {
-        "name": "ToPointer",
-        "type": "Function",
-        "constructor": true,
-        "isDefaultMember": false,
-        "protected": false,
-        "access": null,
-        "description": "",
-        "params": [],
-        "returns": {
-          "type": "long",
-          "description": ""
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "examples": [],
-        "remarks": []
-      },
-      {
-        "name": "Bind",
-        "type": "Function",
-        "constructor": true,
-        "isDefaultMember": false,
-        "protected": false,
-        "access": null,
-        "description": "",
-        "params": [
-          {
-            "name": "v",
-            "type": "variant",
-            "description": "",
-            "referenceType": "ByVal",
-            "paramArray": false,
-            "optional": false,
-            "defaultValue": null
-          }
-        ],
-        "returns": {
-          "type": "stdICallable",
-          "description": ""
         },
         "deprecation": {
           "status": false,
@@ -7220,8 +6857,7 @@
           }
         ],
         "returns": {
-          "type": "Variant",
-          "description": ""
+          "description": "The item for the key or index"
         },
         "deprecation": {
           "status": false,
@@ -7375,8 +7011,7 @@
         "description": "Allow `for each x in json` syntax",
         "params": [],
         "returns": {
-          "type": "{IEnumVariant} The enumerator to iterate over",
-          "description": ""
+          "description": "The enumerator to iterate over"
         },
         "deprecation": {
           "status": false,
@@ -8043,26 +7678,6 @@
         "params": [],
         "returns": {
           "description": "the process id"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "examples": [],
-        "remarks": []
-      },
-      {
-        "name": "moduleID",
-        "type": "Property",
-        "constructor": true,
-        "isDefaultMember": false,
-        "protected": false,
-        "access": "ReadOnly",
-        "description": "",
-        "params": [],
-        "returns": {
-          "type": "Long",
-          "description": ""
         },
         "deprecation": {
           "status": false,
@@ -8831,8 +8446,7 @@
           }
         ],
         "returns": {
-          "type": "Boolean",
-          "description": ""
+          "description": "`True` if the regex pattern is present, `false` otherwise."
         },
         "deprecation": {
           "status": false,
@@ -8863,8 +8477,8 @@
           }
         ],
         "returns": {
-          "type": "Object",
-          "description": ""
+          "type": "Object<Dictionary<string|number,string>> ",
+          "description": "A dictionary containing the match, submatches, named matches, Count and Raw match object"
         },
         "deprecation": {
           "status": false,
@@ -8895,8 +8509,8 @@
           }
         ],
         "returns": {
-          "type": "Collection",
-          "description": ""
+          "type": "Collection<Object<Dictionary<string|number,string>>> ",
+          "description": "An array of strings which match the regex."
         },
         "deprecation": {
           "status": false,
@@ -8936,8 +8550,7 @@
           }
         ],
         "returns": {
-          "type": "String",
-          "description": ""
+          "description": "The haystack with replaced details."
         },
         "deprecation": {
           "status": false,
@@ -8977,8 +8590,7 @@
           }
         ],
         "returns": {
-          "type": "String",
-          "description": ""
+          "description": "A list of strings matched."
         },
         "deprecation": {
           "status": false,
@@ -9044,6 +8656,7 @@
         "description": "Called every time the timer loops",
         "params": [],
         "returns": {
+          "type": "Void",
           "description": ""
         },
         "deprecation": {
@@ -9200,12 +8813,12 @@
         "isDefaultMember": false,
         "protected": false,
         "access": null,
-        "description": "",
+        "description": "Event raised when any of the below events are raised",
         "params": [
           {
             "name": "sEventName",
-            "type": "String",
-            "description": "",
+            "type": "\"Open\"|\"Close\"|\"Error\"|\"Message\"",
+            "description": "The name of the event.",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -9214,7 +8827,7 @@
           {
             "name": "eventData",
             "type": "Variant",
-            "description": "",
+            "description": "Data to forward to event handler.",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -9222,6 +8835,7 @@
           }
         ],
         "returns": {
+          "type": "Void",
           "description": ""
         },
         "deprecation": {
@@ -9238,12 +8852,12 @@
         "isDefaultMember": false,
         "protected": false,
         "access": null,
-        "description": "",
+        "description": "Event raised when the websocket is opened",
         "params": [
           {
             "name": "eventData",
             "type": "Variant",
-            "description": "",
+            "description": "Data to forward to event handler.",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -9251,6 +8865,7 @@
           }
         ],
         "returns": {
+          "type": "Void",
           "description": ""
         },
         "deprecation": {
@@ -9267,12 +8882,12 @@
         "isDefaultMember": false,
         "protected": false,
         "access": null,
-        "description": "",
+        "description": "Event raised when the websocket is closed",
         "params": [
           {
             "name": "eventData",
             "type": "Variant",
-            "description": "",
+            "description": "Data to forward to event handler.",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -9280,6 +8895,7 @@
           }
         ],
         "returns": {
+          "type": "Void",
           "description": ""
         },
         "deprecation": {
@@ -9296,12 +8912,12 @@
         "isDefaultMember": false,
         "protected": false,
         "access": null,
-        "description": "",
+        "description": "Event raised when the websocket has an error",
         "params": [
           {
             "name": "eventData",
             "type": "Variant",
-            "description": "",
+            "description": "Data to forward to event handler.",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -9309,6 +8925,7 @@
           }
         ],
         "returns": {
+          "type": "Void",
           "description": ""
         },
         "deprecation": {
@@ -9325,12 +8942,12 @@
         "isDefaultMember": false,
         "protected": false,
         "access": null,
-        "description": "",
+        "description": "Event raised when the websocket receives a message",
         "params": [
           {
             "name": "eventData",
             "type": "Variant",
-            "description": "",
+            "description": "Data to forward to event handler.",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -9338,6 +8955,7 @@
           }
         ],
         "returns": {
+          "type": "Void",
           "description": ""
         },
         "deprecation": {
@@ -9359,7 +8977,7 @@
           {
             "name": "url",
             "type": "String",
-            "description": "",
+            "description": "The websocket url to track.",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -9367,8 +8985,7 @@
           }
         ],
         "returns": {
-          "type": "stdWebSocket",
-          "description": ""
+          "description": "The new WebSocket object."
         },
         "deprecation": {
           "status": false,
@@ -9389,7 +9006,7 @@
           {
             "name": "url",
             "type": "String",
-            "description": "",
+            "description": "The websocket url to track.",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -9417,8 +9034,7 @@
         "description": "Gets the url of the websocket",
         "params": [],
         "returns": {
-          "type": "String",
-          "description": ""
+          "description": "The url of the websocket"
         },
         "deprecation": {
           "status": false,
@@ -9677,26 +9293,6 @@
         "remarks": []
       },
       {
-        "name": "CreateFromEvent",
-        "type": "Function",
-        "constructor": true,
-        "isDefaultMember": false,
-        "protected": false,
-        "access": null,
-        "description": "",
-        "params": [],
-        "returns": {
-          "type": "stdWindow",
-          "description": ""
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "examples": [],
-        "remarks": []
-      },
-      {
         "name": "CreateFromIUnknown",
         "type": "Function",
         "constructor": true,
@@ -9708,7 +9304,7 @@
           {
             "name": "obj",
             "type": "IUnknown",
-            "description": "",
+            "description": "Object which implements GetWindow() method",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -9716,8 +9312,7 @@
           }
         ],
         "returns": {
-          "type": "{stdWindow} Window specified by the object.",
-          "description": ""
+          "description": "Window specified by the object."
         },
         "deprecation": {
           "status": false,
@@ -10439,8 +10034,7 @@
           }
         ],
         "returns": {
-          "type": "LongPtr",
-          "description": ""
+          "description": "Handle to the hook"
         },
         "deprecation": {
           "status": false,
@@ -10487,8 +10081,7 @@
           }
         ],
         "returns": {
-          "type": "stdWindow",
-          "description": ""
+          "description": "First element found, or `Nothing` if no element found."
         },
         "deprecation": {
           "status": false,
@@ -10535,8 +10128,8 @@
           }
         ],
         "returns": {
-          "type": "collection",
-          "description": ""
+          "type": "Collection<stdWindow> ",
+          "description": "Collection of elements found, or `Nothing` if no element found."
         },
         "deprecation": {
           "status": false,
@@ -11060,26 +10653,6 @@
         "remarks": [
           "This is used to synchronise the thread of the window with the thread of VBA. Important for `SendInput`, Hook procedures as well as usage in drag/drop and DDE."
         ]
-      },
-      {
-        "name": "Requires",
-        "type": "Sub",
-        "constructor": true,
-        "isDefaultMember": false,
-        "protected": false,
-        "access": null,
-        "description": "",
-        "params": [],
-        "returns": {
-          "type": "Void",
-          "description": ""
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "examples": [],
-        "remarks": []
       }
     ]
   }

@@ -250,6 +250,7 @@ End Property
 
 'Obtain the item for a key or index
 '@param keyOrIndex as Variant<string|long> - Either a string key (if eJSONObject) or index as long (if eJSONArray)
+'@returns - The item for the key or index
 Public Property Get Item(ByVal keyOrIndex as Variant) as Variant
 Attribute Item.VB_UserMemId = 0
   select case this.iType
@@ -422,7 +423,7 @@ Private Property Get ChildrenCol() as Collection
 End Property
 
 'Allow `for each x in json` syntax
-'@returns {IEnumVariant} The enumerator to iterate over
+'@returns - The enumerator to iterate over
 Public Function NewEnum() As IUnknown
 Attribute NewEnum.VB_UserMemId = -4
 Attribute NewEnum.VB_MemberFlags = "40"

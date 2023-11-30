@@ -15,72 +15,72 @@ Attribute VB_Exposed = False
 'Fibers can be useful especially when dealing with asynchronous functions
 '@example **1. Simple fiber example**:
 '```vb
-'   Sub main()
-'       Dim fibers as new Collection
-'       For i = 1 to 100
-'           fibers.add createFiber("http://example.com/" & i)
-'       next
-'       
-'       'Run requests concurrently across 10 fibers
-'       set results = stdFiber.runFibers(fibers, numFibers:=10)
-'   End Sub
-'   Function createFiber(ByVal url as string) as stdFiber
-'       Dim fib as stdFiber: set fib = stdFiber.Create()
-'       set fib.meta("status") = getStatusUpdater()
-'       fib.add stdCallback.CreateFromMethods("", "step1_GetRequest").bind(url)
-'       fib.add stdCallback.CreateFromMethods("", "step2_AwaitStatus")
-'       fib.add stdCallback.CreateFromMethods("", "step3_ReturnData")
-'       fib.addErrorHandler stdCallback.CreateFromMethods("", "stepX_OnError")
-'       set createFiber = fib
-'   End Function
-'   Public Function step1_GetRequest(ByVal url as string, ByVal fib as stdFiber) as boolean
-'       fib.meta("status").value = "step1"
-'       'Store information in bespoke fiber procedure metadata
-'       set fib.meta("req") = stdHTTP.Create(url, HTTPAsync)
-'       step1_GetRequest = true
-'   End Function
-'   Public Function step2_AwaitStatus(ByVal fib as stdFiber) as boolean
-'       fib.meta("status").value = "step2"
-'       step1_GetRequest = fib.meta("req").status <> 0
-'   End Function
-'   Public Function step3_ReturnData(ByVal fib as stdFiber) as boolean
-'       Call fib.resolve(fib.meta("req").ResponseText)
-'       fib.meta("status").value = "Complete"
-'   End Function
-'   Public Sub stepX_OnError(ByVal fib as stdFiber)
-'       fib.meta("status").value = fib.ErrorText
-'   End Sub
+'Sub main()
+'    Dim fibers as new Collection
+'    For i = 1 to 100
+'        fibers.add createFiber("http://example.com/" & i)
+'    next
+'    
+'    'Run requests concurrently across 10 fibers
+'    set results = stdFiber.runFibers(fibers, numFibers:=10)
+'End Sub
+'Function createFiber(ByVal url as string) as stdFiber
+'    Dim fib as stdFiber: set fib = stdFiber.Create()
+'    set fib.meta("status") = getStatusUpdater()
+'    fib.add stdCallback.CreateFromMethods("", "step1_GetRequest").bind(url)
+'    fib.add stdCallback.CreateFromMethods("", "step2_AwaitStatus")
+'    fib.add stdCallback.CreateFromMethods("", "step3_ReturnData")
+'    fib.addErrorHandler stdCallback.CreateFromMethods("", "stepX_OnError")
+'    set createFiber = fib
+'End Function
+'Public Function step1_GetRequest(ByVal url as string, ByVal fib as stdFiber) as boolean
+'    fib.meta("status").value = "step1"
+'    'Store information in bespoke fiber procedure metadata
+'    set fib.meta("req") = stdHTTP.Create(url, HTTPAsync)
+'    step1_GetRequest = true
+'End Function
+'Public Function step2_AwaitStatus(ByVal fib as stdFiber) as boolean
+'    fib.meta("status").value = "step2"
+'    step1_GetRequest = fib.meta("req").status <> 0
+'End Function
+'Public Function step3_ReturnData(ByVal fib as stdFiber) as boolean
+'    Call fib.resolve(fib.meta("req").ResponseText)
+'    fib.meta("status").value = "Complete"
+'End Function
+'Public Sub stepX_OnError(ByVal fib as stdFiber)
+'    fib.meta("status").value = fib.ErrorText
+'End Sub
 
 '```
 '@example **2. Use of agents**:
 '```vb
-'   Sub main()
-'     Dim fibers as new Collection
-'     For i = 1 to 100
-'       fibers.add createFiber("http://example.com/" & i)
-'     next
-'     set results = stdFiber.runFibers(fibers, numFibers:=10)
-'   End Sub
-'   Function createFiber(ByVal url as string) as stdFiber
-'     Dim fib as stdFiber: set fib = stdFiber.Create()
-'     fib.add stdCallback.CreateFromPointer(AddressOf step1_CreateAgent, vbBoolean, Array(vbObject))
-'     fib.add stdCallback.CreateFromPointer(AddressOf step2_Navigate, vbBoolean, Array(vbObject, vbString)).bind(url)
-'     fib.add stdCallback.CreateFromPointer(AddressOf step3_Await, vbBoolean, Array(vbObject))
-'     set createFiber = fib
-'   End Function
-'   Function step1_CreateAgent(ByVal fib as stdFiber) as boolean
-'     'An agent is unique to the fiber runtime and can be used across different fiber procedures.
-'     set fib.agent("ie") = CreateObject("InternetExplorer.Application")
-'     fib.agent("ie").visible = true
-'     step1_CreateAgent = true
-'   End Function
-'   Function step2_Navigate(ByVal url as string, ByVal fib as stdFiber) as Boolean
-'     fib.agent("ie").Navigate(url)
-'   End Function
-'   Function step3_Await(ByVal fib as stdFiber) as Boolean
-'     step3_Await = fib.agent("ie").readystate = 4
-'   End Function
-'   '...
+'Sub main()
+'  Dim fibers as new Collection
+'  For i = 1 to 100
+'    fibers.add createFiber("http://example.com/" & i)
+'  next
+'  set results = stdFiber.runFibers(fibers, numFibers:=10)
+'End Sub
+'Function createFiber(ByVal url as string) as stdFiber
+'  Dim fib as stdFiber: set fib = stdFiber.Create()
+'  fib.add stdCallback.CreateFromPointer(AddressOf step1_CreateAgent, vbBoolean, Array(vbObject))
+'  fib.add stdCallback.CreateFromPointer(AddressOf step2_Navigate, vbBoolean, Array(vbObject, vbString)).bind(url)
+'  fib.add stdCallback.CreateFromPointer(AddressOf step3_Await, vbBoolean, Array(vbObject))
+'  set createFiber = fib
+'End Function
+'Function step1_CreateAgent(ByVal fib as stdFiber) as boolean
+'  'An agent is unique to the fiber runtime and can be used across different fiber procedures.
+'  set fib.agent("ie") = CreateObject("InternetExplorer.Application")
+'  fib.agent("ie").visible = true
+'  step1_CreateAgent = true
+'End Function
+'Function step2_Navigate(ByVal url as string, ByVal fib as stdFiber) as Boolean
+'  fib.agent("ie").Navigate(url)
+'End Function
+'Function step3_Await(ByVal fib as stdFiber) as Boolean
+'  step3_Await = fib.agent("ie").readystate = 4
+'End Function
+''...
 '```
 
 

@@ -181,7 +181,7 @@ End Function
 'Create an empty enumerator
 '@constructor
 '@param iMaxLength - Maximum length of enumerator. The enumerator will refuse to go beyond this number of items. Used in order to prevent runaway processes.
-'@returns {stdEnumerator} An empty enumerator
+'@returns - An empty enumerator
 Public Function CreateEmpty(optional byval iMaxLength as long = 1000000) as stdEnumerator
     set CreateEmpty = new stdEnumerator
     Call CreateEmpty.protInit(EnumeratorType.FromIEnumVariant,iMaxLength,new Collection)
@@ -521,7 +521,7 @@ End Function
 
 'Call callback `cb` on each item in the enumerator. Creates a new enumerator from each value returned from `cb`.
 '@param cb as stdICallable<(element: Variant)=>Variant> - Callback to map values to.
-'@return - Enumerator containing mapped values
+'@returns - Enumerator containing mapped values
 Public Function Map(ByVal cb As stdICallable) As stdEnumerator
   Dim oRet as Collection: Set oRet = new Collection
   Dim v as variant: v = null
@@ -536,7 +536,7 @@ End Function
 
 'Returns a new enumerator containing all elements of `Me` for which the given callback returns `true`.
 '@param cb as stdICallable<(element: Variant)=>Boolean> - callback to test condition for
-'@return - Enumerator containing all elements of `Me` for which the given callback returns `true`.
+'@returns - Enumerator containing all elements of `Me` for which the given callback returns `true`.
 Public Function Filter(ByVal cb as stdICallable) as stdEnumerator
   Dim oRet as Collection: Set oRet = new Collection
   Dim v as variant: v = null
