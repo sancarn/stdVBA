@@ -454,8 +454,6 @@ Private pRegisteredTimerOLEInstance As Long
 '* EVENTS *
 '**********
 
-Public Event Tick()
-
 '****************
 '* CONSTRUCTORS *
 '****************
@@ -799,63 +797,6 @@ End Sub
 'Revoke the previously registered object
 Public Sub RevokeActiveObject()
     Call RevokeActiveObjectEx(Object, pRegisteredOLEInstance)
-End Sub
-
-'Start a timer which raises the OnTime event every x milliseconds.
-'@param iMilliseconds - Number of milliseconds to wait before each Tick event
-'@remark Uses powershell to create a timer which calls the `IUnknown::protTimerTick` method on the object.
-'@TODO: Stop using powershell and use a native timer
-Public Sub StartTimer(Optional ByVal iMilliseconds As Long = 500)
-    Dim sGUID As String: sGUID = getGUID()
-    Call RegisterActiveObjectEx(Me, pRegisteredTimerOLEInstance, "{" & sGUID & "}")
-    Dim sPowershell As String
-    
-    'Define C# block
-    sPowershell = "PowerShell -Command " & vbCrLf _
-    & "add-type -TypeDefinition @""" & vbCrLf _
-    & "  using System;" & vbCrLf _
-    & "  using System.Runtime.InteropServices;" & vbCrLf _
-    & "  public class COMHelper {" & vbCrLf _
-    & "    [DllImport(""oleAut32.dll"", PreserveSig=false)]" & vbCrLf _
-    & "    static extern void GetActiveObject(ref GUID   rclsid, IntPtr pvReserved, [MarshalAs(UnmanagedType.IUnknown)] out Object ppunk);" & vbCrLf _
-    & "    " & vbCrLf _
-    & "    [DllImport(""ole32.dll"")]" & vbCrLf _
-    & "    static extern int CLSIDFromString([MarshalAs(UnmanagedType.LPWStr)] string lpszProgID, out GUID pclsid);" & vbCrLf _
-    & "    " & vbCrLf _
-    & "    public static object getActiveObject(string sClsid){" & vbCrLf _
-    & "      GUID clsid;" & vbCrLf _
-    & "      CLSIDFromString(sClsid, out clsid);" & vbCrLf _
-    & "      " & vbCrLf _
-    & "      object obj;" & vbCrLf _
-    & "      GetActiveObject(ref clsid, IntPtr.Zero, out obj);" & vbCrLf _
-    & "      " & vbCrLf _
-    & "      return obj;" & vbCrLf _
-    & "    }" & vbCrLf _
-    & "  }" & vbCrLf _
-    & """@" & vbCrLf
-    
-    'Define powershell block
-    sPowershell = sPowershell _
-        & "$callee=[COMHelper]::getActiveObject({" & sGUID & "})" & vbCrLf _
-        & "$timer = New-Object Timers.Timer" & vbCrLf _
-        & "$timer.Interval=" & iMilliseconds & vbCrLf _
-        & "$timer.AutoReset = $true" & vbCrLf _
-        & "$timer.Enabled = $true" & vbCrLf _
-        & "Register-ObjectEvent -InputObject $timer -EventName Elapsed -Action {" & vbCrLf _
-        & "  Try {" & vbCrLf _
-        & "    $callee.protTimerTick()" & vbCrLf _
-        & "  }" & vbCrLf _
-        & "  catch {" & vbCrLf _
-        & "    Exit" & vbCrLf _
-        & "  }" & vbCrLf _
-        & "}" & vbCrLf
-        
-    Call Shell(sPowershell, vbHide)
-End Sub
-
-'Stop a previously started stdCOM timer
-Public Sub EndTimer()
-    Call RevokeActiveObjectEx(Me, pRegisteredTimerOLEInstance)
 End Sub
 
 '############################

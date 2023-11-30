@@ -187,7 +187,8 @@ End Type
 '************************************************************************************************
 
 'Get or set the value of the current
-'@param
+'@param iFormat - The format to get/set the value of
+'@returns Variant - The value stored in the clipboard
 Public Property Get value(ByVal iFormat As CLIPFORMAT) As Variant
 Attribute value.VB_UserMemId = 0
   #If VBA7 Then
@@ -292,6 +293,11 @@ Public Sub Clear()
   If Not CBool(CloseClipboard()) Then Call CriticalRaise("Value [LET]", "Unable to close clipboard (DllError: " & Err.LastDllError & ")")
 End Sub
 
+'Get or set the clipboard as/to a string
+'@returns String - The string stored on the clipboard
+'@example ```vb
+'stdClipboard.text = "Hello World"
+'```
 Public Property Get text() As String
   text = value(CF_UNICODETEXT)
 End Property

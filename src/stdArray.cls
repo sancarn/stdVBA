@@ -40,14 +40,47 @@ Private pChunking As Long
 Private pInitialised As Boolean
 
 
+'Event executed before the internal array is overwritten 
+'@param arr - A reference to this array
+'@param arr2 - The array which is being assigned to this array
+Public Event BeforeArrLet(ByRef arr as stdArray, ByRef arr2 as variant)
 
-Public Event BeforeArrLet(ByRef arr as stdArray, ByRef arr as variant)
-Public Event AfterArrLet(ByRef arr as stdArray, ByRef arr as variant)
+'Event executed after the internal array is overwritten
+'@param arr - A reference to this array
+'@param arr2 - The array which is being assigned to this array
+Public Event AfterArrLet(ByRef arr as stdArray, ByRef arr2 as variant)
+
+'Event executed before an item is added to the array
+'@param arr - A the array to which the item is being added
+'@param iIndex - The index at which the item will be added
+'@param item - The item which will be added
+'@param cancel - Set to true to cancel the addition 
 Public Event BeforeAdd(ByRef arr As stdArray, ByVal iIndex As Long, ByRef item As Variant, ByRef cancel As Boolean)
+
+'Event executed after an item is added to the array
+'@param arr - A the array to which the item has been added to.
+'@param iIndex - The index at which the item was added
+'@param item - The item which was be added
 Public Event AfterAdd(ByRef arr as stdArray, ByVal iIndex as long, ByRef item as variant)
+
+'Event executed before an item is removed from the array
+'@param arr - A the array from which the item is being removed
+'@param iIndex - The index at which the item will be removed
+'@param item - The item which will be removed
+'@param cancel - Set to true to cancel the removal
 Public Event BeforeRemove(ByRef arr as stdArray, ByVal iIndex as long, ByRef item as variant, ByRef cancel as Boolean)
+
+'Event executed after an item is removed from the array
+'@param arr - A the array from which the item has been removed
+'@param iIndex - The index at which the item was removed
 Public Event AfterRemove(ByRef arr as stdArray, ByVal iIndex as long)
+
+'Event executed after an array is cloned
+'@param clone - A reference to the clone
 Public Event AfterClone(ByRef clone as stdArray)
+
+'Event executed after an array is created
+'@param arr - A reference to the array
 Public Event AfterCreate(ByRef arr as stdArray)
 
 'Create a `stdArray` object from params
@@ -573,7 +606,7 @@ End Function
 'Join each of the elements of this array together as a string
 '@param delimiter - Delimiter to insert between strings
 '@returns - A string containing all elements of the array joined together with the delimiter
-Public Function Join(Optional ByVal delimeter As String = ",") As String
+Public Function Join(Optional ByVal delimiter As String = ",") As String
   If pInitialised Then
       If pLength > 0 Then
         Dim sOutput As String
@@ -581,7 +614,7 @@ Public Function Join(Optional ByVal delimeter As String = ",") As String
         
         Dim i As Long
         For i = 2 To pLength
-          sOutput = sOutput & delimeter & pArr(i)
+          sOutput = sOutput & delimiter & pArr(i)
         Next
         Join = sOutput
       Else
@@ -744,7 +777,7 @@ Public Function IsSome(ByVal cb As stdICallable) As Boolean
 End Function
 
 'Call a callback on each element of the array
-'@param c as stdICallable<(element: Variant)=>Void> - Callback to run on each element
+'@param cb as stdICallable<(element: Variant)=>Void> - Callback to run on each element
 '@example `incidents.ForEach(cbPrint)`
 Public Sub ForEach(ByVal cb As stdICallable)
   If pInitialised Then

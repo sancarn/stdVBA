@@ -305,23 +305,31 @@ End Function
 
 'Creates an `stdAcc` object from the current running application (e.g. Excel / Word / Powerpoint).
 '@constructor
-'@returns stdAcc
-Public Function CreateFromApplication() As stdAcc
-    select case Application.Name
-        case "Microsoft Excel"
-            Set CreateFromApplication = CreateFromHwnd(Application.hwnd)
-        case "Microsoft Word"
-            Set CreateFromApplication = CreateFromHwnd(Application.ActiveWindow.Hwnd)
-        case "Microsoft PowerPoint"
-            Err.Raise 1, "stdAcc::CreateFromApplication()", "No built in way of finding powerpoint hwnd. We suggest using stdWindow to get hwnd, and create direct from hwnd instead " & Application.name
-        case else
-            Err.Raise 1, "stdAcc::CreateFromApplication()", "No implementation for getting application window of " & Application.name
-    end select
+'@param oApp - Application to create from. Defaults to `Application` if unspecified.
+'@returns - IAccessible wrapper around application window.
+Public Function CreateFromApplication(Optional ByVal oApp as Object = Nothing) As stdAcc
+  if oApp is nothing then set oApp = Application
+  select case oApp.Name
+    case "Microsoft Excel"
+      Set CreateFromApplication = CreateFromHwnd(oApp.hwnd)
+    case "Microsoft Word"
+      Set CreateFromApplication = CreateFromHwnd(oApp.ActiveWindow.Hwnd)
+    case "Microsoft Access"
+      set CreateFromApplication = CreateFromHwnd(oApp.hWndAccessApp)
+    case "Microsoft PowerPoint"
+      set CreateFromApplication = CreateFromIAccessible(oApp.CommandBars("Status Bar")).AncestralRoot
+    Case "Outlook"
+      Set CreateFromApplication = CreateFromIAccessible(oApp.ActiveWindow.CommandBars("Status Bar")).AncestralRoot
+    Case "Microsoft Publisher"
+      Set CreateFromApplication = CreateFromIAccessible(oApp.CommandBars("Status Bar")).AncestralRoot
+    case else
+      Err.Raise 1, "stdAcc::CreateFromApplication()", "No implementation for getting application window of " & Application.name
+  end select
 End Function
 
 'Creates an `stdAcc` object from the desktop.
 '@constructor
-'@returns stdAcc
+'@returns - IAccessible wrapper around desktop window.
 Public Function CreateFromDesktop() As stdAcc
     'Get this application's accessibility object
     Dim accThis As IAccessible
@@ -339,7 +347,7 @@ End Function
 'Creates an `stdAcc` object from an object which implements `IAccessible`.
 '@constructor
 '@param obj - Object implementing `IAccessible` interface.
-'@returns stdAcc
+'@returns - IAccessible wrapper around an IAccessible object.
 Public Function CreateFromIAccessible(ByVal obj As IAccessible) As stdAcc
     Set CreateFromIAccessible = New stdAcc
     set CreateFromIAccessible.protAccessible = obj
@@ -347,7 +355,7 @@ End Function
 
 'Creates an `stdAcc` object for the element the mouse currently hovers over.
 '@constructor
-'@returns stdAcc
+'@returns - IAccessible wrapper around element under mouse.
 Public Function CreateFromMouse() As stdAcc
     Dim pT As tPOINT
     Dim success As Long
@@ -357,7 +365,8 @@ End Function
 
 'Creates an `stdAcc` object for the element at a given path from the current element.
 '@constructor
-'@returns stdAcc
+'@param sPath - Path to element, e.g. "P.1.2.3" or "1.2.3". If starting with "P." or ".", these are ignored as they are taken as the current element.
+'@returns - IAccessible wrapper from a supplied path.
 '@example `Debug.Print stdAcc.CreateFromApplication().CreateFromPath("3.1").name`
 Public Function CreateFromPath(ByVal sPath As String) As stdAcc
     'If starting with "." remove it
@@ -389,7 +398,9 @@ End Function
 'Initialises an stdAcc object as a `Proxy` object, who's methods are implemented on the parent instead of on the element itself
 '@constructor
 '@protected
-Public Sub InitWithProxy(ByRef oParent as stdAcc, ByVal index as long)
+'@param oParent - Parent object to proxy
+'@param index - Index of element in parent
+Public Sub protInitWithProxy(ByRef oParent as stdAcc, ByVal index as long)
     isProxy = true
     set proxyParent = oParent.protAccessible
     proxyIndex = index
@@ -610,6 +621,18 @@ handle_error:
     Set Parent = Nothing
 End Property
 
+'Obtain the ancestral root of the IAccessible object (A child of the desktop)
+'@returns - Ancestral root of this element (child window of the desktop)
+Public Property Get AncestralRoot() As stdAcc
+    Dim desktop as stdAcc: set desktop = stdAcc.CreateFromDesktop()
+    'Walk up the tree until we hit the element just before desktop
+    Dim acc As stdAcc: Set acc = Me
+    While Not acc.Parent.hwnd <> desktop.hwnd
+        Set acc = acc.Parent
+    Wend
+    Set AncestralRoot = acc
+End Property
+
 'Return the children of the IAccessible object
 '@returns Collection<stdAcc> - Children of this element
 Public Property Get children() As Collection
@@ -825,7 +848,8 @@ Public Property Get Help() As String
 End Property
 
 'Returns the help topic
-'@returns String - the help topic for the element
+'@param sFile - File to get help topic for
+'@returns - the help topic for the element
 Public Property Get HelpTopic(Optional ByVal sFile as string = "") As String
   On Error Resume Next 'FIX: Sometimes this is unsupported, so leave this error.
   if isProxy then
@@ -1025,8 +1049,8 @@ Public Function AwaitForElement(awaitFor as stdICallable, Optional error as stdI
 End Function
 
 'Returns the lookups object
-'@returns {Dictionary<string,Dictionary<string,Dictionary<string,long>>>}
-Friend Function protGetLookups()
+'@returns Object<Dictionary<string,Dictionary<string,Dictionary<string,long>>>>
+Friend Function protGetLookups() as Object
     if Lookups is nothing then
         set Lookups = CreateObject("Scripting.Dictionary")
         set Lookups("EAccStates") = CreateLookupDict(Array( _ 
@@ -1086,9 +1110,9 @@ End Function
 
 #If Win64 Then
   'Get an IAccessible object from a screen point
-  '@param {Long} X - X coordinate (Horizontal)
-  '@param {Long} Y - Y coordinate (Vertical)
-  '@returns {IAccessible} Accessibility object
+  '@param x - X coordinate (Horizontal)
+  '@param y - Y coordinate (Vertical)
+  '@returns - Accessibility object
   Private Function AccessibilityObjectFromPointEx(ByVal x as long, ByVal y as long) As IAccessible
     Dim o As IAccessible, v As Variant
     Call AccessibleObjectFromPoint(PointToLongLong(x,y), o, v)
@@ -1096,8 +1120,9 @@ End Function
   End Function
 
   'Convert a Point's X (Long) and Y (Long) into a `LongLong`
-  '@param {Long} X - X coordinate (Horizontal)
-  '@param {Long} Y - Y coordinate (Vertical)
+  '@param x - X coordinate (Horizontal)
+  '@param y - Y coordinate (Vertical)
+  '@returns - LongLong representation of point
   '@remark You may notice that we are putting the arguments x and y into the function in the reverse order.
   '        I believe this is because stdCall convention puts arguments onto the stack in the reverse order, but in this case
   '        Since we are providing a single argument, we have to do that instead of the compiler. This ordering has been confirmed
@@ -1114,9 +1139,9 @@ End Function
   End Function
 #Else
   'Get an IAccessible object from a screen point
-  '@param {Long} X - X coordinate (Horizontal)
-  '@param {Long} Y - Y coordinate (Vertical)
-  '@returns {IAccessible} Accessibility object
+  '@param x - X coordinate (Horizontal)
+  '@param y - Y coordinate (Vertical)
+  '@returns - Accessibility object
   Private Function AccessibilityObjectFromPointEx(ByVal x as long, ByVal y as long) As IAccessible
     Dim o As IAccessible, v As Variant
     Call AccessibleObjectFromPoint(x, y, o, v)
@@ -1124,11 +1149,11 @@ End Function
   End Function
 #End If
 
+'Creates a userform with transparent background and red border around the element. Useful for debugging.
+'@TODO: Write this function
+Private Function Highlight() as stdUserform
 
-'TODO: Highlight() - Creates a userform with transparent background and red border
-'Public Function Highlight() as stdUserform
-'
-'End Function
+End Function
 
 'Retrieve the IAccessible interface from a window handle
 '@param {LongPtr} hwnd
@@ -1145,8 +1170,8 @@ Private Function IAccessibleFromHwnd(ByVal hwnd As LongPtr) As IAccessible
 End Function
 
 'Create a GUID struct from input string
-'@param {String} GUID to convert
-'@returns {tGUID} for use in API calls
+'@param guid - GUID string to convert
+'@returns - guid struct for use in API calls
 Private Function convertGUID(Guid As String) As tGUID
     'Lookups defined by:
     ' Define the GUID for the IAccessible object
@@ -1181,8 +1206,8 @@ Private Function convertGUID(Guid As String) As tGUID
     convertGUID.abytData4(7) = CInt("&H" & Mid(vArr(4), 11, 2)) '71
 End Function
 
-'@param {stdICallable} A callable that may 
-'@returns {VOID}
+'Bind standard acc global variables to a callable
+'@param stdICallable - A callable to bind global variables to (if the callable supports it)
 Private Sub BindGlobals(ByRef query as stdICallable)
     Dim bSuccess as boolean
     Call query.SendMessage("bindGlobal", bSuccess, Array("EAccRoles", Lookups("EAccRoles")("S2N")))
@@ -1191,7 +1216,7 @@ Private Sub BindGlobals(ByRef query as stdICallable)
 End Sub
 
 'Creates a collection of stdAcc objects representing the children of the element
-'@returns {Collection<stdAcc>} The returned collection of children
+'@returns Collection<stdAcc> - The returned collection of children
 Private Function getChildrenAsIAcc() As Collection
   'Get IAccessible children as Array of children
   Dim vChildren()
@@ -1212,16 +1237,16 @@ Private Function getChildrenAsIAcc() As Collection
 End Function
 
 'Creates a proxy element under this element (this element is parent). Proxy elements get there information from the parent directly.
-'@param {Long} Child ID to create proxy element on
-'@returns {stdAcc} stdAcc element for child
+'@param childID - Child ID to create proxy element on
+'@returns - stdAcc element for child
 Private Function createProxyChild(ByVal childID As Long) As stdAcc
     Set createProxyChild = New stdAcc
-    Call createProxyChild.InitWithProxy(Me, childID)
+    Call createProxyChild.protInitWithProxy(Me, childID)
 End Function
 
 'Escape string for compatibility with JSON
-'@param {String} string to escape
-'@returns {String} Escaped string
+'@param s - string to escape
+'@returns - Escaped string
 Private Function jsonEscape(ByVal s As String) As String
     s = Replace(s, "\", "\\")
     s = Replace(s, vbCr, "\r")
@@ -1236,8 +1261,8 @@ Private Sub Class_Initialize()
 End Sub
 
 'From an array of Key-Value pairs, create a dictionary of Key-->Value and Value-->Key lookups
-'@param {Variant()} 1D array of Key,Value pairs
-'@returns {Dictionary} Dictionary<{S2N: Dictionary<key,value>, N2S: Dictionary<value, key> }>
+'@param arr as Array<Variant> - 1D array of Key,Value pairs
+'@returns Object<Dictionary<S2N: Dictionary<key: string,value: variant>, N2S: Dictionary<value: variant, key: string>>> - Dictionary of dictionaries containing the lookups
 Private Function CreateLookupDict(arr as Variant) as Object
     Dim oRet as object
     set oRet = CreateObject("Scripting.Dictionary")
@@ -1266,9 +1291,9 @@ End Function
 '* HELPERS FOR FindFirst() and FindAll()
 '****************************************
 'Constructor for a tFindNode type
-'@param {Long} depth of element
-'@param {stdAcc} element
-'@returns {tFindNode} FindNode struct
+'@param depth - depth of element
+'@param element - element to store in tFindNode
+'@returns - FindNode struct
 Private Function CreateFindNode(ByVal depth as long, ByVal element as stdAcc) as tFindNode
     CreateFindNode.initialised = true
     CreateFindNode.depth = depth
@@ -1276,9 +1301,9 @@ Private Function CreateFindNode(ByVal depth as long, ByVal element as stdAcc) as
 End Function
 
 'Given an array `stack`, and length `index`, append `item` onto the stack 
-'@param {tFindNode()} stack of elements
-'@param {Long} current index in stack
-'@param {tFindNode} Item to insert into stack
+'@param stack as Array<tFindNode> - stack of elements
+'@param index - current index in stack
+'@param item - Item to insert into stack
 Private Sub stackPushV(ByRef stack() As tFindNode, ByRef index As Long, ByRef item As tFindNode)
     Dim ub As Long: ub = UBound(stack)
     Dim size As Long: size = ub + 1
@@ -1293,9 +1318,9 @@ End Sub
 
 
 'Given an array `stack`, and `index`=>`n`, pop the nth item off the stack. Used in DFS
-'@param {tFindNode()} stack of elements
-'@param {Long} current index in stack
-'@returns {tFindNode} FindNode found at index
+'@param stack as Array<tFindNode> - stack of elements
+'@param index - current index in stack
+'@returns - FindNode found at index
 Private Function stackPopV(ByRef stack() As tFindNode, ByRef index As Variant) As tFindNode
     Dim size As Long: size = UBound(stack) + 1
     If index < size / 3 And index > minStackSize Then
@@ -1313,8 +1338,8 @@ End Function
 
 
 'Returns the COM Error Description for the passed error code
-'@param {Long} Error code
-'@returns {String} Description of error
+'@param code - Error code
+'@returns - Description of error
 Private Function COMErrorDescription(ByVal code As Long) As String
     Static pErrorCodes As Object
     If pErrorCodes Is Nothing Then
@@ -1406,10 +1431,12 @@ Private Function unkQueryInterface(ByRef unk As IUnknown, ByVal sIID As String) 
 End Function
 
 'Call a function in the VTable of the object at a specified offset
-'@param {Long}      The offset of the method to call. IUnknown::QueryInterface=0; IUnknown::AddRef=1; IUnknown::Release=2; IDispatch::Invoke=6
-'@param {VbVarType} Return value of function, typically Long (HResult) for COM Object calls
-'@paramArray Arguments to send to function.
-Public Function DispCallFuncEx(ByRef unk As IUnknown, ByVal VTableOffset As Long, ByVal ReturnType As VbVarType, ParamArray FunctionParameters() As Variant) As Variant
+'@param unk - The object to call the function on
+'@param VTableOffset - The offset of the method to call. IUnknown::QueryInterface=0; IUnknown::AddRef=1; IUnknown::Release=2; IDispatch::Invoke=6
+'@param ReturnType - Return value of function, typically Long (HResult) for COM Object calls
+'@param FunctionParameters - Arguments to send to function.
+'@returns - Return value of function
+Private Function DispCallFuncEx(ByRef unk As IUnknown, ByVal VTableOffset As Long, ByVal ReturnType As VbVarType, ParamArray FunctionParameters() As Variant) As Variant
     #If Win64 Then
       Const PTRSIZE = 8
     #Else

@@ -164,7 +164,7 @@ function parseComment(comment) {
  * @typedef {"param": {[key: string]: IParamData},[key: ICommentType]: ICommentData[]} CommentGroups
  */
 function parseParams(params, commentGroups) {
-    const paramRegex = /(?<optional>optional\s+)?(?:(?<referenceType>byval|byref)\s+)?(?:(?<paramarray>paramarray)\s+)?(?<name>\w+)(?<isArray>\(\))?(?:\s+as\s+(?<type>\w+))?(?:\s*=\s*(?<defaultValue>[^,\)]+))?/gi;
+    const paramRegex = /(?<optional>optional\s+)?(?:(?<referenceType>byval|byref)\s+)?(?:(?<paramarray>paramarray)\s+)?(?<name>\w+)(?<isArray>\(\))?(?:\s+as\s+(?<type>[^, )]+))?(?:\s*=\s*(?<defaultValue>[^,\)]+))?/gi;
     const paramMatches = [...params.matchAll(paramRegex)];
     const paramStore = [];
     for(paramMatch of paramMatches) {

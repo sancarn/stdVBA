@@ -80,10 +80,19 @@
         "protected": false,
         "access": null,
         "description": "Creates an `stdAcc` object from the current running application (e.g. Excel / Word / Powerpoint).",
-        "params": [],
+        "params": [
+          {
+            "name": "oApp",
+            "type": "Object",
+            "description": "Application to create from. Defaults to `Application` if unspecified.",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "Nothing"
+          }
+        ],
         "returns": {
-          "type": "stdAcc",
-          "description": ""
+          "description": "IAccessible wrapper around application window."
         },
         "deprecation": {
           "status": false,
@@ -102,8 +111,7 @@
         "description": "Creates an `stdAcc` object from the desktop.",
         "params": [],
         "returns": {
-          "type": "stdAcc",
-          "description": ""
+          "description": "IAccessible wrapper around desktop window."
         },
         "deprecation": {
           "status": false,
@@ -132,8 +140,7 @@
           }
         ],
         "returns": {
-          "type": "stdAcc",
-          "description": ""
+          "description": "IAccessible wrapper around an IAccessible object."
         },
         "deprecation": {
           "status": false,
@@ -152,8 +159,7 @@
         "description": "Creates an `stdAcc` object for the element the mouse currently hovers over.",
         "params": [],
         "returns": {
-          "type": "stdAcc",
-          "description": ""
+          "description": "IAccessible wrapper around element under mouse."
         },
         "deprecation": {
           "status": false,
@@ -174,7 +180,7 @@
           {
             "name": "sPath",
             "type": "String",
-            "description": "",
+            "description": "Path to element, e.g. \"P.1.2.3\" or \"1.2.3\". If starting with \"P.\" or \".\", these are ignored as they are taken as the current element.",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -182,8 +188,7 @@
           }
         ],
         "returns": {
-          "type": "stdAcc",
-          "description": ""
+          "description": "IAccessible wrapper from a supplied path."
         },
         "deprecation": {
           "status": false,
@@ -195,7 +200,7 @@
         "remarks": []
       },
       {
-        "name": "InitWithProxy",
+        "name": "protInitWithProxy",
         "type": "Sub",
         "constructor": true,
         "isDefaultMember": false,
@@ -206,7 +211,7 @@
           {
             "name": "oParent",
             "type": "stdAcc",
-            "description": "",
+            "description": "Parent object to proxy",
             "referenceType": "ByRef",
             "paramArray": false,
             "optional": false,
@@ -215,7 +220,7 @@
           {
             "name": "index",
             "type": "long",
-            "description": "",
+            "description": "Index of element in parent",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -273,12 +278,12 @@
           },
           {
             "name": "searchType",
-            "type": "EAccFindType",
+            "type": "EAccFindType=EAccFindType.DepthFirst",
             "description": "The type of search to perform, either Breadth First Search (BFS) or Depth First Search (DFS).\r\n To understand the difference between BFS and DFS take this tree:\r\n```\r\n     A\r\n    / \\\r\n   B   C\r\n  /   / \\\r\n D   E   F\r\n```\r\n\r\n* A BFS will walk this tree in the following order: A, B, C, D, E, F\r\n* A DFS will walk this tree in a different order:   A, C, F, E, B, D",
             "referenceType": "byval",
             "paramArray": false,
             "optional": true,
-            "defaultValue": "EAccFindType.DepthFirst"
+            "defaultValue": "Unspecified"
           }
         ],
         "returns": {
@@ -312,12 +317,12 @@
           },
           {
             "name": "searchType",
-            "type": "EAccFindType",
+            "type": "EAccFindType=EAccFindType.DepthFirst",
             "description": "The type of search, either Breadth First Search (BFS) or Depth First Search (DFS).\r\n To understand the difference between BFS and DFS take this tree:\r\n```\r\n     A\r\n    / \\\r\n   B   C\r\n  /   / \\\r\n D   E   F\r\n```\r\n\r\n* A BFS will walk this tree in the following order: A, B, C, D, E, F.\r\n* A DFS will walk this tree in a different order:   A, C, F, E, B, D.",
             "referenceType": "byval",
             "paramArray": false,
             "optional": true,
-            "defaultValue": "EAccFindType.DepthFirst"
+            "defaultValue": "Unspecified"
           }
         ],
         "returns": {
@@ -343,6 +348,25 @@
         "returns": {
           "type": "stdAcc ",
           "description": "Parent of this element"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "AncestralRoot",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadOnly",
+        "description": "Obtain the ancestral root of the IAccessible object (A child of the desktop)",
+        "params": [],
+        "returns": {
+          "description": "Ancestral root of this element (child window of the desktop)"
         },
         "deprecation": {
           "status": false,
@@ -408,9 +432,7 @@
           "status": false,
           "message": ""
         },
-        "examples": [
-          "`stdAcc.CreateFromMouse().Identity`"
-        ],
+        "examples": ["`stdAcc.CreateFromMouse().Identity`"],
         "remarks": []
       },
       {
@@ -684,7 +706,7 @@
           {
             "name": "sFile",
             "type": "string",
-            "description": "",
+            "description": "File to get help topic for",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": true,
@@ -692,7 +714,6 @@
           }
         ],
         "returns": {
-          "type": "String ",
           "description": "the help topic for the element"
         },
         "deprecation": {
@@ -963,86 +984,7 @@
           "message": ""
         },
         "examples": [],
-        "remarks": [
-          "calls `Me.FindFirst(awaitFor)` to wait for chosen element"
-        ]
-      },
-      {
-        "name": "Highlight",
-        "type": "Function",
-        "constructor": true,
-        "isDefaultMember": false,
-        "protected": false,
-        "access": null,
-        "description": "",
-        "params": [],
-        "returns": {
-          "type": "stdUserform",
-          "description": ""
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "examples": [],
-        "remarks": []
-      },
-      {
-        "name": "DispCallFuncEx",
-        "type": "Function",
-        "constructor": true,
-        "isDefaultMember": false,
-        "protected": false,
-        "access": null,
-        "description": "Call a function in the VTable of the object at a specified offset",
-        "params": [
-          {
-            "name": "unk",
-            "type": "IUnknown",
-            "description": "",
-            "referenceType": "ByRef",
-            "paramArray": false,
-            "optional": false,
-            "defaultValue": null
-          },
-          {
-            "name": "VTableOffset",
-            "type": "Long",
-            "description": "",
-            "referenceType": "ByVal",
-            "paramArray": false,
-            "optional": false,
-            "defaultValue": null
-          },
-          {
-            "name": "ReturnType",
-            "type": "VbVarType",
-            "description": "",
-            "referenceType": "ByVal",
-            "paramArray": false,
-            "optional": false,
-            "defaultValue": null
-          },
-          {
-            "name": "FunctionParameters",
-            "type": "Variant",
-            "description": "",
-            "referenceType": "ByRef",
-            "paramArray": false,
-            "optional": false,
-            "defaultValue": null
-          }
-        ],
-        "returns": {
-          "type": "Variant",
-          "description": ""
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "examples": [],
-        "remarks": []
+        "remarks": ["calls `Me.FindFirst(awaitFor)` to wait for chosen element"]
       }
     ]
   },
@@ -1057,21 +999,21 @@
         "isDefaultMember": false,
         "protected": false,
         "access": null,
-        "description": "",
+        "description": "Event executed before the internal array is overwritten",
         "params": [
           {
             "name": "arr",
             "type": "stdArray",
-            "description": "",
+            "description": "A reference to this array",
             "referenceType": "ByRef",
             "paramArray": false,
             "optional": false,
             "defaultValue": null
           },
           {
-            "name": "arr",
+            "name": "arr2",
             "type": "variant",
-            "description": "",
+            "description": "The array which is being assigned to this array",
             "referenceType": "ByRef",
             "paramArray": false,
             "optional": false,
@@ -1095,21 +1037,21 @@
         "isDefaultMember": false,
         "protected": false,
         "access": null,
-        "description": "",
+        "description": "Event executed after the internal array is overwritten",
         "params": [
           {
             "name": "arr",
             "type": "stdArray",
-            "description": "",
+            "description": "A reference to this array",
             "referenceType": "ByRef",
             "paramArray": false,
             "optional": false,
             "defaultValue": null
           },
           {
-            "name": "arr",
+            "name": "arr2",
             "type": "variant",
-            "description": "",
+            "description": "The array which is being assigned to this array",
             "referenceType": "ByRef",
             "paramArray": false,
             "optional": false,
@@ -1133,12 +1075,12 @@
         "isDefaultMember": false,
         "protected": false,
         "access": null,
-        "description": "",
+        "description": "Event executed before an item is added to the array",
         "params": [
           {
             "name": "arr",
             "type": "stdArray",
-            "description": "",
+            "description": "A the array to which the item is being added",
             "referenceType": "ByRef",
             "paramArray": false,
             "optional": false,
@@ -1147,7 +1089,7 @@
           {
             "name": "iIndex",
             "type": "Long",
-            "description": "",
+            "description": "The index at which the item will be added",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -1156,7 +1098,7 @@
           {
             "name": "item",
             "type": "Variant",
-            "description": "",
+            "description": "The item which will be added",
             "referenceType": "ByRef",
             "paramArray": false,
             "optional": false,
@@ -1165,7 +1107,7 @@
           {
             "name": "cancel",
             "type": "Boolean",
-            "description": "",
+            "description": "Set to true to cancel the addition",
             "referenceType": "ByRef",
             "paramArray": false,
             "optional": false,
@@ -1189,12 +1131,12 @@
         "isDefaultMember": false,
         "protected": false,
         "access": null,
-        "description": "",
+        "description": "Event executed after an item is added to the array",
         "params": [
           {
             "name": "arr",
             "type": "stdArray",
-            "description": "",
+            "description": "A the array to which the item has been added to.",
             "referenceType": "ByRef",
             "paramArray": false,
             "optional": false,
@@ -1203,7 +1145,7 @@
           {
             "name": "iIndex",
             "type": "long",
-            "description": "",
+            "description": "The index at which the item was added",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -1212,7 +1154,7 @@
           {
             "name": "item",
             "type": "variant",
-            "description": "",
+            "description": "The item which was be added",
             "referenceType": "ByRef",
             "paramArray": false,
             "optional": false,
@@ -1236,12 +1178,12 @@
         "isDefaultMember": false,
         "protected": false,
         "access": null,
-        "description": "",
+        "description": "Event executed before an item is removed from the array",
         "params": [
           {
             "name": "arr",
             "type": "stdArray",
-            "description": "",
+            "description": "A the array from which the item is being removed",
             "referenceType": "ByRef",
             "paramArray": false,
             "optional": false,
@@ -1250,7 +1192,7 @@
           {
             "name": "iIndex",
             "type": "long",
-            "description": "",
+            "description": "The index at which the item will be removed",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -1259,7 +1201,7 @@
           {
             "name": "item",
             "type": "variant",
-            "description": "",
+            "description": "The item which will be removed",
             "referenceType": "ByRef",
             "paramArray": false,
             "optional": false,
@@ -1268,7 +1210,7 @@
           {
             "name": "cancel",
             "type": "Boolean",
-            "description": "",
+            "description": "Set to true to cancel the removal",
             "referenceType": "ByRef",
             "paramArray": false,
             "optional": false,
@@ -1292,12 +1234,12 @@
         "isDefaultMember": false,
         "protected": false,
         "access": null,
-        "description": "",
+        "description": "Event executed after an item is removed from the array",
         "params": [
           {
             "name": "arr",
             "type": "stdArray",
-            "description": "",
+            "description": "A the array from which the item has been removed",
             "referenceType": "ByRef",
             "paramArray": false,
             "optional": false,
@@ -1306,7 +1248,7 @@
           {
             "name": "iIndex",
             "type": "long",
-            "description": "",
+            "description": "The index at which the item was removed",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -1330,12 +1272,12 @@
         "isDefaultMember": false,
         "protected": false,
         "access": null,
-        "description": "",
+        "description": "Event executed after an array is cloned",
         "params": [
           {
             "name": "clone",
             "type": "stdArray",
-            "description": "",
+            "description": "A reference to the clone",
             "referenceType": "ByRef",
             "paramArray": false,
             "optional": false,
@@ -1359,12 +1301,12 @@
         "isDefaultMember": false,
         "protected": false,
         "access": null,
-        "description": "",
+        "description": "Event executed after an array is created",
         "params": [
           {
             "name": "arr",
             "type": "stdArray",
-            "description": "",
+            "description": "A reference to the array",
             "referenceType": "ByRef",
             "paramArray": false,
             "optional": false,
@@ -1604,9 +1546,7 @@
           "status": false,
           "message": ""
         },
-        "examples": [
-          "`For each obj in myEnum: ... : next`"
-        ],
+        "examples": ["`For each obj in myEnum: ... : next`"],
         "remarks": []
       },
       {
@@ -2063,9 +2003,9 @@
         "description": "Join each of the elements of this array together as a string",
         "params": [
           {
-            "name": "delimeter",
+            "name": "delimiter",
             "type": "String",
-            "description": "",
+            "description": "Delimiter to insert between strings",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": true,
@@ -2282,9 +2222,7 @@
           "status": false,
           "message": ""
         },
-        "examples": [
-          "`if incidents.IsEvery(cbValid) then ...`"
-        ],
+        "examples": ["`if incidents.IsEvery(cbValid) then ...`"],
         "remarks": []
       },
       {
@@ -2313,9 +2251,7 @@
           "status": false,
           "message": ""
         },
-        "examples": [
-          "`if incidents.IsSome(cbValid) then ...`"
-        ],
+        "examples": ["`if incidents.IsSome(cbValid) then ...`"],
         "remarks": []
       },
       {
@@ -2329,8 +2265,8 @@
         "params": [
           {
             "name": "cb",
-            "type": "stdICallable",
-            "description": "",
+            "type": "stdICallable<(element: Variant)=>Void>",
+            "description": "Callback to run on each element",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -2345,9 +2281,7 @@
           "status": false,
           "message": ""
         },
-        "examples": [
-          "`incidents.ForEach(cbPrint)`"
-        ],
+        "examples": ["`incidents.ForEach(cbPrint)`"],
         "remarks": []
       },
       {
@@ -2376,9 +2310,7 @@
           "status": false,
           "message": ""
         },
-        "examples": [
-          "`incidents.Map(cbGetId)`"
-        ],
+        "examples": ["`incidents.Map(cbGetId)`"],
         "remarks": []
       },
       {
@@ -2407,9 +2339,7 @@
           "status": false,
           "message": ""
         },
-        "examples": [
-          "`incidents.Unique(cbGetId)`"
-        ],
+        "examples": ["`incidents.Unique(cbGetId)`"],
         "remarks": []
       },
       {
@@ -2447,9 +2377,7 @@
           "status": false,
           "message": ""
         },
-        "examples": [
-          "`values.Reduce(cbSum, 0)`"
-        ],
+        "examples": ["`values.Reduce(cbSum, 0)`"],
         "remarks": []
       },
       {
@@ -2629,12 +2557,12 @@
         "isDefaultMember": false,
         "protected": false,
         "access": null,
-        "description": "",
+        "description": "Event raised before the callback is run",
         "params": [
           {
             "name": "callback",
             "type": "stdCallback",
-            "description": "",
+            "description": "The callback object that is about to be run",
             "referenceType": "ByRef",
             "paramArray": false,
             "optional": false,
@@ -2643,7 +2571,7 @@
           {
             "name": "args",
             "type": "Variant",
-            "description": "",
+            "description": "The arguments that will be passed to the callback. This can be modified by listeners.",
             "referenceType": "ByRef",
             "paramArray": false,
             "optional": false,
@@ -2667,21 +2595,21 @@
         "isDefaultMember": false,
         "protected": false,
         "access": null,
-        "description": "",
+        "description": "Event raised after the callback is run",
         "params": [
           {
             "name": "callback",
             "type": "stdCallback",
-            "description": "",
+            "description": "The callback object that has just been run",
             "referenceType": "ByRef",
             "paramArray": false,
             "optional": false,
             "defaultValue": null
           },
           {
-            "name": "sResult",
+            "name": "result",
             "type": "Variant",
-            "description": "",
+            "description": "The result of the callback. This can be modified by listeners.",
             "referenceType": "ByRef",
             "paramArray": false,
             "optional": false,
@@ -3007,12 +2935,12 @@
         "isDefaultMember": false,
         "protected": false,
         "access": null,
-        "description": "",
+        "description": "Bind a parameter to the function. Bound parameters are bound to the left of the passed parameters.",
         "params": [
           {
             "name": "params",
-            "type": "Variant",
-            "description": "",
+            "type": "Array<Variant>",
+            "description": "The parameters to bind to the function",
             "referenceType": "ByRef",
             "paramArray": false,
             "optional": false,
@@ -3020,8 +2948,7 @@
           }
         ],
         "returns": {
-          "type": "Variant",
-          "description": ""
+          "description": "A new callback with the parameters bound"
         },
         "deprecation": {
           "status": false,
@@ -3037,12 +2964,12 @@
         "isDefaultMember": false,
         "protected": false,
         "access": null,
-        "description": "",
+        "description": "Bind a parameter to the function. Bound parameters are bound to the left of the passed parameters.",
         "params": [
           {
             "name": "params",
-            "type": "Variant",
-            "description": "",
+            "type": "Variant<Array<Variant>>",
+            "description": "The parameters to bind to the function",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -3050,8 +2977,7 @@
           }
         ],
         "returns": {
-          "type": "stdCallback",
-          "description": ""
+          "description": "A new callback with the parameters bound"
         },
         "deprecation": {
           "status": false,
@@ -3100,8 +3026,8 @@
         "params": [
           {
             "name": "vArr",
-            "type": "Variant",
-            "description": "",
+            "type": "Variant<Array<Variant>>",
+            "description": "The parameters to run the function with",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -3136,7 +3062,7 @@
           {
             "name": "iFormat",
             "type": "CLIPFORMAT",
-            "description": "",
+            "description": "The format to get/set the value of",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -3144,8 +3070,8 @@
           }
         ],
         "returns": {
-          "type": "Variant",
-          "description": ""
+          "type": "Variant ",
+          "description": "The value stored in the clipboard"
         },
         "deprecation": {
           "status": false,
@@ -3201,17 +3127,17 @@
         "isDefaultMember": false,
         "protected": false,
         "access": "ReadWrite",
-        "description": "",
+        "description": "Get or set the clipboard as/to a string",
         "params": [],
         "returns": {
-          "type": "String",
-          "description": ""
+          "type": "String ",
+          "description": "The string stored on the clipboard"
         },
         "deprecation": {
           "status": false,
           "message": ""
         },
-        "examples": [],
+        "examples": ["```vb\r\nstdClipboard.text = \"Hello World\"\r\n```"],
         "remarks": []
       },
       {
@@ -3366,18 +3292,9 @@
           },
           {
             "name": "xlPic",
-            "type": "Excel",
+            "type": "Excel.IPicture",
             "description": "The picture to copy",
             "referenceType": "ByVal",
-            "paramArray": false,
-            "optional": false,
-            "defaultValue": null
-          },
-          {
-            "name": "IPicture",
-            "type": "Variant",
-            "description": "",
-            "referenceType": "ByRef",
             "paramArray": false,
             "optional": false,
             "defaultValue": null
@@ -3422,18 +3339,9 @@
           },
           {
             "name": "xlShp",
-            "type": "Excel",
+            "type": "Excel.Shape",
             "description": "The shape to turn into an image",
             "referenceType": "ByVal",
-            "paramArray": false,
-            "optional": false,
-            "defaultValue": null
-          },
-          {
-            "name": "Shape",
-            "type": "Variant",
-            "description": "",
-            "referenceType": "ByRef",
             "paramArray": false,
             "optional": false,
             "defaultValue": null
@@ -3645,25 +3553,6 @@
     "name": "stdCOM",
     "fileName": "stdCOM.cls",
     "methods": [
-      {
-        "name": "Tick",
-        "type": "Event",
-        "constructor": true,
-        "isDefaultMember": false,
-        "protected": false,
-        "access": null,
-        "description": "",
-        "params": [],
-        "returns": {
-          "description": ""
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "examples": [],
-        "remarks": []
-      },
       {
         "name": "Create",
         "type": "Function",
@@ -4080,58 +3969,6 @@
         "protected": false,
         "access": null,
         "description": "Revoke the previously registered object",
-        "params": [],
-        "returns": {
-          "type": "Void",
-          "description": ""
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "examples": [],
-        "remarks": []
-      },
-      {
-        "name": "StartTimer",
-        "type": "Sub",
-        "constructor": true,
-        "isDefaultMember": false,
-        "protected": false,
-        "access": null,
-        "description": "Start a timer which raises the OnTime event every x milliseconds.",
-        "params": [
-          {
-            "name": "iMilliseconds",
-            "type": "Long",
-            "description": "Number of milliseconds to wait before each Tick event",
-            "referenceType": "ByVal",
-            "paramArray": false,
-            "optional": true,
-            "defaultValue": "500"
-          }
-        ],
-        "returns": {
-          "type": "Void",
-          "description": ""
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "examples": [],
-        "remarks": [
-          "Uses powershell to create a timer which calls the `IUnknown::protTimerTick` method on the object."
-        ]
-      },
-      {
-        "name": "EndTimer",
-        "type": "Sub",
-        "constructor": true,
-        "isDefaultMember": false,
-        "protected": false,
-        "access": null,
-        "description": "Stop a previously started stdCOM timer",
         "params": [],
         "returns": {
           "type": "Void",
@@ -7312,9 +7149,7 @@
           "status": false,
           "message": ""
         },
-        "examples": [
-          "` .AddArray(fromVar:=Array(1,2,3))`"
-        ],
+        "examples": ["` .AddArray(fromVar:=Array(1,2,3))`"],
         "remarks": []
       },
       {
@@ -7854,12 +7689,12 @@
           },
           {
             "name": "nCount",
-            "type": "double",
+            "type": "double=1",
             "description": "Number of times the block will be ran (used to calculate average time), default = 1.",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": true,
-            "defaultValue": "1"
+            "defaultValue": "Unspecified"
           }
         ],
         "returns": {
@@ -8935,9 +8770,7 @@
           "status": false,
           "message": ""
         },
-        "examples": [
-          "```vb\r\nstdRegex.Create(\"A\\d+\",\"i\")\r\n```"
-        ],
+        "examples": ["```vb\r\nstdRegex.Create(\"A\\d+\",\"i\")\r\n```"],
         "remarks": []
       },
       {
@@ -9541,9 +9374,7 @@
           "status": false,
           "message": ""
         },
-        "examples": [
-          "stdWebSocket.Create(\"wss://echo.websocket.org/\")"
-        ],
+        "examples": ["stdWebSocket.Create(\"wss://echo.websocket.org/\")"],
         "remarks": []
       },
       {
@@ -9573,9 +9404,7 @@
           "status": false,
           "message": ""
         },
-        "examples": [
-          "`ws.protInit(\"wss://echo.websocket.org/\")`"
-        ],
+        "examples": ["`ws.protInit(\"wss://echo.websocket.org/\")`"],
         "remarks": []
       },
       {
@@ -11050,9 +10879,7 @@
           "status": false,
           "message": ""
         },
-        "examples": [
-          "`notepadWindow.sendKeysInput(\"^a\")`"
-        ],
+        "examples": ["`notepadWindow.sendKeysInput(\"^a\")`"],
         "remarks": []
       },
       {
@@ -11100,9 +10927,7 @@
           "status": false,
           "message": ""
         },
-        "examples": [
-          "`notepadWindow.sendKeysEvent(\"^a\")`"
-        ],
+        "examples": ["`notepadWindow.sendKeysEvent(\"^a\")`"],
         "remarks": []
       },
       {
@@ -11150,9 +10975,7 @@
           "status": false,
           "message": ""
         },
-        "examples": [
-          "`notepadWindow.sendKeysMessage(\"^a\")`"
-        ],
+        "examples": ["`notepadWindow.sendKeysMessage(\"^a\")`"],
         "remarks": [
           "It should be noted that this method is extremely unstable and is unlikely to work in the majority of cases."
         ]

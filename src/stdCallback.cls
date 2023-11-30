@@ -145,9 +145,15 @@ Private pCallback As CallbackStruct
 
 
 
-
+'Event raised before the callback is run
+'@param callback - The callback object that is about to be run
+'@param args     - The arguments that will be passed to the callback. This can be modified by listeners.
 Public Event BeforeRun(ByRef callback As stdCallback, ByRef args As Variant)
-Public Event AfterRun(ByRef callback As stdCallback, ByRef sResult As Variant)
+
+'Event raised after the callback is run
+'@param callback - The callback object that has just been run
+'@param result  - The result of the callback. This can be modified by listeners.
+Public Event AfterRun(ByRef callback As stdCallback, ByRef result As Variant)
 
 
 
@@ -312,12 +318,22 @@ Private Function stdICallable_RunEx(ByVal params As Variant) As Variant
 End Function
 
 'Bind a parameter to the function
+'@param params - The parameters to bind to the function
+'@returns      - A new callback with the parameters bound
 Private Function stdICallable_Bind(ParamArray params() As Variant) As stdICallable
   Set stdICallable_Bind = BindEx(params)
 End Function
+
+'Bind a parameter to the function. Bound parameters are bound to the left of the passed parameters.
+'@param params as Array<Variant> - The parameters to bind to the function
+'@returns                        - A new callback with the parameters bound
 Public Function Bind(ParamArray params() As Variant) As stdCallback
   Set Bind = BindEx(params)
 End Function
+
+'Bind a parameter to the function. Bound parameters are bound to the left of the passed parameters.
+'@param params as Variant<Array<Variant>> - The parameters to bind to the function
+'@returns                        - A new callback with the parameters bound
 Public Function BindEx(ByVal params As Variant) As stdCallback
   Set BindEx = New stdCallback
   Dim callable As stdICallable: Set callable = Me
@@ -328,6 +344,7 @@ End Function
 '@param sMessage as "obj"|"className" - The message to send to the callback. "obj" returns the callback object, "className" returns the name of the class.
 '@param success as Boolean            - Whether the message was successfully sent
 '@param params as Variant             - The parameters to send to the callback
+'@returns                             - The result of the message
 Private Function stdICallable_SendMessage(ByVal sMessage As String, ByRef success As Boolean, ByVal params As Variant) As Variant
     Select Case sMessage
         Case "obj"
@@ -352,7 +369,7 @@ Attribute Run.VB_UserMemId = 0
 End Function
 
 'Run the function with a array of parameters
-'@param params as Variant<Array<Variant>> - The parameters to run the function with
+'@param vArr as Variant<Array<Variant>> - The parameters to run the function with
 '@returns                                 - The result of the function
 Public Function RunEx(ByVal vArr As Variant) As Variant
   If pInitialised And pCallback.iType Then

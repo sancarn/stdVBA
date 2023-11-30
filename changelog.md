@@ -246,9 +246,11 @@ Before `08/07/2021` a change log was not kept. We have  retrospectively gone bac
 * 2023-11-29 stdCOM         FIX         - Compile compatibility with 32-bit
 * 2023-11-29 stdProcess     FIX         - Compile compatibility with 32-bit
 * 2023-11-29 stdWindow      FIX         - Compile compatibility with 32-bit
-* 2023-11-29 stdArray       FEATURE     - Added `Slice` and `Splice` functions
+* 2023-11-29 stdArray       FEATURE     - Added `Slice` and `Splice` functions.
 * 2023-11-29 stdWindow      FEATURE     - More application options added to `CreateFromApplication`.
-* 2023-11-29 stdWindow      FEATURE     - `CreateFromIAccessible` added
-
+* 2023-11-29 stdWindow      FEATURE     - `CreateFromIAccessible` added.
+* 2023-11-29 stdAcc         FEATURE     - More application options added to `CreateFromApplication`. Additionally `AncestralRoot` property added to `stdAcc`
+* 2023-11-30 stdCOM         BREAKING    - Removed `StartTimer` and `EndTimer`. Use `stdTimer` instead.
+* 2023-11-29 AllModules     DOCS        - Fixed a number of comment related issues
 
 
