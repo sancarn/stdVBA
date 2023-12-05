@@ -380,6 +380,8 @@ Private Function getTokenDefinitions() As TokenDefinition()
     i = i + 1: arr(i) = getTokenDefinition("xor", "xor", isKeyword:=True)
     i = i + 1: arr(i) = getTokenDefinition("not", "not", isKeyword:=True)
     i = i + 1: arr(i) = getTokenDefinition("like", "like", isKeyword:=True)
+    i = i + 1: arr(i) = getTokenDefinition("let", "let", isKeyword:=True)
+    i = i + 1: arr(i) = getTokenDefinition("set", "set", isKeyword:=True)
 
     'Structural
     ' Inline if
@@ -730,11 +732,16 @@ End Sub
 'Parse evaluation of numbers, arguments, strings, booleans, variable names and brackets. Will also parse accessors on these values.
 'i.e. `varName.someMethod(1,2,3).someProp`
 Private Sub parseValuePriority1()
+    'Prefix unary operators for set/let
+    Dim iOperationType as ISubType
+    iOperationType = iif(optConsume("let"), oPropLet, oFieldCall)
+    iOperationType = iif(optConsume("set"), oPropSet, iOperationType)
+
     If peek("literalNumber") Then
         Call addOperation(oPush, , CDbl(consume("literalNumber")), 1)
     ElseIf peek("arg") Then
         Call addOperation(oAccess, argument, val(mid(consume("arg"), 2)), 1)
-        Call parseManyAccessors
+        Call parseManyAccessors(iOperationType)
     ElseIf peek("literalString") Then
         Call parseString
     ElseIf peek("literalBoolean") Then
@@ -743,12 +750,12 @@ Private Sub parseValuePriority1()
         If Not parseScopeAccess Then
             Call parseFunction
         End If
-        Call parseManyAccessors
+        Call parseManyAccessors(iOperationType)
     Else
         Call consume("lBracket")
         Call parseExpression
         Call consume("rBracket")
-        Call parseManyAccessors
+        Call parseManyAccessors(iOperationType)
     End If
 End Sub
 
@@ -765,39 +772,53 @@ End Function
 
 'Parse object field, property and method accessors. Specifically allows for more than one accessor to be chained together
 'i.e. `obj.someMethod(1,"hi").someProp`
-Private Sub parseManyAccessors()
+Private Sub parseManyAccessors(Optional ByVal ISubType as ISubType = oFieldCall)
     Dim bLoop As Boolean: bLoop = True
     Do
         bLoop = False
-        if parseOptObjectField() then bLoop = True
-        If parseOptObjectProperty() Then bLoop = True
+        if parseOptObjectField(ISubType) then bLoop = True
+        If parseOptObjectProperty(ISubType) Then bLoop = True
         If parseOptObjectMethod() Then bLoop = True
     Loop While bLoop
 End Sub
 
 'Parse an object's method or property call (i.e. `obj.someMethod` or `obj.someProp`) and add it to the operations stack
+'@param ISubType - Whether this is a property get or property let/set
 '@returns - Whether a method or property was found
-Private Function parseOptObjectField() as Boolean
+Private Function parseOptObjectField(Optional ByVal ISubType as ISubType = oFieldCall) as Boolean
     parseOptObjectField = false
     if optConsume("fieldAccess") then
         Dim size As Integer: size = stackSize
         Call addOperation(oPush, , consume("var"), 1)
         Call parseOptParameters
-        Call addOperation(oObject, oFieldCall)
+        'Parse Let/Set ... = ... as a special case
+        if optConsume("equal") and ISubType  <> oFieldCall then
+            Call parseExpression
+            Call addOperation(oObject, ISubType)
+        else
+            Call addOperation(oObject, oFieldCall)
+        end if
         stackSize = size
         parseOptObjectField = True
     end if
 End Function
 
 'Parse an object's property access (i.e. Obj.someProp) and add it to the operations stack
+'@param ISubType - Whether this is a property get or property let/set
 '@returns - Whether a property was found
-Private Function parseOptObjectProperty() As Boolean
+Private Function parseOptObjectProperty(Optional ByVal ISubType as ISubType = oPropGet) As Boolean
     parseOptObjectProperty = False
     If optConsume("propertyAccess") Then
         Dim size As Integer: size = stackSize
         Call addOperation(oPush, , consume("var"), 1)
         Call parseOptParameters
-        Call addOperation(oObject, oPropGet)
+        'Parse Let/Set ... = ... as a special case
+        if optConsume("equal") and ISubType  <> oPropGet then
+            Call parseExpression
+            Call addOperation(oObject, ISubType)
+        else
+            Call addOperation(oObject, oPropGet)
+        end if
         stackSize = size
         parseOptObjectProperty = True
     End If
@@ -1250,7 +1271,18 @@ End Function
 '@param op       - The operation to execute
 Private Sub objectCaller(ByRef stack() As Variant, ByRef stackPtr As Long, ByRef op As Operation)
     'Get the name and arguments
+    Dim bIsSetter as boolean: bIsSetter = op.subType = ISubType.oPropSet or op.subType = ISubType.oPropLet
+    Dim iOriginalPos as long: iOriginalPos = stackPtr 
+    stackPtr = stackPtr - iif(bIsSetter, 1, 0)
     Dim args() As Variant: args = getArgs(stack, stackPtr)
+    if bIsSetter then
+        Redim Preserve args(0 To UBound(args) + 1)
+        Call CopyVariant(args(UBound(args)), stack(iOriginalPos - 1))
+        #if devMode then
+            stack(iOriginalPos - 1) = empty
+        #end if
+    end if
+
     Dim funcName As Variant: funcName = popV(stack, stackPtr)
     
     'Get caller type
@@ -1266,7 +1298,12 @@ Private Sub objectCaller(ByRef stack() As Variant, ByRef stackPtr As Long, ByRef
     'Call rtcCallByName
     Dim obj As Object
     Set obj = popV(stack, stackPtr)
-    Call pushV(stack, stackPtr, stdCallByName(obj, funcName, callerType, args))
+    if bIsSetter then
+        Call stdCallByName(obj, funcName, callerType, args)
+        Call pushV(stack, stackPtr, args(UBound(args))) 'Return the value that was set
+    else
+        Call pushV(stack, stackPtr, stdCallByName(obj, funcName, callerType, args))
+    end if
 End Sub
 
 'Calls an object method/setter/getter/letter. Treats dictionary properties as direct object properties, I.E. `A.B` ==> `A.item("B")`

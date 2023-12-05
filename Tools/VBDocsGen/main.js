@@ -216,7 +216,7 @@ files.forEach(file => {
         methods: []
     };
 
-    const docsFinder = /(?<comments>(?:\'.*\r?\n)*)(?<!')Public (?:(?<type>Function|Sub|Event|Property) ?(?<access>Get|Let|Set)?) (?<name>\w+)\((?<params>[^)]*)\)(?: as (?<retType>\w+))?/gmi;
+    const docsFinder = /(?<comments>(?:\'.*\r?\n)*)(?<!' *)Public (?:(?<type>Function|Sub|Event|Property) ?(?<access>Get|Let|Set)?) (?<name>\w+)\((?<params>[^)]*)\)(?: as (?<retType>\w+))?/gmi;
     const matches = Array.from(content.matchAll(docsFinder));
     matches.forEach(match => {
         if(match.processed) return;
