@@ -253,5 +253,5 @@ Before `08/07/2021` a change log was not kept. We have  retrospectively gone bac
 * 2023-11-30 stdCOM         BREAKING    - Removed `StartTimer` and `EndTimer`. Use `stdTimer` instead.
 * 2023-11-29 AllModules     DOCS        - Fixed a number of comment related issues
 * 2023-12-05 stdLambda      FEATURE     - Added `Let` and `Set` to `stdLambda` allowing for `let $1.Name = "Peter"`
-
+* 2023-12-05 stdUIElement   FEATURE     - Published 1st version. Warning, maybe many breaking changes in the future...
 
