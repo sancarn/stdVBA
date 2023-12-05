@@ -1319,12 +1319,14 @@ Private Function stdCallByName(ByRef obj As Object, ByVal funcName As String, By
             Case "add", "exists", "items", "keys", "remove", "removeall", "comparemode", "count", "item", "key"
                 'These methods already exist on dictionary, do not override
             Case Else
-                'Call DictionaryInstance.Item(funcName) only if funcName exists on the item
-                If obj.exists(funcName) Then
-                    'TODO: Make this work for callerType.VbLet
-                    Call CopyVariant(stdCallByName, obj.item(funcName))
-                    Exit Function
-                End If
+                Select Case callerType
+                  Case VbGet
+                    'Call DictionaryInstance.Item(funcName) only if funcName exists on the item
+                    If obj.exists(funcName) Then Call CopyVariant(stdCallByName, obj.item(funcName))
+                  Case VbSet, VbLet
+                    Call obj.add(funcName, args(0))
+                End Select
+                Exit Function
         End Select
     End If
 

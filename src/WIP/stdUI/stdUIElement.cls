@@ -198,6 +198,7 @@ End Property
 
 
 'Get/Set Caption - The visible text of a control
+'@returns - The caption of the control
 Public Property Get Caption() As String
   Select Case this.iType
     Case uiUserForm, uiFrame, uiLabel, uiCheckBox, uiOptionButton, uiToggleButton, uiCommandButton
