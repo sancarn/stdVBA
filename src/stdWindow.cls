@@ -8,10 +8,6 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
  
-'======================================
-'TODO:    Submit merge request
-'======================================
-
 '@class stdWindow
 '@description A class for managing windows
 '@example:
@@ -203,9 +199,6 @@ Public Enum EWndRectType
   RectTypeClient
 End Enum
 
-'SendInput() API helpers
-'TODO: Not used yet
-'========================================
 Private Enum KeyState
   tap
   up

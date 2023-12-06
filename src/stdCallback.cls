@@ -78,17 +78,6 @@ Implements stdICallable
 'Const DISPID_DESTRUCTOR  = -7
 'Const DISPID_COLLECT     = -8
 
-'TODO:
-'* Implementation of Pointer
-'* CreateLambda()
-'* stdCallback.CreateFromAddress(AddressOf Main.Podrick)
-
-'TODO: Lambda Expressions:
-'******************
-'Callback.[(a,b,c) => a + b * c].Call(1,2,3) ' ==> 7
-'Callback.[obj => obj.id].Call(row)  ' ==> row.id
-
-
 'Direct call convention of VBA.CallByName
 #If VBA7 Then
   'VBE7 is interchangable with msvbvm60.dll    however VBE7.dll appears to always be present where as msvbvm60 is only occasionally present.
@@ -384,7 +373,7 @@ Public Function RunEx(ByVal vArr As Variant) As Variant
     Dim vRet As Variant
     Select Case pCallback.iType
       Case ParentType.Module
-        'TODO: Investigate whether we can call these directly via GetModuleHandleA(), GetProcAddress() and CallWindowProcW()
+        'TODO: Use fancy accessor mechanism https://codereview.stackexchange.com/questions/274532/low-level-vba-hacking-making-private-functions-public 
         'Get currentLength
         Dim currentLength As Integer
         currentLength = UBound(vArr) - LBound(vArr) + 1
