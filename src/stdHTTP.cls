@@ -356,6 +356,9 @@ Friend Sub protInit(ByVal sURL As String, Optional ByVal RequestMethod As String
   pHTTP.Open RequestMethod, sURL, ThreadingStyle = HTTPAsync
   pHTTP.SetTimeouts options("TimeoutMS") / 4, options("TimeoutMS") / 4, options("TimeoutMS") / 4, options("TimeoutMS") / 4
   If options("AutoProxy") Then Call LoadAutoProxy(pHTTP, sURL, options)
+  If options.exists("ProxyServer") then request.SetProxy ProxySetting.Proxy, options("ProxyServer"), options("ProxyBypass")
+  If options.exists("ProxyUser") then request.SetCredentials options("ProxyUser"), options("ProxyPass"), SetCredentialsType.ForProxy
+
   If options("Insecure") Then
     pHTTP.Option(WinHttpRequestOption.EnableCertificateRevocationCheck) = False
     pHTTP.Option(WinHttpRequestOption.SslErrorIgnoreFlags) = 13056
