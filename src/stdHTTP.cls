@@ -241,7 +241,7 @@ End Function
 '@param TimeoutMS - The timeout of the request in milliseconds
 '@param AutoProxy - Whether to use the system proxy settings
 '@returns Object<Dictionary> - A dictionary of options
-Public Function CreateOptions(Optional Body As String = "", Optional Headers As Object = Nothing, Optional Cookies As Object = Nothing, Optional ByVal ContentTypeDefault As EHTTPContentType, Optional Insecure As Boolean = False, Optional EnableRedirects As Boolean = True, Optional ByVal TimeoutMS As Long = 5000, Optional ByVal ProxyInfo As Object = Nothing)
+Public Function CreateOptions(Optional Body As String = "", Optional Headers As Object = Nothing, Optional Cookies As Object = Nothing, Optional ByVal ContentTypeDefault As EHTTPContentType, Optional Insecure As Boolean = False, Optional EnableRedirects As Boolean = True, Optional ByVal TimeoutMS As Long = 5000, Optional ByVal Proxy As Object = Nothing)
   Dim oRet As Object
   Set oRet = CreateObject("Scripting.Dictionary")
   oRet.CompareMode = vbTextCompare
@@ -263,10 +263,10 @@ Public Function CreateOptions(Optional Body As String = "", Optional Headers As 
   If Cookies Is Nothing Then Set Cookies = CreateHeaders()
   Set oRet("Cookies") = Cookies
   
-  if ProxyInfo is nothing then 
+  if Proxy is nothing then 
     set oRet("Proxy") = CreateProxy(ProxyTypeAuto)
   else
-    set oRet("Proxy") = ProxyInfo
+    set oRet("Proxy") = Proxy
   end if
 
   oRet("TimeoutMS") = TimeoutMS
