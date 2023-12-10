@@ -315,6 +315,8 @@ Public Function CreateProxy(Byval proxyType as EHTTPProxyType, Optional ByVal Se
     case ProxyTypeNone
       oRet("hasProxy") = false
   end select
+
+  set CreateProxy = oRet
 End Function
 
 'Await for the request to finish. This is only necessary for asynchronous requests.
