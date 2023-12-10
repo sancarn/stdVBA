@@ -20,6 +20,11 @@ Public Enum EHTTPContentType
   ContentType_ZIP = 32
   ContentType_Binary = 64
 End Enum
+Public Enum EHTTPProxyType
+  ProxyTypeAuto
+  ProxyTypeManual
+  ProxyTypeNone
+End Enum
 
 
 #If Win64 Then
@@ -236,7 +241,7 @@ End Function
 '@param TimeoutMS - The timeout of the request in milliseconds
 '@param AutoProxy - Whether to use the system proxy settings
 '@returns Object<Dictionary> - A dictionary of options
-Public Function CreateOptions(Optional Body As String = "", Optional Headers As Object = Nothing, Optional Cookies As Object = Nothing, Optional ByVal ContentTypeDefault As EHTTPContentType, Optional Insecure As Boolean = False, Optional EnableRedirects As Boolean = True, Optional ByVal TimeoutMS As Long = 5000, Optional ByVal AutoProxy As Boolean = True)
+Public Function CreateOptions(Optional Body As String = "", Optional Headers As Object = Nothing, Optional Cookies As Object = Nothing, Optional ByVal ContentTypeDefault As EHTTPContentType, Optional Insecure As Boolean = False, Optional EnableRedirects As Boolean = True, Optional ByVal TimeoutMS As Long = 5000, Optional ByVal ProxyInfo As Object = Nothing)
   Dim oRet As Object
   Set oRet = CreateObject("Scripting.Dictionary")
   oRet.CompareMode = vbTextCompare
@@ -258,15 +263,58 @@ Public Function CreateOptions(Optional Body As String = "", Optional Headers As 
   If Cookies Is Nothing Then Set Cookies = CreateHeaders()
   Set oRet("Cookies") = Cookies
   
+  if ProxyInfo is nothing then 
+    set oRet("Proxy") = CreateProxy(ProxyTypeAuto)
+  else
+    set oRet("Proxy") = ProxyInfo
+  end if
+
   oRet("TimeoutMS") = TimeoutMS
-  oRet("AutoProxy") = AutoProxy
-  oRet("ProxyUser") = ""
-  oRet("ProxyPass") = ""
   oRet("Insecure") = Insecure
   oRet("EnableRedirects") = EnableRedirects
   oRet("Body") = Body
-  
   Set CreateOptions = oRet
+End Function
+
+'Obtain proxy information
+'@param proxyType - 
+'@param server - the IP address (or hostname) of the proxy server
+'@param bypass - A proxy bypass list is not always needed, but it's useful. It specifies URLs or IP ranges that should be accessed directly, bypassing the proxy. This is often used for local or intranet addresses.
+'@param user - Username for proxy server authentication
+'@param pass - Password for proxy server authentication
+'@returns - Proxy information object
+Public Function CreateProxy(Byval proxyType as EHTTPProxyType, Optional ByVal Server as string, Optional ByVal ByPass as String, Optional ByVal User as string, Optional ByVal Pass as string)
+  Dim oRet As Object
+  Set oRet = CreateObject("Scripting.Dictionary")
+  oRet.CompareMode = vbTextCompare
+  
+  select case proxyType
+    case ProxyTypeAuto
+      Dim info As ProxyInfoEx: info = GetProxyCurrentUser(sURL)
+  L   oadAutoProxy = info.Error
+      If Not info.Error.isSet Then
+        oRet("hasProxy") = true
+        oRet("server") = info.ProxyServer
+        oRet("bypass") = info.ProxyBypass
+        oRet("user") = user
+        oRet("pass") = pass  
+      else
+        if info.Error.isRecoverable then
+          'Assume no proxy
+          oRet("hasProxy") = false
+        else
+          Err.Raise info.Error.Num, "stdHTTP", info.Error.Msg 
+        end if
+      end if
+    case ProxyTypeManual
+      oRet("hasProxy") = true
+      oRet("server") = server
+      oRet("bypass") = bypass
+      oRet("user") = user
+      oRet("pass") = pass
+    case ProxyTypeNone
+      oRet("hasProxy") = false
+  end select
 End Function
 
 'Await for the request to finish. This is only necessary for asynchronous requests.
@@ -355,9 +403,20 @@ Friend Sub protInit(ByVal sURL As String, Optional ByVal RequestMethod As String
   Set pHTTP = CreateObject("WinHttp.WinHttpRequest.5.1")
   pHTTP.Open RequestMethod, sURL, ThreadingStyle = HTTPAsync
   pHTTP.SetTimeouts options("TimeoutMS") / 4, options("TimeoutMS") / 4, options("TimeoutMS") / 4, options("TimeoutMS") / 4
-  If options("AutoProxy") Then Call LoadAutoProxy(pHTTP, sURL, options)
-  If options.exists("ProxyServer") then request.SetProxy ProxySetting.Proxy, options("ProxyServer"), options("ProxyBypass")
-  If options.exists("ProxyUser") then request.SetCredentials options("ProxyUser"), options("ProxyPass"), SetCredentialsType.ForProxy
+  
+  'Set proxy info
+  With options("Proxy")
+    If .item("hasProxy") Then
+      'See http://msdn.microsoft.com/en-us/library/windows/desktop/aa384059(v=vs.85).aspx for details
+      pHTTP.SetProxy ProxySetting.Proxy, .item("Server"), .item("Bypass")
+      If .item("User") <> vbNullString then
+        pHTTP.SetCredentials .item("User"), .item("Pass"), SetCredentialsType.ForProxy
+      end if
+    else
+      'Use Proxycfg.exe
+      pHTTP.SetProxy ProxySetting.PreConfig
+    end if
+  end with
 
   If options("Insecure") Then
     pHTTP.Option(WinHttpRequestOption.EnableCertificateRevocationCheck) = False
@@ -380,7 +439,6 @@ Friend Sub protInit(ByVal sURL As String, Optional ByVal RequestMethod As String
   
   'Allow authenticators
   If Not Authenticator Is Nothing Then Call Authenticator.Run(pHTTP, RequestMethod, sURL, ThreadingStyle, options)
-  
   
   'Execute request
   pHTTP.Send options("Body")
@@ -462,32 +520,8 @@ End Function
 '  t = t & "(\\?[^#.]*)?"              ' QUERY
 '  t = t & "(#[\\w\\-]+)?$"            ' ID
 
-Private Function LoadAutoProxy(ByVal request As Object, Optional sURL As String = "http://google.com", Optional ByVal options As Object = Nothing) As ErrorInfo
-  Dim info As ProxyInfoEx: info = GetProxyCurrentUser(sURL)
-  LoadAutoProxy = info.Error
-  If Not info.Error.isSet Then
-    If request Is Nothing Then Exit Function
-    ' Setup proxy
-    ' See http://msdn.microsoft.com/en-us/library/windows/desktop/aa384059(v=vs.85).aspx for details
-    If info.ProxyServer <> "" Then
-      request.SetProxy ProxySetting.Proxy, info.ProxyServer, info.ProxyBypass
-      If Not options Is Nothing Then
-        If options("ProxyUser") <> "" Then
-          request.SetCredentials options("ProxyUser"), options("ProxyPass"), SetCredentialsType.ForProxy
-        End If
-      End If
-    Else
-      'Use Proxycfg.exe
-      request.SetProxy ProxySetting.PreConfig
-    End If
-  Else
-    If info.Error.isRecoverable Then
-      Exit Function
-    Else
-      Err.Raise info.Error.Num, "stdHTTP", info.Error.Msg
-    End If
-  End If
-End Function
+
+
 
 Private Function GetProxyCurrentUser(ByVal sURL As String) As ProxyInfoEx
   ' Constants for dwFlags of AUTOPROXY_OPTIONS

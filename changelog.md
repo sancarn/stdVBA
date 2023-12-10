@@ -254,3 +254,4 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2023-12-05 stdLambda FEATURE - Added `Let` and `Set` to `stdLambda` allowing for `let $1.Name = "Peter"`
 - 2023-12-05 stdUIElement FEATURE - Published 1st version. Warning, maybe many breaking changes in the future...
 - 2023-12-09 stdHTTP FEATURE - Added proxy capability to stdHTTP.
+- 2023-12-10 stdHTTP BREAKING - Added `ProxyInfo` object to `CreateOptions()`. `Autoproxy` is now handled under a `ProxyInfo` object too. Fixes `#87`
