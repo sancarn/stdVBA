@@ -290,29 +290,17 @@ Public Function CreateProxy(Byval proxyType as EHTTPProxyType, Optional ByVal Se
   
   select case proxyType
     case ProxyTypeAuto
-      Dim info As ProxyInfoEx: info = GetProxyCurrentUser(sURL)
-  L   oadAutoProxy = info.Error
-      If Not info.Error.isSet Then
-        oRet("hasProxy") = true
-        oRet("server") = info.ProxyServer
-        oRet("bypass") = info.ProxyBypass
-        oRet("user") = user
-        oRet("pass") = pass  
-      else
-        if info.Error.isRecoverable then
-          'Assume no proxy
-          oRet("hasProxy") = false
-        else
-          Err.Raise info.Error.Num, "stdHTTP", info.Error.Msg 
-        end if
-      end if
+      'Loads the system proxy settings for a given URL at runtime
+      oRet("hasAutoProxy") = true
     case ProxyTypeManual
+      oRet("hasAutoProxy") = false
       oRet("hasProxy") = true
       oRet("server") = server
       oRet("bypass") = bypass
       oRet("user") = user
       oRet("pass") = pass
     case ProxyTypeNone
+      oRet("hasAutoProxy") = false
       oRet("hasProxy") = false
   end select
 
@@ -408,6 +396,7 @@ Friend Sub protInit(ByVal sURL As String, Optional ByVal RequestMethod As String
   
   'Set proxy info
   With options("Proxy")
+    If .item("hasAutoProxy") then Call LoadAutoProxy(sURL, options("Proxy"))
     If .item("hasProxy") Then
       'See http://msdn.microsoft.com/en-us/library/windows/desktop/aa384059(v=vs.85).aspx for details
       pHTTP.SetProxy ProxySetting.Proxy, .item("Server"), .item("Bypass")
@@ -522,9 +511,30 @@ End Function
 '  t = t & "(\\?[^#.]*)?"              ' QUERY
 '  t = t & "(#[\\w\\-]+)?$"            ' ID
 
+'Load the system proxy settings for a given URL
+'@param sURL - The url to query
+'@param oProxy - The proxy object to load the settings into
+Private Sub LoadAutoProxy(ByVal sURL as string, ByVal oProxy as Object)
+  Dim info As ProxyInfoEx: info = GetProxyCurrentUser(sURL)
+  If Not info.Error.isSet Then
+    oProxy("hasProxy") = true
+    oProxy("server") = info.ProxyServer
+    oProxy("bypass") = info.ProxyBypass
+    oProxy("user") = user
+    oProxy("pass") = pass  
+  else
+    if info.Error.isRecoverable then
+      'Assume no proxy
+      oProxy("hasProxy") = false
+    else
+      Err.Raise info.Error.Num, "stdHTTP", info.Error.Msg 
+    end if
+  end if
+End Sub
 
-
-
+'Get the system proxy settings for a given URL
+'@param sURL - The url to query
+'@returns - The proxy information struct
 Private Function GetProxyCurrentUser(ByVal sURL As String) As ProxyInfoEx
   ' Constants for dwFlags of AUTOPROXY_OPTIONS
   Const AUTO_DETECT = 1
