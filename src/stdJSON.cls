@@ -152,7 +152,11 @@ Friend Sub protInitFromVariant(ByRef vData as Variant)
           Dim oCollection as Collection: set oCollection = vData
           With ChildrenCol
             For each vItem in oCollection
-              Call .add(vItem)
+              if isObject(vItem) then
+                Call .add(stdJSON.CreateFromVariant(vItem))
+              else
+                Call .add(vItem)
+              end if
             next
           End With
         case "Dictionary"
@@ -166,8 +170,12 @@ Friend Sub protInitFromVariant(ByRef vData as Variant)
           End with
 
           'Add to dict
-          For i = 1 to oDictionary.Count
-            Call this.children.add(vKeys(i-1), vVals(i-1))
+          For i = 1 to vData.Count
+            if isObject(vVals(i-1)) then
+              Call this.children.add(vKeys(i-1), stdJSON.CreateFromVariant(vVals(i-1)))
+            else
+              Call this.children.add(vKeys(i-1), vVals(i-1))
+            end if
           next
       end select
     case else
@@ -178,7 +186,11 @@ Friend Sub protInitFromVariant(ByRef vData as Variant)
         set this.children = new Collection
         With ChildrenCol
           For i = iLB to iUB
-            Call .add(vData(i))
+            if isObject(vData(i)) then
+              Call .add(stdJSON.CreateFromVariant(vData(i)))
+            else
+              Call .add(vData(i))
+            end if
           next
         End With
       end if
@@ -365,6 +377,9 @@ Public Function ToString(optional byval pretty as boolean = false, optional byva
       Call StringBuffer_Append(s, sRootIndent & "]" & sNewLine)
   end select
 
+  'Remove last newline as it's not needed
+  if depth = 1 then Call StringBuffer_Pop(s, len(sNewLine))
+  
   ToString = StringBuffer_ToString(s)
 End Function
 
@@ -455,11 +470,15 @@ End Sub
 '@returns {string} The stringified value
 Private Function simpleStringify(ByVal value as variant) as string
   select case vartype(value)
-    case vbNull
+    case vbNull, vbEmpty
       simpleStringify = "null"
     case vbDate
       simpleStringify = """" & Format(value, "dd/mm/yyyy") & """"
     case vbString
+      value = Replace(value, "\", "\\")
+      value = Replace(value, vbTab, "\t")
+      value = Replace(value, vbCr, "\r")
+      value = Replace(value, vbLf, "\n")
       simpleStringify = """" & value & """"
     Case vbBoolean
       simpleStringify = iif(value, "true", "false")
@@ -729,4 +748,11 @@ Private Sub StringBuffer_Upsize(ByRef buffer as StringBuffer, Optional ByVal min
   minIncrease = iif(buffer.count > minIncrease, buffer.count, minIncrease)
   buffer.count = buffer.count + minIncrease
   buffer.value = buffer.value & string$(minIncrease, " ")
+End Sub
+
+'Remove characters from the end of a stringbuffer
+'@param buffer - The stringbuffer to pop from
+'@param iCount - The number of characters to remove
+Private Sub StringBuffer_Pop(ByRef buffer as StringBuffer, Optional ByVal iCount as Long = 1)
+  buffer.index = buffer.index - iCount
 End Sub

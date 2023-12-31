@@ -42,13 +42,38 @@ End Function
 '@constructor
 '@param {string} Path to dir
 '@returns {stdResource} Dir object
+'@remark Creates subfolders if they don't exist
 Public Function CreateDir(ByVal sPath as string) as stdResource
-    'TODO: Create subfolders if they don't exist
-    'Create folder
-    MkDir sPath
+  sPath = Replace(sPath, "/", "\")
+  Dim parts: parts = split(sPath, "\")
+  
+  'Create reference object used in all transformations.
+  Dim oRef as stdResource: set oRef = Me
+  Dim iStart as Long: iStart = 0
+  
+  'If this is a relative path, use the current workbook path. Otherwise use the path provided.
+  if Me is stdResource then
+    select case parts(0)
+      case "..", ".", ""
+        set oRef = stdResource.CreateFromDir(ThisWorkbook.Path)
+      case else
+        set oRef = stdResource.CreateFromDir(parts(0))
+        iStart = 1
+    end select
+  end if
 
-    'Call constructor
-    set CreateDir = CreateFromExisting(StandardFolder, sPath)
+  'Navigate and create missing folders
+  For i = iStart to ubound(parts)
+    select case parts(i)
+      case ".."
+        set oRef = oRef.Parent
+      case ".", ""
+        'Do nothing
+      case else
+        if Not oRef.Exists(parts(i), StandardFolder) then MkDir oRef.Path & "\" & parts(i)
+        set oRef = CreateFromDir(parts(i))
+    end select
+  next
 End Function
 
 'Create a new file and add contents
@@ -56,7 +81,8 @@ End Function
 '@param {string} Path to dir
 '@returns {stdResource} Dir object
 Public Function CreateFile(ByVal sPath as string, Optional ByVal Contents as string = "") as stdResource
-    'TODO: Create subfolders if they don't exist
+    Dim folder as stdResource: set folder = CreateDir(Left(sPath, InStrRev(sPath, "\")-1))
+    
     'Create file
     Dim ff as Long: ff = FreeFile()
     Open sPath for output as #ff
@@ -64,7 +90,7 @@ Public Function CreateFile(ByVal sPath as string, Optional ByVal Contents as str
     Close #ff
 
     'Call constructor
-    set CreateFile = CreateFromExisting(StandardFile, sPath)
+    set CreateFile = CreateFromFile(StandardFile, sPath)
 End Function
 
 
@@ -73,6 +99,7 @@ End Function
 '@param {EStandardResourceType} Type of resource
 '@param {string} Path to resource
 '@returns {stdResource} Dir object
+'TODO: Make this work for paths relative to the current resource
 Public Function CreateFromExisting(ByVal iType as EStandardResourceType, ByVal sPath as string) as stdResource
     set CreateFromExisting = new stdResource
     Call CreateFromExisting.protInit(iType, sPath)
@@ -112,7 +139,13 @@ Public Property Let ReadOnly(b as Boolean)
     protAttr(vbReadOnly) = b
 End Property
 
-
+Public Property Get ExistsChild(ByVal sName as string, iType as EStandardResourceType) as Boolean
+    if This.kind = StandardFolder and iType = StandardFile then
+        ExistsChild = Dir(This.path & "\" & sName, vbNormal) <> ""
+    else
+        ExistsChild = Dir(This.path & "\" & sName, vbDirectory) <> ""
+    end if
+End Property
 
 
 
@@ -174,7 +207,6 @@ End Sub
 Sub MoveTo(ByVal res as stdIResource) 
   Call stdIResource_MoveTo(res) 
 End Sub
-
 
 Sub Delete() 
   Call stdIResource_Delete() 

@@ -171,8 +171,8 @@ End Sub
 '  next
 'End With
 '```
-Public Function Measure(ByVal sProc as string, Optional ByVal nCount as double=1) as stdPerformance
-  set Measure = stdPerformance.Create(iMeasure, Array(sProc,nCount))
+Public Function CreateMeasure(ByVal sProc as string, Optional ByVal nCount as double=1) as stdPerformance
+  set CreateMeasure = Create(iMeasure, Array(sProc,nCount))
 End Function
 
 'Optimise
@@ -188,8 +188,8 @@ End Function
 '  'some heavy code here
 'End With
 '```
-Public Function Optimise(Optional ByVal ScreenUpdating as boolean = false, Optional ByVal EnableEvents as boolean = false, Optional ByVal Calculation as long = -4135) as stdPerformance
-  set Optimise = stdPerformance.Create(iOptimiser, Array(ScreenUpdating,EnableEvents,Calculation))
+Public Function CreateOptimiser(Optional ByVal ScreenUpdating as boolean = false, Optional ByVal EnableEvents as boolean = false, Optional ByVal Calculation as long = -4135) as stdPerformance
+  set CreateOptimiser = Create(iOptimiser, Array(ScreenUpdating,EnableEvents,Calculation))
 End Function
 
 

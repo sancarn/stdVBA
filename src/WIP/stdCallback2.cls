@@ -44,12 +44,52 @@ Private Const CC_STDCALL    As Long = 4
 #If VBA7 Then
   'VBE7 is interchangable with msvbvm60.dll    however VBE7.dll appears to always be present where as msvbvm60 is only occasionally present.
   Private Declare PtrSafe Function DispCallFunc Lib "oleAut32.dll" (ByVal pvInstance As LongPtr, ByVal offsetinVft As LongPtr, ByVal CallConv As Long, ByVal retTYP As Integer, ByVal paCNT As Long, ByVal paTypes As LongPtr, ByVal paValues As LongPtr, ByRef retVAR As Variant) As Long
+  Private const vbLongPtr = vbLongLong
 #Else
   Private Enum LongPtr
     [_]
   End Enum
+  Private const vbLongPtr = vbLong
   Private Declare Function DispCallFunc Lib "oleAut32.dll" (ByVal pvInstance As LongPtr, ByVal offsetinVft As LongPtr, ByVal CallConv As Long, ByVal retTYP As Integer, ByVal paCNT As Long, ByVal paTypes As LongPtr, ByVal paValues As LongPtr, ByRef retVAR as variant) As Long
 #End If
+
+'GUID struct for QueryInterface
+Private Type GUID
+  Data1 As Long
+  Data2 As Integer
+  Data3 As Integer
+  Data4(0 To 7) As Byte
+End Type
+
+Private Type EXCEPINFO
+  wCode As Integer
+  wReserved As Integer
+  bstrSource As LongPtr
+  bstrDescription As LongPtr
+  bstrHelpFile As LongPtr
+  dwHelpContext As Long
+  pvReserved As LongPtr
+  pfnDeferredFillIn As LongPtr
+  scode As Long
+End Type
+
+'[IDispatch](https://en.wikipedia.org/wiki/IDispatch)  extends IUnknown
+'0      HRESULT  QueryInterface ([in] REFIID riid, [out] void **ppvObject)
+'1      ULONG    AddRef ()
+'2      ULONG    Release ()
+'3      HRESULT  GetTypeInfoCount(unsigned int * pctinfo)
+'4      HRESULT  GetTypeInfo(unsigned int iTInfo, LCID lcid, ITypeInfo ** ppTInfo)
+'5      HRESULT  GetIDsOfNames(REFIID riid, OLECHAR ** rgszNames, unsigned int cNames, LCID lcid, DISPID * rgDispId)
+'6      HRESULT  Invoke(DISPID dispIdMember, REFIID riid, LCID lcid, WORD wFlags, DISPPARAMS * pDispParams, VARIANT * pVarResult, EXCEPINFO * pExcepInfo, unsigned int * puArgErr)
+Public Enum EIDispatch
+  QueryInterface
+  AddRef
+  Release
+  GetTypeInfoCount
+  GetTypeInfo
+  GetIDsOfNames
+  Invoke
+End Enum
 
 Public Enum ECallbackType
   EByApplicationRun=1
@@ -84,6 +124,14 @@ End Enum
 'BUILDTIME - At point of `Create` execution
 'RUNTIME   - At point of `Run` execution
 
+Private Type DISPPARAMS
+  rgvArg as LongPtr
+  rgDispidNamedArgs as LongPtr
+  cArgs as Long
+  cNamedArgs as Long
+End Type
+
+'Direct args of DispCallFunc()
 Private Type dispCallFuncInfo
   Instance as LongPtr      'BUILDTIME | Either ptr to function, or objptr to IDispatch
   VTableOffset as LongPtr  'BUILDTIME | Either 0 or IDispatch::Invoke offset
@@ -93,12 +141,17 @@ Private Type dispCallFuncInfo
   aValues() as Variant     'RUNTIME   | Pointer to array of values as Variant
 End Type
 
+'Direct args of IDispatch::Invoke()
 Private Type dispInfo
   obj as Object            'BUILDTIME | Object which pointer points to
   id as long               'BUILDTIME | DISPID
+  REFIID as GUID           'BUILDTIME | IID_NULL
+  LCID as Long             'BUILDTIME | 0
   invokeFlag as vbCallType 'BUILDTIME | Whether it's a method or property etc.
-  args as LongPtr          'RUNTIME   | pointer to Variant() array of passed in args
-  argsCount as Long        'RUNTIME   | count of args passed to function and present in args
+  args as DISPPARAMS       'RUNTIME   | pointer to Variant() array of passed in args
+  pVarResult as Variant    'RUNTIME   | pointer to Variant() of return value
+  pExcepInfo as EXCEPINFO  'RUNTIME   | pointer to EXCEPINFO
+  puArgErr as Long         'RUNTIME   | The index within `pDispParams` of the first argument that has an error
 End Type
 
 Private Type existingInfo
@@ -252,9 +305,6 @@ End Property
 
 
 
-
-
-
 Public Function Run(ParamArray params() As Variant)
 Attribute Run.VB_Description = "Runs the specified callback."
 Attribute Run.VB_UserMemId = 0
@@ -285,9 +335,20 @@ Friend Sub ExecuteCallback(ByRef params as variant, ByRef returnValue as Variant
   'If type is IDispatch
   select case this.ctype
     case EByObjectMember, EByApplicationRun
+      'If we are calling IDispatch::Invoke arguments will be in the form of a DISPPARAMS structure
       vParams = ConvertToDispParams(vParams)
   end select
+
 End Sub
+
+
+Private Function ConvertToDispParams(ByRef vParams as Variant) as DISPPARAMS
+  Dim iLb as long: iLB = lbound(vParams)
+  Dim iUb as long: iUB = ubound(vParams)
+  Dim iLen as Long: iLen = iUB - iLB + 1
+  ConvertToDispParams.rgvArg = varPtr(v(iLB))
+  ConvertToDispParams.cArgs = iLen
+End Function
 
 Private Function ConcatArr(ByRef arr1, ByRef arr2) as Variant
   Dim iLb as long: iLB = lbound(arr1)
@@ -316,3 +377,30 @@ Public Sub CopyVariant(ByRef output, ByVal input)
     let output = input
   end if
 End Sub
+
+Private Function IDispatch_GetIDsOfNames(ByRef obj as Object, ParamArray sMemberNames() as string) as Long()
+  'Define Args for IDispatch::GetIDsOfNames
+  Dim IID_NULL As GUID
+  Dim rgszNames() as string: aNames = sMemberNames
+  Dim cNames as Long: cNames = ubound(aNames) - lbound(aNames) + 1
+  Dim lcid as Long: lcid = 0
+  Dim rgDispId() as Long: redim rgDispId(0 to cNames-1)
+
+  'Prepare args for DispCallFuncEx
+  Dim dispCallFuncArgs as Variant: dispCallFuncArgs = Array(VarPtr(IID_NULL), VarPtr(aNames(0)), cNames, lcid, VarPtr(rgDispId))
+  Dim dispCallFuncTypes as Variant: dispCallFuncTypes = ArrayL(vbLongPtr, vbLongPtr, vbLong, vbLong, vbLongPtr)
+
+  Dim hResult as Long: hResult = DispCallFunc(ObjPtr(obj), EIDispatch.GetIDsOfNames, CC_STDCALL, vbLong, 5, VarPtr(dispCallFuncTypes(0)), VarPtr(dispCallFuncArgs(0)), varptr(rgDispId(0)))
+  If hResult <> 0 Then
+    Err.Raise vbObjectError + 1, "stdCallback2", "Failed to get DISPID for member '" & sMemberNames & "'"
+  End If
+  IDispatch_GetIDsOfNames = rgDispId
+End Function
+
+
+
+Public Function ArrayL(ParamArray v() as Long) as Long()
+  ArrayL = v
+End Function
+
+
