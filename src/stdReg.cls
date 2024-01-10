@@ -449,34 +449,41 @@ Public Property Get value() As Variant
   If iStatus <> 0 Then Err.Raise 2, "stdReg", "ERROR: Cannot get value (0x" & Hex(iStatus) & ")"
 End Property
 Public Property Let value(vNew As Variant)
+  Call SetValue(vNew, This.valtype)
+End Property
+
+'Set value and change type
+'@param vNew  - Value to set item to
+'@param iType - Type of value to set
+Public Sub SetValue(ByVal vNew As Variant, ByVal iType As ERegistryValueType)
   If This.Type <> ERegistryType.iItem Then Err.Raise 3, "", "ERROR: Only stdReg items have values"
   Call pRegistryInitWriteHandle
   
   Dim iStatus As Long
-  Select Case This.valtype
+  Select Case iType
     Case ERegistryValueType.Value_Binary
       Dim bNew() As Byte: bNew = vNew
       Dim lb As Long: lb = LBound(bNew)
       Dim ub As Long: ub = UBound(bNew)
-      iStatus = RegSetValueExA(This.writeHandle, This.name, 0, ERegistryValueType.Value_Binary, VarPtr(bNew(lb)), ub - lb + 1)
+      iStatus = RegSetValueExA(This.writeHandle, This.name, 0, iType, VarPtr(bNew(lb)), ub - lb + 1)
     Case ERegistryValueType.Value_DWORD
       Dim DWORD As Long: DWORD =  vNew
-      iStatus = RegSetValueExA(This.writeHandle, This.name, 0, ERegistryValueType.Value_DWORD, VarPtr(DWORD), LenB(DWORD))
+      iStatus = RegSetValueExA(This.writeHandle, This.name, 0, iType, VarPtr(DWORD), LenB(DWORD))
     Case ERegistryValueType.Value_DWORD_BE
       Dim DWORD_BE As Long: DWORD_BE =  vNew
       'TODO: SWAP
       iStatus = 666
       if iStatus = ERROR_SUCCESS Then iStatus = RegQueryValueExA(This.queryHandle, This.name, 0, 0, VarPtr(DWORD_BE), LenB(DWORD))
     Case ERegistryValueType.Value_None
-      iStatus = RegSetValueExA(This.writeHandle, This.name, 0, ERegistryValueType.Value_None, 0, 0)
+      iStatus = RegSetValueExA(This.writeHandle, This.name, 0, iType, 0, 0)
     Case ERegistryValueType.Value_QWORD
       Dim QWORD As Currency: QWORD = vNew
-      iStatus = RegSetValueExA(This.writeHandle, This.name, 0, ERegistryValueType.Value_QWORD, VarPtr(QWORD), LenB(QWORD))
+      iStatus = RegSetValueExA(This.writeHandle, This.name, 0, iType, VarPtr(QWORD), LenB(QWORD))
     Case ERegistryValueType.Value_String, ERegistryValueType.Value_String_WithEnvVars, ERegistryValueType.Value_Link
       Dim bSZ() As Byte: bSZ = vNew
       Dim ilb As Long: ilb = LBound(bSZ)
       Dim iub As Long: iub = UBound(bSZ)
-      iStatus = RegSetValueExA(This.writeHandle, This.name, 0, This.valtype, VarPtr(bSZ(ilb)), iub-ilb+1)
+      iStatus = RegSetValueExA(This.writeHandle, This.name, 0, iType, VarPtr(bSZ(ilb)), iub-ilb+1)
     Case ERegistryValueType.Value_String_Array
       'TODO: TBC 
       Err.Raise 1, "stdReg", "ERROR: Not implemented"
@@ -485,13 +492,6 @@ Public Property Let value(vNew As Variant)
   End Select
   
   If iStatus <> 0 Then Err.Raise 2, "stdReg", "ERROR: Cannot set value (0x" & Hex(iStatus) & ")"
-End Property
-
-'Set value and change type
-'@param vNew  - Value to set item to
-'@param iType - Type of value to set
-Public Sub SetValue(ByVal vNew As Variant, ByVal iType As ERegistryValueType)
-  Err.Raise 1, "stdReg", "Not implemented"
 End Sub
 
 

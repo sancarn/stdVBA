@@ -216,7 +216,11 @@ Private Function parserPiece(ByRef buff As Buffer, ByVal captureDepth As Long, B
         ast.Add "greedy", False
         ast.Add "min", parserConsumeInt(buff)
         If parserOptionalConsume(buff, ",") Then
-            ast.Add "max", parserConsumeInt(buff)
+            if parserPeek(buff, "}") Then
+                ast.Add "max", This.GenData.maxRepitionLength
+            Else
+                ast.Add "max", parserConsumeInt(buff)
+            end if
         Else
             ast.Add "max", ast("min")
         End If

@@ -257,4 +257,5 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2023-12-10 `stdHTTP` BREAKING - Added `ProxyInfo` object to `CreateOptions()`. `Autoproxy` is now handled under a `ProxyInfo` object too. Fixes `#87`
 - 2023-12-31 `stdJSON` FEATURE - `CreateFromVariant` can handle recursive structures.
 - 2023-12-31 `stdJSON` FIX - ToString() doesn't include line ending at end, `vbEmpty` will show up as `null` and special chars in strings will now be represented correctly.
-- 2023-12-31 `stdPerformance` BREAKING - `Create` now private, `Measure` renamed to `CreateMeasure` and `Optimise` renamed to `CreateOptimiser`, ot be inline with stdVBA spec.
+- 2023-12-31 `stdPerformance` BREAKING - `Create` now private, `Measure` renamed to `CreateMeasure` and `Optimise` renamed to `CreateOptimiser`, to be inline with stdVBA spec.
+- 2024-01-10 `stdReg` FEATURE - Added implementation for `stdReg.SetValue()`.
