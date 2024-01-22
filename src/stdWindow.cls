@@ -2023,10 +2023,12 @@ Public Sub setThreadInput(ByVal bAttach As Boolean)
     Dim dwThisTID As Long: dwThisTID = GetWindowThreadProcessId(pHandle, 0)
     
     'Synchonise Excel's thread with this window's thread
-    if dwExcelTID <> dwThisTID then
-      If AttachThreadInput(dwExcelTID, dwThisTID, iif(bAttach, 1, 0)) = 0 Then
-          Err.Raise Err.LastDllError
-      End If
+    if Exists then
+      if dwExcelTID <> dwThisTID then
+        If AttachThreadInput(dwExcelTID, dwThisTID, iif(bAttach, 1, 0)) = 0 Then
+            Err.Raise Err.LastDllError
+        End If
+      end if
     end if
 End Sub
 

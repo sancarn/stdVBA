@@ -259,3 +259,5 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2023-12-31 `stdJSON` FIX - ToString() doesn't include line ending at end, `vbEmpty` will show up as `null` and special chars in strings will now be represented correctly.
 - 2023-12-31 `stdPerformance` BREAKING - `Create` now private, `Measure` renamed to `CreateMeasure` and `Optimise` renamed to `CreateOptimiser`, to be inline with stdVBA spec.
 - 2024-01-10 `stdReg` FEATURE - Added implementation for `stdReg.SetValue()`.
+- 2024-01-22 `stdTimer` FIX - Fixed resetting VBOM when opening launching timer if VBOM disabled. Used `CreateObject` instead of `new Application`
+- 2024-01-22 `stdWindow` FIX - `Exists` guard added in setThreadInput

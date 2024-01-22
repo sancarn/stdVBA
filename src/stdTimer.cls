@@ -73,7 +73,8 @@ End Sub
 'Create and return a remote workbook, close equivalent of generating a new thread, however these threads will be in sync (due to usage of COM events)
 '@returns - Remote Workbook object.
 Private Function createRemoteWorkbook(Optional ByVal withWorkbook As Boolean = True) As Workbook
-  Dim app As Application: Set app = New Application
+  'Do not create app with `new Application`. If this is used VBOM Extensibility will revert upon creation.
+  Dim app As Application: Set app = CreateObject("Excel.Application")
   With app
     #If Not DEBUG_MODE Then
       .Visible = False
