@@ -261,3 +261,4 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2024-01-10 `stdReg` FEATURE - Added implementation for `stdReg.SetValue()`.
 - 2024-01-22 `stdTimer` FIX - Fixed resetting VBOM when opening launching timer if VBOM disabled. Used `CreateObject` instead of `new Application`
 - 2024-01-22 `stdWindow` FIX - `Exists` guard added in setThreadInput
+- 2024-01-23 `stdTimer` FIX - `stdTimer` now works in different locals.

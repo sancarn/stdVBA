@@ -247,7 +247,7 @@ Private Function getTimerCode(ByVal iTimerResolution As Long) As String
   s = s & vbCrLf & "Private bRunning as boolean"
   s = s & vbCrLf & "Sub MainLoop()"
   s = s & vbCrLf & "  While bRunning"
-  s = s & vbCrLf & "    Sheet1.Range(""A1"").Value = ""Tick"""
+  s = s & vbCrLf & "    Sheets(1).Range(""A1"").Value = ""Tick""" 'Sheets(1) due to issue #89
   s = s & vbCrLf & "    sleep " & iTimerResolution
   s = s & vbCrLf & "    DoEvents"
   s = s & vbCrLf & "  Wend"
