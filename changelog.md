@@ -262,3 +262,4 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2024-01-22 `stdTimer` FIX - Fixed resetting VBOM when opening launching timer if VBOM disabled. Used `CreateObject` instead of `new Application`
 - 2024-01-22 `stdWindow` FIX - `Exists` guard added in setThreadInput
 - 2024-01-23 `stdTimer` FIX - `stdTimer` now works in different locals.
+- 2024-01-28 `stdLambda` FIX - Fix to dictionary getters broken since `2023-12-05` update.

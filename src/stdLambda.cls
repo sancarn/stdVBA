@@ -110,6 +110,7 @@ End Enum
 
 'Special constant used in parsing:
 Const UniqueConst As String = "3207af79-30df-4890-ade1-640f9f28f309"
+Private Const vbGetOrMethod = VbGet Or VbMethod
 
 '@TODO: Convert to TThis
 Private tokens() As token
@@ -1288,7 +1289,7 @@ Private Sub objectCaller(ByRef stack() As Variant, ByRef stackPtr As Long, ByRef
     'Get caller type
     Dim callerType As VbCallType
     Select Case op.subType
-        Case ISubType.oFieldCall:   callerType = VbGet or VbMethod
+        Case ISubType.oFieldCall:   callerType = vbGetOrMethod
         Case ISubType.oPropGet:     callerType = VbGet
         Case ISubType.oMethodCall:  callerType = VbMethod
         Case ISubType.oPropLet:     callerType = VbLet
@@ -1320,7 +1321,7 @@ Private Function stdCallByName(ByRef obj As Object, ByVal funcName As String, By
                 'These methods already exist on dictionary, do not override
             Case Else
                 Select Case callerType
-                  Case VbGet
+                  Case vbGetOrMethod
                     'Call DictionaryInstance.Item(funcName) only if funcName exists on the item
                     If obj.exists(funcName) Then Call CopyVariant(stdCallByName, obj.item(funcName))
                   Case VbSet, VbLet
@@ -1345,7 +1346,7 @@ ErrorInRTCCallByName:
     if iTry < 5 then
         Dim sCallerTypeName as string
         select case callerType
-            case VbGet or VbMethod: sCallerTypeName = "Property or Method "
+            case vbGetOrMethod: sCallerTypeName = "Property or Method "
             case VbGet: sCallerTypeName = "Property "
             Case VbMethod: sCallerTypeName = "Method "
         end select
