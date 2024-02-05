@@ -254,6 +254,12 @@ Public Function AddObject(Optional ByVal key as string = "") as stdJSON
   set AddObject = oRet
 End Function
 
+'Obtain the JSON type
+'@returns - The JSON type
+Public Property Get JsonType() as EStdJsonType
+  JsonType = this.iType
+End Property
+
 'Obtain the length of this JSON object
 '@returns - The length of the JSON object
 Public Property Get Length() as Long
