@@ -1,0 +1,25 @@
+name: Lint VBA
+
+on:
+  push:
+    branches:
+      - dev
+      - master
+  pull_request:
+jobs:
+  test-and-static-analysis:
+    name: Test and Static Analysis
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install
+      run: |
+        python -m pip install --upgrade pip
+        pip install 'vba_precompiler @ git+https://github.com/Beakerboy/VBA-Precompiler@dev'
+    - name: Precompile
+      run: |
+        rm -rf ./src/WIP
+        python -m vba_precompiler -v7 -sWin64 ./src
+        rm -rf ./src
+    - name: Lint
+      uses: Vba-actions/lint-vba@parse-only

@@ -24,7 +24,7 @@ stdEnumerator.CreateFromIEnumVariant(Application.Workbooks).forEach(stdLambda.Cr
 
 #### `CreateFromArray(ByVal vArray as variant, optional byval iMaxLength as long = 1000000) as stdEnumerator`
 
-This method is used to create a `stdEnumerator` from an existing 1 dimensional array. 
+This method is used to create a `stdEnumerator` from an existing 1 dimensional array.
 
 Parameter `vArray` is the array to build the `stdEnumerator` from.
 
@@ -41,7 +41,7 @@ arr = stdEnumerator.CreateFromArray(arr).Unique().AsArray(vbLong)
 
 #### `CreateFromCallable(ByVal cb as stdICallable<(item: Variant, key: Variant)=>Variant|Null>, optional byval iMaxLength as long = 1000000) as stdEnumerator`
 
-This is an advanced method which allows you to create custom `stdEnumerator` instances with custom behaviour. 
+This is an advanced method which allows you to create custom `stdEnumerator` instances with custom behaviour.
 
 On initial call, `vPreviousItem` will be `null` and `iCurrentIndex` will be `1`.
 
@@ -50,7 +50,6 @@ On initial call, `vPreviousItem` will be `null` and `iCurrentIndex` will be `1`.
 To mark the end of the enumerator, return `null`.
 
 Parameter `iMaxLength` will set a hard limit to the number of elements in the array to prevent freezing from infinitely large enumerator generators.
-
 
 ```vb
 '1,2,3,4,5,6,7,8,9
@@ -65,7 +64,6 @@ stdEnumerator.CreateFromCallable(stdLambda.Create("$1.getNext()").bind(customEnu
 
 > Note: Currently `stdEnumerator` DOES NOT implement `IEnumVARIANT` and for this reason `for each item in myEnumerator` syntax **will not work**.
 
-
 #### `CreateFromCallableVerbose(ByVal cb as stdICallable<(item: Variant, key: Variant)=>[continue: boolean, nextIndex: Long, nextItem: Variant, nextKey: Variant]>, optional byval iMaxLength as long = 1000000) as stdEnumerator`
 
 This is an advanced method which allows you to create custom `stdEnumerator` instances with custom behaviour. This is a significantly more verbose function but offers significantly greater flexibility.
@@ -73,11 +71,11 @@ This is an advanced method which allows you to create custom `stdEnumerator` ins
 The return value from myCallback is to return an array of up to 4 elements:
 
 ```vb
-Array( _ 
-  continue, _     'Whether a next element exists or not
-  iNextIndex, _   'The index of the next element. This can be incremented beyond that which was passed into it giving ability to skip elements.
-  vNextItem, _    'The next item to return
-  vNextKey _      'The next key to return
+Array( _
+  continue, _    'Whether a next element exists or not
+  iNextIndex, _  'The index of the next element. This can be incremented beyond that which was passed into it giving ability to skip elements.
+  vNextItem, _   'The next item to return
+  vNextKey _     'The next key to return
 )
 ```
 

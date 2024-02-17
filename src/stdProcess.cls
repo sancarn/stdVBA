@@ -12,7 +12,7 @@ Private Declare PtrSafe Function CreateToolhelp32Snapshot Lib "Kernel32.dll" ( _
   ByVal dwFlags As Integer, _
   ByVal th32ProcessID As Integer _
 ) As Long
- 
+
 Private Declare PtrSafe Function Process32First Lib "Kernel32.dll" ( _
   ByVal hSnapshot As LongPtr, _
   ByRef lppe As PROCESSENTRY32 _

@@ -5,8 +5,8 @@ Sub testAll()
     test.Topic "stdRegex"
     
     Dim sHaystack as string
-    sHaystack = "D-22-4BU - London: London is the capital and largest city of England and the United Kingdom." & vbCrLf & _ 
-                "D-48-8AO - Birmingham: Birmingham is a city and metropolitan borough in the West Midlands, England"  & vbCrLf & _ 
+    sHaystack = "D-22-4BU - London: London is the capital and largest city of England and the United Kingdom." & vbCrLf & _
+                "D-48-8AO - Birmingham: Birmingham is a city and metropolitan borough in the West Midlands, England"  & vbCrLf & _
                 "A-22-9AO - Paris: Paris is the capital and most populous city of France. Also contains A-22-9AP." 
 
     On Error Resume Next
@@ -56,20 +56,20 @@ Sub testAll()
                 "62346-STZ9  5      01/05/1932"
 
     Dim sResult as string
-    sResult = "Here is some cool data:" & vbCrLf & _ 
-              "12345-STA1,10/02/2019,123" & vbCrLf & _ 
-              "12323-STB9,01/01/2005,2123" & vbCrLf & _ 
-              "and here is some more:" & vbCrLf & _ 
-              "23565-STC2,??/??/????,23" & vbCrLf & _ 
+    sResult = "Here is some cool data:" & vbCrLf & _
+              "12345-STA1,10/02/2019,123" & vbCrLf & _
+              "12323-STB9,01/01/2005,2123" & vbCrLf & _
+              "and here is some more:" & vbCrLf & _
+              "23565-STC2,??/??/????,23" & vbCrLf & _
               "62346-STZ9,01/05/1932,5" 
 
     set rx = stdRegex.Create("(?<id>\d{5}-ST[A-Z]\d)\s+(?<count>\d+)\s+(?<date>..\/..\/....)","g")
     Test.Assert "Replace", rx.Replace(sHaystack, "$id,$date,$count") = sResult
 
     'Test List
-    sResult = "12345-STA1,10/02/2019,123" & vbCrLf & _ 
-              "12323-STB9,01/01/2005,2123" & vbCrLf & _ 
-              "23565-STC2,??/??/????,23" & vbCrLf & _ 
+    sResult = "12345-STA1,10/02/2019,123" & vbCrLf & _
+              "12323-STB9,01/01/2005,2123" & vbCrLf & _
+              "23565-STC2,??/??/????,23" & vbCrLf & _
               "62346-STZ9,01/05/1932,5"  & vbCrLf
     Test.Assert "List", rx.List(sHaystack, "$id,$date,$count\r\n")
 

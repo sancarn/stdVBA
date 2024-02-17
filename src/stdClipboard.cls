@@ -319,23 +319,23 @@ End Function
 '@returns - Clipboard format identifier
 '@example ```vb
 'CF_RTF = stdClipboard.registerFormat("Rich Text Format")
-'stdClipboard.value(CF_RTF) = "{\rtf1\ansi{\fonttbl\f0\fswiss Helvetica;}\f0\pard" & _ 
-'  "This is some {\b bold} text.\par" & _ 
+'stdClipboard.value(CF_RTF) = "{\rtf1\ansi{\fonttbl\f0\fswiss Helvetica;}\f0\pard" & _
+'  "This is some {\b bold} text.\par" & _
 '"}"
 '```
 '@example ```vb
 'CF_HTML = stdClipboard.registerFormat("HTML Format")
-'stdClipboard.value(CF_HTML) = _ 
-'  "Version:0.9" & vbCrLf & _ 
-'  "StartHTML:00000000" & vbCrLf & _ 
-'  "EndHTML:00000000" & vbCrLf & _ 
-'  "StartFragment:00000000" & vbCrLf & _ 
-'  "EndFragment:00000000" & vbCrLf & _ 
-'  "<html><body>" & vbCrLf & _ 
-'  "<!--StartFragment -->" & vbCrLf & _ 
-'  "  hello <b>world</b>" & vbCrLf & _ 
-'  "<!--EndFragment-->\r\n" & vbCrLf & _ 
-'  "</body>\r\n" & vbCrLf & _ 
+'stdClipboard.value(CF_HTML) = _
+'  "Version:0.9" & vbCrLf & _
+'  "StartHTML:00000000" & vbCrLf & _
+'  "EndHTML:00000000" & vbCrLf & _
+'  "StartFragment:00000000" & vbCrLf & _
+'  "EndFragment:00000000" & vbCrLf & _
+'  "<html><body>" & vbCrLf & _
+'  "<!--StartFragment -->" & vbCrLf & _
+'  "  hello <b>world</b>" & vbCrLf & _
+'  "<!--EndFragment-->\r\n" & vbCrLf & _
+'  "</body>\r\n" & vbCrLf & _
 '  "</html>"
 '```
 Public Function RegisterFormat(ByVal sFormatName as string) as Long

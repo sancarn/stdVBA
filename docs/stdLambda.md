@@ -2,34 +2,34 @@
 
 ## Index
 
-* Introduction
-    * What is a Lambda expression
-* Spec
-    * Syntax
-        * Expression evaluation
-        * Parameter Access
-        * Dictionary member access
-        * Usage of in-built functions
-        * Multi-line lambda expressions.
-        * If statements and Inline-if statements
-        * Variable definition
-        * Function definition
-    * Internal Methods and Variables
-        * ...
-    * Constructors
-        * Create()
-        * CreateMultiline()
-    * stdICallable
-        * Run()
-        * RunEx()
-        * Bind()
-        * SendMessage()
-    * Instance Methods
-        * Bind()
-        * BindEx()
-        * BindGlobal()
-        * Run()
-        * RunEx()
+- Introduction
+  - What is a Lambda expression
+- Spec
+  - Syntax
+    - Expression evaluation
+    - Parameter Access
+    - Dictionary member access
+    - Usage of in-built functions
+    - Multi-line lambda expressions.
+    - If statements and Inline-if statements
+    - Variable definition
+    - Function definition
+  - Internal Methods and Variables
+    - ...
+  - Constructors
+    - Create()
+    - CreateMultiline()
+  - stdICallable
+    - Run()
+    - RunEx()
+    - Bind()
+    - SendMessage()
+  - Instance Methods
+    - Bind()
+    - BindEx()
+    - BindGlobal()
+    - Run()
+    - RunEx()
 
 ## Introduction
 
@@ -47,7 +47,7 @@ Function FilterEnumByName(ByRef col as collection, ByVal sNameLike as string) as
     if item.name like sNameLike then
       ret.add item
     end if
-  next 
+  next
   set FilterEnumByName = ret
 End Function
 Function FilterEnumByVisible(ByRef col as collection, ByVal bVisible as Boolean) as collection
@@ -57,7 +57,7 @@ Function FilterEnumByVisible(ByRef col as collection, ByVal bVisible as Boolean)
     if item.name = bVisible then
       ret.add item
     end if
-  next 
+  next
   set FilterEnumByVisible = ret
 End Function
 Function FilterEnumByRange(ByRef col as collection, ByVal v as Variant) as collection
@@ -67,7 +67,7 @@ Function FilterEnumByRange(ByRef col as collection, ByVal v as Variant) as colle
     if item.range("A1").value = v then
       ret.add item
     end if
-  next 
+  next
   set FilterEnumByRange = ret
 End Function
 ```
@@ -95,7 +95,7 @@ Function FilterEnum(ByRef col as Collection, ByVal lambda as stdICallable) as Co
     if lambda.run(item) then
       ret.add item
     end if
-  next 
+  next
   set FilterEnumByRange = ret
 End Function
 ```
@@ -124,7 +124,7 @@ Debug.Print arr.Reduce(stdLambda.Create("Max($1,$2)"))      '10 ' I.E. Calculate
 Debug.Print arr.Filter(stdLambda.Create("$1>=5")).join      '5,6,7,8,9,10
 
 'Execute property accessors with Lambda syntax
-Debug.Print arr.Map(stdLambda.Create("ThisWorkbook.Sheets($1)")) _ 
+Debug.Print arr.Map(stdLambda.Create("ThisWorkbook.Sheets($1)")) _
                .Map(stdLambda.Create("$1.Name")).join(",")            'Sheet1,Sheet2,Sheet3,...,Sheet10
 
 'Execute methods with lambda:
@@ -148,7 +148,6 @@ One of the core additions in `stdLambda` is the custom syntax/language embedded 
 `stdLambda`'s primary focus is expression evaluation.
 
 #### Parameter Access
-
 
 To define a function which takes multiple arguments $# should be used where # is the index of the argument. E.G. $1 is the first argument, $2 is the 2nd argument and $n is the nth argument.
 
@@ -206,25 +205,25 @@ Call stdLambda.Create("2+2: 5*2").Run()
 
 '... or ...
 
-Call stdLambda.CreateMultiline(array( _ 
-  "2+2", _ 
-  "5*2" 
+Call stdLambda.CreateMultiline(array( _
+  "2+2", _
+  "5*2"
 )).Run()
 ```
 
-#### If statements and Inline-if statements 
+#### If statements and Inline-if statements
 
 `stdLambda` has an if statement as well as an inline-if statement. The if statement looks as follows:
 
 ```vb
-With stdLambda.CreateMultiline(array( _ 
-  "if $1 = 1 then", _ 
-  "  5*1", _ 
-  "else if $1 = 2 then", _ 
-  "  5*2", _ 
+With stdLambda.CreateMultiline(array( _
+  "if $1 = 1 then", _
+  "  5*1", _
+  "else if $1 = 2 then", _
+  "  5*2", _
   "else", _
-  "  5*3", _ 
-  "end" 
+  "  5*3", _
+  "end"
 ))
   Debug.Print .Run(0) '15
   Debug.Print .Run(1) '5
@@ -242,7 +241,7 @@ Sub test()
 End Sub
 
 ' only evaluates doSmth(), does not evaluate doAnother() when $1 is true, and visa versa
-stdLambda.Create("(if $1 then doSmth() else doAnother() end)").Run(True) 
+stdLambda.Create("(if $1 then doSmth() else doAnother() end)").Run(True)
 ```
 
 > note: if statements will only evaluate the part which is required. This is extremely beneficial and far superior in comparrison to `iif()`
@@ -278,9 +277,9 @@ stdLambda.CreateMultiline(Array( _
 
 ### Watch-outs
 
-* Currently the main "caveat" to using this library is performance. This will absolutely not be as fast as pure VBA code and doesn't intend to be.
-* Currently there is a lack of error handling.
-* Lack of intellisense or syntax highlighting. This can be fixed in IDEs like VSCode.
+- Currently the main "caveat" to using this library is performance. This will absolutely not be as fast as pure VBA code and doesn't intend to be.
+- Currently there is a lack of error handling.
+- Lack of intellisense or syntax highlighting. This can be fixed in IDEs like VSCode.
 
 ### Built in functions and variables
 
@@ -309,7 +308,6 @@ Evaluates to the Excel/Word/Powerpoint/App's `Application` object.
 ```vb
 if Application.version < 15 then 1 else 2
 ```
-
 
 #### `eval(expression as string) as variant`
 
@@ -387,7 +385,7 @@ Array(1,2,3) '--> Array(1,2,3)
 
 #### `CreateObject(class as string, optional server as string) as object`
 
-A call to VBA's `CreateObject()` function. 
+A call to VBA's `CreateObject()` function.
 
 ```vb
 CreateObject("Scripting.Dictionary")
@@ -395,7 +393,7 @@ CreateObject("Scripting.Dictionary")
 
 #### `GetObject`
 
-A call to VBA's `GetObject()` function. 
+A call to VBA's `GetObject()` function.
 
 ```vb
 GetObject("InternetExplorer.Application")
@@ -407,120 +405,119 @@ A call to VBA's `Iff()` function. It is suggested that you avoid calls to this f
 
 #### `TypeName`
 
-A call to VBA's `TypeName(v as variant) as string` function. 
+A call to VBA's `TypeName(v as variant) as string` function.
 
 #### `CBool(v as variant) as boolean`
 
-A call to VBA's `cbool` function. 
+A call to VBA's `cbool` function.
 
 #### `CByte(v as variant) as Byte`
 
-A call to VBA's `cbyte` function. 
+A call to VBA's `cbyte` function.
 
 #### `CCur(v as variant) as Currency`
 
-A call to VBA's `ccur` function. 
+A call to VBA's `ccur` function.
 
 #### `CDate(v as variant) as Date`
 
-A call to VBA's `cdate` function. 
+A call to VBA's `cdate` function.
 
 #### `CSng(v as variant) as Single`
 
-definitionA call to VBA's `csng` function. 
+definitionA call to VBA's `csng` function.
 
 #### `CDbl(v as variant) as Double`
 
-A call to VBA's `cdbl` function. 
+A call to VBA's `cdbl` function.
 
 #### `CInt(v as variant) as Integer`
 
-A call to VBA's `cint` function. 
+A call to VBA's `cint` function.
 
 #### `CLng(v as variant) as Long`
 
-A call to VBA's `clng` function. 
+A call to VBA's `clng` function.
 
 #### `CStr(v as variant) as String`
 
-A call to VBA's `cstr` function. 
+A call to VBA's `cstr` function.
 
 #### `CVar(v as variant) as Variant`
 
-A call to VBA's `cvar` function. 
+A call to VBA's `cvar` function.
 
 #### `CVErr(errnum as long) as Error`
 
-A call to VBA's `cverr` function. 
+A call to VBA's `cverr` function.
 
 #### `Asc`
 
-A call to VBA's `Asc` function. 
+A call to VBA's `Asc` function.
 
 #### `Chr`
 
-A call to VBA's `Chr` function. 
+A call to VBA's `Chr` function.
 
 #### `Format`
 
-A call to VBA's `Format` function. 
+A call to VBA's `Format` function.
 
 #### `Hex`
 
-A call to VBA's `Hex` function. 
+A call to VBA's `Hex` function.
 
 #### `Oct`
 
-A call to VBA's `Oct` function. 
+A call to VBA's `Oct` function.
 
 #### `Str`
 
-A call to VBA's `Str` function. 
+A call to VBA's `Str` function.
 
 #### `Val`
 
-A call to VBA's `Val` function. 
+A call to VBA's `Val` function.
 
 #### `Trim`
 
-A call to VBA's `Trim` function. 
+A call to VBA's `Trim` function.
 
 #### `LCase`
 
-A call to VBA's `LCase` function. 
+A call to VBA's `LCase` function.
 
 #### `UCase`
 
-A call to VBA's `UCase` function. 
+A call to VBA's `UCase` function.
 
 #### `Right`
 
-A call to VBA's `Right` function. 
+A call to VBA's `Right` function.
 
 #### `Left`
 
-A call to VBA's `Left` function. 
+A call to VBA's `Left` function.
 
 #### `Mid`
 
-A call to VBA's `Mid` function. 
+A call to VBA's `Mid` function.
 
 #### `Len`
 
-A call to VBA's `Len` function. 
+A call to VBA's `Len` function.
 
 #### `Now`
 
-A call to VBA's `Now` function. 
+A call to VBA's `Now` function.
 
 #### `Switch`
 
-A call to VBA's `Switch` function. 
+A call to VBA's `Switch` function.
 
 #### `Any`
 
-A call to VBA's `Any` function. 
-
+A call to VBA's `Any` function.
 
 #### `vbCrLf`
 
@@ -655,10 +652,10 @@ Use `bSandboxExtras` when you want strict control over the functions the user ca
 Creates and returns a `stdLambda` object which will execute the supplied equation body, when run.
 
 ```vb
-stdLambda.CreateMultiline(Array( _ 
-  "if $1 = 0 then ""Test1""", _ 
-  "else if $1 = 1 then ""Test2""", _ 
-  "else ""Test3""" _  
+stdLambda.CreateMultiline(Array( _
+  "if $1 = 0 then ""Test1""", _
+  "else if $1 = 1 then ""Test2""", _
+  "else ""Test3""" _
 ))
 ```
 
@@ -737,6 +734,7 @@ Equivalent of `Bind()`, but with a passed array instead of a param array.
 > Note: globals can be bound to `stdLambda` base class, e.g. `stdLambda.bindGlobal("superGlobalCollection", new Collection)`, which will add the function to all newly generated lambdas.
 
 > Note: `stdCallback` can be used to produce an `stdICallable` from a Module or Class function.
+
 ```vb
 'Typical usage of bind as an enum-style type:
 Sub test1Main()

@@ -62,11 +62,11 @@ Attribute VB_Exposed = False
 '
 '# 2 - Dumping array to excel:
 '
-'   sResult = "Here is some cool data:" & vbCrLf & _ 
-'             "12345-STA1,10/02/2019,123" & vbCrLf & _ 
-'             "12323-STB9,01/01/2005,2123" & vbCrLf & _ 
-'             "and here is some more:" & vbCrLf & _ 
-'             "23565-STC2,??/??/????,23" & vbCrLf & _ 
+'   sResult = "Here is some cool data:" & vbCrLf & _
+'             "12345-STA1,10/02/2019,123" & vbCrLf & _
+'             "12323-STB9,01/01/2005,2123" & vbCrLf & _
+'             "and here is some more:" & vbCrLf & _
+'             "23565-STC2,??/??/????,23" & vbCrLf & _
 '             "62346-STZ9,01/05/1932,5" 
 '   vResult = rx.ListArr(sHaystack, Array("$id-$date","$count"))
 '   Range("A1:B1").value = Array("ID-Date","Count")

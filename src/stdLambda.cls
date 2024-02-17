@@ -178,8 +178,8 @@ End Function
 '@param bSandboxExtras - Whether to allow extra functions to be called
 '@returns - A first class object representing the equation. Can be called with `.Run(param1, param2, ...)` or `.RunEx(params)`
 '@example ```vb
-'Debug.Print stdLambda.CreateMultiline(Array( _ 
-'  "let x = 8/2*(2+2+3)", _ 
+'Debug.Print stdLambda.CreateMultiline(Array( _
+'  "let x = 8/2*(2+2+3)", _
 '  "1+3*x"
 ')).Run()
 '```

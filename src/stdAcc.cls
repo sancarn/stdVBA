@@ -1053,54 +1053,54 @@ End Function
 Friend Function protGetLookups() as Object
     if Lookups is nothing then
         set Lookups = CreateObject("Scripting.Dictionary")
-        set Lookups("EAccStates") = CreateLookupDict(Array( _ 
-            "STATE_NORMAL", &H0,                "STATE_UNAVAILABLE", &H1, _ 
-            "STATE_SELECTED", &H2,              "STATE_FOCUSED", &H4, _ 
-            "STATE_PRESSED", &H8,               "STATE_CHECKED", &H10, _ 
-            "STATE_MIXED", &H20,                "STATE_INDETERMINATE", &H99, _ 
-            "STATE_READONLY", &H40,             "STATE_HOTTRACKED", &H80, _ 
-            "STATE_DEFAULT", &H100,             "STATE_EXPANDED", &H200, _ 
-            "STATE_COLLAPSED", &H400,           "STATE_BUSY", &H800, _ 
-            "STATE_FLOATING", &H1000,           "STATE_MARQUEED", &H2000, _ 
-            "STATE_ANIMATED", &H4000,           "STATE_INVISIBLE", &H8000, _ 
-            "STATE_OFFSCREEN", &H10000,         "STATE_SIZEABLE", &H20000, _ 
-            "STATE_MOVEABLE", &H40000,          "STATE_SELFVOICING", &H80000, _ 
-            "STATE_FOCUSABLE", &H100000,        "STATE_SELECTABLE", &H200000, _ 
-            "STATE_LINKED", &H400000,           "STATE_TRAVERSED", &H800000, _ 
-            "STATE_MULTISELECTABLE", &H1000000, "STATE_EXTSELECTABLE", &H2000000, _ 
-            "STATE_ALERT_LOW", &H4000000,       "STATE_ALERT_MEDIUM", &H8000000, _ 
-            "STATE_ALERT_HIGH", &H10000000,     "STATE_PROTECTED", &H20000000, _ 
-            "STATE_VALID", &H7FFFFFFF _ 
+        set Lookups("EAccStates") = CreateLookupDict(Array( _
+            "STATE_NORMAL", &H0,                "STATE_UNAVAILABLE", &H1, _
+            "STATE_SELECTED", &H2,              "STATE_FOCUSED", &H4, _
+            "STATE_PRESSED", &H8,               "STATE_CHECKED", &H10, _
+            "STATE_MIXED", &H20,                "STATE_INDETERMINATE", &H99, _
+            "STATE_READONLY", &H40,             "STATE_HOTTRACKED", &H80, _
+            "STATE_DEFAULT", &H100,             "STATE_EXPANDED", &H200, _
+            "STATE_COLLAPSED", &H400,           "STATE_BUSY", &H800, _
+            "STATE_FLOATING", &H1000,           "STATE_MARQUEED", &H2000, _
+            "STATE_ANIMATED", &H4000,           "STATE_INVISIBLE", &H8000, _
+            "STATE_OFFSCREEN", &H10000,         "STATE_SIZEABLE", &H20000, _
+            "STATE_MOVEABLE", &H40000,          "STATE_SELFVOICING", &H80000, _
+            "STATE_FOCUSABLE", &H100000,        "STATE_SELECTABLE", &H200000, _
+            "STATE_LINKED", &H400000,           "STATE_TRAVERSED", &H800000, _
+            "STATE_MULTISELECTABLE", &H1000000, "STATE_EXTSELECTABLE", &H2000000, _
+            "STATE_ALERT_LOW", &H4000000,       "STATE_ALERT_MEDIUM", &H8000000, _
+            "STATE_ALERT_HIGH", &H10000000,     "STATE_PROTECTED", &H20000000, _
+            "STATE_VALID", &H7FFFFFFF _
         ))
-        set Lookups("EAccRoles") = CreateLookupDict(Array( _ 
-            "ROLE_TITLEBAR", &H1&            , "ROLE_MENUBAR", &H2&          , "ROLE_SCROLLBAR", &H3&, _ 
-            "ROLE_GRIP", &H4&                , "ROLE_SOUND", &H5&            , "ROLE_CURSOR", &H6&, _ 
-            "ROLE_CARET", &H7&               , "ROLE_ALERT", &H8&            , "ROLE_WINDOW", &H9&, _ 
-            "ROLE_CLIENT", &HA&              , "ROLE_MENUPOPUP", &HB&        , "ROLE_MENUITEM", &HC&, _ 
-            "ROLE_TOOLTIP", &HD&             , "ROLE_APPLICATION", &HE&      , "ROLE_DOCUMENT", &HF&, _ 
-            "ROLE_PANE", &H10&               , "ROLE_CHART", &H11&           , "ROLE_DIALOG", &H12&, _ 
-            "ROLE_BORDER", &H13&             , "ROLE_GROUPING", &H14&        , "ROLE_SEPARATOR", &H15&, _ 
-            "ROLE_TOOLBAR", &H16&            , "ROLE_STATUSBAR", &H17&       , "ROLE_TABLE", &H18&, _ 
-            "ROLE_COLUMNHEADER", &H19&       , "ROLE_ROWHEADER", &H1A&       , "ROLE_COLUMN", &H1B&, _ 
-            "ROLE_ROW", &H1C&                , "ROLE_CELL", &H1D&            , "ROLE_LINK", &H1E&, _ 
-            "ROLE_HELPBALLOON", &H1F&        , "ROLE_CHARACTER", &H20&       , "ROLE_LIST", &H21&, _ 
-            "ROLE_LISTITEM", &H22&           , "ROLE_OUTLINE", &H23&         , "ROLE_OUTLINEITEM", &H24&, _ 
-            "ROLE_PAGETAB", &H25&            , "ROLE_PROPERTYPAGE", &H26&    , "ROLE_INDICATOR", &H27&, _ 
-            "ROLE_GRAPHIC", &H28&            , "ROLE_STATICTEXT", &H29&      , "ROLE_TEXT", &H2A&, _ 
-            "ROLE_PUSHBUTTON", &H2B&         , "ROLE_CHECKBUTTON", &H2C&     , "ROLE_RADIOBUTTON", &H2D&, _ 
-            "ROLE_COMBOBOX", &H2E&           , "ROLE_DROPLIST", &H2F&        , "ROLE_PROGRESSBAR", &H30&, _ 
-            "ROLE_DIAL", &H31&               , "ROLE_HOTKEYFIELD", &H32&     , "ROLE_SLIDER", &H33&, _ 
-            "ROLE_SPINBUTTON", &H34&         , "ROLE_DIAGRAM", &H35&         , "ROLE_ANIMATION", &H36&, _ 
-            "ROLE_EQUATION", &H37&           , "ROLE_BUTTONDROPDOWN", &H38&  , "ROLE_BUTTONMENU", &H39&, _ 
-            "ROLE_BUTTONDROPDOWNGRID", &H3A& , "ROLE_WHITESPACE", &H3B&      , "ROLE_PAGETABLIST", &H3C&, _ 
-            "ROLE_CLOCK",&H3D&  _ 
+        set Lookups("EAccRoles") = CreateLookupDict(Array( _
+            "ROLE_TITLEBAR", &H1&            , "ROLE_MENUBAR", &H2&          , "ROLE_SCROLLBAR", &H3&, _
+            "ROLE_GRIP", &H4&                , "ROLE_SOUND", &H5&            , "ROLE_CURSOR", &H6&, _
+            "ROLE_CARET", &H7&               , "ROLE_ALERT", &H8&            , "ROLE_WINDOW", &H9&, _
+            "ROLE_CLIENT", &HA&              , "ROLE_MENUPOPUP", &HB&        , "ROLE_MENUITEM", &HC&, _
+            "ROLE_TOOLTIP", &HD&             , "ROLE_APPLICATION", &HE&      , "ROLE_DOCUMENT", &HF&, _
+            "ROLE_PANE", &H10&               , "ROLE_CHART", &H11&           , "ROLE_DIALOG", &H12&, _
+            "ROLE_BORDER", &H13&             , "ROLE_GROUPING", &H14&        , "ROLE_SEPARATOR", &H15&, _
+            "ROLE_TOOLBAR", &H16&            , "ROLE_STATUSBAR", &H17&       , "ROLE_TABLE", &H18&, _
+            "ROLE_COLUMNHEADER", &H19&       , "ROLE_ROWHEADER", &H1A&       , "ROLE_COLUMN", &H1B&, _
+            "ROLE_ROW", &H1C&                , "ROLE_CELL", &H1D&            , "ROLE_LINK", &H1E&, _
+            "ROLE_HELPBALLOON", &H1F&        , "ROLE_CHARACTER", &H20&       , "ROLE_LIST", &H21&, _
+            "ROLE_LISTITEM", &H22&           , "ROLE_OUTLINE", &H23&         , "ROLE_OUTLINEITEM", &H24&, _
+            "ROLE_PAGETAB", &H25&            , "ROLE_PROPERTYPAGE", &H26&    , "ROLE_INDICATOR", &H27&, _
+            "ROLE_GRAPHIC", &H28&            , "ROLE_STATICTEXT", &H29&      , "ROLE_TEXT", &H2A&, _
+            "ROLE_PUSHBUTTON", &H2B&         , "ROLE_CHECKBUTTON", &H2C&     , "ROLE_RADIOBUTTON", &H2D&, _
+            "ROLE_COMBOBOX", &H2E&           , "ROLE_DROPLIST", &H2F&        , "ROLE_PROGRESSBAR", &H30&, _
+            "ROLE_DIAL", &H31&               , "ROLE_HOTKEYFIELD", &H32&     , "ROLE_SLIDER", &H33&, _
+            "ROLE_SPINBUTTON", &H34&         , "ROLE_DIAGRAM", &H35&         , "ROLE_ANIMATION", &H36&, _
+            "ROLE_EQUATION", &H37&           , "ROLE_BUTTONDROPDOWN", &H38&  , "ROLE_BUTTONMENU", &H39&, _
+            "ROLE_BUTTONDROPDOWNGRID", &H3A& , "ROLE_WHITESPACE", &H3B&      , "ROLE_PAGETABLIST", &H3C&, _
+            "ROLE_CLOCK",&H3D&  _
         ))
-        set Lookups("EAccFindResult") = CreateLookupDict(Array( _ 
-            "MatchFound", EAccFindResult.MatchFound, _ 
-            "MatchFoundSearchDescendents", EAccFindResult.MatchFoundSearchDescendents, _ 
-            "NoMatchFound", EAccFindResult.NoMatchFound, _ 
-            "NoMatchCancelSearch", EAccFindResult.NoMatchCancelSearch, _ 
-            "NoMatchSkipDescendents", EAccFindResult.NoMatchSkipDescendents _ 
+        set Lookups("EAccFindResult") = CreateLookupDict(Array( _
+            "MatchFound", EAccFindResult.MatchFound, _
+            "MatchFoundSearchDescendents", EAccFindResult.MatchFoundSearchDescendents, _
+            "NoMatchFound", EAccFindResult.NoMatchFound, _
+            "NoMatchCancelSearch", EAccFindResult.NoMatchCancelSearch, _
+            "NoMatchSkipDescendents", EAccFindResult.NoMatchSkipDescendents _
         ))
     end if
     set protGetLookups = lookups

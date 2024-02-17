@@ -46,10 +46,10 @@ End Sub
 '@param checkoutToLocal: string - Checkout for local editing or for remote editing? Usually false
 '@note  Missing param lastModified in format:    Format(lastModified, "dd mmm yyyy hh:MM:ss") - no way of getting lastModified date yet. Will be wanted in the future.
 Public Function CheckOutFile(ByVal pageURL As String, ByVal CheckoutToLocal As Boolean) As Boolean
-    Set LastReq = DispatchSOAP("CheckOutFile", pPath & ListPath, Array( _ 
-      "pageUrl", pageURL, _ 
-      "checkoutToLocal", LCase(CStr(CheckoutToLocal)), _ 
-      "lastmodified", "" _ 
+    Set LastReq = DispatchSOAP("CheckOutFile", pPath & ListPath, Array( _
+      "pageUrl", pageURL, _
+      "checkoutToLocal", LCase(CStr(CheckoutToLocal)), _
+      "lastmodified", "" _
     ))
     CheckOutFile = LastReq.Status = 200
 End Function
@@ -58,18 +58,18 @@ End Function
 '@param comment: string - The version comment to add
 '@param CheckinType: Integer - 0 = MinorCheckIn (+0.1), 1 = MajorCheckIn (+1.0), 2 = OverwriteCheckIn (set v1.0)
 Public Function CheckInFile(ByVal pageURL As String, ByVal comment As String, Optional ByVal CheckinType As Integer = 0) As Boolean
-    Set LastReq = DispatchSOAP("CheckInFile", pPath & ListPath, Array( _ 
-      "pageUrl", pageURL, _ 
-      "comment", comment, _ 
-      "CheckinType", CheckinType _ 
+    Set LastReq = DispatchSOAP("CheckInFile", pPath & ListPath, Array( _
+      "pageUrl", pageURL, _
+      "comment", comment, _
+      "CheckinType", CheckinType _
     ))
     CheckInFile = LastReq.Status = 200
 End Function
 
 '@param pageURL: string - The file location
 Public Function CheckOutDiscard(ByVal pageURL As String) As Boolean
-    Set LastReq = DispatchSOAP("UndoCheckOut", pPath & ListPath, Array( _ 
-      "pageUrl", pageURL _ 
+    Set LastReq = DispatchSOAP("UndoCheckOut", pPath & ListPath, Array( _
+      "pageUrl", pageURL _
     ))
     CheckOutDiscard = LastReq.Status = 200
 End Function
@@ -78,7 +78,7 @@ End Function
 'GetListCollection
 '@desc Returns all lists implemented on the site specified.
 Public Function GetListCollection() As Boolean
-    Set LastReq = DispatchSOAP("GetListCollection", pPath & ListPath, Array( _ 
+    Set LastReq = DispatchSOAP("GetListCollection", pPath & ListPath, Array( _
     ))
     GetListCollection = LastReq.Status = 200
 End Function
@@ -117,9 +117,9 @@ End Function
 '@docs BatchElement  - https://docs.microsoft.com/en-us/previous-versions/office/developer/sharepoint-services/ms437562(v=office.12)
 '@docs MethodElement - https://docs.microsoft.com/en-us/previous-versions/office/developer/sharepoint-services/ms459050(v=office.12)
 Public Function UpdateListItems(ByVal listName As String, ByVal updates As String) As Boolean
-    Set LastReq = DispatchSOAP("UpdateListItems", pPath & ListPath, Array( _ 
-      "listName", listName, _ 
-      "updates", updates _ 
+    Set LastReq = DispatchSOAP("UpdateListItems", pPath & ListPath, Array( _
+      "listName", listName, _
+      "updates", updates _
     ))
     UpdateListItems = LastReq.Status = 200
 End Function

@@ -10,7 +10,7 @@ stdDLL.call(dll, funcName, ...params..., returnParam)
 
 DLL calls are easy once you've called them a few times, but what really is frustrating is the unknown definition of [Win32 datatypes](https://docs.microsoft.com/en-us/windows/desktop/winprog/windows-data-types) e.g. `DWORD`,`DWORD32`,`DWORD64`,`DWORDLONG`, ... , `HANDLE`, `HBITMAP`, `HCURSOR`, `HDC`, `LONGLONG`, ... In all cases these are representable in VBA using Byte Arrays `Byte()`, but you still need to know the size of each parameter.
 
-An idea is to have a parser which parses the `typedef`. E.G. 
+An idea is to have a parser which parses the `typedef`. E.G.
 
 ```vb
 'LONG SetWindowLongA(
@@ -20,10 +20,10 @@ An idea is to have a parser which parses the `typedef`. E.G.
 ');
 
 with stdDLL
-  Debug.Print .call("User32","SetWindowLongA", _ 
-    .type("HWND", hWnd), _ 
-    .type("int", nIndex), _ 
-    .type("LONG", dwNewLong), _ 
+  Debug.Print .call("User32","SetWindowLongA", _
+    .type("HWND", hWnd), _
+    .type("int", nIndex), _
+    .type("LONG", dwNewLong), _
     .type("LONG") _
   )
 end with
@@ -41,8 +41,8 @@ lpRect.add("LONG",0,"right")
 lpRect.add("LONG",0,"bottom")
 
 With stdDLL
-  Debug.Print .call("User32", "GetWindowRect", _ 
-    .type("HWND", hWnd), _ 
+  Debug.Print .call("User32", "GetWindowRect", _
+    .type("HWND", hWnd), _
     .type("LPRECT", lpRect), _
     .type("BOOL") _
   )
@@ -62,10 +62,10 @@ GWL = "GWL_EXSTYLE"
 
 
 with stdDLL
-  Debug.Print .call("User32","SetWindowLongA", _ 
-    .type("HWND", hWnd), _ 
-    .type("int", GWL), _ 
-    .type("LONG", dwNewLong), _ 
+  Debug.Print .call("User32","SetWindowLongA", _
+    .type("HWND", hWnd), _
+    .type("int", GWL), _
+    .type("LONG", dwNewLong), _
     .type("LONG") _  'Return type
   )
 end with
@@ -76,12 +76,12 @@ end with
 ```vb
 with stdDLL
   Dim SetWindowLong as stdCallback
-  set SetWindowLong = .func( "User32","SetWindowLongA", _ 
-    .type("HWND"), _ 
-    .type("int"), _ 
-    .type("LONG"), _ 
+  set SetWindowLong = .func( "User32","SetWindowLongA", _
+    .type("HWND"), _
+    .type("int"), _
+    .type("LONG"), _
     .type("LONG") _
-  )   
+  )
 end with
 ```
 
@@ -117,9 +117,6 @@ End Function
 ```
 
 In simple terms:
-* `GetSize()` is used in compiling type information. 
-* `DLLCast()` is used in execution and actually contains the data to pass to the dll, but the data is to be stored in byte arrays.
 
-
-
-
+- `GetSize()` is used in compiling type information.
+- `DLLCast()` is used in execution and actually contains the data to pass to the dll, but the data is to be stored in byte arrays.
