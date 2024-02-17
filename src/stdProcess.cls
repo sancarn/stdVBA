@@ -323,7 +323,7 @@ End Property
 '@returns - `true` if the process is still running, `false` otherwise
 Public Property Get isRunning() As Boolean
   isRunning = GetProcessVersion(pProcessId) > 0
-End Function
+End Property
 
 'Returns whether the process is critical or not
 '@returns - `true` if the process is critical, `false` otherwise
@@ -333,7 +333,7 @@ Public Property Get isCritical() As Boolean
   If CLng(IsProcessCritical(pQueryInfoHandle, isCritical)) = 0 Then
     Err.Raise 1, "stdProcess.isCritical", "Cannot get critical status of process. Error code 0x" & Hex(Err.LastDllError)
   End If
-End Function
+End Property
 
 'Get the process' priority
 '@returns - the process' priority
