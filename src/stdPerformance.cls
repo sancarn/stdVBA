@@ -205,7 +205,7 @@ Public Property Get Measurement(ByVal sKey As String) As Double
         Measurement = Empty
     End If
   End If
-End Function
+End Property
 
 'AddMeasurement
 '@protected
