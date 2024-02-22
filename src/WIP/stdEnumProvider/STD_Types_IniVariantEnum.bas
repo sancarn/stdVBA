@@ -1,3 +1,5 @@
+Attribute VB_Name = "STD_Types_IniVariantEnum"
+
 '
 ' MEnumerator.bas
 '

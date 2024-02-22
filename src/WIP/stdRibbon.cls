@@ -1,4 +1,13 @@
-Attribute VB_Name = "Ribbon"
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "stdRibbon"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+
 Option Explicit
 #If VBA7 Then
     Declare PtrSafe Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (ByVal lpDest As LongPtr, ByVal lpSrc As LongPtr, ByVal cbCopy As Long)

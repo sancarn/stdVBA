@@ -1,1 +1,0 @@
-'Wrapper around WinHttpWebSocket API

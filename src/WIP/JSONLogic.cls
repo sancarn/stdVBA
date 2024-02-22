@@ -1,3 +1,13 @@
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "JSONLogic"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+
 'This is a test library for JSON Logic.
 'JSON Logic is being used as a placeholder for Lambdas at the moment, until a proper lamda syntax is released.
 'Lambda syntax will likely be converted to JSONLogic objects where they'll be parsed by this algorithm.

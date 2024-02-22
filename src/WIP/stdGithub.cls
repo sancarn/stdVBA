@@ -1,3 +1,13 @@
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "stdGithub"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+
 'Based on: https://docs.github.com/en/rest
 'Core docs: https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#create-or-update-file-contents
 
