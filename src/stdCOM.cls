@@ -40,6 +40,7 @@ Attribute VB_Exposed = True
     Private Declare PtrSafe Function RevokeActiveObject32 Lib "oleAut32.dll" Alias "RevokeActiveObject" (ByVal dwRegister As Long, ByVal pvReserved As LongPtr) As Long
     Private Declare PtrSafe Function CoDisconnectObject Lib "ole32.dll" (ByVal pUnk As IUnknown, ByRef pvReserved As Long) As Long
     Private Declare PtrSafe Function CLSIDFromProgID Lib "ole32.dll" (ByVal ProgID As LongPtr, ByRef rclsid As GUID) As Long
+    Private Declare PtrSafe Function CoCreateInstance Lib "ole32.dll" (ByRef rclsid As GUID, ByVal pUnkOuter As LongPtr, ByVal dwClsContext As Long, ByRef riid As GUID, ByRef ppv As LongPtr) As Long
 
     'WinRT
     Private Declare PtrSafe Function WindowsCreateString Lib "Combase.dll" (ByVal sourceString As LongPtr, ByVal Length As Long, ByRef hString As LongPtr) As Long
@@ -68,6 +69,7 @@ Attribute VB_Exposed = True
     Private Declare Function RevokeActiveObject32 Lib "oleAut32.dll" Alias "RevokeActiveObject" (ByVal dwRegister As Long, ByVal pvReserved As Long) As Long
     Private Declare Function CoDisconnectObject Lib "ole32.dll" (ByVal pUnk As IUnknown, ByRef pvReserved As Long) As Long
     Private Declare Function CLSIDFromProgID Lib "ole32.dll" (ByVal ProgID As Long, ByRef rclsid As GUID) As Long
+    Private Declare Function CoCreateInstance Lib "ole32.dll" (ByRef rclsid As GUID, ByVal pUnkOuter As LongPtr, ByVal dwClsContext As Long, ByRef riid As GUID, ByRef ppv As LongPtr) As Long
 
     'WinRT
     Private Declare Function WindowsCreateString Lib "Combase.dll" (ByVal sourceString As LongPtr, ByVal Length As Long, ByRef hString As LongPtr) As Long
@@ -488,7 +490,6 @@ End Function
 '@remark This function is heavily inspired off code provided by `Jaafar Tribak`
 '@devRemark stdCOM objects will auto-release when not needed
 Public Function CreateFromActiveObjects() As Collection
-  Const S_OK = 0
   #If VBA7 Then
     Dim pROT As LongPtr, pBindCtx As LongPtr, pEnumMoniker As LongPtr, pMoniker As LongPtr, pName As LongPtr, pMonikerObject As LongPtr
   #Else
@@ -545,6 +546,26 @@ Public Function CreateFromWinRTClassID(ByVal sActivatableClassId as string) as s
 
   'Delete string
   Call WindowsDeleteString(hString)
+End Function
+
+
+'Create `stdCOM` object from a CLSID and IID.
+'@constructor
+'@param sClassID - A CLSID as a string.
+'@param sIID - An IID as a string. Default is `IDispatch`.
+'@returns - A COM wrapper for the object.
+'@example ```
+'  stdCOM.CreateFromClassAndIID("FF48DBA4-60EF-4201-AA87-54103EEF594E","30CBE57D-D9D0-452A-AB13-7AC5AC4825EE") 'IUIAutomation
+'```
+Public Function CreateFromClassAndIID(ByVal sClassID As String, Optional ByVal sIID As String = "00020400-0000-0000-C000-000000000046") As stdCOM
+  Dim clsid As GUID: If IIDFromString(StrPtr(sClassID), clsid) <> S_OK Then Err.Raise 1, "stdCOM::CreateFromClassAndIID", "Cannot retrieve CLSID from String."
+  Dim iid As GUID: If IIDFromString(StrPtr(sIID), iid) <> S_OK Then Err.Raise 1, "stdCOM::CreateFromClassAndIID", "Cannot retrieve IID from String."
+  Const CLSCTX_INPROC_SERVER = &H1
+
+  Dim pIUnknown As LongPtr
+  If CoCreateInstance(clsid, NULL_PTR, CLSCTX_INPROC_SERVER, iid, pIUnknown) <> S_OK Then Err.Raise 1, "stdCOM::CreateFromClassAndIID", "Cannot create object from CLSID and IID."
+  
+  Set CreateFromClassAndIID = CreateFromPtr(pIUnknown)
 End Function
 
 
