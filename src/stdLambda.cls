@@ -444,6 +444,7 @@ Private Sub parseBlock(ParamArray endToken() As Variant)
     Do
         While optConsume("colon"): Wend
         Call parseStatement
+        While optConsume("colon"): Wend
         
         For i = LBound(endToken) To UBound(endToken)
             If peek(endToken(i)) Then
