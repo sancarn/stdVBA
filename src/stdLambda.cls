@@ -793,7 +793,8 @@ Private Function parseOptObjectField(Optional ByVal ISubType as ISubType = oFiel
         Call addOperation(oPush, , consume("var"), 1)
         Call parseOptParameters
         'Parse Let/Set ... = ... as a special case
-        if optConsume("equal") and ISubType  <> oFieldCall then
+        if peek("equal") and ISubType  <> oFieldCall then
+            Call consume("equal")
             Call parseExpression
             Call addOperation(oObject, ISubType)
         else
@@ -814,7 +815,8 @@ Private Function parseOptObjectProperty(Optional ByVal ISubType as ISubType = oP
         Call addOperation(oPush, , consume("var"), 1)
         Call parseOptParameters
         'Parse Let/Set ... = ... as a special case
-        if optConsume("equal") and ISubType  <> oPropGet then
+        if peek("equal") and ISubType  <> oPropGet then
+            Call consume("equal")
             Call parseExpression
             Call addOperation(oObject, ISubType)
         else
