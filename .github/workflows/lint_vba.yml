@@ -21,5 +21,5 @@ jobs:
         rm -rf ./src/WIP
         python -m vba_precompiler -v7 -sWin64 ./src
         rm -rf ./src
-#    - name: Lint
-#      uses: Vba-actions/lint-vba@main
+    - name: Lint
+      uses: Vba-actions/lint-vba@dev
