@@ -192,7 +192,7 @@ End Function
 '@param lo - ListObject to create enumerator from.
 '@param iMaxLength - Maximum length of enumerator. The enumerator will refuse to go beyond this number of items. Used in order to prevent runaway processes.
 '@returns - Enumerator representing ListObject data
-Public Function CreateFromListObject(ByVal lo As ListObject, Optional ByVal iMaxLength As Long = 1000000) As stdEnumerator
+Public Function CreateFromListObject(ByVal lo As ListObject, Optional ByVal iMaxLength As Long = 1000000, Optional ByVal dictCompare as Long = vbTextCompare) As stdEnumerator
     Dim c As Collection: Set c = New Collection
     If Not lo.DataBodyRange Is Nothing Then
         'Get header and body data
@@ -205,6 +205,7 @@ Public Function CreateFromListObject(ByVal lo As ListObject, Optional ByVal iMax
             Dim i As Long
             For i = 1 To UBound(vData, 1)
                 Set oRow = CreateObject("Scripting.Dictionary")
+                oRow.CompareMode = dictCompare
                 For j = 1 To UBound(vData, 2)
                     oRow(vHeader(1, j)) = vData(i, j)
                 Next
