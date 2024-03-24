@@ -23,9 +23,9 @@ Attribute VB_Exposed = False
 '     End With                         '    ]
 '   End With                           '  }
 '   'Get json object ref               '}
-'  Dim o as stdJSON: set o = .obj
+'   Dim o as stdJSON: set o = .obj
 '   'Get as dictionary of collections
-'   Dim o as object: set o = .toVBON()
+'   Dim o as object: set o = .toVBObject()
 '   'Get json string
 '   Dim s as string: s = .toString()
 ' End With
@@ -326,65 +326,62 @@ End Property
 '@param prettyIndent - If pretty, the indent to use
 '@param depth - If pretty, the depth to start at
 '@returns - JSON encoded data.
-Public Function ToString(optional byval pretty as boolean = false, optional byval prettyIndent as long = 2, optional depth as long = 1) as String
-  Dim sRootIndent as string, sChildIndent as string, sNewLine as string
-  if pretty then 
-    sChildIndent = string$(depth*prettyIndent, " ")
-    sRootIndent = string$((depth-1)*prettyIndent," ")
+Public Function ToString(Optional ByVal pretty As Boolean = False, Optional ByVal prettyIndent As Long = 2, Optional depth As Long = 1) As String
+  Dim sRootIndent As String, sChildIndent As String, sNewLine As String
+  If pretty Then
+    sChildIndent = String$(depth * prettyIndent, " ")
+    sRootIndent = String$((depth - 1) * prettyIndent, " ")
     sNewLine = vbCrLf
-  end if
+  End If
 
-  Dim s as StringBuffer: s = StringBuffer_Create(64)
-  select case This.iType
-    case eJSONObject
-      Call StringBuffer_Append(s, sRootIndent & "{" & sNewLine) 
-    case eJSONArray
+  Dim s As StringBuffer: s = StringBuffer_Create(64)
+  Select Case This.iType
+    Case eJSONObject
+      Call StringBuffer_Append(s, sRootIndent & "{" & sNewLine)
+    Case eJSONArray
       Call StringBuffer_Append(s, sRootIndent & "[" & sNewLine)
-  end select
+  End Select
 
-  Dim i as Long, ub as Long
-  select case this.iType
-    case eJSONObject
-      Dim vVals: vVals = this.children.items()
-      Dim vKeys: vKeys = this.children.keys()
-      ub = ubound(vKeys)
-      For i = 0 to ub
-        if typeof vVals(i) is stdJSON then
-          sValue = vVals(i).ToString(pretty, prettyIndent*depth, depth+1)
-        else
+  Dim i As Long, ub As Long
+  Select Case This.iType
+    Case eJSONObject
+      Dim vVals: vVals = This.children.items()
+      Dim vKeys: vKeys = This.children.keys()
+      ub = UBound(vKeys)
+      For i = 0 To ub
+        If TypeOf vVals(i) Is stdJSON Then
+          sValue = LTrim(vVals(i).ToString(pretty, prettyIndent, depth + 1))
+        Else
           sValue = simpleStringify(vVals(i))
-        end if
+        End If
         'Concatenation of small strings is faster than calling Append, so optimise on this
-        Call StringBuffer_Append(s, sChildIndent & """" & vKeys(i) & """:")
+        Call StringBuffer_Append(s, sChildIndent & """" & vKeys(i) & """: ")
         Call StringBuffer_Append(s, sValue)
-        Call StringBuffer_Append(s, iif(i<ub, ",", "") & sNewLine)
-      next
-    case eJSONArray
+        Call StringBuffer_Append(s, iif(i < ub, ",", "") & sNewLine)
+      Next
+    Case eJSONArray
       i = 0
-      ub = this.children.count
+      ub = This.children.count
       Dim vItem
-      For each vItem in this.children
-        i=i+1
-        if typeof vItem is stdJSON then
-          sValue = vItem.ToString(pretty, prettyIndent*depth, depth+1)
-        else
+      For Each vItem In This.children
+        i = i + 1
+        If TypeOf vItem Is stdJSON Then
+          sValue = LTrim(vItem.ToString(pretty, prettyIndent, depth + 1))
+        Else
           sValue = simpleStringify(vItem)
-        end if
+        End If
         Call StringBuffer_Append(s, sChildIndent)
         Call StringBuffer_Append(s, sValue)
-        Call StringBuffer_Append(s, iif(i<ub, ",", "") & sNewLine)
-      next
-  end select
+        Call StringBuffer_Append(s, iif(i < ub, ",", "") & sNewLine)
+      Next
+  End Select
   
-  select case This.iType
-    case eJSONObject
-      Call StringBuffer_Append(s, sRootIndent & "}" & sNewLine)
-    case eJSONArray
-      Call StringBuffer_Append(s, sRootIndent & "]" & sNewLine)
-  end select
-
-  'Remove last newline as it's not needed
-  if depth = 1 then Call StringBuffer_Pop(s, len(sNewLine))
+  Select Case This.iType
+    Case eJSONObject
+      Call StringBuffer_Append(s, sRootIndent & "}")
+    Case eJSONArray
+      Call StringBuffer_Append(s, sRootIndent & "]")
+  End Select
   
   ToString = StringBuffer_ToString(s)
 End Function
@@ -395,7 +392,7 @@ End Function
 Public Sub ToFile(ByVal sPath as string, Optional ByVal prettyIndent as Long = 0)
   Dim ff As Long: ff = FreeFile
   Open sPath For Output As #ff
-      Print #ff, data
+      Print #ff, ToString(pretty:=prettyIndent > 0, prettyIndent:=prettyIndent)
   Close #ff
 End Sub
 
@@ -488,8 +485,12 @@ Private Function simpleStringify(ByVal value as variant) as string
       simpleStringify = """" & value & """"
     Case vbBoolean
       simpleStringify = iif(value, "true", "false")
-    case vbInteger, vbDouble, vbFloat
+    case vbInteger
       simpleStringify = value
+    case vbDouble, vbSingle
+      'Handle different locales where "." is not the decimal separator
+      Dim intPart as Long: intPart = Fix(value)
+      simpleStringify = intPart & "." & Mid(Cstr(value - intPart), 3)
     case else
       if isArray(value) then
         simpleStringify = stdJSON.CreateFromVariant(value).toString()

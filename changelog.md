@@ -267,3 +267,4 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2024-03-10 `stdLambda` FIX - `=` in `if` statements failed due to `2023-12-05 stdLambda FEATURE` release. This has been resolved.
 - 2024-03-10 `stdLambda` FIX - Fix to `parseBlock()` to consume colons after parsing a statement.
 - 2024-03-14 `stdEnumerator` BREAKING - `stdEnumerator.CreateFromListObject()` defaults to `vbTextCompare` and supplies optional parameter for configuration.
+- 2024-03-24 `stdJSON` FIX - Fix `#93`. Numerous stringification problems, especially pretty indent problems.
