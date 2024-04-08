@@ -268,3 +268,6 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2024-03-10 `stdLambda` FIX - Fix to `parseBlock()` to consume colons after parsing a statement.
 - 2024-03-14 `stdEnumerator` BREAKING - `stdEnumerator.CreateFromListObject()` defaults to `vbTextCompare` and supplies optional parameter for configuration.
 - 2024-03-24 `stdJSON` FIX - Fix `#93`. Numerous stringification problems, especially pretty indent problems.
+- 2024-04-08 `stdWindow` BREAKING - Changed `Resizable` to `isResizable`
+- 2024-04-08 `stdWindow` BREAKING - Changed `isTopMost` to `isAlwaysOnTop`
+- 2024-04-08 `stdWindow` FEATURE - Added `isCaptionVisible`,`isBorderVisible`,`isMaximiseButtonVisible`,`isMinimiseButtonVisible`,`isSystemMenuVisible`,`isVerticalScrollbarVisible`,`isHorizontalScrollbarVisible`,`isChildWindow`,`isPopupWindow`,`isAppWindow`,`isToolWindow`,`isClickThroughEnabled`,`isBorderEdgeSunken`,`isBorderDoubled`,`isLayeredWindow`,`LayeredWindowFlags`,`LayeredWindowChromaKey`,`LayeredWindowOpacity` flag setters.

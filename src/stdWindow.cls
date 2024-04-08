@@ -62,7 +62,7 @@ Attribute VB_Exposed = False
 '   [X] Get/Let Resizable() as Boolean
 '   [X] Get     Children() as Collection
 '   [X] Get     Descendents() as Collection
-'   [ ] Get/Let AlwaysOnTop() as Boolean
+'   [X] Get/Let isTopmost() as Boolean   'AlwaysOnTop
 '
 ' INSTANCE METHODS
 '   [ ] SetHook(idHook, hook, hInstance, dwThreadID) as LongPtr
@@ -189,6 +189,11 @@ Public Enum EWndExStyles
   WS_EX_OVERLAPPEDWINDOW = WS_EX_WINDOWEDGE Or WS_EX_CLIENTEDGE
   WS_EX_PALETTEWINDOW = WS_EX_WINDOWEDGE Or WS_EX_TOOLWINDOW Or WS_EX_TOPMOST
 End Enum
+Public Enum LayeredWindowFlag
+  ChromaKey = &H1
+  Opacity = &H2
+End Enum
+
 Public Enum EWndState
   Normal
   Maximised
@@ -403,6 +408,10 @@ End Type
   
   'Setting window data
   Private Declare PtrSafe Function SetWindowText Lib "user32" Alias "SetWindowTextA" (ByVal hwnd As LongPtr, ByVal lpString As String) As Long
+  
+  'Layered windows
+  Private Declare PtrSafe Function GetLayeredWindowAttributes Lib "user32" (ByVal hwnd As LongPtr, ByRef crKey As Long, ByRef bAlpha As Byte, ByRef dwFlags As Long) As Long
+  Private Declare PtrSafe Function SetLayeredWindowAttributes Lib "user32" (ByVal hwnd As LongPtr, ByVal crKey As Long, ByVal bAlpha As Byte, ByVal dwFlags As Long) As Long
 
   'Automating windows
   Private Declare PtrSafe Function SendMessageA Lib "user32" (ByVal hwnd As LongPtr, ByVal wMsg As Long, ByVal wParam As Any, ByVal lParam As Any) As Long
@@ -465,6 +474,10 @@ End Type
   
   'Setting window data
   Private Declare Function SetWindowText Lib "user32" Alias "SetWindowTextA" (ByVal hwnd As LongPtr, ByVal lpString As String) As Long
+  
+  'Layered windows
+  Private Declare Function GetLayeredWindowAttributes Lib "user32" (ByVal hwnd As LongPtr, ByRef crKey As Long, ByRef bAlpha As Byte, ByRef dwFlags As Long) As Long
+  Private Declare Function SetLayeredWindowAttributes Lib "user32" (ByVal hwnd As LongPtr, ByVal crKey As Long, ByVal bAlpha As Byte, ByVal dwFlags As Long) As Long
 
   'Automating windows
   Private Declare Function SendMessageA Lib "user32" (ByVal hwnd As LongPtr, ByVal wMsg As Long, ByVal wParam As Any, ByVal lParam As Any) As Long
@@ -1208,31 +1221,212 @@ End Property
 
 'Get/Set ability to resize
 '@returns - `true` if window is resizable, `false` otherwise
-Public Property Get Resizable() As Boolean
+Public Property Get isResizable() As Boolean
   'THICK FRAME style is used to determine if a window is resizable
-  Resizable = Style And EWndStyles.WS_THICKFRAME
+  isResizable = bitFlagCheck(Style, EWndStyles.WS_THICKFRAME)
 End Property
-Public Property Let Resizable(ByVal v As Boolean)
-  If v Then
-    Style = Style Or EWndStyles.WS_THICKFRAME
+Public Property Let isResizable(ByVal v As Boolean)
+  Style = bitFlagSet(Style, EWndStyles.WS_THICKFRAME, v)
+End Property
+
+'Get/Set caption visibility
+'@returns - `true` if window caption is visible, `false` otherwise
+Public Property Get isCaptionVisible() As Boolean
+  isCaptionVisible = bitFlagCheck(Style, EWndStyles.WS_CAPTION)
+End Property
+Public Property Let isCaptionVisible(ByVal v As Boolean)
+  Style = bitFlagSet(Style, EWndStyles.WS_CAPTION, v)
+  Call Redraw
+End Property
+
+'Get/Set border visibility
+Public Property Get isBorderVisible() As Boolean
+  isBorderVisible = bitFlagCheck(Style, EWndStyles.WS_BORDER)
+End Property
+Public Property Let isBorderVisible(ByVal v As Boolean)
+  Style = bitFlagSet(Style, EWndStyles.WS_BORDER, v)
+  Call Redraw
+End Property
+
+'Get/Set maximise button visibility
+Public Property Get isMaximiseButtonVisible() As Boolean
+  isMaximiseButtonVisible = bitFlagCheck(Style, EWndStyles.WS_MAXIMIZEBOX)
+End Property
+Public Property Let isMaximiseButtonVisible(ByVal v As Boolean)
+  Style = bitFlagSet(Style, EWndStyles.WS_MAXIMIZEBOX, v)
+End Property
+
+'Get/Set minimise button visibility
+Public Property Get isMinimiseButtonVisible() As Boolean
+  isMinimiseButtonVisible = bitFlagCheck(Style, EWndStyles.WS_MINIMIZEBOX)
+End Property
+Public Property Let isMinimiseButtonVisible(ByVal v As Boolean)
+  Style = bitFlagSet(Style, EWndStyles.WS_MINIMIZEBOX, v)
+End Property
+
+'Get/Set system menu visibility
+'@remark - The system menu is the menu that appears when you click the icon in the top left of the window.
+'          It contains options such as "Restore", "Move", "Size", "Minimize", "Maximize", "Close".
+'          Toggling the visibility will also toggle the visibility of the close button, as this is part of the system menu.
+Public Property Get isSystemMenuVisible() As Boolean
+  isSystemMenuVisible = bitFlagCheck(Style, EWndStyles.WS_SYSMENU)
+End Property
+Public Property Let isSystemMenuVisible(ByVal v As Boolean)
+  Style = bitFlagSet(Style, EWndStyles.WS_SYSMENU, v)
+End Property
+
+'Get/Set vertical scrollbar visibility
+'@remark - Scrollbar visibility doesn't do anything on VBA userform windows.
+Public Property Get isVerticalScrollbarVisible() As Boolean
+  isVerticalScrollbarVisible = bitFlagCheck(Style, EWndStyles.WS_VSCROLL)
+End Property
+Public Property Let isVerticalScrollbarVisible(ByVal v As Boolean)
+  Style = bitFlagSet(Style, EWndStyles.WS_VSCROLL, v)
+End Property
+
+'Get/Set horizontal scrollbar visibility
+'@remark - Scrollbar visibility doesn't do anything on VBA userform windows.
+Public Property Get isHorizontalScrollbarVisible() As Boolean
+  isHorizontalScrollbarVisible = bitFlagCheck(Style, EWndStyles.WS_HSCROLL)
+End Property
+Public Property Let isHorizontalScrollbarVisible(ByVal v As Boolean)
+  Style = bitFlagSet(Style, EWndStyles.WS_HSCROLL, v)
+End Property
+
+'Get/Set whether the window is a child window
+'@returns - `true` if window is a child window, `false` otherwise
+Public Property Get isChildWindow() As Boolean
+  isChildWindow = bitFlagCheck(Style, EWndStyles.WS_CHILD)
+End Property
+Public Property Let isChildWindow(ByVal v As Boolean)
+  Style = bitFlagSet(Style, EWndStyles.WS_CHILD, v)
+End Property
+
+'Get/Set whether the window is a popup window
+'@returns - `true` if window is a popup window, `false` otherwise
+Public Property Get isPopupWindow() As Boolean
+  isPopupWindow = bitFlagCheck(Style, EWndStyles.WS_POPUP)
+End Property
+Public Property Let isPopupWindow(ByVal v As Boolean)
+  Style = bitFlagSet(Style, EWndStyles.WS_POPUP, v)
+End Property
+
+'Get/Set topmost / Always on top
+'@returns - `true` if window is topmost, `false` otherwise
+Public Property Get isAlwaysOnTop() As Boolean
+  isAlwaysOnTop = bitFlagCheck(StyleEx, EWndExStyles.WS_EX_TOPMOST)
+End Property
+Public Property Let isAlwaysOnTop(ByVal v As Boolean)
+  Const HWND_TOPMOST = -1
+  Const HWND_NOTOPMOST = -2
+  Const SWP_NOSIZE = &H1
+  Const SWP_NOMOVE = &H2
+  Call SetWindowPos(pHandle, iif(v, HWND_TOPMOST, HWND_NOTOPMOST), 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE)
+End Property
+
+'Get/Set whether the window is an app window
+'@returns - `true` if window is an app window, `false` otherwise
+'@remark - An app window is a window that is intended to be used as a main window for an application.
+'Typically an app window will have an icon in the taskbar, and will be shown in the Alt+Tab menu.
+Public Property Get isAppWindow() As Boolean
+  isAppWindow = bitFlagCheck(StyleEx, EWndExStyles.WS_EX_APPWINDOW)
+End Property
+Public Property Let isAppWindow(ByVal v As Boolean)
+  StyleEx = bitFlagSet(StyleEx, EWndExStyles.WS_EX_APPWINDOW, v)
+End Property
+
+'Get/Set whether the window is a tool window
+'@returns - `true` if window is a tool window, `false` otherwise
+Public Property Get isToolWindow() As Boolean
+  isToolWindow = bitFlagCheck(StyleEx, EWndExStyles.WS_EX_TOOLWINDOW)
+End Property
+Public Property Let isToolWindow(ByVal v As Boolean)
+  StyleEx = bitFlagSet(StyleEx, EWndExStyles.WS_EX_TOOLWINDOW, v)
+End Property
+
+'Get/Set whether clicks are passed through the window. I.E. Clicks will be passed to the window behind this one.
+'@remark - This is useful in combination with layered windows to create click-through windows.
+Public Property Get isClickThroughEnabled() As Boolean
+  isClickThroughEnabled = bitFlagCheck(StyleEx, EWndExStyles.WS_EX_TRANSPARENT)
+End Property
+Public Property Let isClickThroughEnabled(ByVal v As Boolean)
+  StyleEx = bitFlagSet(StyleEx, EWndExStyles.WS_EX_TRANSPARENT, v)
+End Property
+
+'Get/Set whether the border has a sunken edge
+Public Property Get isBorderEdgeSunken() As Boolean
+  isBorderEdgeSunken = bitFlagCheck(StyleEx, EWndExStyles.WS_EX_CLIENTEDGE)
+End Property
+Public Property Let isBorderEdgeSunken(ByVal v As Boolean)
+  StyleEx = bitFlagSet(StyleEx, EWndExStyles.WS_EX_CLIENTEDGE, v)
+End Property
+
+'Get/Set whether the window is double bordered
+Public Property Get isBorderDoubled() As Boolean
+  isBorderDoubled = bitFlagCheck(StyleEx, EWndExStyles.WS_EX_DLGMODALFRAME)
+End Property
+Public Property Let isBorderDoubled(ByVal v As Boolean)
+  StyleEx = bitFlagSet(StyleEx, EWndExStyles.WS_EX_DLGMODALFRAME, v)
+End Property
+
+'Get/Set whether the window is a layered window
+Public Property Get isLayeredWindow() As Boolean
+  isLayeredWindow = bitFlagCheck(StyleEx, EWndExStyles.WS_EX_LAYERED)
+End Property
+Public Property Let isLayeredWindow(ByVal v As Boolean)
+  StyleEx = bitFlagSet(StyleEx, EWndExStyles.WS_EX_LAYERED, v)
+End Property
+
+'Get/Set the existing layered window flags
+Public Property Get LayeredWindowFlags() As LayeredWindowFlag
+  If isLayeredWindow Then
+    Call GetLayeredWindowAttributes(pHandle, 0, 0, LayeredWindowFlags)
   Else
-    Style = Style And (Not EWndStyles.WS_THICKFRAME)
+    Err.Raise 1, "LayeredWindowFlags", "Window is not a layered window."
+  End If
+End Property
+Public Property Let LayeredWindowFlags(ByVal v As LayeredWindowFlag)
+  If isLayeredWindow Then
+    Call SetLayeredWindowAttributes(pHandle, 0, 0, v)
+  Else
+    Err.Raise 1, "LayeredWindowFlags [Let]", "Window is not a layered window."
   End If
 End Property
 
-'Get/Set topmost
-'@returns - `true` if window is topmost, `false` otherwise
-Public Property Get isTopmost() as Boolean
-  const WS_EX_TOPMOST = &H8
-  isTopMost = (StyleEx And WS_EX_TOPMOST) = WS_EX_TOPMOST
+'Get/Set the chroma key for a layered window
+Public Property Get LayeredWindowChromaKey() As Long
+  If isLayeredWindow Then
+    Call GetLayeredWindowAttributes(pHandle, LayeredWindowChromaKey, 0, 0)
+  Else
+    Err.Raise 1, "LayeredWindowChromaKey", "Window is not a layered window."
+  End If
 End Property
-Public Property Let isTopmost(ByVal v as boolean)
-  Const HWND_TOPMOST   = -1
-  Const HWND_NOTOPMOST = -2
-  Const SWP_NOSIZE     = &H1
-  Const SWP_NOMOVE     = &H2
-  Call SetWindowPos(pHandle, iif(v, HWND_TOPMOST, HWND_NOTOPMOST), 0, 0, 0, 0, SWP_NOMOVE or SWP_NOSIZE)
+Public Property Let LayeredWindowChromaKey(ByVal v As Long)
+  If isLayeredWindow Then
+    Dim newFlags as Long: newFlags = bitFlagSet(LayeredWindowFlags, LayeredWindowFlag.ChromaKey, True)
+    Call SetLayeredWindowAttributes(pHandle, v, 0, newFlags)
+  Else
+    Err.Raise 1, "LayeredWindowChromaKey [Let]", "Window is not a layered window."
+  End If
 End Property
+
+'Get/Set the opacity of a layered window
+Public Property Get LayeredWindowOpacity() As Byte
+  If isLayeredWindow Then
+    Call GetLayeredWindowAttributes(pHandle, 0, LayeredWindowOpacity, 0)
+  Else
+    Err.Raise 1, "LayeredWindowOpacity", "Window is not a layered window."
+  End If
+End Property
+Public Property Let LayeredWindowOpacity(ByVal v As Byte)
+  If isLayeredWindow Then
+    Dim newFlags as Long: newFlags = bitFlagSet(LayeredWindowFlags, LayeredWindowFlag.Opacity, True)
+    Call SetLayeredWindowAttributes(pHandle, 0, v, newFlags)
+  Else
+    Err.Raise 1, "LayeredOpacity [Let]", "Window is not a layered window."
+  End If
+End Property
+
 
 '================================================================================================
 '=      PUBLIC INSTANCE METHODS
@@ -2382,7 +2576,29 @@ Private Function lshift(ByVal val As Long, ByVal nTimes As Integer) As Long
   lshift = val * 2 ^ nTimes
 End Function
 
+'Check whether a bit flag is set in a bit field
+'@param field - The field to check whether the flag is set in
+'@param flag - The flag to check for
+'@returns - True if flag is present, false otherwise.
+Private Function bitFlagCheck(ByVal field As Long, ByVal flag As Long) As Boolean
+  bitFlagCheck = (field And flag) = flag
+End Function
+
+'Set a bit flag in a bit field.
+'@param field - The field to set the flag within
+'@param flag - The flag to set
+'@param toSet - True to ensure the flag is set. False to ensure the flag is not set.
+'@returns - field with added / ensured bit flag.
+Private Function bitFlagSet(ByVal field As Long, ByVal flag As Long, ByVal toSet As Boolean) As Long
+  If toSet Then
+    bitFlagSet = field Or flag
+  Else
+    bitFlagSet = field And (Not flag)
+  End If
+End Function
+
 'Public Sub Requires()
 '  if IsEmpty(stdEnumerator) then Call Msgbox("Requires `stdEnumerator`", vbInformation) else stdEnumerator.Requires
 '
 'End Sub
+
