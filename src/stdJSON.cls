@@ -30,6 +30,8 @@ Attribute VB_Exposed = False
 '   Dim s as string: s = .toString()
 ' End With
 
+#Const UseDictionaryLateBinding = True
+
 Public Enum EStdJsonType
   eJSONObject
   eJSONArray
@@ -129,7 +131,7 @@ Friend Sub protInit(ByRef iType as EStdJsonType)
   This.iType = iType
   select case iType
     case eJSONObject
-      set this.children = CreateObject("Scripting.Dictionary")
+      set this.children = CreateDictionary()
     case eJSONArray
       set this.children = new Collection
   end select
@@ -161,7 +163,7 @@ Friend Sub protInitFromVariant(ByRef vData as Variant)
           End With
         case "Dictionary"
           this.iType = eJSONObject
-          set this.children = CreateObject("Scripting.Dictionary")
+          set this.children = CreateDictionary()
 
           'Get keys and values...
           With vData
@@ -307,6 +309,27 @@ Public Property Get Exists(ByVal keyOrIndex as Variant) as Boolean
   end select
 End Property
 
+'Obtain the children of this JSON object
+'@returns - The children of this JSON object of the form [{key: string, value: variant, isJSON: boolean},...]
+'@remark - Because of the nature of the JSON object, this will be a collection of dictionaries with the keys "key", "value" and "isJSON".
+Public Function ChildrenInfo() As Collection
+  Dim ItemParent As stdJSON: Set ItemParent = Me
+  Set ChildrenInfo = New Collection
+  Select Case This.iType
+    Case eJSONObject
+      For Each vKey In This.children.Keys()
+        Call ChildrenInfo.Add(CreateDictionary("key", vKey, "value", This.children(vKey), "isJSON", TypeOf This.children(vKey) Is stdJSON, "parent", ItemParent))
+      Next
+    Case eJSONArray
+      Dim vChild As Variant, i As Long: i = 0
+      For Each vChild In This.children
+        i = i + 1
+        Call ChildrenInfo.Add(CreateDictionary("key", i, "value", vChild, "isJSON", TypeOf vChild Is stdJSON, "parent", ItemParent))
+      Next
+  End Select
+End Function
+
+
 ' 'Obtain the item for a key or index
 ' '@param {string} Query - JsonPath query to get/set variable
 ' '@remark see https://github.com/json-path/JsonPath for details
@@ -402,7 +425,7 @@ Public Function ToVBObject() as Object
   Dim ret as Object
   select case This.iType
     case eJSONObject
-      set ret = CreateObject("Scripting.Dictionary")
+      set ret = CreateDictionary()
     case eJSONArray
       set ret = new Collection
   end select
@@ -763,3 +786,19 @@ End Sub
 Private Sub StringBuffer_Pop(ByRef buffer as StringBuffer, Optional ByVal iCount as Long = 1)
   buffer.index = buffer.index - iCount
 End Sub
+
+'Create a dictionary
+'@returns - The dictionary
+Private Function CreateDictionary(ParamArray children()) As Object
+  #if UseDictionaryLateBinding then
+    Set CreateDictionary = CreateObject("Scripting.Dictionary")
+  #else
+    Set CreateDictionary = New Scripting.Dictionary
+  #end if
+  CreateDictionary.CompareMode = vbTextCompare
+
+  Dim i as Long
+  For i = LBound(children) to UBound(children) step 2
+    Call CreateDictionary.add(children(i), children(i+1))
+  Next
+End Function

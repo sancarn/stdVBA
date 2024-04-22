@@ -271,3 +271,4 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2024-04-08 `stdWindow` BREAKING - Changed `Resizable` to `isResizable`
 - 2024-04-08 `stdWindow` BREAKING - Changed `isTopMost` to `isAlwaysOnTop`
 - 2024-04-08 `stdWindow` FEATURE - Added `isCaptionVisible`,`isBorderVisible`,`isMaximiseButtonVisible`,`isMinimiseButtonVisible`,`isSystemMenuVisible`,`isVerticalScrollbarVisible`,`isHorizontalScrollbarVisible`,`isChildWindow`,`isPopupWindow`,`isAppWindow`,`isToolWindow`,`isClickThroughEnabled`,`isBorderEdgeSunken`,`isBorderDoubled`,`isLayeredWindow`,`LayeredWindowFlags`,`LayeredWindowChromaKey`,`LayeredWindowOpacity` flag setters.
+- 2024-04-22 `stdJSON` FEATURE - Added `ChildrenInfo` which returns a Collection of dictionaries containing info about the children. Used in stdVBA-examples JSON viewer.
