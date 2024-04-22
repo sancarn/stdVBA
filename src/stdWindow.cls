@@ -496,8 +496,14 @@ End Type
 
 
 '@TODO: Convert to TThis
+Private Type TLayeredWindowInfo
+  crKey As Long
+  bAlpha As Byte
+End Type
+
 Private pHandle As LongPtr
 Private pInitialized As Boolean
+Private pLayeredWindowInfo As TLayeredWindowInfo
 Private Lookups As Object
 
 
@@ -1393,38 +1399,41 @@ Public Property Let LayeredWindowFlags(ByVal v As LayeredWindowFlag)
   End If
 End Property
 
-'Get/Set the chroma key for a layered window
-Public Property Get LayeredWindowChromaKey() As Long
-  If isLayeredWindow Then
-    Call GetLayeredWindowAttributes(pHandle, LayeredWindowChromaKey, 0, 0)
-  Else
-    Err.Raise 1, "LayeredWindowChromaKey", "Window is not a layered window."
-  End If
+'Get/Set the transparent color for a window.  for a layered window
+'@returns - The transparent color for the window. If isLayeredWindow is false, or the window's LayeredWindowFlags does not have the ChromaKey flag set, this will return -1.
+'@remark - Setting this value will also set the window to be a layered window if it is not already.
+Public Property Get TransparentColor() As Long
+  if isLayeredWindow then 
+    if bitFlagCheck(LayeredWindowFlags, LayeredWindowFlag.ChromaKey) then
+      Call GetLayeredWindowAttributes(pHandle, TransparentColor, 0, 0)
+    else
+      TransparentColor = -1
+    end if
+  else
+    TransparentColor = -1
+  end if
 End Property
-Public Property Let LayeredWindowChromaKey(ByVal v As Long)
-  If isLayeredWindow Then
-    Dim newFlags as Long: newFlags = bitFlagSet(LayeredWindowFlags, LayeredWindowFlag.ChromaKey, True)
-    Call SetLayeredWindowAttributes(pHandle, v, 0, newFlags)
-  Else
-    Err.Raise 1, "LayeredWindowChromaKey [Let]", "Window is not a layered window."
-  End If
+Public Property Let TransparentColor(ByVal v As Long)
+  isLayeredWindow = true
+  pLayeredWindowInfo.crKey = v
+  Dim newFlags as Long: newFlags = bitFlagSet(LayeredWindowFlags, LayeredWindowFlag.ChromaKey, True)
+  Call SetLayeredWindowAttributes(pHandle, pLayeredWindowInfo.crKey, pLayeredWindowInfo.bAlpha, newFlags)
 End Property
 
 'Get/Set the opacity of a layered window
-Public Property Get LayeredWindowOpacity() As Byte
+'@remark - Setting this value will also set the window to be a layered window if it is not already.
+Public Property Get Opacity() As Byte
   If isLayeredWindow Then
-    Call GetLayeredWindowAttributes(pHandle, 0, LayeredWindowOpacity, 0)
+    Call GetLayeredWindowAttributes(pHandle, 0, Opacity, 0)
   Else
-    Err.Raise 1, "LayeredWindowOpacity", "Window is not a layered window."
+    Err.Raise 1, "Opacity", "Window is not a layered window."
   End If
 End Property
-Public Property Let LayeredWindowOpacity(ByVal v As Byte)
-  If isLayeredWindow Then
-    Dim newFlags as Long: newFlags = bitFlagSet(LayeredWindowFlags, LayeredWindowFlag.Opacity, True)
-    Call SetLayeredWindowAttributes(pHandle, 0, v, newFlags)
-  Else
-    Err.Raise 1, "LayeredOpacity [Let]", "Window is not a layered window."
-  End If
+Public Property Let Opacity(ByVal v As Byte)
+  isLayeredWindow = true
+  pLayeredWindowInfo.bAlpha = v
+  Dim newFlags as Long: newFlags = bitFlagSet(LayeredWindowFlags, LayeredWindowFlag.Opacity, True)
+  Call SetLayeredWindowAttributes(pHandle, pLayeredWindowInfo.crKey, pLayeredWindowInfo.bAlpha, newFlags)
 End Property
 
 
