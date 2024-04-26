@@ -97,6 +97,7 @@ Private Enum WINHTTP_ERROR
   ERROR_WINHTTP_CLIENT_CERT_NO_PRIVATE_KEY = (WINHTTP_ERROR_BASE + 185)
   ERROR_WINHTTP_CLIENT_CERT_NO_ACCESS_PRIVATE_KEY = (WINHTTP_ERROR_BASE + 186)
   WINHTTP_ERROR_LAST = (WINHTTP_ERROR_BASE + 186)
+  ERROR_WINHTTP_INVALID_PARAMETER = 87  ' Standard Windows API error code for invalid parameter
 End Enum
 
 Private Enum WinHttpRequestOption
@@ -567,7 +568,7 @@ Private Function GetProxyCurrentUser(ByVal sURL As String) As ProxyInfoEx
     'If IE is configured to use an auto-config script, then we will use it too
     If (IEProxyConfig.lpszAutoConfigUrl <> 0) Then
       With AutoProxyOptions
-        .dwFlags = dwFlags Or CONFIG_URL
+        .dwFlags = .dwFlags Or CONFIG_URL
         .lpszAutoConfigUrl = IEProxyConfig.lpszAutoConfigUrl
       End With
       doAutoProxy = True
