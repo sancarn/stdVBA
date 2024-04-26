@@ -520,8 +520,8 @@ Private Sub LoadAutoProxy(ByVal sURL as string, ByVal oProxy as Object)
     oProxy("hasProxy") = true
     oProxy("server") = info.ProxyServer
     oProxy("bypass") = info.ProxyBypass
-    oProxy("user") = user
-    oProxy("pass") = pass  
+    oProxy("user") = Empty  'TODO: Check if user/pass credentials with auto-proxy will ever be needed
+    oProxy("pass") = Empty  
   else
     if info.Error.isRecoverable then
       'Assume no proxy
