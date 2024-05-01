@@ -274,4 +274,6 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2024-04-22 `stdJSON` FEATURE - Added `ChildrenInfo` which returns a Collection of dictionaries containing info about the children. Used in stdVBA-examples JSON viewer.
 - 2024-04-22 `stdWindow` BREAKING - Renamed `LayeredWindowOpacity` to `Opacity` and `LayeredWindowChromaKey` to `TransparentColor`. If these are called then `isLayeredWindow` will be automatically set to `true`.
 - 2024-04-26 `stdHTTP` FIX - Remove undefined variables `User` and `Pass` from `LoadAutoProxy`. TODO: Check if there are any situations where these credentials are needed.
+- 2024-04-26 `stdHTTP` FIX - Fixed GetProxyCurrentUser to add flag rather than overwrite flag entirely.
+- 2024-04-26 `stdHTTP` FIX - Fixed missing constant ERROR_INVALID_PARAMETER.
 - 2024-05-01 `stdAcc` FIX - Fix for #97, No error trapping on `Property Get Help`.
