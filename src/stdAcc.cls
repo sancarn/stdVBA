@@ -839,7 +839,7 @@ End Property
 'Returns the help
 '@returns String - the help for the element
 Public Property Get Help() As String
-  'On Error Resume Next
+  On Error Resume Next 'FIX#97: Sometimes this is unsupported, so leave this error handling.
   if isProxy then
     Help = proxyParent.accHelp(proxyIndex)
   else
