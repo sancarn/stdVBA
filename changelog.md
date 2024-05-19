@@ -277,3 +277,7 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2024-04-26 `stdHTTP` FIX - Fixed GetProxyCurrentUser to add flag rather than overwrite flag entirely.
 - 2024-04-26 `stdHTTP` FIX - Fixed missing constant ERROR_INVALID_PARAMETER.
 - 2024-05-01 `stdAcc` FIX - Fix for #97, No error trapping on `Property Get Help`.
+- 2024-05-19 `stdWindow` FEATURE - Added `stdImage#owner` and `stdImage#setOwnerHandle` both of which can be used to attach and detach windows to other windows (such that they appear only when the owner window is active)
+- 2024-05-19 `stdWindow` FEATURE - Added `stdImage#HICON` enabling the setting of icons for windows.
+- 2024-05-19 `stdWindow` FIX - Fixed some compiler errors with `LayeredWindow` stuff.
+- 2024-05-20 `stdImage` FEATURE - Added `stdImage`. Use this to convert from image types to other image types, saving images to file, to `HICON` etc.

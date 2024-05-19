@@ -129,6 +129,15 @@ Public Enum apiWindowHookType
   WH_DEBUG = 9
   WH_FOREGROUNDIDLE = 11
 End Enum
+Private Enum apiWindowMessage
+  WM_GETICON = &H7F
+  WM_SETICON = &H80
+End Enum
+Private Enum apiWindowIconType
+  ICON_SMALL = 0
+  ICON_BIG = 1
+  ICON_SMALL2 = 2 'Used by WM_GETICON only. Retrieves the small icon provided by the application. If the application does not provide one, the system uses the system-generated icon for that window.
+End Enum
 
 'https://www.autohotkey.com/docs_1.0/misc/Styles.htm
 Public Enum EWndStyles
@@ -190,8 +199,8 @@ Public Enum EWndExStyles
   WS_EX_PALETTEWINDOW = WS_EX_WINDOWEDGE Or WS_EX_TOOLWINDOW Or WS_EX_TOPMOST
 End Enum
 Public Enum LayeredWindowFlag
-  ChromaKey = &H1
-  Opacity = &H2
+  lwfChromaKey = &H1
+  lwfOpacity = &H2
 End Enum
 
 Public Enum EWndState
@@ -363,6 +372,19 @@ Private Type tFindNode
   element As Object
 End Type
 
+Private Enum apiClassLongType
+  GCL_MENUNAME = -8
+  GCL_HBRBACKGROUND = -10
+  GCL_HCURSOR = -12
+  GCL_HICON = -14
+  GCL_HMODULE = -16
+  GCL_CBWNDEXTRA = -18
+  GCL_CBCLSEXTRA = -20
+  GCL_WNDPROC = -24
+  GCL_STYLE = -26
+  GCL_HICONSM = -34
+End Enum
+
 #If VBA7 Then
   'Constructors
   Private Declare PtrSafe Function GetDesktopWindow Lib "user32" () As LongPtr
@@ -388,6 +410,7 @@ End Type
   Private Declare PtrSafe Function GetWindowLongPtrA Lib "user32" (ByVal hwnd As LongPtr, ByVal nIndex As apiWindowLongType) As LongPtr
   Private Declare PtrSafe Function SetWindowLongA Lib "user32" (ByVal hwnd As LongPtr, ByVal nIndex As apiWindowLongType, ByVal dwNewLong As Long) As Long
   Private Declare PtrSafe Function SetWindowLongPtrA Lib "user32" (ByVal hwnd As LongPtr, ByVal nIndex As apiWindowLongType, ByVal dwNewPtr As LongPtr) As Long
+  Private Declare PtrSafe Function GetClassLongPtrA Lib "user32" (ByVal hwnd As LongPtr, ByVal nIndex As apiClassLongType) As LongPtr
   Private Declare PtrSafe Function GetAncestor Lib "user32" (ByVal hwnd As LongPtr, ByVal nIndex As apiWindowAncestorType) As LongPtr
   Private Declare PtrSafe Function FindWindowExA Lib "user32" (ByVal hwnd As LongPtr, ByVal hwndChildAfter As LongPtr, ByVal lpszClass As String, ByVal lpszWindow As String) As LongPtr
   Private Declare PtrSafe Function SetWindowPos Lib "user32" (ByVal hwnd As LongPtr, ByVal hwndInsertAfter As LongPtr, ByVal x As Long, ByVal y As Long, ByVal width As Long, ByVal height As Long, ByVal flags As Long) As Long
@@ -454,6 +477,7 @@ End Type
   Private Declare Function GetWindowLongPtrA Lib "user32" (ByVal hwnd As LongPtr, ByVal nIndex As apiWindowLongType) As LongPtr
   Private Declare Function SetWindowLongA Lib "user32" (ByVal hwnd As LongPtr, ByVal nIndex As apiWindowLongType, ByVal dwNewLong As Long) As Long
   Private Declare Function SetWindowLongPtrA Lib "user32" (ByVal hwnd As LongPtr, ByVal nIndex As apiWindowLongType, ByVal dwNewPtr As LongPtr) As Long
+  Private Declare Function GetClassLongPtrA Lib "user32" (ByVal hwnd As LongPtr, ByVal nIndex As apiClassLongType) As LongPtr
   Private Declare Function GetAncestor Lib "user32" (ByVal hwnd As LongPtr, ByVal nIndex As apiWindowAncestorType) As LongPtr
   Private Declare Function FindWindowExA Lib "user32" (ByVal hwnd As LongPtr, ByVal hwndChildAfter As LongPtr, ByVal lpszClass As String, ByVal lpszWindow As String) As LongPtr
   Private Declare Function SetWindowPos Lib "user32" (ByVal hwnd As LongPtr, ByVal hwndInsertAfter As LongPtr, ByVal x As Long, ByVal y As Long, ByVal width As Long, ByVal height As Long, ByVal flags As Long) As Long
@@ -1068,6 +1092,55 @@ Public Property Set parent(ByVal win As stdWindow)
   End If
 End Property
 
+'Get/Set the owner of the window.
+'@remark - The owner is not the same as the parent. See: Raymond Chen's article: https://devblogs.microsoft.com/oldnewthing/20100315-00/?p=14613
+Public Property Get owner() as stdWindow
+  Dim tOwner as LongPtr: tOwner = GetWindowLongPtrA(pHandle, apiWindowLongType.GWL_HWNDPARENT)
+  set owner = stdWindow.CreateFromHwnd(tOwner)
+end property
+Public Property Set owner(ByVal win as stdWindow)
+  If Not Exists Then
+    Err.Raise 1, "Owner [Set]", "Window does not exist."
+  ElseIf Not win.Exists Then
+    Err.Raise 1, "Owner [Set]", "New owner window no longer exists."
+  Else
+    Call SetWindowLongPtrA(pHandle, apiWindowLongType.GWL_HWNDPARENT, win.handle)
+  End If
+End Property
+
+'Set the owner HWND of the window. Useful if you want to set the owner to 0 (no owner).
+'@param hwnd - Handle to window to set as owner
+'@remark - The owner is not the same as the parent. See: Raymond Chen's article: https://devblogs.microsoft.com/oldnewthing/20100315-00/?p=14613.
+'Calling `stdWindow.CreateFromIUnknown(Me).setOwnerHandle(0)` is especially useful, as it raises the Excel Userform to a top level window.
+Public Sub setOwnerHandle(ByVal hwnd as LongPtr)
+  Call SetWindowLongPtrA(pHandle, apiWindowLongType.GWL_HWNDPARENT, hwnd)
+End Sub
+
+'Get/Set a handle to the icon of the window
+'@returns - Icon handle
+'@example - 
+'```vb
+'stdWindow.CreateFromHwnd(hwnd).hIcon = Image1.Picture.Handle`
+'stdWindow.CreateFromHwnd(hwnd).hIcon = stdImage.CreateFromFile(myFile).hicon 'Future
+'```
+Public Property Get HICON() As LongPtr
+  If Exists Then
+    HICON = SendMessage(apiWindowMessage.WM_GETICON, apiWindowIconType.ICON_SMALL2, 0)
+    if HICON = NULL_PTR then HICON = GetClassLongPtrA(pHandle, apiClassLongType.GCL_HICONSM)
+    If HICON = NULL_PTR then Err.Raise 1, "HICON", "No icon found."
+  Else
+    Err.Raise 1, "HICON", "Window does not exist."
+  End If
+End Property
+Public Property Let HICON(ByVal v As LongPtr)
+  If Exists Then
+    Call SendMessage(apiWindowMessage.WM_SETICON, apiWindowIconType.ICON_BIG, CLNG(v))
+    Call SendMessage(apiWindowMessage.WM_SETICON, apiWindowIconType.ICON_SMALL, CLNG(v))
+  Else
+    Err.Raise 1, "HICON [Let]", "Window does not exist."
+  End If
+End Property
+
 'Get the root window of this Window/ChildWindow
 '@returns - Searches up the window tree to find the top level window which is a direct child of the desktop window.
 Public Property Get AncestralRoot() As stdWindow
@@ -1404,7 +1477,7 @@ End Property
 '@remark - Setting this value will also set the window to be a layered window if it is not already.
 Public Property Get TransparentColor() As Long
   if isLayeredWindow then 
-    if bitFlagCheck(LayeredWindowFlags, LayeredWindowFlag.ChromaKey) then
+    if bitFlagCheck(LayeredWindowFlags, LayeredWindowFlag.lwfChromaKey) then
       Call GetLayeredWindowAttributes(pHandle, TransparentColor, 0, 0)
     else
       TransparentColor = -1
@@ -1416,7 +1489,7 @@ End Property
 Public Property Let TransparentColor(ByVal v As Long)
   isLayeredWindow = true
   pLayeredWindowInfo.crKey = v
-  Dim newFlags as Long: newFlags = bitFlagSet(LayeredWindowFlags, LayeredWindowFlag.ChromaKey, True)
+  Dim newFlags as Long: newFlags = bitFlagSet(LayeredWindowFlags, LayeredWindowFlag.lwfChromaKey, True)
   Call SetLayeredWindowAttributes(pHandle, pLayeredWindowInfo.crKey, pLayeredWindowInfo.bAlpha, newFlags)
 End Property
 
@@ -1424,7 +1497,7 @@ End Property
 '@remark - Setting this value will also set the window to be a layered window if it is not already.
 Public Property Get Opacity() As Byte
   If isLayeredWindow Then
-    Call GetLayeredWindowAttributes(pHandle, 0, Opacity, 0)
+    Call GetLayeredWindowAttributes(pHandle, 0, lwfOpacity, 0)
   Else
     Err.Raise 1, "Opacity", "Window is not a layered window."
   End If
@@ -1432,7 +1505,7 @@ End Property
 Public Property Let Opacity(ByVal v As Byte)
   isLayeredWindow = true
   pLayeredWindowInfo.bAlpha = v
-  Dim newFlags as Long: newFlags = bitFlagSet(LayeredWindowFlags, LayeredWindowFlag.Opacity, True)
+  Dim newFlags as Long: newFlags = bitFlagSet(LayeredWindowFlags, LayeredWindowFlag.lwfOpacity, True)
   Call SetLayeredWindowAttributes(pHandle, pLayeredWindowInfo.crKey, pLayeredWindowInfo.bAlpha, newFlags)
 End Property
 
