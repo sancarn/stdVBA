@@ -532,7 +532,7 @@ Public Function Splice(ByVal iStart As Long, ByVal iDeleteCount As Long, ByVal n
           pArr(i + newElements.Length - iDeleteCount) = pArr(i)
         Next
         
-        For i = LBound(newElements) To UBound(newElements)
+        For i = 1 To pLength
           pArr(iStart + i - 1) = newElements(i)
         Next
         
