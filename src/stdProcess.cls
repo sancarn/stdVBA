@@ -8,73 +8,145 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
-Private Declare PtrSafe Function CreateToolhelp32Snapshot Lib "Kernel32.dll" ( _
-  ByVal dwFlags As Integer, _
-  ByVal th32ProcessID As Integer _
-) As Long
+#if VBA7 then
+  Private Declare PtrSafe Function CreateToolhelp32Snapshot Lib "Kernel32.dll" ( _
+    ByVal dwFlags As Integer, _
+    ByVal th32ProcessID As Integer _
+  ) As Long
 
-Private Declare PtrSafe Function Process32First Lib "Kernel32.dll" ( _
-  ByVal hSnapshot As LongPtr, _
-  ByRef lppe As PROCESSENTRY32 _
-) As Boolean
-Private Declare PtrSafe Function Process32Next Lib "Kernel32.dll" ( _
-  ByVal hSnapshot As LongPtr, _
-  ByRef lppe As PROCESSENTRY32 _
-) As Boolean
+  Private Declare PtrSafe Function Process32First Lib "Kernel32.dll" ( _
+    ByVal hSnapshot As LongPtr, _
+    ByRef lppe As PROCESSENTRY32 _
+  ) As Boolean
+  Private Declare PtrSafe Function Process32Next Lib "Kernel32.dll" ( _
+    ByVal hSnapshot As LongPtr, _
+    ByRef lppe As PROCESSENTRY32 _
+  ) As Boolean
 
-Private Declare PtrSafe Function CloseHandle Lib "Kernel32.dll" ( _
-  ByVal hObject As LongPtr _
-) As Long
+  Private Declare PtrSafe Function CloseHandle Lib "Kernel32.dll" ( _
+    ByVal hObject As LongPtr _
+  ) As Long
 
-Private Declare PtrSafe Function QueryFullProcessImageNameA Lib "Kernel32.dll" ( _
-  ByVal hProcess As LongPtr, _
-  ByVal dwFlags As Long, _
-  ByVal lpExeName As String, _
-  ByRef lpdwSize As Long _
-) As Boolean
+  Private Declare PtrSafe Function QueryFullProcessImageNameA Lib "Kernel32.dll" ( _
+    ByVal hProcess As LongPtr, _
+    ByVal dwFlags As Long, _
+    ByVal lpExeName As String, _
+    ByRef lpdwSize As Long _
+  ) As Boolean
 
-Private Declare PtrSafe Function OpenProcess Lib "Kernel32.dll" ( _
-  ByVal dwDesiredAccess As Long, _
-  ByVal bInheritHandle As Boolean, _
-  ByVal dwProcessId As Long _
-) As LongPtr
+  Private Declare PtrSafe Function OpenProcess Lib "Kernel32.dll" ( _
+    ByVal dwDesiredAccess As Long, _
+    ByVal bInheritHandle As Boolean, _
+    ByVal dwProcessId As Long _
+  ) As LongPtr
 
-Private Declare PtrSafe Function TerminateProcess Lib "Kernel32.dll" ( _
-  ByVal hProcess As LongPtr, _
-  ByVal uExitCode As Long _
-) As Boolean
+  Private Declare PtrSafe Function TerminateProcess Lib "Kernel32.dll" ( _
+    ByVal hProcess As LongPtr, _
+    ByVal uExitCode As Long _
+  ) As Boolean
 
-Private Declare PtrSafe Function GetProcessVersion Lib "Kernel32.dll" ( _
-  ByVal pID As Long _
-) As Long
+  Private Declare PtrSafe Function GetProcessVersion Lib "Kernel32.dll" ( _
+    ByVal pID As Long _
+  ) As Long
 
-Private Declare PtrSafe Function IsProcessCritical Lib "Kernel32.dll" ( _
-  ByVal hProcess As LongPtr, _
-  ByRef critical As Boolean _
-) As Boolean
+  Private Declare PtrSafe Function IsProcessCritical Lib "Kernel32.dll" ( _
+    ByVal hProcess As LongPtr, _
+    ByRef critical As Boolean _
+  ) As Boolean
 
-Private Declare PtrSafe Function GetProcessTimes Lib "Kernel32.dll" ( _
-  ByVal hProcess As LongPtr, _
-  ByRef lpCreationTime As FileTime, _
-  ByRef lpExitTime As FileTime, _
-  ByRef lpKernelTime As FileTime, _
-  ByRef lpUserTime As FileTime _
-) As Boolean
+  Private Declare PtrSafe Function GetProcessTimes Lib "Kernel32.dll" ( _
+    ByVal hProcess As LongPtr, _
+    ByRef lpCreationTime As FileTime, _
+    ByRef lpExitTime As FileTime, _
+    ByRef lpKernelTime As FileTime, _
+    ByRef lpUserTime As FileTime _
+  ) As Boolean
 
-Private Declare PtrSafe Function GetExitCodeProcess Lib "Kernel32.dll" ( _
-  ByVal hProcess As LongPtr, _
-  ByRef lpExitCode As Long _
-) As Boolean
+  Private Declare PtrSafe Function GetExitCodeProcess Lib "Kernel32.dll" ( _
+    ByVal hProcess As LongPtr, _
+    ByRef lpExitCode As Long _
+  ) As Boolean
 
-Private Declare PtrSafe Function GetPriorityClass Lib "Kernel32.dll" ( _
-  ByVal hProcess As LongPtr _
-) As Long
+  Private Declare PtrSafe Function GetPriorityClass Lib "Kernel32.dll" ( _
+    ByVal hProcess As LongPtr _
+  ) As Long
 
-Private Declare PtrSafe Function FileTimeToSystemTime Lib "Kernel32.dll" ( _
-  ByRef lpFileTime As FileTime, _
-  ByRef lpSystemTime As SystemTime _
-) As Boolean
+  Private Declare PtrSafe Function FileTimeToSystemTime Lib "Kernel32.dll" ( _
+    ByRef lpFileTime As FileTime, _
+    ByRef lpSystemTime As SystemTime _
+  ) As Boolean
+#else
+  Private Enum LongPtr
+    [_]
+  End Enum
 
+  Private Declare Function CreateToolhelp32Snapshot Lib "Kernel32.dll" ( _
+    ByVal dwFlags As Integer, _
+    ByVal th32ProcessID As Integer _
+  ) As Long
+
+  Private Declare Function Process32First Lib "Kernel32.dll" ( _
+    ByVal hSnapshot As LongPtr, _
+    ByRef lppe As PROCESSENTRY32 _
+  ) As Boolean
+  Private Declare Function Process32Next Lib "Kernel32.dll" ( _
+    ByVal hSnapshot As LongPtr, _
+    ByRef lppe As PROCESSENTRY32 _
+  ) As Boolean
+
+  Private Declare Function CloseHandle Lib "Kernel32.dll" ( _
+    ByVal hObject As LongPtr _
+  ) As Long
+
+  Private Declare Function QueryFullProcessImageNameA Lib "Kernel32.dll" ( _
+    ByVal hProcess As LongPtr, _
+    ByVal dwFlags As Long, _
+    ByVal lpExeName As String, _
+    ByRef lpdwSize As Long _
+  ) As Boolean
+
+  Private Declare Function OpenProcess Lib "Kernel32.dll" ( _
+    ByVal dwDesiredAccess As Long, _
+    ByVal bInheritHandle As Boolean, _
+    ByVal dwProcessId As Long _
+  ) As LongPtr
+
+  Private Declare Function TerminateProcess Lib "Kernel32.dll" ( _
+    ByVal hProcess As LongPtr, _
+    ByVal uExitCode As Long _
+  ) As Boolean
+
+  Private Declare Function GetProcessVersion Lib "Kernel32.dll" ( _
+    ByVal pID As Long _
+  ) As Long
+
+  Private Declare Function IsProcessCritical Lib "Kernel32.dll" ( _
+    ByVal hProcess As LongPtr, _
+    ByRef critical As Boolean _
+  ) As Boolean
+
+  Private Declare Function GetProcessTimes Lib "Kernel32.dll" ( _
+    ByVal hProcess As LongPtr, _
+    ByRef lpCreationTime As FileTime, _
+    ByRef lpExitTime As FileTime, _
+    ByRef lpKernelTime As FileTime, _
+    ByRef lpUserTime As FileTime _
+  ) As Boolean
+
+  Private Declare Function GetExitCodeProcess Lib "Kernel32.dll" ( _
+    ByVal hProcess As LongPtr, _
+    ByRef lpExitCode As Long _
+  ) As Boolean
+
+  Private Declare Function GetPriorityClass Lib "Kernel32.dll" ( _
+    ByVal hProcess As LongPtr _
+  ) As Long
+
+  Private Declare Function FileTimeToSystemTime Lib "Kernel32.dll" ( _
+    ByRef lpFileTime As FileTime, _
+    ByRef lpSystemTime As SystemTime _
+  ) As Boolean
+#end if
 
 'The priority of the process, use #Priority to get one of these values
 Public Enum EProcessPriority
@@ -145,22 +217,16 @@ Private Type PROCESSENTRY32
   szexeFile As String * MAX_PATH
 End Type
 
+Private Type TThis
+  ProcessID as Long
+  ModuleID as Long
+  Name as String
+  Path as String
+  ProcessHandle as LongPtr
+  QueryInfoHandle as LongPtr
+End Type
+Private This as TThis
 
-'@TODO: Convert to TThis
-Private pProcessCache As Object
-
-Private pProcessId As Long
-Private pModuleID As Long
-Private pName As String
-Private pPath As String
-
-#if VBA7 then
-  Private pProcessHandle As LongPtr
-  Private pQueryInfoHandle As LongPtr
-#else
-  Private pProcessHandle As Long
-  Private pQueryInfoHandle As Long
-#end if
 'Launches a process and creates a stdProcess object for it
 '@constructor
 '@param sCMD     - The command to create the process
@@ -259,18 +325,18 @@ End Function
 '@param argPath     - The process path
 '@param argModuleID - The process module id
 Friend Sub protInitFromProcessId(ByVal argID As Long, Optional ByVal argName As String = "", Optional ByVal argPath As String = "", Optional ByVal argModuleID As Long = 0)
-  pProcessId = argID
-  pName = argName
-  pPath = argPath
-  'If argModuleID = 0 Then pModuleID = getModuleIDByPid(argID)
-  If Len(argName) = 0 Then pName = getProcessNameById(argID)
-  If Len(argPath) = 0 Then pPath = getProcessImageName(argID)
-  pQueryInfoHandle = OpenProcess(PROCESS_QUERY_INFORMATION, False, argID)
+  This.ProcessId = argID
+  This.Name = argName
+  This.Path = argPath
+  'If argModuleID = 0 Then This.ModuleId = getModuleIDByPid(argID)
+  If Len(argName) = 0 Then This.Name = getProcessNameById(argID)
+  If Len(argPath) = 0 Then This.Path = getProcessImageName(argID)
+  This.QueryInfoHandle = OpenProcess(PROCESS_QUERY_INFORMATION, False, argID)
 End Sub
 
 '@destructor
 Private Sub Class_Terminate()
-  Call CloseHandle(pQueryInfoHandle)
+  Call CloseHandle(This.QueryInfoHandle)
 End Sub
 
 '================================================================================================
@@ -280,14 +346,14 @@ End Sub
 'Obtain the process id
 '@returns  - the process id
 Public Property Get id() As Long
-  id = pProcessId
+  id = This.ProcessId
 End Property
 
 'TODO:
 ''Obtain the process module id
 ''@returns {Long} - the process module id
 'Public Property Get moduleID() As Long
-'  moduleID = pModuleID
+'  moduleID = This.ModuleId
 'End Property
 
 'TODO: SessionID
@@ -296,20 +362,20 @@ End Property
 'Obtain the process name
 '@returns - the process name
 Public Property Get name() As String
-  name = pName
+  name = This.Name
 End Property
 
 'Obtain the process path
 '@returns - the process path
 Public Property Get path() As String
-  path = pPath
+  path = This.Path
 End Property
 
 'Returns the Winmgmts object representing the process
 '@returns Object<SWbemObjectEx> - The Winmgmts object representing the process
 Public Property Get Winmgmt() As Object
   Static cache As Object
-  If cache Is Nothing Then Set cache = GetObject("WINMGMTS:\\.\ROOT\cimv2:Win32_Process.Handle=" & pProcessId)
+  If cache Is Nothing Then Set cache = GetObject("WINMGMTS:\\.\ROOT\cimv2:Win32_Process.Handle=" & This.ProcessId)
   Set Winmgmt = cache
 End Property
 
@@ -322,7 +388,7 @@ End Property
 'Returns whether the process is still running or not
 '@returns - `true` if the process is still running, `false` otherwise
 Public Property Get isRunning() As Boolean
-  isRunning = GetProcessVersion(pProcessId) > 0
+  isRunning = GetProcessVersion(This.ProcessId) > 0
 End Property
 
 'Returns whether the process is critical or not
@@ -330,7 +396,7 @@ End Property
 Public Property Get isCritical() As Boolean
   'Note: IsProcessCritical can return a weird boolean where `bool` and `Not bool` both result in `True`, which is nonsense...
   'for this reason we explicitely cast to a long here...
-  If CLng(IsProcessCritical(pQueryInfoHandle, isCritical)) = 0 Then
+  If CLng(IsProcessCritical(This.QueryInfoHandle, isCritical)) = 0 Then
     Err.Raise 1, "stdProcess.isCritical", "Cannot get critical status of process. Error code 0x" & Hex(Err.LastDllError)
   End If
 End Property
@@ -338,7 +404,7 @@ End Property
 'Get the process' priority
 '@returns - the process' priority
 Public Property Get Priority() As EProcessPriority
-  Priority = GetPriorityClass(pQueryInfoHandle)
+  Priority = GetPriorityClass(This.QueryInfoHandle)
 End Property
 
 
@@ -347,8 +413,8 @@ End Property
 '@TODO: Currently returns in UTC. Convert to standard time.
 Public Property Get TimeCreated() As Date
   Dim t1 As FileTime, t2 As FileTime, t3 As FileTime, t4 As FileTime
-  if pQueryInfoHandle = 0 then exit property
-  If GetProcessTimes(pQueryInfoHandle, t1, t2, t3, t4) Then
+  if This.QueryInfoHandle = 0 then exit property
+  If GetProcessTimes(This.QueryInfoHandle, t1, t2, t3, t4) Then
     TimeCreated = TimeFromFileTime(t1)
   Else
     Call Err.Raise(1, "stdProcess.TimeCreated", "Cannot get creation time of process. Error code 0x" & Hex(Err.LastDllError))
@@ -360,9 +426,9 @@ End Property
 '@TODO: Currently returns in UTC. Convert to standard time.
 Public Property Get TimeQuit() As Date
   Dim t1 As FileTime, t2 As FileTime, t3 As FileTime, t4 As FileTime
-  if pQueryInfoHandle = 0 then exit property
+  if This.QueryInfoHandle = 0 then exit property
   If Not isRunning Then
-    If GetProcessTimes(pQueryInfoHandle, t1, t2, t3, t4) Then
+    If GetProcessTimes(This.QueryInfoHandle, t1, t2, t3, t4) Then
       TimeQuit = TimeFromFileTime(t2)
     Else
       Call Err.Raise(1, "stdProcess.TimeQuit", "Cannot get creation time of process. Error code 0x" & Hex(Err.LastDllError))
@@ -377,8 +443,8 @@ End Property
 '@TODO: Currently returns in UTC. Convert to standard time.
 Public Property Get TimeKernel() As Date
   Dim t1 As FileTime, t2 As FileTime, t3 As FileTime, t4 As FileTime
-  if pQueryInfoHandle = 0 then exit property
-  If GetProcessTimes(pQueryInfoHandle, t1, t2, t3, t4) Then
+  if This.QueryInfoHandle = 0 then exit property
+  If GetProcessTimes(This.QueryInfoHandle, t1, t2, t3, t4) Then
     TimeKernel = TimeFromFileTime(t3)
   Else
     Call Err.Raise(1, "stdProcess.TimeKernel", "Cannot get creation time of process. Error code 0x" & Hex(Err.LastDllError))
@@ -390,8 +456,8 @@ End Property
 '@TODO: Currently returns in UTC. Convert to standard time.
 Public Property Get TimeUser() As Date
   Dim t1 As FileTime, t2 As FileTime, t3 As FileTime, t4 As FileTime
-  if pQueryInfoHandle = 0 then exit property
-  If GetProcessTimes(pQueryInfoHandle, t1, t2, t3, t4) Then
+  if This.QueryInfoHandle = 0 then exit property
+  If GetProcessTimes(This.QueryInfoHandle, t1, t2, t3, t4) Then
     TimeUser = TimeFromFileTime(t4)
   Else
     Call Err.Raise(1, "stdProcess.TimeUser", "Cannot get creation time of process. Error code 0x" & Hex(Err.LastDllError))
@@ -403,7 +469,7 @@ End Property
 Public Property Get ExitCode() As Long
   'Note: GetExitCodeProcess can return a weird boolean where `bool` and `Not bool` both result in `True`, which is nonsense...
   'for this reason we explicitely cast to a long here...
-  If CLng(GetExitCodeProcess(pQueryInfoHandle, ExitCode)) = 0 Then
+  If CLng(GetExitCodeProcess(This.QueryInfoHandle, ExitCode)) = 0 Then
     Err.Raise Err.LastDllError, "stdProcess.ExitCode()", "Cannot get exit code of process. Error code 0x" & Hex(Err.LastDllError)
   End If
 End Property
@@ -416,11 +482,11 @@ End Property
 '@param ExitCode - The exit code to use when terminating the process
 Public Sub forceQuit(Optional ByVal ExitCode As Long = 0)
   Call protProcessHandleCreate(PROCESS_TERMINATE)
-  If pProcessHandle = 0 Then Exit Sub
+  If This.ProcessHandle = 0 Then Exit Sub
   
   'Note: TerminateProcess can return a weird boolean where `bool` and `Not bool` both result in `True`, which is nonsense...
   'for this reason we explicitely cast to a long here...
-  If CLng(TerminateProcess(pProcessHandle, ExitCode)) = 0 Then
+  If CLng(TerminateProcess(This.ProcessHandle, ExitCode)) = 0 Then
     Err.Raise Err.LastDllError, "stdProcess#ForceQuit()", "Cannot terminate process. Error code 0x" & Hex(Err.LastDllError)
   End If
   Call protProcessHandleRelease
@@ -451,14 +517,14 @@ End Sub
 #else
   Friend Property Get protProcessHandle() As Long
 #end if
-  protProcessHandle = pProcessHandle
+  protProcessHandle = This.ProcessHandle
 End Property
 
 'Call to OpenProcess() to save a handle in the class. Typically this is not required, thus this method is listed as protected.
 '@protected
 Friend Sub protProcessHandleCreate(ByVal access As EProcessAccess)
-  If pProcessHandle = 0 Then
-    pProcessHandle = OpenProcess(access, 0, pProcessId)
+  If This.ProcessHandle = 0 Then
+    This.ProcessHandle = OpenProcess(access, 0, This.ProcessId)
   Else
     Err.Raise 1, "", "Process already open."
   End If
@@ -467,8 +533,8 @@ End Sub
 'Call to CloseProcess() to close process handle
 '@protected
 Friend Sub protProcessHandleRelease()
-  Call CloseHandle(pProcessHandle)
-  pProcessHandle = 0
+  Call CloseHandle(This.ProcessHandle)
+  This.ProcessHandle = 0
 End Sub
 
 '================================================================================================

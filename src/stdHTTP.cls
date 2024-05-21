@@ -200,8 +200,10 @@ Private Type ProxyInfoEx
   Error As ErrorInfo
 End Type
 
-'@TODO: Convert to TThis
-Private pHTTP As Object
+Private Type TThis
+  HTTP as object
+End Type
+Private This As TThis
 
 
 'Create a HTTP request
@@ -320,11 +322,11 @@ End Function
 'Get whether the request has finished. This is only necessary for asynchronous requests.
 '@returns - `True` if the request has finished, `False` otherwise.
 Public Property Get isFinished() As Boolean
-  if pHTTP.status = 202 then 'No content
+  if This.HTTP.status = 202 then 'No content
     isFinished = true
   else
     On Error GoTo Skip 'Sometimes responseBodyt isn't ready, so let's check that too.
-    isFinished = pHTTP.WaitForResponse(0.001) And pHTTP.ResponseBody()(0) >= 0
+    isFinished = This.HTTP.WaitForResponse(0.001) And This.HTTP.ResponseBody()(0) >= 0
   end if
 Skip:
 End Property
@@ -333,7 +335,7 @@ End Property
 '@returns - The response status code
 Public Property Get ResponseStatus()
   On Error GoTo Processing
-  ResponseStatus = pHTTP.status
+  ResponseStatus = This.HTTP.status
   Exit Property
 Processing:
   ResponseStatus = 0
@@ -343,7 +345,7 @@ End Property
 '@returns - The response status text
 Public Property Get ResponseStatusText()
   On Error GoTo Skip
-  ResponseStatusText = pHTTP.StatusText
+  ResponseStatusText = This.HTTP.StatusText
   Exit Property
 Skip:
   Dim sErrDescription As String: sErrDescription = Err.Description
@@ -356,30 +358,30 @@ End Property
 'Get the response text
 '@returns - The response text
 Public Property Get ResponseText()
-  ResponseText = pHTTP.ResponseText
+  ResponseText = This.HTTP.ResponseText
 End Property
 
 'Get the response body
 '@returns - The response body
 Public Property Get ResponseBody()
-  ResponseBody = pHTTP.ResponseBody
+  ResponseBody = This.HTTP.ResponseBody
 End Property
 
 'Get a response header by name
 '@param sHeader - The name of the header to get
 '@returns - The response header
 Public Property Get ResponseHeader(ByVal sHeader As String) As Variant
-  If IsObject(pHTTP.GetResponseHeader(sHeader)) Then
-    Set ResponseHeader = pHTTP.GetResponseHeader(sHeader)
+  If IsObject(This.HTTP.GetResponseHeader(sHeader)) Then
+    Set ResponseHeader = This.HTTP.GetResponseHeader(sHeader)
   Else
-    ResponseHeader = pHTTP.GetResponseHeader(sHeader)
+    ResponseHeader = This.HTTP.GetResponseHeader(sHeader)
   End If
 End Property
 
 'Get all response headers
 '@returns - All response headers
 Public Property Get ResponseHeaders() As Object
-  Set ResponseHeaders = pHTTP.GetAllResponseHeaders
+  Set ResponseHeaders = This.HTTP.GetAllResponseHeaders
 End Property
 
 'Initialize the request
@@ -391,49 +393,49 @@ End Property
 '@param Authenticator as stdICallable<(HTTP: Object, RequestMethod: String, URL: String, ThreadingStyle: Long, options: Object)=>Void> - A callable object which will be called before the request is sent. This can be used to add authentication headers, etc.
 Friend Sub protInit(ByVal sURL As String, Optional ByVal RequestMethod As String = "GET", Optional ByVal ThreadingStyle As EHTTPSynchronisity, Optional ByVal options As Object = Nothing, Optional ByVal Authenticator As stdICallable = Nothing)
   If options Is Nothing Then Set options = CreateOptions()
-  Set pHTTP = CreateObject("WinHttp.WinHttpRequest.5.1")
-  pHTTP.Open RequestMethod, sURL, ThreadingStyle = HTTPAsync
-  pHTTP.SetTimeouts options("TimeoutMS") / 4, options("TimeoutMS") / 4, options("TimeoutMS") / 4, options("TimeoutMS") / 4
+  Set This.HTTP = CreateObject("WinHttp.WinHttpRequest.5.1")
+  This.HTTP.Open RequestMethod, sURL, ThreadingStyle = HTTPAsync
+  This.HTTP.SetTimeouts options("TimeoutMS") / 4, options("TimeoutMS") / 4, options("TimeoutMS") / 4, options("TimeoutMS") / 4
   
   'Set proxy info
   With options("Proxy")
     If .item("hasAutoProxy") then Call LoadAutoProxy(sURL, options("Proxy"))
     If .item("hasProxy") Then
       'See http://msdn.microsoft.com/en-us/library/windows/desktop/aa384059(v=vs.85).aspx for details
-      pHTTP.SetProxy ProxySetting.Proxy, .item("Server"), .item("Bypass")
+      This.HTTP.SetProxy ProxySetting.Proxy, .item("Server"), .item("Bypass")
       If .item("User") <> vbNullString then
-        pHTTP.SetCredentials .item("User"), .item("Pass"), SetCredentialsType.ForProxy
+        This.HTTP.SetCredentials .item("User"), .item("Pass"), SetCredentialsType.ForProxy
       end if
     else
       'Use Proxycfg.exe
-      pHTTP.SetProxy ProxySetting.PreConfig
+      This.HTTP.SetProxy ProxySetting.PreConfig
     end if
   end with
 
   If options("Insecure") Then
-    pHTTP.Option(WinHttpRequestOption.EnableCertificateRevocationCheck) = False
-    pHTTP.Option(WinHttpRequestOption.SslErrorIgnoreFlags) = 13056
-    pHTTP.Option(WinHttpRequestOption.EnableHttpsToHttpRedirects) = True
+    This.HTTP.Option(WinHttpRequestOption.EnableCertificateRevocationCheck) = False
+    This.HTTP.Option(WinHttpRequestOption.SslErrorIgnoreFlags) = 13056
+    This.HTTP.Option(WinHttpRequestOption.EnableHttpsToHttpRedirects) = True
   Else
-    pHTTP.Option(WinHttpRequestOption.EnableCertificateRevocationCheck) = True
-    pHTTP.Option(WinHttpRequestOption.SslErrorIgnoreFlags) = 0
-    pHTTP.Option(WinHttpRequestOption.EnableHttpsToHttpRedirects) = False
+    This.HTTP.Option(WinHttpRequestOption.EnableCertificateRevocationCheck) = True
+    This.HTTP.Option(WinHttpRequestOption.SslErrorIgnoreFlags) = 0
+    This.HTTP.Option(WinHttpRequestOption.EnableHttpsToHttpRedirects) = False
   End If
-  pHTTP.Option(WinHttpRequestOption.EnableRedirects) = options("EnableRedirects")
+  This.HTTP.Option(WinHttpRequestOption.EnableRedirects) = options("EnableRedirects")
   
   Dim vKey
   For Each vKey In options("Headers").keys()
-    pHTTP.SetRequestHeader vKey, options("Headers")(vKey)
+    This.HTTP.SetRequestHeader vKey, options("Headers")(vKey)
   Next
   For Each vKey In options("Cookies").keys()
-    pHTTP.SetRequestHeader "Cookie", vKey & "=" & options("Cookies")(vKey)
+    This.HTTP.SetRequestHeader "Cookie", vKey & "=" & options("Cookies")(vKey)
   Next
   
   'Allow authenticators
-  If Not Authenticator Is Nothing Then Call Authenticator.Run(pHTTP, RequestMethod, sURL, ThreadingStyle, options)
+  If Not Authenticator Is Nothing Then Call Authenticator.Run(This.HTTP, RequestMethod, sURL, ThreadingStyle, options)
   
   'Execute request
-  pHTTP.Send options("Body")
+  This.HTTP.Send options("Body")
 End Sub
 
 'Get the HSesssion
