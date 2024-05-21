@@ -281,3 +281,4 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2024-05-19 `stdWindow` FEATURE - Added `stdImage#HICON` enabling the setting of icons for windows.
 - 2024-05-19 `stdWindow` FIX - Fixed some compiler errors with `LayeredWindow` stuff.
 - 2024-05-20 `stdImage` FEATURE - Added `stdImage`. Use this to convert from image types to other image types, saving images to file, to `HICON` etc.
+- 2024-05-21 `stdArray` FIX - PR#100 - Fix for `splice`.
