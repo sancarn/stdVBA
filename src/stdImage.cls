@@ -401,8 +401,7 @@ End Function
 '@param {LongPtr} hBitmap (handle to Bitmap)
 '@returns {stdImage} Picture object representing data
 '@example ```
-'  Dim bmp as LongPtr: bmp = TODO:
-'  stdImage.CreateFromHBitmap(bmp).saveAs("H:\test.png", stdImgFormatPNG)
+'  stdImage.CreateFromHBitmap(Image1.Picture.Handle).saveAs("H:\test.png", stdImgFormatPNG)
 '```
 Public Function CreateFromHBitmap(ByVal hBitmap As LongPtr) As stdImage
   Dim bmp As BITMAP
@@ -470,7 +469,7 @@ End Function
 'Creates a stdImage object from a Shape object
 '@param {Object<(Excel|Word|PowerPoint).Shape>} Object to create picture from
 '@returns {stdImage} Picture object representing data
-'@example TODO:
+'@example `stdImage.CreateFromShape(Sheet1.Shapes("Picture 2")).saveAs("H:\test.png")`
 Public Function CreateFromShape(ByVal shp As Object) As stdImage
   Select Case Application.Name
     Case "Microsoft Excel"
@@ -483,6 +482,7 @@ End Function
 'Creates a stdImage object from a Chart object
 '@param {Object<(Excel|Word|PowerPoint).Chart>} Object to create picture from
 '@returns {stdImage} Picture object representing data
+'@example `stdImage.CreateFromChart(Sheet1.ChartObjects(1).Chart).saveAs("H:\test.png")`
 Public Function CreateFromChart(ByVal chart As Object) As stdImage
   Select Case Application.Name
     Case "Microsoft Excel"

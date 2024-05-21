@@ -681,6 +681,24 @@ Public Function CreateFromContextMenu() As stdWindow
   End If
 End Function
 
+'Create window objects for all desktop windows which have a specified process ID
+'@constructor
+'@param processID - Process ID to find windows for
+'@returns - Collection of visible windows for the process
+'@remarks - Functionally equivalent of `stdWindow.CreateFromDesktop().FindAll(stdLambda.Create("$2.exists and $2.visible and $2.ProcessID = $1").bind(processID), iStaticDepthLimit:=1)`
+Public Function CreateManyFromProcessId(ByVal processID As Long) As Collection
+  Dim ret As Collection: Set ret = New Collection
+  Dim win As stdWindow
+  For Each win In stdWindow.CreateFromDesktop().children
+    If win.exists and win.visible then
+      If win.processID = processID Then
+        ret.add win
+      End If
+    end if
+  Next
+  Set CreateManyFromProcessId = ret
+End Function
+
 'Converts a stdWindow object to a stdAcc object
 '@constructor
 '@returns Object<stdAcc>|stdAcc - stdAcc object representing the window
