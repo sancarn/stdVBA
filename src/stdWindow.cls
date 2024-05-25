@@ -2007,6 +2007,7 @@ Public Sub SendKeysEvent(ByVal sKeys As String, Optional ByVal keyDelay As Long 
       Call Sleep(keyDelay)
       
       'Use keybd event
+      Dim iKey as Long
       For iKey = 1 To UBound(keys)
         Dim key As KeyToken: key = keys(iKey)
         

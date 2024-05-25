@@ -108,39 +108,54 @@ Private Enum ISubType
     oEnum = 32        'Yet to be implemented
 End Enum
 
-'Special constant used in parsing:
-Const UniqueConst As String = "3207af79-30df-4890-ade1-640f9f28f309"
-Private Const vbGetOrMethod = VbGet Or VbMethod
-
-'@TODO: Convert to TThis
-Private tokens() As token
-Private iTokenIndex As Long
-Private operations() As Operation
-Private iOperationIndex As Long
-Private stackSize As Long
-Private scopes() As Variant
-Private scopesArgCount() As Variant
-Private scopeCount As Long
-Private funcScope As Long
-Private pEquation as string
-
 Private Enum LambdaType
     iStandardLambda = 1
     iBoundLambda = 2
 End Enum
 
+'Special constant used in parsing:
+Private Const UniqueConst As String = "3207af79-30df-4890-ade1-640f9f28f309"
+Private Const vbGetOrMethod as Long = VbGet Or VbMethod
+Private Const minStackSize as Long = 30 'note that the stack size may become smaller than this
 
-Const minStackSize = 30 'note that the stack size may become smaller than this
+'@TODO: Convert to TThis
+Private Type TSingleton
+    Cache As Object
+End Type
+Private Type TBoundLambda
+    Lambda As stdLambda  'was oBound
+    Args As Variant      'was vBound
+End Type
+Private Type TThis
+    Singleton As TSingleton
 
-'@protected
-Public oFunctExt As Object 'Dictionary<string => stdCallback>
+    tokens() As token
+    iTokenIndex As Long
+    operations() As Operation
+    iOperationIndex As Long
+    stackSize As Long
+    scopes() As Variant
+    scopesArgCount() As Variant
+    scopeCount As Long
+    funcScope As Long
+    Equation as string
 
-Private oCache As Object
-Private bBound As Boolean
-Private oBound As stdLambda
-Private vBound As Variant
-Private bUsePerformanceCache as Boolean
-Private pPerformanceCache as  object
+    'Instance var on both class and object
+    FunctionExtensions As Object
+    isBoundLambda as Boolean
+    Bound As TBoundLambda
+    
+    UsePerformanceCache as Boolean
+    PerformanceCache as Object
+End Type
+Private This as TThis
+
+
+
+
+
+
+
 
 'Create a stdLambda object from a string equation
 '@constructor
@@ -160,15 +175,15 @@ Private pPerformanceCache as  object
 '```
 Public Function Create(ByVal sEquation As String, Optional ByVal bUsePerformanceCache As Boolean = False, Optional ByVal bSandboxExtras As Boolean = False) As stdLambda
     'Cache Lambda created
-    If oCache Is Nothing Then Set oCache = CreateObject("Scripting.Dictionary")
+    If this.Singleton.Cache Is Nothing Then Set this.Singleton.Cache = CreateObject("Scripting.Dictionary")
     Dim sID As String: sID = bUsePerformanceCache & "-" & bSandboxExtras & ")" & sEquation
-    If Not oCache.exists(sID) Then
-        Set oCache(sID) = New stdLambda
-        Call oCache(sID).protInit(LambdaType.iStandardLambda, sEquation, bUsePerformanceCache, bSandboxExtras)
+    If Not this.Singleton.Cache.exists(sID) Then
+        Set this.Singleton.Cache(sID) = New stdLambda
+        Call this.Singleton.Cache(sID).protInit(LambdaType.iStandardLambda, sEquation, bUsePerformanceCache, bSandboxExtras)
     End If
     
     'Return cached lambda
-    Set Create = oCache(sID)
+    Set Create = this.Singleton.Cache(sID)
 End Function
 
 'Create a stdLambda object from an Array of strings
@@ -195,36 +210,36 @@ Public Sub protInit(ByVal iLambdaType As Long, ParamArray params() As Variant)
     Select Case iLambdaType
         Case LambdaType.iStandardLambda
             Dim sEquation As String: sEquation = params(0)
-            pEquation = sEquation
-            bUsePerformanceCache = params(1)
+            this.Equation = sEquation
+            this.UsePerformanceCache = params(1)
             Dim bSandboxExtras As Boolean: bSandboxExtras = params(2)
             
             'Performance cache
-            if bUsePerformanceCache then set pPerformanceCache = CreateObject("Scripting.Dictionary")
+            if this.UsePerformanceCache then set this.PerformanceCache = CreateObject("Scripting.Dictionary")
 
             'Function extensions
-            Set oFunctExt = stdLambda.oFunctExt
-            If bSandboxExtras OR oFunctExt is nothing Then set oFunctExt = CreateObject("Scripting.Dictionary")
+            Set this.FunctionExtensions = stdLambda.oFunctExt
+            If bSandboxExtras OR this.FunctionExtensions is nothing Then set this.FunctionExtensions = CreateObject("Scripting.Dictionary")
 
-            bBound = false
-            tokens = Tokenise(sEquation)
-            iTokenIndex = 1
-            iOperationIndex = 0
-            stackSize = 0
-            scopeCount = 0
-            funcScope = 0
+            this.isBoundLambda = false
+            this.tokens = Tokenise(sEquation)
+            this.iTokenIndex = 1
+            this.iOperationIndex = 0
+            this.stackSize = 0
+            this.scopeCount = 0
+            this.funcScope = 0
             Call parseBlock("eof")
             Call finishOperations
 
         Case LambdaType.iBoundLambda
-            bBound = True
-            Set oBound = params(0)
-            vBound = params(1)
-            pEquation = "BOUND..."
+            this.isBoundLambda = True
+            Set this.Bound.Lambda = params(0)
+            this.Bound.Args = params(1)
+            this.Equation = "BOUND..."
             
             'Function extensions
-            Set oFunctExt = stdLambda.oFunctExt
-            If bSandboxExtras OR oFunctExt is nothing Then set oFunctExt = CreateObject("Scripting.Dictionary")
+            Set this.FunctionExtensions = stdLambda.oFunctExt
+            If bSandboxExtras OR this.FunctionExtensions is nothing Then set this.FunctionExtensions = CreateObject("Scripting.Dictionary")
         Case Else
             Err.Raise 1, "stdLambda::Init", "No lambda with that type."
     End Select
@@ -233,29 +248,29 @@ End Sub
 'Run the lambda from passed parameters
 '@param params as Array<Variant> - Array of parameters to run the lambda with
 '@returns - The result of the lambda
-Function Run(ParamArray params() As Variant) As Variant
+Public Function Run(ParamArray params() As Variant) As Variant
 Attribute Run.VB_UserMemId = 0
-    If Not bBound Then
+    If Not this.isBoundLambda Then
         'Execute top-down parser
-        Call CopyVariant(Run, evaluate(operations, params))
+        Call CopyVariant(Run, evaluate(this.operations, params))
     Else
-        Call CopyVariant(Run, oBound.RunEx(ConcatArrays(vBound, params)))
+        Call CopyVariant(Run, this.Bound.Lambda.RunEx(ConcatArrays(this.Bound.Args, params)))
     End If
 End Function
 
 'Run the lambda from an array of parameters
 '@param params as Variant<Array<Variant>> - Array of parameters to run the lambda with
 '@returns - The result of the lambda
-Function RunEx(ByVal params As Variant) As Variant
-    If Not bBound Then
+Public Function RunEx(ByVal params As Variant) As Variant
+    If Not this.isBoundLambda Then
         If Not isArray(params) Then
             Err.Raise 1, "params to be supplied as array of arguments", ""
         End If
         
         'Execute top-down parser
-        Call CopyVariant(RunEx, evaluate(operations, params))
+        Call CopyVariant(RunEx, evaluate(this.operations, params))
     Else
-        Call CopyVariant(RunEx, oBound.RunEx(ConcatArrays(vBound, params)))
+        Call CopyVariant(RunEx, this.Bound.Lambda.RunEx(ConcatArrays(this.Bound.Args, params)))
     End If
 End Function
 
@@ -281,27 +296,33 @@ End Function
 '@returns - The lambda existing lambda
 Public Function BindGlobal(ByVal sGlobalName as string, ByVal variable as Variant) as stdLambda
     set BindGlobal = Me
-    If bBound Then
-        Call oBound.BindGlobal(sGlobalName, variable)
+    If this.isBoundLambda Then
+        Call this.Bound.Lambda.BindGlobal(sGlobalName, variable)
     Else
-        If oFunctExt is nothing then Set oFunctExt = CreateObject("Scripting.Dictionary")
+        If this.FunctionExtensions is nothing then Set this.FunctionExtensions = CreateObject("Scripting.Dictionary")
         If IsObject(variable) Then
-            Set oFunctExt(sGlobalName) = variable
+            Set this.FunctionExtensions(sGlobalName) = variable
         Else
-            Let oFunctExt(sGlobalName) = variable
+            Let this.FunctionExtensions(sGlobalName) = variable
         End If
     End If
 End Function
+
+'Extend the lambda with new functions and named global variables
+'@returns Object<Dictionary<string,stdICallable> | Dictionary<string,variant>> - Dictionary of functions and named global variables
+Public Property Get oFunctExt() as Object
+  set oFunctExt = this.FunctionExtensions
+End Property
 
 'Implementation of stdICallable::Run
 '@param params as Array<Variant> - Parameters to run the lambda with
 '@returns - The result of the lambda
 Private Function stdICallable_Run(ParamArray params() As Variant) As Variant
-    If Not bBound Then
+    If Not this.isBoundLambda Then
         'Execute top-down parser
-        Call CopyVariant(stdICallable_Run, evaluate(operations, params))
+        Call CopyVariant(stdICallable_Run, evaluate(this.operations, params))
     Else
-        Call CopyVariant(stdICallable_Run, oBound.RunEx(ConcatArrays(vBound, params)))
+        Call CopyVariant(stdICallable_Run, this.Bound.Lambda.RunEx(ConcatArrays(this.Bound.Args, params)))
     End If
 End Function
 
@@ -313,11 +334,11 @@ Private Function stdICallable_RunEx(ByVal params As Variant) As Variant
         Err.Raise 1, "params to be supplied as array of arguments", ""
     End If
     
-    If Not bBound Then
+    If Not this.isBoundLambda Then
         'Execute top-down parser
-        Call CopyVariant(stdICallable_RunEx, evaluate(operations, params))
+        Call CopyVariant(stdICallable_RunEx, evaluate(this.operations, params))
     Else
-        Call CopyVariant(stdICallable_RunEx, oBound.RunEx(ConcatArrays(vBound, params)))
+        Call CopyVariant(stdICallable_RunEx, this.Bound.Lambda.RunEx(ConcatArrays(this.Bound.Args, params)))
     End If
 End Function
 
@@ -437,7 +458,7 @@ End Function
 '@remark - Entry point for parsing
 Private Sub parseBlock(ParamArray endToken() As Variant)
     Call addScope
-    Dim size As Integer: size = stackSize + 1
+    Dim size As Integer: size = this.stackSize + 1
     
     ' Consume multiple lines
     Dim bLoop As Boolean: bLoop = True
@@ -454,20 +475,20 @@ Private Sub parseBlock(ParamArray endToken() As Variant)
     Loop While bLoop
     
     ' Get rid of all extra expression results and declarations
-    While stackSize > size
+    While this.stackSize > size
         Call addOperation(oMerge, , , -1)
     Wend
-    scopeCount = scopeCount - 1
+    this.scopeCount = this.scopeCount - 1
 End Sub
 
 'Increment the number of scopes and initialise them. Scopes are used to store variables, functions and function arg counts.
 Private Sub addScope()
-    scopeCount = scopeCount + 1
-    Dim scope As Long: scope = scopeCount
-    ReDim Preserve scopes(1 To scope)
-    ReDim Preserve scopesArgCount(1 To scope)
-    Set scopes(scope) = CreateObject("Scripting.Dictionary")
-    Set scopesArgCount(scope) = CreateObject("Scripting.Dictionary")
+    this.scopeCount = this.scopeCount + 1
+    Dim scope As Long: scope = this.scopeCount
+    ReDim Preserve this.scopes(1 To scope)
+    ReDim Preserve this.scopesArgCount(1 To scope)
+    Set this.scopes(scope) = CreateObject("Scripting.Dictionary")
+    Set this.scopesArgCount(scope) = CreateObject("Scripting.Dictionary")
 End Sub
 
 'Parse a statement of code.
@@ -709,20 +730,20 @@ Private Sub parseFlowPriority1()
         Call parseExpression
         Dim skipThenJumpIndex As Integer: skipThenJumpIndex = addOperation(oJump, ifFalse, , -1)
         
-        Dim size As Integer: size = stackSize
+        Dim size As Integer: size = this.stackSize
         Call consume("then")
         Call parseBlock("else", "end")
         Dim skipElseJumpIndex As Integer: skipElseJumpIndex = addOperation(oJump)
-        operations(skipThenJumpIndex).value = iOperationIndex
-        stackSize = size
+        this.operations(skipThenJumpIndex).value = this.iOperationIndex
+        this.stackSize = size
         
         If optConsume("end") Then
             Call addOperation(oPush, , 0, 1) 'Expressions should always return a value
-            operations(skipElseJumpIndex).value = iOperationIndex
+            this.operations(skipElseJumpIndex).value = this.iOperationIndex
         Else
             Call consume("else")
             Call parseBlock("eof", "rBracket", "end")
-            operations(skipElseJumpIndex).value = iOperationIndex
+            this.operations(skipElseJumpIndex).value = this.iOperationIndex
         
             Call optConsume("end")
         End If
@@ -766,10 +787,10 @@ End Sub
 'an in-code defined function.
 Private Function parseFunction() As Variant
     Call addOperation(oPush, , consume("var"), 1)
-    Dim size As Integer: size = stackSize
+    Dim size As Integer: size = this.stackSize
     Call parseOptParameters
     Call addOperation(oFunc)
-    stackSize = size
+    this.stackSize = size
 End Function
 
 'Parse object field, property and method accessors. Specifically allows for more than one accessor to be chained together
@@ -790,7 +811,7 @@ End Sub
 Private Function parseOptObjectField(Optional ByVal ISubType as ISubType = oFieldCall) as Boolean
     parseOptObjectField = false
     if optConsume("fieldAccess") then
-        Dim size As Integer: size = stackSize
+        Dim size As Integer: size = this.stackSize
         Call addOperation(oPush, , consume("var"), 1)
         Call parseOptParameters
         'Parse Let/Set ... = ... as a special case
@@ -801,7 +822,7 @@ Private Function parseOptObjectField(Optional ByVal ISubType as ISubType = oFiel
         else
             Call addOperation(oObject, oFieldCall)
         end if
-        stackSize = size
+        this.stackSize = size
         parseOptObjectField = True
     end if
 End Function
@@ -812,7 +833,7 @@ End Function
 Private Function parseOptObjectProperty(Optional ByVal ISubType as ISubType = oPropGet) As Boolean
     parseOptObjectProperty = False
     If optConsume("propertyAccess") Then
-        Dim size As Integer: size = stackSize
+        Dim size As Integer: size = this.stackSize
         Call addOperation(oPush, , consume("var"), 1)
         Call parseOptParameters
         'Parse Let/Set ... = ... as a special case
@@ -823,7 +844,7 @@ Private Function parseOptObjectProperty(Optional ByVal ISubType as ISubType = oP
         else
             Call addOperation(oObject, oPropGet)
         end if
-        stackSize = size
+        this.stackSize = size
         parseOptObjectProperty = True
     End If
 End Function
@@ -833,11 +854,11 @@ End Function
 Private Function parseOptObjectMethod() As Boolean
     parseOptObjectMethod = False
     If optConsume("methodAccess") Then
-        Dim size As Integer: size = stackSize
+        Dim size As Integer: size = this.stackSize
         Call addOperation(oPush, , consume("var"), 1)
         Call parseOptParameters
         Call addOperation(oObject, oMethodCall)
-        stackSize = size
+        this.stackSize = size
         parseOptObjectMethod = True
     End If
 End Function
@@ -892,7 +913,7 @@ Private Function parseVariableAccess() As Boolean
         parseVariableAccess = True
         Call addOperation(oAccess, , 1 + offset, 1)
     Else
-        iTokenIndex = iTokenIndex - 1 ' Revert token consumption
+        this.iTokenIndex = this.iTokenIndex - 1 ' Revert token consumption
     End If
 End Function
 
@@ -908,7 +929,7 @@ Private Sub parseAssignment()
         Call addOperation(oAccess, , offset, 1) ' To keep a return value
     Else
         ' If the variable didn't exist yet, treat this stack pos as its source
-        Call scopes(scopeCount).add(varName, stackSize)
+        Call this.scopes(this.scopeCount).add(varName, this.stackSize)
     End If
 End Sub
 
@@ -916,16 +937,16 @@ End Sub
 '@param varName - Name of variable to find
 '@returns - The position of the variable on the Operations stack
 Private Function findVariable(varName As String) As Long
-    Dim scope As Long: scope = scopeCount
+    Dim scope As Long: scope = this.scopeCount
     findVariable = -1
     While scope > 0
-        If scopes(scope).exists(varName) Then
-            If scope < funcScope Then
+        If this.scopes(scope).exists(varName) Then
+            If scope < this.funcScope Then
                 Call Throw("Can't access """ & varName & """, functions can unfortunately not access data outside their block")
-            ElseIf scopesArgCount(scope).exists(varName) Then
+            ElseIf this.scopesArgCount(scope).exists(varName) Then
                 Call Throw("Expected a variable, but found a function for name " & varName)
             Else
-                findVariable = stackSize - scopes(scope).item(varName)
+                findVariable = this.stackSize - this.scopes(scope).item(varName)
                 scope = 0
             End If
         End If
@@ -959,9 +980,9 @@ Private Function parseFunctionAccess() As Boolean
         
         ' Add call and return data
         Call addOperation(oJump, , funcPos, -iArgCount) 'only -argCount since pushing Result and popping return pos cancel out
-        operations(returnPosIndex).value = iOperationIndex
+        this.operations(returnPosIndex).value = this.iOperationIndex
     Else
-        iTokenIndex = iTokenIndex - 1 ' Revert token consumption
+        this.iTokenIndex = this.iTokenIndex - 1 ' Revert token consumption
     End If
 End Function
 
@@ -969,8 +990,8 @@ End Function
 Private Sub parseFunctionDeclaration()
     ' Create a dedicated scope for this funcion
     Call addScope
-    Dim prevFuncScope As Long: prevFuncScope = funcScope
-    funcScope = scopeCount
+    Dim prevFuncScope As Long: prevFuncScope = this.funcScope
+    this.funcScope = this.scopeCount
     
     ' Add operation to skip this code in normal operation flow
     Dim skipToIndex As Integer: skipToIndex = addOperation(oJump)
@@ -988,8 +1009,8 @@ Private Sub parseFunctionDeclaration()
     Call consume("rBracket")
     
     ' Register the function
-    Call scopes(scopeCount - 1).add(funcName, iOperationIndex)
-    Call scopesArgCount(scopeCount - 1).add(funcName, iArgCount)
+    Call this.scopes(this.scopeCount - 1).add(funcName, this.iOperationIndex)
+    Call this.scopesArgCount(this.scopeCount - 1).add(funcName, iArgCount)
     
     ' Obtain the body
     Call parseBlock("end")
@@ -999,11 +1020,11 @@ Private Sub parseFunctionDeclaration()
         iArgCount = iArgCount - 1
     Wend
     Call addOperation(oReturn, withValue, , -1)
-    operations(skipToIndex).value = iOperationIndex
+    this.operations(skipToIndex).value = this.iOperationIndex
     
     ' Reset the scope
-    scopeCount = scopeCount - 1
-    funcScope = prevFuncScope
+    this.scopeCount = this.scopeCount - 1
+    this.funcScope = prevFuncScope
 End Sub
 
 'Parse a parameter declaration and add it to the current scope
@@ -1014,8 +1035,8 @@ Private Sub parseParameterDeclaration()
         Call Throw("You can't declare multiple parameters with the same name")
     Else
         ' Reserve a spot for this parameter, it will be pushed by the caller
-        stackSize = stackSize + 1
-        Call scopes(scopeCount).add(varName, stackSize)
+        this.stackSize = this.stackSize + 1
+        Call this.scopes(this.scopeCount).add(varName, this.stackSize)
     End If
 End Sub
 
@@ -1024,15 +1045,15 @@ End Sub
 '@param argCount as long - Number of arguments the function takes (out)
 '@returns - The position of the function in the Operations array
 Private Function findFunction(varName As String, Optional ByRef argCount As Long) As Long
-    Dim scope As Long: scope = scopeCount
+    Dim scope As Long: scope = this.scopeCount
     findFunction = -1
     While scope > 0
-        If scopes(scope).exists(varName) Then
-            If Not scopesArgCount(scope).exists(varName) Then
+        If this.scopes(scope).exists(varName) Then
+            If Not this.scopesArgCount(scope).exists(varName) Then
                 Call Throw("Expected a function, but found a variable for name " & varName)
             Else
-                findFunction = scopes(scope).item(varName)
-                argCount = scopesArgCount(scope).item(varName)
+                findFunction = this.scopes(scope).item(varName)
+                argCount = this.scopesArgCount(scope).item(varName)
                 scope = 0
             End If
         End If
@@ -1064,10 +1085,10 @@ Private Function evaluate(ByRef ops() As Operation, ByVal vLastArgs As Variant) 
     Dim opCount As Long: opCount = UBound(ops)
     
     'If result is in performance cache then return it immediately
-    if bUsePerformanceCache then
+    if this.UsePerformanceCache then
         Dim sPerformanceCacheID as string: sPerformanceCacheID = getPerformanceCacheID(vLastArgs)     
-        if pPerformanceCache.exists(sPerformanceCacheID) then
-            Call CopyVariant(evaluate, pPerformanceCache(sPerformanceCacheID))
+        if this.PerformanceCache.exists(sPerformanceCacheID) then
+            Call CopyVariant(evaluate, this.PerformanceCache(sPerformanceCacheID))
             Exit Function
         end if
     end if
@@ -1233,11 +1254,11 @@ Private Function evaluate(ByRef ops() As Operation, ByVal vLastArgs As Variant) 
     Wend
 
     'Add result to performance cache
-    if bUsePerformanceCache then
+    if this.UsePerformanceCache then
         if isObject(stack(0)) then
-            set pPerformanceCache(sPerformanceCacheID) = stack(0)
+            set this.PerformanceCache(sPerformanceCacheID) = stack(0)
         else
-            let pPerformanceCache(sPerformanceCacheID) = stack(0)
+            let this.PerformanceCache(sPerformanceCacheID) = stack(0)
         end if
     end if
 
@@ -1366,12 +1387,12 @@ End Function
 '@returns The result
 Private Function evaluateFunc(ByVal sFuncName As String, ByVal args As Variant) As Variant
     Dim iArgStart As Long: iArgStart = LBound(args)
-    If TypeName(oFunctExt) = "Dictionary" Then
-        If oFunctExt.exists(sFuncName) Then
+    If TypeName(this.FunctionExtensions) = "Dictionary" Then
+        If this.FunctionExtensions.exists(sFuncName) Then
             Dim vInjectedVar As Variant
-            Call CopyVariant(vInjectedVar, oFunctExt(sFuncName))
+            Call CopyVariant(vInjectedVar, this.FunctionExtensions(sFuncName))
             If TypeOf vInjectedVar Is stdICallable Then
-                Call CopyVariant(evaluateFunc, oFunctExt(sFuncName).RunEx(args))
+                Call CopyVariant(evaluateFunc, this.FunctionExtensions(sFuncName).RunEx(args))
             Else
                 Call CopyVariant(evaluateFunc, vInjectedVar)
             End If
@@ -1667,13 +1688,13 @@ End Function
 'Shifts the Tokens array (uses an index)
 '@returns {token} The token at the tokenIndex
 Private Function ShiftTokens() As token
-    If iTokenIndex = 0 Then iTokenIndex = 1
+    If this.iTokenIndex = 0 Then this.iTokenIndex = 1
     
     'Get next token
-    ShiftTokens = tokens(iTokenIndex)
+    ShiftTokens = this.tokens(this.iTokenIndex)
     
     'Increment token index
-    iTokenIndex = iTokenIndex + 1
+    this.iTokenIndex = this.iTokenIndex + 1
 End Function
 
 ' Consumes a token
@@ -1695,9 +1716,9 @@ End Function
 '@param {long} offset   The number of tokens to look into the future, defaults to 1
 '@returns {boolean} Whether the expected token was found
 Private Function peek(ByVal sTokenType As String, Optional offset As Long = 1) As Boolean
-    If iTokenIndex = 0 Then iTokenIndex = 1
-    If iTokenIndex + offset - 1 <= UBound(tokens) Then
-        peek = tokens(iTokenIndex + offset - 1).Type.name = sTokenType
+    If this.iTokenIndex = 0 Then this.iTokenIndex = 1
+    If this.iTokenIndex + offset - 1 <= UBound(this.tokens) Then
+        peek = this.tokens(this.iTokenIndex + offset - 1).Type.name = sTokenType
     Else
         peek = False
     End If
@@ -1736,29 +1757,29 @@ End Function
 '@param {Integer} stackDelta  The effect this has on the stack size (increasing or decreasing it)
 '@returns {Integer} The index of the created operation
 Private Function addOperation(kType As iType, Optional subType As ISubType, Optional value As Variant, Optional stackDelta As Integer) As Integer
-    If iOperationIndex = 0 Then
-        ReDim Preserve operations(0 To 1)
+    If this.iOperationIndex = 0 Then
+        ReDim Preserve this.operations(0 To 1)
     Else
-        Dim size As Long: size = UBound(operations)
-        If iOperationIndex > size Then
-            ReDim Preserve operations(0 To size * 2)
+        Dim size As Long: size = UBound(this.operations)
+        If this.iOperationIndex > size Then
+            ReDim Preserve this.operations(0 To size * 2)
         End If
     End If
     
-    With operations(iOperationIndex)
+    With this.operations(this.iOperationIndex)
         .Type = kType
         .subType = subType
         Call CopyVariant(.value, value)
     End With
-    addOperation = iOperationIndex
-    stackSize = stackSize + stackDelta
+    addOperation = this.iOperationIndex
+    this.stackSize = this.stackSize + stackDelta
     
-    iOperationIndex = iOperationIndex + 1
+    this.iOperationIndex = this.iOperationIndex + 1
 End Function
 
 'Resizes the operations list so there are no more empty operations
 Private Sub finishOperations()
-    ReDim Preserve operations(0 To iOperationIndex)
+    ReDim Preserve this.operations(0 To this.iOperationIndex)
 End Sub
 
 '----------

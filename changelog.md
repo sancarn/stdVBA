@@ -285,3 +285,4 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2024-05-21 `stdWindow` FEATURE - Added `stdWindow#CreateManyFromProcessId(processID)` helper, functionally equivalent of `stdWindow.CreateFromDesktop().FindAll(stdLambda.Create("$2.exists and $2.visible and $2.ProcessID = $1").bind(processID), iStaticDepthLimit:=1)`, but seems to be a quite common exercise.
 - 2024-05-21 `stdProcess` FIX - VB6 compatibility. And `TThis` standard change.
 - 2024-05-21 `stdHTTP` FIX - `TThis` standard change.
+- 2024-05-25 `stdLambda` FIX - `TThis` standard change.
