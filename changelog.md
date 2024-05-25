@@ -286,3 +286,6 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2024-05-21 `stdProcess` FIX - VB6 compatibility. And `TThis` standard change.
 - 2024-05-21 `stdHTTP` FIX - `TThis` standard change.
 - 2024-05-25 `stdLambda` FIX - `TThis` standard change.
+- 2024-05-25 `stdAcc` FIX - `TThis` standard change.
+- 2024-05-25 `stdArray` FIX - `TThis` standard change.
+- 2024-05-25 `stdEnumerator` FIX - `TThis` standard change.

@@ -120,17 +120,25 @@ Private Type SortStruct
     iPrev as long
 End Type
 
-'@TODO: Convert to TThis
-Private mode As EnumeratorType
-Private pEnumObject as Object
-Private pBaseArray as Variant
-Private pCallback as stdICallable
-Private pMaxLength as Long
+Private Type TCurrentIteration
+    Value as Variant
+    Key as Variant
+    Index as Long
+End Type
+Private Type TThis
+    mode As EnumeratorType
+    EnumObject as Object
+    BaseArray as Variant
+    Callback as stdICallable
+    MaxLength as Long
+
+    'Variables to allow procedural enumeration.
+    Current as TCurrentIteration
+End Type
+Private This As TThis
 
 'Variables to allow procedural enumeration.
-Private p_enum_v As Variant
-Private p_enum_i As Long
-Private p_enum_kv As Variant
+
 
 Private const VT_UNKNOWN = &Hd
 
@@ -269,20 +277,20 @@ End Function
 '@param iMaxLength - Maximum length of enumerator. The enumerator will refuse to go beyond this number of items. Used in order to prevent runaway processes.
 '@param v - The data to create the enumerator from. This is either an array, a callable, or an IEnumVARIANT object.
 Public Sub protInit(ByVal iEnumeratorType as long, ByVal iMaxLength as long, ParamArray v() As Variant)
-    mode = iEnumeratorType
-    pMaxLength = iMaxLength
-    select case mode
+    this.mode = iEnumeratorType
+    this.MaxLength = iMaxLength
+    select case this.mode
         case EnumeratorType.FromIEnumVariant
             'HACK: This is a real work around for the fact that we can't access IEnumVARIANT methods (getNewEnum,getNextVariant,skipNextVariant,cloneEnumVariant,resetEnumVariant)
             'directly. Realistically this may sometimes not even work. A more long term solution would be to call getNewEnum() and then getNextVariant() until we reach the end of the
             'object. This may be implementable after stdCOM is fully implemented.
 
-            set pEnumObject = v(0)
+            set this.EnumObject = v(0)
             
             'Calculate total length
             Dim iLength As Long: iLength = 0
             Dim obj As Variant
-            For Each obj In pEnumObject
+            For Each obj In this.EnumObject
                 iLength = iLength + 1
             next
             
@@ -293,21 +301,21 @@ Public Sub protInit(ByVal iEnumeratorType as long, ByVal iMaxLength as long, Par
                 
                 'Copy IEnumVARIANT into array
                 Dim i As Long: i = 0
-                For Each obj In pEnumObject
+                For Each obj In this.EnumObject
                     i = i + 1
                     Call CopyVariant(vArr(i), obj)
                 Next
 
-                pBaseArray = vArr
+                this.BaseArray = vArr
             else
-                pBaseArray = Array()
+                this.BaseArray = Array()
             end if
         case EnumeratorType.FromArray
-            pBaseArray = v(0)
+            this.BaseArray = v(0)
         case EnumeratorType.FromCallable
-            set pCallback   = v(0)
+            set this.Callback   = v(0)
         case EnumeratorType.FromCallableVerbose
-            set pCallback   = v(0)
+            set this.Callback   = v(0)
     end select
 End Sub
 
@@ -341,23 +349,27 @@ End Property
 'Wend
 '```
 Public Function enumNext(ByRef nextValue As Variant) As Boolean
-    If NextItem(p_enum_kv, p_enum_v, p_enum_i) Then
-        If IsObject(p_enum_v) Then
-            Set nextValue = p_enum_v
+    With this.Current
+        If NextItem(.Key, .Value, .Index) Then
+            If IsObject(.Value) Then
+                Set nextValue = .Value
+            Else
+                Let nextValue = .Value
+            End If
+            enumNext = True
         Else
-            Let nextValue = p_enum_v
+            enumNext = False
         End If
-        enumNext = True
-    Else
-        enumNext = False
-    End If
+    End With
 End Function
 
 'Refresh the dataset to the beginning
 Public Sub enumRefresh()
-    p_enum_v = Null
-    p_enum_i = 0
-    p_enum_kv = Null
+    With this.Current
+        .Value = Null
+        .Index = 0
+        .Key = Null
+    End With
 End Sub
 
 'Get this enumerator as a collection
@@ -1102,9 +1114,9 @@ Public Property Get Length() as Long
     Dim oRet as Collection: Set oRet = new Collection
     Dim v as variant: v = null
     Dim i as long: i = 0
-    Dim iMaxLength as Long: iMaxLength = pMaxLength
-    if mode = FromArray then
-        Length = UBound(pBaseArray) - LBound(pBaseArray) + 1
+    Dim iMaxLength as Long: iMaxLength = this.MaxLength
+    if this.mode = FromArray then
+        Length = UBound(this.BaseArray) - LBound(this.BaseArray) + 1
     else
         Dim kv as variant: kv = null
         While NextItem(kv,v,i)
@@ -1220,17 +1232,17 @@ End Function
 '@TODO: Use DispCallFunc to call IEnumVariant::Next instead of converting to array
 Private Function NextItem(ByRef vNextKey as variant, ByRef vNextItem as Variant, ByRef iCurrentIndex as long) as Boolean
   iCurrentIndex = iCurrentIndex+1
-  select case mode
+  select case this.mode
     case FromIEnumVariant, FromArray
-      Dim lb as long: lb = LBound(pBaseArray,1)
-      Dim ub as long: ub = Ubound(pBaseArray,1)
+      Dim lb as long: lb = LBound(this.BaseArray,1)
+      Dim ub as long: ub = Ubound(this.BaseArray,1)
       Dim l as long: l = ub-lb+1
 
       if l > 0 then
         Dim iIndex as long: iIndex = lb + iCurrentIndex - 1
         if iIndex <= ub then
-          Call CopyVariant(vNextItem,pBaseArray(iIndex))
-          vNextKey = iif(mode = FromIEnumVariant, iCurrentIndex, iIndex)
+          Call CopyVariant(vNextItem,this.BaseArray(iIndex))
+          vNextKey = iif(this.mode = FromIEnumVariant, iCurrentIndex, iIndex)
           
           NextItem = true
         else
@@ -1241,12 +1253,12 @@ Private Function NextItem(ByRef vNextKey as variant, ByRef vNextItem as Variant,
       end if
     case FromCallable
       Dim vTmpItem as variant
-      Call CopyVariant(vNextItem,pCallback.Run(vNextItem, iCurrentIndex))
+      Call CopyVariant(vNextItem,this.Callback.Run(vNextItem, iCurrentIndex))
       vNextKey = iCurrentIndex
       NextItem = not isNull(vNextItem)
     case FromCallableVerbose
       Dim vVerboseReturn as Variant
-      Call CopyVariant(vVerboseReturn,pCallback.Run(vNextItem, iCurrentIndex))
+      Call CopyVariant(vVerboseReturn,this.Callback.Run(vNextItem, iCurrentIndex))
       if isArray(vVerboseReturn) then
         Dim iArrLength as long: iArrLength = ubound(vVerboseReturn) - lbound(vVerboseReturn)+1
         if iArrLength > 0 and iArrLength <= 4 then

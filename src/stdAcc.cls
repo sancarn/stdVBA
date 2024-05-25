@@ -247,12 +247,6 @@ Private Enum IAccessible_Methods
     put_accValue
 End Enum
 
-'@TODO: Convert to TThis
-Private isProxy As Boolean
-Private proxyParent As IAccessible 'IAcc
-Private proxyIndex As Long
-Private Lookups As Object
-
 'GUID type for ObjectFromWindow
 Private Type tGUID
     lData1            As Long
@@ -271,11 +265,23 @@ Private Type tFindNode
 End Type
 
 
-Const CHILDID_SELF = 0&
+Private Const CHILDID_SELF = 0&
 
-'The object which implements `IAccessible`, with which this class wraps. Please don't modify this object, unless you know what you are doing.
-'@protected 
-Public protAccessible As Object
+Private TSingleton
+  Lookups As Object
+End Type
+Private Type TProxy
+    Parent As IAccessible
+    Index As Long
+End Type
+Private Type TThis
+    Singleton as TSingleton
+
+    isProxy As Boolean
+    Proxy as TProxy
+    IAccessible As Object
+End Type
+Private This as TThis
 
 '****************
 '* Constructors *
@@ -401,10 +407,20 @@ End Function
 '@param oParent - Parent object to proxy
 '@param index - Index of element in parent
 Public Sub protInitWithProxy(ByRef oParent as stdAcc, ByVal index as long)
-    isProxy = true
-    set proxyParent = oParent.protAccessible
-    proxyIndex = index
+    this.isProxy = true
+    set this.Proxy.Parent = oParent.protAccessible
+    this.Proxy.Index = index
 End Sub
+
+'The object which implements `IAccessible`, with which this class wraps. Please don't modify this object, unless you know what you are doing.
+'@protected 
+'@returns Object<IAccessible> - The object which implements `IAccessible`
+Public Property Get protAccessible() As Object
+    Set protAccessible = This.IAccessible
+End Property
+Public Property Set protAccessible(ByVal obj As Object)
+    Set This.IAccessible = obj
+End Property
 
 
 'Get all descendents of the stdAcc control
@@ -609,8 +625,8 @@ End Function
 'Return the parent of the IAccessible object
 '@returns stdAcc - Parent of this element
 Public Property Get Parent() As stdAcc
-    If isProxy Then
-        Set Parent = stdAcc.CreateFromIAccessible(proxyParent)
+    If this.isProxy Then
+        Set Parent = stdAcc.CreateFromIAccessible(this.Proxy.Parent)
     else
         On Error GoTo handle_error
             Set Parent = stdAcc.CreateFromIAccessible(protAccessible.accParent)
@@ -719,15 +735,15 @@ End Property
 '@returns String - the current value of the element
 Public Property Get value() As String
   On Error Resume Next 'FIX: Sometimes this is unsupported, so leave this error.
-  if isProxy then
-    value = proxyParent.accValue(proxyIndex)
+  if this.isProxy then
+    value = this.Proxy.Parent.accValue(this.Proxy.Index)
   else
     value = protAccessible.accValue(CHILDID_SELF)
   end if
 End Property
 Public Property Let value(val As String)
-  if isProxy then
-    proxyParent.accValue(proxyIndex) = val
+  if this.isProxy then
+    this.Proxy.Parent.accValue(this.Proxy.Index) = val
   else
     protAccessible.accValue(CHILDID_SELF) = val
   end if
@@ -737,8 +753,8 @@ End Property
 '@returns String - the name of the element
 Public Property Get name() As String
   On Error Resume Next 'FIX: Sometimes this is unsupported, so leave this error.
-  If isProxy Then
-    name = proxyParent.accName(proxyIndex)
+  If this.isProxy Then
+    name = this.Proxy.Parent.accName(this.Proxy.Index)
   Else
     name = protAccessible.accName(CHILDID_SELF)
   End If
@@ -748,8 +764,8 @@ End Property
 '@returns String - the description of the default action of the element
 Public Property Get DefaultAction() As String
   On Error Resume Next 'FIX: Sometimes this is unsupported, so leave this error.
-  If isProxy Then
-    DefaultAction = proxyParent.accDefaultAction(proxyIndex)
+  If this.isProxy Then
+    DefaultAction = this.Proxy.Parent.accDefaultAction(this.Proxy.Index)
   else
     DefaultAction = protAccessible.accDefaultAction(CHILDID_SELF)
   end if
@@ -759,10 +775,10 @@ End Property
 '@returns String - the role of the element
 Public Property Get Role() As String
   On Error Resume Next 'FIXME: On extremely rare occasions the OLE object will disconnect / not expect automation. `On Error Resume Next` silences the error but this isn't a real fix.
-  if isProxy then
-    Role = Lookups("EAccRoles")("N2S")(proxyParent.accRole(proxyIndex))
+  if this.isProxy then
+    Role = this.Singleton.Lookups("EAccRoles")("N2S")(this.Proxy.Parent.accRole(this.Proxy.Index))
   else
-    Role = Lookups("EAccRoles")("N2S")(protAccessible.accRole(CHILDID_SELF))
+    Role = this.Singleton.Lookups("EAccRoles")("N2S")(protAccessible.accRole(CHILDID_SELF))
   end if
 End Property
 
@@ -770,7 +786,7 @@ End Property
 '@returns String - the state of the element
 Public Property Get States() As String
   Dim iStateData As Long: iStateData = StateData
-  Dim oLookup As Object: Set oLookup = Lookups("EAccStates")("S2N")
+  Dim oLookup As Object: Set oLookup = this.Singleton.Lookups("EAccStates")("S2N")
   Dim sStates As String, vKey as variant
   For Each vKey In oLookup.keys()
     If (oLookup(vKey) And iStateData) = oLookup(vKey) Then
@@ -785,8 +801,8 @@ End Property
 '@returns Long - the state(s) of the element
 Public Property Get StateData() As Long
   On Error Resume Next 'FIXME: On extremely rare occasions the OLE object will disconnect / not expect automation. `On Error Resume Next` silences the error but this isn't a real fix.
-  if isProxy then
-    StateData = proxyParent.accState(proxyIndex)
+  if this.isProxy then
+    StateData = this.Proxy.Parent.accState(this.Proxy.Index)
   else
     StateData = protAccessible.accState(CHILDID_SELF)
   end if
@@ -796,8 +812,8 @@ End Property
 '@returns String - the description of the element
 Public Property Get Description() As String
   On Error Resume Next 'FIX: Sometimes this is unsupported, so leave this error.
-  if isProxy then
-    Description = proxyParent.accDescription(proxyIndex)
+  if this.isProxy then
+    Description = this.Proxy.Parent.accDescription(this.Proxy.Index)
   else
     Description = protAccessible.accDescription(CHILDID_SELF)
   end if
@@ -807,8 +823,8 @@ End Property
 '@returns String - The keyboard shortcut used to trigger the default action of the element
 Public Property Get KeyboardShortcut() As String
   On Error Resume Next 'FIX: Sometimes this is unsupported, so leave this error handling.
-  if isProxy then
-    KeyboardShortcut = proxyParent.accKeyboardShortcut(proxyIndex)
+  if this.isProxy then
+    KeyboardShortcut = this.Proxy.Parent.accKeyboardShortcut(this.Proxy.Index)
   else
     KeyboardShortcut = protAccessible.accKeyboardShortcut(CHILDID_SELF)
   end if
@@ -818,8 +834,8 @@ End Property
 '@returns Boolean - Whether the element has focus
 Public Property Get Focus() As Boolean
   'On Error Resume Next
-  if isProxy then
-    Focus = proxyParent.accFocus(proxyIndex)
+  if this.isProxy then
+    Focus = this.Proxy.Parent.accFocus(this.Proxy.Index)
   else
     Focus = protAccessible.accFocus(CHILDID_SELF)
   end if
@@ -829,8 +845,8 @@ End Property
 '@param Boolean - `True` if the element should be focussed, otherwise `false`
 Public Property Let Focus(ByVal val As Boolean)
   'On Error Resume Next
-  if isProxy then
-    proxyParent.accFocus(proxyIndex) = val
+  if this.isProxy then
+    this.Proxy.Parent.accFocus(this.Proxy.Index) = val
   else
     protAccessible.accFocus(CHILDID_SELF) = val
   end if
@@ -840,8 +856,8 @@ End Property
 '@returns String - the help for the element
 Public Property Get Help() As String
   On Error Resume Next 'FIX#97: Sometimes this is unsupported, so leave this error handling.
-  if isProxy then
-    Help = proxyParent.accHelp(proxyIndex)
+  if this.isProxy then
+    Help = this.Proxy.Parent.accHelp(this.Proxy.Index)
   else
     Help = protAccessible.accHelp(CHILDID_SELF)
   end if
@@ -852,8 +868,8 @@ End Property
 '@returns - the help topic for the element
 Public Property Get HelpTopic(Optional ByVal sFile as string = "") As String
   On Error Resume Next 'FIX: Sometimes this is unsupported, so leave this error.
-  if isProxy then
-    HelpTopic = proxyParent.accHelpTopic(sFile, proxyIndex)
+  if this.isProxy then
+    HelpTopic = this.Proxy.Parent.accHelpTopic(sFile, this.Proxy.Index)
   else
     HelpTopic = protAccessible.accHelpTopic(sFile, CHILDID_SELF)
   end if
@@ -877,9 +893,10 @@ Public Property Get Text() As String
 End Property
 
 'Performs the default action of the `IAccessible` object
+'@example `app.getButton().DoDefaultAction()`
 Public Sub DoDefaultAction()
-  If isProxy Then
-    Call proxyParent.accDoDefaultAction(proxyIndex)
+  If this.isProxy Then
+    Call this.Proxy.Parent.accDoDefaultAction(this.Proxy.Index)
   Else
     Call protAccessible.accDoDefaultAction(CHILDID_SELF)
   End If
@@ -1051,9 +1068,9 @@ End Function
 'Returns the lookups object
 '@returns Object<Dictionary<string,Dictionary<string,Dictionary<string,long>>>>
 Friend Function protGetLookups() as Object
-    if Lookups is nothing then
-        set Lookups = CreateObject("Scripting.Dictionary")
-        set Lookups("EAccStates") = CreateLookupDict(Array( _
+    if this.Singleton.Lookups is nothing then
+        set this.Singleton.Lookups = CreateObject("Scripting.Dictionary")
+        set this.Singleton.Lookups("EAccStates") = CreateLookupDict(Array( _
             "STATE_NORMAL", &H0,                "STATE_UNAVAILABLE", &H1, _
             "STATE_SELECTED", &H2,              "STATE_FOCUSED", &H4, _
             "STATE_PRESSED", &H8,               "STATE_CHECKED", &H10, _
@@ -1072,7 +1089,7 @@ Friend Function protGetLookups() as Object
             "STATE_ALERT_HIGH", &H10000000,     "STATE_PROTECTED", &H20000000, _
             "STATE_VALID", &H7FFFFFFF _
         ))
-        set Lookups("EAccRoles") = CreateLookupDict(Array( _
+        set this.Singleton.Lookups("EAccRoles") = CreateLookupDict(Array( _
             "ROLE_TITLEBAR", &H1&            , "ROLE_MENUBAR", &H2&          , "ROLE_SCROLLBAR", &H3&, _
             "ROLE_GRIP", &H4&                , "ROLE_SOUND", &H5&            , "ROLE_CURSOR", &H6&, _
             "ROLE_CARET", &H7&               , "ROLE_ALERT", &H8&            , "ROLE_WINDOW", &H9&, _
@@ -1095,7 +1112,7 @@ Friend Function protGetLookups() as Object
             "ROLE_BUTTONDROPDOWNGRID", &H3A& , "ROLE_WHITESPACE", &H3B&      , "ROLE_PAGETABLIST", &H3C&, _
             "ROLE_CLOCK",&H3D&  _
         ))
-        set Lookups("EAccFindResult") = CreateLookupDict(Array( _
+        set this.Singleton.Lookups("EAccFindResult") = CreateLookupDict(Array( _
             "MatchFound", EAccFindResult.MatchFound, _
             "MatchFoundSearchDescendents", EAccFindResult.MatchFoundSearchDescendents, _
             "NoMatchFound", EAccFindResult.NoMatchFound, _
@@ -1103,7 +1120,7 @@ Friend Function protGetLookups() as Object
             "NoMatchSkipDescendents", EAccFindResult.NoMatchSkipDescendents _
         ))
     end if
-    set protGetLookups = lookups
+    set protGetLookups = this.Singleton.Lookups
 End Function
 
 
@@ -1210,9 +1227,9 @@ End Function
 '@param stdICallable - A callable to bind global variables to (if the callable supports it)
 Private Sub BindGlobals(ByRef query as stdICallable)
     Dim bSuccess as boolean
-    Call query.SendMessage("bindGlobal", bSuccess, Array("EAccRoles", Lookups("EAccRoles")("S2N")))
-    Call query.SendMessage("bindGlobal", bSuccess, Array("EAccStates", Lookups("EAccStates")("S2N")))
-    Call query.SendMessage("bindGlobal", bSuccess, Array("EAccFindResult", Lookups("EAccFindResult")("S2N")))
+    Call query.SendMessage("bindGlobal", bSuccess, Array("EAccRoles", this.Singleton.Lookups("EAccRoles")("S2N")))
+    Call query.SendMessage("bindGlobal", bSuccess, Array("EAccStates", this.Singleton.Lookups("EAccStates")("S2N")))
+    Call query.SendMessage("bindGlobal", bSuccess, Array("EAccFindResult", this.Singleton.Lookups("EAccFindResult")("S2N")))
 End Sub
 
 'Creates a collection of stdAcc objects representing the children of the element
@@ -1255,9 +1272,9 @@ Private Function jsonEscape(ByVal s As String) As String
     jsonEscape = s
 End Function
 
-'Whenever we initialise ensure to get lookups from `stdAcc`
+'Whenever we initialise ensure to get Lookups from `stdAcc`
 Private Sub Class_Initialize()
-    set Lookups = stdAcc.protGetLookups()
+    set this.Singleton.Lookups = stdAcc.protGetLookups()
 End Sub
 
 'From an array of Key-Value pairs, create a dictionary of Key-->Value and Value-->Key lookups
