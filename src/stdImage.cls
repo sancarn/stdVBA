@@ -715,8 +715,8 @@ Private Sub Class_Uninitialize()
   If This.Cache.HICON <> 0 Then Call DestroyIcon(This.Cache.HICON)
 End Sub
 
-'@source - https://www.mrexcel.com/board/threads/working-with-images-in-vba-displaying-png-files.1224206/#post-5991836
-'@devNote - Not sure if this is needed, could be useful for ToBinary() method.
+'@devRemark source - https://www.mrexcel.com/board/threads/working-with-images-in-vba-displaying-png-files.1224206/#post-5991836
+'@devRemark - Not sure if this is needed, could be useful for ToBinary() method.
 Private Function getHBitmapBytes(ByVal hBitmap As LongPtr) As Byte()
     Const DIB_RGB_COLORS = 0&
     
@@ -763,7 +763,7 @@ End Function
 '@param pointer - The pointer to copy bytes at
 '@param size - The size of the buffer to copy
 '@returns - The bytes stired at the pointer
-'@devNote - Not sure if this is needed, could be useful for ToBinary() method.
+'@devRemark - Not sure if this is needed, could be useful for ToBinary() method.
 Private Function BytesFromPointer(ByVal pointer As LongPtr, ByVal size As Long) As Byte()
   Dim buff() As Byte
   If size > 0 Then

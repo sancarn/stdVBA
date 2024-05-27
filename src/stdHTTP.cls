@@ -46,7 +46,7 @@ Private Enum ProxySetting
 End Enum
 
 'WINHTTP Errors
-'@source https://raw.githubusercontent.com/libgit2/libgit2/main/deps/winhttp/winhttp.h
+'@devRemark source https://raw.githubusercontent.com/libgit2/libgit2/main/deps/winhttp/winhttp.h
 Private Enum WINHTTP_ERROR
   WINHTTP_ERROR_BASE = 12000
   ERROR_WINHTTP_OUT_OF_HANDLES = (WINHTTP_ERROR_BASE + 1)
