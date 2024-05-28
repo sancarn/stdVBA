@@ -97,12 +97,6 @@ Implements stdICallable
   Private Const vbLongPtr = vbLong
 #End If
 
-'@TODO: Convert to TThis
-Dim pInitialised As Boolean
-' Dim pCallback As Collection
-' Dim pCompiledLambda As Collection
-' Dim pLambdaData As Collection
-
 Private Enum ParentType
   Module = 1
   object = 2
@@ -118,6 +112,7 @@ Private Type TCBByPointer
   iParamTypes() As VbVarType
 End Type
 
+
 Private Type CallbackStruct
   iType As ParentType
   sModuleName As String
@@ -128,9 +123,11 @@ Private Type CallbackStruct
   vBoundArgs As Variant
   CBByPointer As TCBByPointer
 End Type
-Private pCallback As CallbackStruct
-
-
+Private Type TThis
+  Initialised As Boolean
+  Callback As CallbackStruct
+End Type
+Private This as TThis
 
 
 
@@ -250,28 +247,28 @@ End Function
 '@param params      - The parameters to initialise the callback with. This should not be called directly unless building a ctor routine e.g. Create().
 Friend Sub protInit(iParentType As Long, ParamArray params() As Variant)
 Attribute protInit.VB_Description = "Initialises this object. This should not be called directly unless building a ctor routine e.g. Create()."
-  If Not pInitialised Then
+  If Not this.Initialised Then
     Select Case iParentType
       Case ParentType.Module
-        pCallback.iType = iParentType
-        pCallback.sModuleName = params(0)
-        pCallback.sMethodName = params(1)
+        this.Callback.iType = iParentType
+        this.Callback.sModuleName = params(0)
+        this.Callback.sMethodName = params(1)
       Case ParentType.object
-        pCallback.iType = iParentType
-        Set pCallback.oObject = params(0)
-        pCallback.sMethodName = params(1)
-        pCallback.iCallType = params(2)
+        this.Callback.iType = iParentType
+        Set this.Callback.oObject = params(0)
+        this.Callback.sMethodName = params(1)
+        this.Callback.iCallType = params(2)
       Case ParentType.Bound
-        pCallback.iType = iParentType
-        Set pCallback.oObject = params(0)
+        this.Callback.iType = iParentType
+        Set this.Callback.oObject = params(0)
         If isArray(params(1)) Then
-          pCallback.vBoundArgs = params(1)
+          this.Callback.vBoundArgs = params(1)
         Else
-          pCallback.vBoundArgs = Array()
+          this.Callback.vBoundArgs = Array()
         End If
       Case ParentType.Pointer
-        pCallback.iType = iParentType
-        With pCallback.CBByPointer
+        this.Callback.iType = iParentType
+        With this.Callback.CBByPointer
           .iMethodAddress = params(0)
           .iReturnType = params(1)
           .bPredictTypes = IsNull(params(2))
@@ -289,7 +286,7 @@ Attribute protInit.VB_Description = "Initialises this object. This should not be
     CriticalRaise "Class is already initialised"
   End If
   vBoundArgs = Array()
-  pInitialised = True
+  this.Initialised = True
 End Sub
 
 'Run the function
@@ -361,9 +358,9 @@ End Function
 '@param vArr as Variant<Array<Variant>> - The parameters to run the function with
 '@returns                                 - The result of the function
 Public Function RunEx(ByVal vArr As Variant) As Variant
-  If pInitialised And pCallback.iType Then
-    If pCallback.iType = ParentType.Bound Then
-      vArr = ConcatArrays(pCallback.vBoundArgs, vArr)
+  If this.Initialised And this.Callback.iType Then
+    If this.Callback.iType = ParentType.Bound Then
+      vArr = ConcatArrays(this.Callback.vBoundArgs, vArr)
     End If
 
     'Raise event for listeners
@@ -371,7 +368,7 @@ Public Function RunEx(ByVal vArr As Variant) As Variant
     
     'Select procedure based on parent type, as each requires different call conventions
     Dim vRet As Variant
-    Select Case pCallback.iType
+    Select Case this.Callback.iType
       Case ParentType.Module
         'TODO: Use fancy accessor mechanism https://codereview.stackexchange.com/questions/274532/low-level-vba-hacking-making-private-functions-public 
         'Get currentLength
@@ -391,7 +388,7 @@ Public Function RunEx(ByVal vArr As Variant) As Variant
         
         'Copy results of Application.Run into vRet
         CopyVariant vRet, Application.Run( _
-            pCallback.sModuleName & "." & pCallback.sMethodName, _
+            this.Callback.sModuleName & "." & this.Callback.sMethodName, _
             vArr(0), vArr(1), _
             vArr(2), vArr(3), _
             vArr(4), vArr(5), _
@@ -418,14 +415,14 @@ Public Function RunEx(ByVal vArr As Variant) As Variant
             
           'Call rtcCallByName
           On Error GoTo ErrorInRTCCallByName
-          Dim hr As Long: hr = rtcCallByName(vRet, pCallback.oObject, StrPtr(pCallback.sMethodName), pCallback.iCallType, vArgs, &H409)
+          Dim hr As Long: hr = rtcCallByName(vRet, this.Callback.oObject, StrPtr(this.Callback.sMethodName), this.Callback.iCallType, vArgs, &H409)
           On Error GoTo 0
         Else
           CriticalRaise "Error in rtcCallByName. Arguments supplied to RunEx needs to be an array."
         End If
       Case ParentType.Bound
         Dim callable As stdICallable
-        Set callable = pCallback.oObject
+        Set callable = this.Callback.oObject
         Call CopyVariant(vRet, callable.RunEx(vArr))
       Case ParentType.Pointer
         'Create array of types and pointers to vars, for function call
@@ -438,7 +435,7 @@ Public Function RunEx(ByVal vArr As Variant) As Variant
         
         'Initialise vType based on whether it should be predicted or not
         Dim lIdx As Long
-        With pCallback.CBByPointer
+        With this.Callback.CBByPointer
           If .bPredictTypes Then
             If iParamCount = 0 Then
               ReDim vType(0 To 0)

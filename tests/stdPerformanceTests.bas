@@ -6,12 +6,12 @@ Sub testAll()
     Test.Topic "stdPerformance"
     
     'Measurement keys 1
-    With stdPerformance.Measure("Test1")
+    With stdPerformance.CreateMeasure("Test1")
     End With
     Test.Assert "MeasuresKeys 1", Join(stdPerformance.MeasuresKeys,";") = "Test1"
     
     'Measurement keys 2
-    With stdPerformance.Measure("Test2")
+    With stdPerformance.CreateMeasure("Test2")
     End With
     Test.Assert "MeasuresKeys 2", Join(stdPerformance.MeasuresKeys,";") = "Test1;Test2"
 
@@ -19,14 +19,14 @@ Sub testAll()
     if Test.FullTest then
         Test.Range.Parent.Activate
         DoEvents
-        With stdPerformance.measure("#1 Select and set")
+        With stdPerformance.CreateMeasure("#1 Select and set")
             For i = 1 to C_MAX
                 Test.Range.cells(1,1).select
                 selection.value = "hello"
             Next
         End With
 
-        With stdPerformance.measure("#2 Set directly")
+        With stdPerformance.CreateMeasure("#2 Set directly")
             For i = 1 to C_MAX
                 Test.Range.cells(1,1).value = "hello"
             next
@@ -50,7 +50,7 @@ Sub testAll()
     'Optimise testing
     Application.ScreenUpdating = true
     Application.EnableEvents = true
-    With stdPerformance.Optimise()
+    With stdPerformance.CreateOptimiser()
         Test.Assert "Optimise - 1a. ScreenUpdating=False", Not Application.ScreenUpdating
         Test.Assert "Optimise - 2a. EnableEvents=False", Not Application.EnableEvents
     End With

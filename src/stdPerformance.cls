@@ -84,25 +84,42 @@ Public Enum EPerfObjType
   iOptimiser=2
 End Enum
 
-'The instance object type.
-Private pObjType as EPerfObjType
 
-'iOptimiser Fields...
-Private pEnableEvents as boolean
-Private pScreenUpdating as boolean
-Private pCalculation as long
+'For Performance Optimisation sentries
+Private Type TOptimiser
+  EnableEvents as boolean
+  ScreenUpdating as boolean
+  Calculation as long
+End Type
 
-'iMeasure definitions
-Private pStartTime as long
-Private pKeyName as string 
-Private pDivider as double
+'For Performance Measurement
+Private Type TMeasure
+  StartTime as long
+  KeyName as string
+  Divider as double
+End Type
 
-'Measurement storage
+'For Measurement storage
 Private Type FakeDictItem
   key as string
   val as variant
 End Type
-Private FakeDict() as FakeDictItem
+
+Private Type TSingleton
+  FakeDict() as FakeDictItem   'was Private FakeDict() as FakeDictItem
+End Type
+
+Private Type TThis
+  Singleton as TSingleton
+
+  ObjectType as EPerfObjType
+  Measure as TMeasure
+  Optimiser as TOptimiser
+End Type
+Private This as TThis
+
+
+
 
 'Create
 '@constructor
@@ -123,16 +140,16 @@ End Function
 '* iOptimiser - used for optimising performance 
 '@param params as Variant<Array<Variant>> - Additional params supplied as array.
 Public Sub protInit(ByVal objType as EPerfObjType, ByVal params as variant)
-  pObjType = objType
+  this.ObjectType = objType
   select case objType
     case iMeasure
-      pKeyName = params(0)
-      pDivider = params(1)
-      pStartTime = GetTickCount()
+      this.Measure.KeyName = params(0)
+      this.Measure.Divider = params(1)
+      this.Measure.StartTime = GetTickCount()
     case iOptimiser
       'Store vals
-      pScreenUpdating = Application.ScreenUpdating
-      pEnableEvents = Application.EnableEvents
+      this.Optimiser.ScreenUpdating = Application.ScreenUpdating
+      this.Optimiser.EnableEvents = Application.EnableEvents
       
       'Set vals
       Application.ScreenUpdating = params(0)
@@ -141,7 +158,7 @@ Public Sub protInit(ByVal objType as EPerfObjType, ByVal params as variant)
       'Different options for different applications
       select case Application.Name 
         case "Microsoft Excel"
-          pCalculation = Application.Calculation
+          this.Optimiser.Calculation = Application.Calculation
           Application.Calculation = params(2)
       end select
   end select
@@ -231,24 +248,24 @@ End Sub
 
 'MeasuresClear - Clears all procedures/blocks and times that have been measured
 Public Sub MeasuresClear()
-  ReDim FakeDict(0 to 0)
+  ReDim this.Singleton.FakeDict(0 to 0)
 End Sub
 
 'MeasuresKeys
 '@returns Array<String> - Array containing the procedures or blocks that have been measured.
 Public Property Get MeasuresKeys() as string()
   if Me is stdPerformance then
-    if ubound(FakeDict) = 0 then
+    if ubound(this.Singleton.FakeDict) = 0 then
       MeasuresKeys = Split("")
     else
       'Define return array
       Dim sOut() as string
-      Redim Preserve sOut(0 to ubound(FakeDict)-1)
+      Redim Preserve sOut(0 to ubound(this.Singleton.FakeDict)-1)
 
       'Fill keys array 
       Dim i as long
-      For i = 0 to ubound(FakeDict)-1
-        sOut(i) = FakeDict(i).key
+      For i = 0 to ubound(this.Singleton.FakeDict)-1
+        sOut(i) = this.Singleton.FakeDict(i).key
       next
 
       'return data
@@ -261,7 +278,7 @@ End Property
 '@constructor
 Private Sub Class_Initialize()
   if me is stdPerformance then
-    Redim FakeDict(0 to 0)
+    Redim this.Singleton.FakeDict(0 to 0)
   end if
 End Sub
 
@@ -269,19 +286,19 @@ End Sub
 '@destructor
 Private Sub Class_Terminate()
   if not me is stdPerformance then
-    select case pObjType
+    select case this.ObjectType
       case iMeasure
         Dim pEndTime as long: pEndTime = GetTickCount()
-        Call stdPerformance.AddMeasurement(pKeyName, Abs(pEndTime - pStartTime),pDivider)
+        Call stdPerformance.AddMeasurement(this.Measure.KeyName, Abs(pEndTime - this.Measure.StartTime),this.Measure.Divider)
       case iOptimiser
         'Store vals
-        Application.ScreenUpdating = pScreenUpdating
-        Application.EnableEvents = pEnableEvents
+        Application.ScreenUpdating = this.Optimiser.ScreenUpdating
+        Application.EnableEvents = this.Optimiser.EnableEvents
         
         'Different options for different applications
         select case Application.Name 
           case "Microsoft Excel"
-            Application.Calculation = pCalculation
+            Application.Calculation = this.Optimiser.Calculation
         end select
     end select
   end if
@@ -302,8 +319,8 @@ End Sub
 Private Function getDictIndex(ByVal key as string) as Long
   On Error GoTo ErrorOccurred
     Dim i as long
-    For i = 0 to ubound(FakeDict)
-      if FakeDict(i).key = key then
+    For i = 0 to ubound(this.Singleton.FakeDict)
+      if this.Singleton.FakeDict(i).key = key then
         getDictIndex = i
         Exit Function
       end if
@@ -324,16 +341,16 @@ Private Sub setDictItem(ByVal key as string, ByVal v as variant, Optional ByVal 
   
   'If item not exist, add it
   if ind = -1 then
-    ind = getUB(FakeDict)
-    FakeDict(ind).key = key
-    Redim Preserve FakeDict(0 to ind+1)
+    ind = getUB(this.Singleton.FakeDict)
+    this.Singleton.FakeDict(ind).key = key
+    Redim Preserve this.Singleton.FakeDict(0 to ind+1)
   end if
 
   'Assign value to index
   if isObject(v) then
-    set FakeDict(ind).val = v
+    set this.Singleton.FakeDict(ind).val = v
   else
-    FakeDict(ind).val = v
+    this.Singleton.FakeDict(ind).val = v
   end if
 End Sub
 
@@ -356,10 +373,10 @@ End Function
 Private Function getDictItem(ByVal key as string) as variant
   Dim ind as Long: ind = getDictIndex(key)
   if ind <> -1 then 
-    if isObject(FakeDict(ind).val) then
-      set getDictItem = FakeDict(ind).val
+    if isObject(this.Singleton.FakeDict(ind).val) then
+      set getDictItem = this.Singleton.FakeDict(ind).val
     else
-      getDictItem = FakeDict(ind).val
+      getDictItem = this.Singleton.FakeDict(ind).val
     end if
   else
     getDictItem = Empty

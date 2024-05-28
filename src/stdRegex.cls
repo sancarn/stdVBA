@@ -232,7 +232,7 @@ Public Property Let pattern(val As String)
     Exit Property
   End If
   
-  Call init(val, p_flags)
+  Call protInit(val, p_flags)
 End Property
 
 
@@ -253,7 +253,7 @@ Public Property Let flags(val As String)
     Exit Property
   End If
 
-  Call init(p_pattern, val)
+  Call protInit(p_pattern, val)
 End Property
 
 

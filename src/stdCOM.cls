@@ -375,9 +375,9 @@ Public Enum EIEnumMoniker
 End Enum
 
 '[IMoniker](https://github.com/tpn/winsdk-10/blob/9b69fd26ac0c7d0b83d378dba01080e93349c2ed/Include/10.0.14393.0/um/ObjIdl.Idl#L504-L621)
-'@includes [IUnknown](https://en.wikipedia.org/wiki/IUnknown)
-'@includes [IPersist](https://github.com/tpn/winsdk-10/blob/9b69fd26ac0c7d0b83d378dba01080e93349c2ed/Include/10.0.14393.0/um/ObjIdl.Idl#L453-L462)
-'@includes [IPersistStream](https://github.com/tpn/winsdk-10/blob/9b69fd26ac0c7d0b83d378dba01080e93349c2ed/Include/10.0.14393.0/um/ObjIdl.Idl#L470-L496)
+'@devRemark includes [IUnknown](https://en.wikipedia.org/wiki/IUnknown)
+'@devRemark includes [IPersist](https://github.com/tpn/winsdk-10/blob/9b69fd26ac0c7d0b83d378dba01080e93349c2ed/Include/10.0.14393.0/um/ObjIdl.Idl#L453-L462)
+'@devRemark includes [IPersistStream](https://github.com/tpn/winsdk-10/blob/9b69fd26ac0c7d0b83d378dba01080e93349c2ed/Include/10.0.14393.0/um/ObjIdl.Idl#L470-L496)
 '0      HRESULT QueryInterface      ([in]  REFIID riid, [out] void **ppvObject)
 '1      HRESULT AddRef              ()
 '2      HRESULT Release             ()
@@ -448,9 +448,12 @@ Private Const CC_STDCALL    As Long = 4
 '* STATE VARIABLES *
 '*******************
 '@TODO: Convert to TThis
-Private oMeta As IUnknown
-Private pRegisteredOLEInstance As Long
-Private pRegisteredTimerOLEInstance As Long
+Private Type TThis
+  Meta as IUnknown
+  RegisteredOLEInstance as Long
+  RegisteredTimerOLEInstance as Long
+End Type
+Private This as TThis
 
 '**********
 '* EVENTS *
@@ -578,10 +581,10 @@ End Function
 '@example `stdCOM.Create(Application).Object.Name`
 '@example `stdCOM.CreateFromPtr(ObjPtr(Application)).Object.Name`
 Public Property Get Object() As IUnknown
-  If oMeta Is Nothing Then
+  If this.Meta Is Nothing Then
     Set Object = Deref(pObjPtr)
   Else
-    Set Object = oMeta
+    Set Object = this.Meta
   End If
 End Property
 
@@ -591,10 +594,10 @@ End Property
 '@example `stdCOM.CreateFromPtr(ObjPtr(Application)).Object.Name`
 '@throws {...} Unsupported interface IDispatch
 Public Property Get AsObject() As Object
-  If oMeta Is Nothing Then
+  If this.Meta Is Nothing Then
     Set AsObject = Deref(pObjPtr)
   Else
-    Set AsObject = oMeta
+    Set AsObject = this.Meta
   End If
 End Property
 
@@ -605,19 +608,19 @@ End Property
 #Else
   Public Property Get Pointer() As Long
 #End If
-  If oMeta Is Nothing Then
+  If this.Meta Is Nothing Then
     Pointer = pObjPtr
   Else
-    Pointer = ObjPtr(oMeta)
+    Pointer = ObjPtr(this.Meta)
   End If
 End Property
 
 'Call `IUnknown::QueryInterface` on the object
 '@param sIID - Interface Identifier as string
 '@returns - `stdCOM` object for interface
-'@throws {...} "IUnknown::QueryInterface - Cannot retrieve IID from String."
-'@throws {...} "IUnknown::QueryInterface - Interface not implemented."
-'@throws {...} "IUnknown::QueryInterface - Unknown error occurred."
+'@throws stdCOM<IUnknown>#unkQueryInterface - Cannot retrieve IID from String.
+'@throws stdCOM<IUnknown>#unkQueryInterface - Interface not implemented.
+'@throws stdCOM<IUnknown>#unkQueryInterface - Unknown error occurred.
 '@example ```
 '  'Get ITypeInfo
 '  set typeInfo = com.unkQueryInterface("00020401-0000-0000-C000-000000000046")
@@ -636,12 +639,12 @@ Public Function unkQueryInterface(ByVal sIID As String) As stdCOM
     ElseIf hResult = E_POINTER Then
       Set unkQueryInterface = Nothing
     ElseIf hResult = E_NOINTERFACE Then
-      Err.Raise E_NOINTERFACE, "stdCOM", "IUnknown::QueryInterface - Interface not implemented."
+      Err.Raise E_NOINTERFACE, "stdCOM<IUnknown>#unkQueryInterface", "Interface not implemented."
     Else
-      Err.Raise hResult, "stdCOM", "IUnknown::QueryInterface - Unknown error occurred."
+      Err.Raise hResult, "stdCOM<IUnknown>#unkQueryInterface", "Unknown error occurred."
     End If
   Else
-    Err.Raise Err.LastDllError, "stdCOM", "IUnknown::QueryInterface - Cannot retrieve IID from String."
+    Err.Raise Err.LastDllError, "stdCOM<IUnknown>#unkQueryInterface", "Cannot retrieve IID from String."
   End If
 End Function
 
@@ -658,7 +661,7 @@ End Sub
 'Query the object for a known interface.
 '@param interface - Known interface to query for
 '@returns - interface queried.
-'@throws {...} "Interface IID not known."
+'@throws "Interface IID not known."
 Public Function QueryKnownInterface(ByVal interface As EKnownInterfaces) As stdCOM
   Dim sIID As String: sIID = KnownIID(interface)
   If sIID <> "" Then
@@ -812,12 +815,12 @@ End Property
 '@param sCLSID - CLSID if required. If this arg isn't provided, a ProgID must be provided.
 '@param ProgID - ProgID if required. If this arg isn't provided, a CLSID must be provided.
 Public Sub RegisterActiveObject(Optional ByVal sCLSID As String = "", Optional ByVal ProgID As String = "")
-    Call RegisterActiveObjectEx(Object, pRegisteredOLEInstance, sCLSID, ProgID)
+    Call RegisterActiveObjectEx(Object, this.RegisteredOLEInstance, sCLSID, ProgID)
 End Sub
 
 'Revoke the previously registered object
 Public Sub RevokeActiveObject()
-    Call RevokeActiveObjectEx(Object, pRegisteredOLEInstance)
+    Call RevokeActiveObjectEx(Object, this.RegisteredOLEInstance)
 End Sub
 
 '############################
@@ -880,7 +883,7 @@ End Function
 '@param obj - Object to create raw COM object from
 Friend Sub protInitFromObject(ByVal obj As IUnknown)
   pObjPtr = ObjPtr(obj)
-  Set oMeta = obj
+  Set this.Meta = obj
 End Sub
 
 'Initialise from pointer to object
@@ -891,21 +894,15 @@ Friend Sub protInitFromPtr(ByVal ptr As LongPtr)
   Call unkAddRef
 End Sub
 
-'Forcefully raise the Tick event
-'@protected
-Public Sub protTimerTick()
-    RaiseEvent Tick
-End Sub
-
 '
 '@destructor
 Private Sub Class_Terminate()
   'Revoke active objects
-  If pRegisteredOLEInstance > 0 Then Call RevokeActiveObjectEx(Object(), pRegisteredOLEInstance)
-  If pRegisteredTimerOLEInstance > 0 Then Call RevokeActiveObjectEx(Me, pRegisteredTimerOLEInstance)
+  If this.RegisteredOLEInstance > 0 Then Call RevokeActiveObjectEx(Object(), this.RegisteredOLEInstance)
+  If this.RegisteredTimerOLEInstance > 0 Then Call RevokeActiveObjectEx(Me, this.RegisteredTimerOLEInstance)
   
   'Call unknown release (prevent memory leaks)
-  If oMeta Is Nothing Then Call unkRelease
+  If this.Meta Is Nothing Then Call unkRelease
 End Sub
 
 'Register an object in the ROT

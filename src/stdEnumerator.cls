@@ -462,7 +462,7 @@ End Function
 
 'Converts an enumerator of dictionaries to a 2D array
 '@returns Array2d<Variant> - 2D Array of data including headers. Number of rows is equal to the length of the enumerator, number of columns is equal to the number of keys in the first item.
-Public Function AsArray2D()
+Public Function AsArray2D(Optional ByVal includeObjects as boolean = true)
     Dim vItem
     Call CopyVariant(vItem, item(1,true))
 
@@ -488,7 +488,15 @@ Public Function AsArray2D()
         While NextItem(kv,v,i)
             Dim j as long
             for j = iKeysLb to iKeysUb
-                vRet(i,j) = v(vKeys(j))
+                if isObject(v(vKeys(j))) then
+                    if includeObjects then
+                        set vRet(i,j) = v(vKeys(j))
+                    else
+                        vRet(i,j) = "[Object]"
+                    end if
+                else
+                    vRet(i,j) = v(vKeys(j))
+                end if
             next
         Wend
     else
@@ -887,7 +895,7 @@ End Function
 '@param cb as stdICallable<(accumulator: variant, element: Variant, key: variant)=>Variant> - reducer function to execute.
 '@param vInitialValue - initial value to use in reducer.
 '@returns - The reduced value.
-Public Function reduce(ByVal cb as stdICallable, Optional ByVal vInitialValue as variant = 0) as variant
+Public Function reduce(ByVal cb as stdICallable, Optional ByVal initialValue as variant = 0) as variant
     Dim v as variant: v = null
     Dim i as long: i = 0
     Dim kv as variant: kv = null

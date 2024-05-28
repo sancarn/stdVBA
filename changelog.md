@@ -289,3 +289,4 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2024-05-25 `stdAcc` FIX - `TThis` standard change.
 - 2024-05-25 `stdArray` FIX - `TThis` standard change.
 - 2024-05-25 `stdEnumerator` FIX - `TThis` standard change.
+- 2024-05-28 `stdEnumerator` FIX - `stdEnumerator#AsArray2D` fix for when objects are in the dictionaries.

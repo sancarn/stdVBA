@@ -267,7 +267,7 @@ End Type
 
 Private Const CHILDID_SELF = 0&
 
-Private TSingleton
+Private Type TSingleton
   Lookups As Object
 End Type
 Private Type TProxy
@@ -1166,11 +1166,11 @@ End Function
   End Function
 #End If
 
-'Creates a userform with transparent background and red border around the element. Useful for debugging.
-'@TODO: Write this function
-Private Function Highlight() as stdUserform
-
-End Function
+''Creates a userform with transparent background and red border around the element. Useful for debugging.
+''@TODO: Write this function
+'Private Function Highlight() as stdUserform
+'
+'End Function
 
 'Retrieve the IAccessible interface from a window handle
 '@param {LongPtr} hwnd

@@ -162,8 +162,8 @@ Sub testAll()
   'TODO: Test set UserData
   Test.Assert "stdWindow#WndProc", uf.WndProc <> 0
   'TODO: Test WndProc set
-  Test.Assert "stdWindow#Resizable 1", Not uf.Resizable
-  Test.Assert "stdWindow#Resizable 2", app.Resizable
+  Test.Assert "stdWindow#Resizable 1", Not uf.isResizable
+  Test.Assert "stdWindow#Resizable 2", app.isResizable
   'TODO Resizable [Set]
   Test.Assert "stdWindow#children 1", app.Children.count > 0
   'TODO: Descendents
@@ -171,7 +171,6 @@ Sub testAll()
   '********************
   '* INSTANCE METHODS *
   '********************
-  
   
   uf.Quit
   Test.Assert "stdWindow#Quit", Not uf.Exists

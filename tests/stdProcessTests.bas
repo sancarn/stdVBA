@@ -15,14 +15,13 @@ Public Sub testAll()
     
     'Test basic properties
     Test.Assert "Process ID given", proc1.id > 0
-    Test.Assert "Name", proc1.name = "notepad.exe"
-    Test.Assert "Path", proc1.path = "C:\Windows\System32\notepad.exe"
+    Test.Assert "Name", UCase(proc1.name) = "NOTEPAD.EXE"
+    Test.Assert "Path", (proc1.path = "C:\Windows\System32\notepad.exe") or (proc1.path like "C:\*\WindowsApps\*\Notepad\Notepad.exe")
 
     'Test CreateFromProcessId
     Set proc2 = stdProcess.CreateFromProcessId(proc1.id)
     Test.Assert "CreateFromProcessId works", proc1.name = proc2.name And proc1.path = proc2.path And proc1.id = proc2.id
 
-  
     'Test CreateFromQuery - should return 1 process object
     Set proc2 = stdProcess.CreateFromQuery(stdLambda.Create("$1.id = " & proc1.id))
     Test.Assert "CreateFromQuery works", proc1.name = proc2.name And proc1.path = proc2.path And proc1.id = proc2.id

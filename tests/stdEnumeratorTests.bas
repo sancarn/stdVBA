@@ -112,7 +112,7 @@ Sub testAll()
     Dim vIter, iCount as long: iCount = 0
     For each vIter in e3
         iCount=iCount+1
-        Test.Assert "Check item is number", isNumber(vIter)
+        Test.Assert "Check item is number", IsNumeric(vIter)
     next
     Test.Assert "Check loop triggered", iCount = 9
 
@@ -247,8 +247,8 @@ Sub testAll()
     Dim e7 as stdEnumerator: Set e7 = stdEnumerator.CreateFromListObject(lo)
     Test.Assert "stdEnumerator::CreateFromListObject() returns object", not e7 is nothing
     Test.Assert "stdEnumerator::CreateFromListObject() correct characteristics", e7.map(stdLambda.Create("$1.id & ""-"" & $1.fruit")).join(" ") = "1-apples 2-bananas"
-    Dim vLoAsArray2D: vLoAsArray2D = e7.AsArray2D
-    Test.Assert "stdEnumerator::AsArray2D check data", vLoAsArray2D(0,0) = "id" and vLoAsArray2D(1,0) = 1 and vLoAsArray2D(2,0) = 2 and (ubound(vLoAsArray2D,1)-lbound(vLoAsArray2D,1)+1)=3 and (ubound(vLoAsArray2D,2)-lbound(vLoAsArray2D,2)+1)=3
+    Dim vLoAsArray2D: vLoAsArray2D = e7.AsArray2D(false)
+    Test.Assert "stdEnumerator::AsArray2D check data", vLoAsArray2D(0,0) = "id" and vLoAsArray2D(1,0) = 1 and vLoAsArray2D(2,0) = 2 and (ubound(vLoAsArray2D,1)-lbound(vLoAsArray2D,1)+1)=3 and (ubound(vLoAsArray2D,2)-lbound(vLoAsArray2D,2)+1)=6
     Call lo.delete
 End Sub
 

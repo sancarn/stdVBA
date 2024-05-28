@@ -142,7 +142,7 @@ Sub testAll()
     Test.Assert "Count w/ cb", arr.Count(stdLambda.Create("$1<=3")) = 3
     
     'Group(cb)
-    set tmp = arr.Group(lookup)
+    set tmp = arr.groupBy(lookup)
     Test.Assert "Group 1", typename(tmp("A")) = "stdArray"
     Test.Assert "Group 2", tmp("A").join() = "1,2"
     Test.Assert "Group 3", tmp("B").join() = "3"
