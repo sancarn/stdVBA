@@ -11,84 +11,268 @@ Attribute VB_Exposed = False
 
 'In numerous cases using excel we like to set standard options to optimise performance:
 '
-'    Dim iEnableEvents as long: iEnableEvents = Application.EnableEvents
-'    Dim iScreenUpdating as long: iScreenUpdating = Application.ScreenUpdating
+'    Dim bEnableEvents as Boolean: bEnableEvents = Application.EnableEvents
+'    Dim bScreenUpdating as Boolean: bScreenUpdating = Application.ScreenUpdating
 '    Application.EnableEvents = false
 '    Application.ScreenUpdating = false
 '    
 '      ... our code ...
 '    
-'    Application.EnableEvents = iEnableEvents
-'    Application.ScreenUpdating = iScreenUpdating
+'    Application.EnableEvents = bEnableEvents
+'    Application.ScreenUpdating = bScreenUpdating
 '
 'Similarly with std libraries, we have to add and pop from the stack:
 '
 '    stdError.addStack "myMethod"
 '      ... our code ...
 '    stdError.popStack
-'    stdPerformance.monitor "myMethod"
-'  
-'    stdPerformance.stopMonitor
 '
-'This method could even lead to errors where popStack/stopMonitor being forgotton.
+'stdPerformance today uses the sentry pattern:
 '
-'A better pattern is as follows:
+'    With stdPerformance.CreateMeasure("Some measurement")
+'      ... our code ...
+'    End With
 '
-'    Sub test()
-'      With stdError.getSentry("test")
-'        With Performance.getSentry() 'sets Application.EnableEvents to false on initialise and to true on destroy
-'              
-'              '... our code ...
-'    
-'        End With
-'      End With
-'    End Sub
+'Although the two patterns have the same size (3 lines), the sentry pattern is both more beautiful and more robust.
+'This class is an attempt to make the sentry pattern easier to implement in VBA.
 '
-'Learnt this pattern from GSerg here https://stackoverflow.com/a/20718181/6302131
-'
-'Generic sentry pattern:
-'
-'   stdSentry.Create(ByVal OnDestroy as ICallable, ParamArray args() as variant)
-'
-'So for stdError:
-'
-'    Public Function getSentry(ByVal sSubName as string) as stdSentry
-'      Call stdError.addStack(sSubName)
-'      set getSentry = stdSentry.Create(stdCallback.CreateFromObjectMethod(stdError,"popStack"))
-'    End Function
-'
-'The stdSentry is implemented very simply:
-Private pOnDestroy as stdICallable
+'   Dim ensureScreenUpdating as stdSentry
+'   set ensureScreenUpdating = stdSentry.Create( _ 
+'     stdLambda.CreateMultiLine( _ 
+'       Array( _ 
+'         "let temp = Application.ScreenUpdating", _
+'         "let Application.ScreenUpdating = $1", _
+'         "Array(temp)", _
+'       ) _ 
+'     ), _
+'     stdLambda.Create("let Application.ScreenUpdating = $1") _ 
+'   )
+'   With ensureScreenUpdating(False)
+'     '... our code ...
+'   End With
+'------------------------
+'   set sentry = stdSentry.Create(
+'     stdCallback.CreateFromModule("", "RNOn"), _
+'     stdCallback.CreateFromModule("", "RNOff") _
+'   )
 
-Public Function Create(ByVal OnDestroy as stdICallable) as stdSentry
+Implements stdICallable
+Private Type TFactory
+  OnInit as stdICallable
+  OnDestroy as stdICallable
+  passVars as boolean
+End Type
+Private Type TInstance
+  pOnDestroy as stdICallable
+  DestroyArgs as Variant
+  passVars as boolean
+End Type
+Private Type TThis
+  Private Factory as TFactory
+  Private Instance as TInstance
+End Type
+Private This as TThis
+
+
+'Create a sentry factory
+'@param OnInit - Function to run when the sentry is created.
+'@param OnDestroy - Function to run when the sentry is destroyed.
+'@param passVars - If true, the result of OnInit is passed to OnDestroy. If false, no arguments are passed to OnDestroy.
+'@returns - The sentry factory
+Public Function Create(ByVal OnInit as stdICallable, ByVal OnDestroy as stdICallable, Optional ByVal passVars as boolean = true) as stdSentry
   set Create = new stdSentry
-  Call Create.Init(OnDestroy)
+  Call Create.protInit(OnInit, OnDestroy, passVars)
 End Function
 
-'E.G. stdSentry.CreateFromMethods(stdError,"zprot_RNOn","zprot_RNOff")
-Public Function CreateFromMethods(ByVal obj as object, ByVal sOnCreateName as string, ByVal sOnDestroyName as string) as stdSentry
-  set CreateFromMethods = new stdSentry
-  Call CallByName(obj, sOnCreateName)
-  CreateFromMethods.Init(stdCallback.CreateFromObjectMethod(obj,sOnDestroyName))
+'Create a sentry which acts as an "optimiser" for code. Note, setting options doesn't always lead to performance improvements. See [vba-articles performance thread](https://sancarn.github.io/vba-articles/performance-tips.html) for details.
+'@param EnableEvents   - If not Empty, sets Application.EnableEvents to this value. If Empty, Application.EnableEvents remains unchanged.
+'@param ScreenUpdating - If not Empty, sets Application.ScreenUpdating to this value. If Empty, Application.ScreenUpdating remains unchanged.
+'@param Calculation    - If not -1, sets Application.Calculation to this value. If -1, Application.Calculation remains unchanged.
+'@returns - A sentry which will restore the original settings when destroyed.
+'@requires stdLambda
+'@example ```vba
+'With stdSentry.CreateOptimiser(ScreenUpdating:=False, Calculation:=xlCalculationManual)
+'  '... heavy range based operations ...
+'End With
+'```
+Public Function CreateOptimiser(Optional ByVal EnableEvents as vbTriState = vbUseDefault, Optional ByVal ScreenUpdating as vbTriState = vbUseDefault, Optional ByVal Calculation as Long = -1) as stdSentry
+  if not isObject(stdLambda) then Err.Raise 5, "stdSentry.CreateFromObjectMethod", "stdLambda is required for this function"
+  
+  'Validate inputs
+  if not (EnableEvents = Empty or VarType(EnableEvents) = vbBoolean) then Err.Raise 5, "stdSentry.CreateOptimiser", "EnableEvents must be a boolean or Empty"
+  if not (ScreenUpdating = Empty or VarType(ScreenUpdating) = vbBoolean) then Err.Raise 5, "stdSentry.CreateOptimiser", "ScreenUpdating must be a boolean or Empty"
+  if not (Calculation = -1 or Calculation = 2 or Calculation = -4135  or Calculation = -4105) then Err.Raise 5, "stdSentry.CreateOptimiser", "Calculation must be either xlCalculationAutomatic, xlCalculationSemiautomatic, xlCalculationManual, or -1"
+  
+  'Convert Calculation to a variant
+  Dim vCalculation as Variant: vCalculation = IIf(Calculation = -1, Empty, Calculation)
+
+  'Create the OnInit and OnDestroy functions
+  '@remark vbUseDefault == -2
+  Dim onInit as stdICallable: Set onInit = stdLambda.CreateMultiLine(Array( _
+    "If $1 <> -2 Then let t1 = Application.EnableEvents   : let Application.EnableEvents = $1    Else let t1 = -2", _
+    "If $2 <> -2 Then let t2 = Application.ScreenUpdating : let Application.ScreenUpdating = $2  Else let t2 = -2", _
+    "If $3 <> -2 Then let t3 = Application.Calculation    : let Application.Calculation = $3     Else let t3 = -2", _
+    "Array(t1,t2,t3)" _
+  ))
+  Dim onDestroy as stdICallable: Set onDestroy = stdLambda.CreateMultiLine(Array( _
+    "If $1 <> -2 Then let Application.EnableEvents = $1", _
+    "If $2 <> -2 Then let Application.ScreenUpdating = $2", _
+    "If $3 <> -2 Then let Application.Calculation = $3" _
+  ))
+  
+  'Create the sentry
+  set CreateOptimiser = Create(onInit, onDestroy).Run(EnableEvents, ScreenUpdating, vCalculation)
 End Function
 
-'E.G. With stdSentry.CreateFromLet(Application,"EnableEvents", false)
-Public Function CreateFromLet(ByVal obj as object, ByVal sPropertyName as string, ByVal vNewValue as variant) as stdSentry
-  set CreateFromLet = new stdSentry
-  Dim vOldValue as variant: vOldValue = CallByName(obj,sPropertyName, vbGet)
-  Call CallByName(obj,sPropertyName, vbLet, vNewValue)
-  CreateFromLet.init(stdCallback.CreateFromObjectProperty(obj,sPropertyName, vbLet).bind(vOldValue))
+'Create a sentry from a property of an object
+'@param obj - Object to bind the property to
+'@param sPropertyName - Name of the property to bind
+'@param value - Value to set the property to
+'@returns - The sentry
+'@requires stdLambda
+'@example ```vba
+'With stdSentry.CreateFromObjectProperty(Application, "DisplayAlerts", false)
+'  Call ThisWorkbook.SaveAs("C:\temp\test.xlsx")
+'End With
+'```
+Public Function CreateFromObjectProperty(ByVal obj as Object, ByVal sPropertyName as String, ByVal value as Variant) as stdSentry
+  if not isObject(stdLambda) then Err.Raise 5, "stdSentry.CreateFromObjectMethod", "stdLambda is required for this function"
+  Dim onInit as stdICallable: Set onInit = stdLambda.CreateMultiLine(Array( _
+    "let t1 = $1." & sPropertyName _ 
+    "let $1." & sPropertyName & " = $2", _
+    "Array(t1)" _
+  )).bind(obj)
+  Dim onDestroy as stdICallable: Set onDestroy = stdLambda.CreateMultiLine(Array( _
+    "let $1." & sPropertyName & " = $2" _
+  )).bind(obj)
+
+  set CreateFromObjectProperty = Create(OnInit, OnDestroy).Run(value)
 End Function
 
-Public Sub Init(ByVal OnDestroy as stdICallable)
-  set pOnDestroy = OnDestroy
+'Create a sentry from a method of an object
+'@param obj - Object to bind the method to
+'@param sOnCreateName - Name of the method to call when the sentry is created
+'@param sOnDestroyName - Name of the method to call when the sentry is destroyed
+'@returns - The sentry
+'@requires stdCallback
+'@example ```vba
+'With stdSentry.CreateFromObjectMethod(stdError, "AddStack", Array("MethodName"), "PopStack", Array())
+'  '... our code ...
+'End With
+'```
+Public Function CreateFromObjectMethod(ByVal obj as Object, ByVal OnInitName as String, ByVal initParams as Variant, ByVal OnDestroyName as String, ByVal destroyParams as variant) as stdSentry
+  if not isObject(stdCallback) then Err.Raise 5, "stdSentry.CreateFromObjectMethod", "stdCallback is required for this function"
+  Dim onInit as stdICallable: set onInit = stdCallback.CreateFromObjectMethod(obj, OnInitName).BindEx(initParams)
+  Dim onDestroy as stdICallable: set onDestroy = stdCallback.CreateFromObjectMethod(obj, OnDestroyName).BindEx(destroyParams)
+  set CreateFromObjectMethod = Create(onInit, onDestroy, false).Run()
+End Function
+
+'Create a sentry for error stack management
+'@param name - Name of the stack to add
+'@returns - The sentry
+'@requires stdError, stdCallback
+'@example ```vba
+'Public Sub MyMethod()
+'  With stdSentry.CreateErrorStack("MyClass.MyMethod")
+'    '... our code ...
+'  End With
+'End Sub
+'```
+Public Function CreateErrorStack(ByVal name as String) as stdSentry
+  if not isObject(stdError) then Err.Raise 5, "stdSentry.CreateFromObjectMethod", "stdError is required for this function"
+  set CreateErrorStack = CreateFromObjectMethod(stdError, "AddStack", Array(name), "PopStack", Array()).Run()
+End Function
+
+
+'@param OnInit - Function to run when the sentry is created. Should return arguments to pass to OnDestroy. If OnInit returns Empty, no arguments are passed to OnDestroy.
+'@param OnDestroy - Function to run when the sentry is destroyed. Should take the arguments returned by OnInit.
+Public Sub protInitFactory(ByVal OnInit as stdICallable, ByVal OnDestroy as stdICallable, ByVal passVars as boolean)
+  With This.Factory
+    Set .OnInit = OnInit
+    Set .OnDestroy = OnDestroy
+  End With
 End Sub
+Public Sub protInitInstance(ByVal onDestroy as stdICallable, ByVal args as Variant, ByVal passVars as boolean)
+  With This.Instance
+    Set .pOnDestroy = onDestroy
+    .DestroyArgs = args
+    .passVars = passVars
+  End With
+End Sub
+
+'Run the sentry
+'@param args - Arguments to pass to the OnInit function
+'@returns - The sentry
+Public Function Run(ParamArray args() as Variant) as stdSentry
+Attribute.Run.VB_UserMemId = 0
+  Dim copy: copy = args
+  set Run = RunEx(copy)
+End Function
+
+'Run the sentry
+'@param args - Arguments to pass to the OnInit function
+'@returns - The sentry
+Public Function RunEx(ByVal args as Variant) as stdSentry
+  'Run the OnInit function and prepare destroy arguments
+  Dim destroyArgs: destroyArgs = This.Factory.OnInit.RunEx(args)
+  if IsEmpty(destroyArgs) then destroyArgs = Array()
+
+  'Return the sentry
+  set RunEx = new stdSentry
+  Call RunEx.protInitInstance(This.Factory.OnDestroy, destroyArgs, This.Factory.passVars)
+End Function
+
+'Bind arguments to the sentry factory
+'@param args - Arguments to bind to the sentry
+'@returns - The sentry
+Public Function Bind(ParamArray args() as Variant) as stdSentry
+  Dim copy: copy = args
+  set Bind = BindEx(copy)
+End Function
+
+'Bind arguments to the sentry factory
+'@param args as Variant<Array<Variant>> - Arguments to bind to the sentry
+'@returns - The sentry
+Public Function BindEx(ByVal args as Variant) as stdSentry
+  set BindEx = new stdSentry
+  'TODO: 
+End Function
+
+'Making late-bound calls to `stdSentry` members. Each object which implements `stdICallable`
+'will support a different set of latebound calls.
+'@protected
+'@param sMessage - Message to send. Standard messages include "obj" returning the object, "className" returning the class name. Other messages are implementation specific.
+'@param success  - Whether the call was successful
+'@param params   - Any variant, typically parameters as an array. Passed along with the message.
+'@returns - Any return value.
+Public Function SendMessage(ByVal sMessage as string, ByRef success as boolean, ByVal params as variant) as Variant
+  select case sMessage
+    case "obj":
+      success = true
+      set SendMessage = Me
+    case "className":
+      success = true
+      SendMessage = "stdSentry"
+    case "OnInit":
+      success = true
+      set SendMessage = This.Factory.OnInit
+    case "OnDestroy":
+      success = true
+      set SendMessage = This.Factory.OnDestroy
+    case else
+      success = false
+  end select
+End Function
+
 
 Private Sub Class_Terminate()
-  if not pOnDestroy is nothing then
-    Call pOnDestroy.Run()
-  End if
+  With This.Instance
+    if not .OnDestroy is nothing then
+      if this.Instance.passVars then
+        Call .OnDestroy.RunEx(.DestroyArgs)
+      else
+        Call .OnDestroy.Run
+      end if
+    End if
+  End With
 End Sub
-
-
-
