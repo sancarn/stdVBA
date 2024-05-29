@@ -72,13 +72,16 @@ Attribute VB_Exposed = False
 '   Range("A1:B1").value = Array("ID-Date","Count")
 '   Range("A2").Resize(ubound(vResult,1),2).value = vResult
 
-'@TODO: Convert to TThis
-Private p_initialised As Boolean
-Private p_pattern As String
-Private p_cPattern As String
-Private p_flags As String
-Private p_namesDict As Object
-Private p_regex As Object
+
+Private Type TThis
+  initialised As Boolean
+  pattern As String
+  cPattern As String
+  flags As String
+  namesDict As Object
+  regex As Object
+End Type
+Private This As TThis
 
 
 'Creates a regex object given a pattern and flags.
@@ -130,8 +133,8 @@ Friend Sub protInit(ByVal pattern As String, ByVal flags As String)
     Exit Sub
   End If
   
-  p_pattern = pattern
-  p_flags = flags
+  This.pattern = pattern
+  This.flags = flags
 
   'Named regexp used to detect capturing groups and named capturing groups
   'Captures all capturing groups. All capturing groups with a name has a subcapturing group containing the name.
@@ -181,33 +184,33 @@ Friend Sub protInit(ByVal pattern As String, ByVal flags As String)
   End If
 
   'Create dictionary of names in the regex.
-  Set p_namesDict = NamesMatcher.Execute(SaveEscape(p_pattern, "("))
+  Set This.namesDict = NamesMatcher.Execute(SaveEscape(This.pattern, "("))
   
   
   'Initialise p_regex
-  Set p_regex = CreateObject("VBScript.RegExp")
-  p_regex.pattern = LoadEscape(NamesReplacer.Replace(SaveEscape(p_pattern, "("), "("), "(")
+  Set This.regex = CreateObject("VBScript.RegExp")
+  This.regex.pattern = LoadEscape(NamesReplacer.Replace(SaveEscape(This.pattern, "("), "("), "(")
 
   'Process regex options
   Dim i As Integer
   For i = 1 To Len(flags)
     Select Case Mid(flags, i, 1)
       Case "i"
-        p_regex.ignoreCase = True
+        This.regex.ignoreCase = True
       Case "g"
-        p_regex.Global = True
+        This.regex.Global = True
       Case "m"
-        p_regex.MultiLine = True
+        This.regex.MultiLine = True
       Case "x"
-        p_regex.pattern = LoadEscape(OptionIgnoreWhiteSpace.Replace(SaveEscape(p_regex.pattern, " "), ""), " ")
+        This.regex.pattern = LoadEscape(OptionIgnoreWhiteSpace.Replace(SaveEscape(This.regex.pattern, " "), ""), " ")
       Case "c"
-        p_regex.pattern = LoadEscape(OptionIgnoreComment.Replace(SaveEscape(p_regex.pattern, "#"), ""), "#")
+        This.regex.pattern = LoadEscape(OptionIgnoreComment.Replace(SaveEscape(This.regex.pattern, "#"), ""), "#")
       Case "s"
-        p_regex.pattern = LoadEscape(OptionSingleLineMode.Replace(SaveEscape(p_regex.pattern, "."), "(?:.|\s)"), ".")
+        This.regex.pattern = LoadEscape(OptionSingleLineMode.Replace(SaveEscape(This.regex.pattern, "."), "(?:.|\s)"), ".")
     End Select
   Next
 
-  p_initialised = True
+  This.initialised = True
 End Sub
 
 
@@ -224,7 +227,7 @@ Public Property Get pattern() As String
     Exit Property
   End If
 
-  pattern = p_pattern
+  pattern = This.pattern
 End Property
 Public Property Let pattern(val As String)
   If Me Is stdRegex Then
@@ -232,7 +235,7 @@ Public Property Let pattern(val As String)
     Exit Property
   End If
   
-  Call protInit(val, p_flags)
+  Call protInit(val, This.flags)
 End Property
 
 
@@ -245,7 +248,7 @@ Public Property Get flags() As String
     Exit Property
   End If
 
-  flags = p_flags
+  flags = This.flags
 End Property
 Public Property Let flags(val As String)
   If Me Is stdRegex Then
@@ -253,7 +256,7 @@ Public Property Let flags(val As String)
     Exit Property
   End If
 
-  Call protInit(p_pattern, val)
+  Call protInit(This.pattern, val)
 End Property
 
 
@@ -274,7 +277,7 @@ Public Function Test(ByVal sHaystack As String) As Boolean
     Exit Function
   End If
   
-  Test = p_regex.Test(sHaystack)
+  Test = This.regex.Test(sHaystack)
 End Function
 
 
@@ -312,7 +315,7 @@ Public Function Match(ByVal sHaystack As String) As Object
   
   'Execute regex on haystack provided
   Dim oMatches As Object
-  Set oMatches = p_regex.Execute(sHaystack)
+  Set oMatches = This.regex.Execute(sHaystack)
   
   Dim oRet As Object
   If oMatches.Count <> 0 Then
@@ -326,10 +329,10 @@ Public Function Match(ByVal sHaystack As String) As Object
   
     'Loop over submatches and apply to dict
     Dim i As Long
-    For i = 1 To p_namesDict.Count
+    For i = 1 To This.namesDict.Count
       oRet(i) = oMatches(0).Submatches(i - 1)
       If Not IsEmpty(oMatches(0).Submatches(i - 1)) Then
-        If Not IsEmpty(p_namesDict(i - 1).Submatches(0)) Then oRet(p_namesDict(i - 1).Submatches(0)) = oMatches(0).Submatches(i - 1)
+        If Not IsEmpty(This.namesDict(i - 1).Submatches(0)) Then oRet(This.namesDict(i - 1).Submatches(0)) = oMatches(0).Submatches(i - 1)
       End If
     Next i
   End If
@@ -369,15 +372,15 @@ Public Function MatchAll(ByVal sHaystack As String) As Collection
   End If
   
   'Note: In order to match all, we need to ensure global is true, but will revert our changes afterwards.
-  Dim bOriginalGlobal As Boolean: bOriginalGlobal = p_regex.Global
-  p_regex.Global = True
+  Dim bOriginalGlobal As Boolean: bOriginalGlobal = This.regex.Global
+  This.regex.Global = True
   
   'Execute regex on haystack provided
   Dim oMatches As Object
-  Set oMatches = p_regex.Execute(sHaystack)
+  Set oMatches = This.regex.Execute(sHaystack)
   
   'Revert forced global
-  p_regex.Global = bOriginalGlobal
+  This.regex.Global = bOriginalGlobal
   
   'Create array to hold match data
   Dim oRet As Collection
@@ -396,10 +399,10 @@ Public Function MatchAll(ByVal sHaystack As String) As Collection
     Set oDict("$RAW") = oMatches
 
     'Loop over submatches and apply to dict
-    For j = 1 To p_namesDict.Count
+    For j = 1 To This.namesDict.Count
       oDict(j) = oMatches(i - 1).Submatches(j - 1)
       If Not IsEmpty(oMatches(i - 1).Submatches(j - 1)) then
-        If Not IsEmpty(p_namesDict(j - 1).Submatches(0)) Then oDict(p_namesDict(j - 1).Submatches(0)) = oMatches(i - 1).Submatches(j - 1)
+        If Not IsEmpty(This.namesDict(j - 1).Submatches(0)) Then oDict(This.namesDict(j - 1).Submatches(0)) = oMatches(i - 1).Submatches(j - 1)
       end if
     Next
 
@@ -444,17 +447,17 @@ Public Function Replace(ByVal sHaystack As String, ByVal sReplacer As String) As
   End If
   
   'Replace names in sReplacer with indexed replacers ($1,$2,...)
-  For i = 1 To p_namesDict.Count
-    If Not IsEmpty(p_namesDict(i - 1).Submatches(0)) Then
+  For i = 1 To This.namesDict.Count
+    If Not IsEmpty(This.namesDict(i - 1).Submatches(0)) Then
       Dim sName As String
-      sName = p_namesDict(i - 1).Submatches(0)
+      sName = This.namesDict(i - 1).Submatches(0)
       
       sReplacer = VBA.Replace(sReplacer, "$" & sName, "$" & i)
     End If
   Next
 
   'Pass to vbscript regex handler and return
-  Replace = p_regex.Replace(sHaystack, sReplacer)
+  Replace = This.regex.Replace(sHaystack, sReplacer)
 End Function
 
 

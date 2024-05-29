@@ -519,16 +519,18 @@ End Enum
 #End If
 
 
-'@TODO: Convert to TThis
 Private Type TLayeredWindowInfo
   crKey As Long
   bAlpha As Byte
 End Type
 
-Private pHandle As LongPtr
-Private pInitialized As Boolean
-Private pLayeredWindowInfo As TLayeredWindowInfo
-Private Lookups As Object
+Private Type TThis
+  Handle As LongPtr
+  Initialized As Boolean
+  LayeredWindowInfo As TLayeredWindowInfo
+  Lookups As Object
+End Type
+Private This as TThis
 
 
 '================================================================================================
@@ -710,7 +712,7 @@ Public Function AsAcc() as stdAcc
 Public Function AsAcc() as Object
 #end if
   if isObject(stdAcc) then
-    set AsAcc = stdAcc.CreateFromHwnd(pHandle)
+    set AsAcc = stdAcc.CreateFromHwnd(This.Handle)
   else
     Err.Raise 1, "", "This function requires stdAcc dependency."
   end if
@@ -734,13 +736,13 @@ Friend Sub protInit(ByVal hwnd As LongPtr)
 #Else
 Friend Sub protInit(ByVal hwnd As Long)
 #End If
-  pHandle = hwnd
-  pInitialized = True
+  This.Handle = hwnd
+  This.Initialized = True
 End Sub
 
 'Whenever we initialise ensure to get lookups from `stdWindow`
 Private Sub Class_Initialize()
-    Set Lookups = stdWindow.protGetLookups()
+    Set This.Lookups = stdWindow.protGetLookups()
 End Sub
 
 
@@ -755,7 +757,7 @@ Public Property Get handle() As LongPtr
 #Else
 Public Property Get handle() As Long
 #End If
-  handle = pHandle
+  handle = This.Handle
 End Property
 
 'Get the handle to the display context for the window
@@ -765,20 +767,20 @@ Public Property Get hDC() As LongPtr
 #Else
 Public Property Get hDC() As Long
 #End If
-  hDC = GetWindowDC(pHandle)
+  hDC = GetWindowDC(This.Handle)
 End Property
 
 'Detect if the window exists
 '@returns - `true` if window exists, `false` otherwise
 Public Property Get Exists() As Boolean
-  Exists = IsWindow(pHandle)
+  Exists = IsWindow(This.Handle)
 End Property
 
 'Detect if the window is hanging/frozen
 '@returns - `true` if window is hanging/frozen, `false` otherwise
 Public Property Get IsFrozen() As Boolean
   If Exists Then
-    IsFrozen = IsHungAppWindow(pHandle)
+    IsFrozen = IsHungAppWindow(This.Handle)
   Else
     Err.Raise 1, "IsFrozen", "Window does not exist."
   End If
@@ -790,7 +792,7 @@ Public Property Get Caption() As String
   If Exists Then
     Dim sCharBuffer As String, iNumChars As Long
     sCharBuffer = space(256)
-    iNumChars = GetWindowText(pHandle, sCharBuffer, 256)
+    iNumChars = GetWindowText(This.Handle, sCharBuffer, 256)
     Caption = Mid(sCharBuffer, 1, iNumChars)
   Else
     Err.Raise 1, "Caption", "Window does not exist."
@@ -798,7 +800,7 @@ Public Property Get Caption() As String
 End Property
 Public Property Let Caption(ByVal s As String)
   If Exists Then
-    If Not CBool(SetWindowText(pHandle, s)) Then
+    If Not CBool(SetWindowText(This.Handle, s)) Then
       Err.Raise 1, "Caption [Let]", "Window text could not be set."
     End If
   Else
@@ -812,7 +814,7 @@ Public Property Get Class() As String
   If Exists Then
     Dim sCharBuffer As String, iNumChars As Long
     sCharBuffer = space(256)
-    iNumChars = GetClassName(pHandle, sCharBuffer, 256)
+    iNumChars = GetClassName(This.Handle, sCharBuffer, 256)
     Class = Mid(sCharBuffer, 1, iNumChars)
   Else
     Err.Raise 1, "Class", "Window does not exist."
@@ -823,7 +825,7 @@ End Property
 '@returns - `true` if window is visible, `false` otherwise
 Public Property Get Visible() As Boolean
   If Exists Then
-    Visible = IsWindowVisible(pHandle)
+    Visible = IsWindowVisible(This.Handle)
   Else
     Err.Raise 1, "Visible", "Window does not exist."
   End If
@@ -831,9 +833,9 @@ End Property
 Public Property Let Visible(ByVal x As Boolean)
   If Exists Then
     If x Then
-      Call ShowWindow(pHandle, EWndShowStyle.SW_SHOW)
+      Call ShowWindow(This.Handle, EWndShowStyle.SW_SHOW)
     Else
-      Call ShowWindow(pHandle, EWndShowStyle.SW_HIDE)
+      Call ShowWindow(This.Handle, EWndShowStyle.SW_HIDE)
     End If
   Else
     Err.Raise 1, "Visible", "Window does not exist."
@@ -844,9 +846,9 @@ End Property
 '@returns - Window state
 Public Property Get State() As EWndState
   If Exists Then
-    If IsZoomed(pHandle) Then
+    If IsZoomed(This.Handle) Then
       State = EWndState.Maximised
-    ElseIf IsIconic(pHandle) Then
+    ElseIf IsIconic(This.Handle) Then
       State = EWndState.Minimised
     Else
       State = EWndState.Normal
@@ -860,11 +862,11 @@ Public Property Let State(ByVal x As EWndState)
     If Visible Then
       Select Case x
         Case EWndState.Normal
-          Call ShowWindow(pHandle, EWndShowStyle.SW_RESTORE)
+          Call ShowWindow(This.Handle, EWndShowStyle.SW_RESTORE)
         Case EWndState.Maximised
-          Call ShowWindow(pHandle, EWndShowStyle.SW_MAXIMIZE)
+          Call ShowWindow(This.Handle, EWndShowStyle.SW_MAXIMIZE)
         Case EWndState.Minimised
-          Call ShowWindow(pHandle, EWndShowStyle.SW_FORCEMINIMIZE)
+          Call ShowWindow(This.Handle, EWndShowStyle.SW_FORCEMINIMIZE)
       End Select
     Else
       Err.Raise 1, "State", "Cannot set window state of a hidden window."
@@ -885,7 +887,7 @@ Public Property Get children() As collection
     'Attempt to get a child window
     Dim childHandle As LongPtr
     
-    childHandle = GetWindow(pHandle, GW_CHILD)
+    childHandle = GetWindow(This.Handle, GW_CHILD)
 
     'If a child window exists, find all children
     If childHandle <> 0 Then
@@ -919,7 +921,7 @@ End Property
 Public Property Get RectClient() As Double()
   If Exists Then
     Dim rect As apiRect
-    If Not GetClientRect(pHandle, rect) Then
+    If Not GetClientRect(This.Handle, rect) Then
       Dim fRet(0 To 3) As Double
       With rect
         fRet(0) = .left
@@ -942,7 +944,7 @@ End Property
 Public Property Get RectWindow() As Variant
   If Exists Then
     Dim rect As apiRect
-    If Not GetWindowRect(pHandle, rect) Then
+    If Not GetWindowRect(This.Handle, rect) Then
       Dim fRet As Variant
       ReDim fRet(0 To 3)
       With rect
@@ -962,7 +964,7 @@ End Property
 Public Property Let RectWindow(ByVal rect As Variant)
   If isArray(rect) Then
     If Exists Then
-      Call MoveWindow(pHandle, rect(0), rect(1), rect(2), rect(3), True)
+      Call MoveWindow(This.Handle, rect(0), rect(1), rect(2), rect(3), True)
     Else
       Err.Raise 1, "RectWindow [Let]", "Window does not exist."
     End If
@@ -1004,7 +1006,7 @@ End Property
 Public Property Let x(Optional ByVal iClWnd As EWndRectType, ByVal vX As Long)
   If Exists Then
     Dim rect As Variant: rect = RectByType(iClWnd)
-    Call MoveWindow(pHandle, vX, rect(1), rect(2), rect(3), True)
+    Call MoveWindow(This.Handle, vX, rect(1), rect(2), rect(3), True)
   Else
     Err.Raise 1, "stdWindow#x [Let]", "Window does not exist."
   End If
@@ -1023,7 +1025,7 @@ End Property
 Public Property Let y(Optional ByVal iClWnd As EWndRectType, ByVal vY As Long)
   If Exists Then
     Dim rect As Variant: rect = RectByType(iClWnd)
-    Call MoveWindow(pHandle, rect(0), vY, rect(2), rect(3), True)
+    Call MoveWindow(This.Handle, rect(0), vY, rect(2), rect(3), True)
   Else
     Err.Raise 1, "stdWindow#y [Let]", "Window does not exist."
   End If
@@ -1042,7 +1044,7 @@ End Property
 Public Property Let width(Optional ByVal iClWnd As EWndRectType, ByVal vW As Long)
   If Exists Then
     Dim rect As Variant:: rect = RectByType(iClWnd)
-    Call MoveWindow(pHandle, rect(0), rect(1), vW, rect(3), True)
+    Call MoveWindow(This.Handle, rect(0), rect(1), vW, rect(3), True)
   Else
     Err.Raise 1, "stdWindow#width [Let]", "Window does not exist."
   End If
@@ -1061,7 +1063,7 @@ End Property
 Public Property Let height(Optional ByVal iClWnd As EWndRectType, ByVal vH As Long)
   If Exists Then
     Dim rect As Variant:: rect = RectByType(iClWnd)
-    Call MoveWindow(pHandle, rect(0), rect(1), rect(2), vH, True)
+    Call MoveWindow(This.Handle, rect(0), rect(1), rect(2), vH, True)
   Else
     Err.Raise 1, "stdWindow#height [Let]", "Window does not exist."
   End If
@@ -1071,7 +1073,7 @@ End Property
 '@returns - Process ID
 Public Property Get ProcessID() As Long
   If Exists Then
-    Call GetWindowThreadProcessId(pHandle, ProcessID)
+    Call GetWindowThreadProcessId(This.Handle, ProcessID)
   Else
     Err.Raise 1, "ProcessID", "Window does not exist."
   End If
@@ -1083,7 +1085,7 @@ Public Property Get ProcessName() As String
   If Exists Then
     Dim sCharBuffer As String, iNumChars As Long
     sCharBuffer = space(256)
-    iNumChars = GetWindowModuleFileName(pHandle, sCharBuffer, 256)
+    iNumChars = GetWindowModuleFileName(This.Handle, sCharBuffer, 256)
     ProcessName = Mid(sCharBuffer, 1, iNumChars)
   Else
     Err.Raise 1, "ProcessName", "Window does not exist."
@@ -1093,9 +1095,9 @@ End Property
 'Get/Set the window's parent window:
 '@returns - Parent window
 Public Property Get parent() As stdWindow
-  Dim pHwnd As LongPtr: pHwnd = GetParent(pHandle)
+  Dim pHwnd As LongPtr: pHwnd = GetParent(This.Handle)
   If pHwnd <> 0 Then
-    Set parent = stdWindow.CreateFromHwnd(GetParent(pHandle))
+    Set parent = stdWindow.CreateFromHwnd(GetParent(This.Handle))
   ElseIf Class <> "#32769" Then
     Set parent = stdWindow.CreateFromDesktop()
   End If
@@ -1106,14 +1108,14 @@ Public Property Set parent(ByVal win As stdWindow)
   ElseIf Not win.Exists Then
     Err.Raise 1, "Parent [Set]", "New parent window no longer exists."
   Else
-    Dim hOldParent As LongPtr: hOldParent = SetParent(pHandle, win.handle)
+    Dim hOldParent As LongPtr: hOldParent = SetParent(This.Handle, win.handle)
   End If
 End Property
 
 'Get/Set the owner of the window.
 '@remark - The owner is not the same as the parent. See: Raymond Chen's article: https://devblogs.microsoft.com/oldnewthing/20100315-00/?p=14613
 Public Property Get owner() as stdWindow
-  Dim tOwner as LongPtr: tOwner = GetWindowLongPtrA(pHandle, apiWindowLongType.GWL_HWNDPARENT)
+  Dim tOwner as LongPtr: tOwner = GetWindowLongPtrA(This.Handle, apiWindowLongType.GWL_HWNDPARENT)
   set owner = stdWindow.CreateFromHwnd(tOwner)
 end property
 Public Property Set owner(ByVal win as stdWindow)
@@ -1122,7 +1124,7 @@ Public Property Set owner(ByVal win as stdWindow)
   ElseIf Not win.Exists Then
     Err.Raise 1, "Owner [Set]", "New owner window no longer exists."
   Else
-    Call SetWindowLongPtrA(pHandle, apiWindowLongType.GWL_HWNDPARENT, win.handle)
+    Call SetWindowLongPtrA(This.Handle, apiWindowLongType.GWL_HWNDPARENT, win.handle)
   End If
 End Property
 
@@ -1131,7 +1133,7 @@ End Property
 '@remark - The owner is not the same as the parent. See: Raymond Chen's article: https://devblogs.microsoft.com/oldnewthing/20100315-00/?p=14613.
 'Calling `stdWindow.CreateFromIUnknown(Me).setOwnerHandle(0)` is especially useful, as it raises the Excel Userform to a top level window.
 Public Sub setOwnerHandle(ByVal hwnd as LongPtr)
-  Call SetWindowLongPtrA(pHandle, apiWindowLongType.GWL_HWNDPARENT, hwnd)
+  Call SetWindowLongPtrA(This.Handle, apiWindowLongType.GWL_HWNDPARENT, hwnd)
 End Sub
 
 'Get/Set a handle to the icon of the window
@@ -1144,7 +1146,7 @@ End Sub
 Public Property Get HICON() As LongPtr
   If Exists Then
     HICON = SendMessage(apiWindowMessage.WM_GETICON, apiWindowIconType.ICON_SMALL2, 0)
-    if HICON = NULL_PTR then HICON = GetClassLongPtrA(pHandle, apiClassLongType.GCL_HICONSM)
+    if HICON = NULL_PTR then HICON = GetClassLongPtrA(This.Handle, apiClassLongType.GCL_HICONSM)
     If HICON = NULL_PTR then Err.Raise 1, "HICON", "No icon found."
   Else
     Err.Raise 1, "HICON", "Window does not exist."
@@ -1163,7 +1165,7 @@ End Property
 '@returns - Searches up the window tree to find the top level window which is a direct child of the desktop window.
 Public Property Get AncestralRoot() As stdWindow
   If Exists Then
-    Set AncestralRoot = stdWindow.CreateFromHwnd(GetAncestor(pHandle, apiWindowAncestorType.GA_ROOT))
+    Set AncestralRoot = stdWindow.CreateFromHwnd(GetAncestor(This.Handle, apiWindowAncestorType.GA_ROOT))
   Else
     Err.Raise 1, "AncestralRoot", "Window does not exist."
   End If
@@ -1173,7 +1175,7 @@ End Property
 '@returns - Window style
 Public Property Get Style() As Long
   If Exists Then
-    Style = GetWindowLongA(pHandle, apiWindowLongType.GWL_STYLE)
+    Style = GetWindowLongA(This.Handle, apiWindowLongType.GWL_STYLE)
   Else
     Err.Raise 1, "Style", "Window does not exist."
   End If
@@ -1184,7 +1186,7 @@ Public Property Let Style(ByVal newStyle As Long)
     Err.Clear
 
     'Set window long
-    Dim hResult As Long: hResult = SetWindowLongA(pHandle, apiWindowLongType.GWL_STYLE, newStyle)
+    Dim hResult As Long: hResult = SetWindowLongA(This.Handle, apiWindowLongType.GWL_STYLE, newStyle)
 
     'Check for errors
     If hResult = 0 And Err.LastDllError <> 0 Then Err.Raise 1, "Style [Let]", "Unexpected error in SetWindowLongA", Err.LastDllError
@@ -1197,8 +1199,8 @@ End Property
 '@returns - semi-colon delimited list of style names e.g. "WS_BORDER;WS_CAPTION"
 Public Property Get StyleTexts() as String
   Dim iStyle as Long: iStyle = Style
-  static vKeys   as variant: if isEmpty(vKeys)   then vKeys   = Lookups("EWndStyles").keys()
-  static vStyles as variant: if isEmpty(vStyles) then vStyles = Lookups("EWndStyles").items()
+  static vKeys   as variant: if isEmpty(vKeys)   then vKeys   = This.Lookups("EWndStyles").keys()
+  static vStyles as variant: if isEmpty(vStyles) then vStyles = This.Lookups("EWndStyles").items()
   
   Dim s as string
   Dim i as long: For i = 0 to ubound(vKeys)
@@ -1211,7 +1213,7 @@ End Property
 '@returns - Window extended style
 Public Property Get StyleEx() As Long
   If Exists Then
-    StyleEx = GetWindowLongA(pHandle, apiWindowLongType.GWL_EXSTYLE)
+    StyleEx = GetWindowLongA(This.Handle, apiWindowLongType.GWL_EXSTYLE)
   Else
     Err.Raise 1, "StyleEx", "Window does not exist."
   End If
@@ -1222,7 +1224,7 @@ Public Property Let StyleEx(ByVal newStyle As Long)
     Err.Clear
 
     'Set window long
-    Dim hResult As Long: hResult = SetWindowLongA(pHandle, apiWindowLongType.GWL_EXSTYLE, newStyle)
+    Dim hResult As Long: hResult = SetWindowLongA(This.Handle, apiWindowLongType.GWL_EXSTYLE, newStyle)
 
     'Check for errors
     If hResult = 0 And Err.LastDllError <> 0 Then Err.Raise 1, "StyleEx [Let]", "Unexpected error in SetWindowLongA", Err.LastDllError
@@ -1235,8 +1237,8 @@ End Property
 '@returns - semi-colon delimited list of styleex names e.g. "WS_EX_APPWINDOW;WS_EX_TOPMOST"
 Public Property Get StyleExTexts() as String
   Dim iStyleEx as Long: iStyleEx = StyleEx
-  static vKeys   as variant: if isEmpty(vKeys)   then vKeys   = Lookups("EWndExStyles").keys()
-  static vStyles as variant: if isEmpty(vStyles) then vStyles = Lookups("EWndExStyles").items()
+  static vKeys   as variant: if isEmpty(vKeys)   then vKeys   = This.Lookups("EWndExStyles").keys()
+  static vStyles as variant: if isEmpty(vStyles) then vStyles = This.Lookups("EWndExStyles").items()
   
   Dim s as string
   Dim i as long: For i = 0 to ubound(vKeys)
@@ -1255,7 +1257,7 @@ End Property
   Public Property Get UserData() As Long
 #end if
   If Exists Then
-    UserData = GetWindowLongPtrA(pHandle, apiWindowLongType.GWL_USERDATA)
+    UserData = GetWindowLongPtrA(This.Handle, apiWindowLongType.GWL_USERDATA)
   Else
     Err.Raise 1, "UserData", "Window does not exist."
   End If
@@ -1270,7 +1272,7 @@ End Property
     Err.Clear
 
     'Set window long
-    Dim hResult As LongPtr: hResult = SetWindowLongPtrA(pHandle, apiWindowLongType.GWL_USERDATA, newUserData)
+    Dim hResult As LongPtr: hResult = SetWindowLongPtrA(This.Handle, apiWindowLongType.GWL_USERDATA, newUserData)
 
     'Check for errors
     If hResult = 0 And Err.LastDllError <> 0 Then Err.Raise 1, "UserData [Let]", "Unexpected error in SetWindowLongA", Err.LastDllError
@@ -1288,7 +1290,7 @@ End Property
   Public Property Get WndProc() As Long
 #end if
   If Exists Then
-    WndProc = GetWindowLongPtrA(pHandle, apiWindowLongType.GWL_WNDPROC)
+    WndProc = GetWindowLongPtrA(This.Handle, apiWindowLongType.GWL_WNDPROC)
   Else
     Err.Raise 1, "WndProc", "Window does not exist."
   End If
@@ -1303,7 +1305,7 @@ End Property
     Err.Clear
 
     'Set window long
-    Dim hResult As LongPtr: hResult = SetWindowLongPtrA(pHandle, apiWindowLongType.GWL_WNDPROC, newWndProc)
+    Dim hResult As LongPtr: hResult = SetWindowLongPtrA(This.Handle, apiWindowLongType.GWL_WNDPROC, newWndProc)
 
     'Check for errors
     If hResult = 0 And Err.LastDllError <> 0 Then Err.Raise 1, "WndProc [Let]", "Unexpected error in SetWindowLongA", Err.LastDllError
@@ -1418,7 +1420,7 @@ Public Property Let isAlwaysOnTop(ByVal v As Boolean)
   Const HWND_NOTOPMOST = -2
   Const SWP_NOSIZE = &H1
   Const SWP_NOMOVE = &H2
-  Call SetWindowPos(pHandle, iif(v, HWND_TOPMOST, HWND_NOTOPMOST), 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE)
+  Call SetWindowPos(This.Handle, iif(v, HWND_TOPMOST, HWND_NOTOPMOST), 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE)
 End Property
 
 'Get/Set whether the window is an app window
@@ -1477,14 +1479,14 @@ End Property
 'Get/Set the existing layered window flags
 Public Property Get LayeredWindowFlags() As LayeredWindowFlag
   If isLayeredWindow Then
-    Call GetLayeredWindowAttributes(pHandle, 0, 0, LayeredWindowFlags)
+    Call GetLayeredWindowAttributes(This.Handle, 0, 0, LayeredWindowFlags)
   Else
     Err.Raise 1, "LayeredWindowFlags", "Window is not a layered window."
   End If
 End Property
 Public Property Let LayeredWindowFlags(ByVal v As LayeredWindowFlag)
   If isLayeredWindow Then
-    Call SetLayeredWindowAttributes(pHandle, 0, 0, v)
+    Call SetLayeredWindowAttributes(This.Handle, 0, 0, v)
   Else
     Err.Raise 1, "LayeredWindowFlags [Let]", "Window is not a layered window."
   End If
@@ -1496,7 +1498,7 @@ End Property
 Public Property Get TransparentColor() As Long
   if isLayeredWindow then 
     if bitFlagCheck(LayeredWindowFlags, LayeredWindowFlag.lwfChromaKey) then
-      Call GetLayeredWindowAttributes(pHandle, TransparentColor, 0, 0)
+      Call GetLayeredWindowAttributes(This.Handle, TransparentColor, 0, 0)
     else
       TransparentColor = -1
     end if
@@ -1506,25 +1508,25 @@ Public Property Get TransparentColor() As Long
 End Property
 Public Property Let TransparentColor(ByVal v As Long)
   isLayeredWindow = true
-  pLayeredWindowInfo.crKey = v
+  This.LayeredWindowInfo.crKey = v
   Dim newFlags as Long: newFlags = bitFlagSet(LayeredWindowFlags, LayeredWindowFlag.lwfChromaKey, True)
-  Call SetLayeredWindowAttributes(pHandle, pLayeredWindowInfo.crKey, pLayeredWindowInfo.bAlpha, newFlags)
+  Call SetLayeredWindowAttributes(This.Handle, This.LayeredWindowInfo.crKey, This.LayeredWindowInfo.bAlpha, newFlags)
 End Property
 
 'Get/Set the opacity of a layered window
 '@remark - Setting this value will also set the window to be a layered window if it is not already.
 Public Property Get Opacity() As Byte
   If isLayeredWindow Then
-    Call GetLayeredWindowAttributes(pHandle, 0, lwfOpacity, 0)
+    Call GetLayeredWindowAttributes(This.Handle, 0, lwfOpacity, 0)
   Else
     Err.Raise 1, "Opacity", "Window is not a layered window."
   End If
 End Property
 Public Property Let Opacity(ByVal v As Byte)
   isLayeredWindow = true
-  pLayeredWindowInfo.bAlpha = v
+  This.LayeredWindowInfo.bAlpha = v
   Dim newFlags as Long: newFlags = bitFlagSet(LayeredWindowFlags, LayeredWindowFlag.lwfOpacity, True)
-  Call SetLayeredWindowAttributes(pHandle, pLayeredWindowInfo.crKey, pLayeredWindowInfo.bAlpha, newFlags)
+  Call SetLayeredWindowAttributes(This.Handle, This.LayeredWindowInfo.crKey, This.LayeredWindowInfo.bAlpha, newFlags)
 End Property
 
 
@@ -1763,7 +1765,7 @@ End Sub
 'Forcefully close the window
 Public Sub ForceQuit()
   If Exists Then
-    If DestroyWindow(pHandle) = 0 Then
+    If DestroyWindow(This.Handle) = 0 Then
       Err.Raise Err.LastDllError, "Close", "Failed to close window"
     End If
   Else
@@ -1775,7 +1777,7 @@ End Sub
 Public Sub Activate()
   If Exists Then
     Call setThreadInput(True)
-      Call SetForegroundWindow(pHandle)
+      Call SetForegroundWindow(This.Handle)
     Call setThreadInput(False)
   Else
     Err.Raise 1, "Minimize", "Window does not exist."
@@ -1807,7 +1809,7 @@ End Function
 'Redraw the window
 Public Sub Redraw()
   Const RDW_INVALIDATE = &H1
-  Call RedrawWindow(pHandle, 0&, 0&, RDW_INVALIDATE)
+  Call RedrawWindow(This.Handle, 0&, 0&, RDW_INVALIDATE)
 End Sub
 
 'Sends a message to the window
@@ -1817,7 +1819,7 @@ End Sub
 '@returns - Result of SendMessage
 Public Function SendMessage(ByVal wMsg As Long, ByVal wParam As Long, ByVal lParam As Long) as Long
   If Exists Then
-    SendMessage = SendMessageA(pHandle, wMsg, wParam, lParam)
+    SendMessage = SendMessageA(This.Handle, wMsg, wParam, lParam)
   Else
     Err.Raise 1, "SendMessage", "Window does not exist."
   End If
@@ -1830,8 +1832,8 @@ End Function
 Public Sub PostMessage(ByVal wMsg As Long, ByVal wParam As Long, ByVal lParam As Long)
   If Exists Then
     'If desktop then broadcasts
-    Dim hwnd As LongPtr: hwnd = pHandle
-    If pHandle = GetDesktopWindow Then hwnd = &HFFFF
+    Dim hwnd As LongPtr: hwnd = This.Handle
+    If This.Handle = GetDesktopWindow Then hwnd = &HFFFF
     
     If PostMessageA(hwnd, wMsg, wParam, lParam) =  0 Then
       Err.Raise 1, "PostMessage", "An unexpected error occurred while posting the message.", Err.LastDllError
@@ -2054,14 +2056,14 @@ Public Sub SendKeysMessage(ByVal sKeys As String, Optional ByVal keyDelay As Lon
           'Key down event
           If key.iKeyState = tap Or key.iKeyState = down Then
             'Assume LParam = 0. This is rarely the case but it's not usually required anyway
-            Call PostMessageA(pHandle, WM_KEYDOWN, key.wVirtualKey, 0&)
+            Call PostMessageA(This.Handle, WM_KEYDOWN, key.wVirtualKey, 0&)
             Call Sleep(keyDelay)
           End If
           
           'Key up event
           If key.iKeyState = tap Or key.iKeyState = up Then
             'Assume LParam = 0. This is rarely the case but it's not usually required anyway
-            Call PostMessageA(pHandle, WM_KEYUP, key.wVirtualKey, 0&)
+            Call PostMessageA(This.Handle, WM_KEYUP, key.wVirtualKey, 0&)
             Call Sleep(keyDelay)
           End If
         Next
@@ -2127,12 +2129,12 @@ End Function
 'Returns the lookups object
 '@returns Object<Dictionary<Dictionary<Dictionary<string|long>>>> - Lookups object
 Friend Function protGetLookups() as Object
-    If Lookups Is Nothing Then
+    If This.Lookups Is Nothing Then
         'Notes:
         'EWndShowStyle is not needed, use isVisible, isMinimized and isMaximised
 
-        Set Lookups = CreateObject("Scripting.Dictionary")
-        Set Lookups("EWndStyles") = CreateLookupDict(Array( _
+        Set This.Lookups = CreateObject("Scripting.Dictionary")
+        Set This.Lookups("EWndStyles") = CreateLookupDict(Array( _
           "WS_BORDER", &H800000, "WS_CAPTION", &HC00000, _
           "WS_CHILD", &H40000000, "WS_CHILDWINDOW", &H40000000, _
           "WS_CLIPCHILDREN", &H2000000, "WS_CLIPSIBLINGS", &H4000000, _
@@ -2148,7 +2150,7 @@ Friend Function protGetLookups() as Object
           "WS_OVERLAPPEDWINDOW", WS_OVERLAPPED Or WS_CAPTION Or WS_SYSMENU Or WS_THICKFRAME Or WS_MINIMIZEBOX Or WS_MAXIMIZEBOX, _
           "WS_POPUPWINDOW", WS_POPUP Or WS_BORDER Or WS_SYSMENU _
         ))
-        Set Lookups("EWndExStyles") = CreateLookupDict(Array( _
+        Set This.Lookups("EWndExStyles") = CreateLookupDict(Array( _
           "WS_EX_ACCEPTFILES", &H10, "WS_EX_APPWINDOW", &H40000, _
           "WS_EX_CLIENTEDGE", &H200, "WS_EX_COMPOSITED", &H2000000, _
           "WS_EX_CONTEXTHELP", &H400, "WS_EX_CONTROLPARENT", &H10000, _
@@ -2165,20 +2167,20 @@ Friend Function protGetLookups() as Object
           "WS_EX_OVERLAPPEDWINDOW", WS_EX_WINDOWEDGE Or WS_EX_CLIENTEDGE, _
           "WS_EX_PALETTEWINDOW", WS_EX_WINDOWEDGE Or WS_EX_TOOLWINDOW Or WS_EX_TOPMOST _
         ))
-        Set Lookups("EWndFindResult") = CreateLookupDict(Array( _
+        Set This.Lookups("EWndFindResult") = CreateLookupDict(Array( _
           "MatchFound", EWndFindResult.matchFound, _
           "MatchFoundSearchDescendents", EWndFindResult.MatchFoundSearchDescendents, _
           "NoMatchFound", EWndFindResult.NoMatchFound, _
           "NoMatchCancelSearch", EWndFindResult.NoMatchCancelSearch, _
           "NoMatchSkipDescendents", EWndFindResult.NoMatchSkipDescendents _
         ))
-        Set Lookups("EWndState") = CreateLookupDict(Array( _
+        Set This.Lookups("EWndState") = CreateLookupDict(Array( _
           "Normal", EWndState.Normal, _
           "Maximised", EWndState.Maximised, _
           "Minimised", EWndState.Minimised _
         ))
     End If
-    Set protGetLookups = Lookups
+    Set protGetLookups = This.Lookups
 End Function
 
 
@@ -2220,9 +2222,9 @@ End Function
 '@param query as stdICallable - A callable with which standard globals will be bound to
 Private Sub BindGlobals(ByRef query As stdICallable)
     Dim bSuccess As Boolean
-    Dim keys: keys = Lookups.keys()
+    Dim keys: keys = This.Lookups.keys()
     For Each key In keys
-      Call query.SendMessage("bindGlobal", bSuccess, Array(key, Lookups(key)("S2N")))
+      Call query.SendMessage("bindGlobal", bSuccess, Array(key, This.Lookups(key)("S2N")))
     Next
 End Sub
 
@@ -2315,7 +2317,7 @@ End Function
 '@remark This is used to synchronise the thread of the window with the thread of VBA. Important for `SendInput`, Hook procedures as well as usage in drag/drop and DDE.
 Public Sub setThreadInput(ByVal bAttach As Boolean)
     Dim dwExcelTID As Long: dwExcelTID = GetCurrentThreadId()
-    Dim dwThisTID As Long: dwThisTID = GetWindowThreadProcessId(pHandle, 0)
+    Dim dwThisTID As Long: dwThisTID = GetWindowThreadProcessId(This.Handle, 0)
     
     'Synchonise Excel's thread with this window's thread
     if Exists then
