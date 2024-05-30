@@ -132,6 +132,8 @@ End Enum
   Private Declare PtrSafe Function CreateIconIndirect Lib "user32" (ByRef piconinfo As ICONINFO) As LongPtr
   Private Declare PtrSafe Function CreateCompatibleBitmap Lib "gdi32" (ByVal hdc As LongPtr, ByVal nWidth As Long, ByVal nHeight As Long) As LongPtr
   Private Declare PtrSafe Function DestroyIcon Lib "user32" (ByVal hIcon As LongPtr) As Long
+  Private Declare PtrSafe Function DrawIconEx Lib "user32" (ByVal hdc As LongPtr, ByVal xLeft As Long, ByVal yTop As Long, ByVal hIcon As LongPtr, ByVal cxWidth As Long, ByVal cyWidth As Long, ByVal istepIfAniCur As Long, ByVal hbrFlickerFreeDraw As Long, ByVal diFlags As Long) As Long
+  Private Declare PtrSafe Function GetIconInfo Lib "user32" (ByVal hIcon As LongPtr, ByRef piconinfo As ICONINFO) As Long
 
   Private Declare PtrSafe Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (ByVal Destination As LongPtr, ByVal Source As LongPtr, ByVal Length As Long)
   Private Declare PtrSafe Function GetTickCount Lib "kernel32" () As Long
@@ -157,7 +159,7 @@ End Enum
   Private Declare PtrSafe Function CreateCompatibleDC Lib "gdi32" (ByVal hdc As LongPtr) As LongPtr
   Private Declare PtrSafe Function SelectObject Lib "gdi32" (ByVal hdc As LongPtr, ByVal hObject As LongPtr) As LongPtr
   Private Declare PtrSafe Function BitBlt Lib "gdi32" (ByVal hDestDC As LongPtr, ByVal x As Long, ByVal y As Long, ByVal nWidth As Long, ByVal nHeight As Long, ByVal hSrcDC As LongPtr, ByVal xSrc As Long, ByVal ySrc As Long, ByVal dwRop As Long) As Long
-  Private Declare PtrSafe Function DeleteDC Lib "gdi32" (ByVal hdc As LongPtr) As Long
+  Private Declare PtrSafe Function DeleteDC Lib "gdi32" (ByVal hdc As LongPtr) As Long  
 #Else
   Enum LongPtr
     [_]
@@ -186,6 +188,8 @@ End Enum
   Private Declare Function CreateIconIndirect Lib "user32" (ByRef piconinfo As ICONINFO) As LongPtr
   Private Declare Function CreateCompatibleBitmap Lib "gdi32" (ByVal hdc As LongPtr, ByVal nWidth As Long, ByVal nHeight As Long) As LongPtr
   Private Declare Function DestroyIcon Lib "user32" (ByVal hIcon As LongPtr) As Long
+  Private Declare Function DrawIconEx Lib "user32" (ByVal hdc As LongPtr, ByVal xLeft As Long, ByVal yTop As Long, ByVal hIcon As LongPtr, ByVal cxWidth As Long, ByVal cyWidth As Long, ByVal istepIfAniCur As Long, ByVal hbrFlickerFreeDraw As Long, ByVal diFlags As Long) As Long
+  Private Declare Function GetIconInfo Lib "user32" (ByVal hIcon As LongPtr, ByRef piconinfo As ICONINFO) As Long
 
   Private Declare Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (ByVal Destination As LongPtr, ByVal Source As LongPtr, ByVal Length As Long)
   Private Declare Function GetTickCount Lib "kernel32" () As Long
@@ -216,6 +220,8 @@ End Enum
   Private Declare Function DeleteDC Lib "gdi32" (ByVal hdc As LongPtr) As Long
 #End If
 Private Const CF_BITMAP = 2
+
+
 
 Private Type RECT
     Left As Long
@@ -572,6 +578,46 @@ End Function
 
   'Create stdImage from bitmap
   set CreateFromWindow = CreateFromHBitmap(hCaptureBitmap)  
+End Function
+
+#if VBA7 then
+  Public Function CreateFromHICON(ByVal hIcon as LongPtr) as stdImage
+#else
+  Public Function CreateFromHICON(ByVal hIcon as Long) as stdImage
+#end if
+  'Get icon information from HICON
+  Dim iconInf as ICONINFO: if GetIconInfo(hIcon, iconInf) = 0 then Err.Raise 1, "stdImage::CreateFromHICON", "Could not get icon information"
+  
+  'Get bitmap from icon
+  Dim bmp as BITMAP: Call GetObjectAPI(iconInf.hbmColor, LenB(bmp), bmp)
+
+  'Get DC
+  Dim hDC as LongPtr: hDC = GetDC(0)
+
+  'Create an in-memory DC for the copy process
+  Dim hCaptureDC as LongPtr: hCaptureDC = CreateCompatibleDC(hDC)  
+
+  'Create a bitmap to capture the window
+  Dim hCaptureBitmap as LongPtr: hCaptureBitmap = CreateCompatibleBitmap(hDC, bmp.bmWidth, bmp.bmHeight)
+
+  'Load bitmap into in-memory DC
+  Dim hOldBitmap as LongPtr: hOldBitmap = SelectObject(hCaptureDC, hCaptureBitmap)
+
+  'Copy the on-screen image into the memory DC.
+  const DI_NORMAL as Long = &H3
+  r = DrawIconEx(hCaptureDC, 0, 0, hIcon, bmp.bmWidth, bmp.bmHeight, 0, 0, DI_NORMAL)
+
+  'Move old bitmap back into capture DC
+  Call SelectObject(hCaptureDC, hOldBitmap)
+
+  'Create stdImage from bitmap
+  set CreateFromHICON = CreateFromHBitmap(hCaptureBitmap)
+
+  'Clean up
+  Call DeleteObject(iconInf.hbmColor)
+  Call DeleteObject(iconInf.hbmMask)
+  Call DeleteDC(hCaptureDC)
+  Call ReleaseDC(0, hDC)
 End Function
 
 'Initialised stdImage

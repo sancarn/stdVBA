@@ -294,3 +294,4 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2024-05-30 `stdImage` FEATURE - Added 2 constructors `CreateFromScreen` and `CreateFromWindow` allowing easy screenshot functionality.
 - 2024-05-30 `stdImage` FEATURE - Added `Colors` property, allowing images to be analysed.
 - 2024-05-30 `stdImage` FIX - Fixed an issue with `Class_Terminate`.
+- 2024-05-30 `stdImage` FEATURE - Added `CreateFromHICON`
