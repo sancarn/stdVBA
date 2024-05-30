@@ -148,6 +148,16 @@ End Enum
   Private Declare PtrSafe Function OleCreatePictureIndirect Lib "oleaut32" (PicDesc As PICTDESC, RefIID As GUID, ByVal fPictureOwnsHandle As Long, iPic As IPicture) As Long
   Private Declare PtrSafe Function OleTranslateColor Lib "oleAut32.dll" (ByVal clr As OLE_COLOR, ByVal palet As LongPtr, Col As Long) As Long
   Private Declare PtrSafe Function IIDFromString Lib "ole32" (ByVal lpsz As LongPtr, ByRef lpiid As GUID) As Long
+
+  'Screenshot
+  Private Declare PtrSafe Function GetDesktopWindow Lib "user32" () As LongPtr
+  Private Declare PtrSafe Function GetWindowDC Lib "user32" (ByVal hWnd As LongPtr) As LongPtr
+  Private Declare PtrSafe Function GetWindowRect Lib "user32" (ByVal hWnd As LongPtr, lpRect As RECT) As Long
+  Private Declare PtrSafe Function GetClientRect Lib "user32" (ByVal hWnd As LongPtr, lpRect As RECT) As Long
+  Private Declare PtrSafe Function CreateCompatibleDC Lib "gdi32" (ByVal hdc As LongPtr) As LongPtr
+  Private Declare PtrSafe Function SelectObject Lib "gdi32" (ByVal hdc As LongPtr, ByVal hObject As LongPtr) As LongPtr
+  Private Declare PtrSafe Function BitBlt Lib "gdi32" (ByVal hDestDC As LongPtr, ByVal x As Long, ByVal y As Long, ByVal nWidth As Long, ByVal nHeight As Long, ByVal hSrcDC As LongPtr, ByVal xSrc As Long, ByVal ySrc As Long, ByVal dwRop As Long) As Long
+  Private Declare PtrSafe Function DeleteDC Lib "gdi32" (ByVal hdc As LongPtr) As Long
 #Else
   Enum LongPtr
     [_]
@@ -193,8 +203,26 @@ End Enum
   Private Declare Function OleCreatePictureIndirect Lib "oleaut32" (PicDesc As PICTDESC, RefIID As GUID, ByVal fPictureOwnsHandle As Long, iPic As IPicture) As Long
   Private Declare Function OleTranslateColor Lib "oleAut32.dll" (ByVal clr As OLE_COLOR, ByVal palet As LongPtr, Col As Long) As Long
   Private Declare Function IIDFromString Lib "ole32" (ByVal lpsz As LongPtr, ByRef lpiid As GUID) As Long
+  Private Declare Function GetSystemMetrics Lib "user32" (ByVal nIndex As Long) As Long
+
+  'Screenshot
+  Private Declare Function GetDesktopWindow Lib "user32" () As LongPtr
+  Private Declare Function GetWindowDC Lib "user32" (ByVal hWnd As LongPtr) As LongPtr
+  Private Declare Function GetWindowRect Lib "user32" (ByVal hWnd As LongPtr, lpRect As RECT) As Long
+  Private Declare Function GetClientRect Lib "user32" (ByVal hWnd As LongPtr, lpRect As RECT) As Long
+  Private Declare Function CreateCompatibleDC Lib "gdi32" (ByVal hdc As LongPtr) As LongPtr
+  Private Declare Function SelectObject Lib "gdi32" (ByVal hdc As LongPtr, ByVal hObject As LongPtr) As LongPtr
+  Private Declare Function BitBlt Lib "gdi32" (ByVal hDestDC As LongPtr, ByVal x As Long, ByVal y As Long, ByVal nWidth As Long, ByVal nHeight As Long, ByVal hSrcDC As LongPtr, ByVal xSrc As Long, ByVal ySrc As Long, ByVal dwRop As Long) As Long
+  Private Declare Function DeleteDC Lib "gdi32" (ByVal hdc As LongPtr) As Long
 #End If
 Private Const CF_BITMAP = 2
+
+Private Type RECT
+    Left As Long
+    Top As Long
+    Right As Long
+    Bottom As Long
+End Type
 
 Private Type BITMAP
   bmType As Long
@@ -309,7 +337,7 @@ Private This as TThis
 'Creates a stdImage object from a byte array
 '@param b - Bytes of Bitmap/Jpeg/Png/... image
 '@param format - The format of the image
-'@returns {stdImage} Picture object representing data
+'@returns - Picture object representing data
 '@example ```
 '  Dim b() as Byte: Redim b(1 to 100)
 '  Call stdImage.CreateFromBinary(b).saveAs("H:\test1.png", stdImgFormatPNG)
@@ -328,7 +356,7 @@ End Function
 'Creates a stdImage object from a file
 '@param sPath - Path of file
 '@param format - The format of the image
-'@returns {stdImage} Picture object representing data
+'@returns - Picture object representing data
 '@example `stdImage.CreateFromFile("H:\test1.bmp").saveAs("H:\test1.png", stdImgFormatPNG)`
 Public Function CreateFromFile(ByVal sPath As String, Optional ByVal format as stdImgFormat = stdImgFormatDefault, optional byval transparentColor as Long = 0) As stdImage
   If format = stdImgFormatDefault Then
@@ -377,6 +405,7 @@ End Function
 
 'Creates a stdImage object from a url
 '@param sUrl - Url of file
+'@param format - The format of the image
 '@returns - Picture object representing data
 '@example `stdImage.CreateFromURL("https://raw.githubusercontent.com/sancarn/awesome-vba/main/resources/VBALogo.png").saveAs("H:\test.png", stdImgFormatPNG)`
 '@remark - TODO: consider removing
@@ -398,8 +427,8 @@ Public Function CreateFromUrl(ByVal sURL As String, Optional ByVal format as std
 End Function
 
 'Creates a stdImage object from a file
-'@param {LongPtr} hBitmap (handle to Bitmap)
-'@returns {stdImage} Picture object representing data
+'@param hBitmap - hBitmap (handle to Bitmap)
+'@returns - Picture object representing data
 '@example ```
 '  stdImage.CreateFromHBitmap(Image1.Picture.Handle).saveAs("H:\test.png", stdImgFormatPNG)
 '```
@@ -414,8 +443,8 @@ Public Function CreateFromHBitmap(ByVal hBitmap As LongPtr) As stdImage
 End Function
 
 'Creates a stdImage from the image in the clipboard
-'@returns {stdImage} Picture object representing data
-'@example stdImage.CreateFromClipboard().saveAs("H:\test.png", stdImgFormatPNG)
+'@returns - Picture object representing data
+'@example `stdImage.CreateFromClipboard().saveAs("H:\test.png", stdImgFormatPNG)`
 Public Function CreateFromClipboard() As stdImage
   'Open clipboard
   If Not CBool(OpenClipboardTimeout(Application.hWnd)) Then Call Err.Raise(1, "Value [GET]", "Unable to open clipboard (DllError: " & Err.LastDllError & ")")
@@ -458,17 +487,17 @@ Public Function CreateFromIPicture(ByVal picture As stdole.IPicture) As stdImage
 End Function
 
 'Creates a stdImage object from a Excel.IPicture object
-'@param {Excel.IPicture} Object to create picture from
-'@returns {stdImage} Picture object representing data
+'@param picture as Object<Excel.IPicture> - Object to create picture from
+'@returns - Picture object representing data
 '@example TODO:
-Public Function CreateFromExcelIPicture(ByVal picture As Excel.IPicture) As stdImage
+Public Function CreateFromExcelIPicture(ByVal picture As Object) As stdImage
   Call picture.CopyPicture(, xlBitmap)
   Set CreateFromExcelIPicture = CreateFromClipboard()
 End Function
 
 'Creates a stdImage object from a Shape object
-'@param {Object<(Excel|Word|PowerPoint).Shape>} Object to create picture from
-'@returns {stdImage} Picture object representing data
+'@param shp as Object<(Excel|Word|PowerPoint).Shape> - Object to create picture from
+'@returns - Picture object representing data
 '@example `stdImage.CreateFromShape(Sheet1.Shapes("Picture 2")).saveAs("H:\test.png")`
 Public Function CreateFromShape(ByVal shp As Object) As stdImage
   Select Case Application.Name
@@ -480,8 +509,8 @@ Public Function CreateFromShape(ByVal shp As Object) As stdImage
 End Function
 
 'Creates a stdImage object from a Chart object
-'@param {Object<(Excel|Word|PowerPoint).Chart>} Object to create picture from
-'@returns {stdImage} Picture object representing data
+'@param chart as Object<(Excel|Word|PowerPoint).Chart> - Object to create picture from
+'@returns - Picture object representing data
 '@example `stdImage.CreateFromChart(Sheet1.ChartObjects(1).Chart).saveAs("H:\test.png")`
 Public Function CreateFromChart(ByVal chart As Object) As stdImage
   Select Case Application.Name
@@ -492,15 +521,68 @@ Public Function CreateFromChart(ByVal chart As Object) As stdImage
   End Select
 End Function
 
-'Initialised stdImage from WIA object
-'@param {Object<WIA.ImageFile>}
+'Creates a stdImage object from the desktop window (screenshot)
+'@returns - Picture object containing screenshot data
+'@example `stdImage.CreateFromScreen().ToFile("H:\test.png")`
+'@TODO: Capture both monitors https://stackoverflow.com/a/34445431/6302131
+Public Function CreateFromScreen() as stdImage
+  Dim hDesktop as LongPtr: hDesktop = GetDesktopWindow()
+  set CreateFromScreen = CreateFromWindow(hDesktop)
+End Function
+
+'Creates a stdImage object from a window
+'@param hwnd - Handle to window
+'@param bClientArea - If true, only the client area of the window is captured. If false, the entire window is captured.
+'@returns - Picture object representing data
+'@TODO: Option to include cursor https://stackoverflow.com/a/48925443/6302131
+#if VBA7 then
+  Public Function CreateFromWindow(ByVal hwnd as LongPtr, Optional ByVal bClientArea as Boolean = false) as stdImage
+#else
+  Public Function CreateFromWindow(ByVal hwnd as Long, Optional ByVal bClientArea as Boolean = false) as stdImage
+#end if
+  Const SRCCOPY As Long = &HCC0020
+  
+  'Get the proper Device Context (DC) depending on the value of bClient.
+  'Additionally get the rect of the window/client.
+  Dim hDCSource as LongPtr, tRect as RECT
+  if bClientArea then
+    hDCSource = GetDC(hwnd)
+    Call GetClientRect(hwnd, tRect)
+  else
+    hDCSource = GetWindowDC(hwnd)
+    Call GetWindowRect(hwnd, tRect)
+  end if
+
+  'Create an in-memory DC for the copy process
+  Dim hCaptureDC as LongPtr: hCaptureDC = CreateCompatibleDC(hDCSource)  
+
+  'Create a bitmap to capture the window
+  Dim hCaptureBitmap as LongPtr: hCaptureBitmap = CreateCompatibleBitmap(hDCSource, tRect.Right - tRect.Left, tRect.Bottom - tRect.Top)
+  
+  'Load bitmap into in-memory DC
+  Dim hOldBitmap as LongPtr: hOldBitmap = SelectObject(hCaptureDC, hCaptureBitmap)
+
+  'Copy the on-screen image into the memory DC.
+  r = BitBlt(hCaptureDC, 0, 0, tRect.Right - tRect.Left, tRect.Bottom - tRect.Top, hDCSource, 0, 0, SRCCOPY)
+
+  'Move old bitmap back into capture DC
+  Call SelectObject(hCaptureDC, hOldBitmap)
+  Call ReleaseDC(hwnd, hDCSource)
+  Call DeleteDC(hCaptureDC)
+
+  'Create stdImage from bitmap
+  set CreateFromWindow = CreateFromHBitmap(hCaptureBitmap)  
+End Function
+
+'Initialised stdImage
+'@param hBITMAP - Handle to bitmap
 Public Sub protInit(ByVal hBITMAP As LongPtr)
   This.HBITMAP = hBITMAP
   This.Cache.HICON = 0
 End Sub
 
 'Obtain a HBitmap
-'@returns {stdole.StdPicture} Obtain the image as a stdole.StdPicture
+'@returns stdole.StdPicture - Obtain the image as a stdole.StdPicture
 '@remark You are in charge of freeing this pointer.
 Public Property Get HBitmap() as LongPtr
   HBitmap = This.HBITMAP
@@ -518,8 +600,21 @@ Public Property Get HICON() as LongPtr
   HICON = This.Cache.HICON
 End Property
 
-
-
+'Obtain the colors of the image
+'@returns ARGB() - 2D array of colors. Colors ordered from (1,1) = bottom-left, (1,height) = top-left, across to (width, height) = top-right.
+Public Property Get Colors() As Long()
+  'Get the bitmap data
+  Dim hBitmap As LongPtr: hBitmap = This.hBitmap
+  Dim bmp As BITMAP: Call GetObjectAPI(hBitmap, LenB(bmp), bmp)
+  Dim lWidth As Long: lWidth = bmp.bmWidth
+  Dim lHeight As Long: lHeight = bmp.bmHeight
+  
+  'Obtain colors
+  Dim ret() As Long
+  ReDim ret(1 To lWidth, 1 To lHeight)
+  Call CopyMemory(VarPtr(ret(1, 1)), bmp.bmBits, lWidth * lHeight * 4)
+  Colors = ret
+End Property
 
 
 'Obtain binary data of the image in any format required
@@ -614,6 +709,8 @@ Public Sub ToFile(ByVal FileName As String, Optional format As stdImgFormat = st
       If lRes <> 0 Then Err.Raise 1, "stdImage::ToFile", "Could not save image to file (Error Result: " & lRes & ")"
 
       GdipDisposeImage gdipBitmap
+    else 
+      Err.Raise 1, "stdImage::ToFile", "Could not convert HBITMAP to GDI+ image (Error Result: " & lRes & ")"
     End If
     GdiplusShutdown lGDIP
   End If
@@ -710,9 +807,12 @@ Public Function ToStdPicture() as stdole.StdPicture
   If lResult <> 0 Then Call Err.Raise(1, "Value [GET]", "Could not create StdPicture (Error Result: " & lResult & ")")
 End Function
 
-Private Sub Class_Uninitialize()
+Private Sub Class_Terminate()
   'Free HICON
   If This.Cache.HICON <> 0 Then Call DestroyIcon(This.Cache.HICON)
+  
+  'Free HBITMAP
+  If This.HBITMAP <> 0 Then Call DeleteObject(This.HBITMAP)
 End Sub
 
 '@devRemark source - https://www.mrexcel.com/board/threads/working-with-images-in-vba-displaying-png-files.1224206/#post-5991836

@@ -291,3 +291,6 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2024-05-25 `stdEnumerator` FIX - `TThis` standard change.
 - 2024-05-28 `stdEnumerator` FIX - `stdEnumerator#AsArray2D` fix for when objects are in the dictionaries.
 - 2024-05-29 `stdRefArray` FEATURE - Mechanism to expose arrays as `VT_BYREF`
+- 2024-05-30 `stdImage` FEATURE - Added 2 constructors `CreateFromScreen` and `CreateFromWindow` allowing easy screenshot functionality.
+- 2024-05-30 `stdImage` FEATURE - Added `Colors` property, allowing images to be analysed.
+- 2024-05-30 `stdImage` FIX - Fixed an issue with `Class_Terminate`.
