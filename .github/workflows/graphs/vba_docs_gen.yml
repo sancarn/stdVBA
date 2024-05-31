@@ -1,0 +1,74 @@
+entry: gh-start
+executions:
+  - src:
+      node: gh-start
+      port: exec-on-push
+    dst:
+      node: gh-checkout
+      port: exec
+  - src:
+      node: gh-checkout
+      port: exec
+    dst:
+      node: gh-actions-setup-node-pineapple-orange-orange
+      port: exec
+  - src:
+      node: gh-actions-setup-node-pineapple-orange-orange
+      port: exec
+    dst:
+      node: run-v1-pineapple-apple-lion
+      port: exec
+  - src:
+      node: run-v1-pineapple-apple-lion
+      port: exec-success
+    dst:
+      node: run-v1-yellow-dog-peach
+      port: exec
+connections: []
+nodes:
+  - id: gh-start
+    type: gh-start@v1
+    position:
+      x: -180
+      y: 100
+    settings:
+      folded: false
+  - id: gh-checkout
+    type: github.com/actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+    position:
+      x: 80
+      y: 100
+    settings:
+      folded: false
+  - id: gh-actions-setup-node-pineapple-orange-orange
+    type: github.com/actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8
+    position:
+      x: 460
+      y: -0.0
+    settings:
+      folded: false
+  - id: run-v1-pineapple-apple-lion
+    type: run@v1
+    position:
+      x: 810
+      y: -100
+    inputs:
+      script: node ./Tools/VBDocsGen/main.js
+    settings:
+      folded: false
+  - id: run-v1-yellow-dog-peach
+    type: run@v1
+    position:
+      x: 1080
+      y: -200
+    inputs:
+      script: |-
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git add docs.json
+        git commit -m "Documentation update"
+        git push origin master
+    settings:
+      folded: false
+registries: []
+description: ""
