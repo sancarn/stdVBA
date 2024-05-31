@@ -239,6 +239,26 @@
         "remarks": []
       },
       {
+        "name": "protAccessible",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadWrite",
+        "description": "The object which implements `IAccessible`, with which this class wraps. Please don't modify this object, unless you know what you are doing.",
+        "params": [],
+        "returns": {
+          "type": "Object<IAccessible> ",
+          "description": "The object which implements `IAccessible`"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
         "name": "GetDescendents",
         "type": "Function",
         "constructor": true,
@@ -432,7 +452,9 @@
           "status": false,
           "message": ""
         },
-        "examples": ["`stdAcc.CreateFromMouse().Identity`"],
+        "examples": [
+          "`stdAcc.CreateFromMouse().Identity`"
+        ],
         "remarks": []
       },
       {
@@ -760,7 +782,9 @@
           "status": false,
           "message": ""
         },
-        "examples": [],
+        "examples": [
+          "`app.getButton().DoDefaultAction()`"
+        ],
         "remarks": []
       },
       {
@@ -984,7 +1008,9 @@
           "message": ""
         },
         "examples": [],
-        "remarks": ["calls `Me.FindFirst(awaitFor)` to wait for chosen element"]
+        "remarks": [
+          "calls `Me.FindFirst(awaitFor)` to wait for chosen element"
+        ]
       }
     ]
   },
@@ -1554,7 +1580,9 @@
           "status": false,
           "message": ""
         },
-        "examples": ["`For each obj in myEnum: ... : next`"],
+        "examples": [
+          "`For each obj in myEnum: ... : next`"
+        ],
         "remarks": []
       },
       {
@@ -2229,7 +2257,9 @@
           "status": false,
           "message": ""
         },
-        "examples": ["`if incidents.IsEvery(cbValid) then ...`"],
+        "examples": [
+          "`if incidents.IsEvery(cbValid) then ...`"
+        ],
         "remarks": []
       },
       {
@@ -2258,7 +2288,9 @@
           "status": false,
           "message": ""
         },
-        "examples": ["`if incidents.IsSome(cbValid) then ...`"],
+        "examples": [
+          "`if incidents.IsSome(cbValid) then ...`"
+        ],
         "remarks": []
       },
       {
@@ -2288,7 +2320,9 @@
           "status": false,
           "message": ""
         },
-        "examples": ["`incidents.ForEach(cbPrint)`"],
+        "examples": [
+          "`incidents.ForEach(cbPrint)`"
+        ],
         "remarks": []
       },
       {
@@ -2317,7 +2351,9 @@
           "status": false,
           "message": ""
         },
-        "examples": ["`incidents.Map(cbGetId)`"],
+        "examples": [
+          "`incidents.Map(cbGetId)`"
+        ],
         "remarks": []
       },
       {
@@ -2346,7 +2382,9 @@
           "status": false,
           "message": ""
         },
-        "examples": ["`incidents.Unique(cbGetId)`"],
+        "examples": [
+          "`incidents.Unique(cbGetId)`"
+        ],
         "remarks": []
       },
       {
@@ -2384,7 +2422,9 @@
           "status": false,
           "message": ""
         },
-        "examples": ["`values.Reduce(cbSum, 0)`"],
+        "examples": [
+          "`values.Reduce(cbSum, 0)`"
+        ],
         "remarks": []
       },
       {
@@ -2549,6 +2589,529 @@
           "message": ""
         },
         "examples": [],
+        "remarks": []
+      }
+    ]
+  },
+  {
+    "name": "stdCOM",
+    "fileName": "stdCOM.cls",
+    "methods": [
+      {
+        "name": "Create",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Create from an object",
+        "params": [
+          {
+            "name": "obj",
+            "type": "IUnknown",
+            "description": "Object to create raw COM object from",
+            "referenceType": "ByRef",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          }
+        ],
+        "returns": {
+          "description": "A wrapper around a raw COM object"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "CreateFromPtr",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Create from a pointer",
+        "params": [
+          {
+            "name": "ptr",
+            "type": "LongPtr",
+            "description": "Object pointer to wrap in a raw COM object",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          }
+        ],
+        "returns": {
+          "description": "A wrapper around a raw COM object"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": [
+          "Specifically this function reuires a `*Interface` pointer. E.G. `*IUnknown`/`*IDispatch`/`*ITypeInfo`. If your DLL function provides a `[out] **Interface` object the\r\ntypical method is to pass in a varptr to the dll function as follows `Call SomeDLLCall(VarPtr(myPointer)): ... later ...: stdCOM.CreateFromPtr(myPointer)`"
+        ]
+      },
+      {
+        "name": "CreateFromActiveObjects",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Create `stdCOM` objects from existing objects in the RunningObjectTable (ROT)",
+        "params": [],
+        "returns": {
+          "description": "A collection of `stdCOM` objects"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": [
+          "This function is heavily inspired off code provided by `Jaafar Tribak`"
+        ]
+      },
+      {
+        "name": "CreateFromWinRTClassID",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Create `stdCOM` object from WinRT Activatable ClassID.",
+        "params": [
+          {
+            "name": "sActivatableClassId",
+            "type": "string",
+            "description": "An activatable WinRT class ID.",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          }
+        ],
+        "returns": {
+          "description": "A COM wrapper for the object."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [
+          "`stdCOM.CreateFromWinRTClassID(\"Windows.Storage.Pickers.FolderPicker\")`"
+        ],
+        "remarks": []
+      },
+      {
+        "name": "CreateFromClassAndIID",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Create `stdCOM` object from a CLSID and IID.",
+        "params": [
+          {
+            "name": "sClassID",
+            "type": "String",
+            "description": "A CLSID as a string.",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "sIID",
+            "type": "String",
+            "description": "An IID as a string. Default is `IDispatch`.",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "\"00020400-0000-0000-C000-000000000046\""
+          }
+        ],
+        "returns": {
+          "description": "A COM wrapper for the object."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [
+          "```\r\n  stdCOM.CreateFromClassAndIID(\"FF48DBA4-60EF-4201-AA87-54103EEF594E\",\"30CBE57D-D9D0-452A-AB13-7AC5AC4825EE\") 'IUIAutomation\r\n```"
+        ],
+        "remarks": []
+      },
+      {
+        "name": "Object",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadOnly",
+        "description": "Obtain raw object from stdCOM wrapper",
+        "params": [],
+        "returns": {
+          "description": "Raw object"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [
+          "`stdCOM.Create(Application).Object.Name`",
+          "`stdCOM.CreateFromPtr(ObjPtr(Application)).Object.Name`"
+        ],
+        "remarks": []
+      },
+      {
+        "name": "AsObject",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadOnly",
+        "description": "Obtain raw object from stdCOM wrapper",
+        "params": [],
+        "returns": {
+          "description": "`IDispatch` for object"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [
+          "`stdCOM.Create(Application).Object.Name`",
+          "`stdCOM.CreateFromPtr(ObjPtr(Application)).Object.Name`"
+        ],
+        "remarks": []
+      },
+      {
+        "name": "Pointer",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadOnly",
+        "description": "Obtain pointer as LongPtr (VBA)/Long (VB6)",
+        "params": [],
+        "returns": {
+          "description": "Pointer to object"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "unkQueryInterface",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Call `IUnknown::QueryInterface` on the object",
+        "params": [
+          {
+            "name": "sIID",
+            "type": "String",
+            "description": "Interface Identifier as string",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          }
+        ],
+        "returns": {
+          "description": "`stdCOM` object for interface"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [
+          "```\r\n  'Get ITypeInfo\r\n  set typeInfo = com.unkQueryInterface(\"00020401-0000-0000-C000-000000000046\")\r\n```"
+        ],
+        "remarks": []
+      },
+      {
+        "name": "unkAddRef",
+        "type": "Sub",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Call `IUnknown::AddRef()`",
+        "params": [],
+        "returns": {
+          "type": "Void",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "unkRelease",
+        "type": "Sub",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Call IUnknown::Release()",
+        "params": [],
+        "returns": {
+          "type": "Void",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "QueryKnownInterface",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Query the object for a known interface.",
+        "params": [
+          {
+            "name": "interface",
+            "type": "EKnownInterfaces",
+            "description": "Known interface to query for",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          }
+        ],
+        "returns": {
+          "description": "interface queried."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "TypeInfo",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadOnly",
+        "description": "Obtain Type Information from object",
+        "params": [],
+        "returns": {
+          "type": "stdCOM<ITypeInfo> ",
+          "description": "TypeInfo structure for this object"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [
+          "`myCom.TypeInfo.CallVT(EITypeInfo.GetTypeAttr, vbLong, VarPtr(lPtr))`"
+        ],
+        "remarks": []
+      },
+      {
+        "name": "InterfaceInfo",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadOnly",
+        "description": "Obtain all properties and methods of an object via it's TypeInfo",
+        "params": [],
+        "returns": {
+          "type": "Collection<Array<string, vbCallType, long, long>> ",
+          "description": "Collection of arrays containing Method/Property name, CallType, Index in type info and DispID"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "Methods",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadOnly",
+        "description": "Obtain a collection of all method names on an object",
+        "params": [],
+        "returns": {
+          "type": "Collection<string> ",
+          "description": "Collection of method names"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "Properties",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadOnly",
+        "description": "Obtain a collection of all property names on an object",
+        "params": [
+          {
+            "name": "bIncludeReadWriteType",
+            "type": "Boolean",
+            "description": "Include GET/LET/SET/UNK prefixes representing call conv",
+            "referenceType": "ByRef",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "False"
+          }
+        ],
+        "returns": {
+          "type": "Collection<string> ",
+          "description": "Collection of property names"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [
+          "```\r\n  for each vProp in stdCOM.Create(Application).Properties\r\n    Debug.Print vProp\r\n  next\r\n```"
+        ],
+        "remarks": []
+      },
+      {
+        "name": "RegisterActiveObject",
+        "type": "Sub",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Register the object held in stdCOM to the ROT as a CLSID or ProgID",
+        "params": [
+          {
+            "name": "sCLSID",
+            "type": "String",
+            "description": "CLSID if required. If this arg isn't provided, a ProgID must be provided.",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "\"\""
+          },
+          {
+            "name": "ProgID",
+            "type": "String",
+            "description": "ProgID if required. If this arg isn't provided, a CLSID must be provided.",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "\"\""
+          }
+        ],
+        "returns": {
+          "type": "Void",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "RevokeActiveObject",
+        "type": "Sub",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Revoke the previously registered object",
+        "params": [],
+        "returns": {
+          "type": "Void",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "CallVT",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Call a function in the VTable of the object at a specified offset",
+        "params": [
+          {
+            "name": "VTableOffset",
+            "type": "Long",
+            "description": "The offset of the method to call. IUnknown::QueryInterface=0; IUnknown::AddRef=1; IUnknown::Release=2; IDispatch::Invoke=6",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "ReturnType",
+            "type": "VbVarType",
+            "description": "Return value of function, typically Long (HResult) for COM Object calls",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "FunctionParameters",
+            "type": "Array<Variant>",
+            "description": "Arguments to send to function.",
+            "referenceType": "ByRef",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          }
+        ],
+        "returns": {
+          "description": "Return value of function"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [
+          "```\r\n  Dim pITypeInfo As IUnknown\r\n  Dim hResult As Long: hResult = com.CallVT(EIUnknown.QueryInterface, vbLong, VarPtr(tGUID.Data1), VarPtr(pITypeInfo))\r\n  If hResult <> S_OK Then Err.Raise hResult, \"InterfaceInfo\", \"stdCOM::InterfaceInfo\"\r\n```"
+        ],
         "remarks": []
       }
     ]
@@ -3146,7 +3709,9 @@
           "status": false,
           "message": ""
         },
-        "examples": ["```vb\r\nstdClipboard.text = \"Hello World\"\r\n```"],
+        "examples": [
+          "```vb\r\nstdClipboard.text = \"Hello World\"\r\n```"
+        ],
         "remarks": []
       },
       {
@@ -3205,8 +3770,8 @@
           "message": ""
         },
         "examples": [
-          "```vb\r\nCF_RTF = stdClipboard.registerFormat(\"Rich Text Format\")\r\nstdClipboard.value(CF_RTF) = \"{\\rtf1\\ansi{\\fonttbl\\f0\\fswiss Helvetica;}\\f0\\pard\" & _ \r\n  \"This is some {\\b bold} text.\\par\" & _ \r\n\"}\"\r\n```",
-          "```vb\r\nCF_HTML = stdClipboard.registerFormat(\"HTML Format\")\r\nstdClipboard.value(CF_HTML) = _ \r\n  \"Version:0.9\" & vbCrLf & _ \r\n  \"StartHTML:00000000\" & vbCrLf & _ \r\n  \"EndHTML:00000000\" & vbCrLf & _ \r\n  \"StartFragment:00000000\" & vbCrLf & _ \r\n  \"EndFragment:00000000\" & vbCrLf & _ \r\n  \"<html><body>\" & vbCrLf & _ \r\n  \"<!--StartFragment -->\" & vbCrLf & _ \r\n  \"  hello <b>world</b>\" & vbCrLf & _ \r\n  \"<!--EndFragment-->\\r\\n\" & vbCrLf & _ \r\n  \"</body>\\r\\n\" & vbCrLf & _ \r\n  \"</html>\"\r\n```"
+          "```vb\r\nCF_RTF = stdClipboard.registerFormat(\"Rich Text Format\")\r\nstdClipboard.value(CF_RTF) = \"{\\rtf1\\ansi{\\fonttbl\\f0\\fswiss Helvetica;}\\f0\\pard\" & _\r\n  \"This is some {\\b bold} text.\\par\" & _\r\n\"}\"\r\n```",
+          "```vb\r\nCF_HTML = stdClipboard.registerFormat(\"HTML Format\")\r\nstdClipboard.value(CF_HTML) = _\r\n  \"Version:0.9\" & vbCrLf & _\r\n  \"StartHTML:00000000\" & vbCrLf & _\r\n  \"EndHTML:00000000\" & vbCrLf & _\r\n  \"StartFragment:00000000\" & vbCrLf & _\r\n  \"EndFragment:00000000\" & vbCrLf & _\r\n  \"<html><body>\" & vbCrLf & _\r\n  \"<!--StartFragment -->\" & vbCrLf & _\r\n  \"  hello <b>world</b>\" & vbCrLf & _\r\n  \"<!--EndFragment-->\\r\\n\" & vbCrLf & _\r\n  \"</body>\\r\\n\" & vbCrLf & _\r\n  \"</html>\"\r\n```"
         ],
         "remarks": []
       },
@@ -3558,509 +4123,6 @@
     ]
   },
   {
-    "name": "stdCOM",
-    "fileName": "stdCOM.cls",
-    "methods": [
-      {
-        "name": "Create",
-        "type": "Function",
-        "constructor": true,
-        "isDefaultMember": false,
-        "protected": false,
-        "access": null,
-        "description": "Create from an object",
-        "params": [
-          {
-            "name": "obj",
-            "type": "IUnknown",
-            "description": "Object to create raw COM object from",
-            "referenceType": "ByRef",
-            "paramArray": false,
-            "optional": false,
-            "defaultValue": null
-          }
-        ],
-        "returns": {
-          "description": "A wrapper around a raw COM object"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "examples": [],
-        "remarks": []
-      },
-      {
-        "name": "CreateFromPtr",
-        "type": "Function",
-        "constructor": true,
-        "isDefaultMember": false,
-        "protected": false,
-        "access": null,
-        "description": "Create from a pointer",
-        "params": [
-          {
-            "name": "ptr",
-            "type": "LongPtr",
-            "description": "Object pointer to wrap in a raw COM object",
-            "referenceType": "ByVal",
-            "paramArray": false,
-            "optional": false,
-            "defaultValue": null
-          }
-        ],
-        "returns": {
-          "description": "A wrapper around a raw COM object"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "examples": [],
-        "remarks": [
-          "Specifically this function reuires a `*Interface` pointer. E.G. `*IUnknown`/`*IDispatch`/`*ITypeInfo`. If your DLL function provides a `[out] **Interface` object the\r\ntypical method is to pass in a varptr to the dll function as follows `Call SomeDLLCall(VarPtr(myPointer)): ... later ...: stdCOM.CreateFromPtr(myPointer)`"
-        ]
-      },
-      {
-        "name": "CreateFromActiveObjects",
-        "type": "Function",
-        "constructor": true,
-        "isDefaultMember": false,
-        "protected": false,
-        "access": null,
-        "description": "Create `stdCOM` objects from existing objects in the RunningObjectTable (ROT)",
-        "params": [],
-        "returns": {
-          "description": "A collection of `stdCOM` objects"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "examples": [],
-        "remarks": [
-          "This function is heavily inspired off code provided by `Jaafar Tribak`"
-        ]
-      },
-      {
-        "name": "CreateFromWinRTClassID",
-        "type": "Function",
-        "constructor": true,
-        "isDefaultMember": false,
-        "protected": false,
-        "access": null,
-        "description": "Create `stdCOM` object from WinRT Activatable ClassID.",
-        "params": [
-          {
-            "name": "sActivatableClassId",
-            "type": "string",
-            "description": "An activatable WinRT class ID.",
-            "referenceType": "ByVal",
-            "paramArray": false,
-            "optional": false,
-            "defaultValue": null
-          }
-        ],
-        "returns": {
-          "description": "A COM wrapper for the object."
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "examples": [
-          "`stdCOM.CreateFromWinRTClassID(\"Windows.Storage.Pickers.FolderPicker\")`"
-        ],
-        "remarks": []
-      },
-      {
-        "name": "Object",
-        "type": "Property",
-        "constructor": true,
-        "isDefaultMember": false,
-        "protected": false,
-        "access": "ReadOnly",
-        "description": "Obtain raw object from stdCOM wrapper",
-        "params": [],
-        "returns": {
-          "description": "Raw object"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "examples": [
-          "`stdCOM.Create(Application).Object.Name`",
-          "`stdCOM.CreateFromPtr(ObjPtr(Application)).Object.Name`"
-        ],
-        "remarks": []
-      },
-      {
-        "name": "AsObject",
-        "type": "Property",
-        "constructor": true,
-        "isDefaultMember": false,
-        "protected": false,
-        "access": "ReadOnly",
-        "description": "Obtain raw object from stdCOM wrapper",
-        "params": [],
-        "returns": {
-          "description": "`IDispatch` for object"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "examples": [
-          "`stdCOM.Create(Application).Object.Name`",
-          "`stdCOM.CreateFromPtr(ObjPtr(Application)).Object.Name`"
-        ],
-        "remarks": []
-      },
-      {
-        "name": "Pointer",
-        "type": "Property",
-        "constructor": true,
-        "isDefaultMember": false,
-        "protected": false,
-        "access": "ReadOnly",
-        "description": "Obtain pointer as LongPtr (VBA)/Long (VB6)",
-        "params": [],
-        "returns": {
-          "description": "Pointer to object"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "examples": [],
-        "remarks": []
-      },
-      {
-        "name": "unkQueryInterface",
-        "type": "Function",
-        "constructor": true,
-        "isDefaultMember": false,
-        "protected": false,
-        "access": null,
-        "description": "Call `IUnknown::QueryInterface` on the object",
-        "params": [
-          {
-            "name": "sIID",
-            "type": "String",
-            "description": "Interface Identifier as string",
-            "referenceType": "ByVal",
-            "paramArray": false,
-            "optional": false,
-            "defaultValue": null
-          }
-        ],
-        "returns": {
-          "description": "`stdCOM` object for interface"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "examples": [
-          "```\r\n  'Get ITypeInfo\r\n  set typeInfo = com.unkQueryInterface(\"00020401-0000-0000-C000-000000000046\")\r\n```"
-        ],
-        "remarks": []
-      },
-      {
-        "name": "unkAddRef",
-        "type": "Sub",
-        "constructor": true,
-        "isDefaultMember": false,
-        "protected": false,
-        "access": null,
-        "description": "Call `IUnknown::AddRef()`",
-        "params": [],
-        "returns": {
-          "type": "Void",
-          "description": ""
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "examples": [],
-        "remarks": []
-      },
-      {
-        "name": "unkRelease",
-        "type": "Sub",
-        "constructor": true,
-        "isDefaultMember": false,
-        "protected": false,
-        "access": null,
-        "description": "Call IUnknown::Release()",
-        "params": [],
-        "returns": {
-          "type": "Void",
-          "description": ""
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "examples": [],
-        "remarks": []
-      },
-      {
-        "name": "QueryKnownInterface",
-        "type": "Function",
-        "constructor": true,
-        "isDefaultMember": false,
-        "protected": false,
-        "access": null,
-        "description": "Query the object for a known interface.",
-        "params": [
-          {
-            "name": "interface",
-            "type": "EKnownInterfaces",
-            "description": "Known interface to query for",
-            "referenceType": "ByVal",
-            "paramArray": false,
-            "optional": false,
-            "defaultValue": null
-          }
-        ],
-        "returns": {
-          "description": "interface queried."
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "examples": [],
-        "remarks": []
-      },
-      {
-        "name": "TypeInfo",
-        "type": "Property",
-        "constructor": true,
-        "isDefaultMember": false,
-        "protected": false,
-        "access": "ReadOnly",
-        "description": "Obtain Type Information from object",
-        "params": [],
-        "returns": {
-          "type": "stdCOM<ITypeInfo> ",
-          "description": "TypeInfo structure for this object"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "examples": [
-          "`myCom.TypeInfo.CallVT(EITypeInfo.GetTypeAttr, vbLong, VarPtr(lPtr))`"
-        ],
-        "remarks": []
-      },
-      {
-        "name": "InterfaceInfo",
-        "type": "Property",
-        "constructor": true,
-        "isDefaultMember": false,
-        "protected": false,
-        "access": "ReadOnly",
-        "description": "Obtain all properties and methods of an object via it's TypeInfo",
-        "params": [],
-        "returns": {
-          "type": "Collection<Array<string, vbCallType, long, long>> ",
-          "description": "Collection of arrays containing Method/Property name, CallType, Index in type info and DispID"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "examples": [],
-        "remarks": []
-      },
-      {
-        "name": "Methods",
-        "type": "Property",
-        "constructor": true,
-        "isDefaultMember": false,
-        "protected": false,
-        "access": "ReadOnly",
-        "description": "Obtain a collection of all method names on an object",
-        "params": [],
-        "returns": {
-          "type": "Collection<string> ",
-          "description": "Collection of method names"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "examples": [],
-        "remarks": []
-      },
-      {
-        "name": "Properties",
-        "type": "Property",
-        "constructor": true,
-        "isDefaultMember": false,
-        "protected": false,
-        "access": "ReadOnly",
-        "description": "Obtain a collection of all property names on an object",
-        "params": [
-          {
-            "name": "bIncludeReadWriteType",
-            "type": "Boolean",
-            "description": "Include GET/LET/SET/UNK prefixes representing call conv",
-            "referenceType": "ByRef",
-            "paramArray": false,
-            "optional": true,
-            "defaultValue": "False"
-          }
-        ],
-        "returns": {
-          "type": "Collection<string> ",
-          "description": "Collection of property names"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "examples": [
-          "```\r\n  for each vProp in stdCOM.Create(Application).Properties\r\n    Debug.Print vProp\r\n  next\r\n```"
-        ],
-        "remarks": []
-      },
-      {
-        "name": "RegisterActiveObject",
-        "type": "Sub",
-        "constructor": true,
-        "isDefaultMember": false,
-        "protected": false,
-        "access": null,
-        "description": "Register the object held in stdCOM to the ROT as a CLSID or ProgID",
-        "params": [
-          {
-            "name": "sCLSID",
-            "type": "String",
-            "description": "CLSID if required. If this arg isn't provided, a ProgID must be provided.",
-            "referenceType": "ByVal",
-            "paramArray": false,
-            "optional": true,
-            "defaultValue": "\"\""
-          },
-          {
-            "name": "ProgID",
-            "type": "String",
-            "description": "ProgID if required. If this arg isn't provided, a CLSID must be provided.",
-            "referenceType": "ByVal",
-            "paramArray": false,
-            "optional": true,
-            "defaultValue": "\"\""
-          }
-        ],
-        "returns": {
-          "type": "Void",
-          "description": ""
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "examples": [],
-        "remarks": []
-      },
-      {
-        "name": "RevokeActiveObject",
-        "type": "Sub",
-        "constructor": true,
-        "isDefaultMember": false,
-        "protected": false,
-        "access": null,
-        "description": "Revoke the previously registered object",
-        "params": [],
-        "returns": {
-          "type": "Void",
-          "description": ""
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "examples": [],
-        "remarks": []
-      },
-      {
-        "name": "CallVT",
-        "type": "Function",
-        "constructor": true,
-        "isDefaultMember": false,
-        "protected": false,
-        "access": null,
-        "description": "Call a function in the VTable of the object at a specified offset",
-        "params": [
-          {
-            "name": "VTableOffset",
-            "type": "Long",
-            "description": "The offset of the method to call. IUnknown::QueryInterface=0; IUnknown::AddRef=1; IUnknown::Release=2; IDispatch::Invoke=6",
-            "referenceType": "ByVal",
-            "paramArray": false,
-            "optional": false,
-            "defaultValue": null
-          },
-          {
-            "name": "ReturnType",
-            "type": "VbVarType",
-            "description": "Return value of function, typically Long (HResult) for COM Object calls",
-            "referenceType": "ByVal",
-            "paramArray": false,
-            "optional": false,
-            "defaultValue": null
-          },
-          {
-            "name": "FunctionParameters",
-            "type": "Array<Variant>",
-            "description": "Arguments to send to function.",
-            "referenceType": "ByRef",
-            "paramArray": false,
-            "optional": false,
-            "defaultValue": null
-          }
-        ],
-        "returns": {
-          "description": "Return value of function"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "examples": [
-          "```\r\n  Dim pITypeInfo As IUnknown\r\n  Dim hResult As Long: hResult = com.CallVT(EIUnknown.QueryInterface, vbLong, VarPtr(tGUID.Data1), VarPtr(pITypeInfo))\r\n  If hResult <> S_OK Then Err.Raise hResult, \"InterfaceInfo\", \"stdCOM::InterfaceInfo\"\r\n```"
-        ],
-        "remarks": []
-      },
-      {
-        "name": "protTimerTick",
-        "type": "Sub",
-        "constructor": true,
-        "isDefaultMember": false,
-        "protected": false,
-        "access": null,
-        "description": "Forcefully raise the Tick event",
-        "params": [],
-        "returns": {
-          "type": "Void",
-          "description": ""
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "examples": [],
-        "remarks": []
-      }
-    ]
-  },
-  {
     "name": "stdEnumerator",
     "fileName": "stdEnumerator.cls",
     "methods": [
@@ -4271,6 +4333,15 @@
             "paramArray": false,
             "optional": true,
             "defaultValue": "1000000"
+          },
+          {
+            "name": "dictCompare",
+            "type": "Long",
+            "description": "",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "vbTextCompare"
           }
         ],
         "returns": {
@@ -4499,7 +4570,17 @@
         "protected": false,
         "access": null,
         "description": "Converts an enumerator of dictionaries to a 2D array",
-        "params": [],
+        "params": [
+          {
+            "name": "includeObjects",
+            "type": "boolean",
+            "description": "",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "true"
+          }
+        ],
         "returns": {
           "type": "Array2d<Variant> ",
           "description": "2D Array of data including headers. Number of rows is equal to the length of the enumerator, number of columns is equal to the number of keys in the first item."
@@ -4975,9 +5056,9 @@
             "defaultValue": null
           },
           {
-            "name": "vInitialValue",
+            "name": "initialValue",
             "type": "variant",
-            "description": "initial value to use in reducer.",
+            "description": "",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": true,
@@ -5848,18 +5929,83 @@
             "defaultValue": "5000"
           },
           {
-            "name": "AutoProxy",
-            "type": "Boolean",
-            "description": "Whether to use the system proxy settings",
+            "name": "Proxy",
+            "type": "Object",
+            "description": "",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": true,
-            "defaultValue": "True"
+            "defaultValue": "Nothing"
           }
         ],
         "returns": {
           "type": "Object<Dictionary> ",
           "description": "A dictionary of options"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "CreateProxy",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Obtain proxy information",
+        "params": [
+          {
+            "name": "proxyType",
+            "type": "EHTTPProxyType",
+            "description": "",
+            "referenceType": "Byval",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "Server",
+            "type": "string",
+            "description": "the IP address (or hostname) of the proxy server",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "Unspecified"
+          },
+          {
+            "name": "ByPass",
+            "type": "String",
+            "description": "A proxy bypass list is not always needed, but it's useful. It specifies URLs or IP ranges that should be accessed directly, bypassing the proxy. This is often used for local or intranet addresses.",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "Unspecified"
+          },
+          {
+            "name": "User",
+            "type": "string",
+            "description": "Username for proxy server authentication",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "Unspecified"
+          },
+          {
+            "name": "Pass",
+            "type": "string",
+            "description": "Password for proxy server authentication",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "Unspecified"
+          }
+        ],
+        "returns": {
+          "description": "Proxy information object"
         },
         "deprecation": {
           "status": false,
@@ -6574,6 +6720,898 @@
     ]
   },
   {
+    "name": "stdImage",
+    "fileName": "stdImage.cls",
+    "methods": [
+      {
+        "name": "CreateFromBinary",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Creates a stdImage object from a byte array",
+        "params": [
+          {
+            "name": "b",
+            "type": "Variant",
+            "description": "Bytes of Bitmap/Jpeg/Png/... image",
+            "referenceType": "ByRef",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          }
+        ],
+        "returns": {
+          "description": "Picture object representing data"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [
+          "```\r\n  Dim b() as Byte: Redim b(1 to 100)\r\n  Call stdImage.CreateFromBinary(b).saveAs(\"H:\\test1.png\", stdImgFormatPNG)\r\n```"
+        ],
+        "remarks": []
+      },
+      {
+        "name": "CreateFromDataURL",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "",
+        "params": [
+          {
+            "name": "sURL",
+            "type": "string",
+            "description": "",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          }
+        ],
+        "returns": {
+          "type": "stdImage",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "CreateFromFile",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Creates a stdImage object from a file",
+        "params": [
+          {
+            "name": "sPath",
+            "type": "String",
+            "description": "Path of file",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "format",
+            "type": "stdImgFormat",
+            "description": "The format of the image",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "stdImgFormatDefault"
+          },
+          {
+            "name": "transparentColor",
+            "type": "Long",
+            "description": "",
+            "referenceType": "byval",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "0"
+          }
+        ],
+        "returns": {
+          "description": "Picture object representing data"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [
+          "`stdImage.CreateFromFile(\"H:\\test1.bmp\").saveAs(\"H:\\test1.png\", stdImgFormatPNG)`"
+        ],
+        "remarks": []
+      },
+      {
+        "name": "CreateFromUrl",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Creates a stdImage object from a url",
+        "params": [
+          {
+            "name": "sURL",
+            "type": "String",
+            "description": "Url of file",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "format",
+            "type": "stdImgFormat",
+            "description": "The format of the image",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "stdImgFormatDefault"
+          }
+        ],
+        "returns": {
+          "description": "Picture object representing data"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [
+          "`stdImage.CreateFromURL(\"https://raw.githubusercontent.com/sancarn/awesome-vba/main/resources/VBALogo.png\").saveAs(\"H:\\test.png\", stdImgFormatPNG)`"
+        ],
+        "remarks": [
+          "- TODO: consider removing"
+        ]
+      },
+      {
+        "name": "CreateFromHBitmap",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Creates a stdImage object from a file",
+        "params": [
+          {
+            "name": "hBitmap",
+            "type": "LongPtr",
+            "description": "hBitmap (handle to Bitmap)",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          }
+        ],
+        "returns": {
+          "description": "Picture object representing data"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [
+          "```\r\n  stdImage.CreateFromHBitmap(Image1.Picture.Handle).saveAs(\"H:\\test.png\", stdImgFormatPNG)\r\n```"
+        ],
+        "remarks": []
+      },
+      {
+        "name": "CreateFromClipboard",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Creates a stdImage from the image in the clipboard",
+        "params": [],
+        "returns": {
+          "description": "Picture object representing data"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [
+          "`stdImage.CreateFromClipboard().saveAs(\"H:\\test.png\", stdImgFormatPNG)`"
+        ],
+        "remarks": []
+      },
+      {
+        "name": "CreateFromIPictureDisp",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Creates a stdImage object from a stdole.IPictureDisp object",
+        "params": [
+          {
+            "name": "picture",
+            "type": "stdole.IPictureDisp",
+            "description": "Object to create picture from",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          }
+        ],
+        "returns": {
+          "description": "Picture object representing data"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [
+          "TODO:"
+        ],
+        "remarks": []
+      },
+      {
+        "name": "CreateFromStdPicture",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Creates a stdImage object from a stdole.stdPicture object",
+        "params": [
+          {
+            "name": "picture",
+            "type": "stdole.stdPicture",
+            "description": "Object to create picture from",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          }
+        ],
+        "returns": {
+          "description": "Picture object representing data"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [
+          "`stdImage.CreateFromStdPicture(Userform1.Picture).saveAs(\"H:\\test.png\", stdImgFormatPNG)`"
+        ],
+        "remarks": []
+      },
+      {
+        "name": "CreateFromIPicture",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Creates a stdImage object from a stdole.IPicture object",
+        "params": [
+          {
+            "name": "picture",
+            "type": "stdole.IPicture",
+            "description": "Object to create picture from",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          }
+        ],
+        "returns": {
+          "description": "Picture object representing data"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [
+          "TODO:"
+        ],
+        "remarks": []
+      },
+      {
+        "name": "CreateFromExcelIPicture",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Creates a stdImage object from a Excel.IPicture object",
+        "params": [
+          {
+            "name": "picture",
+            "type": "Object<Excel.IPicture>",
+            "description": "Object to create picture from",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          }
+        ],
+        "returns": {
+          "description": "Picture object representing data"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [
+          "TODO:"
+        ],
+        "remarks": []
+      },
+      {
+        "name": "CreateFromShape",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Creates a stdImage object from a Shape object",
+        "params": [
+          {
+            "name": "shp",
+            "type": "Object<(Excel|Word|PowerPoint).Shape>",
+            "description": "Object to create picture from",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          }
+        ],
+        "returns": {
+          "description": "Picture object representing data"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [
+          "`stdImage.CreateFromShape(Sheet1.Shapes(\"Picture 2\")).saveAs(\"H:\\test.png\")`"
+        ],
+        "remarks": []
+      },
+      {
+        "name": "CreateFromChart",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Creates a stdImage object from a Chart object",
+        "params": [
+          {
+            "name": "chart",
+            "type": "Object<(Excel|Word|PowerPoint).Chart>",
+            "description": "Object to create picture from",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          }
+        ],
+        "returns": {
+          "description": "Picture object representing data"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [
+          "`stdImage.CreateFromChart(Sheet1.ChartObjects(1).Chart).saveAs(\"H:\\test.png\")`"
+        ],
+        "remarks": []
+      },
+      {
+        "name": "CreateFromScreen",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Creates a stdImage object from the desktop window (screenshot)",
+        "params": [],
+        "returns": {
+          "description": "Picture object containing screenshot data"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [
+          "`stdImage.CreateFromScreen().ToFile(\"H:\\test.png\")`"
+        ],
+        "remarks": []
+      },
+      {
+        "name": "CreateFromWindow",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Creates a stdImage object from a window",
+        "params": [
+          {
+            "name": "hwnd",
+            "type": "LongPtr",
+            "description": "Handle to window",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "bClientArea",
+            "type": "Boolean",
+            "description": "If true, only the client area of the window is captured. If false, the entire window is captured.",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "false"
+          }
+        ],
+        "returns": {
+          "description": "Picture object representing data"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "CreateFromHICON",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "",
+        "params": [
+          {
+            "name": "hIcon",
+            "type": "LongPtr",
+            "description": "",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          }
+        ],
+        "returns": {
+          "type": "stdImage",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "protInit",
+        "type": "Sub",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Initialised stdImage",
+        "params": [
+          {
+            "name": "hBITMAP",
+            "type": "LongPtr",
+            "description": "Handle to bitmap",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          }
+        ],
+        "returns": {
+          "type": "Void",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "HBitmap",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadOnly",
+        "description": "Obtain a HBitmap",
+        "params": [],
+        "returns": {
+          "type": "stdole.StdPicture ",
+          "description": "Obtain the image as a stdole.StdPicture"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": [
+          "You are in charge of freeing this pointer."
+        ]
+      },
+      {
+        "name": "HICON",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadOnly",
+        "description": "Obtain (and cache) an HICON",
+        "params": [],
+        "returns": {
+          "type": "LongPtr",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "Colors",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadOnly",
+        "description": "Obtain the colors of the image",
+        "params": [],
+        "returns": {
+          "type": "ARGB() ",
+          "description": "2D array of colors. Colors ordered from (1,1) = bottom-left, (1,height) = top-left, across to (width, height) = top-right."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "ToBinary",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Obtain binary data of the image in any format required",
+        "params": [
+          {
+            "name": "eFormat",
+            "type": "stdImgFormat",
+            "description": "The format the data should be in.",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "stdImgFormatDefault"
+          }
+        ],
+        "returns": {
+          "description": "Binary data of image, ready to load into a file"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "ToFile",
+        "type": "Sub",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Save image as file",
+        "params": [
+          {
+            "name": "FileName",
+            "type": "String",
+            "description": "",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "format",
+            "type": "stdImgFormat",
+            "description": "",
+            "referenceType": "ByRef",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "stdImgFormatDefault"
+          },
+          {
+            "name": "Quality",
+            "type": "Byte",
+            "description": "",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "80"
+          },
+          {
+            "name": "TIFF_ColorDepth",
+            "type": "Long",
+            "description": "",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "24"
+          },
+          {
+            "name": "TIFF_Compression",
+            "type": "Long",
+            "description": "",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "6"
+          }
+        ],
+        "returns": {
+          "type": "Void",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "ToClipboard",
+        "type": "Sub",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Copy the image to the clipboard",
+        "params": [],
+        "returns": {
+          "type": "Void",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [
+          "`stdImage.CreateFromFile(\"H:\\test1.bmp\").ToClipboard()"
+        ],
+        "remarks": []
+      },
+      {
+        "name": "ToTempFile",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Save a copy in a temporary file and return the path of this file",
+        "params": [
+          {
+            "name": "eFormat",
+            "type": "stdImgFormat",
+            "description": "The format the data should be in.",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "stdImgFormatDefault"
+          }
+        ],
+        "returns": {
+          "description": "The path to the temporary file."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "ToSheet",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Adds the picture to the sheet",
+        "params": [
+          {
+            "name": "ws",
+            "type": "Worksheet",
+            "description": "Worksheet to add image to",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "Top",
+            "type": "Double",
+            "description": "Top coord of the newly placed image",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "0 "
+          },
+          {
+            "name": "Left",
+            "type": "Double",
+            "description": "Left coord of the newly placed image",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "0"
+          },
+          {
+            "name": "compress",
+            "type": "MsoPictureCompress",
+            "description": "Whether to compress the image on import.",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "Unspecified"
+          }
+        ],
+        "returns": {
+          "type": "Object<Picture> ",
+          "description": "Picture object"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "ToUIControl",
+        "type": "Sub",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Update a UI control's background picture",
+        "params": [
+          {
+            "name": "oControl",
+            "type": "Object<Control>",
+            "description": "The control to update the picture of",
+            "referenceType": "Byval",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          }
+        ],
+        "returns": {
+          "type": "Void",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [
+          "`stdImage.CreateFromFile(\"H:\\test1.bmp\").ToUIControl(UserForm1.Image1)`"
+        ],
+        "remarks": []
+      },
+      {
+        "name": "ToDataUrl",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Obtain a data URL of the image",
+        "params": [
+          {
+            "name": "eFormat",
+            "type": "stdImgFormat",
+            "description": "The format of the image",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "stdImgFormatDefault"
+          }
+        ],
+        "returns": {
+          "description": "Data URL of the image"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "ToShapeFill",
+        "type": "Sub",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Output the image to a shape's fill",
+        "params": [
+          {
+            "name": "shp",
+            "type": "Object<Excel.Shape>",
+            "description": "The shape to fill",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          }
+        ],
+        "returns": {
+          "type": "Void",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [
+          "`stdImage.CreateFromFile(\"H:\\test1.bmp\").ToShapeFill(ActiveSheet.Shapes(1))`"
+        ],
+        "remarks": []
+      },
+      {
+        "name": "ToStdPicture",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Obtain a stdole.StdPicture",
+        "params": [],
+        "returns": {
+          "description": "Obtain the image as a stdole.StdPicture"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      }
+    ]
+  },
+  {
     "name": "stdJSON",
     "fileName": "stdJSON.cls",
     "methods": [
@@ -6786,7 +7824,9 @@
           "status": false,
           "message": ""
         },
-        "examples": ["` .AddArray(fromVar:=Array(1,2,3))`"],
+        "examples": [
+          "` .AddArray(fromVar:=Array(1,2,3))`"
+        ],
         "remarks": []
       },
       {
@@ -6810,6 +7850,25 @@
         ],
         "returns": {
           "description": "The object created"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "JsonType",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadOnly",
+        "description": "Obtain the JSON type",
+        "params": [],
+        "returns": {
+          "description": "The JSON type"
         },
         "deprecation": {
           "status": false,
@@ -6896,6 +7955,27 @@
         "remarks": []
       },
       {
+        "name": "ChildrenInfo",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Obtain the children of this JSON object",
+        "params": [],
+        "returns": {
+          "description": "The children of this JSON object of the form [{key: string, value: variant, isJSON: boolean},...]"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": [
+          "- Because of the nature of the JSON object, this will be a collection of dictionaries with the keys \"key\", \"value\" and \"isJSON\"."
+        ]
+      },
+      {
         "name": "ToString",
         "type": "Function",
         "constructor": true,
@@ -6906,25 +7986,25 @@
         "params": [
           {
             "name": "pretty",
-            "type": "boolean",
+            "type": "Boolean",
             "description": "If true, pretty print the JSON",
-            "referenceType": "byval",
+            "referenceType": "ByVal",
             "paramArray": false,
             "optional": true,
-            "defaultValue": "false"
+            "defaultValue": "False"
           },
           {
             "name": "prettyIndent",
-            "type": "long",
+            "type": "Long",
             "description": "If pretty, the indent to use",
-            "referenceType": "byval",
+            "referenceType": "ByVal",
             "paramArray": false,
             "optional": true,
             "defaultValue": "2"
           },
           {
             "name": "depth",
-            "type": "long",
+            "type": "Long",
             "description": "If pretty, the depth to start at",
             "referenceType": "ByRef",
             "paramArray": false,
@@ -7120,7 +8200,7 @@
           "message": ""
         },
         "examples": [
-          "```vb\r\nDebug.Print stdLambda.CreateMultiline(Array( _ \r\n  \"let x = 8/2*(2+2+3)\", _ \r\n  \"1+3*x\"\r\n)).Run()\r\n```"
+          "```vb\r\nDebug.Print stdLambda.CreateMultiline(Array( _\r\n  \"let x = 8/2*(2+2+3)\", _\r\n  \"1+3*x\"\r\n)).Run()\r\n```"
         ],
         "remarks": []
       },
@@ -7155,6 +8235,64 @@
         "returns": {
           "type": "Void",
           "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "Run",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Run the lambda from passed parameters",
+        "params": [
+          {
+            "name": "params",
+            "type": "Array<Variant>",
+            "description": "Array of parameters to run the lambda with",
+            "referenceType": "ByRef",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          }
+        ],
+        "returns": {
+          "description": "The result of the lambda"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "RunEx",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Run the lambda from an array of parameters",
+        "params": [
+          {
+            "name": "params",
+            "type": "Variant<Array<Variant>>",
+            "description": "Array of parameters to run the lambda with",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          }
+        ],
+        "returns": {
+          "description": "The result of the lambda"
         },
         "deprecation": {
           "status": false,
@@ -7258,6 +8396,26 @@
         },
         "examples": [],
         "remarks": []
+      },
+      {
+        "name": "oFunctExt",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadOnly",
+        "description": "Extend the lambda with new functions and named global variables",
+        "params": [],
+        "returns": {
+          "type": "Object<Dictionary<string,stdICallable> | Dictionary<string,variant>> ",
+          "description": "Dictionary of functions and named global variables"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
       }
     ]
   },
@@ -7305,7 +8463,7 @@
         "remarks": []
       },
       {
-        "name": "Measure",
+        "name": "CreateMeasure",
         "type": "Function",
         "constructor": true,
         "isDefaultMember": false,
@@ -7347,7 +8505,7 @@
         "remarks": []
       },
       {
-        "name": "Optimise",
+        "name": "CreateOptimiser",
         "type": "Function",
         "constructor": true,
         "isDefaultMember": false,
@@ -7968,6 +9126,72 @@
     ]
   },
   {
+    "name": "stdRefArray",
+    "fileName": "stdRefArray.cls",
+    "methods": [
+      {
+        "name": "Create",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "",
+        "params": [
+          {
+            "name": "Data",
+            "type": "Variant",
+            "description": "",
+            "referenceType": "ByRef",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          }
+        ],
+        "returns": {
+          "type": "stdRefArray",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "protInit",
+        "type": "Sub",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "",
+        "params": [
+          {
+            "name": "DataIn",
+            "type": "Variant",
+            "description": "",
+            "referenceType": "ByRef",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          }
+        ],
+        "returns": {
+          "type": "Void",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      }
+    ]
+  },
+  {
     "name": "stdReg",
     "fileName": "stdReg.cls",
     "methods": [
@@ -8385,7 +9609,9 @@
           "status": false,
           "message": ""
         },
-        "examples": ["```vb\r\nstdRegex.Create(\"A\\d+\",\"i\")\r\n```"],
+        "examples": [
+          "```vb\r\nstdRegex.Create(\"A\\d+\",\"i\")\r\n```"
+        ],
         "remarks": []
       },
       {
@@ -8803,6 +10029,350 @@
     ]
   },
   {
+    "name": "stdUIElement",
+    "fileName": "stdUIElement.cls",
+    "methods": [
+      {
+        "name": "CreateFromControl",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Creating a UI Element from an existing control",
+        "params": [
+          {
+            "name": "ctrl",
+            "type": "Control",
+            "description": "The control to create the UI Element from",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "callback",
+            "type": "stdICallable<(el: stdUIElement, event: EUIElementEvent, params: Variant<Array<Variant>>)=>void>",
+            "description": "The callback object to use for event handling",
+            "referenceType": "ByRef",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          }
+        ],
+        "returns": {
+          "description": "The UI Element"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "CreateFromType",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Creating a UI Element from a type",
+        "params": [
+          {
+            "name": "oControls",
+            "type": "MSForms.controls",
+            "description": "The controls collection to add the control to",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "iCtrlType",
+            "type": "EUIElementType",
+            "description": "The type of control to create",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "sName",
+            "type": "String",
+            "description": "The name of the control",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "Unspecified"
+          },
+          {
+            "name": "Caption",
+            "type": "String",
+            "description": "The caption of the control",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "Unspecified"
+          },
+          {
+            "name": "Value",
+            "type": "Variant",
+            "description": "",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "Unspecified"
+          },
+          {
+            "name": "callback",
+            "type": "stdICallable<(el: stdUIElement, event: EUIElementEvent, params: Variant<Array<Variant>>)=>void>",
+            "description": "The callback object to use for event handling",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "Unspecified"
+          },
+          {
+            "name": "fLeft",
+            "type": "Double",
+            "description": "The left position of the control",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "0"
+          },
+          {
+            "name": "fTop",
+            "type": "Double",
+            "description": "The top position of the control",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "0"
+          },
+          {
+            "name": "fWidth",
+            "type": "Double",
+            "description": "The width of the control",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "Unspecified"
+          },
+          {
+            "name": "fHeight",
+            "type": "Double",
+            "description": "The height of the control",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "Unspecified"
+          }
+        ],
+        "returns": {
+          "description": "The UI Element"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "uiType",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadOnly",
+        "description": "Obtain type of input control",
+        "params": [],
+        "returns": {
+          "description": "The type of input control"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "Control",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadOnly",
+        "description": "Obtain control object",
+        "params": [],
+        "returns": {
+          "description": "The control object"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "uiObject",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadOnly",
+        "description": "Obtain ui object raw item",
+        "params": [],
+        "returns": {
+          "description": "The ui object raw item / event sink"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "Value",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadWrite",
+        "description": "Get/Set Value",
+        "params": [],
+        "returns": {
+          "description": "The value of the control"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "Caption",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadWrite",
+        "description": "Get/Set Caption - The visible text of a control",
+        "params": [],
+        "returns": {
+          "description": "The caption of the control"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "Left",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadWrite",
+        "description": "Get/Set Position Left",
+        "params": [],
+        "returns": {
+          "description": "The left position of the control"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "Top",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadWrite",
+        "description": "Get/Set Position Top",
+        "params": [],
+        "returns": {
+          "description": "The top position of the control"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "Width",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadWrite",
+        "description": "Get/Set Size Width",
+        "params": [],
+        "returns": {
+          "description": "The width of the control"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "Height",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadWrite",
+        "description": "Get/Set Size Height",
+        "params": [],
+        "returns": {
+          "description": "The height of the control"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "id",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadOnly",
+        "description": "Getter for id",
+        "params": [],
+        "returns": {
+          "description": "The id of the control. This is a generated GUID"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      }
+    ]
+  },
+  {
     "name": "stdWebSocket",
     "fileName": "stdWebSocket.cls",
     "methods": [
@@ -8991,7 +10561,9 @@
           "status": false,
           "message": ""
         },
-        "examples": ["stdWebSocket.Create(\"wss://echo.websocket.org/\")"],
+        "examples": [
+          "stdWebSocket.Create(\"wss://echo.websocket.org/\")"
+        ],
         "remarks": []
       },
       {
@@ -9021,7 +10593,9 @@
           "status": false,
           "message": ""
         },
-        "examples": ["`ws.protInit(\"wss://echo.websocket.org/\")`"],
+        "examples": [
+          "`ws.protInit(\"wss://echo.websocket.org/\")`"
+        ],
         "remarks": []
       },
       {
@@ -9364,6 +10938,35 @@
         "params": [],
         "returns": {
           "description": "Window object representing the ContextMenu"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "CreateManyFromProcessId",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Create window objects for all desktop windows which have a specified process ID",
+        "params": [
+          {
+            "name": "processID",
+            "type": "Long",
+            "description": "Process ID to find windows for",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          }
+        ],
+        "returns": {
+          "description": "Collection of visible windows for the process"
         },
         "deprecation": {
           "status": false,
@@ -9813,6 +11416,81 @@
         "remarks": []
       },
       {
+        "name": "owner",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadWrite",
+        "description": "Get/Set the owner of the window.",
+        "params": [],
+        "returns": {
+          "type": "stdWindow",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": [
+          "- The owner is not the same as the parent. See: Raymond Chen's article: https://devblogs.microsoft.com/oldnewthing/20100315-00/?p=14613"
+        ]
+      },
+      {
+        "name": "setOwnerHandle",
+        "type": "Sub",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Set the owner HWND of the window. Useful if you want to set the owner to 0 (no owner).",
+        "params": [
+          {
+            "name": "hwnd",
+            "type": "LongPtr",
+            "description": "Handle to window to set as owner",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          }
+        ],
+        "returns": {
+          "type": "Void",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": [
+          "- The owner is not the same as the parent. See: Raymond Chen's article: https://devblogs.microsoft.com/oldnewthing/20100315-00/?p=14613.\r\nCalling `stdWindow.CreateFromIUnknown(Me).setOwnerHandle(0)` is especially useful, as it raises the Excel Userform to a top level window."
+        ]
+      },
+      {
+        "name": "HICON",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadWrite",
+        "description": "Get/Set a handle to the icon of the window",
+        "params": [],
+        "returns": {
+          "description": "Icon handle"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [
+          "- \r\n```vb\r\nstdWindow.CreateFromHwnd(hwnd).hIcon = Image1.Picture.Handle`\r\nstdWindow.CreateFromHwnd(hwnd).hIcon = stdImage.CreateFromFile(myFile).hicon 'Future\r\n```"
+        ],
+        "remarks": []
+      },
+      {
         "name": "AncestralRoot",
         "type": "Property",
         "constructor": true,
@@ -9950,7 +11628,7 @@
         ]
       },
       {
-        "name": "Resizable",
+        "name": "isResizable",
         "type": "Property",
         "constructor": true,
         "isDefaultMember": false,
@@ -9969,13 +11647,196 @@
         "remarks": []
       },
       {
-        "name": "isTopmost",
+        "name": "isCaptionVisible",
         "type": "Property",
         "constructor": true,
         "isDefaultMember": false,
         "protected": false,
         "access": "ReadWrite",
-        "description": "Get/Set topmost",
+        "description": "Get/Set caption visibility",
+        "params": [],
+        "returns": {
+          "description": "`true` if window caption is visible, `false` otherwise"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "isBorderVisible",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadWrite",
+        "description": "Get/Set border visibility",
+        "params": [],
+        "returns": {
+          "type": "Boolean",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "isMaximiseButtonVisible",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadWrite",
+        "description": "Get/Set maximise button visibility",
+        "params": [],
+        "returns": {
+          "type": "Boolean",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "isMinimiseButtonVisible",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadWrite",
+        "description": "Get/Set minimise button visibility",
+        "params": [],
+        "returns": {
+          "type": "Boolean",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "isSystemMenuVisible",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadWrite",
+        "description": "Get/Set system menu visibility",
+        "params": [],
+        "returns": {
+          "type": "Boolean",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": [
+          "- The system menu is the menu that appears when you click the icon in the top left of the window.\r\n          It contains options such as \"Restore\", \"Move\", \"Size\", \"Minimize\", \"Maximize\", \"Close\".\r\n          Toggling the visibility will also toggle the visibility of the close button, as this is part of the system menu."
+        ]
+      },
+      {
+        "name": "isVerticalScrollbarVisible",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadWrite",
+        "description": "Get/Set vertical scrollbar visibility",
+        "params": [],
+        "returns": {
+          "type": "Boolean",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": [
+          "- Scrollbar visibility doesn't do anything on VBA userform windows."
+        ]
+      },
+      {
+        "name": "isHorizontalScrollbarVisible",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadWrite",
+        "description": "Get/Set horizontal scrollbar visibility",
+        "params": [],
+        "returns": {
+          "type": "Boolean",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": [
+          "- Scrollbar visibility doesn't do anything on VBA userform windows."
+        ]
+      },
+      {
+        "name": "isChildWindow",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadWrite",
+        "description": "Get/Set whether the window is a child window",
+        "params": [],
+        "returns": {
+          "description": "`true` if window is a child window, `false` otherwise"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "isPopupWindow",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadWrite",
+        "description": "Get/Set whether the window is a popup window",
+        "params": [],
+        "returns": {
+          "description": "`true` if window is a popup window, `false` otherwise"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "isAlwaysOnTop",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadWrite",
+        "description": "Get/Set topmost / Always on top",
         "params": [],
         "returns": {
           "description": "`true` if window is topmost, `false` otherwise"
@@ -9986,6 +11847,191 @@
         },
         "examples": [],
         "remarks": []
+      },
+      {
+        "name": "isAppWindow",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadWrite",
+        "description": "Get/Set whether the window is an app window",
+        "params": [],
+        "returns": {
+          "description": "`true` if window is an app window, `false` otherwise"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": [
+          "- An app window is a window that is intended to be used as a main window for an application.\r\nTypically an app window will have an icon in the taskbar, and will be shown in the Alt+Tab menu."
+        ]
+      },
+      {
+        "name": "isToolWindow",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadWrite",
+        "description": "Get/Set whether the window is a tool window",
+        "params": [],
+        "returns": {
+          "description": "`true` if window is a tool window, `false` otherwise"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "isClickThroughEnabled",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadWrite",
+        "description": "Get/Set whether clicks are passed through the window. I.E. Clicks will be passed to the window behind this one.",
+        "params": [],
+        "returns": {
+          "type": "Boolean",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": [
+          "- This is useful in combination with layered windows to create click-through windows."
+        ]
+      },
+      {
+        "name": "isBorderEdgeSunken",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadWrite",
+        "description": "Get/Set whether the border has a sunken edge",
+        "params": [],
+        "returns": {
+          "type": "Boolean",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "isBorderDoubled",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadWrite",
+        "description": "Get/Set whether the window is double bordered",
+        "params": [],
+        "returns": {
+          "type": "Boolean",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "isLayeredWindow",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadWrite",
+        "description": "Get/Set whether the window is a layered window",
+        "params": [],
+        "returns": {
+          "type": "Boolean",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "LayeredWindowFlags",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadWrite",
+        "description": "Get/Set the existing layered window flags",
+        "params": [],
+        "returns": {
+          "type": "LayeredWindowFlag",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "TransparentColor",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadWrite",
+        "description": "Get/Set the transparent color for a window.  for a layered window",
+        "params": [],
+        "returns": {
+          "description": "The transparent color for the window. If isLayeredWindow is false, or the window's LayeredWindowFlags does not have the ChromaKey flag set, this will return -1."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": [
+          "- Setting this value will also set the window to be a layered window if it is not already."
+        ]
+      },
+      {
+        "name": "Opacity",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadWrite",
+        "description": "Get/Set the opacity of a layered window",
+        "params": [],
+        "returns": {
+          "type": "Byte",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": [
+          "- Setting this value will also set the window to be a layered window if it is not already."
+        ]
       },
       {
         "name": "SetHook",
@@ -10472,7 +12518,9 @@
           "status": false,
           "message": ""
         },
-        "examples": ["`notepadWindow.sendKeysInput(\"^a\")`"],
+        "examples": [
+          "`notepadWindow.sendKeysInput(\"^a\")`"
+        ],
         "remarks": []
       },
       {
@@ -10520,7 +12568,9 @@
           "status": false,
           "message": ""
         },
-        "examples": ["`notepadWindow.sendKeysEvent(\"^a\")`"],
+        "examples": [
+          "`notepadWindow.sendKeysEvent(\"^a\")`"
+        ],
         "remarks": []
       },
       {
@@ -10568,7 +12618,9 @@
           "status": false,
           "message": ""
         },
-        "examples": ["`notepadWindow.sendKeysMessage(\"^a\")`"],
+        "examples": [
+          "`notepadWindow.sendKeysMessage(\"^a\")`"
+        ],
         "remarks": [
           "It should be noted that this method is extremely unstable and is unlikely to work in the majority of cases."
         ]
