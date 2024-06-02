@@ -6750,7 +6750,7 @@
           "message": ""
         },
         "examples": [
-          "```\r\n  Dim b() as Byte: Redim b(1 to 100)\r\n  Call stdImage.CreateFromBinary(b).saveAs(\"H:\\test1.png\", stdImgFormatPNG)\r\n```"
+          "```\r\n  Dim b() as Byte: Redim b(1 to 100)\r\n  Call stdImage.CreateFromBinary(b).ToFile(\"H:\\test1.png\")\r\n```"
         ],
         "remarks": []
       },
@@ -6829,7 +6829,7 @@
           "message": ""
         },
         "examples": [
-          "`stdImage.CreateFromFile(\"H:\\test1.bmp\").saveAs(\"H:\\test1.png\", stdImgFormatPNG)`"
+          "`stdImage.CreateFromFile(\"H:\\test1.bmp\").ToFile(\"H:\\test1.png\")`"
         ],
         "remarks": []
       },
@@ -6869,7 +6869,7 @@
           "message": ""
         },
         "examples": [
-          "`stdImage.CreateFromURL(\"https://raw.githubusercontent.com/sancarn/awesome-vba/main/resources/VBALogo.png\").saveAs(\"H:\\test.png\", stdImgFormatPNG)`"
+          "`stdImage.CreateFromURL(\"https://raw.githubusercontent.com/sancarn/awesome-vba/main/resources/VBALogo.png\").ToFile(\"H:\\test.png\", stdImgFormatPNG)`"
         ],
         "remarks": [
           "- TODO: consider removing"
@@ -6902,7 +6902,7 @@
           "message": ""
         },
         "examples": [
-          "```\r\n  stdImage.CreateFromHBitmap(Image1.Picture.Handle).saveAs(\"H:\\test.png\", stdImgFormatPNG)\r\n```"
+          "```\r\n  stdImage.CreateFromHBitmap(Image1.Picture.Handle).ToFile(\"H:\\test.png\", stdImgFormatPNG)\r\n```"
         ],
         "remarks": []
       },
@@ -6923,7 +6923,7 @@
           "message": ""
         },
         "examples": [
-          "`stdImage.CreateFromClipboard().saveAs(\"H:\\test.png\", stdImgFormatPNG)`"
+          "`stdImage.CreateFromClipboard().ToFile(\"H:\\test.png\", stdImgFormatPNG)`"
         ],
         "remarks": []
       },
@@ -6985,7 +6985,7 @@
           "message": ""
         },
         "examples": [
-          "`stdImage.CreateFromStdPicture(Userform1.Picture).saveAs(\"H:\\test.png\", stdImgFormatPNG)`"
+          "`stdImage.CreateFromStdPicture(Userform1.Picture).ToFile(\"H:\\test.png\", stdImgFormatPNG)`"
         ],
         "remarks": []
       },
@@ -7078,7 +7078,7 @@
           "message": ""
         },
         "examples": [
-          "`stdImage.CreateFromShape(Sheet1.Shapes(\"Picture 2\")).saveAs(\"H:\\test.png\")`"
+          "`stdImage.CreateFromShape(Sheet1.Shapes(\"Picture 2\")).ToFile(\"H:\\test.png\")`"
         ],
         "remarks": []
       },
@@ -7109,7 +7109,7 @@
           "message": ""
         },
         "examples": [
-          "`stdImage.CreateFromChart(Sheet1.ChartObjects(1).Chart).saveAs(\"H:\\test.png\")`"
+          "`stdImage.CreateFromChart(Sheet1.ChartObjects(1).Chart).ToFile(\"H:\\test.png\")`"
         ],
         "remarks": []
       },
@@ -7179,12 +7179,12 @@
         "isDefaultMember": false,
         "protected": false,
         "access": null,
-        "description": "",
+        "description": "Creates a stdImage object from a HICON",
         "params": [
           {
             "name": "hIcon",
             "type": "LongPtr",
-            "description": "",
+            "description": "Handle to icon",
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": false,
@@ -7192,14 +7192,15 @@
           }
         ],
         "returns": {
-          "type": "stdImage",
-          "description": ""
+          "description": "Picture object representing data"
         },
         "deprecation": {
           "status": false,
           "message": ""
         },
-        "examples": [],
+        "examples": [
+          "```\r\nDim hICON as LongPtr: hICON = stdWindow.CreateFromHwnd(Application.hWnd).HICON\r\nstdImage.CreateFromHICON(hICON).ToFile(\"H:\\test.png\", stdImgFormatPNG)\r\n```"
+        ],
         "remarks": []
       },
       {
@@ -10976,6 +10977,26 @@
         "remarks": []
       },
       {
+        "name": "CreateManyFromShellWindows",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Create window objects for all shell windows",
+        "params": [],
+        "returns": {
+          "type": "Collection<stdWindow> ",
+          "description": "Collection of shell windows"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
         "name": "AsAcc",
         "type": "Function",
         "constructor": true,
@@ -12032,6 +12053,28 @@
         "remarks": [
           "- Setting this value will also set the window to be a layered window if it is not already."
         ]
+      },
+      {
+        "name": "ShellWindow",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadOnly",
+        "description": "Gets the Shell Window COM object for this window if it exists",
+        "params": [],
+        "returns": {
+          "type": "Object<Shell.IWebBrowser2|Nothing> ",
+          "description": "Shell Window COM object"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [
+          "```\r\n  Dim location as string: location = stdWindow.CreateFromHwnd(hwnd).ShellWindow.LocationURL\r\n```"
+        ],
+        "remarks": []
       },
       {
         "name": "SetHook",
