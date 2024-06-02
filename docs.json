@@ -13070,7 +13070,7 @@
           "message": ""
         },
         "examples": [
-          "`notepadWindow.sendKeysInput(\"^a\")`"
+          "```\r\nCall stdWindow.CreateFromHwnd(Application.VBE.mainwindow.hwnd).SendKeysInput(\"^a\")\r\n```"
         ],
         "remarks": []
       },
