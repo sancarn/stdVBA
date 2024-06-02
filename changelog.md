@@ -297,3 +297,4 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2024-05-30 `stdImage` FEATURE - Added `CreateFromHICON`
 - 2024-06-02 `stdLambda` BREAKING - To set a variable in stdLambda you must use `let` or `set` keyword. E.G. `let x = $1`
 - 2024-06-02 `stdSentry` FEATURE - Sentries with `stdSentry`. Use these to turn gross setter/resetter blocks into beautiful `with` blocks.
+- 2024-06-02 `stdWindow` FIX - Fixing `stdWindow#SendKeysInput`

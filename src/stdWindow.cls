@@ -281,19 +281,21 @@ Private Type KeyToken
 End Type
 
 'Used by SendInput() to send keys to window
-Private Type KeyboardInput
-  iType As Long    'DWORD = INPUT_KEYBOARD
-  wVk As Integer   'WORD
-  wScan As Integer 'WORD
-  dwFlags As Long  'DWORD
-  time As Long     'DWORD
-  #If VBA7 Then    'ULONG_PTR
+Private Type KeyboardInputEx
+  wVk As Integer            'WORD
+  wScan As Integer          'WORD
+  dwFlags As Long           'DWORD
+  time As Long              'DWORD
+  #If VBA7 Then             'ULONG_PTR
     dwExtraInfo As LongPtr
-    bPadding(1 To 12) As Byte '   12 extra bytes, because mouses take more.
   #Else
     dwExtraInfo As Long
-    bPadding(1 To 8) As Byte '   8 extra bytes, because mouses take more.
   #End If
+  padding As Currency
+End Type
+Private Type KeyboardInput
+  InputType As Long        'DWORD = INPUT_KEYBOARD
+  ki As KeyboardInputEx
 End Type
 '========================================
 
@@ -446,7 +448,7 @@ End Enum
   'SendKeys
   Private Declare PtrSafe Function MapVirtualKeyA Lib "user32" (ByVal uCode As Long, ByVal uMapType As Long) As Long
   Private Declare PtrSafe Sub keybd_event Lib "user32" (ByVal bVK As Byte, ByVal bScan As Byte, ByVal dwFlags As Long, ByVal dwExtraInfo As LongPtr)
-  Private Declare PtrSafe Function SendInput Lib "user32" (ByVal cInputs As Long, ByRef pInput As KeyboardInput, ByVal cbSize As Long) As Long
+  Private Declare PtrSafe Function SendInput Lib "user32" (ByVal cInputs As Long, ByRef pInput As KeyboardInput, ByVal cbSize As Integer) As Long
   Private Declare PtrSafe Function GetMessageExtraInfo Lib "user32" () As LongPtr
   Private Declare PtrSafe Sub Sleep Lib "Kernel32" (ByVal dwMilliseconds As Long)
 #Else
@@ -513,7 +515,7 @@ End Enum
   'SendKeys
   Private Declare Function MapVirtualKeyA Lib "user32" (ByVal uCode As Long, ByVal uMapType As Long) As Long
   Private Declare Sub keybd_event Lib "user32" (ByVal bVK As Byte, ByVal bScan As Byte, ByVal dwFlags As Long, ByVal dwExtraInfo As LongPtr)
-  Private Declare Function SendInput Lib "user32" (ByVal cInputs As Long, ByRef pInput As KeyboardInput, ByVal cbSize As Long) As Long
+  Private Declare Function SendInput Lib "user32" (ByVal cInputs As Long, ByRef pInput As KeyboardInput, ByVal cbSize As Integer) As Long
   Private Declare Function GetMessageExtraInfo Lib "user32" () As LongPtr
   Private Declare Sub Sleep Lib "Kernel32" (ByVal dwMilliseconds As Long)
 #End If
@@ -1974,8 +1976,9 @@ End Sub
 '@param bRaw - Whether to ignore special chars or not e.g. `{Enter}`
 '@param keyDelay - Delay between each keystroke
 '@param bAutoRelease - Whether keys pressed down should be auto-released
-'@example `notepadWindow.sendKeysInput("^a")`
-'@TODO: requires fix on 32-bit(?)
+'@example ```
+'Call stdWindow.CreateFromHwnd(Application.VBE.mainwindow.hwnd).SendKeysInput("^a")
+'```
 Public Sub SendKeysInput(ByVal sKeys As String, Optional ByVal bRaw As Boolean = False, Optional ByVal keyDelay As Long = 0, Optional bAutoRelease As Boolean = True)
   Const INPUT_KEYBOARD As Long = 1
   Const KEYEVENTF_KEYUP = &H2
@@ -1990,14 +1993,14 @@ Public Sub SendKeysInput(ByVal sKeys As String, Optional ByVal bRaw As Boolean =
         
         'Create generic key signal
         Dim inputKey As KeyboardInput
-        inputKey.iType = INPUT_KEYBOARD
-        inputKey.wVk = key.wVirtualKey
-        inputKey.wScan = key.wScanCode
-        inputKey.time = 0
+        inputKey.InputType = INPUT_KEYBOARD
+        inputKey.ki.wVk = key.wVirtualKey
+        inputKey.ki.wScan = key.wScanCode
+        inputKey.ki.time = 0
         
         'Key down input
         If key.iKeyState = tap Or key.iKeyState = down Then
-          inputKey.dwFlags = 0
+          inputKey.ki.dwFlags = 0
           If SendInput(1, inputKey, LenB(inputKey)) = 0 Then
               Err.Raise Err.LastDllError, "SendKeysInput", "Input might be blocked by another thread (DLL Error: " & Err.LastDllError & ")"
           End If
@@ -2006,7 +2009,7 @@ Public Sub SendKeysInput(ByVal sKeys As String, Optional ByVal bRaw As Boolean =
         
         'Key up input
         If key.iKeyState = tap Or key.iKeyState = up Then
-          inputKey.dwFlags = KEYEVENTF_KEYUP
+          inputKey.ki.dwFlags = KEYEVENTF_KEYUP
           If SendInput(1, inputKey, LenB(inputKey)) = 0 Then
               Err.Raise Err.LastDllError, "SendKeysInput", "Input might be blocked by another thread (DLL Error: " & Err.LastDllError & ")"
           End If
