@@ -35,19 +35,19 @@ Sub testAll()
     
     'variables
     With stdLambda.CreateMultiline(Array( _
-         "test = 2", _
+         "let test = 2", _
          "if $1 then", _
-         "   smth = test + 2", _
-         "   test = smth * 2", _
+         "   let smth = test + 2", _
+         "   let test = smth * 2", _
          "else", _
-         "   test = test + 4", _
+         "   let test = test + 4", _
          "end", _
          "test" _
     ))
         Test.Assert "Variables 1", .Run(True)=8
         Test.Assert "Variables 2", .Run(False)=6 
     End With
-    With stdLambda.Create("test = 2: if $1 then smth = test + 2: test = smth * 2 else test = test + 4 end: test ")
+    With stdLambda.Create("let test = 2: if $1 then let smth = test + 2: let test = smth * 2 else let test = test + 4 end: test ")
         Test.Assert "Variables 3", .Run(True)=8
         Test.Assert "Variables 4", .Run(False)=6
     End With
@@ -71,11 +71,11 @@ Sub testAll()
     )).Run()=16
     
     Test.Assert "Function 3 local vars", stdLambda.CreateMultiline(Array( _
-         "someVar = 12", _
+         "let someVar = 12", _
          "fun localVars(v)", _
-         "  smth = 3", _
+         "  let smth = 3", _
          "  if v < 2 then ", _
-         "    smth = smth + 2", _
+         "    let smth = smth + 2", _
          "  end ", _
          "  smth", _
          "end", _

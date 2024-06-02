@@ -63,13 +63,13 @@ Private Type TFactory
   passVars as boolean
 End Type
 Private Type TInstance
-  pOnDestroy as stdICallable
+  onDestroy as stdICallable
   DestroyArgs as Variant
   passVars as boolean
 End Type
 Private Type TThis
-  Private Factory as TFactory
-  Private Instance as TInstance
+  Factory as TFactory
+  Instance as TInstance
 End Type
 Private This as TThis
 
@@ -81,7 +81,7 @@ Private This as TThis
 '@returns - The sentry factory
 Public Function Create(ByVal OnInit as stdICallable, ByVal OnDestroy as stdICallable, Optional ByVal passVars as boolean = true) as stdSentry
   set Create = new stdSentry
-  Call Create.protInit(OnInit, OnDestroy, passVars)
+  Call Create.protInitFactory(OnInit, OnDestroy, passVars)
 End Function
 
 'Create a sentry which acts as an "optimiser" for code. Note, setting options doesn't always lead to performance improvements. See [vba-articles performance thread](https://sancarn.github.io/vba-articles/performance-tips.html) for details.
@@ -99,8 +99,6 @@ Public Function CreateOptimiser(Optional ByVal EnableEvents as vbTriState = vbUs
   if not isObject(stdLambda) then Err.Raise 5, "stdSentry.CreateFromObjectMethod", "stdLambda is required for this function"
   
   'Validate inputs
-  if not (EnableEvents = Empty or VarType(EnableEvents) = vbBoolean) then Err.Raise 5, "stdSentry.CreateOptimiser", "EnableEvents must be a boolean or Empty"
-  if not (ScreenUpdating = Empty or VarType(ScreenUpdating) = vbBoolean) then Err.Raise 5, "stdSentry.CreateOptimiser", "ScreenUpdating must be a boolean or Empty"
   if not (Calculation = -1 or Calculation = 2 or Calculation = -4135  or Calculation = -4105) then Err.Raise 5, "stdSentry.CreateOptimiser", "Calculation must be either xlCalculationAutomatic, xlCalculationSemiautomatic, xlCalculationManual, or -1"
   
   'Convert Calculation to a variant
@@ -109,15 +107,18 @@ Public Function CreateOptimiser(Optional ByVal EnableEvents as vbTriState = vbUs
   'Create the OnInit and OnDestroy functions
   '@remark vbUseDefault == -2
   Dim onInit as stdICallable: Set onInit = stdLambda.CreateMultiLine(Array( _
-    "If $1 <> -2 Then let t1 = Application.EnableEvents   : let Application.EnableEvents = $1    Else let t1 = -2", _
-    "If $2 <> -2 Then let t2 = Application.ScreenUpdating : let Application.ScreenUpdating = $2  Else let t2 = -2", _
-    "If $3 <> -2 Then let t3 = Application.Calculation    : let Application.Calculation = $3     Else let t3 = -2", _
+    "let t1 = -2", _ 
+    "let t2 = -2", _ 
+    "let t3 = -2", _
+    "If $1 <> -2 Then let t1 = Application.EnableEvents   : let Application.EnableEvents = $1    end", _
+    "If $2 <> -2 Then let t2 = Application.ScreenUpdating : let Application.ScreenUpdating = $2  end", _
+    "If $3 <> -2 Then let t3 = Application.Calculation    : let Application.Calculation = $3     end", _
     "Array(t1,t2,t3)" _
   ))
   Dim onDestroy as stdICallable: Set onDestroy = stdLambda.CreateMultiLine(Array( _
-    "If $1 <> -2 Then let Application.EnableEvents = $1", _
-    "If $2 <> -2 Then let Application.ScreenUpdating = $2", _
-    "If $3 <> -2 Then let Application.Calculation = $3" _
+    "If $1 <> -2 Then let Application.EnableEvents = $1 end", _
+    "If $2 <> -2 Then let Application.ScreenUpdating = $2 end", _
+    "If $3 <> -2 Then let Application.Calculation = $3 end" _
   ))
   
   'Create the sentry
@@ -138,7 +139,7 @@ End Function
 Public Function CreateFromObjectProperty(ByVal obj as Object, ByVal sPropertyName as String, ByVal value as Variant) as stdSentry
   if not isObject(stdLambda) then Err.Raise 5, "stdSentry.CreateFromObjectMethod", "stdLambda is required for this function"
   Dim onInit as stdICallable: Set onInit = stdLambda.CreateMultiLine(Array( _
-    "let t1 = $1." & sPropertyName _ 
+    "let t1 = $1." & sPropertyName, _ 
     "let $1." & sPropertyName & " = $2", _
     "Array(t1)" _
   )).bind(obj)
@@ -190,11 +191,12 @@ Public Sub protInitFactory(ByVal OnInit as stdICallable, ByVal OnDestroy as stdI
   With This.Factory
     Set .OnInit = OnInit
     Set .OnDestroy = OnDestroy
+    .passVars = passVars
   End With
 End Sub
 Public Sub protInitInstance(ByVal onDestroy as stdICallable, ByVal args as Variant, ByVal passVars as boolean)
   With This.Instance
-    Set .pOnDestroy = onDestroy
+    Set .onDestroy = onDestroy
     .DestroyArgs = args
     .passVars = passVars
   End With
@@ -204,7 +206,7 @@ End Sub
 '@param args - Arguments to pass to the OnInit function
 '@returns - The sentry
 Public Function Run(ParamArray args() as Variant) as stdSentry
-Attribute.Run.VB_UserMemId = 0
+Attribute Run.VB_UserMemId = 0
   Dim copy: copy = args
   set Run = RunEx(copy)
 End Function
@@ -276,3 +278,31 @@ Private Sub Class_Terminate()
     End if
   End With
 End Sub
+
+'Copies a variant
+'@param vOut - Variant to copy to
+'@param vIn - Variant to copy from
+Private Sub CopyVariant(ByRef vOut, ByVal vIn)
+  If isObject(vIn) Then
+    Set vOut = vIn
+  Else
+    vOut = vIn
+  End If
+End Sub
+
+'Implement stdICallable
+Private Function stdICallable_Bind(ParamArray params() As Variant) As stdICallable
+  Dim v: v = params
+  Call CopyVariant(stdICallable_Bind, BindEx(v))
+End Function
+Private Function stdICallable_Run(ParamArray params() As Variant) As Variant
+  Dim v: v = params
+  Call CopyVariant(stdICallable_Run, RunEx(v))
+End Function
+Private Function stdICallable_RunEx(ByVal params As Variant) As Variant
+  Call CopyVariant(stdICallable_RunEx, RunEx(params))
+End Function
+Private Function stdICallable_SendMessage(ByVal sMessage As String, success As Boolean, ByVal params As Variant) As Variant
+  Call CopyVariant(stdICallable_SendMessage, SendMessage(sMessage, success, params))
+End Function
+

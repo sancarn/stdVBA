@@ -495,7 +495,7 @@ End Sub
 '@remark - A statement consists of either a variable assignment, a function declaration or an expression
 '(typically this wouldn't classify as a statement, but for the purpose of stdLambda and simplifying parsing it does).
 Private Sub parseStatement()
-    If peek("var") And peek("equal", 2) Then
+    If (peek("set") or peek("let")) and peek("var",2) And peek("equal", 3) Then
         Call parseAssignment
     ElseIf peek("fun") Then
         Call parseFunctionDeclaration
@@ -919,6 +919,9 @@ End Function
 
 'Parse an assignment and add it to the current scope and operations stack
 Private Sub parseAssignment()
+    'Consume set/let keyword
+    if not optConsume("let") then Call consume("set")
+    
     Dim varName As String: varName = consume("var")
     Call consume("equal")
     Call parseExpression
