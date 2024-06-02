@@ -346,16 +346,16 @@ Private This as TThis
 '@returns - Picture object representing data
 '@example ```
 '  Dim b() as Byte: Redim b(1 to 100)
-'  Call stdImage.CreateFromBinary(b).saveAs("H:\test1.png", stdImgFormatPNG)
+'  Call stdImage.CreateFromBinary(b).ToFile("H:\test1.png")
 '```
 Public Function CreateFromBinary(ByRef b() As Byte, ByVal format as stdImgFormat) As stdImage
-  'TODO:
+  'TODO: Create Stream, Write to stream, CreateBitmapFromStream
   Err.Raise 1, , "Not implemented"
 End Function
 
 
 Public Function CreateFromDataURL(ByVal sURL as string) as stdImage
-  'TODO:
+  'TODO: Parse Base64, CreateFromBinary
   Err.Raise 1, , "Not implemented"
 End Function
 
@@ -363,7 +363,7 @@ End Function
 '@param sPath - Path of file
 '@param format - The format of the image
 '@returns - Picture object representing data
-'@example `stdImage.CreateFromFile("H:\test1.bmp").saveAs("H:\test1.png", stdImgFormatPNG)`
+'@example `stdImage.CreateFromFile("H:\test1.bmp").ToFile("H:\test1.png")`
 Public Function CreateFromFile(ByVal sPath As String, Optional ByVal format as stdImgFormat = stdImgFormatDefault, optional byval transparentColor as Long = 0) As stdImage
   If format = stdImgFormatDefault Then
     Dim pathParts: pathParts = Split(sPath, ".")
@@ -374,7 +374,8 @@ Public Function CreateFromFile(ByVal sPath As String, Optional ByVal format as s
       Case "gif": format = stdImgFormat.stdImgFormatGIF
       Case "jpeg", "jpg": format = stdImgFormat.stdImgFormatJPEG
       Case "tiff": format = stdImgFormat.stdImgFormatTIFF
-      Case "webp": Err.Raise 1, "stdImage::CreateFromFile", "WEBP format is not currently supported"
+      Case "webp": Err.Raise 5, "stdImage::CreateFromFile", "WEBP format is not currently supported"
+      Case "svg": Err.Raise 5, "stdImage::CreateFromFile", "SVG format is not currently supported"
       case else
         Err.Raise 1, "stdImage::CreateFromFile", "Could not determine format from file extension"
     End Select
@@ -413,7 +414,7 @@ End Function
 '@param sUrl - Url of file
 '@param format - The format of the image
 '@returns - Picture object representing data
-'@example `stdImage.CreateFromURL("https://raw.githubusercontent.com/sancarn/awesome-vba/main/resources/VBALogo.png").saveAs("H:\test.png", stdImgFormatPNG)`
+'@example `stdImage.CreateFromURL("https://raw.githubusercontent.com/sancarn/awesome-vba/main/resources/VBALogo.png").ToFile("H:\test.png", stdImgFormatPNG)`
 '@remark - TODO: consider removing
 Public Function CreateFromUrl(ByVal sURL As String, Optional ByVal format as stdImgFormat = stdImgFormatDefault) As stdImage
   Set CreateFromUrl = New stdImage
@@ -436,7 +437,7 @@ End Function
 '@param hBitmap - hBitmap (handle to Bitmap)
 '@returns - Picture object representing data
 '@example ```
-'  stdImage.CreateFromHBitmap(Image1.Picture.Handle).saveAs("H:\test.png", stdImgFormatPNG)
+'  stdImage.CreateFromHBitmap(Image1.Picture.Handle).ToFile("H:\test.png", stdImgFormatPNG)
 '```
 Public Function CreateFromHBitmap(ByVal hBitmap As LongPtr) As stdImage
   Dim bmp As BITMAP
@@ -450,7 +451,7 @@ End Function
 
 'Creates a stdImage from the image in the clipboard
 '@returns - Picture object representing data
-'@example `stdImage.CreateFromClipboard().saveAs("H:\test.png", stdImgFormatPNG)`
+'@example `stdImage.CreateFromClipboard().ToFile("H:\test.png", stdImgFormatPNG)`
 Public Function CreateFromClipboard() As stdImage
   'Open clipboard
   If Not CBool(OpenClipboardTimeout(Application.hWnd)) Then Call Err.Raise(1, "Value [GET]", "Unable to open clipboard (DllError: " & Err.LastDllError & ")")
@@ -479,7 +480,7 @@ End Function
 'Creates a stdImage object from a stdole.stdPicture object
 '@param picture - Object to create picture from
 '@returns - Picture object representing data
-'@example `stdImage.CreateFromStdPicture(Userform1.Picture).saveAs("H:\test.png", stdImgFormatPNG)`
+'@example `stdImage.CreateFromStdPicture(Userform1.Picture).ToFile("H:\test.png", stdImgFormatPNG)`
 Public Function CreateFromStdPicture(ByVal picture As stdole.stdPicture) As stdImage
   Set CreateFromStdPicture = CreateFromHBitmap(picture.Handle)
 End Function
@@ -504,7 +505,7 @@ End Function
 'Creates a stdImage object from a Shape object
 '@param shp as Object<(Excel|Word|PowerPoint).Shape> - Object to create picture from
 '@returns - Picture object representing data
-'@example `stdImage.CreateFromShape(Sheet1.Shapes("Picture 2")).saveAs("H:\test.png")`
+'@example `stdImage.CreateFromShape(Sheet1.Shapes("Picture 2")).ToFile("H:\test.png")`
 Public Function CreateFromShape(ByVal shp As Object) As stdImage
   Select Case Application.Name
     Case "Microsoft Excel"
@@ -517,7 +518,7 @@ End Function
 'Creates a stdImage object from a Chart object
 '@param chart as Object<(Excel|Word|PowerPoint).Chart> - Object to create picture from
 '@returns - Picture object representing data
-'@example `stdImage.CreateFromChart(Sheet1.ChartObjects(1).Chart).saveAs("H:\test.png")`
+'@example `stdImage.CreateFromChart(Sheet1.ChartObjects(1).Chart).ToFile("H:\test.png")`
 Public Function CreateFromChart(ByVal chart As Object) As stdImage
   Select Case Application.Name
     Case "Microsoft Excel"
@@ -580,6 +581,13 @@ End Function
   set CreateFromWindow = CreateFromHBitmap(hCaptureBitmap)  
 End Function
 
+'Creates a stdImage object from a HICON
+'@param hIcon - Handle to icon
+'@returns - Picture object representing data
+'@example ```
+'Dim hICON as LongPtr: hICON = stdWindow.CreateFromHwnd(Application.hWnd).HICON
+'stdImage.CreateFromHICON(hICON).ToFile("H:\test.png", stdImgFormatPNG)
+'```
 #if VBA7 then
   Public Function CreateFromHICON(ByVal hIcon as LongPtr) as stdImage
 #else
