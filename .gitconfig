@@ -1,2 +1,0 @@
-[filter "crlf"]
-        clean = unix2dos

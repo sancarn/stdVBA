@@ -1,0 +1,19 @@
+name: Enforce-CRLF
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+permissions:
+  contents: write
+
+jobs:
+  enforce-crlf:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Enforce CRLF action
+      uses: DecimalTurn/Enforce-CRLF@v1
+      with:
+        extensions: .bas, .frm, .cls
