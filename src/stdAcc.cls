@@ -1438,12 +1438,12 @@ Private Function unkQueryInterface(ByRef unk As IUnknown, ByVal sIID As String) 
     ElseIf hResult = E_POINTER Then
       Set unkQueryInterface = Nothing
     ElseIf hResult = E_NOINTERFACE Then
-      Err.Raise E_NOINTERFACE, "stdCOM", "IUnknown::QueryInterface - Interface not implemented."
+      Err.Raise E_NOINTERFACE, "stdAcc", "IUnknown::QueryInterface - Interface not implemented."
     Else
-      Err.Raise hResult, "stdCOM", "IUnknown::QueryInterface - Unknown error occurred."
+      Err.Raise hResult, "stdAcc", "IUnknown::QueryInterface - Unknown error occurred."
     End If
   Else
-    Err.Raise Err.LastDllError, "stdCOM", "IUnknown::QueryInterface - Cannot retrieve IID from String."
+    Err.Raise Err.LastDllError, "stdAcc", "IUnknown::QueryInterface - Cannot retrieve IID from String."
   End If
 End Function
 

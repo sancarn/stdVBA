@@ -263,7 +263,7 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2024-01-22 `stdWindow` FIX - `Exists` guard added in setThreadInput
 - 2024-01-23 `stdTimer` FIX - `stdTimer` now works in different locals.
 - 2024-01-28 `stdLambda` FIX - Fix to dictionary getters broken since `2023-12-05` update.
-- 2024-02-22 `stdCOM` FEATURE - Added `CreateFrinCkassAndIID()`.
+- 2024-02-22 `stdCOM` FEATURE - Added `CreateFromClassAndIID()`.
 - 2024-03-10 `stdLambda` FIX - `=` in `if` statements failed due to `2023-12-05 stdLambda FEATURE` release. This has been resolved.
 - 2024-03-10 `stdLambda` FIX - Fix to `parseBlock()` to consume colons after parsing a statement.
 - 2024-03-14 `stdEnumerator` BREAKING - `stdEnumerator.CreateFromListObject()` defaults to `vbTextCompare` and supplies optional parameter for configuration.
@@ -298,3 +298,8 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2024-06-02 `stdLambda` BREAKING - To set a variable in stdLambda you must use `let` or `set` keyword. E.G. `let x = $1`
 - 2024-06-02 `stdSentry` FEATURE - Sentries with `stdSentry`. Use these to turn gross setter/resetter blocks into beautiful `with` blocks.
 - 2024-06-02 `stdWindow` FIX - Fixing `stdWindow#SendKeysInput`
+- 2024-06-22 `stdSentry` FEATURE - Added `stdSentry#CreateFromAutomationSecurity` to create a sentry from an AutomationSecurity setting.
+- 2024-06-22 `stdRegex` FIX - Removed dependency on `stdError` class.
+- 2024-06-22 `stdAcc` FIX - Changed `stdCOM` in error messages to `stdAcc`.
+- 2024-06-22 `stdCallback` BREAKING - Removed `CreateEvaluator` as it is no longer needed.
+- 2024-06-27 `stdJSON` FIX - Fixed bug where unquoted keys weren't being parsed correctly.

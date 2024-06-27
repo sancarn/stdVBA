@@ -8,14 +8,12 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
 
-'
 'Dim x as stdCOM: set x = stdCOM.create(obj)
 'set int = x.QueryInterface("")
 'retVar = int.CallVt(EMyInterface.MyFunction, vbReturnVar, param1, param2, param3, param4, ...)
 
 'TODO: Analyse and add anything missing from:
 ' * https://referencesource.microsoft.com/#system.data/fx/src/data/System/Data/OleDb/OLEDB_Util.cs,4254532afac0bd58,references
-
 #If Win64 Then
   Const NULL_PTR as LongLong = 0^
 #Else
@@ -436,22 +434,24 @@ Private Const CC_STDCALL    As Long = 4
 #If Win64 Then
   Private Const PTRSIZE = 8
   Private Const vbLongPtr = VbVarType.vbLongLong
-  Private pObjPtr As LongPtr
 #Else
   Private Const PTRSIZE = 4
   Private Const vbLongPtr = VbVarType.vbLong
-  Private pObjPtr As Long
 #End If
 
 
 '*******************
 '* STATE VARIABLES *
 '*******************
-'@TODO: Convert to TThis
 Private Type TThis
   Meta as IUnknown
   RegisteredOLEInstance as Long
   RegisteredTimerOLEInstance as Long
+  #if VBA7 then
+    ObjPtr as LongPtr
+  #Else
+    ObjPtr as Long
+  #End If
 End Type
 Private This as TThis
 
@@ -482,7 +482,7 @@ End Function
   Public Function CreateFromPtr(ByVal ptr As LongPtr) As stdCOM
 #else
   Public Function CreateFromPtr(ByVal ptr As Long) As stdCOM
-#end if
+#end if 
   Set CreateFromPtr = New stdCOM
   Call CreateFromPtr.protInitFromPtr(ptr)
 End Function
@@ -582,7 +582,7 @@ End Function
 '@example `stdCOM.CreateFromPtr(ObjPtr(Application)).Object.Name`
 Public Property Get Object() As IUnknown
   If this.Meta Is Nothing Then
-    Set Object = Deref(pObjPtr)
+    Set Object = Deref(This.ObjPtr)
   Else
     Set Object = this.Meta
   End If
@@ -595,7 +595,7 @@ End Property
 '@throws {...} Unsupported interface IDispatch
 Public Property Get AsObject() As Object
   If this.Meta Is Nothing Then
-    Set AsObject = Deref(pObjPtr)
+    Set AsObject = Deref(This.ObjPtr)
   Else
     Set AsObject = this.Meta
   End If
@@ -609,7 +609,7 @@ End Property
   Public Property Get Pointer() As Long
 #End If
   If this.Meta Is Nothing Then
-    Pointer = pObjPtr
+    Pointer = This.ObjPtr
   Else
     Pointer = ObjPtr(this.Meta)
   End If
@@ -868,7 +868,7 @@ Public Function CallVT(ByVal VTableOffset As Long, ByVal ReturnType As VbVarType
     
     'Call function
     Dim hResult As Long
-    hResult = DispCallFunc(pObjPtr, VTableOffset * PTRSIZE, CC_STDCALL, ReturnType, iParamCount, VarPtr(vType(0)), VarPtr(vPtr(0)), vv)
+    hResult = DispCallFunc(This.ObjPtr, VTableOffset * PTRSIZE, CC_STDCALL, ReturnType, iParamCount, VarPtr(vType(0)), VarPtr(vPtr(0)), vv)
     
     If hResult < 0 Then
         Err.Raise hResult, "DispCallFunc", "DispCallFunc - Unknown error occurred."
@@ -882,7 +882,7 @@ End Function
 '@protected
 '@param obj - Object to create raw COM object from
 Friend Sub protInitFromObject(ByVal obj As IUnknown)
-  pObjPtr = ObjPtr(obj)
+  This.ObjPtr = ObjPtr(obj)
   Set this.Meta = obj
 End Sub
 
@@ -890,7 +890,7 @@ End Sub
 '@protected
 '@param ptr - Pointer to object
 Friend Sub protInitFromPtr(ByVal ptr As LongPtr)
-  pObjPtr = ptr
+  This.ObjPtr = ptr
   Call unkAddRef
 End Sub
 

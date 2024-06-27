@@ -73,7 +73,6 @@ Private Type TThis
 End Type
 Private This as TThis
 
-
 'Create a sentry factory
 '@param OnInit - Function to run when the sentry is created.
 '@param OnDestroy - Function to run when the sentry is destroyed.
@@ -182,6 +181,19 @@ End Function
 Public Function CreateErrorStack(ByVal name as String) as stdSentry
   if not isObject(stdError) then Err.Raise 5, "stdSentry.CreateFromObjectMethod", "stdError is required for this function"
   set CreateErrorStack = CreateFromObjectMethod(stdError, "AddStack", Array(name), "PopStack", Array()).Run()
+End Function
+
+'Create a sentry from an AutomationSecurity setting
+'@param sec - AutomationSecurity setting desired
+'@returns - The sentry
+'@requires stdLambda
+'@example ```vba
+'With stdSentry.CreateFromAutomationSecurity(msoAutomationSecurityForceDisable)
+'  Call ThisWorkbook.SaveAs("C:\temp\test.xlsx")
+'End With
+'```
+Public Function CreateFromAutomationSecurity(ByVal sec as MsoAutomationSecurity) as stdSentry
+  set CreateFromAutomationSecurity = CreateFromObjectProperty(Application, "AutomationSecurity", sec)
 End Function
 
 
