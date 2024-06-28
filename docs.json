@@ -3425,35 +3425,6 @@
         "remarks": []
       },
       {
-        "name": "CreateEvaluator",
-        "type": "Function",
-        "constructor": true,
-        "isDefaultMember": false,
-        "protected": false,
-        "access": null,
-        "description": "CreateEvaluator from",
-        "params": [
-          {
-            "name": "sFormula",
-            "type": "String",
-            "description": "The formula to create the callback from.",
-            "referenceType": "ByVal",
-            "paramArray": false,
-            "optional": false,
-            "defaultValue": null
-          }
-        ],
-        "returns": {
-          "description": "A 1st class callback function object"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "examples": [],
-        "remarks": []
-      },
-      {
         "name": "CreateFromPointer",
         "type": "Function",
         "constructor": true,
@@ -7698,7 +7669,10 @@
           "status": false,
           "message": ""
         },
-        "examples": [],
+        "examples": [
+          "```\r\n  Dim o as stdJSON: set o = stdJSON.CreateFromString(\"{\"\"a\"\":1,\"\"b\"\":\"\"hello\"\"}\")\r\n  Debug.Print o.ToString()\r\n```",
+          "```\r\n  Dim o as stdJSON: set o = stdJSON.CreateFromString(\"{a: 1, b: 'hello'}\", AllowUnquotedKeys:=true, AllowSingleQuoteStrings:=true)\r\n  Debug.Print o.ToString()\r\n```"
+        ],
         "remarks": []
       },
       {
@@ -10113,6 +10087,37 @@
         },
         "examples": [
           "```vba\r\nPublic Sub MyMethod()\r\n  With stdSentry.CreateErrorStack(\"MyClass.MyMethod\")\r\n    '... our code ...\r\n  End With\r\nEnd Sub\r\n```"
+        ],
+        "remarks": []
+      },
+      {
+        "name": "CreateFromAutomationSecurity",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Create a sentry from an AutomationSecurity setting",
+        "params": [
+          {
+            "name": "sec",
+            "type": "MsoAutomationSecurity",
+            "description": "AutomationSecurity setting desired",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          }
+        ],
+        "returns": {
+          "description": "The sentry"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [
+          "```vba\r\nWith stdSentry.CreateFromAutomationSecurity(msoAutomationSecurityForceDisable)\r\n  Call ThisWorkbook.SaveAs(\"C:\\temp\\test.xlsx\")\r\nEnd With\r\n```"
         ],
         "remarks": []
       },
