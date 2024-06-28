@@ -586,7 +586,7 @@ Private Function parseJSONObjectKey(ByRef sJSON as string, ByRef index as Long) 
   elseif this.parserProps.AllowUnquotedKeys then
     Dim sKey as string: sKey = ""
     Do While True
-      char = parserPeekStr(sJSON, index)
+      char = parserPeekAny(sJSON, index)
       if (char <> " ") And (char <> ":") then
         Call parserConsumeAny(sJSON, index)
         sKey = sKey & char
