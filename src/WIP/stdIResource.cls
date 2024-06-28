@@ -60,7 +60,7 @@ Public Property Get Hash(Optional iType as EResourceHashType) as string: End Pro
 
 'Obtains a collection of children
 '@returns {Collection<stdIResource>}
-Public Property Get Children() as Collection: End Function
+Public Property Get Children() as Collection: End Property
 
 'Copies the current resource to another existing resource container.
 '@param {stdIResource} The resource to copy this resource to.

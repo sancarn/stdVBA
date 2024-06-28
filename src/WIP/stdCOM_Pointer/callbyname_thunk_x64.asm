@@ -33,11 +33,11 @@ section .text
         ; 1. Get function pointers from vtable
         mov rdi, r9                    ; pDisp (the object pointer)
         mov rax, [rdi]                 ; Load vtable
-        mov rbx, [rax + 0x18]          ; GetIDsOfNames is the 7th function (offset 0x18)
-        mov rsi, [rax + 0x20]          ; Invoke is the 9th function (offset 0x20)
+        mov rbx, [rax + 0x38]          ; GetIDsOfNames is the 7th function (offset 0x38)
+        mov rsi, [rax + 0x40]          ; Invoke is the 9th function (offset 0x40)
 
         ; 2. Check reference count
-        mov eax, [rdi + 0xC]           ; Load reference count (example offset, may vary)
+        mov eax, [rdi + 0x18]           ; Load reference count (example offset, may vary)
         mov [refcount], eax
         test eax, eax
         jz zero_refcount_failed        ; Jump if reference count is zero
