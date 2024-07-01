@@ -303,3 +303,5 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2024-06-22 `stdAcc` FIX - Changed `stdCOM` in error messages to `stdAcc`.
 - 2024-06-22 `stdCallback` BREAKING - Removed `CreateEvaluator` as it is no longer needed.
 - 2024-06-27 `stdJSON` FIX - Fixed bug where unquoted keys weren't being parsed correctly.
+- 2024-06-30 `stdJSON` FIX - Fixed bug where `stdJSON` wasn't correctly handling numbers.
+- 2024-07-01 `stdAcc` FIX - Fixed bug where numerous states weren't being correctly identified.

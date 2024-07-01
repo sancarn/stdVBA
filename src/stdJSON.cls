@@ -660,7 +660,7 @@ Private Sub parseValue(ByRef value as Variant, ByRef sJSON as string, ByRef inde
     case "n"
       Call parserConsume("null", sJSON, index, 4)
       value = null
-    case "1", "2", "3", "4", "5", "6", "7", "8", "9", "-"
+    case "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "-"
       value = parseNumber(sJSON, index)
   end select
 End Sub
