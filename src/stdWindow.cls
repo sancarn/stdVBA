@@ -451,6 +451,16 @@ End Enum
   Private Declare PtrSafe Function SendInput Lib "user32" (ByVal cInputs As Long, ByRef pInput As KeyboardInput, ByVal cbSize As Integer) As Long
   Private Declare PtrSafe Function GetMessageExtraInfo Lib "user32" () As LongPtr
   Private Declare PtrSafe Sub Sleep Lib "Kernel32" (ByVal dwMilliseconds As Long)
+
+  'Create windows
+  Private Declare PtrSafe Function CreateWindowEx Lib "user32" Alias "CreateWindowExA" (ByVal dwExStyle As Long, ByVal lpClassName As String, ByVal lpWindowName As String, ByVal dwStyle As Long, ByVal x As Long, ByVal y As Long, ByVal nWidth As Long, ByVal nHeight As Long, ByVal hWndParent As LongPtr, ByVal hMenu As LongPtr, ByVal hInstance As LongPtr, lpParam As Any) As LongPtr
+  Private Declare PtrSafe Function GetDC Lib "user32" (ByVal hwnd As LongPtr) As LongPtr
+  Private Declare PtrSafe Function CreatePen Lib "gdi32" (ByVal nPenStyle As Long, ByVal nWidth As Long, ByVal crColor As Long) As LongPtr
+  Private Declare PtrSafe Function SelectObject Lib "gdi32" (ByVal hdc As LongPtr, ByVal hObject As LongPtr) As LongPtr
+  Private Declare PtrSafe Function DeleteObject Lib "gdi32" (ByVal hObject As LongPtr) As LongPtr
+  Private Declare PtrSafe Function ReleaseDC Lib "user32" (ByVal hwnd As LongPtr, ByVal hdc As LongPtr) As LongPtr
+  Private Declare PtrSafe Function Rectangle Lib "gdi32" (ByVal hdc As LongPtr, ByVal x1 As Long, ByVal y1 As Long, ByVal x2 As Long, ByVal y2 As Long) As LongPtr
+  Private Declare PtrSafe Function UpdateWindow Lib "user32" (ByVal hwnd As LongPtr) As LongPtr
 #Else
   Private Enum LongPtr
     [_]
@@ -518,6 +528,16 @@ End Enum
   Private Declare Function SendInput Lib "user32" (ByVal cInputs As Long, ByRef pInput As KeyboardInput, ByVal cbSize As Integer) As Long
   Private Declare Function GetMessageExtraInfo Lib "user32" () As LongPtr
   Private Declare Sub Sleep Lib "Kernel32" (ByVal dwMilliseconds As Long)
+
+  'Create windows
+  Private Declare Function CreateWindowEx Lib "user32" Alias "CreateWindowExA" (ByVal dwExStyle As Long, ByVal lpClassName As String, ByVal lpWindowName As String, ByVal dwStyle As Long, ByVal x As Long, ByVal y As Long, ByVal nWidth As Long, ByVal nHeight As Long, ByVal hWndParent As LongPtr, ByVal hMenu As LongPtr, ByVal hInstance As LongPtr, lpParam As Any) As LongPtr
+  Private Declare Function GetDC Lib "user32" (ByVal hwnd As LongPtr) As LongPtr
+  Private Declare Function CreatePen Lib "gdi32" (ByVal nPenStyle As Long, ByVal nWidth As Long, ByVal crColor As Long) As LongPtr
+  Private Declare Function SelectObject Lib "gdi32" (ByVal hdc As LongPtr, ByVal hObject As LongPtr) As LongPtr
+  Private Declare Function DeleteObject Lib "gdi32" (ByVal hObject As LongPtr) As LongPtr
+  Private Declare Function ReleaseDC Lib "user32" (ByVal hwnd As LongPtr, ByVal hdc As LongPtr) As LongPtr
+  Private Declare Function Rectangle Lib "gdi32" (ByVal hdc As LongPtr, ByVal x1 As Long, ByVal y1 As Long, ByVal x2 As Long, ByVal y2 As Long) As LongPtr
+  Private Declare Function UpdateWindow Lib "user32" (ByVal hwnd As LongPtr) As LongPtr
 #End If
 
 
@@ -531,6 +551,7 @@ Private Type TThis
   Initialized As Boolean
   LayeredWindowInfo As TLayeredWindowInfo
   Lookups As Object
+  isCreatedByVBA as Boolean
 End Type
 Private This as TThis
 
@@ -553,13 +574,20 @@ Private This as TThis
 '@param lpParam    - Pointer to a location where extra information is stored. Or ClientCreateStruct (for MDI windows), or null if no extra data required
 '@returns - The created window
 '@remarks System Class Names: `BUTTON`, `COMBOBOX`, `EDIT`, `LISTBOX`, `MDICLIENT`, `RICHEDIT`, `RICHEDIT_CLASS`, `SCROLLBAR`, `STATIC`
-'@TODO: Create a window object from information passed in by this function
+'@example ```vb
+'Dim wnd as stdWindow: set wnd = stdWindow.Create("STATIC", 0, 0, 100, 100, "Hello World")
+'wnd.visible = true
+'```
 #If VBA7 Then
-Private Function Create(ByVal sClassName As String, ByVal sCaption As String, ByVal dwStyle As Long, ByVal x As Long, ByVal y As Long, ByVal width As Long, ByVal height As Long, ByVal hWndParent As LongPtr, ByVal hMenu As LongPtr, ByVal hInstance As LongPtr, ByVal lpParam As Long) As stdWindow
+Public Function Create(ByVal sClassName As String, ByVal x As Long, ByVal y As Long, ByVal width As Long, ByVal height As Long, Optional ByVal sCaption As String = vbNullString, Optional ByVal dwStyle As Long = WS_POPUP, Optional ByVal dwStyleEx As Long = 0, Optional ByVal hWndParent As LongPtr = 0^, Optional ByVal hMenu As LongPtr = 0^, Optional ByVal hInstance As LongPtr = 0^, Optional ByVal lpParam As Long = 0) As stdWindow
 #Else
-Private Function Create(ByVal sClassName As String, ByVal sCaption As String, ByVal dwStyle As Long, ByVal x As Long, ByVal y As Long, ByVal width As Long, ByVal height As Long, ByVal hWndParent As Long, ByVal hMenu As Long, ByVal hInstance As Long, ByVal lpParam As Long) As stdWindow
+Public Function Create(ByVal sClassName As String, ByVal x As Long, ByVal y As Long, ByVal width As Long, ByVal height As Long, Optional ByVal sCaption As String = vbNullString, Optional ByVal dwStyle As Long = WS_POPUP, Optional ByVal dwStyleEx As Long = 0, Optional ByVal hWndParent As Long = 0, Optional ByVal hMenu As Long = 0, Optional ByVal hInstance As Long = 0, Optional ByVal lpParam As Long = 0) As stdWindow
 #End If
-  Err.Raise 1, "Create", "Not Implemented"
+  Dim hwnd as LongPtr: hwnd = CreateWindowEx(dwStyleEx, sClassName, sCaption, dwStyle, x, y, width, height, hWndParent, hMenu, hInstance, lpParam)
+  If hwnd = 0 Then Err.Raise 1, "Create", "Failed to create window."
+  
+  Set Create = new stdWindow
+  Call Create.protInit(hwnd, true)
 End Function
 
 'Create a static popup window and return a window object
@@ -572,10 +600,29 @@ End Function
 '@param BorderColor - The color of the colored border
 '@returns           - The created highlighting box
 '@remarks See [Creating a transparent window](https://stackoverflow.com/questions/3970066/creating-a-transparent-window-in-c-win32)
-'@TODO: Create a window object used mainly for highlighting areas
-Private Function CreateStaticPopup(ByVal x As Long, ByVal y As Long, ByVal width As Long, ByVal height As Long, ByVal BorderWidth As Long, ByVal BorderColor As Long) As stdWindow
-  Err.Raise 1, "Create", "Not Implemented"
+Public Function CreateHighlightRect(ByVal x As Long, ByVal y As Long, ByVal width As Long, ByVal height As Long, Optional ByVal BorderWidth As Long = 5, Optional ByVal BorderColor As Long = 255) As stdWindow
+  set CreateHighlightRect = Create("STATIC", x, y, width, height)
+  CreateHighlightRect.transparentColor = RGB(255,255,255)
+  CreateHighlightRect.isClickThroughEnabled = true
+  CreateHighlightRect.Visible = True
+  Call UpdateWindow(CreateHighlightRect.Handle)
+  
+  'Create highlighted border
+  Dim hDC as LongPtr: hDC = CreateHighlightRect.hDCClient
+  Dim hPen as LongPtr: hPen = CreatePen(0, BorderWidth, BorderColor)
+  SelectObject hDC, hPen
+  Rectangle hDC, 0, 0, width, height
+  SelectObject hDC, 0
+  DeleteObject hPen
+  Call ReleaseDC(CreateHighlightRect.Handle, hDC)
 End Function
+
+'Whenever object is destroyed, destroy window if it was created by VBA
+Private Sub Class_Terminate()
+  if This.isCreatedByVBA then
+    if This.Handle <> 0 then Call DestroyWindow(This.Handle)
+  end if
+End Sub
 
 'Create a window object from an existing window handle
 '@constructor
@@ -746,12 +793,13 @@ End Function
 '@param hwnd - Handle to window (hwnd) to create window object for
 '@returns - Specificed window.
 #If VBA7 Then
-Friend Sub protInit(ByVal hwnd As LongPtr)
+Friend Sub protInit(ByVal hwnd As LongPtr, Optional ByVal isCreatedByVBA as Boolean = false)
 #Else
-Friend Sub protInit(ByVal hwnd As Long)
+Friend Sub protInit(ByVal hwnd As Long, Optional ByVal isCreatedByVBA as Boolean = false)
 #End If
   This.Handle = hwnd
   This.Initialized = True
+  This.isCreatedByVBA = isCreatedByVBA
 End Sub
 
 'Whenever we initialise ensure to get lookups from `stdWindow`
@@ -782,6 +830,16 @@ Public Property Get hDC() As LongPtr
 Public Property Get hDC() As Long
 #End If
   hDC = GetWindowDC(This.Handle)
+End Property
+
+'Get the handle to the display context for the window client
+'@returns - Window display context
+#If VBA7 Then
+Public Property Get hDCClient() As LongPtr
+#Else
+Public Property Get hDCClient() As Long
+#End If
+  hDCClient = GetDC(This.Handle)
 End Property
 
 'Detect if the window exists
@@ -847,7 +905,7 @@ End Property
 Public Property Let Visible(ByVal x As Boolean)
   If Exists Then
     If x Then
-      Call ShowWindow(This.Handle, EWndShowStyle.SW_SHOW)
+      Call ShowWindow(This.Handle, EWndShowStyle.SW_SHOWNOACTIVATE)
     Else
       Call ShowWindow(This.Handle, EWndShowStyle.SW_HIDE)
     End If

@@ -510,6 +510,7 @@ Private Function simpleStringify(ByVal value as variant) as string
       simpleStringify = """" & Format(value, "dd/mm/yyyy") & """"
     case vbString
       value = Replace(value, "\", "\\")
+      value = Replace(value, """", "\""")
       value = Replace(value, vbTab, "\t")
       value = Replace(value, vbCr, "\r")
       value = Replace(value, vbLf, "\n")

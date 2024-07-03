@@ -305,3 +305,6 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2024-06-27 `stdJSON` FIX - Fixed bug where unquoted keys weren't being parsed correctly.
 - 2024-06-30 `stdJSON` FIX - Fixed bug where `stdJSON` wasn't correctly handling numbers.
 - 2024-07-01 `stdAcc` FIX - Fixed bug where numerous states weren't being correctly identified.
+- 2024-07-04 `stdWindow` FEATURE - Added `stdWindow::Create()`, allowing users to create windows, and `stdWindow::CreateHighlightRect()` to create a window with a highlight rectangle. Also added `stdWindow#hDCClient` to get the hDC of the client area of the window.
+- 2024-07-04 `stdWindow` FIX - Fixedd bug where `stdWindow#Visible` would focus the window it changed visibility of. This has been fixed.
+- 2024-07-04 `stdJSON` FIX - Fixed bug where `stdJSON` wasn't correctly handling strings with `"` in them.
