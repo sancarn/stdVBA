@@ -11266,6 +11266,210 @@
     "fileName": "stdWindow.cls",
     "methods": [
       {
+        "name": "Create",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "================================================================================================\r\n=      PUBLIC CONSTRUCTORS\r\n================================================================================================\r\nCreate a window and return a window object",
+        "params": [
+          {
+            "name": "sClassName",
+            "type": "String",
+            "description": "The class name can be any name registered with RegisterClass or RegisterClassEx, provided that the module that registers the class is also the module that creates the window. The class name can also be any of the predefined system class names. For a list of system class names, see the Remarks section.",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "x",
+            "type": "Long",
+            "description": "The x coordinate of the window",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "y",
+            "type": "Long",
+            "description": "The y coordinate of the window",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "width",
+            "type": "Long",
+            "description": "The width of the window",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "height",
+            "type": "Long",
+            "description": "The height of the window",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "sCaption",
+            "type": "String",
+            "description": "The name/caption of the window",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "vbNullString"
+          },
+          {
+            "name": "dwStyle",
+            "type": "Long",
+            "description": "The window style for the window",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "WS_POPUP"
+          },
+          {
+            "name": "dwStyleEx",
+            "type": "Long",
+            "description": "",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "0"
+          },
+          {
+            "name": "hWndParent",
+            "type": "LongPtr",
+            "description": "Parent window handle. Can be 0 for pop-up windows.",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "0^"
+          },
+          {
+            "name": "hMenu",
+            "type": "LongPtr",
+            "description": "Menu handle. Can be 0 for pop-up windows.",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "0^"
+          },
+          {
+            "name": "hInstance",
+            "type": "LongPtr",
+            "description": "Module Instance handle.",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "0^"
+          },
+          {
+            "name": "lpParam",
+            "type": "Long",
+            "description": "Pointer to a location where extra information is stored. Or ClientCreateStruct (for MDI windows), or null if no extra data required",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "0"
+          }
+        ],
+        "returns": {
+          "description": "The created window"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [
+          "```vb\r\nDim wnd as stdWindow: set wnd = stdWindow.Create(\"STATIC\", 0, 0, 100, 100, \"Hello World\")\r\nwnd.visible = true\r\n```"
+        ],
+        "remarks": []
+      },
+      {
+        "name": "CreateHighlightRect",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Create a static popup window and return a window object",
+        "params": [
+          {
+            "name": "x",
+            "type": "Long",
+            "description": "The x coordinate of the window",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "y",
+            "type": "Long",
+            "description": "The y coordinate of the window",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "width",
+            "type": "Long",
+            "description": "The width of the window",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "height",
+            "type": "Long",
+            "description": "The height of the window",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "BorderWidth",
+            "type": "Long",
+            "description": "The width of the colored border",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "5"
+          },
+          {
+            "name": "BorderColor",
+            "type": "Long",
+            "description": "The color of the colored border",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "255"
+          }
+        ],
+        "returns": {
+          "description": "The created highlighting box"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
         "name": "CreateFromHwnd",
         "type": "Function",
         "constructor": true,
@@ -11559,6 +11763,25 @@
         "protected": false,
         "access": "ReadOnly",
         "description": "Get the handle to the display context for the window",
+        "params": [],
+        "returns": {
+          "description": "Window display context"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "hDCClient",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadOnly",
+        "description": "Get the handle to the display context for the window client",
         "params": [],
         "returns": {
           "description": "Window display context"
