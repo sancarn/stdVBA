@@ -265,9 +265,32 @@ End Function
 '@param iMaxLength - Maximum length of enumerator. The enumerator will refuse to go beyond this number of items. Used in order to prevent runaway processes.
 '@returns - An enumerator representing the dictionary data
 '@TODO: Finish function - requires key handling. Might be a bit of a pain as it requires refactoring to work with collection keys among other things.
-Private Function CreateFromDictionary(ByVal o as object, optional byval iMaxLength as long = 1000000) as stdEnumerator
-    set CreateFromDictionary = new stdEnumerator
-    'Call CreateFromDictionary.protInit(EnumeratorType.FromDictionary,iMaxLength,o)
+'may not be needed given we have `CreateFromDictionaryEx`, but it would be far more performant.
+Private Function CreateFromDictionary(ByVal dictionary as object, optional byval iMaxLength as long = 1000000) as stdEnumerator
+    
+End Function
+
+'Translates a dictionary to a Enumerator of dictionaries with key and value properties.
+'@constructor
+'@param dictionary - The dictionary to create the enumerator from.
+'@param iMaxLength - Maximum length of enumerator. The enumerator will refuse to go beyond this number of items. Used in order to prevent runaway processes.
+'@returns stdEnumerator<Object<Scripting.Dictionary<key: string, value: variant>>> - An enumerator representing the dictionary data
+'@example ```
+'set dict = stdEnumerator.CreateFromArray(Array(1,2,3,2,2,1,3,2,3,1,2,3)).groupBy(stdLambda.Create("$1"))
+'set dictEx = stdEnumerator.CreateFromDictionaryEx(dict).forEach(stdLambda.Create("let $1.value = $1.value.count")).sort(stdLambda.Create("$1.count")).last
+'```
+Public Function CreateFromDictionaryEx(ByVal dictionary as object) as stdEnumerator
+    Dim keys as variant: keys = dictionary.keys()
+    Dim items as variant: items = dictionary.items()
+    Dim rows as collection: set rows = new collection
+    For i = 0 to ubound(keys)
+        Dim row as object: set row = CreateObject("Scripting.Dictionary")
+        row.CompareMode = vbTextCompare
+        row.add "key", keys(i)
+        row.add "value", items(i)
+        rows.add row
+    next
+    set CreateFromDictionaryEx = stdEnumerator.CreateFromIEnumVariant(rows)
 End Function
 
 'Initialse the stdEnumerator
@@ -953,6 +976,23 @@ Public Function groupBy(ByVal cb as stdICallable) as object
         set oRet(keys(i)) = stdEnumerator.CreateFromIEnumVariant(oRet(keys(i)))
     next
     set groupBy = oRet
+End Function
+
+'Returns a new enumerator containing groups from groupBy, with the key and item properties added
+'@param cb as stdICallable<(element: Variant)=>Variant> - The callable which when run on an element returns the key to group by
+'@returns stdEnumerator<Object<Dictionary<key:string, item:variant>>> - Enumerator containing grouped data
+'@example ```
+'Dim e as stdEnumerator: set e = stdEnumerator.CreateFromArray(Array(1,2,3,2,2,1,3,2,3,1,2,3))
+'Debug.Print e.groupByEx(stdLambda.Create("$1")).Map(stdLambda.Create("$1.key & ""-"" & $1.value.length")).Join(";")
+'```
+'@example ```
+''Get the largest count
+'Dim e as stdEnumerator: set e = stdEnumerator.CreateFromArray(Array(1,2,3,2,2,1,3,2,3,1,2,3))
+'Debug.Print e.groupByEx(stdLambda.Create("$1")).Sort(stdLambda.Create("-1 * $1.value.length")).Item(1)("key")
+'```
+Public Function groupByEx(ByVal cb as stdICallable) as stdEnumerator
+    Dim groups as object: set groups = groupBy(cb)
+    set groupByEx = CreateFromDictionaryEx(groups)
 End Function
 
 'Obtains the maximum value from the enumerator. If a callback is given the item which returns the largest value from the callback is returned.

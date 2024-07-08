@@ -1344,7 +1344,7 @@ Private Function stdCallByName(ByRef obj As Object, ByVal funcName As String, By
     'If Dictionary and
     If TypeName(obj) = "Dictionary" Then
         Select Case funcName
-            Case "add", "exists", "items", "keys", "remove", "removeall", "comparemode", "count", "item", "key"
+            Case "add", "exists", "items", "keys", "remove", "removeall", "comparemode", "count", "item"
                 'These methods already exist on dictionary, do not override
             Case Else
                 Select Case callerType

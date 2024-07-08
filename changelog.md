@@ -308,3 +308,5 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2024-07-04 `stdWindow` FEATURE - Added `stdWindow::Create()`, allowing users to create windows, and `stdWindow::CreateHighlightRect()` to create a window with a highlight rectangle. Also added `stdWindow#hDCClient` to get the hDC of the client area of the window.
 - 2024-07-04 `stdWindow` FIX - Fixedd bug where `stdWindow#Visible` would focus the window it changed visibility of. This has been fixed.
 - 2024-07-04 `stdJSON` FIX - Fixed bug where `stdJSON` wasn't correctly handling strings with `"` in them.
+- 2024-07-08 `stdEnumerator` FEATURE - `stdEnumerator::CreateFromDictionaryEx` added. Translates a dictionary to a Enumerator of dictionaries with key and value properties. Additionally added `stdEnumerator#groupByEx` which utilises the above.
+- 2024-07-08 `stdLambda` FIX - Removed `key` from the dictionary checks in `stdLambda#stdCallByName`. Shouldn't be a breaking change, because `key` isn't a method on type `Dictionary`.
