@@ -4364,6 +4364,38 @@
         "remarks": []
       },
       {
+        "name": "CreateFromDictionaryEx",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Translates a dictionary to a Enumerator of dictionaries with key and value properties.",
+        "params": [
+          {
+            "name": "dictionary",
+            "type": "object",
+            "description": "The dictionary to create the enumerator from.",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          }
+        ],
+        "returns": {
+          "type": "stdEnumerator<Object<Scripting.Dictionary<key: string, value: variant>>> ",
+          "description": "An enumerator representing the dictionary data"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [
+          "```\r\nset dict = stdEnumerator.CreateFromArray(Array(1,2,3,2,2,1,3,2,3,1,2,3)).groupBy(stdLambda.Create(\"$1\"))\r\nset dictEx = stdEnumerator.CreateFromDictionaryEx(dict).forEach(stdLambda.Create(\"let $1.value = $1.value.count\")).sort(stdLambda.Create(\"$1.count\")).last\r\n```"
+        ],
+        "remarks": []
+      },
+      {
         "name": "protInit",
         "type": "Sub",
         "constructor": true,
@@ -5102,6 +5134,39 @@
           "message": ""
         },
         "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "groupByEx",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Returns a new enumerator containing groups from groupBy, with the key and item properties added",
+        "params": [
+          {
+            "name": "cb",
+            "type": "stdICallable<(element: Variant)=>Variant>",
+            "description": "The callable which when run on an element returns the key to group by",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          }
+        ],
+        "returns": {
+          "type": "stdEnumerator<Object<Dictionary<key:string, item:variant>>> ",
+          "description": "Enumerator containing grouped data"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [
+          "```\r\nDim e as stdEnumerator: set e = stdEnumerator.CreateFromArray(Array(1,2,3,2,2,1,3,2,3,1,2,3))\r\nDebug.Print e.groupByEx(stdLambda.Create(\"$1\")).Map(stdLambda.Create(\"$1.key & \"\"-\"\" & $1.value.length\")).Join(\";\")\r\n```",
+          "```\r\n'Get the largest count\r\nDim e as stdEnumerator: set e = stdEnumerator.CreateFromArray(Array(1,2,3,2,2,1,3,2,3,1,2,3))\r\nDebug.Print e.groupByEx(stdLambda.Create(\"$1\")).Sort(stdLambda.Create(\"-1 * $1.value.length\")).Item(1)(\"key\")\r\n```"
+        ],
         "remarks": []
       },
       {
