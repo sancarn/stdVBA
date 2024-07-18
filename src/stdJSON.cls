@@ -83,6 +83,14 @@ End Function
 '@param AllowSingleQuoteStrings - Allow single quoted strings? E.G. "{'a':'hello'}"
 '@param StoreLargeNumsAsString  - Store Large numbers >16 chars as string instead of doubles. This may be useful if precision is important.
 '@returns - `stdJSON` object from string.
+'@example ```
+'  Dim o as stdJSON: set o = stdJSON.CreateFromString("{""a"":1,""b"":""hello""}")
+'  Debug.Print o.ToString()
+'```
+'@example ```
+'  Dim o as stdJSON: set o = stdJSON.CreateFromString("{a: 1, b: 'hello'}", AllowUnquotedKeys:=true, AllowSingleQuoteStrings:=true)
+'  Debug.Print o.ToString()
+'```
 Public Function CreateFromString(ByVal sJSON as string, optional ByVal AllowUnquotedKeys as boolean = false, optional ByVal AllowSingleQuoteStrings as boolean = false, optional ByVal StoreLargeNumsAsString as boolean = false) as stdJSON
   'Save parser props...
   this.parserProps.AllowUnquotedKeys = AllowUnquotedKeys
@@ -502,6 +510,7 @@ Private Function simpleStringify(ByVal value as variant) as string
       simpleStringify = """" & Format(value, "dd/mm/yyyy") & """"
     case vbString
       value = Replace(value, "\", "\\")
+      value = Replace(value, """", "\""")
       value = Replace(value, vbTab, "\t")
       value = Replace(value, vbCr, "\r")
       value = Replace(value, vbLf, "\n")
@@ -572,14 +581,15 @@ End Function
 '@param index - The index to start parsing from
 '@returns - The parsed JSON object key
 Private Function parseJSONObjectKey(ByRef sJSON as string, ByRef index as Long) as string
-  Dim char as string: char = parserPeekStr(sJSON, index)
+  Dim char as string: char = parserPeekAny(sJSON, index)
   if char = """" then 
     parseJSONObjectKey = parseString(sJSON, index)
   elseif this.parserProps.AllowUnquotedKeys then
     Dim sKey as string: sKey = ""
     Do While True
-      char = parserConsumeAny(sJSON, index)
+      char = parserPeekAny(sJSON, index)
       if (char <> " ") And (char <> ":") then
+        Call parserConsumeAny(sJSON, index)
         sKey = sKey & char
       else
         parseJSONObjectKey = sKey
@@ -634,7 +644,7 @@ End Function
 '@param sJSON - The JSON string to parse
 '@param index - The index to start parsing from
 Private Sub parseValue(ByRef value as Variant, ByRef sJSON as string, ByRef index as Long)
-  Dim char as string: char = parserPeekStr(sJSON, index)
+  Dim char as string: char = parserPeekAny(sJSON, index)
   select case char
     case "{"
       set value = parseJSONObject(sJSON, index)
@@ -651,7 +661,7 @@ Private Sub parseValue(ByRef value as Variant, ByRef sJSON as string, ByRef inde
     case "n"
       Call parserConsume("null", sJSON, index, 4)
       value = null
-    case "1", "2", "3", "4", "5", "6", "7", "8", "9", "-"
+    case "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "-"
       value = parseNumber(sJSON, index)
   end select
 End Sub
@@ -661,12 +671,12 @@ End Sub
 '@param index - The index to start parsing from
 '@returns - The parsed JSON number
 Private Function parseNumber(ByRef sJSON as string, ByRef index as Long) as Double
-  Dim char as string: char = parserPeekStr(sJSON, index)
+  Dim char as string: char = parserPeekAny(sJSON, index)
   Dim sNum as string: sNum = ""
   while InStr("+-0123456789.eE", char) 'Test char
     index = index + 1                  'Move to next char
     sNum = sNum & char                 'Generate number
-    char = parserPeekStr(sJSON, index) 'Prepare next char
+    char = parserPeekAny(sJSON, index) 'Prepare next char
   wend
   
   'Handle large numbers losing precision
@@ -724,8 +734,8 @@ End Function
 '@param sJSON - The JSON string to parse
 '@param index - The index to start parsing from
 '@returns - The character at iTokenIndex
-Private Function parserPeekStr(ByRef sJSON as string, ByRef index as Long) As String
-    parserPeekStr = mid(sJSON,index,1)
+Private Function parserPeekAny(ByRef sJSON as string, ByRef index as Long) As String
+    parserPeekAny = mid(sJSON,index,1)
 End Function
 
 'Parser helper: Combines peek and consume, consuming a token only if matched, without throwing an error if not

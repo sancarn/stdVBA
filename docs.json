@@ -3425,35 +3425,6 @@
         "remarks": []
       },
       {
-        "name": "CreateEvaluator",
-        "type": "Function",
-        "constructor": true,
-        "isDefaultMember": false,
-        "protected": false,
-        "access": null,
-        "description": "CreateEvaluator from",
-        "params": [
-          {
-            "name": "sFormula",
-            "type": "String",
-            "description": "The formula to create the callback from.",
-            "referenceType": "ByVal",
-            "paramArray": false,
-            "optional": false,
-            "defaultValue": null
-          }
-        ],
-        "returns": {
-          "description": "A 1st class callback function object"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "examples": [],
-        "remarks": []
-      },
-      {
         "name": "CreateFromPointer",
         "type": "Function",
         "constructor": true,
@@ -4393,6 +4364,38 @@
         "remarks": []
       },
       {
+        "name": "CreateFromDictionaryEx",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Translates a dictionary to a Enumerator of dictionaries with key and value properties.",
+        "params": [
+          {
+            "name": "dictionary",
+            "type": "object",
+            "description": "The dictionary to create the enumerator from.",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          }
+        ],
+        "returns": {
+          "type": "stdEnumerator<Object<Scripting.Dictionary<key: string, value: variant>>> ",
+          "description": "An enumerator representing the dictionary data"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [
+          "```\r\nset dict = stdEnumerator.CreateFromArray(Array(1,2,3,2,2,1,3,2,3,1,2,3)).groupBy(stdLambda.Create(\"$1\"))\r\nset dictEx = stdEnumerator.CreateFromDictionaryEx(dict).forEach(stdLambda.Create(\"let $1.value = $1.value.count\")).sort(stdLambda.Create(\"$1.count\")).last\r\n```"
+        ],
+        "remarks": []
+      },
+      {
         "name": "protInit",
         "type": "Sub",
         "constructor": true,
@@ -5131,6 +5134,39 @@
           "message": ""
         },
         "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "groupByEx",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Returns a new enumerator containing groups from groupBy, with the key and item properties added",
+        "params": [
+          {
+            "name": "cb",
+            "type": "stdICallable<(element: Variant)=>Variant>",
+            "description": "The callable which when run on an element returns the key to group by",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          }
+        ],
+        "returns": {
+          "type": "stdEnumerator<Object<Dictionary<key:string, item:variant>>> ",
+          "description": "Enumerator containing grouped data"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [
+          "```\r\nDim e as stdEnumerator: set e = stdEnumerator.CreateFromArray(Array(1,2,3,2,2,1,3,2,3,1,2,3))\r\nDebug.Print e.groupByEx(stdLambda.Create(\"$1\")).Map(stdLambda.Create(\"$1.key & \"\"-\"\" & $1.value.length\")).Join(\";\")\r\n```",
+          "```\r\n'Get the largest count\r\nDim e as stdEnumerator: set e = stdEnumerator.CreateFromArray(Array(1,2,3,2,2,1,3,2,3,1,2,3))\r\nDebug.Print e.groupByEx(stdLambda.Create(\"$1\")).Sort(stdLambda.Create(\"-1 * $1.value.length\")).Item(1)(\"key\")\r\n```"
+        ],
         "remarks": []
       },
       {
@@ -7698,7 +7734,10 @@
           "status": false,
           "message": ""
         },
-        "examples": [],
+        "examples": [
+          "```\r\n  Dim o as stdJSON: set o = stdJSON.CreateFromString(\"{\"\"a\"\":1,\"\"b\"\":\"\"hello\"\"}\")\r\n  Debug.Print o.ToString()\r\n```",
+          "```\r\n  Dim o as stdJSON: set o = stdJSON.CreateFromString(\"{a: 1, b: 'hello'}\", AllowUnquotedKeys:=true, AllowSingleQuoteStrings:=true)\r\n  Debug.Print o.ToString()\r\n```"
+        ],
         "remarks": []
       },
       {
@@ -10117,6 +10156,37 @@
         "remarks": []
       },
       {
+        "name": "CreateFromAutomationSecurity",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Create a sentry from an AutomationSecurity setting",
+        "params": [
+          {
+            "name": "sec",
+            "type": "MsoAutomationSecurity",
+            "description": "AutomationSecurity setting desired",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          }
+        ],
+        "returns": {
+          "description": "The sentry"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [
+          "```vba\r\nWith stdSentry.CreateFromAutomationSecurity(msoAutomationSecurityForceDisable)\r\n  Call ThisWorkbook.SaveAs(\"C:\\temp\\test.xlsx\")\r\nEnd With\r\n```"
+        ],
+        "remarks": []
+      },
+      {
         "name": "protInitFactory",
         "type": "Sub",
         "constructor": true,
@@ -11261,6 +11331,210 @@
     "fileName": "stdWindow.cls",
     "methods": [
       {
+        "name": "Create",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "================================================================================================\r\n=      PUBLIC CONSTRUCTORS\r\n================================================================================================\r\nCreate a window and return a window object",
+        "params": [
+          {
+            "name": "sClassName",
+            "type": "String",
+            "description": "The class name can be any name registered with RegisterClass or RegisterClassEx, provided that the module that registers the class is also the module that creates the window. The class name can also be any of the predefined system class names. For a list of system class names, see the Remarks section.",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "x",
+            "type": "Long",
+            "description": "The x coordinate of the window",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "y",
+            "type": "Long",
+            "description": "The y coordinate of the window",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "width",
+            "type": "Long",
+            "description": "The width of the window",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "height",
+            "type": "Long",
+            "description": "The height of the window",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "sCaption",
+            "type": "String",
+            "description": "The name/caption of the window",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "vbNullString"
+          },
+          {
+            "name": "dwStyle",
+            "type": "Long",
+            "description": "The window style for the window",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "WS_POPUP"
+          },
+          {
+            "name": "dwStyleEx",
+            "type": "Long",
+            "description": "",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "0"
+          },
+          {
+            "name": "hWndParent",
+            "type": "LongPtr",
+            "description": "Parent window handle. Can be 0 for pop-up windows.",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "0^"
+          },
+          {
+            "name": "hMenu",
+            "type": "LongPtr",
+            "description": "Menu handle. Can be 0 for pop-up windows.",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "0^"
+          },
+          {
+            "name": "hInstance",
+            "type": "LongPtr",
+            "description": "Module Instance handle.",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "0^"
+          },
+          {
+            "name": "lpParam",
+            "type": "Long",
+            "description": "Pointer to a location where extra information is stored. Or ClientCreateStruct (for MDI windows), or null if no extra data required",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "0"
+          }
+        ],
+        "returns": {
+          "description": "The created window"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [
+          "```vb\r\nDim wnd as stdWindow: set wnd = stdWindow.Create(\"STATIC\", 0, 0, 100, 100, \"Hello World\")\r\nwnd.visible = true\r\n```"
+        ],
+        "remarks": []
+      },
+      {
+        "name": "CreateHighlightRect",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Create a static popup window and return a window object",
+        "params": [
+          {
+            "name": "x",
+            "type": "Long",
+            "description": "The x coordinate of the window",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "y",
+            "type": "Long",
+            "description": "The y coordinate of the window",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "width",
+            "type": "Long",
+            "description": "The width of the window",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "height",
+            "type": "Long",
+            "description": "The height of the window",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "BorderWidth",
+            "type": "Long",
+            "description": "The width of the colored border",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "5"
+          },
+          {
+            "name": "BorderColor",
+            "type": "Long",
+            "description": "The color of the colored border",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "255"
+          }
+        ],
+        "returns": {
+          "description": "The created highlighting box"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
         "name": "CreateFromHwnd",
         "type": "Function",
         "constructor": true,
@@ -11554,6 +11828,25 @@
         "protected": false,
         "access": "ReadOnly",
         "description": "Get the handle to the display context for the window",
+        "params": [],
+        "returns": {
+          "description": "Window display context"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "hDCClient",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadOnly",
+        "description": "Get the handle to the display context for the window client",
         "params": [],
         "returns": {
           "description": "Window display context"

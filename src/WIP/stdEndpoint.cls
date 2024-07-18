@@ -83,3 +83,7 @@ Private Function CLngPtr(BYVal str as string) as LongPtr
     CLngPtr = CLng(str)
   #End If
 End Function
+
+'TODO: May be better using stdCOM and ROT instead. Will still need to store the ROT name in the registry, in case of state loss.
+'* https://www.mrexcel.com/board/threads/reference-and-remotely-manipulate-userforms-loaded-in-seperate-workbooks-or-in-seperate-excel-instances-via-file-monikers.1161038/
+'* 

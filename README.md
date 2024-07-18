@@ -14,6 +14,7 @@ A Collection of libraries to form a common standard layer for modern VBA applica
 
 ## Short example
 
+Please visit [the examples repository](https://github.com/sancarn/stdVBA-examples) for more fully featured applications/examples using this library.
 ```vb
 sub Main()
   'Create an array

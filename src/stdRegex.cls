@@ -96,7 +96,7 @@ Private This As TThis
 '```
 Public Function Create(ByVal pattern As String, Optional ByVal flags As String = "") As stdRegex
   If Not Me Is stdRegex Then
-    Call stdError.Raise("Constructor called on object not class")
+    Call CriticalRaise("Constructor called on object not class")
     Exit Function
   End If
   
@@ -129,7 +129,7 @@ End Function
 '```
 Friend Sub protInit(ByVal pattern As String, ByVal flags As String)
   If Me Is stdRegex Then
-    stdError.Raise ("Cannot run init on class")
+    CriticalRaise ("Cannot run init on class")
     Exit Sub
   End If
   
@@ -223,7 +223,7 @@ End Sub
 '@returns - Pattern for regex
 Public Property Get pattern() As String
   If Me Is stdRegex Then
-    stdError.Raise ("Property called on class not object")
+    CriticalRaise ("Property called on class not object")
     Exit Property
   End If
 
@@ -231,7 +231,7 @@ Public Property Get pattern() As String
 End Property
 Public Property Let pattern(val As String)
   If Me Is stdRegex Then
-    stdError.Raise ("Property called on class not object")
+    CriticalRaise ("Property called on class not object")
     Exit Property
   End If
   
@@ -244,7 +244,7 @@ End Property
 '@returns - Flags for regex
 Public Property Get flags() As String
   If Me Is stdRegex Then
-    stdError.Raise ("Property called on class not object")
+    CriticalRaise ("Property called on class not object")
     Exit Property
   End If
 
@@ -252,7 +252,7 @@ Public Property Get flags() As String
 End Property
 Public Property Let flags(val As String)
   If Me Is stdRegex Then
-    stdError.Raise ("Property called on class not object")
+    CriticalRaise ("Property called on class not object")
     Exit Property
   End If
 
@@ -273,7 +273,7 @@ End Property
 'The result is: `True`
 Public Function Test(ByVal sHaystack As String) As Boolean
   If Me Is stdRegex Then
-    stdError.Raise ("Method called on class not object")
+    CriticalRaise ("Method called on class not object")
     Exit Function
   End If
   
@@ -309,7 +309,7 @@ End Function
 '```
 Public Function Match(ByVal sHaystack As String) As Object
   If Me Is stdRegex Then
-    stdError.Raise ("Method called on class not object")
+    CriticalRaise ("Method called on class not object")
     Exit Function
   End If
   
@@ -367,7 +367,7 @@ End Function
 '```
 Public Function MatchAll(ByVal sHaystack As String) As Collection
   If Me Is stdRegex Then
-    stdError.Raise ("Method called on class not object")
+    CriticalRaise ("Method called on class not object")
     Exit Function
   End If
   
@@ -442,7 +442,7 @@ End Function
 '```
 Public Function Replace(ByVal sHaystack As String, ByVal sReplacer As String) As String
   If Me Is stdRegex Then
-    stdError.Raise ("Method called on class not object")
+    CriticalRaise ("Method called on class not object")
     Exit Function
   End If
   
@@ -484,7 +484,7 @@ End Function
 '```
 Public Function List(ByVal sHaystack As String, ByVal sFormat As String) As String
   If Me Is stdRegex Then
-    stdError.Raise ("Method called on class not object")
+    CriticalRaise ("Method called on class not object")
     Exit Function
   End If
 
@@ -511,7 +511,7 @@ End Function
 '@returns Variant<Array[2d]<String>> - All matches as a 2d array. Useful especially for dumping matches to Excel.
 Public Function ListArr(ByVal sHaystack as string, ByVal vFormats as variant) as variant
   If Me Is stdRegex Then
-    Call stdError.Raise("Method called on class not object")
+    Call CriticalRaise("Method called on class not object")
     Exit Function
   End If
 
@@ -593,3 +593,13 @@ End Function
 Private Function LoadEscape(ByVal sHaystack As String, ByVal sChar As String) As String
   LoadEscape = VBA.Replace(VBA.Replace(sHaystack, ";f934b47b-b799-4f52-9b4c-f170a82b52fe;", "\\"), ";6632df85-1730-4159-a742-5b0c8c526ab8;", "\" & sChar)
 End Function
+
+'Raise an error with the class name as the source
+'@param sMessage - Error message
+Private Sub CriticalRaise(ByVal sMessage As String)
+  if isObject(stdError) then
+    Call stdError.Raise(sMessage, "stdRegex")
+  else
+    Call Err.Raise(1, "stdRegex", sMessage)
+  end if
+End Sub

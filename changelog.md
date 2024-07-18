@@ -263,7 +263,7 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2024-01-22 `stdWindow` FIX - `Exists` guard added in setThreadInput
 - 2024-01-23 `stdTimer` FIX - `stdTimer` now works in different locals.
 - 2024-01-28 `stdLambda` FIX - Fix to dictionary getters broken since `2023-12-05` update.
-- 2024-02-22 `stdCOM` FEATURE - Added `CreateFrinCkassAndIID()`.
+- 2024-02-22 `stdCOM` FEATURE - Added `CreateFromClassAndIID()`.
 - 2024-03-10 `stdLambda` FIX - `=` in `if` statements failed due to `2023-12-05 stdLambda FEATURE` release. This has been resolved.
 - 2024-03-10 `stdLambda` FIX - Fix to `parseBlock()` to consume colons after parsing a statement.
 - 2024-03-14 `stdEnumerator` BREAKING - `stdEnumerator.CreateFromListObject()` defaults to `vbTextCompare` and supplies optional parameter for configuration.
@@ -298,3 +298,15 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2024-06-02 `stdLambda` BREAKING - To set a variable in stdLambda you must use `let` or `set` keyword. E.G. `let x = $1`
 - 2024-06-02 `stdSentry` FEATURE - Sentries with `stdSentry`. Use these to turn gross setter/resetter blocks into beautiful `with` blocks.
 - 2024-06-02 `stdWindow` FIX - Fixing `stdWindow#SendKeysInput`
+- 2024-06-22 `stdSentry` FEATURE - Added `stdSentry#CreateFromAutomationSecurity` to create a sentry from an AutomationSecurity setting.
+- 2024-06-22 `stdRegex` FIX - Removed dependency on `stdError` class.
+- 2024-06-22 `stdAcc` FIX - Changed `stdCOM` in error messages to `stdAcc`.
+- 2024-06-22 `stdCallback` BREAKING - Removed `CreateEvaluator` as it is no longer needed.
+- 2024-06-27 `stdJSON` FIX - Fixed bug where unquoted keys weren't being parsed correctly.
+- 2024-06-30 `stdJSON` FIX - Fixed bug where `stdJSON` wasn't correctly handling numbers.
+- 2024-07-01 `stdAcc` FIX - Fixed bug where numerous states weren't being correctly identified.
+- 2024-07-04 `stdWindow` FEATURE - Added `stdWindow::Create()`, allowing users to create windows, and `stdWindow::CreateHighlightRect()` to create a window with a highlight rectangle. Also added `stdWindow#hDCClient` to get the hDC of the client area of the window.
+- 2024-07-04 `stdWindow` FIX - Fixedd bug where `stdWindow#Visible` would focus the window it changed visibility of. This has been fixed.
+- 2024-07-04 `stdJSON` FIX - Fixed bug where `stdJSON` wasn't correctly handling strings with `"` in them.
+- 2024-07-08 `stdEnumerator` FEATURE - `stdEnumerator::CreateFromDictionaryEx` added. Translates a dictionary to a Enumerator of dictionaries with key and value properties. Additionally added `stdEnumerator#groupByEx` which utilises the above.
+- 2024-07-08 `stdLambda` FIX - Removed `key` from the dictionary checks in `stdLambda#stdCallByName`. Shouldn't be a breaking change, because `key` isn't a method on type `Dictionary`.

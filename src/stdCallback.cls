@@ -211,20 +211,6 @@ Attribute CreateFromObjectProperty.VB_Description = "Create callback from object
   Call CreateFromObjectProperty.protInit(ParentType.object, object, sPropName, cType)
 End Function
 
-'CreateEvaluator from
-'@constructor
-'@deprecated
-'@param sFormula - The formula to create the callback from.
-'@returns        - A 1st class callback function object
-Public Function CreateEvaluator(ByVal sFormula As String) As stdICallable
-Attribute CreateEvaluator.VB_Description = "Create callback from Excel formula. This method is VBA Only"
-  If IsObject(stdLambda) Then
-    Set CreateEvaluator = stdLambda.Create(sFormula)
-  Else
-    CriticalRaise "Cannot find stdLambda library, required for Evaluator creation"
-  End If
-End Function
-
 'Create callback from function pointer
 '@constructor
 '@param MethodPointer                     - The address of the function to create the callback from.
