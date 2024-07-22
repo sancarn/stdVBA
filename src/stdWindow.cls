@@ -579,7 +579,7 @@ Private This as TThis
 'wnd.visible = true
 '```
 #If VBA7 Then
-Public Function Create(ByVal sClassName As String, ByVal x As Long, ByVal y As Long, ByVal width As Long, ByVal height As Long, Optional ByVal sCaption As String = vbNullString, Optional ByVal dwStyle As Long = WS_POPUP, Optional ByVal dwStyleEx As Long = 0, Optional ByVal hWndParent As LongPtr = 0^, Optional ByVal hMenu As LongPtr = 0^, Optional ByVal hInstance As LongPtr = 0^, Optional ByVal lpParam As Long = 0) As stdWindow
+Public Function Create(ByVal sClassName As String, ByVal x As Long, ByVal y As Long, ByVal width As Long, ByVal height As Long, Optional ByVal sCaption As String = vbNullString, Optional ByVal dwStyle As Long = WS_POPUP, Optional ByVal dwStyleEx As Long = 0, Optional ByVal hWndParent As LongPtr = 0, Optional ByVal hMenu As LongPtr = 0, Optional ByVal hInstance As LongPtr = 0, Optional ByVal lpParam As Long = 0) As stdWindow
 #Else
 Public Function Create(ByVal sClassName As String, ByVal x As Long, ByVal y As Long, ByVal width As Long, ByVal height As Long, Optional ByVal sCaption As String = vbNullString, Optional ByVal dwStyle As Long = WS_POPUP, Optional ByVal dwStyleEx As Long = 0, Optional ByVal hWndParent As Long = 0, Optional ByVal hMenu As Long = 0, Optional ByVal hInstance As Long = 0, Optional ByVal lpParam As Long = 0) As stdWindow
 #End If
