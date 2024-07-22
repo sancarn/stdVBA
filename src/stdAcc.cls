@@ -1340,7 +1340,7 @@ End Sub
 '@returns - FindNode found at index
 Private Function stackPopV(ByRef stack() As tFindNode, ByRef index As Variant) As tFindNode
     Dim size As Long: size = UBound(stack) + 1
-    If index < size / 3 And index > minStackSize Then
+    If index < size / 3 Then
         ReDim Preserve stack(0 To CLng(size / 2))
     End If
     index = index - 1

@@ -310,3 +310,6 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2024-07-04 `stdJSON` FIX - Fixed bug where `stdJSON` wasn't correctly handling strings with `"` in them.
 - 2024-07-08 `stdEnumerator` FEATURE - `stdEnumerator::CreateFromDictionaryEx` added. Translates a dictionary to a Enumerator of dictionaries with key and value properties. Additionally added `stdEnumerator#groupByEx` which utilises the above.
 - 2024-07-08 `stdLambda` FIX - Removed `key` from the dictionary checks in `stdLambda#stdCallByName`. Shouldn't be a breaking change, because `key` isn't a method on type `Dictionary`.
+- 2024-07-14 `stdWindow` FEATURE - Add `PGUP` and `PGDOWN` alias for `SendKeys`
+- 2024-07-22 `stdWindow` FIX - Remove unused variable `minStackSize`.
+- 2024-07-22 `stdAcc` FIX - Remove unused variable `minStackSize`.

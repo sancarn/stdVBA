@@ -2373,7 +2373,7 @@ End Sub
 '@returns - FindNode found at index
 Private Function stackPopV(ByRef stack() As tFindNode, ByRef index As Variant) As tFindNode
     Dim size As Long: size = UBound(stack) + 1
-    If index < size / 3 And index > minStackSize Then
+    If index < size / 3 Then
         ReDim Preserve stack(0 To CLng(size / 2))
     End If
     index = index - 1
@@ -2663,8 +2663,8 @@ Private Function VKeyFromString(ByRef s As String) As EVirtualKey
     Case "ACCEPT": VKeyFromString = EVirtualKey.VK_ACCEPT
     Case "MODECHANGE": VKeyFromString = EVirtualKey.VK_MODECHANGE
     Case "SPACE": VKeyFromString = EVirtualKey.VK_SPACE
-    Case "PRIOR": VKeyFromString = EVirtualKey.VK_PRIOR
-    Case "NEXT": VKeyFromString = EVirtualKey.VK_NEXT
+    Case "PGUP", "PAGEUP", "PRIOR": VKeyFromString = EVirtualKey.VK_PRIOR
+    Case "PGDN", "PAGEDOWN", "NEXT": VKeyFromString = EVirtualKey.VK_NEXT
     Case "END": VKeyFromString = EVirtualKey.VK_END
     Case "HOME": VKeyFromString = EVirtualKey.VK_HOME
     Case "LEFT": VKeyFromString = EVirtualKey.VK_LEFT
