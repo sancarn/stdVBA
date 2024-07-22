@@ -11418,7 +11418,7 @@
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": true,
-            "defaultValue": "0^"
+            "defaultValue": "0"
           },
           {
             "name": "hMenu",
@@ -11427,7 +11427,7 @@
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": true,
-            "defaultValue": "0^"
+            "defaultValue": "0"
           },
           {
             "name": "hInstance",
@@ -11436,7 +11436,7 @@
             "referenceType": "ByVal",
             "paramArray": false,
             "optional": true,
-            "defaultValue": "0^"
+            "defaultValue": "0"
           },
           {
             "name": "lpParam",
