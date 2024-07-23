@@ -314,3 +314,4 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2024-07-22 `stdWindow` FIX - Remove unused variable `minStackSize`.
 - 2024-07-22 `stdAcc` FIX - Remove unused variable `minStackSize`.
 - 2024-07-22 `stdWindow` FIX - Remove enforced `LongLong` in `stdWindow::Create`.
+- 2024-07-23 `stdQuadTree` FEATURE - Added `stdQuadTree` datastructure

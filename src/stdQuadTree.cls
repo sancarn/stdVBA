@@ -1,0 +1,368 @@
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "stdQuadTree"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+
+
+'A strict quadtree
+'See also:
+'* Grid instead of quadtree https://softwareengineering.stackexchange.com/a/364179
+'* Loose quadtrees          https://stackoverflow.com/a/48384354/6302131
+
+
+
+
+Private Type XY
+  x As Double
+  y As Double
+  meta As Variant
+End Type
+Private Type AABB
+  center As XY
+  halfDimension As Double
+End Type
+
+Private Enum BranchIndex
+  branchNorthWest
+  branchNorthEast
+  branchSouthWest
+  branchSouthEast
+End Enum
+Private Type BranchInfo
+  children(BranchIndex.branchNorthWest to BranchIndex.branchSouthEast) as stdQuadTree
+end type
+Private Type LeafInfo
+  points() as XY
+  index as Long
+End Type
+Private Enum QuadTreeType
+    QuadTreeBranch
+    QuadTreeLeaf
+end enum
+
+
+'Arbitrary constant to indicate how many elements can be stored in this quad tree node
+Private Type TThis
+  Type as QuadTreeType
+  Branch as BranchInfo
+  Leaf as LeafInfo
+
+  'Capacity before subdivision
+  capacityBeforeSubdivision As Long
+  
+  'Min boundary size
+  minimumHalfDimension as Double
+
+  'Axis-aligned bounding box stored as a center with half-dimensions to represent the boundaries of this quad tree
+  boundary As AABB
+
+  'Parent of this quadtree
+  parent as stdQuadTree
+End Type
+Private This As TThis
+
+'Create quadtree from center coords and halfDimension / radius
+'@param cx - The center x coord
+'@param cy - The center y coord
+'@param halfDimension - the "radius" of the cell
+'@param capacityBeforeSubdivision - The number of nodes a quadtree can hold before it subdivides. This can also be seen as the number of duplicate points allowed. If there are duplicates beyond this number you will get a stack overflow error.
+'@param minimumHalfDimension - Minimum boundary size when points stop causing subdivisions. Helps handle duplicate points
+'@returns - Quadtree instance
+'@remark
+Public Function Create(ByVal cx As Double, ByVal cy As Double, ByVal halfDimension As Double, Optional ByVal capacityBeforeSubdivision As Long = 4, Optional minimumHalfDimension as Double = 0.00001) As stdQuadTree
+  Set Create = New stdQuadTree
+  Call Create.protInit(cx, cy, halfDimension, capacityBeforeSubdivision, minimumHalfDimension)
+End Function
+
+'Creates a quadtree from min/max x/y
+'@param minX - Minimum x coord
+'@param minY - Minimum y coord
+'@param maxX - Maximum x coord
+'@param maxY - Maximum y coord
+'@param capacityBeforeSubdivision - The number of nodes a quadtree can hold before it subdivides. This can also be seen as the number of duplicate points allowed. If there are duplicates beyond this number you will get a stack overflow error.
+'@param minimumHalfDimension - Minimum boundary size when points stop causing subdivisions. Helps handle duplicate points
+'@returns - Quadtree instance
+Public Function CreateFromBounds(ByVal minX As Double, ByVal minY As Double, ByVal maxX As Double, ByVal maxY As Double, Optional ByVal capacityBeforeSubdivision As Long = 4, Optional minimumHalfDimension as Double = 0.00001) As stdQuadTree
+  Dim rx As Double: rx = (maxX - minX) / 2
+  Dim ry As Double: ry = (maxY - minY) / 2
+  Dim r_ As Double: r_ = IIf(ry > rx, ry, rx)
+  Dim cx As Double: cx = minX + rx
+  Dim cy As Double: cy = minY + ry
+  
+  Set CreateFromBounds = New stdQuadTree
+  Call CreateFromBounds.protInit(cx, cy, r_, capacityBeforeSubdivision, minimumHalfDimension)
+End Function
+
+'Creates a quadtree from min/max x/y
+'@param minX - Minimum x coord
+'@param minY - Minimum y coord
+'@param maxX - Maximum x coord
+'@param maxY - Maximum y coord
+'@param capacityBeforeSubdivision - The number of nodes a quadtree can hold before it subdivides. This can also be seen as the number of duplicate points allowed. If there are duplicates beyond this number you will get a stack overflow error.
+'@param minimumHalfDimension - Minimum boundary size when points stop causing subdivisions. Helps handle duplicate points
+'@returns - Quadtree instance with parent
+Private Function CreateChild(ByVal cx As Double, ByVal cy As Double, ByVal halfDimension As Double, Optional ByVal capacityBeforeSubdivision As Long = 4, Optional minimumHalfDimension as Double = 0.00001) As stdQuadTree
+  Set CreateChild = New stdQuadTree
+  Call CreateChild.protInit(cx, cy, halfDimension, capacityBeforeSubdivision, minimumHalfDimension, Me)
+End Function
+
+'Initialise quadtree
+'@protected
+'@param cx - Center X coord
+'@param cy - Center Y coord
+'@param halfDimension - radius of square
+'@param capacityBeforeSubdivision - The number of nodes a quadtree can hold before it subdivides. This can also be seen as the number of duplicate points allowed. If there are duplicates beyond this number you will get a stack overflow error.
+'@param minimumHalfDimension - Minimum boundary size when points stop causing subdivisions. Helps handle duplicate points
+'@param parent - The parent of this quadtree element
+Public Sub protInit(ByVal cx As Double, ByVal cy As Double, ByVal halfDimension As Double, capacityBeforeSubdivision As Long, minimumHalfDimension as Double, optional byval parent as stdQuadTree = nothing)
+  With This
+    .type = QuadTreeLeaf
+    .capacityBeforeSubdivision = capacityBeforeSubdivision
+    .minimumHalfDimension = minimumHalfDimension
+    set .parent = parent
+    With .leaf
+      Redim .points(1 To capacityBeforeSubdivision)
+      .index = 0
+    End With
+    With .boundary
+      .center.x = cx
+      .center.y = cy
+      .halfDimension = halfDimension
+    End with
+  End With
+End Sub
+
+
+
+'@param x - X coord of point
+'@param y - Y coord of point
+'@param meta - Metadata object i.e. holding additional geospatial information
+'@returns - True if inserted into the tree, false if error e.g. out of bounds.
+Public Function insertPoint(ByVal x As Double, ByVal y As Double, Optional ByVal meta As Variant) As Boolean
+  'If not within bounds then object cannot be added
+  If Not AABB_containsXY(This.boundary, x, y) Then Exit Function
+  
+  select case this.Type 
+    case QuadTreeLeaf
+      With this.leaf
+        'If there is space within this quadtree and no subdivisions, add point
+        If .index < This.capacityBeforeSubdivision Or This.boundary.halfDimension < this.minimumHalfDimension Then
+          If This.boundary.halfDimension < this.minimumHalfDimension Then ReDim Preserve .points(1 To .index + 1)
+          .index = .index + 1
+          With .points(.index)
+            .x = x
+            .y = y
+            Call CopyVariant(.meta, meta)
+          End With
+          insertPoint = True
+          Exit Function
+        else
+          Call SubDivide
+          GoTo insertQuadTreeBranch
+        End If
+      end with
+    case QuadTreeBranch
+insertQuadTreeBranch:
+      'We have to add the points/data contained in this quad array to the new quads if we only want the last node to hold the data
+      For i = branchNorthWest to branchSouthEast
+        If This.branch.children(i).insertPoint(x, y, meta) Then 
+          insertPoint = True
+          Exit Function
+        end if
+      next
+    case else
+      'Otherwise point cannot be inserted for some unknown reason (this should never happen)
+      Debug.Print "stdQuadTree Error: Couldn't add point (" & x & "," & y & ")"
+  end select
+End Function
+
+'Query for points within a range depicted by center and radius (half dimension)
+'@param cx - Center x coordinate
+'@param cy - Center y coordinate
+'@param radius - minimumDimension / radius of range to search
+'@returns Collection<Variant<Array1D<xcoord, ycoord, metadata>>> - The points found within the range
+Public Function queryRange(ByVal cx As Double, ByVal cy As Double, ByVal radius As Double) As Collection
+  Dim rect As AABB: rect = AABB_Create(cx, cy, radius)
+  Set queryRange = pQueryRange(rect)
+End Function
+
+'Query for points within a rect
+'@param minX - Minimum x coord of rect
+'@param minY - Minimum y coord of rect
+'@param maxX - Maximum x coord of rect 
+'@param maxY - Maximum y coord of rect
+'@returns Collection<Variant<Array1D<xcoord, ycoord, metadata>>> - The points found within the bounds
+Public Function queryRangeBounds(ByVal minX As Double, ByVal minY As Double, ByVal maxX As Double, ByVal maxY As Double) As Collection
+  Dim rx As Double: rx = (maxX - minX) / 2
+  Dim ry As Double: ry = (maxY - minY) / 2
+  Dim r_ As Double: r_ = IIf(ry > rx, ry, rx)
+  Dim cx As Double: cx = minX + rx
+  Dim cy As Double: cy = minY + ry
+  Dim rect As AABB: rect = AABB_Create(cx, cu, r_)
+  Set queryRangeBounds = pQueryRange(rect)
+End Function
+
+
+
+
+
+
+'Query for points within some rect
+'@param rect - Rect to identify points within
+'@returns - Collection of meta objects
+Private Function pQueryRange(ByRef rect As AABB) As Collection
+  Set pQueryRange = New Collection
+  If Not AABB_intersects(This.boundary, rect) Then Exit Function
+  select case this.type
+    case QuadTreeLeaf
+      Dim i As Long: For i = 1 To this.leaf.index
+        If AABB_containsPoint(rect, this.leaf.points(i)) Then
+          With this.leaf.points(i)
+            Call pQueryRange.Add(Array(.x, .y, .meta))
+          End With
+        End If
+      Next
+    case QuadTreeBranch
+      For i = branchNorthWest to branchSouthEast
+        Call inplaceConcat(pQueryRange, This.branch.children(i).queryRange(rect.center.x, rect.center.y, rect.halfDimension))
+      next
+  end select
+End Function
+
+'Create four children that fully divide this quad into four quads of equal area, and move all points to these children
+Private Sub SubDivide()
+  This.type = QuadTreeBranch
+
+  'Create the new quadrants
+  Dim r_ As Double: r_ = This.boundary.halfDimension / 2
+  With This.boundary.center
+    Set This.branch.children(branchNorthWest) = CreateChild(.x - r_, .y + r_, r_, This.capacityBeforeSubdivision, This.minimumHalfDimension)
+    Set This.branch.children(branchNorthEast) = CreateChild(.x + r_, .y + r_, r_, This.capacityBeforeSubdivision, This.minimumHalfDimension)
+    Set This.branch.children(branchSouthWest) = CreateChild(.x - r_, .y - r_, r_, This.capacityBeforeSubdivision, This.minimumHalfDimension)
+    Set This.branch.children(branchSouthEast) = CreateChild(.x + r_, .y - r_, r_, This.capacityBeforeSubdivision, This.minimumHalfDimension)
+  End With
+  
+  'Insert points into children
+  Dim pt As XY, inserted As Boolean
+  Dim i As Long
+  For i = 1 To this.leaf.index
+    pt = this.leaf.points(i)
+    inserted = False
+    Dim j as long
+    For j = branchNorthWest to branchSouthEast
+      Dim qt As stdQuadTree: Set qt = this.branch.children(j)
+      'Note: This may recurse down to a lower level
+      If qt.insertPoint(pt.x, pt.y, pt.meta) Then
+        inserted = True
+        Exit For
+      End If
+    Next
+    
+    'This should never happen
+    If Not inserted Then Err.Raise 1, "stdQuadTree#Subdivide", "QuadTree Error: Could not be inserted?"
+  Next
+  
+  'Free memory
+  Erase this.leaf.points
+End Sub
+
+
+'Create a point
+'@param x - The x point (typically horizontal axis)
+'@param y - THe y poiont (typically vertical axis)
+'@returns - The point UDT
+'@remark it's assumed that x increases from bottom to top (south to north), left to right (west to east), but this shouldn't impact calculations
+Private Function XY_Create(ByVal x As Double, ByVal y As Double, Optional ByVal meta As Variant) As XY
+  XY_Create.x = x
+  XY_Create.y = y
+  Call CopyVariant(XY_Create.meta, meta)
+End Function
+
+'Creates a box
+'@param x - center x coord
+'@param y - center y coord
+'@param halfDimension - radius of box
+'@returns - The box UDT
+Private Function AABB_Create(ByVal x As Double, ByVal y As Double, ByVal halfDimension As Double) As AABB
+  AABB_Create.center.x = x
+  AABB_Create.center.y = y
+  AABB_Create.halfDimension = halfDimension
+End Function
+
+'Creates a box
+'@param center - center point
+'@param halfDimension - radius of box
+'@returns - The box UDT
+Private Function AABB_CreateEx(ByRef center As XY, ByVal halfDimension As Double) As AABB
+  AABB_Create.center.x = center.x
+  AABB_Create.center.y = center.y
+  AABB_Create.halfDimension = halfDimension
+End Function
+
+'Checks if a box contains a point
+'@param box - The box to check
+'@param point - The point to check
+'@returns - True if the box contains the point, false otherwise.
+Private Function AABB_containsPoint(ByRef box As AABB, ByRef point As XY) As Boolean
+  AABB_containsPoint = True
+  AABB_containsPoint = AABB_containsPoint And ((box.center.x - box.halfDimension) <= point.x)
+  AABB_containsPoint = AABB_containsPoint And ((box.center.x + box.halfDimension) >= point.x)
+  AABB_containsPoint = AABB_containsPoint And ((box.center.y - box.halfDimension) <= point.y)
+  AABB_containsPoint = AABB_containsPoint And ((box.center.y + box.halfDimension) >= point.y)
+End Function
+
+'Checks if a box contains a XY
+'@param box - The box to check
+'@param x - The x coord of a point to check
+'@param y - The y coord of a point to check
+'@returns - True if the box contains the point, false otherwise.
+Private Function AABB_containsXY(ByRef box As AABB, ByRef x as double, ByVal y as double) As Boolean
+  AABB_containsXY = True
+  AABB_containsXY = AABB_containsXY And ((box.center.x - box.halfDimension) <= x)
+  AABB_containsXY = AABB_containsXY And ((box.center.x + box.halfDimension) >= x)
+  AABB_containsXY = AABB_containsXY And ((box.center.y - box.halfDimension) <= y)
+  AABB_containsXY = AABB_containsXY And ((box.center.y + box.halfDimension) >= y)
+End Function
+
+
+'Checks whether a box intersects with another box
+'@param box - The box to check
+'@param boxCheck - The other potentially intersecting box
+'@returns - True if the boxes intersect, false otherwise.
+Private Function AABB_intersects(ByRef box As AABB, ByRef boxCheck As AABB) As Boolean
+  Dim TL As XY: TL = XY_Create(box.center.x - box.halfDimension, box.center.y - box.halfDimension)
+  Dim BL As XY: BL = XY_Create(box.center.x + box.halfDimension, box.center.y - box.halfDimension)
+  Dim TR As XY: TR = XY_Create(box.center.x - box.halfDimension, box.center.y + box.halfDimension)
+  Dim BR As XY: BR = XY_Create(box.center.x + box.halfDimension, box.center.y + box.halfDimension)
+  AABB_intersects = True
+  AABB_intersects = AABB_intersects And AABB_containsPoint(box, TL)
+  AABB_intersects = AABB_intersects And AABB_containsPoint(box, BL)
+  AABB_intersects = AABB_intersects And AABB_containsPoint(box, TR)
+  AABB_intersects = AABB_intersects And AABB_containsPoint(box, BR)
+End Function
+
+'Concatenates values from cToConcat into cOut
+'@param cOut - Collection to append items to
+'@param cToConcat - Collection to get items from
+Private Sub inplaceConcat(ByRef cOut As Collection, ByVal cToConcat As Collection)
+  Dim v: For Each v In cToConcat
+    Call cOut.Add(v)
+  Next
+End Sub
+
+'Copy variant from vIn to vOut. Sets objects, lets values
+'@param vOut - destination to copy variant to
+'@param vIn - source of data to copy
+Private Sub CopyVariant(ByRef vOut As Variant, ByVal vIn As Variant)
+  If IsObject(vIn) Then
+    Set vOut = vIn
+  Else
+    Let vOut = vIn
+  End If
+End Sub
+
