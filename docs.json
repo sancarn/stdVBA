@@ -9166,6 +9166,378 @@
     ]
   },
   {
+    "name": "stdQuadTree",
+    "fileName": "stdQuadTree.cls",
+    "methods": [
+      {
+        "name": "Create",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Create quadtree from center coords and halfDimension / radius",
+        "params": [
+          {
+            "name": "cx",
+            "type": "Double",
+            "description": "The center x coord",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "cy",
+            "type": "Double",
+            "description": "The center y coord",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "halfDimension",
+            "type": "Double",
+            "description": "the \"radius\" of the cell",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "capacityBeforeSubdivision",
+            "type": "Long",
+            "description": "The number of nodes a quadtree can hold before it subdivides. This can also be seen as the number of duplicate points allowed. If there are duplicates beyond this number you will get a stack overflow error.",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "4"
+          },
+          {
+            "name": "minimumHalfDimension",
+            "type": "Double",
+            "description": "Minimum boundary size when points stop causing subdivisions. Helps handle duplicate points",
+            "referenceType": "ByRef",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "0.00001"
+          }
+        ],
+        "returns": {
+          "description": "Quadtree instance"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "CreateFromBounds",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Creates a quadtree from min/max x/y",
+        "params": [
+          {
+            "name": "minX",
+            "type": "Double",
+            "description": "Minimum x coord",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "minY",
+            "type": "Double",
+            "description": "Minimum y coord",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "maxX",
+            "type": "Double",
+            "description": "Maximum x coord",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "maxY",
+            "type": "Double",
+            "description": "Maximum y coord",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "capacityBeforeSubdivision",
+            "type": "Long",
+            "description": "The number of nodes a quadtree can hold before it subdivides. This can also be seen as the number of duplicate points allowed. If there are duplicates beyond this number you will get a stack overflow error.",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "4"
+          },
+          {
+            "name": "minimumHalfDimension",
+            "type": "Double",
+            "description": "Minimum boundary size when points stop causing subdivisions. Helps handle duplicate points",
+            "referenceType": "ByRef",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "0.00001"
+          }
+        ],
+        "returns": {
+          "description": "Quadtree instance"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "protInit",
+        "type": "Sub",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Initialise quadtree",
+        "params": [
+          {
+            "name": "cx",
+            "type": "Double",
+            "description": "Center X coord",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "cy",
+            "type": "Double",
+            "description": "Center Y coord",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "halfDimension",
+            "type": "Double",
+            "description": "radius of square",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "capacityBeforeSubdivision",
+            "type": "Long",
+            "description": "The number of nodes a quadtree can hold before it subdivides. This can also be seen as the number of duplicate points allowed. If there are duplicates beyond this number you will get a stack overflow error.",
+            "referenceType": "ByRef",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "minimumHalfDimension",
+            "type": "Double",
+            "description": "Minimum boundary size when points stop causing subdivisions. Helps handle duplicate points",
+            "referenceType": "ByRef",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "parent",
+            "type": "stdQuadTree",
+            "description": "The parent of this quadtree element",
+            "referenceType": "byval",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "nothing"
+          }
+        ],
+        "returns": {
+          "type": "Void",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "insertPoint",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "@param x - X coord of point",
+        "params": [
+          {
+            "name": "x",
+            "type": "Double",
+            "description": "",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "y",
+            "type": "Double",
+            "description": "Y coord of point",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "meta",
+            "type": "Variant",
+            "description": "Metadata object i.e. holding additional geospatial information",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "Unspecified"
+          }
+        ],
+        "returns": {
+          "description": "True if inserted into the tree, false if error e.g. out of bounds."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "queryRange",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Query for points within a range depicted by center and radius (half dimension)",
+        "params": [
+          {
+            "name": "cx",
+            "type": "Double",
+            "description": "Center x coordinate",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "cy",
+            "type": "Double",
+            "description": "Center y coordinate",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "radius",
+            "type": "Double",
+            "description": "minimumDimension / radius of range to search",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          }
+        ],
+        "returns": {
+          "type": "Collection<Variant<Array1D<xcoord, ycoord, metadata>>> ",
+          "description": "The points found within the range"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "queryRangeBounds",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Query for points within a rect",
+        "params": [
+          {
+            "name": "minX",
+            "type": "Double",
+            "description": "Minimum x coord of rect",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "minY",
+            "type": "Double",
+            "description": "Minimum y coord of rect",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "maxX",
+            "type": "Double",
+            "description": "Maximum x coord of rect",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "maxY",
+            "type": "Double",
+            "description": "Maximum y coord of rect",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          }
+        ],
+        "returns": {
+          "type": "Collection<Variant<Array1D<xcoord, ycoord, metadata>>> ",
+          "description": "The points found within the bounds"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      }
+    ]
+  },
+  {
     "name": "stdRefArray",
     "fileName": "stdRefArray.cls",
     "methods": [
