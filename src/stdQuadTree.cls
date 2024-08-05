@@ -299,9 +299,9 @@ End Function
 '@param halfDimension - radius of box
 '@returns - The box UDT
 Private Function AABB_CreateEx(ByRef center As XY, ByVal halfDimension As Double) As AABB
-  AABB_Create.center.x = center.x
-  AABB_Create.center.y = center.y
-  AABB_Create.halfDimension = halfDimension
+  AABB_CreateEx.center.x = center.x
+  AABB_CreateEx.center.y = center.y
+  AABB_CreateEx.halfDimension = halfDimension
 End Function
 
 'Checks if a box contains a point
