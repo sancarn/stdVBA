@@ -1351,8 +1351,10 @@ Private Function stdCallByName(ByRef obj As Object, ByVal funcName As String, By
                   Case vbGetOrMethod
                     'Call DictionaryInstance.Item(funcName) only if funcName exists on the item
                     If obj.exists(funcName) Then Call CopyVariant(stdCallByName, obj.item(funcName))
-                  Case VbSet, VbLet
-                    Call obj.add(funcName, args(0))
+                  Case VbSet
+                    Set obj(funcName) = args(0)
+                  Case VbLet
+                    Let obj(funcName) = args(0)
                 End Select
                 Exit Function
         End Select

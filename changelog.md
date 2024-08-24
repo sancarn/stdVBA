@@ -314,4 +314,5 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2024-07-22 `stdWindow` FIX - Remove unused variable `minStackSize`.
 - 2024-07-22 `stdAcc` FIX - Remove unused variable `minStackSize`.
 - 2024-07-22 `stdWindow` FIX - Remove enforced `LongLong` in `stdWindow::Create`.
-- 2024-07-23 `stdQuadTree` FEATURE - Added `stdQuadTree` datastructure
+- 2024-07-23 `stdQuadTree` FEATURE - Added `stdQuadTree` datastructure.
+- 2024-08-24 `stdLambda` FIX - Fixed "key already exists in dictionary" error from using `obj.add` instead of `set obj(...) = args(0)`
