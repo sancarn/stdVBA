@@ -3594,6 +3594,27 @@
     "fileName": "stdClipboard.cls",
     "methods": [
       {
+        "name": "ClipboardID",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadOnly",
+        "description": "Get the ID of the current clipboard value",
+        "params": [],
+        "returns": {
+          "description": "The latest clipboard ID / sequence number"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": [
+          "- This is incremented every time the clipboard changes. It can be used to track and identify when the clipboard has changed."
+        ]
+      },
+      {
         "name": "value",
         "type": "Property",
         "constructor": true,
@@ -3712,7 +3733,40 @@
           "message": ""
         },
         "examples": [],
-        "remarks": []
+        "remarks": [
+          "- Formats which are technically \"available\" but have 0 bytes in size will return false."
+        ]
+      },
+      {
+        "name": "FormatSize",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Get the size in bytes of a particular format",
+        "params": [
+          {
+            "name": "format",
+            "type": "CLIPFORMAT",
+            "description": "The format to retrieve",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          }
+        ],
+        "returns": {
+          "description": "The number of bytes being the size of the format."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": [
+          "- CF_BITMAP and CF_ENHMETAFILE may be different due to the nature of obtaining their value via stdPicture"
+        ]
       },
       {
         "name": "RegisterFormat",
