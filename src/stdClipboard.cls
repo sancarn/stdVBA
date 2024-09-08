@@ -38,32 +38,33 @@ Attribute VB_Exposed = False
 
 Public Enum CLIPFORMAT
   CF_NOFORMAT = 0
+  CF_TEXT = 1
   CF_BITMAP = 2
-  CF_DIB = 8
-  CF_DIBV5 = 17
-  CF_DIF = 5
-  CF_DSPBITMAP = &H82
-  CF_DSPENHMETAFILE = &H8E
-  CF_DSPMETAFILEPICT = &H83
-  CF_DSPTEXT = &H81
-  CF_ENHMETAFILE = &H14
-  CF_GDIOBJFIRST = &H300
-  CF_GDIOBJLAST = &H3FF
-  CF_HDROP = 15
-  CF_LOCALE = 16
   CF_METAFILEPICT = 3
+  CF_SYLK = 4
+  CF_DIF = 5
+  CF_TIFF = 6
   CF_OEMTEXT = 7
-  CF_OWNERDISPLAY = &H80
+  CF_DIB = 8
   CF_PALETTE = 9
   CF_PENDATA = 10
+  CF_RIFF = 11
+  CF_WAVE = 12
+  CF_UNICODETEXT = 13
+  CF_ENHMETAFILE = 14
+  CF_HDROP = 15
+  CF_LOCALE = 16
+  CF_DIBV5 = 17
+
+  CF_OWNERDISPLAY = &H80
+  CF_DSPTEXT = &H81
+  CF_DSPBITMAP = &H82
+  CF_DSPMETAFILEPICT = &H83
+  CF_DSPENHMETAFILE = &H8E
   CF_PRIVATEFIRST = &H200
   CF_PRIVATELAST = &H2FF
-  CF_RIFF = 11
-  CF_SYLK = 4
-  CF_TEXT = 1
-  CF_TIFF = 6
-  CF_UNICODETEXT = 13
-  CF_WAVE = 12
+  CF_GDIOBJFIRST = &H300
+  CF_GDIOBJLAST = &H3FF
 End Enum
 
 'API Declarations:
@@ -104,6 +105,7 @@ End Enum
   Private Declare PtrSafe Function lstrlenA Lib "kernel32.dll" (ByVal lpString As LongPtr) As Long
   Private Declare PtrSafe Function GetTickCount Lib "kernel32" () As Long
   Private Declare PtrSafe Function RegisterClipboardFormatA Lib "kernel32" (ByVal lpString As String) As Long
+  Private Declare PtrSafe Function GetClipboardSequenceNumber Lib "user32" () as Long
 #Else
   Private Type PICTDESC
       size As Long
@@ -138,6 +140,7 @@ End Enum
   Private Declare Function lstrlenA Lib "kernel32.dll" (ByVal lpString As Long) As Long
   Private Declare Function GetTickCount Lib "kernel32" () As Long
   Private Declare Function RegisterClipboardFormatA Lib "kernel32" (ByVal lpString As String) As Long
+  Private Declare Function GetClipboardSequenceNumber Lib "user32" () as Long
 #End If
 
 
@@ -185,6 +188,13 @@ End Type
 '************************************************************************************************
 '* PUBLIC INTERFACE
 '************************************************************************************************
+
+'Get the ID of the current clipboard value
+'@returns - The latest clipboard ID / sequence number
+'@remark - This is incremented every time the clipboard changes. It can be used to track and identify when the clipboard has changed.
+Public Property Get ClipboardID() as Long
+  ClipboardID = GetClipboardSequenceNumber()
+End Property
 
 'Get or set the value of the current
 '@param iFormat - The format to get/set the value of
@@ -308,9 +318,32 @@ End Property
 'Check whether a given format is available based on the clipboards current data.
 '@param iFormat - The format to check support for.
 '@returns - `True` if the format is allowed, `false` otherwise
+'@remark - Formats which are technically "available" but have 0 bytes in size will return false.
 Public Function IsFormatAvailable(ByVal iFormat As CLIPFORMAT) As Boolean
   Call OpenClipboardTimeout(Application.hwnd)
-  IsFormatAvailable = IsClipboardFormatAvailable(iFormat)
+  If IsClipboardFormatAvailable(iFormat) Then
+    select case iFormat
+      case CF_BITMAP, CF_ENHMETAFILE, CF_METAFILEPICT
+        IsFormatAvailable = true
+      case else
+        'Ensure data exists in clipboard for format
+        IsFormatAvailable = GetFormatSize(iFormat) > 0
+    end select
+  End If
+  Call CloseClipboard
+End Function
+
+'Get the size in bytes of a particular format
+'@param format - The format to retrieve
+'@returns - The number of bytes being the size of the format.
+'@remark - CF_BITMAP and CF_ENHMETAFILE may be different due to the nature of obtaining their value via stdPicture
+Public Function FormatSize(ByVal format as CLIPFORMAT) as Long
+  Call OpenClipboardTimeout(Application.hwnd)
+  if IsClipboardFormatAvailable(format) then
+    FormatSize = GetFormatSize(format)
+  else
+    FormatSize = -1
+  end if
   Call CloseClipboard
 End Function
 
@@ -371,7 +404,7 @@ Public Property Get formatIDs() As Collection
   Dim ret As Collection: Set ret = New Collection
   'Loop over all formats and add to collection
   Call OpenClipboardTimeout(Application.hwnd)
-    Do
+  Do
     iFormat = EnumClipboardFormats(iFormat)
     If CBool(iFormat) Then
       ret.Add iFormat, GetClipboardFormatName(iFormat)
@@ -599,6 +632,31 @@ End Function
 '******************************************************************
 '* HELPERS
 '******************************************************************
+
+'Get the size of the data stored at the pointer location (not necessarily the size of the file!)
+'@private
+'@param iFormat - Format to get size of
+'@returns - Number of bytes
+'@remark - CF_BITMAP, CF_ENHMETAFILE and CF_METAFILEPICT will sometimes crash on `GlobalSize()`. The size of these is `0` though.
+'The data is not stored in memory under the handle. Instead the handle returned by `GetClipboardData()` returns a handle 
+'(HBITMAP or HENHMETAFILE) which internally have very different structures and handling mechanisms.
+Private Function GetFormatSize(ByRef iFormat as CLIPFORMAT) as Long
+  select case iFormat
+    case CF_BITMAP, CF_ENHMETAFILE, CF_METAFILEPICT
+      GetFormatSize = 0
+    case else
+      #If VBA7 Then
+        Dim hClipMemory     As LongPtr
+      #Else
+        Dim hClipMemory     As Long
+      #End If
+      hClipMemory = GetClipboardData(iFormat)
+      If CBool(hClipMemory) Then
+        'Ensure data exists in clipboard for format
+        GetFormatSize = GlobalSize(hClipMemory)
+      End If
+  end select
+End Function
 
 'Raises an error in stdError if available, else it will be raised in Err
 '@private

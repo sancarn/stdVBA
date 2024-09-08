@@ -316,3 +316,7 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2024-07-22 `stdWindow` FIX - Remove enforced `LongLong` in `stdWindow::Create`.
 - 2024-07-23 `stdQuadTree` FEATURE - Added `stdQuadTree` datastructure.
 - 2024-08-24 `stdLambda` FIX - Fixed "key already exists in dictionary" error from using `obj.add` instead of `set obj(...) = args(0)`
+- 2024-08-30 `stdDate` FEATURE - Added `CreateFromMSDOSDateTime()`, `AsMSDOSDate()` and `AsMSDOSTime()`.
+- 2024-09-05 `stdClipboard` FEATURE - Added `FormatSize` property. 
+- 2024-09-06 `stdClipboard` FEATURE - Added `ClipboardID` which can be used to help track and detect changes in the clipboard.
+- 2024-09-08 `stdClipboard` FIX - `IsFormatAvailable` will check if bytes present in buffer. Only buffers > 0 are classified as "available". `CF_BITMAP`, `CF_ENHMETAFILE` and `CF_METAFILEPICT` are classified as always available, because they have no size at the buffer and instead return handles to the system struct.

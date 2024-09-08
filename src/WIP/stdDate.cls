@@ -76,6 +76,28 @@ Public Function CreateFromUnits(Optional ByVal year As Integer = 0, Optional ByV
   end if
 End Function
 
+'Get date from MSDOS Date and Time
+'@param inDate - MSDOS Date
+'@param inTime - MSDOS Time
+'@returns - date object
+'@remark - This format is used in some data formats from the MS-DOS era, for example: Zip / RAR / vfat / lzh / cab.
+'@docs - https://learn.microsoft.com/en-us/windows/win32/api/oleauto/nf-oleauto-dosdatetimetovarianttime#remarks
+Public Function CreateFromMSDOSDateTime(Optional ByVal inDate as long = 0, Optional ByVal inTime as long = 0) as stdDate
+  Const maskTimeH As Long = &HF800&
+  Const maskTimeM As Long = &H7E0&
+  Const maskTimeS As Long = &H1F&
+  Const maskDateY As Long = &HFE00&
+  Const maskDateM As Long = &H1E0&
+  Const maskDateD As Long = &H1F&
+  Dim timeH As Long: timeH = (inTime And maskTimeH) \ 2 ^ 11
+  Dim timeM As Long: timeM = (inTime And maskTimeM) \ 2 ^ 5
+  Dim timeS As Long: timeS = (inTime And maskTimeS) * 2
+  Dim dateY As Long: dateY = (inDate And maskDateY) \ 2 ^ 9 + 1980
+  Dim dateM As Long: dateM = (inDate And maskDateM) \ 2 ^ 5
+  Dim dateD As Long: dateD = (inDate And maskDateD)
+  set CreateFromMSDOSDateTime = CreateFromUnits(dateY, dateM, dateD, timeH, timeM, timeS)
+End Function
+
 'Tries to emulate: https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html
 'EEE  = Mon|Tue|Wd|Thu|Fri
 'E    = Monday|Tuesday|Wednesday|Thursday|Friday
@@ -329,6 +351,25 @@ Public Property Let Country(s as string)
     case "UK":
       pFirstDayOfWeek = vbMonday
   end select
+End Property
+
+'Obtain the MSDOS Date for this datetime
+'@docs - https://learn.microsoft.com/en-us/windows/win32/api/oleauto/nf-oleauto-dosdatetimetovarianttime#remarks
+Public Property Get asMSDOSDate() as Long
+  if VBA.Year(pValue) < 1980 then Err.Raise 1, "stdDate#asMSDOSDate", "Cannot create date value"
+  Dim y as long: y = (VBA.Year(pValue) - 1980) * 2 ^ 9
+  Dim m as long: m = VBA.Month(pValue) * 2 ^ 5
+  Dim d as long: d = VBA.Day(pValue)
+  asMSDOSDate = y or m or d
+End Property
+
+'Obtain the MSDOS Time for this datetime
+'@docs - https://learn.microsoft.com/en-us/windows/win32/api/oleauto/nf-oleauto-dosdatetimetovarianttime#remarks
+Public Property Get asMSDOSTime() as Long
+  Dim h as long: h = VBA.Hour(pValue) * 2 ^ 11
+  Dim m as long: m = VBA.Minute(pValue) * 2 ^ 5
+  Dim s as long: s = VBA.Second(pValue) \ 2
+  asMSDOSTime = h or m or s
 End Property
 
 Public Function ToString()
