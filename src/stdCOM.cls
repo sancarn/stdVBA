@@ -15,9 +15,9 @@ Attribute VB_Exposed = True
 'TODO: Analyse and add anything missing from:
 ' * https://referencesource.microsoft.com/#system.data/fx/src/data/System/Data/OleDb/OLEDB_Util.cs,4254532afac0bd58,references
 #If Win64 Then
-  Const NULL_PTR as LongLong = 0^
+  Private Const NULL_PTR as LongLong = 0^
 #Else
-  Const NULL_PTR As Long = 0&
+  Private Const NULL_PTR As Long = 0&
 #End If
 
 #If VBA7 Then
@@ -32,7 +32,8 @@ Attribute VB_Exposed = True
     Private Declare PtrSafe Function GetRunningObjectTable Lib "ole32.dll" (ByVal dwReserved As Long, pROT As LongPtr) As Long
     Private Declare PtrSafe Function CreateBindCtx Lib "ole32.dll" (ByVal dwReserved As Long, pBindCtx As LongPtr) As Long
     Private Declare PtrSafe Function SysReAllocString Lib "oleAut32.dll" (ByVal pBSTR As LongPtr, Optional ByVal pszStrPtr As LongPtr) As Long
-    
+    Private Declare PtrSafe Function ProgIDFromCLSID Lib "ole32.dll" (ByRef rclsid As GUID, ByVal ProgID as LongPtr) as Long
+
     'Register to ROT
     Private Declare PtrSafe Function RegisterActiveObject32 Lib "oleAut32.dll" Alias "RegisterActiveObject" (ByVal pUnk As IUnknown, ByRef rclsid As GUID, ByVal dwFlags As Long, ByRef pdwRegister As Long) As Long
     Private Declare PtrSafe Function RevokeActiveObject32 Lib "oleAut32.dll" Alias "RevokeActiveObject" (ByVal dwRegister As Long, ByVal pvReserved As LongPtr) As Long
@@ -54,14 +55,15 @@ Attribute VB_Exposed = True
     'FIX: The use of `VbVarType` for the type of `paTypes` on 32 bit causes Invalid Callee error. Workaround is to use `Integer` instead as below.
     Private Declare Function DispCallFunc Lib "oleAut32.dll" (ByVal pvInstance As LongPtr, ByVal offsetinVft As LongPtr, ByVal CallConv As Long, ByVal retTYP As Integer, ByVal paCNT As Long, ByVal paTypes As LongPtr, ByVal paValues As LongPtr, ByRef retVAR As Variant) As Long
     Private Declare Sub SetLastError Lib "kernel32.dll" (ByVal dwErrCode As Long)
-    Private Declare Function IIDFromString Lib "ole32.dll" (ByVal pstCLS As Long, ByRef iid As GUID) As Long
-    Private Declare Function CLSIDFromString Lib "ole32.dll" (ByVal pstCLS As Long, ByRef iid As GUID) As Long
+    Private Declare Function IIDFromString Lib "ole32.dll" (ByVal pstCLS As LongPtr, ByRef iid As GUID) As Long
+    Private Declare Function CLSIDFromString Lib "ole32.dll" (ByVal pstCLS As LongPtr, ByRef iid As GUID) As Long
     
     'Iterate the ROT
-    Private Declare Function GetRunningObjectTable Lib "ole32.dll" (ByVal dwReserved As Long, pROT As Long) As Long
-    Private Declare Function CreateBindCtx Lib "ole32.dll" (ByVal dwReserved As Long, pBindCtx As Long) As Long
-    Private Declare Function SysReAllocString Lib "oleAut32.dll" (ByVal pBSTR As Long, Optional ByVal pszStrPtr As Long) As Long
-    
+    Private Declare Function GetRunningObjectTable Lib "ole32.dll" (ByVal dwReserved As Long, pROT As LongPtr) As Long
+    Private Declare Function CreateBindCtx Lib "ole32.dll" (ByVal dwReserved As Long, pBindCtx As LongPtr) As Long
+    Private Declare Function SysReAllocString Lib "oleAut32.dll" (ByVal pBSTR As LongPtr, Optional ByVal pszStrPtr As LongPtr) As Long
+    Private Declare Function ProgIDFromCLSID Lib "ole32.dll" (ByRef rclsid As GUID, ByVal ProgID as LongPtr) as Long
+
     'Register to ROT
     Private Declare Function RegisterActiveObject32 Lib "oleAut32.dll" Alias "RegisterActiveObject" (ByVal pUnk As IUnknown, ByRef rclsid As GUID, ByVal dwFlags As Long, ByRef pdwRegister As Long) As Long
     Private Declare Function RevokeActiveObject32 Lib "oleAut32.dll" Alias "RevokeActiveObject" (ByVal dwRegister As Long, ByVal pvReserved As Long) As Long
@@ -494,9 +496,9 @@ End Function
 '@devRemark stdCOM objects will auto-release when not needed
 Public Function CreateFromActiveObjects() As Collection
   #If VBA7 Then
-    Dim pROT As LongPtr, pBindCtx As LongPtr, pEnumMoniker As LongPtr, pMoniker As LongPtr, pName As LongPtr, pMonikerObject As LongPtr
+    Dim pROT As LongPtr, pBindCtx As LongPtr, pEnumMoniker As LongPtr, pMoniker As LongPtr, pStr As LongPtr, pMonikerObject As LongPtr
   #Else
-    Dim pROT As Long, pBindCtx As Long, pEnumMoniker As Long, pMoniker As Long, pName As Long, pMonikerObject As Long
+    Dim pROT As Long, pBindCtx As Long, pEnumMoniker As Long, pMoniker As Long, pStr As Long, pMonikerObject As Long
   #End If
   
   Dim ret As Collection: Set ret = New Collection 'Collection to return
@@ -511,22 +513,37 @@ Public Function CreateFromActiveObjects() As Collection
   'Enumerate ROT
   Dim nCount As Long: nCount = 1&
   Dim nCountFetched As Long: nCountFetched = 1& 'Note: This has to be set else a crash occurs
-  While e.CallVT(EIEnumMoniker.Nextt, vbLong, nCount, VarPtr(pMoniker), VarPtr(nCountFetched)) = S_OK     '*IMoniker
+  Do While e.CallVT(EIEnumMoniker.Nextt, vbLong, nCount, VarPtr(pMoniker), VarPtr(nCountFetched)) = S_OK     '*IMoniker
+    'Note: This check is required, in some instances (still not certain when specifically) S_OK is returned, despite `nCountFetched` holding `0` and `nCount` holding `1`
+    if nCountFetched = 0 then Exit Do
+
     Dim moniker As stdCOM: Set moniker = stdCOM.CreateFromPtr(pMoniker)                                   'stdCOM<IMoniker>
-    
+
     'Get DisplayName and Object
-    Dim sName As String: If moniker.CallVT(EIMoniker.GetDisplayName, vbLong, VarPtr(pBindCtx), VarPtr(pMoniker), VarPtr(pName)) = S_OK Then _
-        sName = GetStrFromPtrW(pName)
+    Dim sName As String: If moniker.CallVT(EIMoniker.GetDisplayName, vbLong, VarPtr(pBindCtx), VarPtr(pMoniker), VarPtr(pStr)) = S_OK Then _
+        sName = GetStrFromPtrW(pStr)
     Call ROT.CallVT(EIRunningObjectTable.GetObject_, vbLong, pMoniker, VarPtr(pMonikerObject))                          '*Interface
     Dim obj As stdCOM: Set obj = stdCOM.CreateFromPtr(pMonikerObject)                                                  'stdCOM<Interface>
-    'Dim obj As stdCOM: Set obj = ROT.CallVTW(EIRunningObjectTable.GetObject_, vbLong, pMoniker, Null)                  'stdCOM<Interface>
+    
+    'Get ProgID from PathName
+    Dim CLSID As GUID: CLSID.Data1 = 0: CLSID.Data2 = 0: CLSID.Data3 = 0: Erase CLSID.Data4
+    Dim ProgID As String: ProgID = ""
+    if sName like "!{*}" then
+      Dim tCLSID as string: tCLSID = mid(sName, 2)
+      Call IIDFromString(StrPtr(tCLSID), clsid)
+      If ProgIDFromCLSID(clsid, VarPtr(pStr)) = S_OK then
+        ProgID = GetStrFromPtrW(pStr)
+      end if
+    end if
     
     'Wrap return value in dictionary for easy enumeration with stdLambda
     Dim oDict As Object: Set oDict = CreateObject("Scripting.Dictionary")
     oDict("Name") = sName
+    oDict("Type") = TypeName(obj.Object)
+    oDict("ProgID") = ProgID
     Set oDict("COM") = obj
     ret.Add oDict
-  Wend
+  Loop
   
   Set CreateFromActiveObjects = ret
 End Function
