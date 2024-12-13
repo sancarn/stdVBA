@@ -261,6 +261,7 @@ Public Property Get Agent() as Object
 End Property
 
 'Run a collection/stdArray/stdEnumerator of fiber procedures, across a number of concurrent running fiber runtimes, returning all results as a collection.
+'@static
 '@param vFibers as Variant<Collection|Array|stdArray|stdEnumerator> - Fiber procedures to execute over
 '@param numFibers - the number of fiber runtimes to create (or number of fiber procedures to run concurrently)
 '@returns - Collection of results of ran fiber procedures. You can use the variant from param1 if you need to check for errors using ErrorText.
@@ -306,6 +307,17 @@ Public Function runFibers(ByVal vFibers as variant, Optional byval numFibers as 
 
   set runFibers = results
 End Function
+
+'Cancel the running fiber
+'@param errorText - If an error is required, set this parameter to whatever the text should be.
+Public Sub Cancel(Optional ByVal errorText As String = "")
+  This.errorText = errorText
+  This.isFinished = True
+  If Not This.ErrorHandler Is Nothing And errorText <> "" Then
+    Dim oMe As Object: Set oMe = Me
+    Call This.ErrorHandler.Run(oMe)
+  End If
+End Sub
 
 '***********
 '* HELPERS *

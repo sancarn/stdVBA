@@ -32,12 +32,18 @@ Public Function Create(ByVal sPath As String) As stdShell
     
     'Get type of shell item
     Dim tType As StdShellType
-    Select Case VBA.GetAttr(sPath)
-        Case VbFileAttribute.vbDirectory, VbFileAttribute.vbVolume
-            tType = Dir
-        Case Else
-            tType = File
-    End Select
+    If VBA.Dir(sPath) <> "" Then
+      Select Case VBA.GetAttr(sPath)
+          Case VbFileAttribute.vbDirectory, VbFileAttribute.vbVolume
+              tType = Dir
+          Case Else
+              tType = file
+      End Select
+    Else
+      'No such file exists
+      Set Create = Nothing
+      Exit Function
+    End If
     
     'Create shell item
     Set Create = New stdShell

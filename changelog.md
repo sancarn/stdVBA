@@ -322,3 +322,4 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2024-09-08 `stdClipboard` FIX - `IsFormatAvailable` will check if bytes present in buffer. Only buffers > 0 are classified as "available". `CF_BITMAP`, `CF_ENHMETAFILE` and `CF_METAFILEPICT` are classified as always available, because they have no size at the buffer and instead return handles to the system struct.
 - 2024-10-08 `stdCOM` FEATURE - Added `ProgID` to `CreateFromActiveObjects`.
 - 2024-10-08 `stdCOM` FIX - Fixed bug where `CreateFromActiveObjects` queried endless objects.
+- 2024-12-13 `stdFiber` FEATURE - Added `Cancel` method.
