@@ -12,6 +12,10 @@ A Collection of libraries to form a common standard layer for modern VBA applica
 
 [The full roadmap](https://github.com/sancarn/stdVBA/projects/1) has more detailed information than here.
 
+## Getting started
+
+[A video series](https://www.youtube.com/watch?v=IJ8PNiqnuMU&list=PLfpJqtusLMmotZqzFtZ6FCPRin5N_BjPA) is being created to demonstrate how to get started with stdVBA. Alternatively there is a small getting started document [in the discussions](https://github.com/sancarn/stdVBA/discussions/30)
+
 ## Short example
 
 Please visit [the examples repository](https://github.com/sancarn/stdVBA-examples) for more fully featured applications/examples using this library.
