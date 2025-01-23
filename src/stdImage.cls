@@ -773,7 +773,8 @@ End Sub
 'Copy the image to the clipboard
 '@example `stdImage.CreateFromFile("H:\test1.bmp").ToClipboard()
 Public Sub ToClipboard()
-  Dim oHtml As New MSHTML.HTMLDocument
+  Dim oHtml As Object
+  Set oHtml = CreateObject("htmlfile")
   if VarType(Clipboard) = vbObject then
     Call oHtml.parentWindow.clipboardData.SetData(ToStdPicture())
   else
