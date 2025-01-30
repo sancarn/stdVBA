@@ -323,3 +323,4 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2024-10-08 `stdCOM` FEATURE - Added `ProgID` to `CreateFromActiveObjects`.
 - 2024-10-08 `stdCOM` FIX - Fixed bug where `CreateFromActiveObjects` queried endless objects.
 - 2024-12-13 `stdFiber` FEATURE - Added `Cancel` method.
+- 2025-01-29 `stdClipboard` FIX - Fixed incorrect declare for `RegisterClipboardFormatA`

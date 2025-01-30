@@ -104,7 +104,7 @@ End Enum
   Private Declare PtrSafe Function lstrlenW Lib "kernel32.dll" (ByVal lpString As LongPtr) As Long
   Private Declare PtrSafe Function lstrlenA Lib "kernel32.dll" (ByVal lpString As LongPtr) As Long
   Private Declare PtrSafe Function GetTickCount Lib "kernel32" () As Long
-  Private Declare PtrSafe Function RegisterClipboardFormatA Lib "kernel32" (ByVal lpString As String) As Long
+  Private Declare PtrSafe Function RegisterClipboardFormatA Lib "user32" (ByVal lpString As String) As Long
   Private Declare PtrSafe Function GetClipboardSequenceNumber Lib "user32" () as Long
 #Else
   Private Type PICTDESC
@@ -139,7 +139,7 @@ End Enum
   Private Declare Function lstrlenW Lib "kernel32.dll" (ByVal lpString As Long) As Long
   Private Declare Function lstrlenA Lib "kernel32.dll" (ByVal lpString As Long) As Long
   Private Declare Function GetTickCount Lib "kernel32" () As Long
-  Private Declare Function RegisterClipboardFormatA Lib "kernel32" (ByVal lpString As String) As Long
+  Private Declare Function RegisterClipboardFormatA Lib "user32" (ByVal lpString As String) As Long
   Private Declare Function GetClipboardSequenceNumber Lib "user32" () as Long
 #End If
 
