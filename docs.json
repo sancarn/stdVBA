@@ -5844,6 +5844,36 @@
         },
         "examples": [],
         "remarks": []
+      },
+      {
+        "name": "Cancel",
+        "type": "Sub",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Cancel the running fiber",
+        "params": [
+          {
+            "name": "errorText",
+            "type": "String",
+            "description": "If an error is required, set this parameter to whatever the text should be.",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "\"\""
+          }
+        ],
+        "returns": {
+          "type": "Void",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
       }
     ]
   },
