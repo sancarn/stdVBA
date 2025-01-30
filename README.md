@@ -192,15 +192,15 @@ Application specific libraries to be prefixed with `xl`, `wd`, `pp`, `ax` repres
 Commonly implementations will use the factory class design pattern:
 
 ```vb
-Class stdClass
+Class stdSomeClass
   Private bInitialised as boolean
 
   'Creates an object from the given parameters
   '@constructor
-  Public Function Create(...) As stdClass
+  Public Function Create(...) As stdSomeClass
     if not bInitialised then
-      Set Create = New stdClass
-      Call Create.init(...)
+      Set Create = New stdSomeClass
+      Call Create.protInit(...)
     else
       Call CriticalRaise("Constructor called on object not class")
     End If
@@ -208,11 +208,11 @@ Class stdClass
 
   'Initialises the class. This method is meant for internal use only. Use at your own risk.
   '@protected
-  Public Sub init(...)
+  Public Sub protInit(...)
     If bInitialised Then
-      Call CriticalRaise("Cannot run init() on initialised object")
-    elseif Me is stdClass then
-      Call CriticalRaise("Cannot run init() on static class")
+      Call CriticalRaise("Cannot run protInit() on initialised object")
+    elseif Me is stdSomeClass then
+      Call CriticalRaise("Cannot run protInit() on static class")
     else
       'initialise with params...
 
@@ -225,7 +225,7 @@ Class stdClass
     if isObject(stdError) then
       stdError.Raise sMsg
     else
-      Err.Raise 1, "stdClass", sMsg
+      Err.Raise 1, "stdSomeClass", sMsg
     end if
   End Sub
   
@@ -241,7 +241,7 @@ If you are looking to contribute to the VBA standard library codebase, the best 
 
 * If you have a Feature Request - Create a new issue
 * If you have found a bug - Create a new issue
-* If you have written some code which you want to contribute see the Contributing Code section below.
+* If you have written some code which you want to contribute - See the Contributing Code section below.
 
 ## Contributing Code
 
@@ -264,6 +264,4 @@ As long as these standard conventions are met, the rest is up to you! Just try t
 
 ## Inspiration documents
 
-Inspiration was initially stored in this repository, however the vast swathes of examples, knowledge and data became too big for this repository, therefore it was moved to:
-
-https://github.com/sancarn/VBA-STD-Lib-Inspiration
+Over the process of building this library we have drawn from numerous examples and knowledge from across the web. Many of these examples can either be found in our [inspiration library](https://github.com/sancarn/VBA-STD-Lib-Inspiration) or [awesome-vba](https://github.com/sancarn/awesome-vba).
