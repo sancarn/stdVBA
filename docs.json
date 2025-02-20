@@ -5596,6 +5596,35 @@
         "remarks": []
       },
       {
+        "name": "addStepChangeHandler",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Add a handler which is triggered at every step change",
+        "params": [
+          {
+            "name": "handler",
+            "type": "stdICallable<(stdFiber)=>void>",
+            "description": "Callback to run when an error occurs in the fiber",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          }
+        ],
+        "returns": {
+          "description": "A fiber procedure - A reference to the fiber the step has been added to, to allow chaining"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
         "name": "Resolve",
         "type": "Sub",
         "constructor": true,
@@ -5742,6 +5771,63 @@
         "params": [],
         "returns": {
           "description": "The current step"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "StepName",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadOnly",
+        "description": "Obtains the name of the current step in the fiber",
+        "params": [],
+        "returns": {
+          "description": "The name of the fiber step"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "StepDuration",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadOnly",
+        "description": "Obtains the duration of the fiber procedure",
+        "params": [],
+        "returns": {
+          "description": "The duration of the fiber procedure in seconds"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "TotalDuration",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadOnly",
+        "description": "Obtains the duration of the fibers entire runtime",
+        "params": [],
+        "returns": {
+          "description": "The duration of the fibers entire runtime in seconds"
         },
         "deprecation": {
           "status": false,
