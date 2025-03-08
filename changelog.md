@@ -324,5 +324,10 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2024-10-08 `stdCOM` FIX - Fixed bug where `CreateFromActiveObjects` queried endless objects.
 - 2024-12-13 `stdFiber` FEATURE - Added `Cancel` method.
 - 2025-01-29 `stdClipboard` FIX - Fixed incorrect declare for `RegisterClipboardFormatA`
+- 2025-02-20 `stdFiber` FEATURE - Added `addStepChangeHandler` and `stepName`, for better tracking through a set of processes.
+- 2025-02-26 `stdUIElement` FIX - Fix where value not supplied to combobox element on element creation throwing error.
 - 2025-03-08 `stdWindow` FEATURE - Added `AsNativeObject` and `AsIAccessible`.
 - 2025-03-08 `stdFiber` FEATURE - Added `agentInitCB`, `agentDestroyCB` and `runtimeUpdateCB` to `stdFiber.runFibers` for better management of fiber runtime.
+
+
+

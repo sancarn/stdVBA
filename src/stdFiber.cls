@@ -108,7 +108,9 @@ Private Type TThis
   result as Variant
   errorText as string
   errorHandler as stdICallable
+  stepChangeHandler As stdICallable
   agent as object
+  endTime as Date
 End Type
 Private This as TThis
 
@@ -153,6 +155,14 @@ Public Function addErrorHandler(ByVal handler as stdICallable) as stdFiber
   set addErrorHandler = Me
 End Function
 
+'Add a handler which is triggered at every step change
+'@param handler as stdICallable<(stdFiber)=>void> - Callback to run when an error occurs in the fiber
+'@returns - A fiber procedure - A reference to the fiber the step has been added to, to allow chaining
+Public Function addStepChangeHandler(ByVal handler As stdICallable) As stdFiber
+  Set This.StepHandler = handler
+  Set addStepChangeHandler = Me
+End Function
+
 'Calls current sub-process in the fiber procedure. Advances the queue if the ran sub-process is finished.
 '@param agent as Object<Dictionary> - An object storing information unique to the runtime agent. This agent is bound to the fiber, allowing use of window or accessibility elements initialised on the agent.
 '@returns - `True` if this fiber procedure has finished execution (i.e. future stepping not required anymore).
@@ -166,6 +176,11 @@ Friend Function protStep(Byval agent as Object) as Boolean
     if this.procs(this.procStep).proc.Run(oMe) then 
       this.procStep = this.procStep + 1
       this.isFinished = this.procStep > this.procsCount
+      If this.isFinished then
+        this.endTime = now()
+      else
+        If Not This.stepChangeHandler Is Nothing Then Call This.stepChangeHandler.Run(oMe)
+      end if
     end if
     protStep = this.isFinished
     Exit Function
@@ -174,6 +189,7 @@ ErrorHandler:
   protStep = True
   this.isFinished = true
   this.result = Null
+  this.endTime = now()
   this.ErrorText = Err.Description & "(" & Err.Number & ", " & Err.Source & ")"
   Call this.errorHandler.Run(oMe)
 End Function
@@ -182,6 +198,7 @@ End Function
 '@param vResult - The result to return
 Public Sub Resolve(ByVal vResult as variant)
   this.isFinished = true
+  this.endTime = now()
   Call CopyVariant(this.result, vResult)
 End Sub
 
@@ -236,10 +253,22 @@ Public Property Get Step() as Long
   Step = procStep
 End Property
 
+'Obtains the name of the current step in the fiber
+'@returns - The name of the fiber step
+Public Property Get StepName() As String
+  StepName = This.procs(This.procStep).name
+End Property
+
 'Obtains the duration of the fiber procedure
 '@returns - The duration of the fiber procedure in seconds
-Public Property Get StepDuration as Long
+Public Property Get StepDuration() as Long
   StepDuration = DateDiff("s", this.procs(this.procStep).startTime, now())
+End Property
+
+'Obtains the duration of the fibers entire runtime
+'@returns - The duration of the fibers entire runtime in seconds
+Public Property Get TotalDuration() as Long
+  StepDuration = DateDiff("s", this.procs(this.procsCount).startTime, this.endTime)
 End Property
 
 'Obtains whether the fiber has finished or not
@@ -341,6 +370,7 @@ End Function
 Public Sub Cancel(Optional ByVal errorText As String = "")
   This.errorText = errorText
   This.isFinished = True
+  this.endTime = now()
   If Not This.ErrorHandler Is Nothing And errorText <> "" Then
     Dim oMe As Object: Set oMe = Me
     Call This.ErrorHandler.Run(oMe)
