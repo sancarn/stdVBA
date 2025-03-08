@@ -325,3 +325,4 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2024-12-13 `stdFiber` FEATURE - Added `Cancel` method.
 - 2025-01-29 `stdClipboard` FIX - Fixed incorrect declare for `RegisterClipboardFormatA`
 - 2025-03-08 `stdWindow` FEATURE - Added `AsNativeObject` and `AsIAccessible`.
+- 2025-03-08 `stdFiber` FEATURE - Added `agentInitCB`, `agentDestroyCB` and `runtimeUpdateCB` to `stdFiber.runFibers` for better management of fiber runtime.
