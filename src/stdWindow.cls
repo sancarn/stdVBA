@@ -387,12 +387,20 @@ Private Enum apiClassLongType
   GCL_HICONSM = -34
 End Enum
 
+Private Type tGUID
+    lData1            As Long
+    nData2            As Integer
+    nData3            As Integer
+    abytData4(0 To 7) As Byte
+End Type
+
 #If VBA7 Then
   'Constructors
   Private Declare PtrSafe Function GetDesktopWindow Lib "user32" () As LongPtr
   Private Declare PtrSafe Function IUnknown_GetWindow Lib "shlwapi" Alias "#172" (ByVal pIUnk As IUnknown, ByVal hwnd As LongPtr) As Long
   Private Declare PtrSafe Function WindowFromPoint Lib "user32" (ByVal x As Long, ByVal y As Long) As LongPtr
   Private Declare PtrSafe Function WindowFromAccessibleObject Lib "oleacc" (ByVal pacc As IAccessible, ByRef pHwnd As LongPtr) As Long
+  Private Declare PtrSafe Function AccessibleObjectFromWindow Lib "oleacc" (ByVal hwnd As LongPtr, ByVal dwId As Long, riid As tGUID, ppvObject As Object) As Long
 
   'Getting window data
   Private Declare PtrSafe Function IsWindow Lib "user32" (ByVal hwnd As LongPtr) As Long
@@ -470,6 +478,7 @@ End Enum
   Private Declare Function IUnknown_GetWindow Lib "shlwapi" Alias "#172" (ByVal pIUnk As IUnknown, ByVal hwnd As LongPtr) As Long
   Private Declare Function WindowFromPoint Lib "user32" (ByVal x As Long, ByVal y As Long) As LongPtr
   Private Declare Function WindowFromAccessibleObject Lib "oleacc" (ByVal pacc As IAccessible, ByRef pHwnd As LongPtr) As Long
+  Private Declare Function AccessibleObjectFromWindow Lib "oleacc" (ByVal hwnd As LongPtr, ByVal dwId As Long, riid As tGUID, ppvObject As Object) As Long
 
   'Getting window data
   Private Declare Function IsWindow Lib "user32" (ByVal hwnd As LongPtr) As Long
@@ -763,7 +772,6 @@ Public Function CreateManyFromShellWindows() as Collection
 End Function
 
 'Converts a stdWindow object to a stdAcc object
-'@constructor
 '@returns Object<stdAcc>|stdAcc - stdAcc object representing the window
 '@remark - This function requires stdAcc dependency.
 '@remark - For full intellisense, add `stdAccPresent = 1` to the compiler constants
@@ -779,6 +787,23 @@ Public Function AsAcc() as Object
   end if
 End Function
 
+'Converts a stdWindow object to a IAccessible object
+'@constructor
+'@returns Object<IAccessible> - IAccessible object representing the window
+Public Function AsIAccessible() As Object
+  Dim Guid As tGUID: Guid = convertGUID("618736E0-3C3D-11CF-810C-00AA00389B71")
+  Call AccessibleObjectFromWindow(This.handle, 0, Guid, AsIAccessible)
+End Function
+
+'Converts a stdWindow object to a IAccessible object
+'@constructor
+'@returns Object<IAccessible> - IAccessible object representing the window
+'@remark - Typical use case to get Excel application object from IAccessible. E.G. `stdWindow.CreateFromHwnd(...).AsNativeObject.Application)`
+Public Function AsNativeObject() As Object
+  Const OBJID_NATIVEOM = &HFFFFFFF0
+  Dim Guid As tGUID: Guid = convertGUID("00020400-0000-0000-C000-000000000046")
+  Call AccessibleObjectFromWindow(This.handle, OBJID_NATIVEOM, Guid, AsNativeObject)
+End Function
 
 'Notes:
 'Windows are hierarchical therefore CreateManyFromQuery and CreateFromQuery makes less sense than FindFirst() and FindAll() methods
@@ -2811,6 +2836,43 @@ Private Function bitFlagSet(ByVal field As Long, ByVal flag As Long, ByVal toSet
   Else
     bitFlagSet = field And (Not flag)
   End If
+End Function
+
+'Create a GUID struct from input string
+'@param guid - GUID string to convert
+'@returns - guid struct for use in API calls
+Private Function convertGUID(Guid As String) As tGUID
+    'Lookups defined by:
+    ' Define the GUID for the IAccessible object
+    ' {618736E0-3C3D-11CF-810C-00AA00389B71}
+    ' With tg
+    '    .lData1 = &H618736E0
+    '    .nData2 = &H3C3D
+    '    .nData3 = &H11CF
+    '    .abytData4(0) = &H81
+    '    .abytData4(1) = &HC
+    '    .abytData4(2) = &H0
+    '    .abytData4(3) = &HAA
+    '    .abytData4(4) = &H0
+    '    .abytData4(5) = &H38
+    '    .abytData4(6) = &H9B
+    '    .abytData4(7) = &H71
+    ' End With
+    
+    Dim vArr: vArr = Split(Guid, "-")
+    
+    'Generate GUID structure from string of hex
+    convertGUID.lData1       = CLng("&H" & vArr(0))             '618736E0
+    convertGUID.nData2       = CInt("&H" & vArr(1))             '3C3D
+    convertGUID.nData3       = CInt("&H" & vArr(2))             '11CF
+    convertGUID.abytData4(0) = CInt("&H" & Mid(vArr(3), 1, 2))  '81
+    convertGUID.abytData4(1) = CInt("&H" & Mid(vArr(3), 3, 2))  '0C
+    convertGUID.abytData4(2) = CInt("&H" & Mid(vArr(4), 1, 2))  '00
+    convertGUID.abytData4(3) = CInt("&H" & Mid(vArr(4), 3, 2))  'AA
+    convertGUID.abytData4(4) = CInt("&H" & Mid(vArr(4), 5, 2))  '00
+    convertGUID.abytData4(5) = CInt("&H" & Mid(vArr(4), 7, 2))  '38
+    convertGUID.abytData4(6) = CInt("&H" & Mid(vArr(4), 9, 2))  '9B
+    convertGUID.abytData4(7) = CInt("&H" & Mid(vArr(4), 11, 2)) '71
 End Function
 
 'Public Sub Requires()
