@@ -5912,13 +5912,40 @@
             "defaultValue": null
           },
           {
-            "name": "numFibers",
+            "name": "numAgents",
             "type": "Long",
             "description": "the number of fiber runtimes to create (or number of fiber procedures to run concurrently)",
             "referenceType": "byval",
             "paramArray": false,
             "optional": true,
             "defaultValue": "1"
+          },
+          {
+            "name": "agentInitCB",
+            "type": "stdICallable<(agent as Object)=>void>",
+            "description": "Called when an agent has been initialised. This is called only once per agent object. The agent environment is received as the parameter.",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "nothing"
+          },
+          {
+            "name": "agentDestroyCB",
+            "type": "stdICallable<(agent as Object)=>void>",
+            "description": "Called when an agent is about to be destroyed. This is called only once per agent object. The agent environment is received as the parameter. Typically used to cleanup.",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "nothing"
+          },
+          {
+            "name": "runtimeUpdateCB",
+            "type": "stdICallable<(iFinishedCount as long, iFiberCount as long)=>void>",
+            "description": "A callback to call every second to update on progress.",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "nothing"
           }
         ],
         "returns": {
@@ -12341,6 +12368,48 @@
         "remarks": [
           "- This function requires stdAcc dependency.",
           "- For full intellisense, add `stdAccPresent = 1` to the compiler constants"
+        ]
+      },
+      {
+        "name": "AsIAccessible",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Converts a stdWindow object to a IAccessible object",
+        "params": [],
+        "returns": {
+          "type": "Object<IAccessible> ",
+          "description": "IAccessible object representing the window"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "AsNativeObject",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Converts a stdWindow object to a IAccessible object",
+        "params": [],
+        "returns": {
+          "type": "Object<IAccessible> ",
+          "description": "IAccessible object representing the window"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": [
+          "- Typical use case to get Excel application object from IAccessible. E.G. `stdWindow.CreateFromHwnd(...).AsNativeObject.Application)`"
         ]
       },
       {
