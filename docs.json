@@ -12407,10 +12407,10 @@
           "status": false,
           "message": ""
         },
-        "examples": [],
-        "remarks": [
-          "- Typical use case to get Excel application object from IAccessible. E.G. `stdWindow.CreateFromHwnd(...).AsNativeObject.Application)`"
-        ]
+        "examples": [
+          "- `stdWindow.CreateFromHwnd(...).FindFirst(stdLambda.Create(\"$1.Class = \"\"EXCEL7\"\"\")).AsNativeObject.Application)`"
+        ],
+        "remarks": []
       },
       {
         "name": "handle",
