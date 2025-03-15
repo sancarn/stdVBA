@@ -798,7 +798,7 @@ End Function
 'Converts a stdWindow object to a IAccessible object
 '@constructor
 '@returns Object<IAccessible> - IAccessible object representing the window
-'@remark - Typical use case to get Excel application object from IAccessible. E.G. `stdWindow.CreateFromHwnd(...).AsNativeObject.Application)`
+'@example - `stdWindow.CreateFromHwnd(...).FindFirst(stdLambda.Create("$1.Class = ""EXCEL7""")).AsNativeObject.Application)`
 Public Function AsNativeObject() As Object
   Const OBJID_NATIVEOM = &HFFFFFFF0
   Dim Guid As tGUID: Guid = convertGUID("00020400-0000-0000-C000-000000000046")
