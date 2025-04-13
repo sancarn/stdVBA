@@ -6410,6 +6410,46 @@
         "remarks": []
       },
       {
+        "name": "ResponseMapped",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadOnly",
+        "description": "Get the mapped response",
+        "params": [],
+        "returns": {
+          "type": "variant",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "ResponseMapper",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadWrite",
+        "description": "Get/Set the response mapper. This callback will run when ResponeMapped() is called. This would usually be used to convert the response to a JSON/XML VBA object.",
+        "params": [],
+        "returns": {
+          "type": "stdICallable",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
         "name": "URIEncode",
         "type": "Function",
         "constructor": true,
