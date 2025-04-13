@@ -202,6 +202,7 @@ End Type
 
 Private Type TThis
   HTTP as object
+  ResponseMapper as stdICallable
 End Type
 Private This As TThis
 
@@ -322,13 +323,15 @@ End Function
 'Get whether the request has finished. This is only necessary for asynchronous requests.
 '@returns - `True` if the request has finished, `False` otherwise.
 Public Property Get isFinished() As Boolean
+  On Error GoTo Skip 'Sometimes `responseBody` and `status` isn't ready yet. So will skip if so
   if This.HTTP.status = 202 then 'No content
     isFinished = true
   else
-    On Error GoTo Skip 'Sometimes responseBodyt isn't ready, so let's check that too.
     isFinished = This.HTTP.WaitForResponse(0.001) And This.HTTP.ResponseBody()(0) >= 0
   end if
+  Exit Property
 Skip:
+  Debug.Print "Error in stdHTTP#isFinished: '" & err.Description & "'"
 End Property
 
 'Get the response status code
@@ -382,6 +385,20 @@ End Property
 '@returns - All response headers
 Public Property Get ResponseHeaders() As Object
   Set ResponseHeaders = This.HTTP.GetAllResponseHeaders
+End Property
+
+'Get the mapped response
+Public Property Get ResponseMapped() as variant
+  if ResponseMapper is nothing then Err.Raise 1, "", "No response mapper provided"
+  set ResponseMapped = ResponseMapper.Run(Me)
+End Property
+
+'Get/Set the response mapper. This callback will run when ResponeMapped() is called. This would usually be used to convert the response to a JSON/XML VBA object.
+Public Property Get ResponseMapper() as stdICallable
+  set ResponseMapper = this.ResponseMapper
+End Property
+Public Property Set ResponseMapper(Byval v as stdICallable)
+  set This.ResponseMapper = v
 End Property
 
 'Initialize the request

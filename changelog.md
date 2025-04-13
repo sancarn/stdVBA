@@ -329,6 +329,7 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2025-03-08 `stdWindow` FEATURE - Added `AsNativeObject` and `AsIAccessible`.
 - 2025-03-08 `stdFiber` FEATURE - Added `agentInitCB`, `agentDestroyCB` and `runtimeUpdateCB` to `stdFiber.runFibers` for better management of fiber runtime.
 - 2025-04-14 `stdLambda` FEATURE - Added `FunctionExtension` chaining for lambdas.
+- 2025-04-14 `stdHTTP` FEATURE - Added `ResponseMapper` and `ResponseMapped`, great for libraries.
 
 
 
