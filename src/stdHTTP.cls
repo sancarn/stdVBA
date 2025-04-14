@@ -331,6 +331,8 @@ Public Property Get isFinished() As Boolean
   end if
   Exit Property
 Skip:
+  If Err.Description like "The data necessary to complete this operation is not yet available*" then Exit Property
+  
   Debug.Print "Error in stdHTTP#isFinished: '" & err.Description & "'"
 End Property
 
