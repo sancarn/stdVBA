@@ -391,7 +391,7 @@ End Property
 Public Property Get ResponseMapped() as variant
   if This.ResponseMapper is nothing then Err.Raise 1, "", "No response mapper provided"
   Dim oMe as object: set oMe = Me
-  set ResponseMapped = This.ResponseMapper.Run(oMe)
+  Call CopyVariant(ResponseMapped, This.ResponseMapper.Run(oMe))
 End Property
 
 'Get/Set the response mapper. This callback will run when ResponeMapped() is called. This would usually be used to convert the response to a JSON/XML VBA object.
@@ -667,3 +667,14 @@ Cleanup:
     If .lpszProxyBypass <> 0 Then Call GlobalFree(.lpszProxyBypass)
   End With
 End Function
+
+'Copies a variant from the source variable to the dest variable
+'@param dest - Destination to copy variant to
+'@param src - Source to copy variant from
+Private Sub CopyVariant(ByRef dest as variant, ByVal src as variant)
+  If isObject(src) then
+    set dest = src
+  else
+    let dest = src
+  end if
+End Sub

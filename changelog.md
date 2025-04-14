@@ -331,6 +331,6 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2025-04-14 `stdLambda` FEATURE - Added `FunctionExtension` chaining for lambdas.
 - 2025-04-14 `stdHTTP` FEATURE - Added `ResponseMapper` and `ResponseMapped`, great for libraries.
 - 2025-04-15 `stdJSON` FEATURE - Added `ToSelf` to `stdJSON`
-
+- 2025-04-14 `stdHTTP` FIX - `ResponseMapped` will now work for literals as well as objects.
 
 
