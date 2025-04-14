@@ -389,8 +389,8 @@ End Property
 
 'Get the mapped response
 Public Property Get ResponseMapped() as variant
-  if ResponseMapper is nothing then Err.Raise 1, "", "No response mapper provided"
-  set ResponseMapped = ResponseMapper.Run(Me)
+  if This.ResponseMapper is nothing then Err.Raise 1, "", "No response mapper provided"
+  set ResponseMapped = This.ResponseMapper.Run(Me)
 End Property
 
 'Get/Set the response mapper. This callback will run when ResponeMapped() is called. This would usually be used to convert the response to a JSON/XML VBA object.
