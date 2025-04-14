@@ -8359,6 +8359,28 @@
         "remarks": []
       },
       {
+        "name": "ToSelf",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Returns the current json object",
+        "params": [],
+        "returns": {
+          "type": "stdJSON",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [
+          "```vba\r\nWith stdJSON.Create()\r\n  .add \"X\", \"Y\"\r\n  set j = .ToSelf()\r\nEnd With\r\n```"
+        ],
+        "remarks": []
+      },
+      {
         "name": "NewEnum",
         "type": "Function",
         "constructor": true,
