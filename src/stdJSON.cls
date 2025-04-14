@@ -465,6 +465,17 @@ Public Function ToVBObject() as Object
   set ToVBObject = ret
 End Function
 
+'Returns the current json object
+'@example ```vba
+'With stdJSON.Create()
+'  .add "X", "Y"
+'  set j = .ToSelf()
+'End With
+'```
+Public Function ToSelf() as stdJSON
+  set ToSelf = Me
+End Function
+
 'Helper: For type safety, obtain this this.children as collection
 '@returns {Collection} The children collection
 Private Property Get ChildrenCol() as Collection
