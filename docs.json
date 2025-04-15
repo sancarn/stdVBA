@@ -8067,6 +8067,44 @@
         "remarks": []
       },
       {
+        "name": "CreateFromParams",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Create a JSON object from a set of params",
+        "params": [
+          {
+            "name": "iType",
+            "type": "EStdJsonType",
+            "description": "The type of JSON to create, this affects how `params` is interpreted",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "params",
+            "type": "Variant",
+            "description": "Either a set of `key`,`value` pairs, if creating an object, or a list of `value`s to add to an array.",
+            "referenceType": "ByRef",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          }
+        ],
+        "returns": {
+          "description": "Created json object"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
         "name": "Add",
         "type": "Function",
         "constructor": true,
