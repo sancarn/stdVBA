@@ -1916,6 +1916,37 @@
         "remarks": []
       },
       {
+        "name": "SplitToChunks",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Split an array into chunks of a specified size",
+        "params": [
+          {
+            "name": "Size",
+            "type": "Long",
+            "description": "the size of the new internal arrays to create",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          }
+        ],
+        "returns": {
+          "description": "An array of arrays at a specified size"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [
+          "```vba\r\nstdArray.Create(1,2,3,4,5,6,7).SplitToChunks(3)\r\n  '=> [[1,2,3],[4,5,6],[7]]\r\n```"
+        ],
+        "remarks": []
+      },
+      {
         "name": "Splice",
         "type": "Function",
         "constructor": true,
