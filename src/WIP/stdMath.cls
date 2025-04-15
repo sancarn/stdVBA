@@ -86,3 +86,11 @@ End Function
 Public Function fit(arr2d() as double, iType as Long) as InterpolationStruct
   '
 End Function
+
+Function Ceiling(ByVal value As Double) As Double
+    Ceiling = -Int(-value)
+End Function
+
+Function Floor(ByVal value As Double) As Double
+    Floor = Int(value)
+End Function
