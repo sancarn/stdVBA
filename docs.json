@@ -1466,6 +1466,36 @@
         "remarks": []
       },
       {
+        "name": "CreateFromCollection",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Create a `stdArray` object from a collection",
+        "params": [
+          {
+            "name": "col",
+            "type": "Collection",
+            "description": "Collection to create a `stdArray` object from.",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          }
+        ],
+        "returns": {
+          "type": "stdArray<variant> ",
+          "description": "Returns `stdArray` of variants."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
         "name": "CreateFromString",
         "type": "Function",
         "constructor": true,
