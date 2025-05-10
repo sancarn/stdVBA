@@ -142,6 +142,19 @@ Public Function CreateFromArray(ByVal arr As Variant) As stdArray
     RaiseEvent AfterCreate(Create)
 End Function
 
+'Create a `stdArray` object from a collection
+'@param col - Collection to create a `stdArray` object from.
+'@returns stdArray<variant> - Returns `stdArray` of variants.
+Public Function CreateFromCollection(ByVal col as Collection) as stdArray
+  set CreateFromCollection = CreateWithOptions(col.count, 10)
+  Dim item: For each item in col
+    Call CreateFromCollection.Push(item)
+  next
+
+  'Raise AfterCreate event
+  RaiseEvent AfterCreate(Create)
+End Function
+
 'Create an array by splitting a string
 '@param sHaystack  - Haystack to split
 '@param sDelimiter - Delimiter

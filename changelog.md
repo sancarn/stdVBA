@@ -335,4 +335,5 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2025-04-15 `stdArray` FIX - `Splice` changed to act more like JavaScript. Will no longer error when `iEnd <= Length`, will return an array of elements up to length. E.G. `[1,2,3].splice(3,3)` will return `[3]`.
 - 2025-04-15 `stdArray` FEATURE - Added `SplitToChunks` function, to split an array into sub arrays of a fixed size.
 - 2025-04-15 `stdJSON` FEATURE - Added `CreateFromParams` to quickly create JSON objects on the fly.
-
+- 2025-05-10 `stdAcc` FIX - `Proxy` implementation for `accLocation`
+- 2025-05-10 `stdArray` FEATURE - `CreateFromCollection` added.
