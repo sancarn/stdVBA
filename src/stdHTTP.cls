@@ -540,7 +540,8 @@ End Function
 Private Sub LoadAutoProxy(ByVal sURL as string, ByVal oProxy as Object)
   Dim info As ProxyInfoEx: info = GetProxyCurrentUser(sURL)
   If Not info.Error.isSet Then
-    oProxy("hasProxy") = true
+    'FIX: Sometimes proxy server is empty without the error being set. Ignore these proxys.
+    oProxy("hasProxy") = (info.ProxyServer <> "")
     oProxy("server") = info.ProxyServer
     oProxy("bypass") = info.ProxyBypass
     oProxy("user") = Empty  'TODO: Check if user/pass credentials with auto-proxy will ever be needed
