@@ -411,6 +411,21 @@ Private Function getTokenDefinitions() As TokenDefinition()
     i = i + 1: arr(i) = getTokenDefinition("then", "then", isKeyword:=True)
     i = i + 1: arr(i) = getTokenDefinition("else", "else", isKeyword:=True)
     i = i + 1: arr(i) = getTokenDefinition("end", "end", isKeyword:=True)
+
+    ' Loops
+    i = i + 1: arr(i) = getTokenDefinition("for", "for", isKeyword:=True)
+    i = i + 1: arr(i) = getTokenDefinition("to", "to", isKeyword:=True)
+    i = i + 1: arr(i) = getTokenDefinition("step", "step", isKeyword:=True)
+    i = i + 1: arr(i) = getTokenDefinition("next", "next", isKeyword:=True)
+
+    i = i + 1: arr(i) = getTokenDefinition("do", "do", isKeyword:=True)
+    i = i + 1: arr(i) = getTokenDefinition("until", "until", isKeyword:=True)
+    i = i + 1: arr(i) = getTokenDefinition("while", "while", isKeyword:=True)
+    i = i + 1: arr(i) = getTokenDefinition("loop", "loop", isKeyword:=True)
+
+    i = i + 1: arr(i) = getTokenDefinition("exit", "exit", isKeyword:=True)
+
+
     ' Brackets
     i = i + 1: arr(i) = getTokenDefinition("lBracket", "\(")
     i = i + 1: arr(i) = getTokenDefinition("rBracket", "\)")
@@ -522,7 +537,9 @@ End Sub
 '11. Arithmetic (^)
 '12. Arithmetic (Unary +, -) (for RHS of power operator) e.g. 2^-1
 '13. Flow (if then else)
-'14. Value (numbers, $vars, strings, booleans, brackets)
+'14. Do (do until while loop)
+'15. For (for do step next)
+'16. Value (numbers, $vars, strings, booleans, brackets)
 '@remark - The order of priority is opposite to the order of evaluation. I.E. Comparrison is evaluated before Logical AND allowing 
 'expressions such as `1<2 and 2<3` to be evaluated correctly without requiring bracketing. It's important to note however that all
 'comparrisons have the same priority. This means that `1<2<3` will be evaluated as `(1<2)<3` which is not the same as `1<(2<3)`.
@@ -590,7 +607,7 @@ Private Sub parseLogicPriority4() 'not
     End If
 End Sub
 
-'Parse comparison operators (=, <>, <, <=, >, >=, is, Like)
+'Parse comparison operators (=, <>, <, <=, >, >=, is, Like, =)
 Private Sub parseComparisonPriority1()
     Call parseArithmeticPriority1
     Dim bLoop As Boolean: bLoop = True
@@ -748,8 +765,140 @@ Private Sub parseFlowPriority1()
             Call optConsume("end")
         End If
     Else
+        Call parseFlowPriority2
+    End If
+End Sub
+
+'Parse loops (do ... until|while ... loop)
+Private Sub parseFlowPriority2()
+    If optConsume("do") Then
+        Dim RepeatLoopIndex As Integer: RepeatLoopIndex = This.iOperationIndex
+        Dim RepeatLoopJumpIndex As Integer
+        Dim ExitLoopJumpIndex As Integer: ExitLoopJumpIndex = -1 ' -1 to ensure a value, which means "no exit"
+        If optConsume("until") Then
+            Call parseExpression                                     ' Break Condition
+            RepeatLoopJumpIndex = addOperation(oJump, ifTrue, , -1)  ' Skip loop
+        ElseIf optConsume("while") Then
+            Call parseExpression                                     ' Break Condition
+            RepeatLoopJumpIndex = addOperation(oJump, ifFalse, , -1) ' Skip loop
+        Else
+            ' Infinite loop as long as no exit do is used
+        End If
+        Call parseBlock("exit", "loop")
+        If optConsume("exit") Then
+            ExitLoopJumpIndex = addOperation(oJump, , , -1) ' Skip loop
+            Call parseBlock("loop")
+        End If
+        Call addOperation(oJump, , RepeatLoopIndex, -1)
+        Call consume("loop")
+        If ExitLoopJumpIndex <> -1 Then This.operations(ExitLoopJumpIndex).value = This.iOperationIndex
+        This.operations(RepeatLoopJumpIndex).value = This.iOperationIndex
+    Else
+        Call parseFlowPriority3
+    End If
+End Sub
+
+'Parse loops (for ... to ... step ... next)
+Private Sub parseFlowPriority3()
+    Dim varName As String, Operator As String, OperatorValue As String, Increment As String
+    If optConsume("for") Then
+        Call ForLoopLet()
+        varName = this.tokens(this.iTokenIndex - 4).value                       ' index
+        Dim RepeatLoop As Long: RepeatLoop = This.iOperationIndex               ' beginning of loop (condition)
+        Call ForLoopCondition(varName)                                          ' Create condition
+        Call ForLoopStep(Operator, OperatorValue, Increment)                    ' Create/Setup Step + x
+        Dim SkipLoop As Integer : SkipLoop = addOperation(oJump, ifTrue, , -1)  ' Skip loop
+        Call parseBlock("next")                                                 ' Get everything in the loop
+        Call ForLoopIncrement(varName, Operator, OperatorValue, Increment)      ' Create Increment line index = index + x
+        Call addOperation(oJump, , RepeatLoop, -1)                              ' Goes back to loop
+        This.operations(SkipLoop).value = This.iOperationIndex                  ' Set jump position for skip-condition
+    Else
         Call parseValuePriority1
     End If
+End Sub
+
+' the user might define the loop as:
+' for index = 1 to 10
+' problem here is, that 1 needs to be assigned to index 
+' this sub just inserts the "let" token before index
+Private Sub ForLoopLet()
+    If peek("let") = False Then
+        Dim NewToken As token
+        NewToken.value = "let"
+        NewToken.Type = getTokenDefinitionByName(getTokenDefinitions(), "let")
+        Call InsertToken(this.Tokens, NewToken, this.iTokenIndex)
+    End If
+    Call parseBlock("to")
+    Call consume("to")
+End Sub
+
+' for index 1 to 10 usually means loop until index > 10
+' this sub gets rid of the "to" token and replaces it with the operator >
+' this sub also sets up the break condition
+Private Sub ForLoopCondition(varName As String)
+    Dim NewToken As token
+    Dim defs() As TokenDefinition
+    defs = getTokenDefinitions
+
+    NewToken.value = varName
+    NewToken.Type = getTokenDefinitionByName(defs, "var")
+    Call InsertToken(this.Tokens, NewToken, this.iTokenIndex - 1)
+
+    NewToken.value = ">"
+    NewToken.Type = getTokenDefinitionByName(defs, "greaterThan")
+    Call InsertToken(this.Tokens, NewToken, this.iTokenIndex)
+
+    this.Tokens = removeToken(this.Tokens, this.iTokenIndex + 1)
+    this.iTokenIndex = this.iTokenIndex - 1
+End Sub
+
+' for index 1 to 10 step +2
+' the user might not use step..., this sub will create it
+' if it is defined it will change the condition and the final index-incrementation
+' Operator is the token-name of the increment operator --> if step +2 then operator = add | if step -2 then operator = subtract
+' OperatorValue is the actually ascii character for the operator --< +|-|*|/|^
+' Increment is the value by which index will be increased/decreased
+' These 3 variables come from outside and are used for ForLoopIncrement
+Private Sub ForLoopStep(ByRef Operator As String, ByRef OperatorValue As String, ByRef Increment As String)
+    Dim defs()       As TokenDefinition
+    Dim Condition    As TokenDefinition
+    Dim NewToken     As token
+    defs = getTokenDefinitions()
+    If peek("step", 4) Then
+        Select Case True
+            Case peek("add"     , 5) : Operator = "add"      : OperatorValue = "+": Increment = this.Tokens(this.iTokenIndex + 5).value: Condition = getTokenDefinitionByName(defs, "greaterThan")
+            Case peek("subtract", 5) : Operator = "subtract" : OperatorValue = "-": Increment = this.Tokens(this.iTokenIndex + 5).value: Condition = getTokenDefinitionByName(defs, "lessThan")
+            Case peek("multiply", 5) : Operator = "multiply" : OperatorValue = "*": Increment = this.Tokens(this.iTokenIndex + 5).value: Condition = getTokenDefinitionByName(defs, "greaterThan")
+            Case peek("divide"  , 5) : Operator = "divide"   : OperatorValue = "/": Increment = this.Tokens(this.iTokenIndex + 5).value: Condition = getTokenDefinitionByName(defs, "lessThan")
+            Case peek("power"   , 5) : Operator = "power"    : OperatorValue = "^": Increment = this.Tokens(this.iTokenIndex + 5).value: Condition = getTokenDefinitionByName(defs, "greaterThan")
+        End Select
+        this.Tokens(This.iTokenIndex + 1).type = Condition
+    Else
+        Operator      =  "add"
+        OperatorValue =  "+"
+        Increment     =  "1"
+        NewToken.Value = "step"        : NewToken.Type = getTokenDefinitionByName(defs, "step")          : Call InsertToken(this.tokens, NewToken, this.iTokenIndex + 3)
+        NewToken.Value = OperatorValue : NewToken.Type = getTokenDefinitionByName(defs, Operator)        : Call InsertToken(this.tokens, NewToken, this.iTokenIndex + 4)
+        NewToken.Value = Increment     : NewToken.Type = getTokenDefinitionByName(defs, "literalNumber") : Call InsertToken(this.tokens, NewToken, this.iTokenIndex + 5)
+    End If
+    Call parseBlock("step")
+    this.iTokenIndex = this.iTokenIndex + 3
+End Sub
+
+' for .... : x: y: z: next
+' this sub is used to create an incrementation of the index at the end: index = index + 1
+Private Sub ForLoopIncrement(varName As String, Operator As String, OperatorValue As String, Increment As String)
+    Dim NewToken As token
+    Dim defs() As TokenDefinition
+    defs = getTokenDefinitions()
+    NewToken.Value = "let"              : NewToken.Type = getTokenDefinitionByName(defs, "let")          : Call InsertToken(this.tokens, NewToken, this.iTokenIndex + 0)
+    NewToken.Value = varName            : NewToken.Type = getTokenDefinitionByName(defs, "var")          : Call InsertToken(this.tokens, NewToken, this.iTokenIndex + 1)
+    NewToken.Value = "="                : NewToken.Type = getTokenDefinitionByName(defs, "equal")        : Call InsertToken(this.tokens, NewToken, this.iTokenIndex + 2)
+    NewToken.Value = varName            : NewToken.Type = getTokenDefinitionByName(defs, "var")          : Call InsertToken(this.tokens, NewToken, this.iTokenIndex + 3)
+    NewToken.Value = OperatorValue      : NewToken.Type = getTokenDefinitionByName(defs, Operator)       : Call InsertToken(this.tokens, NewToken, this.iTokenIndex + 4)
+    NewToken.Value = Increment          : NewToken.Type = getTokenDefinitionByName(defs, "literalNumber"): Call InsertToken(this.tokens, NewToken, this.iTokenIndex + 5)
+    Call parseBlock("next")
+    Call consume("next")
 End Sub
 
 'Parse evaluation of numbers, arguments, strings, booleans, variable names and brackets. Will also parse accessors on these values.
@@ -774,6 +923,7 @@ Private Sub parseValuePriority1()
             Call parseFunction
         End If
         Call parseManyAccessors(iOperationType)
+    ElseIf peek("step") Then ' does nothing, so that parseflowPriority3 does its thing
     Else
         Call consume("lBracket")
         Call parseExpression
@@ -929,7 +1079,7 @@ Private Sub parseAssignment()
     If offset >= 0 Then
         ' If the variable already existed, move the data to that pos on the stack
         Call addOperation(oSet, , offset, -1)
-        Call addOperation(oAccess, , offset, 1) ' To keep a return value
+        'i disabled this line, as it pushed one more value onto the stack for each loop iteration, without contributing to it:: Call addOperation(oAccess, , offset, 1) ' To keep a return value
     Else
         ' If the variable didn't exist yet, treat this stack pos as its source
         Call this.scopes(this.scopeCount).add(varName, this.stackSize)
@@ -1604,6 +1754,7 @@ End Sub
 '@return {token[]} A list of Token structs
 Private Function Tokenise(ByVal sInput As String) As token()
     Dim defs() As TokenDefinition
+    Dim NewToken As Token
     defs = getTokenDefinitions()
     
     Dim tokens() As token, iTokenDef As Long
@@ -1624,13 +1775,11 @@ Private Function Tokenise(ByVal sInput As String) As token()
                 'Get match details
                 Dim oMatch As Object: Set oMatch = defs(iTokenDef).RegexObj.execute(sInput)
                 
-                'Create new token
+                'Make new Token
                 iNumTokens = iNumTokens + 1
-                ReDim Preserve tokens(1 To iNumTokens)
-                
-                'Tokenise
-                tokens(iNumTokens).Type = defs(iTokenDef)
-                tokens(iNumTokens).value = oMatch(0)
+                NewToken.Type = defs(iTokenDef)
+                NewToken.value = oMatch(0)
+                Call InsertToken(tokens, NewToken, iNumTokens)
                 
                 'Trim string to unmatched range
                 sInput = Mid(sInput, Len(oMatch(0)) + 1)
@@ -1648,10 +1797,29 @@ Private Function Tokenise(ByVal sInput As String) As token()
     Wend
     
     'Add eof token
-    ReDim Preserve tokens(1 To iNumTokens + 1)
-    tokens(iNumTokens + 1).Type.name = "eof"
+    iNumTokens = iNumTokens + 1
+    NewToken.Type.name = "eof"
+    NewToken.value = "eof"
+    Call InsertToken(tokens, NewToken, iNumTokens)
     
     Tokenise = removeTokens(tokens, "space")
+End Function
+
+' used to insert a token at a position and switching all values >index to the right
+'@param {ByRef Token()} Array of Tokens
+'@param {ByVal NewToken} New Value
+'@param {ByVal Index} Position where to put in NewToken
+Private Function InsertToken(ByRef Tokens() As Token, ByVal NewToken As Token, ByVal Index As Long)
+    Dim NewSize As Long
+    Dim i As Long
+    NewSize = Ubound(Tokens) + 1
+    ReDim Preserve Tokens(1 To NewSize)
+
+    For i = NewSize To Index + 1 Step -1
+        Tokens(i) = Tokens(i - 1)
+    Next i
+    Tokens(Index) = NewToken
+    InsertToken = NewSize
 End Function
 
 'Obtains a TokenDefinition from input params
@@ -1668,10 +1836,24 @@ Private Function getTokenDefinition(ByVal sName As String, ByVal sRegex As Strin
     getTokenDefinition.RegexObj.ignoreCase = ignoreCase
 End Function
 
+'Used to get the definition of a token by name for inline-insertion of tokens
+'@param {ByVal TokenDefinition()} The name of the token
+'@param {ByVal String} The name of the token
+'@returns {TokenDefinition} The definition of the token
+Private Function getTokenDefinitionByName(ByRef tokenDefs() As TokenDefinition, ByVal tokenName As String) As TokenDefinition
+    Dim i As Long
+    For i = LBound(tokenDefs) To Ubound(tokenDefs)
+        If tokenDefs(i).Name = tokenName Then
+            getTokenDefinitionByName = tokenDefs(i)
+            Exit Function
+        End If
+    Next i
+End Function
+
 'Copies one variant to a destination
-'@param {ByRef Token()} tokens Tokens to remove the specified type from
+'@param {ByRef token()} tokens Tokens to remove the specified type from
 '@param {string} sRemoveType   Token type to remove.
-'@returns {Token()} The modified token array.
+'@returns {token()} The modified token array.
 Private Function removeTokens(ByRef tokens() As token, ByVal sRemoveType As String) As token()
     Dim iCountRemoved As Long: iCountRemoved = 0
     Dim iToken As Long
@@ -1684,6 +1866,25 @@ Private Function removeTokens(ByRef tokens() As token, ByVal sRemoveType As Stri
     Next
     ReDim Preserve tokens(LBound(tokens) To (UBound(tokens) - iCountRemoved))
     removeTokens = tokens
+End Function
+
+'removes a single token from an Array
+'@param {ByRef token()} Array of Tokens
+'@param {ByVal Long} Number which to remove
+'@returns {token} A modified Array
+Private Function removeToken(ByRef Tokens() As token, Index As Long) As token()
+    Dim Temp() As Token
+    Dim i As Long
+    Dim oldArrayIndex As Long
+    ReDim Temp(LBound(Tokens) To (UBound(Tokens) - 1))
+    oldArrayIndex = 0
+    For i = LBound(Temp) To (UBound(Temp))
+        If i = Index Then
+            oldArrayIndex = oldArrayIndex + 1
+        End If
+        Temp(i) = Tokens(i + oldArrayIndex)
+    Next i
+    removeToken = Temp
 End Function
 
 '-------
