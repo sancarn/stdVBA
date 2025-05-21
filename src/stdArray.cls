@@ -142,6 +142,19 @@ Public Function CreateFromArray(ByVal arr As Variant) As stdArray
     RaiseEvent AfterCreate(Create)
 End Function
 
+'Create a `stdArray` object from a collection
+'@param col - Collection to create a `stdArray` object from.
+'@returns stdArray<variant> - Returns `stdArray` of variants.
+Public Function CreateFromCollection(ByVal col as Collection) as stdArray
+  set CreateFromCollection = CreateWithOptions(col.count, 10)
+  Dim item: For each item in col
+    Call CreateFromCollection.Push(item)
+  next
+
+  'Raise AfterCreate event
+  RaiseEvent AfterCreate(Create)
+End Function
+
 'Create an array by splitting a string
 '@param sHaystack  - Haystack to split
 '@param sDelimiter - Delimiter
@@ -481,7 +494,8 @@ End Function
 '@returns - A slice of the array
 Public Function Slice(ByVal iStart As Long, ByVal iEnd As Long) As stdArray
   If this.Initialised Then
-    If iStart <= this.Length And iEnd <= this.Length Then
+    If iStart <= this.Length Then
+      If iEnd > This.Length Then iEnd = This.Length
       If iStart <= iEnd Then
         Dim ret As stdArray
         Set ret = stdArray.CreateWithOptions(iEnd - iStart + 1, this.Chunking)
@@ -501,6 +515,21 @@ Public Function Slice(ByVal iStart As Long, ByVal iEnd As Long) As stdArray
   Else
     'Error
   End If
+End Function
+
+'Split an array into chunks of a specified size
+'@param Size - the size of the new internal arrays to create
+'@returns - An array of arrays at a specified size
+'@example ```vba
+'stdArray.Create(1,2,3,4,5,6,7).SplitToChunks(3)
+'  '=> [[1,2,3],[4,5,6],[7]]
+'```
+Public Function SplitToChunks(ByVal Size As Long) As stdArray
+  Dim iNumArrays As Long: iNumArrays = Ceil(This.Length / Size)
+  Set SplitToChunks = stdArray.CreateWithOptions(iNumArrays, 10)
+  For i = 0 To iNumArrays - 1
+    Call SplitToChunks.Push(Slice(i * Size + 1, i * Size + Size))
+  Next
 End Function
 
 'Splice the array
@@ -1025,3 +1054,10 @@ Private Sub CopyVariant(ByRef dest As Variant, ByVal value As Variant)
     dest = value
   End If
 End Sub
+
+'Obtain the ceiling() of a value
+'@param value - the value to get the ceiling of
+'@returns - The ceiling value
+Private Function Ceil(ByVal value As Double) As Long
+  Ceil = -Int(-value)
+End Function

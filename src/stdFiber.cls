@@ -108,7 +108,9 @@ Private Type TThis
   result as Variant
   errorText as string
   errorHandler as stdICallable
+  stepChangeHandler As stdICallable
   agent as object
+  endTime as Date
 End Type
 Private This as TThis
 
@@ -153,6 +155,14 @@ Public Function addErrorHandler(ByVal handler as stdICallable) as stdFiber
   set addErrorHandler = Me
 End Function
 
+'Add a handler which is triggered at every step change
+'@param handler as stdICallable<(stdFiber)=>void> - Callback to run when an error occurs in the fiber
+'@returns - A fiber procedure - A reference to the fiber the step has been added to, to allow chaining
+Public Function addStepChangeHandler(ByVal handler As stdICallable) As stdFiber
+  Set This.StepHandler = handler
+  Set addStepChangeHandler = Me
+End Function
+
 'Calls current sub-process in the fiber procedure. Advances the queue if the ran sub-process is finished.
 '@param agent as Object<Dictionary> - An object storing information unique to the runtime agent. This agent is bound to the fiber, allowing use of window or accessibility elements initialised on the agent.
 '@returns - `True` if this fiber procedure has finished execution (i.e. future stepping not required anymore).
@@ -166,6 +176,11 @@ Friend Function protStep(Byval agent as Object) as Boolean
     if this.procs(this.procStep).proc.Run(oMe) then 
       this.procStep = this.procStep + 1
       this.isFinished = this.procStep > this.procsCount
+      If this.isFinished then
+        this.endTime = now()
+      else
+        If Not This.stepChangeHandler Is Nothing Then Call This.stepChangeHandler.Run(oMe)
+      end if
     end if
     protStep = this.isFinished
     Exit Function
@@ -174,6 +189,7 @@ ErrorHandler:
   protStep = True
   this.isFinished = true
   this.result = Null
+  this.endTime = now()
   this.ErrorText = Err.Description & "(" & Err.Number & ", " & Err.Source & ")"
   Call this.errorHandler.Run(oMe)
 End Function
@@ -182,6 +198,7 @@ End Function
 '@param vResult - The result to return
 Public Sub Resolve(ByVal vResult as variant)
   this.isFinished = true
+  this.endTime = now()
   Call CopyVariant(this.result, vResult)
 End Sub
 
@@ -236,10 +253,22 @@ Public Property Get Step() as Long
   Step = procStep
 End Property
 
+'Obtains the name of the current step in the fiber
+'@returns - The name of the fiber step
+Public Property Get StepName() As String
+  StepName = This.procs(This.procStep).name
+End Property
+
 'Obtains the duration of the fiber procedure
 '@returns - The duration of the fiber procedure in seconds
-Public Property Get StepDuration as Long
+Public Property Get StepDuration() as Long
   StepDuration = DateDiff("s", this.procs(this.procStep).startTime, now())
+End Property
+
+'Obtains the duration of the fibers entire runtime
+'@returns - The duration of the fibers entire runtime in seconds
+Public Property Get TotalDuration() as Long
+  StepDuration = DateDiff("s", this.procs(this.procsCount).startTime, this.endTime)
 End Property
 
 'Obtains whether the fiber has finished or not
@@ -263,41 +292,69 @@ End Property
 'Run a collection/stdArray/stdEnumerator of fiber procedures, across a number of concurrent running fiber runtimes, returning all results as a collection.
 '@static
 '@param vFibers as Variant<Collection|Array|stdArray|stdEnumerator> - Fiber procedures to execute over
-'@param numFibers - the number of fiber runtimes to create (or number of fiber procedures to run concurrently)
+'@param numAgents - the number of fiber runtimes to create (or number of fiber procedures to run concurrently)
+'@param agentInitCB as stdICallable<(agent as Object)=>void> - Called when an agent has been initialised. This is called only once per agent object. The agent environment is received as the parameter.
+'@param agentDestroyCB as stdICallable<(agent as Object)=>void> - Called when an agent is about to be destroyed. This is called only once per agent object. The agent environment is received as the parameter. Typically used to cleanup.
+'@param runtimeUpdateCB as stdICallable<(iFinishedCount as long, iFiberCount as long)=>void> - A callback to call every second to update on progress.
 '@returns - Collection of results of ran fiber procedures. You can use the variant from param1 if you need to check for errors using ErrorText.
 '@TODO: Consider whether return data is correct. If we create fibers from table, how would we refer back to errornous records on the table?
-'@TODO: add param AgentInitHandler   for initialising of agent objects, this is called only once per agent.
-'@TODO: add param AgentDestroyHandler  for destroying of agent objects / clean up, this is called only once per agent.
-Public Function runFibers(ByVal vFibers as variant, Optional byval numFibers as Long = 1) as Collection
+Public Function runFibers(ByVal vFibers as variant, Optional byval numAgents as Long = 1, Optional ByVal agentInitCB as stdICallable = nothing, Optional ByVal agentDestroyCB as stdICallable = nothing, Optional ByVal runtimeUpdateCB as stdICallable = nothing) as Collection
   'Intiialise
   Dim fibers as TFiberQueue: fibers = TFiberQueue_Create(vFibers)
-  Dim running() as stdFiber: ReDim running(1 to numFibers)
-  Dim agents() as Object: Redim agents(1 to numFibers)
-  For i = 1 to numFibers
+  Dim running() as stdFiber: ReDim running(1 to numAgents)
+  Dim agents() as Object: Redim agents(1 to numAgents)
+  For i = 1 to numAgents
     set agents(i) = CreateObject("Scripting.Dictionary")
     agents(i)("id") = i
+    if not agentInitCB is nothing then Call agentInitCB.Run(agents(i))
   next
 
   'Await completion of all processes
+  Dim iRuntimeClock as Long: iRuntimeClock = 0
   Dim isFinished as Boolean
   Do While not isFinished
-    isFinished = true
-    For i = 1 to numFibers
+    Dim iAgentsRunning as long: iAgentsRunning = 0
+    For i = 1 to numAgents
+      'Step fiber if it exists, if it finishes remove it to signify this agent is ready for a new fiber
+      if not running(i) is nothing then
+        if running(i).protStep(agents(i)) then
+          set running(i) = nothing
+        end if
+      end if
+
+      'Get next fiber if nothing is running in this agent
       if running(i) is nothing then
         if TFiberQueue_HasNext(fibers) then
           set running(i) = TFiberQueue_Get(fibers)
-          isFinished = false
+          iAgentsRunning = iAgentsRunning + 1
         end if
-      elseif running(i).protStep(agents(i)) then
-        set running(i) = nothing
-        isFinished = False
       else
-        isFinished = false
+        iAgentsRunning = iAgentsRunning + 1
       end if
 
       DoEvents
     next
+
+    'Process is finished only when no agents are running
+    isFinished = iAgentsRunning = 0
+
+    'Update on progress every 1k cycles
+    iRuntimeClock = iRuntimeClock + 1
+    if iRuntimeClock mod 1000 = 0 then
+      iRuntimeClock = 0
+      if not runtimeUpdateCB is nothing then 
+        Dim iFiberCount as Long: iFiberCount = fibers.count
+        Dim iFinishedCount as long: iFinishedCount = fibers.index - iAgentsRunning
+        Call runtimeUpdateCB.run(iFinishedCount, iFiberCount)
+      end if
+    end if
   Loop
+
+  'Cleanup agents
+  For i = 1 to numAgents
+    if not agentDestroyCB is nothing then Call agentDestroyCB.Run(agents(i))
+    set agents(i) = nothing 'objects will still be present on the individual fibers until end of this scope
+  next
 
   'Collect results
   Dim results as Collection: set results = new Collection
@@ -313,6 +370,7 @@ End Function
 Public Sub Cancel(Optional ByVal errorText As String = "")
   This.errorText = errorText
   This.isFinished = True
+  this.endTime = now()
   If Not This.ErrorHandler Is Nothing And errorText <> "" Then
     Dim oMe As Object: Set oMe = Me
     Call This.ErrorHandler.Run(oMe)

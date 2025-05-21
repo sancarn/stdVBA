@@ -125,11 +125,13 @@ Public Function CreateFromType(ByVal oControls As MSForms.controls, ByVal iCtrlT
   If sName <> "" Then ctrl.name = sName
   if not callback is nothing then Call BindGlobals(callback)
   Call CreateFromType.protInit(ctrl, callback)
-  If IsObject(Value) Then
-    Set CreateFromType.Value = Value
-  Else
-    CreateFromType.Value = Value
-  End If
+  If not isMissing(Value) then
+    If IsObject(Value) Then
+      Set CreateFromType.Value = Value
+    Else
+      CreateFromType.Value = Value
+    End If
+  end if
   CreateFromType.Caption = Caption
   CreateFromType.Left = fLeft
   CreateFromType.Top = fTop

@@ -704,7 +704,11 @@ Public Property Get Location() As Collection
         Dim pcyHeight As Long
         Dim pxLeft As Long
         Dim pyTop As Long
-        Call protAccessible.accLocation(pxLeft, pyTop, pcxWidth, pcyHeight, CHILDID_SELF)
+        If This.isProxy Then
+          Call This.Proxy.Parent.accLocation(pxLeft, pyTop, pcxWidth, pcyHeight, This.Proxy.index)
+        Else
+          Call This.IAccessible.accLocation(pxLeft, pyTop, pcxWidth, pcyHeight, CHILDID_SELF)
+        End If
         
         'Create location collection
         Set Location = New Collection
