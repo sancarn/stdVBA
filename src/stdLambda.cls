@@ -147,6 +147,10 @@ Private Type TThis
     
     UsePerformanceCache as Boolean
     PerformanceCache as Object
+
+    ExitStackName() As String
+    ExitStackIndex() As Long
+    ExitStackSize As Long
 End Type
 Private This as TThis
 
@@ -755,7 +759,7 @@ Private Sub parseFlowPriority1()
         this.stackSize = size
         
         If optConsume("end") Then
-            Call addOperation(oPush, , 0, 1) 'Expressions should always return a value
+            ' Why should it always return? I disabled it for now because in a loop it keeps pushing onto the stack Call addOperation(oPush, , 0, 1) 'Expressions should always return a value
             this.operations(skipElseJumpIndex).value = this.iOperationIndex
         Else
             Call consume("else")
@@ -764,6 +768,7 @@ Private Sub parseFlowPriority1()
         
             Call optConsume("end")
         End If
+        Call consumeExit("if", This.iOperationIndex)
     Else
         Call parseFlowPriority2
     End If
@@ -772,133 +777,114 @@ End Sub
 'Parse loops (do ... until|while ... loop)
 Private Sub parseFlowPriority2()
     If optConsume("do") Then
-        Dim RepeatLoopIndex As Integer: RepeatLoopIndex = This.iOperationIndex
-        Dim RepeatLoopJumpIndex As Integer
-        Dim ExitLoopJumpIndex As Integer: ExitLoopJumpIndex = -1 ' -1 to ensure a value, which means "no exit"
+        ' Do Until|While {Expr}
+        Dim RepeatLoop As Integer: RepeatLoop = This.iOperationIndex
+        Dim SkipLoop   As Integer: SkipLoop   = -1
         If optConsume("until") Then
-            Call parseExpression                                     ' Break Condition
-            RepeatLoopJumpIndex = addOperation(oJump, ifTrue, , -1)  ' Skip loop
+            Call parseExpression
+            SkipLoop = addOperation(oJump, ifTrue, , -1)
         ElseIf optConsume("while") Then
-            Call parseExpression                                     ' Break Condition
-            RepeatLoopJumpIndex = addOperation(oJump, ifFalse, , -1) ' Skip loop
+            Call parseExpression
+            SkipLoop = addOperation(oJump, ifFalse, , -1)
         Else
             ' Infinite loop as long as no exit do is used
         End If
-        Call parseBlock("exit", "loop")
-        If optConsume("exit") Then
-            ExitLoopJumpIndex = addOperation(oJump, , , -1) ' Skip loop
-            Call parseBlock("loop")
-        End If
-        Call addOperation(oJump, , RepeatLoopIndex, -1)
+
+        Call parseBlock("loop")
         Call consume("loop")
-        If ExitLoopJumpIndex <> -1 Then This.operations(ExitLoopJumpIndex).value = This.iOperationIndex
-        This.operations(RepeatLoopJumpIndex).value = This.iOperationIndex
+
+        ' xxx
+        ' Loop Until|While {expr}
+        If optConsume("until") Then
+            Call parseExpression
+            SkipLoop = addOperation(oJump, ifTrue, , -1)
+        ElseIf optConsume("while") Then
+            Call parseExpression
+            SkipLoop = addOperation(oJump, ifFalse, , -1)
+        Else
+            ' Nothing happens
+        End If
+
+        ' Loop back to start
+        Call addOperation(oJump, , RepeatLoop, -1)
+        Call consumeExit("do", This.iOperationIndex)
+        If SkipLoop > -1 Then This.operations(SkipLoop).value = This.iOperationIndex
     Else
         Call parseFlowPriority3
     End If
 End Sub
 
-'Parse loops (for ... to ... step ... next)
 Private Sub parseFlowPriority3()
-    Dim varName As String, Operator As String, OperatorValue As String, Increment As String
     If optConsume("for") Then
-        Call ForLoopLet()
-        varName = this.tokens(this.iTokenIndex - 4).value                       ' index
-        Dim RepeatLoop As Long: RepeatLoop = This.iOperationIndex               ' beginning of loop (condition)
-        Call ForLoopCondition(varName)                                          ' Create condition
-        Call ForLoopStep(Operator, OperatorValue, Increment)                    ' Create/Setup Step + x
+
+        ' 1. let index = LowerBound
+        Dim varName As String: varName = consume("var")
+        Call consume("equal")
+        Call parseExpression
+        Dim IncrementIndex As Long: IncrementIndex = findVariable(varName)
+        If IncrementIndex >= 0 Then
+            ' If the variable already existed, move the data to that pos on the stack
+            Call addOperation(oSet, , IncrementIndex, -1)
+        Else
+            ' If the variable didn't exist yet, treat this stack pos as its source
+            Call this.scopes(this.scopeCount).add(varName, this.stackSize)
+            IncrementIndex = this.stackSize - 1
+            If IncrementIndex = 0 Then IncrementIndex = 1 ' Avoid referencing the current operation. | Used when the last added variable was declared in for loop
+        End If
+
+        ' Index > UpperBound
+        ' Jump if Condition true
+        Call addOperation(oAccess, , IncrementIndex, 1)
+        Dim RepeatLoop As Long: RepeatLoop = This.iOperationIndex - 1' beginning of loop (condition)
+        If peek("to") Then
+            This.iTokenIndex = This.iTokenIndex + 1
+        Else
+            Call parseBlock("to")
+            Call consume("to")
+        End If
+        Call parseStatement
+        Dim ConditionIndex As Long: ConditionIndex = addOperation(oComparison, oGt, , -1)
         Dim SkipLoop As Integer : SkipLoop = addOperation(oJump, ifTrue, , -1)  ' Skip loop
-        Call parseBlock("next")                                                 ' Get everything in the loop
-        Call ForLoopIncrement(varName, Operator, OperatorValue, Increment)      ' Create Increment line index = index + x
-        Call addOperation(oJump, , RepeatLoop, -1)                              ' Goes back to loop
-        This.operations(SkipLoop).value = This.iOperationIndex                  ' Set jump position for skip-condition
+
+        ' Setup increment Values
+        Dim Increment As Long, Operator As ISubType, Condition As ISubType
+        If optConsume("step") Then
+            If peek("literalNumber") Then
+                Operator = oadd
+                Condition = oGt
+            Else
+                Select Case True
+                    Case optConsume("add")      : Operator = oadd      : Condition = oGt
+                    Case optConsume("subtract") : Operator = osubtract : Condition = oLt
+                    Case optConsume("multiply") : Operator = omultiply : Condition = oGt
+                    Case optConsume("divide")   : Operator = odivide   : Condition = oLt
+                    Case optConsume("power")    : Operator = opower    : Condition = oGt
+                End Select
+            End If
+            Increment = CLng(consume("literalNumber")) ' TODO add more functionality than just numbers
+        Else
+            Increment = 1
+            Operator  = oadd
+            Condition = oGt
+        End If
+
+        This.Operations(ConditionIndex).subType = Condition ' Changes compare-operator of condition according to "step"
+
+        ' Get rest of loop
+        ' Setup index-incrementation: let index = index Operator Increment
+        ' Setup loop-repeat 
+        Call parseBlock("next")
+        Call consume("next")
+        Call addOperation(oAccess    ,          , IncrementIndex  , -1)
+        Call addOperation(oPush      ,          , Increment       , -1)
+        Call addOperation(oArithmetic, Operator ,                 , -1)
+        Call addOperation(oSet       ,          , IncrementIndex  , -1)
+        Call addOperation(oJump      ,          , RepeatLoop      , -1)
+        Call consumeExit("for", This.iOperationIndex)
+        This.Operations(SkipLoop).Value = This.iOperationIndex
     Else
         Call parseValuePriority1
     End If
-End Sub
-
-' the user might define the loop as:
-' for index = 1 to 10
-' problem here is, that 1 needs to be assigned to index 
-' this sub just inserts the "let" token before index
-Private Sub ForLoopLet()
-    If peek("let") = False Then
-        Dim NewToken As token
-        NewToken.value = "let"
-        NewToken.Type = getTokenDefinitionByName(getTokenDefinitions(), "let")
-        Call InsertToken(this.Tokens, NewToken, this.iTokenIndex)
-    End If
-    Call parseBlock("to")
-    Call consume("to")
-End Sub
-
-' for index 1 to 10 usually means loop until index > 10
-' this sub gets rid of the "to" token and replaces it with the operator >
-' this sub also sets up the break condition
-Private Sub ForLoopCondition(varName As String)
-    Dim NewToken As token
-    Dim defs() As TokenDefinition
-    defs = getTokenDefinitions
-
-    NewToken.value = varName
-    NewToken.Type = getTokenDefinitionByName(defs, "var")
-    Call InsertToken(this.Tokens, NewToken, this.iTokenIndex - 1)
-
-    NewToken.value = ">"
-    NewToken.Type = getTokenDefinitionByName(defs, "greaterThan")
-    Call InsertToken(this.Tokens, NewToken, this.iTokenIndex)
-
-    this.Tokens = removeToken(this.Tokens, this.iTokenIndex + 1)
-    this.iTokenIndex = this.iTokenIndex - 1
-End Sub
-
-' for index 1 to 10 step +2
-' the user might not use step..., this sub will create it
-' if it is defined it will change the condition and the final index-incrementation
-' Operator is the token-name of the increment operator --> if step +2 then operator = add | if step -2 then operator = subtract
-' OperatorValue is the actually ascii character for the operator --< +|-|*|/|^
-' Increment is the value by which index will be increased/decreased
-' These 3 variables come from outside and are used for ForLoopIncrement
-Private Sub ForLoopStep(ByRef Operator As String, ByRef OperatorValue As String, ByRef Increment As String)
-    Dim defs()       As TokenDefinition
-    Dim Condition    As TokenDefinition
-    Dim NewToken     As token
-    defs = getTokenDefinitions()
-    If peek("step", 4) Then
-        Select Case True
-            Case peek("add"     , 5) : Operator = "add"      : OperatorValue = "+": Increment = this.Tokens(this.iTokenIndex + 5).value: Condition = getTokenDefinitionByName(defs, "greaterThan")
-            Case peek("subtract", 5) : Operator = "subtract" : OperatorValue = "-": Increment = this.Tokens(this.iTokenIndex + 5).value: Condition = getTokenDefinitionByName(defs, "lessThan")
-            Case peek("multiply", 5) : Operator = "multiply" : OperatorValue = "*": Increment = this.Tokens(this.iTokenIndex + 5).value: Condition = getTokenDefinitionByName(defs, "greaterThan")
-            Case peek("divide"  , 5) : Operator = "divide"   : OperatorValue = "/": Increment = this.Tokens(this.iTokenIndex + 5).value: Condition = getTokenDefinitionByName(defs, "lessThan")
-            Case peek("power"   , 5) : Operator = "power"    : OperatorValue = "^": Increment = this.Tokens(this.iTokenIndex + 5).value: Condition = getTokenDefinitionByName(defs, "greaterThan")
-        End Select
-        this.Tokens(This.iTokenIndex + 1).type = Condition
-    Else
-        Operator      =  "add"
-        OperatorValue =  "+"
-        Increment     =  "1"
-        NewToken.Value = "step"        : NewToken.Type = getTokenDefinitionByName(defs, "step")          : Call InsertToken(this.tokens, NewToken, this.iTokenIndex + 3)
-        NewToken.Value = OperatorValue : NewToken.Type = getTokenDefinitionByName(defs, Operator)        : Call InsertToken(this.tokens, NewToken, this.iTokenIndex + 4)
-        NewToken.Value = Increment     : NewToken.Type = getTokenDefinitionByName(defs, "literalNumber") : Call InsertToken(this.tokens, NewToken, this.iTokenIndex + 5)
-    End If
-    Call parseBlock("step")
-    this.iTokenIndex = this.iTokenIndex + 3
-End Sub
-
-' for .... : x: y: z: next
-' this sub is used to create an incrementation of the index at the end: index = index + 1
-Private Sub ForLoopIncrement(varName As String, Operator As String, OperatorValue As String, Increment As String)
-    Dim NewToken As token
-    Dim defs() As TokenDefinition
-    defs = getTokenDefinitions()
-    NewToken.Value = "let"              : NewToken.Type = getTokenDefinitionByName(defs, "let")          : Call InsertToken(this.tokens, NewToken, this.iTokenIndex + 0)
-    NewToken.Value = varName            : NewToken.Type = getTokenDefinitionByName(defs, "var")          : Call InsertToken(this.tokens, NewToken, this.iTokenIndex + 1)
-    NewToken.Value = "="                : NewToken.Type = getTokenDefinitionByName(defs, "equal")        : Call InsertToken(this.tokens, NewToken, this.iTokenIndex + 2)
-    NewToken.Value = varName            : NewToken.Type = getTokenDefinitionByName(defs, "var")          : Call InsertToken(this.tokens, NewToken, this.iTokenIndex + 3)
-    NewToken.Value = OperatorValue      : NewToken.Type = getTokenDefinitionByName(defs, Operator)       : Call InsertToken(this.tokens, NewToken, this.iTokenIndex + 4)
-    NewToken.Value = Increment          : NewToken.Type = getTokenDefinitionByName(defs, "literalNumber"): Call InsertToken(this.tokens, NewToken, this.iTokenIndex + 5)
-    Call parseBlock("next")
-    Call consume("next")
 End Sub
 
 'Parse evaluation of numbers, arguments, strings, booleans, variable names and brackets. Will also parse accessors on these values.
@@ -924,6 +910,9 @@ Private Sub parseValuePriority1()
         End If
         Call parseManyAccessors(iOperationType)
     ElseIf peek("step") Then ' does nothing, so that parseflowPriority3 does its thing
+    ElseIf optConsume("exit") Then
+        Call addExit(this.tokens(this.iTokenIndex).Type.name)
+        this.iTokenIndex = this.iTokenIndex + 1
     Else
         Call consume("lBracket")
         Call parseExpression
@@ -1079,7 +1068,7 @@ Private Sub parseAssignment()
     If offset >= 0 Then
         ' If the variable already existed, move the data to that pos on the stack
         Call addOperation(oSet, , offset, -1)
-        'i disabled this line, as it pushed one more value onto the stack for each loop iteration, without contributing to it:: Call addOperation(oAccess, , offset, 1) ' To keep a return value
+        'Call addOperation(oAccess, , offset, 1) ' To keep a return value
     Else
         ' If the variable didn't exist yet, treat this stack pos as its source
         Call this.scopes(this.scopeCount).add(varName, this.stackSize)
@@ -1134,6 +1123,7 @@ Private Function parseFunctionAccess() As Boolean
         ' Add call and return data
         Call addOperation(oJump, , funcPos, -iArgCount) 'only -argCount since pushing Result and popping return pos cancel out
         this.operations(returnPosIndex).value = this.iOperationIndex
+        Call consumeExit("fun", This.iOperationIndex)
     Else
         this.iTokenIndex = this.iTokenIndex - 1 ' Revert token consumption
     End If
@@ -1754,7 +1744,6 @@ End Sub
 '@return {token[]} A list of Token structs
 Private Function Tokenise(ByVal sInput As String) As token()
     Dim defs() As TokenDefinition
-    Dim NewToken As Token
     defs = getTokenDefinitions()
     
     Dim tokens() As token, iTokenDef As Long
@@ -1775,11 +1764,13 @@ Private Function Tokenise(ByVal sInput As String) As token()
                 'Get match details
                 Dim oMatch As Object: Set oMatch = defs(iTokenDef).RegexObj.execute(sInput)
                 
-                'Make new Token
+                'Create new token
                 iNumTokens = iNumTokens + 1
-                NewToken.Type = defs(iTokenDef)
-                NewToken.value = oMatch(0)
-                Call InsertToken(tokens, NewToken, iNumTokens)
+                ReDim Preserve tokens(1 To iNumTokens)
+                
+                'Tokenise
+                tokens(iNumTokens).Type = defs(iTokenDef)
+                tokens(iNumTokens).value = oMatch(0)
                 
                 'Trim string to unmatched range
                 sInput = Mid(sInput, Len(oMatch(0)) + 1)
@@ -1797,29 +1788,10 @@ Private Function Tokenise(ByVal sInput As String) As token()
     Wend
     
     'Add eof token
-    iNumTokens = iNumTokens + 1
-    NewToken.Type.name = "eof"
-    NewToken.value = "eof"
-    Call InsertToken(tokens, NewToken, iNumTokens)
+    ReDim Preserve tokens(1 To iNumTokens + 1)
+    tokens(iNumTokens + 1).Type.name = "eof"
     
     Tokenise = removeTokens(tokens, "space")
-End Function
-
-' used to insert a token at a position and switching all values >index to the right
-'@param {ByRef Token()} Array of Tokens
-'@param {ByVal NewToken} New Value
-'@param {ByVal Index} Position where to put in NewToken
-Private Function InsertToken(ByRef Tokens() As Token, ByVal NewToken As Token, ByVal Index As Long)
-    Dim NewSize As Long
-    Dim i As Long
-    NewSize = Ubound(Tokens) + 1
-    ReDim Preserve Tokens(1 To NewSize)
-
-    For i = NewSize To Index + 1 Step -1
-        Tokens(i) = Tokens(i - 1)
-    Next i
-    Tokens(Index) = NewToken
-    InsertToken = NewSize
 End Function
 
 'Obtains a TokenDefinition from input params
@@ -1866,25 +1838,6 @@ Private Function removeTokens(ByRef tokens() As token, ByVal sRemoveType As Stri
     Next
     ReDim Preserve tokens(LBound(tokens) To (UBound(tokens) - iCountRemoved))
     removeTokens = tokens
-End Function
-
-'removes a single token from an Array
-'@param {ByRef token()} Array of Tokens
-'@param {ByVal Long} Number which to remove
-'@returns {token} A modified Array
-Private Function removeToken(ByRef Tokens() As token, Index As Long) As token()
-    Dim Temp() As Token
-    Dim i As Long
-    Dim oldArrayIndex As Long
-    ReDim Temp(LBound(Tokens) To (UBound(Tokens) - 1))
-    oldArrayIndex = 0
-    For i = LBound(Temp) To (UBound(Temp))
-        If i = Index Then
-            oldArrayIndex = oldArrayIndex + 1
-        End If
-        Temp(i) = Tokens(i + oldArrayIndex)
-    Next i
-    removeToken = Temp
 End Function
 
 '-------
@@ -2130,7 +2083,65 @@ Private Function ConcatArrays(ByVal Arr1 As Variant, ByVal Arr2 As Variant) As V
     End If
 End Function
 
+'----------
+'Handle exit-token
+'----------
 
+'pushes a value onto the exitstack and creates a jump operation
+'@param {String}  for what should be exited e.g. for, if, do, function
+Private Sub addExit(ExitWhat As String)
+    With this
+        .ExitStackSize = .ExitStackSize + 1
+        ReDim Preserve .ExitStackName(1 To .ExitStackSize) 
+        ReDim Preserve .ExitStackIndex(1 To .ExitStackSize)
+        .ExitStackName(.ExitStackSize) = ExitWhat
+        .ExitStackIndex(.ExitStackSize) = addOperation(oJump, , , -1)
+    End With
+End Sub
+
+'If Caller is equal to stackname of exit then it will get the jump-condition index of operations and give it a value
+' This is important, as something like this is possible:
+' let x = 0                
+' for i = 1 to 10          
+'   if $1 = 10 then        
+'       exit for-----------|
+'   else                   |
+'       {---}              |
+'       do                 |
+'           if x = 10 then |
+'               exit do----|----|
+'           end            |    |
+'           x = x + 1      |    |
+'       loop               |    |
+'    end-------------------|---/
+' next                     |
+' {---} <-----------------/
+
+' The code might be several layers deep, to accomodate for that this exitstack was created
+'@param {String} Name of the current calling abstraction e.g for, if, do, function
+'@param {Long} Index where to jump to once exit is run
+Private Sub consumeExit(Caller As String, JumpIndex As Long)
+    Dim i As Long
+    Dim TempName() As String
+    Dim TempIndex() As Long
+    With this
+        If .ExitStackSize = 0 Then Exit Sub
+        If .ExitStackName(.ExitStackSize) = Caller Then
+            .Operations(.ExitStackIndex(.ExitStackSize)).Value = JumpIndex
+            .ExitStackSize = ExitStackSize - 1
+            If .ExitStackSize > 0 Then
+                ReDim TempName(.ExitStackSize)
+                ReDim TempIndex(.ExitStackSize)
+                For i = 1 To .ExitStackSize
+                    TempName(i) = this.ExitStackName(i)
+                    TempIndex(i) = this.ExitStackIndex(i)
+                Next i
+            End If
+            .ExitStackName = TempName
+            .ExitStackIndex = TempIndex
+        End If
+    End With
+End Sub
 
 '----------
 'evaluation Mac
