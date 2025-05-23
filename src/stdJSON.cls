@@ -131,6 +131,26 @@ Public Function CreateFromVariant(ByVal vData as Variant) as stdJSON
   Call CreateFromVariant.protInitFromVariant(vData)
 End Function
 
+'Create a JSON object from a set of params
+'@constructor
+'@param iType - The type of JSON to create, this affects how `params` is interpreted
+'@param params - Either a set of `key`,`value` pairs, if creating an object, or a list of `value`s to add to an array.
+'@returns - Created json object
+Public Function CreateFromParams(ByVal iType as EStdJsonType, ParamArray params()) as stdJSON
+  Set CreateFromParams = Create(iType)
+  Dim i as long
+  select case iType
+    case eJSONObject
+      For i = 0 to ubound(params) step 2
+        Call CreateFromParams.add(params(i), params(i+1))
+      next
+    case eJSONArray
+      For i = 0 to ubound(params)
+        Call CreateFromParams.add(params(i))
+      next
+  end select
+End Function
+
 'Initialise stdJSON object
 '@protected
 '@constructor
@@ -463,6 +483,17 @@ Public Function ToVBObject() as Object
   end select
 
   set ToVBObject = ret
+End Function
+
+'Returns the current json object
+'@example ```vba
+'With stdJSON.Create()
+'  .add "X", "Y"
+'  set j = .ToSelf()
+'End With
+'```
+Public Function ToSelf() as stdJSON
+  set ToSelf = Me
 End Function
 
 'Helper: For type safety, obtain this this.children as collection
