@@ -109,6 +109,7 @@ Private Type CanvasObject
 End Type
 
 Private Type TThis
+  obj As Object
   hWnd As LongPtr
   hDC As LongPtr
   gdipToken As LongPtr
@@ -118,17 +119,18 @@ End Type
 Private This As TThis
 
 Public Function CreateFromControl(ByVal f As MSForms.Control) As stdCanvas
-  Set CreateFromControl = CreateFromHwnd(f.[_GethWnd])
+  Set CreateFromControl = CreateFromHwnd(f.[_GethWnd], f)
 End Function
 Public Function CreateFromUserform(ByVal uf As MSForms.UserForm) As stdCanvas
   'TBC GetFromIUnknown
 End Function
 
-Public Function CreateFromHwnd(ByVal hWnd As LongPtr) As stdCanvas
+Public Function CreateFromHwnd(ByVal hWnd As LongPtr, Optional ByVal obj As Object = Nothing) As stdCanvas
   Set CreateFromHwnd = New stdCanvas
-  Call CreateFromHwnd.protInit(hWnd)
+  Call CreateFromHwnd.protInit(hWnd, obj)
 End Function
-Public Sub protInit(ByVal hWnd As LongPtr)
+Public Sub protInit(ByVal hWnd As LongPtr, ByVal obj As Object)
+  Set This.obj = obj
   This.hWnd = hWnd
   This.hDC = GetDC(This.hWnd)
   If This.hDC = 0 Then
@@ -228,7 +230,8 @@ Public Sub Redraw()
   
   Dim G As LongPtr
   If GdipCreateFromHDC(This.hDC, G) <> 0 Then Exit Sub
-  Call GdipGraphicsClear(G, 0)
+  'Call GdipGraphicsClear(G, 0)
+  If Not This.obj Is Nothing Then Call This.obj.Repaint
   
   Dim i As Long
   For i = 1 To This.objectsIndex
