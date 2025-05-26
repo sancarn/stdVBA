@@ -1466,6 +1466,36 @@
         "remarks": []
       },
       {
+        "name": "CreateFromCollection",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Create a `stdArray` object from a collection",
+        "params": [
+          {
+            "name": "col",
+            "type": "Collection",
+            "description": "Collection to create a `stdArray` object from.",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          }
+        ],
+        "returns": {
+          "type": "stdArray<variant> ",
+          "description": "Returns `stdArray` of variants."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
         "name": "CreateFromString",
         "type": "Function",
         "constructor": true,
@@ -1913,6 +1943,37 @@
           "message": ""
         },
         "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "SplitToChunks",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Split an array into chunks of a specified size",
+        "params": [
+          {
+            "name": "Size",
+            "type": "Long",
+            "description": "the size of the new internal arrays to create",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          }
+        ],
+        "returns": {
+          "description": "An array of arrays at a specified size"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [
+          "```vba\r\nstdArray.Create(1,2,3,4,5,6,7).SplitToChunks(3)\r\n  '=> [[1,2,3],[4,5,6],[7]]\r\n```"
+        ],
         "remarks": []
       },
       {
@@ -5912,13 +5973,40 @@
             "defaultValue": null
           },
           {
-            "name": "numFibers",
+            "name": "numAgents",
             "type": "Long",
             "description": "the number of fiber runtimes to create (or number of fiber procedures to run concurrently)",
             "referenceType": "byval",
             "paramArray": false,
             "optional": true,
             "defaultValue": "1"
+          },
+          {
+            "name": "agentInitCB",
+            "type": "stdICallable<(agent as Object)=>void>",
+            "description": "Called when an agent has been initialised. This is called only once per agent object. The agent environment is received as the parameter.",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "nothing"
+          },
+          {
+            "name": "agentDestroyCB",
+            "type": "stdICallable<(agent as Object)=>void>",
+            "description": "Called when an agent is about to be destroyed. This is called only once per agent object. The agent environment is received as the parameter. Typically used to cleanup.",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "nothing"
+          },
+          {
+            "name": "runtimeUpdateCB",
+            "type": "stdICallable<(iFinishedCount as long, iFiberCount as long)=>void>",
+            "description": "A callback to call every second to update on progress.",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": true,
+            "defaultValue": "nothing"
           }
         ],
         "returns": {
@@ -6374,6 +6462,46 @@
         "params": [],
         "returns": {
           "description": "All response headers"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "ResponseMapped",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadOnly",
+        "description": "Get the mapped response",
+        "params": [],
+        "returns": {
+          "type": "variant",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "ResponseMapper",
+        "type": "Property",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": "ReadWrite",
+        "description": "Get/Set the response mapper. This callback will run when ResponeMapped() is called. This would usually be used to convert the response to a JSON/XML VBA object.",
+        "params": [],
+        "returns": {
+          "type": "stdICallable",
+          "description": ""
         },
         "deprecation": {
           "status": false,
@@ -7969,6 +8097,44 @@
         "remarks": []
       },
       {
+        "name": "CreateFromParams",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Create a JSON object from a set of params",
+        "params": [
+          {
+            "name": "iType",
+            "type": "EStdJsonType",
+            "description": "The type of JSON to create, this affects how `params` is interpreted",
+            "referenceType": "ByVal",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          },
+          {
+            "name": "params",
+            "type": "Variant",
+            "description": "Either a set of `key`,`value` pairs, if creating an object, or a list of `value`s to add to an array.",
+            "referenceType": "ByRef",
+            "paramArray": false,
+            "optional": false,
+            "defaultValue": null
+          }
+        ],
+        "returns": {
+          "description": "Created json object"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
         "name": "Add",
         "type": "Function",
         "constructor": true,
@@ -8289,6 +8455,28 @@
           "message": ""
         },
         "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "ToSelf",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Returns the current json object",
+        "params": [],
+        "returns": {
+          "type": "stdJSON",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [
+          "```vba\r\nWith stdJSON.Create()\r\n  .add \"X\", \"Y\"\r\n  set j = .ToSelf()\r\nEnd With\r\n```"
+        ],
         "remarks": []
       },
       {
@@ -12342,6 +12530,48 @@
           "- This function requires stdAcc dependency.",
           "- For full intellisense, add `stdAccPresent = 1` to the compiler constants"
         ]
+      },
+      {
+        "name": "AsIAccessible",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Converts a stdWindow object to a IAccessible object",
+        "params": [],
+        "returns": {
+          "type": "Object<IAccessible> ",
+          "description": "IAccessible object representing the window"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "AsNativeObject",
+        "type": "Function",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Converts a stdWindow object to a IAccessible object",
+        "params": [],
+        "returns": {
+          "type": "Object<IAccessible> ",
+          "description": "IAccessible object representing the window"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [
+          "- `stdWindow.CreateFromHwnd(...).FindFirst(stdLambda.Create(\"$1.Class = \"\"EXCEL7\"\"\")).AsNativeObject.Application)`"
+        ],
+        "remarks": []
       },
       {
         "name": "handle",

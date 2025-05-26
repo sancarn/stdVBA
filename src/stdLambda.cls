@@ -1573,7 +1573,9 @@ Private Function evaluateFunc(ByVal sFuncName As String, ByVal args As Variant) 
                 Next
             End If
         Case "eval": evaluateFunc = stdLambda.Create(args(iArgStart)).Run()
-        Case "lambda": set evaluateFunc = stdLambda.Create(args(iArgStart))
+        Case "lambda": 
+            set evaluateFunc = stdLambda.Create(args(iArgStart))
+            set evaluateFunc.oFuncExt = oFuncExt
         Case "isnumeric": evaluateFunc = isNumeric(args(iArgStart))
         Case "isobject": evaluateFunc = IsObject(args(iArgStart))
         Case "string": evaluateFunc = String(args(iArgStart), args(iArgStart + 1))

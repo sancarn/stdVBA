@@ -202,6 +202,7 @@ End Type
 
 Private Type TThis
   HTTP as object
+  ResponseMapper as stdICallable
 End Type
 Private This As TThis
 
@@ -322,13 +323,17 @@ End Function
 'Get whether the request has finished. This is only necessary for asynchronous requests.
 '@returns - `True` if the request has finished, `False` otherwise.
 Public Property Get isFinished() As Boolean
+  On Error GoTo Skip 'Sometimes `responseBody` and `status` isn't ready yet. So will skip if so
   if This.HTTP.status = 202 then 'No content
     isFinished = true
   else
-    On Error GoTo Skip 'Sometimes responseBodyt isn't ready, so let's check that too.
     isFinished = This.HTTP.WaitForResponse(0.001) And This.HTTP.ResponseBody()(0) >= 0
   end if
+  Exit Property
 Skip:
+  If Err.Description like "The data necessary to complete this operation is not yet available*" then Exit Property
+  
+  Debug.Print "Error in stdHTTP#isFinished: '" & err.Description & "'"
 End Property
 
 'Get the response status code
@@ -382,6 +387,21 @@ End Property
 '@returns - All response headers
 Public Property Get ResponseHeaders() As Object
   Set ResponseHeaders = This.HTTP.GetAllResponseHeaders
+End Property
+
+'Get the mapped response
+Public Property Get ResponseMapped() as variant
+  if This.ResponseMapper is nothing then Err.Raise 1, "", "No response mapper provided"
+  Dim oMe as object: set oMe = Me
+  Call CopyVariant(ResponseMapped, This.ResponseMapper.Run(oMe))
+End Property
+
+'Get/Set the response mapper. This callback will run when ResponeMapped() is called. This would usually be used to convert the response to a JSON/XML VBA object.
+Public Property Get ResponseMapper() as stdICallable
+  set ResponseMapper = this.ResponseMapper
+End Property
+Public Property Set ResponseMapper(Byval v as stdICallable)
+  set This.ResponseMapper = v
 End Property
 
 'Initialize the request
@@ -520,7 +540,8 @@ End Function
 Private Sub LoadAutoProxy(ByVal sURL as string, ByVal oProxy as Object)
   Dim info As ProxyInfoEx: info = GetProxyCurrentUser(sURL)
   If Not info.Error.isSet Then
-    oProxy("hasProxy") = true
+    'FIX: Sometimes proxy server is empty without the error being set. Ignore these proxys.
+    oProxy("hasProxy") = (info.ProxyServer <> "")
     oProxy("server") = info.ProxyServer
     oProxy("bypass") = info.ProxyBypass
     oProxy("user") = Empty  'TODO: Check if user/pass credentials with auto-proxy will ever be needed
@@ -649,3 +670,14 @@ Cleanup:
     If .lpszProxyBypass <> 0 Then Call GlobalFree(.lpszProxyBypass)
   End With
 End Function
+
+'Copies a variant from the source variable to the dest variable
+'@param dest - Destination to copy variant to
+'@param src - Source to copy variant from
+Private Sub CopyVariant(ByRef dest as variant, ByVal src as variant)
+  If isObject(src) then
+    set dest = src
+  else
+    let dest = src
+  end if
+End Sub

@@ -253,8 +253,8 @@ Variables can be defined and assigned, e.g. `oranges = 2`. This can make definit
 ```vb
 'the last assignment is redundant, just used to show that assignments result in their value
 Debug.Print stdLambda.CreateMultiline(array( _
-  "count = $1", _
-  "footPrint = count * 2 ^ count" _
+  "let count = $1", _
+  "let footPrint = count * 2 ^ count" _
 )).Run(2) ' -> 8
 ```
 

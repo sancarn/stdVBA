@@ -353,6 +353,14 @@ Public Property Let Country(s as string)
   end select
 End Property
 
+Public Property Get Quarter() as Long
+  If pInitialised then
+    Quarter = (Month(pValue)-1)\3+1
+  Else
+    'Call STD.Errors.Raise("STD.Class",4)
+  End if
+End Property
+
 'Obtain the MSDOS Date for this datetime
 '@docs - https://learn.microsoft.com/en-us/windows/win32/api/oleauto/nf-oleauto-dosdatetimetovarianttime#remarks
 Public Property Get asMSDOSDate() as Long

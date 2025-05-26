@@ -326,3 +326,14 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2025-01-29 `stdClipboard` FIX - Fixed incorrect declare for `RegisterClipboardFormatA`
 - 2025-02-20 `stdFiber` FEATURE - Added `addStepChangeHandler` and `stepName`, for better tracking through a set of processes.
 - 2025-02-26 `stdUIElement` FIX - Fix where value not supplied to combobox element on element creation throwing error.
+- 2025-03-08 `stdWindow` FEATURE - Added `AsNativeObject` and `AsIAccessible`.
+- 2025-03-08 `stdFiber` FEATURE - Added `agentInitCB`, `agentDestroyCB` and `runtimeUpdateCB` to `stdFiber.runFibers` for better management of fiber runtime.
+- 2025-04-14 `stdLambda` FEATURE - Added `FunctionExtension` chaining for lambdas.
+- 2025-04-14 `stdHTTP` FEATURE - Added `ResponseMapper` and `ResponseMapped`, great for libraries.
+- 2025-04-15 `stdJSON` FEATURE - Added `ToSelf` to `stdJSON`
+- 2025-04-14 `stdHTTP` FIX - `ResponseMapped` will now work for literals as well as objects.
+- 2025-04-15 `stdArray` FIX - `Splice` changed to act more like JavaScript. Will no longer error when `iEnd <= Length`, will return an array of elements up to length. E.G. `[1,2,3].splice(3,3)` will return `[3]`.
+- 2025-04-15 `stdArray` FEATURE - Added `SplitToChunks` function, to split an array into sub arrays of a fixed size.
+- 2025-04-15 `stdJSON` FEATURE - Added `CreateFromParams` to quickly create JSON objects on the fly.
+- 2025-05-10 `stdAcc` FIX - `Proxy` implementation for `accLocation`
+- 2025-05-10 `stdArray` FEATURE - `CreateFromCollection` added.

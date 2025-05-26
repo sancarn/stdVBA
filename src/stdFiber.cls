@@ -292,41 +292,69 @@ End Property
 'Run a collection/stdArray/stdEnumerator of fiber procedures, across a number of concurrent running fiber runtimes, returning all results as a collection.
 '@static
 '@param vFibers as Variant<Collection|Array|stdArray|stdEnumerator> - Fiber procedures to execute over
-'@param numFibers - the number of fiber runtimes to create (or number of fiber procedures to run concurrently)
+'@param numAgents - the number of fiber runtimes to create (or number of fiber procedures to run concurrently)
+'@param agentInitCB as stdICallable<(agent as Object)=>void> - Called when an agent has been initialised. This is called only once per agent object. The agent environment is received as the parameter.
+'@param agentDestroyCB as stdICallable<(agent as Object)=>void> - Called when an agent is about to be destroyed. This is called only once per agent object. The agent environment is received as the parameter. Typically used to cleanup.
+'@param runtimeUpdateCB as stdICallable<(iFinishedCount as long, iFiberCount as long)=>void> - A callback to call every second to update on progress.
 '@returns - Collection of results of ran fiber procedures. You can use the variant from param1 if you need to check for errors using ErrorText.
 '@TODO: Consider whether return data is correct. If we create fibers from table, how would we refer back to errornous records on the table?
-'@TODO: add param AgentInitHandler   for initialising of agent objects, this is called only once per agent.
-'@TODO: add param AgentDestroyHandler  for destroying of agent objects / clean up, this is called only once per agent.
-Public Function runFibers(ByVal vFibers as variant, Optional byval numFibers as Long = 1) as Collection
+Public Function runFibers(ByVal vFibers as variant, Optional byval numAgents as Long = 1, Optional ByVal agentInitCB as stdICallable = nothing, Optional ByVal agentDestroyCB as stdICallable = nothing, Optional ByVal runtimeUpdateCB as stdICallable = nothing) as Collection
   'Intiialise
   Dim fibers as TFiberQueue: fibers = TFiberQueue_Create(vFibers)
-  Dim running() as stdFiber: ReDim running(1 to numFibers)
-  Dim agents() as Object: Redim agents(1 to numFibers)
-  For i = 1 to numFibers
+  Dim running() as stdFiber: ReDim running(1 to numAgents)
+  Dim agents() as Object: Redim agents(1 to numAgents)
+  For i = 1 to numAgents
     set agents(i) = CreateObject("Scripting.Dictionary")
     agents(i)("id") = i
+    if not agentInitCB is nothing then Call agentInitCB.Run(agents(i))
   next
 
   'Await completion of all processes
+  Dim iRuntimeClock as Long: iRuntimeClock = 0
   Dim isFinished as Boolean
   Do While not isFinished
-    isFinished = true
-    For i = 1 to numFibers
+    Dim iAgentsRunning as long: iAgentsRunning = 0
+    For i = 1 to numAgents
+      'Step fiber if it exists, if it finishes remove it to signify this agent is ready for a new fiber
+      if not running(i) is nothing then
+        if running(i).protStep(agents(i)) then
+          set running(i) = nothing
+        end if
+      end if
+
+      'Get next fiber if nothing is running in this agent
       if running(i) is nothing then
         if TFiberQueue_HasNext(fibers) then
           set running(i) = TFiberQueue_Get(fibers)
-          isFinished = false
+          iAgentsRunning = iAgentsRunning + 1
         end if
-      elseif running(i).protStep(agents(i)) then
-        set running(i) = nothing
-        isFinished = False
       else
-        isFinished = false
+        iAgentsRunning = iAgentsRunning + 1
       end if
 
       DoEvents
     next
+
+    'Process is finished only when no agents are running
+    isFinished = iAgentsRunning = 0
+
+    'Update on progress every 1k cycles
+    iRuntimeClock = iRuntimeClock + 1
+    if iRuntimeClock mod 1000 = 0 then
+      iRuntimeClock = 0
+      if not runtimeUpdateCB is nothing then 
+        Dim iFiberCount as Long: iFiberCount = fibers.count
+        Dim iFinishedCount as long: iFinishedCount = fibers.index - iAgentsRunning
+        Call runtimeUpdateCB.run(iFinishedCount, iFiberCount)
+      end if
+    end if
   Loop
+
+  'Cleanup agents
+  For i = 1 to numAgents
+    if not agentDestroyCB is nothing then Call agentDestroyCB.Run(agents(i))
+    set agents(i) = nothing 'objects will still be present on the individual fibers until end of this scope
+  next
 
   'Collect results
   Dim results as Collection: set results = new Collection
