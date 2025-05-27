@@ -11,9 +11,9 @@ Public Enum CanvasRectFields
   [_First] = 0
   cvfRectLeft = 0
   cvfRectTop
-  cvfRectRight
-  cvfRectBottom
-  [_Last] = cvfRectBottom
+  cvfRectWidth
+  cvfRectHeight
+  [_Last] = cvfRectHeight
 End Enum
 
 Public Enum CanvasObjectStyles
@@ -204,22 +204,22 @@ Private Sub Class_Terminate()
 End Sub
 
 'Draw a rectangle
-'@param x1 - X Coord of top left corner
-'@param y1 - Y Coord of top left corner
-'@param x2 - X Coord of bottom right corner
-'@param y2 - Y Coord of bottom right corner
+'@param left - X Coord of left edge
+'@param top - Y Coord of top edge
+'@param width - Width of rectangle
+'@param height - Height of rectangle
 '@returns - Pointer to a rectangle handle
-Public Function DrawRectangle(ByVal x1 As Long, ByVal y1 As Long, ByVal x2 As Long, ByVal y2 As Long, Optional ByVal fillColor As Long = 0, Optional ByVal borderColor As Long = 0, Optional ByVal borderWeight As Long = 1) As Long
+Public Function DrawRectangle(ByVal left As Long, ByVal top As Long, ByVal width As Long, ByVal height As Long, Optional ByVal fillColor As Long = 0, Optional ByVal borderColor As Long = 0, Optional ByVal borderWeight As Long = 1) As Long
   Dim index As Long: index = getNewObject()
   With This.objects(index)
     .ObjectType = cvtRectangle
     ReDim .ObjectParams(CanvasRectFields.[_First] To CanvasRectFields.[_Last])
     ReDim .ObjectStyle(CanvasObjectStyles.[_First] To CanvasObjectStyles.[_Last])
   End With
-  Data(index, CanvasRectFields.cvfRectLeft) = x1
-  Data(index, CanvasRectFields.cvfRectTop) = y1
-  Data(index, CanvasRectFields.cvfRectRight) = x2
-  Data(index, CanvasRectFields.cvfRectBottom) = y2
+  Data(index, CanvasRectFields.cvfRectLeft) = left
+  Data(index, CanvasRectFields.cvfRectTop) = top
+  Data(index, CanvasRectFields.cvfRectWidth) = width
+  Data(index, CanvasRectFields.cvfRectHeight) = height
   Style(index, cvsFillColor) = fillColor
   Style(index, cvsLineColor) = borderColor
   Style(index, cvsLineWidth) = borderWeight
@@ -238,12 +238,14 @@ Public Property Let Data(ByVal handle As Long, ByVal param As Long, ByVal RHS As
         Select Case param
           Case CanvasRectFields.cvfRectLeft
             .bbox.Left = RHS
-          Case CanvasRectFields.cvfRectRight
-            .bbox.Right = RHS
+            .bbox.Right = RHS + .ObjectParams(CanvasRectFields.cvfRectWidth)
           Case CanvasRectFields.cvfRectTop
             .bbox.Top = RHS
-          Case CanvasRectFields.cvfRectBottom
-            .bbox.Bottom = RHS
+            .bbox.Bottom = RHS + .ObjectParams(CanvasRectFields.cvfRectHeight)
+          Case CanvasRectFields.cvfRectWidth
+            .bbox.Right = .ObjectParams(CanvasRectFields.cvfRectLeft) + RHS
+          Case CanvasRectFields.cvfRectHeight
+            .bbox.Bottom = .ObjectParams(CanvasRectFields.cvfRectTop) + RHS
         End Select
     End Select
   End With
@@ -306,14 +308,14 @@ Public Sub Redraw()
               If .ObjectStyle(CanvasObjectStyles.[_cvsFillVisible]) Then
                 Dim fillBrush As LongPtr
                 If GdipCreateSolidFill(.ObjectStyle(cvsFillColor), fillBrush) = 0 Then
-                  Call GdipFillRectangle(G, fillBrush, .ObjectParams(cvfRectLeft), .ObjectParams(cvfRectTop), .ObjectParams(cvfRectRight) - .ObjectParams(cvfRectLeft), .ObjectParams(cvfRectBottom) - .ObjectParams(cvfRectTop))
+                  Call GdipFillRectangle(G, fillBrush, .ObjectParams(cvfRectLeft), .ObjectParams(cvfRectTop), .ObjectParams(cvfRectWidth), .ObjectParams(cvfRectHeight))
                   Call GdipDeleteBrush(fillBrush)
                 End If
               End If
               If .ObjectStyle(CanvasObjectStyles.[_cvsLineVisible]) Then
                 Dim strokePen As LongPtr
                 If GdipCreatePen1(.ObjectStyle(cvsLineColor), .ObjectStyle(cvsLineWidth), UnitPixel, strokePen) = 0 Then
-                  Call GdipDrawRectangle(G, strokePen, .ObjectParams(cvfRectLeft), .ObjectParams(cvfRectTop), .ObjectParams(cvfRectRight) - .ObjectParams(cvfRectLeft), .ObjectParams(cvfRectBottom) - .ObjectParams(cvfRectTop))
+                  Call GdipDrawRectangle(G, strokePen, .ObjectParams(cvfRectLeft), .ObjectParams(cvfRectTop), .ObjectParams(cvfRectWidth), .ObjectParams(cvfRectHeight))
                   Call GdipDeletePen(strokePen)
                 End If
               End If
@@ -350,14 +352,14 @@ Private Sub RedrawDirect()
           If .ObjectStyle(CanvasObjectStyles.[_cvsFillVisible]) Then
             Dim fillBrush As LongPtr
             If GdipCreateSolidFill(.ObjectStyle(cvsFillColor), fillBrush) = 0 Then
-              Call GdipFillRectangle(G, fillBrush, .ObjectParams(cvfRectLeft), .ObjectParams(cvfRectTop), .ObjectParams(cvfRectRight) - .ObjectParams(cvfRectLeft), .ObjectParams(cvfRectBottom) - .ObjectParams(cvfRectTop))
+              Call GdipFillRectangle(G, fillBrush, .ObjectParams(cvfRectLeft), .ObjectParams(cvfRectTop), .ObjectParams(cvfRectWidth), .ObjectParams(cvfRectHeight))
               Call GdipDeleteBrush(fillBrush)
             End If
           End If
           If .ObjectStyle(CanvasObjectStyles.[_cvsLineVisible]) Then
             Dim strokePen As LongPtr
             If GdipCreatePen1(.ObjectStyle(cvsLineColor), .ObjectStyle(cvsLineWidth), UnitPixel, strokePen) = 0 Then
-              Call GdipDrawRectangle(G, strokePen, .ObjectParams(cvfRectLeft), .ObjectParams(cvfRectTop), .ObjectParams(cvfRectRight) - .ObjectParams(cvfRectLeft), .ObjectParams(cvfRectBottom) - .ObjectParams(cvfRectTop))
+              Call GdipDrawRectangle(G, strokePen, .ObjectParams(cvfRectLeft), .ObjectParams(cvfRectTop), .ObjectParams(cvfRectWidth), .ObjectParams(cvfRectHeight))
               Call GdipDeletePen(strokePen)
             End If
           End If
