@@ -29,6 +29,13 @@ End Enum
 #If VBA7 Then
   Private Declare PtrSafe Function GetDC Lib "user32" (ByVal hWnd As LongPtr) As LongPtr
   Private Declare PtrSafe Function ReleaseDC Lib "user32" (ByVal hWnd As LongPtr, ByVal hDC As LongPtr) As LongPtr
+  Private Declare PtrSafe Function CreateCompatibleDC Lib "gdi32" (ByVal hDC As LongPtr) As LongPtr
+  Private Declare PtrSafe Function CreateCompatibleBitmap Lib "gdi32" (ByVal hDC As LongPtr, ByVal nWidth As Long, ByVal nHeight As Long) As LongPtr
+  Private Declare PtrSafe Function SelectObject Lib "gdi32" (ByVal hDC As LongPtr, ByVal hObject As LongPtr) As LongPtr
+  Private Declare PtrSafe Function DeleteObject Lib "gdi32" (ByVal hObject As LongPtr) As Long
+  Private Declare PtrSafe Function DeleteDC Lib "gdi32" (ByVal hDC As LongPtr) As Long
+  Private Declare PtrSafe Function BitBlt Lib "gdi32" (ByVal hDestDC As LongPtr, ByVal x As Long, ByVal y As Long, ByVal nWidth As Long, ByVal nHeight As Long, ByVal hSrcDC As LongPtr, ByVal xSrc As Long, ByVal ySrc As Long, ByVal dwRop As Long) As Long
+  Private Declare PtrSafe Function GetClientRect Lib "user32" (ByVal hWnd As LongPtr, lpRect As rect) As Long
   Private Declare PtrSafe Function GdiplusStartup Lib "gdiplus" (ByRef token As LongPtr, ByRef inputbuf As GdiplusStartupInput, ByRef outputbuf As GdiplusStartupOutput) As Long
   Private Declare PtrSafe Sub GdiplusShutdown Lib "gdiplus" (ByVal token As LongPtr)
   Private Declare PtrSafe Function GdipCreateFromHDC Lib "gdiplus" (ByVal hDC As LongPtr, ByRef graphics As LongPtr) As Long
@@ -47,6 +54,13 @@ End Enum
   End Enum
   Private Declare Function GetDC Lib "user32" (ByVal hWnd As LongPtr) As LongPtr
   Private Declare Function ReleaseDC Lib "user32" (ByVal hWnd As LongPtr, ByVal hDC As LongPtr) As LongPtr
+  Private Declare Function CreateCompatibleDC Lib "gdi32" (ByVal hDC As LongPtr) As LongPtr
+  Private Declare Function CreateCompatibleBitmap Lib "gdi32" (ByVal hDC As LongPtr, ByVal nWidth As Long, ByVal nHeight As Long) As LongPtr
+  Private Declare Function SelectObject Lib "gdi32" (ByVal hDC As LongPtr, ByVal hObject As LongPtr) As LongPtr
+  Private Declare Function DeleteObject Lib "gdi32" (ByVal hObject As LongPtr) As Long
+  Private Declare Function DeleteDC Lib "gdi32" (ByVal hDC As LongPtr) As Long
+  Private Declare Function BitBlt Lib "gdi32" (ByVal hDestDC As LongPtr, ByVal x As Long, ByVal y As Long, ByVal nWidth As Long, ByVal nHeight As Long, ByVal hSrcDC As LongPtr, ByVal xSrc As Long, ByVal ySrc As Long, ByVal dwRop As Long) As Long
+  Private Declare Function GetClientRect Lib "user32" (ByVal hWnd As LongPtr, lpRect As rect) As Long
   Private Declare Function GdiplusStartup Lib "gdiplus" (ByRef token As LongPtr, ByRef inputbuf As GdiplusStartupInput, ByRef outputbuf As GdiplusStartupOutput) As Long
   Private Declare Sub GdiplusShutdown Lib "gdiplus" (ByVal token As LongPtr)
   Private Declare Function GdipCreateFromHDC Lib "gdiplus" (ByVal hdc As LongPtr, ByRef graphics As LongPtr) As Long
@@ -60,6 +74,8 @@ End Enum
   Private Declare Function GdipDeletePen Lib "gdiplus" (ByVal pen As LongPtr) As Long
   Private Declare Function GdipGraphicsClear Lib "gdiplus" (ByVal graphics As LongPtr, ByVal color As Long) As Long
 #End If
+
+Private Const SRCCOPY As Long = &HCC0020
 
 Private Type GdiplusStartupInput
   GdiplusVersion As Long
@@ -115,6 +131,12 @@ Private Type TThis
   gdipToken As LongPtr
   objectsIndex As Long
   objects() As CanvasObject
+  
+  ' Double buffering components
+  bufferDC As LongPtr
+  bufferBitmap As LongPtr
+  bufferWidth As Long
+  bufferHeight As Long
 End Type
 Private This As TThis
 
@@ -129,6 +151,7 @@ Public Function CreateFromHwnd(ByVal hWnd As LongPtr, Optional ByVal obj As Obje
   Set CreateFromHwnd = New stdCanvas
   Call CreateFromHwnd.protInit(hWnd, obj)
 End Function
+
 Public Sub protInit(ByVal hWnd As LongPtr, ByVal obj As Object)
   Set This.obj = obj
   This.hWnd = hWnd
@@ -147,7 +170,23 @@ Public Sub protInit(ByVal hWnd As LongPtr, ByVal obj As Object)
   If GdiplusStartup(This.gdipToken, gdip, gdipo) <> 0 Then
     Err.Raise 5, "stdCanvas#protInit", "Failed to start GDI+"
   End If
+  
+  ' Initialize double buffer
+  Dim clientRect As rect
+  Call GetClientRect(This.hWnd, clientRect)
+  This.bufferWidth = clientRect.Right - clientRect.Left
+  This.bufferHeight = clientRect.Bottom - clientRect.Top
+  
+  This.bufferDC = CreateCompatibleDC(This.hDC)
+  If This.bufferDC <> 0 Then
+    This.bufferBitmap = CreateCompatibleBitmap(This.hDC, This.bufferWidth, This.bufferHeight)
+    If This.bufferBitmap <> 0 Then
+      Call SelectObject(This.bufferDC, This.bufferBitmap)
+    End If
+  End If
 End Sub
+
+
 
 Private Sub Class_Terminate()
   'TODO: When sprites/fonts added
@@ -156,11 +195,13 @@ Private Sub Class_Terminate()
   '  Erase bitmaps/fonts etc.
   'Next
   
+  ' Cleanup double buffer
+  If This.bufferBitmap <> 0 Then Call DeleteObject(This.bufferBitmap)
+  If This.bufferDC <> 0 Then Call DeleteDC(This.bufferDC)
+  
   If This.gdipToken <> 0 Then Call GdiplusShutdown(This.gdipToken)
   If This.hDC <> 0 Then Call ReleaseDC(This.hWnd, This.hDC)
 End Sub
-
-
 
 'Draw a rectangle
 '@param x1 - X Coord of top left corner
@@ -228,9 +269,77 @@ End Property
 Public Sub Redraw()
   Const UnitPixel As Long = 2
   
+  ' Check if buffer needs resizing
+  Dim clientRect As rect
+  Call GetClientRect(This.hWnd, clientRect)
+  Dim newWidth As Long: newWidth = clientRect.Right - clientRect.Left
+  Dim newHeight As Long: newHeight = clientRect.Bottom - clientRect.Top
+  
+  If This.bufferBitmap = 0 Or newWidth > This.bufferWidth Or newHeight > This.bufferHeight Then
+    ' Recreate buffer if needed
+    If This.bufferBitmap <> 0 Then Call DeleteObject(This.bufferBitmap)
+    If This.bufferDC <> 0 Then Call DeleteDC(This.bufferDC)
+    
+    This.bufferWidth = newWidth + 50  ' Some padding to reduce frequent resizing
+    This.bufferHeight = newHeight + 50
+    This.bufferDC = CreateCompatibleDC(This.hDC)
+    If This.bufferDC <> 0 Then
+      This.bufferBitmap = CreateCompatibleBitmap(This.hDC, This.bufferWidth, This.bufferHeight)
+      If This.bufferBitmap <> 0 Then Call SelectObject(This.bufferDC, This.bufferBitmap)
+    End If
+  End If
+  
+  ' Use double buffering if available, otherwise fall back to direct
+  If This.bufferBitmap <> 0 Then
+    ' Create GDI+ graphics object from buffer DC
+    Dim G As LongPtr
+    If GdipCreateFromHDC(This.bufferDC, G) = 0 Then
+      ' Clear the buffer
+      Call GdipGraphicsClear(G, argb(0, 255, 255, 255))
+      
+      ' Draw all objects to the buffer
+      Dim i As Long
+      For i = 1 To This.objectsIndex
+        With This.objects(i)
+          Select Case .ObjectType
+            Case cvtRectangle
+              If .ObjectStyle(CanvasObjectStyles.[_cvsFillVisible]) Then
+                Dim fillBrush As LongPtr
+                If GdipCreateSolidFill(.ObjectStyle(cvsFillColor), fillBrush) = 0 Then
+                  Call GdipFillRectangle(G, fillBrush, .ObjectParams(cvfRectLeft), .ObjectParams(cvfRectTop), .ObjectParams(cvfRectRight) - .ObjectParams(cvfRectLeft), .ObjectParams(cvfRectBottom) - .ObjectParams(cvfRectTop))
+                  Call GdipDeleteBrush(fillBrush)
+                End If
+              End If
+              If .ObjectStyle(CanvasObjectStyles.[_cvsLineVisible]) Then
+                Dim strokePen As LongPtr
+                If GdipCreatePen1(.ObjectStyle(cvsLineColor), .ObjectStyle(cvsLineWidth), UnitPixel, strokePen) = 0 Then
+                  Call GdipDrawRectangle(G, strokePen, .ObjectParams(cvfRectLeft), .ObjectParams(cvfRectTop), .ObjectParams(cvfRectRight) - .ObjectParams(cvfRectLeft), .ObjectParams(cvfRectBottom) - .ObjectParams(cvfRectTop))
+                  Call GdipDeletePen(strokePen)
+                End If
+              End If
+          End Select
+        End With
+      Next
+      
+      Call GdipDeleteGraphics(G)
+      
+      ' Copy buffer to screen
+      Call BitBlt(This.hDC, 0, 0, newWidth, newHeight, This.bufferDC, 0, 0, SRCCOPY)
+      Exit Sub
+    End If
+  End If
+  
+  ' Fallback to direct rendering
+  Call RedrawDirect
+End Sub
+
+' Fallback method for direct rendering (without double buffering)
+Private Sub RedrawDirect()
+  Const UnitPixel As Long = 2
+  
   Dim G As LongPtr
   If GdipCreateFromHDC(This.hDC, G) <> 0 Then Exit Sub
-  'Call GdipGraphicsClear(G, 0)
+  
   If Not This.obj Is Nothing Then Call This.obj.Repaint
   
   Dim i As Long
@@ -259,6 +368,10 @@ Public Sub Redraw()
   Call GdipDeleteGraphics(G)
 End Sub
 
+' Property to check if double buffering is available
+Public Property Get DoubleBuffered() As Boolean
+  DoubleBuffered = (This.bufferBitmap <> 0)
+End Property
 
 Private Function getNewObject() As Long
   This.objectsIndex = This.objectsIndex + 1
@@ -269,16 +382,30 @@ Private Function getNewObject() As Long
   getNewObject = This.objectsIndex
 End Function
 
-
-
-
+' Convert RGB to ARGB
+' @param A - Alpha channel (0-255)
+' @param R - Red channel (0-255)
+' @param G - Green channel (0-255)
+' @param B - Blue channel (0-255)
+' @returns - ARGB color
 Public Function argb(A As Byte, R As Byte, G As Byte, B As Byte) As Long
-  Dim d As Double: d = CDbl(A) * &H1000000 + R * &H10000 + G * &H100 + B
-  If d > 2147483647# Then d = d - 4294967296#
-  argb = d
+  Const AlphaShift As Double = &H1000000
+  Const RedShift As Long = &H10000
+  Const GreenShift As Long = &H100
+  
+  ' 2^31–1 = max signed 32-bit; 2^32 = wrap modulus
+  Const INT32_MAX As Long = 2 ^ 31 - 1
+  Const UINT32_MODULO As Double = 2 ^ 32
+  
+  'Shift the colors without causing an overflow, by shifting in the double domain
+  Dim rawValue As Double: rawValue = A * AlphaShift + R * RedShift + G * GreenShift + B
+  
+  ' If rawValue exceeds INT32_MAX, wrap into the signed 32-bit range
+  If rawValue > INT32_MAX Then rawValue = rawValue - UINT32_MODULO
+  argb = rawValue
 End Function
+
 Private Function getAlpha(ByVal u As Double) As Byte
   If u < 0 Then u = u + 4294967296#
   getAlpha = CByte(Fix(u / 16777216#) Mod 256)
 End Function
-
