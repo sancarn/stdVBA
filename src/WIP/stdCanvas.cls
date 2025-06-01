@@ -7,6 +7,8 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+
+
 Public Enum CanvasRectFields
   [_First] = 0
   cvfRectLeft = 0
@@ -14,6 +16,33 @@ Public Enum CanvasRectFields
   cvfRectWidth
   cvfRectHeight
   [_Last] = cvfRectHeight
+End Enum
+
+Public Enum CanvasEllipseFields
+  [_First] = 0
+  cvfEllipseCenterX = 0
+  cvfEllipseCenterY
+  cvfEllipseWidth
+  cvfEllipseHeight
+  [_Last] = cvfEllipseHeight
+End Enum
+
+Public Enum CanvasArcFields
+  [_First] = 0
+  cvfArcCenterX = 0
+  cvfArcCenterY
+  cvfArcWidth
+  cvfArcHeight
+  cvfArcStartAngle
+  cvfArcSweepAngle
+  [_Last] = cvfArcSweepAngle
+End Enum
+
+Public Enum CanvasPolygonFields
+  [_First] = 0
+  cvfPolygonPoints = 0
+  cvfPolygonCount
+  [_Last] = cvfPolygonCount
 End Enum
 
 Public Enum CanvasObjectStyles
@@ -48,6 +77,12 @@ End Enum
   Private Declare PtrSafe Function GdipCreatePen1 Lib "gdiplus" (ByVal color As Long, ByVal width As Single, ByVal unit As Long, ByRef pen As LongPtr) As Long
   Private Declare PtrSafe Function GdipDeletePen Lib "gdiplus" (ByVal pen As LongPtr) As Long
   Private Declare PtrSafe Function GdipGraphicsClear Lib "gdiplus" (ByVal graphics As LongPtr, ByVal color As Long) As Long
+  Private Declare PtrSafe Function GdipFillEllipse Lib "gdiplus" (ByVal graphics As LongPtr, ByVal brush As LongPtr, ByVal x As Single, ByVal y As Single, ByVal width As Single, ByVal height As Single) As Long
+  Private Declare PtrSafe Function GdipDrawEllipse Lib "gdiplus" (ByVal graphics As LongPtr, ByVal pen As LongPtr, ByVal x As Single, ByVal y As Single, ByVal width As Single, ByVal height As Single) As Long
+  Private Declare PtrSafe Function GdipFillPolygon Lib "gdiplus" (ByVal graphics As LongPtr, ByVal brush As LongPtr, ByRef points As Any, ByVal count As Long, ByVal fillMode As Long) As Long
+  Private Declare PtrSafe Function GdipDrawPolygon Lib "gdiplus" (ByVal graphics As LongPtr, ByVal pen As LongPtr, ByRef points As Any, ByVal count As Long) As Long
+  Private Declare PtrSafe Function GdipFillPie Lib "gdiplus" (ByVal graphics As LongPtr, ByVal brush As LongPtr, ByVal x As Single, ByVal y As Single, ByVal width As Single, ByVal height As Single, ByVal startAngle As Single, ByVal sweepAngle As Single) As Long
+  Private Declare PtrSafe Function GdipDrawArc Lib "gdiplus" (ByVal graphics As LongPtr, ByVal pen As LongPtr, ByVal x As Single, ByVal y As Single, ByVal width As Single, ByVal height As Single, ByVal startAngle As Single, ByVal sweepAngle As Single) As Long
 #Else
   Enum LongPtr
     [_]
@@ -73,6 +108,12 @@ End Enum
   Private Declare Function GdipCreatePen1 Lib "gdiplus" (ByVal color As Long, ByVal width As Single, ByVal unit As Long, ByRef pen As LongPtr) As Long
   Private Declare Function GdipDeletePen Lib "gdiplus" (ByVal pen As LongPtr) As Long
   Private Declare Function GdipGraphicsClear Lib "gdiplus" (ByVal graphics As LongPtr, ByVal color As Long) As Long
+  Private Declare Function GdipFillEllipse Lib "gdiplus" (ByVal graphics As LongPtr, ByVal brush As LongPtr, ByVal x As Single, ByVal y As Single, ByVal width As Single, ByVal height As Single) As Long
+  Private Declare Function GdipDrawEllipse Lib "gdiplus" (ByVal graphics As LongPtr, ByVal pen As LongPtr, ByVal x As Single, ByVal y As Single, ByVal width As Single, ByVal height As Single) As Long
+  Private Declare Function GdipFillPolygon Lib "gdiplus" (ByVal graphics As LongPtr, ByVal brush As LongPtr, ByRef points As Any, ByVal count As Long, ByVal fillMode As Long) As Long
+  Private Declare Function GdipDrawPolygon Lib "gdiplus" (ByVal graphics As LongPtr, ByVal pen As LongPtr, ByRef points As Any, ByVal count As Long) As Long
+  Private Declare Function GdipFillPie Lib "gdiplus" (ByVal graphics As LongPtr, ByVal brush As LongPtr, ByVal x As Single, ByVal y As Single, ByVal width As Single, ByVal height As Single, ByVal startAngle As Single, ByVal sweepAngle As Single) As Long
+  Private Declare Function GdipDrawArc Lib "gdiplus" (ByVal graphics As LongPtr, ByVal pen As LongPtr, ByVal x As Single, ByVal y As Single, ByVal width As Single, ByVal height As Single, ByVal startAngle As Single, ByVal sweepAngle As Single) As Long
 #End If
 
 Private Const SRCCOPY As Long = &HCC0020
@@ -87,6 +128,12 @@ End Type
 Private Type GdiplusStartupOutput
   NotificationHook As LongPtr
   NotificationUnhook As LongPtr
+End Type
+
+' Point structure for polygon points
+Private Type PointF
+  x As Single
+  y As Single
 End Type
 
 Public Enum CanvasEvent
@@ -108,8 +155,9 @@ End Type
 
 Private Enum CanvasObjectType
   cvtRectangle
-  cvtCircle
-  cvtLine
+  cvtEllipse
+  cvtArc
+  cvtPolygon
 End Enum
 
 Private Type CanvasObject
@@ -140,19 +188,47 @@ Private Type TThis
 End Type
 Private This As TThis
 
-Public Function CreateFromControl(ByVal f As MSForms.Control) As stdCanvas
-  Set CreateFromControl = CreateFromHwnd(f.[_GethWnd], f)
+
+'Create a new stdCanvas object from a Control
+'@constructor
+'@param f - Control to create the canvas from e.g a frame
+'@returns - New stdCanvas object
+Public Function CreateFromControl(ByVal cntrl As MSForms.Control) As stdCanvas
+  Set CreateFromControl = CreateFromHwnd(cntrl.[_GethWnd], cntrl)
 End Function
+
+'Create a new stdCanvas object from a Frame
+'@constructor
+'@param frm - Frame to create the canvas from e.g a frame
+'@returns - New stdCanvas object
+Public Function CreateFromFrame(ByVal frm as MSForms.Frame) As stdCanvas
+  Set CreateFromFrame = CreateFromControl(frm)
+End Function
+
+
+'Create a new stdCanvas object from a UserForm
+'@constructor
+'@param uf - UserForm to create the canvas from
+'@returns - New stdCanvas object
 Public Function CreateFromUserform(ByVal uf As MSForms.UserForm) As stdCanvas
   'TBC GetFromIUnknown
 End Function
 
+'Create a new stdCanvas object from a window handle
+'@constructor
+'@param hWnd - Window handle to create the canvas from
+'@param obj - Object to call Repaint() on when the canvas needs to be redrawn
+'@returns - New stdCanvas object
 Public Function CreateFromHwnd(ByVal hWnd As LongPtr, Optional ByVal obj As Object = Nothing) As stdCanvas
   Set CreateFromHwnd = New stdCanvas
   Call CreateFromHwnd.protInit(hWnd, obj)
 End Function
 
-Public Sub protInit(ByVal hWnd As LongPtr, ByVal obj As Object)
+'Initialize the canvas
+'@protected
+'@param hWnd - Window handle to create the canvas from
+'@param obj - Object to call Repaint() on when the canvas needs to be redrawn
+Public Sub protInit(ByVal hWnd As LongPtr, ByVal obj As Object, Optional ByVal doubleBuffer As Boolean = True)
   Set This.obj = obj
   This.hWnd = hWnd
   This.hDC = GetDC(This.hWnd)
@@ -166,28 +242,20 @@ Public Sub protInit(ByVal hWnd As LongPtr, ByVal obj As Object)
   'Initialise gdip
   Dim gdip As GdiplusStartupInput
   gdip.GdiplusVersion = 1
+
   Dim gdipo As GdiplusStartupOutput
   If GdiplusStartup(This.gdipToken, gdip, gdipo) <> 0 Then
     Err.Raise 5, "stdCanvas#protInit", "Failed to start GDI+"
   End If
   
   ' Initialize double buffer
-  Dim clientRect As rect
-  Call GetClientRect(This.hWnd, clientRect)
-  This.bufferWidth = clientRect.Right - clientRect.Left
-  This.bufferHeight = clientRect.Bottom - clientRect.Top
-  
-  This.bufferDC = CreateCompatibleDC(This.hDC)
-  If This.bufferDC <> 0 Then
-    This.bufferBitmap = CreateCompatibleBitmap(This.hDC, This.bufferWidth, This.bufferHeight)
-    If This.bufferBitmap <> 0 Then
-      Call SelectObject(This.bufferDC, This.bufferBitmap)
-    End If
-  End If
+  If doubleBuffer then
+    Dim clientRect As rect: Call GetClientRect(This.hWnd, clientRect)
+    Call ResizeBuffer(clientRect.Right - clientRect.Left, clientRect.Bottom - clientRect.Top)
+  End if
 End Sub
 
-
-
+'Terminate the canvas and clean up resources
 Private Sub Class_Terminate()
   'TODO: When sprites/fonts added
   'Dim i As Long
@@ -227,6 +295,143 @@ Public Function DrawRectangle(ByVal left As Long, ByVal top As Long, ByVal width
   DrawRectangle = index
 End Function
 
+'Draw an arc
+'@param centerX - X Coord of arc center
+'@param centerY - Y Coord of arc center
+'@param width - Width of arc
+'@param height - Height of arc
+'@param startAngle - Start angle of arc
+'@param sweepAngle - Sweep angle of arc
+'@param fillColor - Fill color of arc
+'@param borderColor - Border color of arc
+'@param borderWeight - Border weight of arc
+'@returns - Pointer to a arc handle
+Public Function DrawArc(ByVal centerX As Long, ByVal centerY As Long, ByVal width As Long, ByVal height As Long, ByVal startAngle As Single, ByVal sweepAngle As Single, Optional ByVal fillColor As Long = 0, Optional ByVal borderColor As Long = 0, Optional ByVal borderWeight As Long = 1) As Long
+  Dim index As Long: index = getNewObject()
+  With This.objects(index)
+    .ObjectType = cvtArc
+    ReDim .ObjectParams(CanvasArcFields.[_First] To CanvasArcFields.[_Last])
+    ReDim .ObjectStyle(CanvasObjectStyles.[_First] To CanvasObjectStyles.[_Last])
+    
+    ' Set bounding box
+    .bbox.Left = centerX - width / 2
+    .bbox.Top = centerY - height / 2
+    .bbox.Right = centerX + width / 2
+    .bbox.Bottom = centerY + height / 2
+  End With
+  
+  Data(index, cvfArcCenterX) = centerX
+  Data(index, cvfArcCenterY) = centerY
+  Data(index, cvfArcWidth) = width
+  Data(index, cvfArcHeight) = height
+  Data(index, cvfArcStartAngle) = startAngle
+  Data(index, cvfArcSweepAngle) = sweepAngle
+  Style(index, cvsFillColor) = fillColor
+  Style(index, cvsLineColor) = borderColor
+  Style(index, cvsLineWidth) = borderWeight
+  
+  DrawArc = index
+End Function
+
+'Draw an ellipse
+'@param centerX - X Coord of ellipse center
+'@param centerY - Y Coord of ellipse center
+'@param width - Width of ellipse
+'@param height - Height of ellipse
+'@param fillColor - Fill color of ellipse
+'@param borderColor - Border color of ellipse
+'@param borderWeight - Border weight of ellipse
+'@returns - Pointer to an ellipse handle
+Public Function DrawEllipse(ByVal centerX As Long, ByVal centerY As Long, ByVal width As Long, ByVal height As Long, Optional ByVal fillColor As Long = 0, Optional ByVal borderColor As Long = 0, Optional ByVal borderWeight As Long = 1) As Long
+  Dim index As Long: index = getNewObject()
+  With This.objects(index)
+    .ObjectType = cvtEllipse
+    ReDim .ObjectParams(CanvasEllipseFields.[_First] To CanvasEllipseFields.[_Last])
+    ReDim .ObjectStyle(CanvasObjectStyles.[_First] To CanvasObjectStyles.[_Last])
+    
+    ' Set bounding box
+    .bbox.Left = centerX - width / 2
+    .bbox.Top = centerY - height / 2
+    .bbox.Right = centerX + width / 2
+    .bbox.Bottom = centerY + height / 2
+  End With
+  
+  Data(index, cvfEllipseCenterX) = centerX
+  Data(index, cvfEllipseCenterY) = centerY
+  Data(index, cvfEllipseWidth) = width
+  Data(index, cvfEllipseHeight) = height
+  Style(index, cvsFillColor) = fillColor
+  Style(index, cvsLineColor) = borderColor
+  Style(index, cvsLineWidth) = borderWeight
+  
+  DrawEllipse = index
+End Function
+
+
+'Draw a circle
+'@param centerX - X Coord of circle center
+'@param centerY - Y Coord of circle center
+'@param radius - Radius of circle
+'@param fillColor - Fill color of circle
+'@param borderColor - Border color of circle
+'@param borderWeight - Border weight of circle
+'@returns - Pointer to a circle handle
+Public Function DrawCircle(ByVal centerX As Long, ByVal centerY As Long, ByVal radius As Long, Optional ByVal fillColor As Long = 0, Optional ByVal borderColor As Long = 0, Optional ByVal borderWeight As Long = 1) As Long
+  DrawCircle = DrawEllipse(centerX, centerY, radius * 2, radius * 2, fillColor, borderColor, borderWeight)
+End Function
+
+
+'Draw a polygon
+'@param points - Array of points (x1, y1, x2, y2, ...)
+'@param fillColor - Fill color of polygon
+'@param borderColor - Border color of polygon
+'@param borderWeight - Border weight of polygon
+'@returns - Pointer to a polygon handle
+Public Function DrawPolygon(ByRef points() As Single, Optional ByVal fillColor As Long = 0, Optional ByVal borderColor As Long = 0, Optional ByVal borderWeight As Long = 1) As Long
+  If (UBound(points) - LBound(points) + 1) Mod 2 <> 0 Then
+    Err.Raise 5, "stdCanvas#DrawPolygon", "Points array must contain an even number of elements (x,y pairs)"
+    Exit Function
+  End If
+  
+  Dim pointCount As Long: pointCount = (UBound(points) - LBound(points) + 1) / 2
+  If pointCount < 3 Then
+    Err.Raise 5, "stdCanvas#DrawPolygon", "Polygon must have at least 3 points"
+    Exit Function
+  End If
+  
+  Dim index As Long: index = getNewObject()
+  With This.objects(index)
+    .ObjectType = cvtPolygon
+    ReDim .ObjectParams(CanvasPolygonFields.[_First] To CanvasPolygonFields.[_Last])
+    ReDim .ObjectStyle(CanvasObjectStyles.[_First] To CanvasObjectStyles.[_Last])
+    
+    ' Calculate bounding box
+    Dim minX As Single, maxX As Single, minY As Single, maxY As Single
+    minX = points(LBound(points)): maxX = points(LBound(points))
+    minY = points(LBound(points) + 1): maxY = points(LBound(points) + 1)
+    
+    Dim i As Long
+    For i = LBound(points) To UBound(points) Step 2
+      If points(i) < minX Then minX = points(i)
+      If points(i) > maxX Then maxX = points(i)
+      If points(i + 1) < minY Then minY = points(i + 1)
+      If points(i + 1) > maxY Then maxY = points(i + 1)
+    Next
+    
+    .bbox.Left = Int(minX): .bbox.Top = Int(minY)
+    .bbox.Right = Int(maxX) + 1: .bbox.Bottom = Int(maxY) + 1
+  End With
+  
+  This.objects(index).ObjectParams(cvfPolygonPoints) = points
+  This.objects(index).ObjectParams(cvfPolygonCount) = pointCount
+  Style(index, cvsFillColor) = fillColor
+  Style(index, cvsLineColor) = borderColor
+  Style(index, cvsLineWidth) = borderWeight
+  
+  DrawPolygon = index
+End Function
+
+'Get/Set the data of an object
 Public Property Get Data(ByVal handle As Long, ByVal param As Long) As Variant
   Data = This.objects(handle).ObjectParams(param)
 End Property
@@ -247,10 +452,27 @@ Public Property Let Data(ByVal handle As Long, ByVal param As Long, ByVal RHS As
           Case CanvasRectFields.cvfRectHeight
             .bbox.Bottom = .ObjectParams(CanvasRectFields.cvfRectTop) + RHS
         End Select
+      Case cvtCircle
+        Select Case param
+          Case CanvasCircleFields.cvfCircleCenterX
+            .bbox.Left = RHS - .ObjectParams(CanvasCircleFields.cvfCircleRadius)
+            .bbox.Right = RHS + .ObjectParams(CanvasCircleFields.cvfCircleRadius)
+          Case CanvasCircleFields.cvfCircleCenterY
+            .bbox.Top = RHS - .ObjectParams(CanvasCircleFields.cvfCircleRadius)
+            .bbox.Bottom = RHS + .ObjectParams(CanvasCircleFields.cvfCircleRadius)
+          Case CanvasCircleFields.cvfCircleRadius
+            Dim centerX As Long: centerX = .ObjectParams(CanvasCircleFields.cvfCircleCenterX)
+            Dim centerY As Long: centerY = .ObjectParams(CanvasCircleFields.cvfCircleCenterY)
+            .bbox.Left = centerX - RHS
+            .bbox.Top = centerY - RHS
+            .bbox.Right = centerX + RHS
+            .bbox.Bottom = centerY + RHS
+        End Select
     End Select
   End With
 End Property
 
+'Get/Set the style of an object
 Public Property Get Style(ByVal handle As Long, ByVal param As CanvasObjectStyles) As Long
   Style = This.objects(handle).ObjectStyle(param)
 End Property
@@ -268,9 +490,8 @@ Public Property Let Style(ByVal handle As Long, ByVal param As CanvasObjectStyle
   End With
 End Property
 
+'Redraw the canvas
 Public Sub Redraw()
-  Const UnitPixel As Long = 2
-  
   ' Check if buffer needs resizing
   Dim clientRect As rect
   Call GetClientRect(This.hWnd, clientRect)
@@ -278,103 +499,51 @@ Public Sub Redraw()
   Dim newHeight As Long: newHeight = clientRect.Bottom - clientRect.Top
   
   If This.bufferBitmap = 0 Or newWidth > This.bufferWidth Or newHeight > This.bufferHeight Then
-    ' Recreate buffer if needed
-    If This.bufferBitmap <> 0 Then Call DeleteObject(This.bufferBitmap)
-    If This.bufferDC <> 0 Then Call DeleteDC(This.bufferDC)
+    Call ResizeBuffer(newWidth, newHeight)
+  End If
+  
+  ' Create graphics context (buffered or direct)
+  Dim useBuffer As Boolean: useBuffer = (This.bufferBitmap <> 0)
+  
+  'Get target DC
+  Dim targetDC As LongPtr
+  If useBuffer Then
+    targetDC = This.bufferDC
+  Else
+    targetDC = This.hDC
     
-    This.bufferWidth = newWidth + 50  ' Some padding to reduce frequent resizing
-    This.bufferHeight = newHeight + 50
-    This.bufferDC = CreateCompatibleDC(This.hDC)
-    If This.bufferDC <> 0 Then
-      This.bufferBitmap = CreateCompatibleBitmap(This.hDC, This.bufferWidth, This.bufferHeight)
-      If This.bufferBitmap <> 0 Then Call SelectObject(This.bufferDC, This.bufferBitmap)
-    End If
+    'Clear canvas if not using buffer
+    If Not This.obj Is Nothing Then Call This.obj.Repaint 
   End If
-  
-  ' Use double buffering if available, otherwise fall back to direct
-  If This.bufferBitmap <> 0 Then
-    ' Create GDI+ graphics object from buffer DC
-    Dim G As LongPtr
-    If GdipCreateFromHDC(This.bufferDC, G) = 0 Then
-      ' Clear the buffer
-      Call GdipGraphicsClear(G, argb(0, 255, 255, 255))
-      
-      ' Draw all objects to the buffer
-      Dim i As Long
-      For i = 1 To This.objectsIndex
-        With This.objects(i)
-          Select Case .ObjectType
-            Case cvtRectangle
-              If .ObjectStyle(CanvasObjectStyles.[_cvsFillVisible]) Then
-                Dim fillBrush As LongPtr
-                If GdipCreateSolidFill(.ObjectStyle(cvsFillColor), fillBrush) = 0 Then
-                  Call GdipFillRectangle(G, fillBrush, .ObjectParams(cvfRectLeft), .ObjectParams(cvfRectTop), .ObjectParams(cvfRectWidth), .ObjectParams(cvfRectHeight))
-                  Call GdipDeleteBrush(fillBrush)
-                End If
-              End If
-              If .ObjectStyle(CanvasObjectStyles.[_cvsLineVisible]) Then
-                Dim strokePen As LongPtr
-                If GdipCreatePen1(.ObjectStyle(cvsLineColor), .ObjectStyle(cvsLineWidth), UnitPixel, strokePen) = 0 Then
-                  Call GdipDrawRectangle(G, strokePen, .ObjectParams(cvfRectLeft), .ObjectParams(cvfRectTop), .ObjectParams(cvfRectWidth), .ObjectParams(cvfRectHeight))
-                  Call GdipDeletePen(strokePen)
-                End If
-              End If
-          End Select
-        End With
-      Next
-      
-      Call GdipDeleteGraphics(G)
-      
-      ' Copy buffer to screen
-      Call BitBlt(This.hDC, 0, 0, newWidth, newHeight, This.bufferDC, 0, 0, SRCCOPY)
-      Exit Sub
-    End If
-  End If
-  
-  ' Fallback to direct rendering
-  Call RedrawDirect
-End Sub
 
-' Fallback method for direct rendering (without double buffering)
-Private Sub RedrawDirect()
-  Const UnitPixel As Long = 2
+  Dim graphics As LongPtr
+  If GdipCreateFromHDC(targetDC, graphics) <> 0 Then Exit Sub
   
-  Dim G As LongPtr
-  If GdipCreateFromHDC(This.hDC, G) <> 0 Then Exit Sub
+  ' Clear background if using buffer
+  Call GdipGraphicsClear(graphics, argb(255, 255, 255, 255))
   
-  If Not This.obj Is Nothing Then Call This.obj.Repaint
-  
+  ' Render all objects using unified method
   Dim i As Long
   For i = 1 To This.objectsIndex
-    With This.objects(i)
-      Select Case .ObjectType
-        Case cvtRectangle
-          If .ObjectStyle(CanvasObjectStyles.[_cvsFillVisible]) Then
-            Dim fillBrush As LongPtr
-            If GdipCreateSolidFill(.ObjectStyle(cvsFillColor), fillBrush) = 0 Then
-              Call GdipFillRectangle(G, fillBrush, .ObjectParams(cvfRectLeft), .ObjectParams(cvfRectTop), .ObjectParams(cvfRectWidth), .ObjectParams(cvfRectHeight))
-              Call GdipDeleteBrush(fillBrush)
-            End If
-          End If
-          If .ObjectStyle(CanvasObjectStyles.[_cvsLineVisible]) Then
-            Dim strokePen As LongPtr
-            If GdipCreatePen1(.ObjectStyle(cvsLineColor), .ObjectStyle(cvsLineWidth), UnitPixel, strokePen) = 0 Then
-              Call GdipDrawRectangle(G, strokePen, .ObjectParams(cvfRectLeft), .ObjectParams(cvfRectTop), .ObjectParams(cvfRectWidth), .ObjectParams(cvfRectHeight))
-              Call GdipDeletePen(strokePen)
-            End If
-          End If
-      End Select
-    End With
+    Call RenderObject(graphics, This.objects(i))
   Next
   
-  Call GdipDeleteGraphics(G)
+  Call GdipDeleteGraphics(graphics)
+  
+  ' Copy buffer to screen if double buffering
+  If useBuffer Then
+    Call BitBlt(This.hDC, 0, 0, newWidth, newHeight, This.bufferDC, 0, 0, SRCCOPY)
+  End If
 End Sub
 
-' Property to check if double buffering is available
+'Property to check if double buffering is available
+'@returns - True if double buffering is enabled, False otherwise
 Public Property Get DoubleBuffered() As Boolean
   DoubleBuffered = (This.bufferBitmap <> 0)
 End Property
 
+'Get a new object handle
+'@returns - New object handle
 Private Function getNewObject() As Long
   This.objectsIndex = This.objectsIndex + 1
   Dim ub As Long: ub = UBound(This.objects)
@@ -407,7 +576,120 @@ Public Function argb(A As Byte, R As Byte, G As Byte, B As Byte) As Long
   argb = rawValue
 End Function
 
+'Get the alpha channel from an ARGB value
+'@param u - ARGB value
+'@returns - Alpha channel (0-255)
 Private Function getAlpha(ByVal u As Double) As Byte
   If u < 0 Then u = u + 4294967296#
   getAlpha = CByte(Fix(u / 16777216#) Mod 256)
+End Function
+
+'Render an object to the graphics context
+'@param graphics - Graphics context to render to
+'@param obj - Object to render
+Private Sub RenderObject(ByVal graphics As LongPtr, ByRef obj As CanvasObject)
+  Const UnitPixel As Long = 2
+  Const FillModeAlternate As Long = 0
+  
+  With obj
+    ' Handle fill first
+    If .ObjectStyle(CanvasObjectStyles.[_cvsFillVisible]) Then
+      Dim fillBrush As LongPtr
+      If GdipCreateSolidFill(.ObjectStyle(cvsFillColor), fillBrush) = 0 Then
+        Select Case .ObjectType
+          Case cvtRectangle
+            Call GdipFillRectangle(graphics, fillBrush, _
+              .ObjectParams(cvfRectLeft), .ObjectParams(cvfRectTop), _
+              .ObjectParams(cvfRectWidth), .ObjectParams(cvfRectHeight))
+              
+          Case cvtEllipse
+            Dim ellipseX As Single: ellipseX = .ObjectParams(cvfEllipseCenterX) - .ObjectParams(cvfEllipseWidth) / 2
+            Dim ellipseY As Single: ellipseY = .ObjectParams(cvfEllipseCenterY) - .ObjectParams(cvfEllipseHeight) / 2
+            Call GdipFillEllipse(graphics, fillBrush, ellipseX, ellipseY, _
+              .ObjectParams(cvfEllipseWidth), .ObjectParams(cvfEllipseHeight))
+              
+          Case cvtArc
+            Dim arcX As Single: arcX = .ObjectParams(cvfArcCenterX) - .ObjectParams(cvfArcWidth) / 2
+            Dim arcY As Single: arcY = .ObjectParams(cvfArcCenterY) - .ObjectParams(cvfArcHeight) / 2
+            Call GdipFillPie(graphics, fillBrush, arcX, arcY, _
+              .ObjectParams(cvfArcWidth), .ObjectParams(cvfArcHeight), _
+              .ObjectParams(cvfArcStartAngle), .ObjectParams(cvfArcSweepAngle))
+              
+          Case cvtPolygon
+            Dim polyPoints() As Single: polyPoints = .ObjectParams(cvfPolygonPoints)
+            Dim polyCount As Long: polyCount = .ObjectParams(cvfPolygonCount)
+            Dim gdipPoints() As PointF: gdipPoints = ConvertToPointFArray(polyPoints, polyCount)
+            Call GdipFillPolygon(graphics, fillBrush, gdipPoints(0), polyCount, FillModeAlternate)
+        End Select
+        Call GdipDeleteBrush(fillBrush)
+      End If
+    End If
+    
+    ' Handle stroke/outline
+    If .ObjectStyle(CanvasObjectStyles.[_cvsLineVisible]) Then
+      Dim strokePen As LongPtr
+      If GdipCreatePen1(.ObjectStyle(cvsLineColor), .ObjectStyle(cvsLineWidth), UnitPixel, strokePen) = 0 Then
+        Select Case .ObjectType
+          Case cvtRectangle
+            Call GdipDrawRectangle(graphics, strokePen, _
+              .ObjectParams(cvfRectLeft), .ObjectParams(cvfRectTop), _
+              .ObjectParams(cvfRectWidth), .ObjectParams(cvfRectHeight))
+              
+          Case cvtEllipse
+            ellipseX = .ObjectParams(cvfEllipseCenterX) - .ObjectParams(cvfEllipseWidth) / 2
+            ellipseY = .ObjectParams(cvfEllipseCenterY) - .ObjectParams(cvfEllipseHeight) / 2
+            Call GdipDrawEllipse(graphics, strokePen, ellipseX, ellipseY, _
+              .ObjectParams(cvfEllipseWidth), .ObjectParams(cvfEllipseHeight))
+              
+          Case cvtArc
+            arcX = .ObjectParams(cvfArcCenterX) - .ObjectParams(cvfArcWidth) / 2
+            arcY = .ObjectParams(cvfArcCenterY) - .ObjectParams(cvfArcHeight) / 2
+            Call GdipDrawArc(graphics, strokePen, arcX, arcY, _
+              .ObjectParams(cvfArcWidth), .ObjectParams(cvfArcHeight), _
+              .ObjectParams(cvfArcStartAngle), .ObjectParams(cvfArcSweepAngle))
+              
+          Case cvtPolygon
+            polyPoints = .ObjectParams(cvfPolygonPoints)
+            polyCount = .ObjectParams(cvfPolygonCount)
+            gdipPoints = ConvertToPointFArray(polyPoints, polyCount)
+            Call GdipDrawPolygon(graphics, strokePen, gdipPoints(0), polyCount)
+        End Select
+        Call GdipDeletePen(strokePen)
+      End If
+    End If
+  End With
+End Sub
+
+'Resize the double buffer to the new dimensions
+'@param newWidth - New width of the buffer
+'@param newHeight - New height of the buffer
+Private Sub ResizeBuffer(ByVal newWidth As Long, ByVal newHeight As Long)
+  If This.bufferBitmap <> 0 Then Call DeleteObject(This.bufferBitmap)
+  If This.bufferDC <> 0 Then Call DeleteDC(This.bufferDC)
+  
+  This.bufferWidth = newWidth
+  This.bufferHeight = newHeight
+  
+  This.bufferDC = CreateCompatibleDC(This.hDC)
+  If This.bufferDC <> 0 Then
+    This.bufferBitmap = CreateCompatibleBitmap(This.hDC, This.bufferWidth, This.bufferHeight)
+    If This.bufferBitmap <> 0 Then
+      Call SelectObject(This.bufferDC, This.bufferBitmap)
+    End If
+  End If
+End Sub
+
+'Convert an array of points to an array of PointF structures
+'@param points - Array of points
+'@param count - Number of points
+'@returns - Array of PointF structures
+Private Function ConvertToPointFArray(ByRef points() As Single, ByVal count As Long) As PointF()
+  Dim gdipPoints() As PointF
+  ReDim gdipPoints(0 To count - 1)
+  Dim j As Long
+  For j = 0 To count - 1
+    gdipPoints(j).x = points(LBound(points) + j * 2)
+    gdipPoints(j).y = points(LBound(points) + j * 2 + 1)
+  Next
+  ConvertToPointFArray = gdipPoints
 End Function
