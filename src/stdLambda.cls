@@ -1145,7 +1145,7 @@ End Function
 Private Function evaluate(ByRef ops() As Operation, ByVal vLastArgs As Variant) As Variant
     Dim stack() As Variant
     ReDim stack(0 To 5)
-    Dim stackPtr As Long: stackPtr = 0
+    Dim stackPtr As Long: stackPtr = 0 ' Changed to Long
     
     Dim op As Operation
     Dim v1 As Variant
@@ -1154,228 +1154,257 @@ Private Function evaluate(ByRef ops() As Operation, ByVal vLastArgs As Variant) 
     Dim opIndex As Long: opIndex = 0
     Dim opCount As Long: opCount = UBound(ops)
     
-    'If result is in performance cache then return it immediately
-    if this.UsePerformanceCache then
-        Dim sPerformanceCacheID as string: sPerformanceCacheID = getPerformanceCacheID(vLastArgs)     
-        if this.PerformanceCache.exists(sPerformanceCacheID) then
-            Call CopyVariant(evaluate, this.PerformanceCache(sPerformanceCacheID))
+    ' Temporary variables for GoSub stack operations
+    Dim tempItemToPush As Variant
+    Dim tempPoppedItem As Variant
+    Dim tempArgs() As Variant
+    
+    ' If result is in performance cache then return it immediately
+    If This.UsePerformanceCache Then
+        Dim sPerformanceCacheID As String: sPerformanceCacheID = getPerformanceCacheID(vLastArgs)
+        If This.PerformanceCache.exists(sPerformanceCacheID) Then
+            Call CopyVariant(evaluate, This.PerformanceCache(sPerformanceCacheID))
             Exit Function
-        end if
-    end if
+        End If
+    End If
 
-    'Evaluate operations to identify result
+    ' Evaluate operations to identify result
     While opIndex <= opCount
         op = ops(opIndex)
         opIndex = opIndex + 1
         
-        'The following is a jump table for operations. This is significantly faster than using a `select case` statement. The label order must be identical to the enum order.
-        'Recommend generating this call using the following regex and list operation:
-        'Regex: "    i(\w+)"
-        'List:  "lbl$1, "
-        On op.Instruction GoTo lblPush, lblPop, lblMerge, lblAccess_General, lblAccess_Argument, lblSet_General, lblArithmetic_Add, lblArithmetic_Subtract, lblArithmetic_Multiply, lblArithmetic_Divide, lblArithmetic_Power, lblArithmetic_Modulo, lblArithmetic_Negate, lblLogic_And, lblLogic_Or, lblLogic_Not, lblLogic_Xor, lblFunc_Call, lblComparison_Equal, lblComparison_NotEqual, lblComparison_GreaterThan, lblComparison_GreaterThanOrEqual, lblComparison_LessThan, lblComparison_LessThanOrEqual, lblComparison_Like, lblComparison_Is, lblMisc_Concatenate, lblJump_Unconditional, lblJump_IfTrue, lblJump_IfFalse, lblReturn_WithValue, lblReturn_NoValue, lblObject_PropGet, lblObject_PropLet, lblObject_PropSet, lblObject_MethodCall, lblObject_FieldCall, lblEndLoop
+        ' The following is a jump table for operations. This is significantly faster than using a `select case` statement. The label order must be identical to the enum order.
+        ' Recommend generating this call using the following regex and list operation:
+        ' Regex: "    i(\w+)"
+        ' List:  "lbl$1, "
+        On op.instruction GoTo lblPush, lblPop, lblMerge, lblAccess_General, lblAccess_Argument, lblSet_General, lblArithmetic_Add, lblArithmetic_Subtract, lblArithmetic_Multiply, lblArithmetic_Divide, lblArithmetic_Power, lblArithmetic_Modulo, lblArithmetic_Negate, lblLogic_And, lblLogic_Or, lblLogic_Not, lblLogic_Xor, lblFunc_Call, lblComparison_Equal, lblComparison_NotEqual, lblComparison_GreaterThan, lblComparison_GreaterThanOrEqual, lblComparison_LessThan, lblComparison_LessThanOrEqual, lblComparison_Like, lblComparison_Is, lblMisc_Concatenate, lblJump_Unconditional, lblJump_IfTrue, lblJump_IfFalse, lblReturn_WithValue, lblReturn_NoValue, lblObject_PropGet, lblObject_PropLet, lblObject_PropSet, lblObject_MethodCall, lblObject_FieldCall, lblEndLoop
         
-        'If not handled by the above, there are 2 options:
-        'If zero then it is an end of loop instruction, skip it
-        'If >0 then it is an unknown instruction, skip it
-        if op.instruction = 0 then
-            opIndex = opCount+1
-            GoTo lblEndLoop
-        else 
-            Throw "Unknown instruction in Lambda Virtual Machine: " & op.Instruction
+        ' If not handled by the above, there are 2 options:
+        ' If zero then it is an end of loop instruction, skip it
+        ' If >0 then it is an unknown instruction, skip it
+        If op.instruction = 0 Then
+            opIndex = opCount + 1
+            GoTo lblEndLoop ' Jump to the end of the loop
+        Else
+            Throw "Unknown instruction in Lambda Virtual Machine: " & op.instruction
             Exit Function
-        end if
+        End If
 
-        'NOTE: The following labels are in declaration order, but this has no effect on evaluation. The labels are in their current order purely for readability.
+        ' NOTE: The following labels are in declaration order, but this has no effect on evaluation. The labels are in their current order purely for readability.
 lblPush:
-        Call pushV(stack, stackPtr, op.value)
+        tempItemToPush = op.value ' Assign value to temp variable
+        GoSub SPushV
         GoTo lblEndLoop
 
 lblPop:
-        Call popV(stack, stackPtr)
+        GoSub SPopV ' Call GoSub to pop
+        ' tempPoppedItem now holds the popped value, use it as needed
         GoTo lblEndLoop
 
 lblMerge:
-        Call CopyVariant(v1, popV(stack, stackPtr))
+        GoSub SPopV: Call CopyVariant(v1, tempPoppedItem)
         Call CopyVariant(stack(stackPtr - 1), v1)
         GoTo lblEndLoop
 
 lblAccess_General:
-        'HACK: bug where if stack(stackPtr-op.value) was an object, then array will become locked. Array locking occurs by compiler to try to protect
-        'instances when re-allocation would move the array, and thus corrupt the pointers. By copying the variant we redivert the compiler's efforts,
-        'but we might actually open ourselves to errors... @issue
+        ' HACK: bug where if stack(stackPtr-op.value) was an object, then array will become locked. Array locking occurs by compiler to try to protect
+        ' instances when re-allocation would move the array, and thus corrupt the pointers. By copying the variant we redivert the compiler's efforts,
+        ' but we might actually open ourselves to errors... @issue
         Dim vAccessVar As Variant: Call CopyVariant(vAccessVar, stack(stackPtr - op.value))
-        Call pushV(stack, stackPtr, vAccessVar)
+        tempItemToPush = vAccessVar ' Assign value to temp variable for push
+        GoSub SPushV
         GoTo lblEndLoop
 
 lblAccess_Argument:
         Dim iArgIndex As Long: iArgIndex = op.value + LBound(vLastArgs) - 1
         If iArgIndex <= UBound(vLastArgs) Then
-            Call pushV(stack, stackPtr, vLastArgs(iArgIndex))
+            tempItemToPush = vLastArgs(iArgIndex) ' Assign value to temp variable for push
+            GoSub SPushV
         Else
             Call Throw("Argument " & iArgIndex & " not supplied to Lambda.")
         End If
         GoTo lblEndLoop
 
 lblSet_General:
-        v1 = popV(stack, stackPtr)
+        GoSub SPopV: v1 = tempPoppedItem
         stack(stackPtr - op.value) = v1
         GoTo lblEndLoop
 
 lblFunc_Call:
-        Dim args() As Variant
-        args = getArgs(stack, stackPtr)
-        v1 = popV(stack, stackPtr)
-        Call pushV(stack, stackPtr, evaluateFunc(v1, args))
+        tempArgs = getArgs(stack, stackPtr) ' getArgs likely still uses popV internally
+        GoSub SPopV: v1 = tempPoppedItem ' Function object/pointer
+        tempItemToPush = evaluateFunc(v1, tempArgs)
+        GoSub SPushV
         GoTo lblEndLoop
 
 lblArithmetic_Add:
-        v2 = popV(stack, stackPtr)
-        v1 = popV(stack, stackPtr)
-        Call pushV(stack, stackPtr, v1 + v2)
+        GoSub SPopV: v2 = tempPoppedItem
+        GoSub SPopV: v1 = tempPoppedItem
+        tempItemToPush = v1 + v2
+        GoSub SPushV
         GoTo lblEndLoop
 
 lblArithmetic_Subtract:
-        v2 = popV(stack, stackPtr)
-        v1 = popV(stack, stackPtr)
-        Call pushV(stack, stackPtr, v1 - v2)
+        GoSub SPopV: v2 = tempPoppedItem
+        GoSub SPopV: v1 = tempPoppedItem
+        tempItemToPush = v1 - v2
+        GoSub SPushV
         GoTo lblEndLoop
 
 lblArithmetic_Multiply:
-        v2 = popV(stack, stackPtr)
-        v1 = popV(stack, stackPtr)
-        Call pushV(stack, stackPtr, v1 * v2)
+        GoSub SPopV: v2 = tempPoppedItem
+        GoSub SPopV: v1 = tempPoppedItem
+        tempItemToPush = v1 * v2
+        GoSub SPushV
         GoTo lblEndLoop
 
 lblArithmetic_Divide:
-        v2 = popV(stack, stackPtr)
-        v1 = popV(stack, stackPtr)
-        Call pushV(stack, stackPtr, v1 / v2)
+        GoSub SPopV: v2 = tempPoppedItem
+        GoSub SPopV: v1 = tempPoppedItem
+        tempItemToPush = v1 / v2
+        GoSub SPushV
         GoTo lblEndLoop
 
 lblArithmetic_Power:
-        v2 = popV(stack, stackPtr)
-        v1 = popV(stack, stackPtr)
-        Call pushV(stack, stackPtr, v1 ^ v2)
+        GoSub SPopV: v2 = tempPoppedItem
+        GoSub SPopV: v1 = tempPoppedItem
+        tempItemToPush = v1 ^ v2
+        GoSub SPushV
         GoTo lblEndLoop
 
 lblArithmetic_Modulo:
-        v2 = popV(stack, stackPtr)
-        v1 = popV(stack, stackPtr)
-        Call pushV(stack, stackPtr, v1 Mod v2)
+        GoSub SPopV: v2 = tempPoppedItem
+        GoSub SPopV: v1 = tempPoppedItem
+        tempItemToPush = v1 Mod v2
+        GoSub SPushV
         GoTo lblEndLoop
 
 lblArithmetic_Negate:
-        v2 = popV(stack, stackPtr)
-        Call pushV(stack, stackPtr, -v2)
+        GoSub SPopV: v2 = tempPoppedItem
+        tempItemToPush = -v2
+        GoSub SPushV
         GoTo lblEndLoop
 
 lblLogic_And:
-        v2 = popV(stack, stackPtr)
-        v1 = popV(stack, stackPtr)
-        Call pushV(stack, stackPtr, v1 And v2)
+        GoSub SPopV: v2 = tempPoppedItem
+        GoSub SPopV: v1 = tempPoppedItem
+        tempItemToPush = v1 And v2
+        GoSub SPushV
         GoTo lblEndLoop
 
 lblLogic_Or:
-        v2 = popV(stack, stackPtr)
-        v1 = popV(stack, stackPtr)
-        Call pushV(stack, stackPtr, v1 Or v2)
+        GoSub SPopV: v2 = tempPoppedItem
+        GoSub SPopV: v1 = tempPoppedItem
+        tempItemToPush = v1 Or v2
+        GoSub SPushV
         GoTo lblEndLoop
 
 lblLogic_Not:
-        v2 = popV(stack, stackPtr)
-        Call pushV(stack, stackPtr, Not v2)
+        GoSub SPopV: v2 = tempPoppedItem
+        tempItemToPush = Not v2
+        GoSub SPushV
         GoTo lblEndLoop
 
 lblLogic_Xor:
-        v2 = popV(stack, stackPtr)
-        v1 = popV(stack, stackPtr)
-        Call pushV(stack, stackPtr, v1 Xor v2)
+        GoSub SPopV: v2 = tempPoppedItem
+        GoSub SPopV: v1 = tempPoppedItem
+        tempItemToPush = v1 Xor v2
+        GoSub SPushV
         GoTo lblEndLoop
 
 lblComparison_Equal:
-        Call CopyVariant(v2, popV(stack, stackPtr))
-        Call CopyVariant(v1, popV(stack, stackPtr))
-        if (vartype(v1) = vbError or vartype(v2) = vbError) then
-            Call pushV(stack, stackPtr, false)
-        else
-            Call pushV(stack, stackPtr, v1 = v2)
-        end if
+        GoSub SPopV: Call CopyVariant(v2, tempPoppedItem)
+        GoSub SPopV: Call CopyVariant(v1, tempPoppedItem)
+        If (VarType(v1) = vbError Or VarType(v2) = vbError) Then
+            tempItemToPush = False
+        Else
+            tempItemToPush = (v1 = v2)
+        End If
+        GoSub SPushV
         GoTo lblEndLoop
 
 lblComparison_NotEqual:
-        Call CopyVariant(v2, popV(stack, stackPtr))
-        Call CopyVariant(v1, popV(stack, stackPtr))
-        if (vartype(v1) = vbError or vartype(v2) = vbError) then
-            Call pushV(stack, stackPtr, false)
-        else
-            Call pushV(stack, stackPtr, v1 <> v2)
-        end if
+        GoSub SPopV: Call CopyVariant(v2, tempPoppedItem)
+        GoSub SPopV: Call CopyVariant(v1, tempPoppedItem)
+        If (VarType(v1) = vbError Or VarType(v2) = vbError) Then
+            tempItemToPush = False
+        Else
+            tempItemToPush = (v1 <> v2)
+        End If
+        GoSub SPushV
         GoTo lblEndLoop
 
 lblComparison_GreaterThan:
-        Call CopyVariant(v2, popV(stack, stackPtr))
-        Call CopyVariant(v1, popV(stack, stackPtr))
-        if (vartype(v1) = vbError or vartype(v2) = vbError) then
-            Call pushV(stack, stackPtr, false)
-        else
-            Call pushV(stack, stackPtr, v1 > v2)
-        end if
+        GoSub SPopV: Call CopyVariant(v2, tempPoppedItem)
+        GoSub SPopV: Call CopyVariant(v1, tempPoppedItem)
+        If (VarType(v1) = vbError Or VarType(v2) = vbError) Then
+            tempItemToPush = False
+        Else
+            tempItemToPush = (v1 > v2)
+        End If
+        GoSub SPushV
         GoTo lblEndLoop
 
 lblComparison_GreaterThanOrEqual:
-        Call CopyVariant(v2, popV(stack, stackPtr))
-        Call CopyVariant(v1, popV(stack, stackPtr))
-        if (vartype(v1) = vbError or vartype(v2) = vbError) then
-            Call pushV(stack, stackPtr, false)
-        else
-            Call pushV(stack, stackPtr, v1 >= v2)
-        end if
+        GoSub SPopV: Call CopyVariant(v2, tempPoppedItem)
+        GoSub SPopV: Call CopyVariant(v1, tempPoppedItem)
+        If (VarType(v1) = vbError Or VarType(v2) = vbError) Then
+            tempItemToPush = False
+        Else
+            tempItemToPush = (v1 >= v2)
+        End If
+        GoSub SPushV
         GoTo lblEndLoop
 
 lblComparison_LessThan:
-        Call CopyVariant(v2, popV(stack, stackPtr))
-        Call CopyVariant(v1, popV(stack, stackPtr))
-        if (vartype(v1) = vbError or vartype(v2) = vbError) then
-            Call pushV(stack, stackPtr, false)
-        else
-            Call pushV(stack, stackPtr, v1 < v2)
-        end if
+        GoSub SPopV: Call CopyVariant(v2, tempPoppedItem)
+        GoSub SPopV: Call CopyVariant(v1, tempPoppedItem)
+        If (VarType(v1) = vbError Or VarType(v2) = vbError) Then
+            tempItemToPush = False
+        Else
+            tempItemToPush = (v1 < v2)
+        End If
+        GoSub SPushV
         GoTo lblEndLoop
 
 lblComparison_LessThanOrEqual:
-        Call CopyVariant(v2, popV(stack, stackPtr))
-        Call CopyVariant(v1, popV(stack, stackPtr))
-        if (vartype(v1) = vbError or vartype(v2) = vbError) then
-            Call pushV(stack, stackPtr, false)
-        else
-            Call pushV(stack, stackPtr, v1 <= v2)
-        end if
+        GoSub SPopV: Call CopyVariant(v2, tempPoppedItem)
+        GoSub SPopV: Call CopyVariant(v1, tempPoppedItem)
+        If (VarType(v1) = vbError Or VarType(v2) = vbError) Then
+            tempItemToPush = False
+        Else
+            tempItemToPush = (v1 <= v2)
+        End If
+        GoSub SPushV
         GoTo lblEndLoop
 
 lblComparison_Like:
-        Call CopyVariant(v2, popV(stack, stackPtr))
-        Call CopyVariant(v1, popV(stack, stackPtr))
-        if (vartype(v1) = vbError or vartype(v2) = vbError) then
-            Call pushV(stack, stackPtr, false)
-        else
-            Call pushV(stack, stackPtr, v1 Like v2)
-        end if
+        GoSub SPopV: Call CopyVariant(v2, tempPoppedItem)
+        GoSub SPopV: Call CopyVariant(v1, tempPoppedItem)
+        If (VarType(v1) = vbError Or VarType(v2) = vbError) Then
+            tempItemToPush = False
+        Else
+            tempItemToPush = (v1 Like v2)
+        End If
+        GoSub SPushV
         GoTo lblEndLoop
 
 lblComparison_Is:
-        Call CopyVariant(v2, popV(stack, stackPtr))
-        Call CopyVariant(v1, popV(stack, stackPtr))
-        if (vartype(v1) = vbError or vartype(v2) = vbError) then
-            Call pushV(stack, stackPtr, false)
-        else
-            Call pushV(stack, stackPtr, v1 is v2)
-        end if
+        GoSub SPopV: Call CopyVariant(v2, tempPoppedItem)
+        GoSub SPopV: Call CopyVariant(v1, tempPoppedItem)
+        If (VarType(v1) = vbError Or VarType(v2) = vbError) Then
+            tempItemToPush = False
+        Else
+            tempItemToPush = (v1 Is v2)
+        End If
+        GoSub SPushV
         GoTo lblEndLoop
 
 lblMisc_Concatenate:
-        v2 = popV(stack, stackPtr)
-        v1 = popV(stack, stackPtr)
-        Call pushV(stack, stackPtr, v1 & v2)
+        GoSub SPopV: v2 = tempPoppedItem
+        GoSub SPopV: v1 = tempPoppedItem
+        tempItemToPush = v1 & v2
+        GoSub SPushV
         GoTo lblEndLoop
 
 lblJump_Unconditional:
@@ -1383,27 +1412,27 @@ lblJump_Unconditional:
         GoTo lblEndLoop
 
 lblJump_IfTrue:
-        v1 = popV(stack, stackPtr)
+        GoSub SPopV: v1 = tempPoppedItem
         If v1 Then
             opIndex = op.value
         End If
         GoTo lblEndLoop
 
 lblJump_IfFalse:
-        v1 = popV(stack, stackPtr)
+        GoSub SPopV: v1 = tempPoppedItem
         If Not v1 Then
             opIndex = op.value
         End If
         GoTo lblEndLoop
 
 lblReturn_WithValue:
-        Call CopyVariant(v1, popV(stack, stackPtr)) 'Get the return value
+        GoSub SPopV
         opIndex = stack(stackPtr - 1) 'Get the return position
-        Call CopyVariant(stack(stackPtr - 1), v1) 'Set the return value
+        Call CopyVariant(stack(stackPtr - 1), tempPoppedItem) 'Set the return value
         GoTo lblEndLoop
 
 lblReturn_NoValue:
-        opIndex = popV(stack, stackPtr) 'Get and Set the return position
+        opIndex = stack(stackPtr - 1) 'Get and Set the return position (no pop as it's a fixed index)
         GoTo lblEndLoop
         
 lblObject_PropGet:
@@ -1411,21 +1440,92 @@ lblObject_PropLet:
 lblObject_PropSet:
 lblObject_MethodCall:
 lblObject_FieldCall:
-        Call objectCaller(stack, stackPtr, op)
+        'Get the name and arguments
+        Dim bIsSetter as boolean: bIsSetter = op.Instruction = iObject_PropSet or iObject_PropLet
+        Dim iOriginalPos as long: iOriginalPos = stackPtr 
+        stackPtr = stackPtr - iif(bIsSetter, 1, 0)
+        tempArgs = getArgs(stack, stackPtr)
+        if bIsSetter then
+            Redim Preserve tempArgs(0 To UBound(tempArgs) + 1)
+            Call CopyVariant(tempArgs(UBound(tempArgs)), stack(iOriginalPos - 1))
+            #if devMode then
+                stack(iOriginalPos - 1) = empty
+            #end if
+        end if
+
+        GoSub SPopV ' Pop the function name
+        Dim funcName As Variant: funcName = tempPoppedItem
+        
+        'Get caller type
+        Dim callerType As VbCallType
+        Select Case op.subType
+            Case iObject_FieldCall:   callerType = vbGetOrMethod
+            Case iObject_PropGet:     callerType = VbGet
+            Case iObject_MethodCall:  callerType = VbMethod
+            Case iObject_PropLet:     callerType = VbLet
+            Case iObject_PropSet:     callerType = VbSet
+        End Select
+                    
+        'Call rtcCallByName
+        GoSub SPopV
+        Dim objToCall As Object: Set objToCall = tempPoppedItem
+        if bIsSetter then
+            Call stdCallByName(objToCall, funcName, callerType, tempArgs)
+            Call CopyVariant(tempItemToPush, tempArgs(UBound(tempArgs))) ' Set the return value to the RHS of the assignment 
+        else
+            Call CopyVariant(tempItemToPush, stdCallByName(objToCall, funcName, callerType, tempArgs)) 'Obtain the return value
+        end if
+        GoSub SPushV
         GoTo lblEndLoop
+
 lblEndLoop:
     Wend
 
-    'Add result to performance cache
-    if this.UsePerformanceCache then
-        if isObject(stack(0)) then
-            set this.PerformanceCache(sPerformanceCacheID) = stack(0)
-        else
-            let this.PerformanceCache(sPerformanceCacheID) = stack(0)
-        end if
-    end if
+    ' Add result to performance cache
+    If This.UsePerformanceCache Then
+        GoSub SPopV: Call CopyVariant(v1, tempPoppedItem) ' Get final result from stack
+        If isObject(v1) Then
+            Set This.PerformanceCache(sPerformanceCacheID) = v1
+        Else
+            Let This.PerformanceCache(sPerformanceCacheID) = v1
+        End If
+    End If
 
-    Call CopyVariant(evaluate, stack(0))
+    GoSub SPopV: Call CopyVariant(evaluate, tempPoppedItem) ' Final result is the top of the stack
+
+    Exit Function ' Exit evaluate function normally
+
+' --- GoSub Routines for Stack Operations ---
+Dim size As Long
+SPushV:
+    size = UBound(stack)
+    If stackPtr > size Then
+        ReDim Preserve stack(0 To size * 2)
+    End If
+    If isObject(tempItemToPush) Then
+        Set stack(stackPtr) = tempItemToPush
+    Else
+        stack(stackPtr) = tempItemToPush
+    End If
+    stackPtr = stackPtr + 1
+    Return
+
+SPopV:
+    size = UBound(stack)
+    If stackPtr < size / 3 And stackPtr > minStackSize Then ' minStackSize is global or module-level
+        ReDim Preserve stack(0 To CLng(size / 2))
+    End If
+    stackPtr = stackPtr - 1
+    If isObject(stack(stackPtr)) Then
+        Set tempPoppedItem = stack(stackPtr)
+    Else
+        tempPoppedItem = stack(stackPtr)
+    End If
+    ' #If devMode Then
+    '     stack(stackPtr) = Empty ' Only if devMode is True and you need this for debugging
+    ' #End If
+    Return
+
 End Function
 
 'Retrieves the arguments from the stack
@@ -1441,7 +1541,7 @@ Private Function getArgs(ByRef stack() As Variant, ByRef stackPtr As Long) As Va
         args = Array()
     Else
         'If an argument count is provided, extract all arguments into an array
-        Call popV(stack, stackPtr)
+        Call (stack, stackPtr)
         ReDim args(1 To argCount)
         
         'Arguments are held on the stack in order, which means that we need to fill the array in reverse order.
@@ -1452,47 +1552,6 @@ Private Function getArgs(ByRef stack() As Variant, ByRef stackPtr As Long) As Va
     
     getArgs = args
 End Function
-
-'Calls an object method/setter/getter/letter
-'@param stack    - The stack to get the data from and add the result to
-'@param stackPtr - The pointer that indicates the position of the top of the stack
-'@param op       - The operation to execute
-Private Sub objectCaller(ByRef stack() As Variant, ByRef stackPtr As Long, ByRef op As Operation)
-    'Get the name and arguments
-    Dim bIsSetter as boolean: bIsSetter = op.subType = ISubType.oPropSet or op.subType = ISubType.oPropLet
-    Dim iOriginalPos as long: iOriginalPos = stackPtr 
-    stackPtr = stackPtr - iif(bIsSetter, 1, 0)
-    Dim args() As Variant: args = getArgs(stack, stackPtr)
-    if bIsSetter then
-        Redim Preserve args(0 To UBound(args) + 1)
-        Call CopyVariant(args(UBound(args)), stack(iOriginalPos - 1))
-        #if devMode then
-            stack(iOriginalPos - 1) = empty
-        #end if
-    end if
-
-    Dim funcName As Variant: funcName = popV(stack, stackPtr)
-    
-    'Get caller type
-    Dim callerType As VbCallType
-    Select Case op.subType
-        Case ISubType.oFieldCall:   callerType = vbGetOrMethod
-        Case ISubType.oPropGet:     callerType = VbGet
-        Case ISubType.oMethodCall:  callerType = VbMethod
-        Case ISubType.oPropLet:     callerType = VbLet
-        Case ISubType.oPropSet:     callerType = VbSet
-    End Select
-                
-    'Call rtcCallByName
-    Dim obj As Object
-    Set obj = popV(stack, stackPtr)
-    if bIsSetter then
-        Call stdCallByName(obj, funcName, callerType, args)
-        Call pushV(stack, stackPtr, args(UBound(args))) 'Return the value that was set
-    else
-        Call pushV(stack, stackPtr, stdCallByName(obj, funcName, callerType, args))
-    end if
-End Sub
 
 'Calls an object method/setter/getter/letter. Treats dictionary properties as direct object properties, I.E. `A.B` ==> `A.item("B")`
 '@param obj - The object to call
