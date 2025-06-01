@@ -115,63 +115,6 @@ Private Enum IInstruction
     iEndLoop
 End Enum
 
-
-Private Enum iType
-    oPush = 1
-    oPop = 2
-    oMerge = 3
-    oAccess = 4
-    oSet = 5
-    oArithmetic = 6
-    oLogic = 7
-    oFunc = 8
-    oComparison = 9
-    oMisc = 10
-    oJump = 11
-    oReturn = 12
-    oObject = 13
-End Enum
-Private Enum ISubType
-    'Arithmetic
-    oAdd = 1
-    oSub = 2
-    oMul = 3
-    oDiv = 4
-    oPow = 5
-    oNeg = 6
-    oMod = 7
-    'Logic
-    oAnd = 8
-    oOr = 9
-    oNot = 10
-    oXor = 11
-    'comparison
-    oEql = 12
-    oNeq = 13
-    oLt = 14
-    oLte = 15
-    oGt = 16
-    oGte = 17
-    oIs = 18
-    'misc operators
-    oCat = 19
-    oLike = 20
-    'misc
-    ifTrue = 21
-    ifFalse = 22
-    withValue = 23
-    argument = 24
-    'object
-    oPropGet = 25
-    oPropLet = 26
-    oPropSet = 27
-    oMethodCall = 28
-    oFieldCall = 29
-    oEquality = 30    'Yet to be implemented
-    oIsOperator = 31  'Yet to be implemented
-    oEnum = 32        'Yet to be implemented
-End Enum
-
 Private Enum LambdaType
     iStandardLambda = 1
     iBoundLambda = 2
@@ -1194,7 +1137,13 @@ Private Function evaluate(ByRef ops() As Operation, ByVal vLastArgs As Variant) 
 
         ' NOTE: The following labels are in declaration order, but this has no effect on evaluation. The labels are in their current order purely for readability.
 lblPush:
-        tempItemToPush = op.value ' Assign value to temp variable
+        'Inline `CopyVariant` for performance, as this is a very common operation
+        if isObject(op.value) Then
+            set tempItemToPush = op.value
+        else
+            tempItemToPush = op.value ' Assign value to temp variable
+        end if
+
         GoSub StackPush
         GoTo lblEndLoop
 
@@ -1205,8 +1154,7 @@ lblPop:
 
 lblMerge:
         GoSub StackPop: idxV1 = tempPoppedLoc
-        Call CopyVariant(v1, stack(idxV1))
-        Call CopyVariant(stack(stackPtr - 1), v1)
+        Call CopyVariant(stack(stackPtr - 1), stack(idxV1))
         GoTo lblEndLoop
 
 lblAccess_General:
@@ -1218,7 +1166,12 @@ lblAccess_General:
 lblAccess_Argument:
         Dim iArgIndex As Long: iArgIndex = op.value + LBound(vLastArgs) - 1
         If iArgIndex <= UBound(vLastArgs) Then
-            tempItemToPush = vLastArgs(iArgIndex) ' Assign value to temp variable for push
+            'Inline `CopyVariant` for performance, as this is a very common operation
+            if isObject(vLastArgs(iArgIndex)) Then
+                set tempItemToPush = vLastArgs(iArgIndex) ' Assign object reference to temp variable for push
+            else
+                tempItemToPush = vLastArgs(iArgIndex) ' Assign value to temp variable for push
+            end if
             GoSub StackPush
         Else
             Call Throw("Argument " & iArgIndex & " not supplied to Lambda.")
@@ -1231,7 +1184,7 @@ lblSet_General:
         GoTo lblEndLoop
 
 lblFunc_Call:
-        GoSub SGetArgs ' Get arguments from stack
+        GoSub StackGetFunctionArgs ' Get arguments from stack, writes output to `tempArgs`
         GoSub StackPop: idxV1 = tempPoppedLoc ' Function object/pointer index
         tempItemToPush = evaluateFunc(stack(idxV1), tempArgs) ' Pass actual value
         GoSub StackPush
@@ -1444,7 +1397,7 @@ lblObject_FieldCall:
         Dim bIsSetter As Boolean: bIsSetter = op.Instruction = iObject_PropSet Or op.Instruction = iObject_PropLet 'Corrected for op.Instruction usage
         Dim iOriginalPos As Long: iOriginalPos = stackPtr 
         stackPtr = stackPtr - IIf(bIsSetter, 1, 0)
-        GoSub SGetArgs ' Get arguments from stack
+        GoSub StackGetFunctionArgs ' Get arguments from stack, writes output to `tempArgs`
 
         If bIsSetter Then
             ReDim Preserve tempArgs(0 To UBound(tempArgs) + 1)
@@ -1459,7 +1412,7 @@ lblObject_FieldCall:
         
         'Get caller type
         Dim callerType As VbCallType
-        Select Case op.subType
+        Select Case op.instruction
             Case iObject_FieldCall:   callerType = VbGetOrMethod
             Case iObject_PropGet:     callerType = VbGet
             Case iObject_MethodCall:  callerType = VbMethod
@@ -1508,11 +1461,14 @@ StackPush:
     If stackPtr > size Then
         ReDim Preserve stack(0 To size * 2)
     End If
+    
+    'Inline CopyVariant for performance, as this is a very common operation
     If isObject(tempItemToPush) Then
         Set stack(stackPtr) = tempItemToPush
     Else
         stack(stackPtr) = tempItemToPush
     End If
+    
     stackPtr = stackPtr + 1
     Return
 
@@ -1530,35 +1486,28 @@ StackPop:
 
     ' Store the index of the item that is *about to be* popped
     tempPoppedLoc = stackPtr
-
-    ' For debugging or explicit cleanup of object references
-    #If devMode Then
-        stack(tempPoppedLoc) = Empty
-    #End If
     
     Return
 
 ' --- GoSub Routine for Get Arguments ---
-SGetArgs:
-    Dim argCount As Variant ' Can be a number or a string if no args
-    GoSub StackPop: argCount = stack(tempPoppedLoc) ' Get argCount from stack
+StackGetFunctionArgs:
+    'This value will either be the number of arguments to be passed to the function, or the name of the function itself (if no arguments are passed).
+    Dim argCount As Variant: argCount = stack(stackPtr - 1) ' Get argCount from stack, without popping it
     
+    'If argCount is a string, it means that no arguments were passed, and we should treat it as an empty array. Else
+    'it is a number indicating the number of arguments to be passed.
     If VarType(argCount) = vbString Then
-        ' If no argument count is specified (empty string), there are no arguments
-        argCount = 0
         tempArgs = Array()
     Else
-        ' If an argument count is provided, extract all arguments into an array
-        ' ReDim tempArgs(1 To argCount) (will be 0 to argCount-1 if 0-based, or 0 to argCount if 1-based and 1-based args)
-        ' Assuming 0-based for tempArgs internal
+        GoSub StackPop ' Pop the argCount from stack, no need to transfer from `tempPoppedLoc` again. 
         ReDim tempArgs(1 To argCount) 
         
         ' Arguments are held on the stack in order, which means that we need to fill the array in reverse order.
-        Dim iArgIndex as Long
-        For iArgIndex = argCount To 1 Step -1
+        Dim iParamIndex as Long
+        For iParamIndex = argCount To 1 Step -1
             GoSub StackPop
-            Call CopyVariant(tempArgs(iArgIndex), stack(tempPoppedLoc)) ' Copy argument value from stack
-        Next iArgIndex
+            Call CopyVariant(tempArgs(iParamIndex), stack(tempPoppedLoc)) ' Copy argument value from stack
+        Next iParamIndex
     End If
     
     Return
@@ -2016,39 +1965,6 @@ Private Sub finishOperations()
     ReDim Preserve this.operations(0 To this.iOperationIndex)
 End Sub
 
-'----------
-'evaluation
-'----------
-
-Private Sub pushV(ByRef stack() As Variant, ByRef index As Long, ByVal item As Variant)
-    Dim size As Long: size = UBound(stack)
-    If index > size Then
-        ReDim Preserve stack(0 To size * 2)
-    End If
-    If IsObject(item) Then
-        Set stack(index) = item
-    Else
-        stack(index) = item
-    End If
-    index = index + 1
-End Sub
-
-Private Function popV(ByRef stack() As Variant, ByRef index As Long) As Variant
-    Dim size As Long: size = UBound(stack)
-    If index < size / 3 And index > minStackSize Then
-        ReDim Preserve stack(0 To CLng(size / 2))
-    End If
-    index = index - 1
-    If IsObject(stack(index)) Then
-        Set popV = stack(index)
-    Else
-        popV = stack(index)
-    End If
-    #If devMode Then
-        stack(index) = Empty
-    #End If
-End Function
-
 'Serializes the argument array passed to a string.
 '@param {ByRef Variant()} Arguments to serialize
 '@returns {String} Serialized representation of the arguments.
@@ -2246,3 +2162,215 @@ macJmpCall:
         Case 30: Call CopyVariant(macCallByName, CallByName(obj, funcName, callerType, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21, a22, a23, a24, a25, a26, a27, a28, a29))
     End Select
 End Function
+
+'--------------------
+' Testing functions
+'--------------------
+
+'Creates an operation with the given instruction and value
+'@param instruction - The instruction to use for the operation
+'@param value - The value to use for the operation
+'@returns - The created operation
+Private Function testCreateOp(ByVal instruction As IInstruction, ByVal value As Variant) As Operation
+    Dim op As Operation
+    op.instruction = instruction
+    Call CopyVariant(op.value, value)
+    testCreateOp = op
+End Function
+
+'Creates an array of operations with the given parameters
+'@param opsParams - A set of IInstruction/Value pairs to create operations from
+'@returns - An array of created operations
+Private Function testCreateOps(ParamArray opsParams()) As Operation()
+    Dim ops() As Operation
+    If (UBound(opsParams) + 1) Mod 2 <> 0 Then Call Throw("Expected an even number of parameters")
+    
+    Dim size As Long: size = (UBound(opsParams) + 1) \ 2
+    ReDim ops(0 To size)
+
+    Dim i As Long
+    For i = 0 To size - 1
+        ops(i) = testCreateOp(opsParams(i * 2), opsParams(i * 2 + 1))
+    Next i
+
+    testCreateOps = ops
+End Function
+
+'Runs tests on the class
+'@returns - An array of booleans indicating whether each test passed
+Public Sub protRunVMTests()
+    'iPush
+    Debug.Assert evaluate(testCreateOps(iPush, 10), Array()) = 10
+
+    'iPop
+    ' Cannot directly assert by return value of evaluate unless combined with other ops
+    ' To make it testable: Push 10, Push 20, Pop. If pop was a no-op, result would be 20. If pop works result should be 10.
+    Debug.Assert evaluate(testCreateOps(iPush, 10, iPush, 20, iPop, Empty), Array()) = 10
+    
+    ' iMerge
+    Debug.Assert evaluate(testCreateOps(iPush, 10, iPush, 20, iMerge, Empty), Array()) = 20
+    
+    'TODO: iAccess_General
+
+    ' iAccess_Argument
+    Debug.Assert evaluate(testCreateOps(iAccess_Argument, 1), Array("Hello")) = "Hello"
+    Debug.Assert evaluate(testCreateOps(iAccess_Argument, 1), Array("Hello", "World")) = "Hello"
+    Debug.Assert evaluate(testCreateOps(iAccess_Argument, 2), Array("Hello", "World")) = "World"
+    Debug.Assert evaluate(testCreateOps(iAccess_Argument, 1), Array(Application)) Is Application
+    
+    'TODO: iSet_General
+
+    ' Arithmetic operations
+    Debug.Assert evaluate(testCreateOps(iPush, 10, iPush, 20, iArithmetic_Add, Empty), Array()) = 30
+    Debug.Assert evaluate(testCreateOps(iPush, 10, iPush, 20, iArithmetic_Subtract, Empty), Array()) = -10
+    Debug.Assert evaluate(testCreateOps(iPush, 10, iPush, 20, iArithmetic_Multiply, Empty), Array()) = 200
+    Debug.Assert evaluate(testCreateOps(iPush, 10, iPush, 20, iArithmetic_Divide, Empty), Array()) = 0.5
+    Debug.Assert evaluate(testCreateOps(iPush, 10, iPush, 3, iArithmetic_Power, Empty), Array()) = 1000
+    Debug.Assert evaluate(testCreateOps(iPush, 20, iPush, 10, iArithmetic_Modulo, Empty), Array()) = 0
+    Debug.Assert evaluate(testCreateOps(iPush, 20, iPush, 9, iArithmetic_Modulo, Empty), Array()) = 2
+    Debug.Assert evaluate(testCreateOps(iPush, -20, iPush, 10, iArithmetic_Modulo, Empty), Array()) = 0
+    Debug.Assert evaluate(testCreateOps(iPush, 10, iArithmetic_Negate, Empty), Array()) = -10
+    
+    'iLogic_And
+    'A | 1 1 0 0
+    'B | 1 0 1 0
+    '-----------
+    'O | 1 0 0 0
+    Debug.Assert evaluate(testCreateOps(iPush, True, iPush, True, iLogic_And, Empty), Array()) = True
+    Debug.Assert evaluate(testCreateOps(iPush, True, iPush, False, iLogic_And, Empty), Array()) = False
+    Debug.Assert evaluate(testCreateOps(iPush, False, iPush, True, iLogic_And, Empty), Array()) = False
+    Debug.Assert evaluate(testCreateOps(iPush, False, iPush, False, iLogic_And, Empty), Array()) = False
+
+    'iLogic_Or
+    'A | 1 1 0 0
+    'B | 1 0 1 0
+    '-----------
+    'O | 1 1 1 0
+    Debug.Assert evaluate(testCreateOps(iPush, True, iPush, True, iLogic_Or, Empty), Array()) = True
+    Debug.Assert evaluate(testCreateOps(iPush, True, iPush, False, iLogic_Or, Empty), Array()) = True
+    Debug.Assert evaluate(testCreateOps(iPush, False, iPush, True, iLogic_Or, Empty), Array()) = True
+    Debug.Assert evaluate(testCreateOps(iPush, False, iPush, False, iLogic_Or, Empty), Array()) = False
+
+    'iLogic_Not
+    'A | 1 0
+    '-----------
+    'O | 0 1
+    Debug.Assert evaluate(testCreateOps(iPush, True, iLogic_Not, Empty), Array()) = False
+    Debug.Assert evaluate(testCreateOps(iPush, False, iLogic_Not, Empty), Array()) = True
+
+    'iLogic_Xor
+    'A | 1 1 0 0
+    'B | 1 0 1 0
+    '-----------
+    'O | 0 1 1 0
+    Debug.Assert evaluate(testCreateOps(iPush, True, iPush, True, iLogic_Xor, Empty), Array()) = False
+    Debug.Assert evaluate(testCreateOps(iPush, True, iPush, False, iLogic_Xor, Empty), Array()) = True
+    Debug.Assert evaluate(testCreateOps(iPush, False, iPush, True, iLogic_Xor, Empty), Array()) = True
+    Debug.Assert evaluate(testCreateOps(iPush, False, iPush, False, iLogic_Xor, Empty), Array()) = False
+
+    'iFunc_Call - Use `Len` as an example
+    Debug.Assert evaluate(testCreateOps(iPush, "Len", iPush, "TestString", iPush, 1, iFunc_Call, Empty), args) = Len("TestString") 
+    'TODO: Test other functions
+
+    'Comparison operations
+    Debug.Assert evaluate(testCreateOps(iPush, 10, iPush, 10, iComparison_Equal, Empty), Array()) = True
+    Debug.Assert evaluate(testCreateOps(iPush, 10, iPush, 20, iComparison_Equal, Empty), Array()) = False
+    Debug.Assert evaluate(testCreateOps(iPush, 10, iPush, 10, iComparison_NotEqual, Empty), Array()) = False
+    Debug.Assert evaluate(testCreateOps(iPush, 10, iPush, 20, iComparison_NotEqual, Empty), Array()) = True
+    Debug.Assert evaluate(testCreateOps(iPush, 10, iPush, 20, iComparison_GreaterThan, Empty), Array()) = False
+    Debug.Assert evaluate(testCreateOps(iPush, 10, iPush, 9, iComparison_GreaterThan, Empty), Array()) = True
+    Debug.Assert evaluate(testCreateOps(iPush, 10, iPush, 10, iComparison_GreaterThan, Empty), Array()) = False
+    Debug.Assert evaluate(testCreateOps(iPush, 10, iPush, 11, iComparison_GreaterThan, Empty), Array()) = False
+    Debug.Assert evaluate(testCreateOps(iPush, 10, iPush, 9, iComparison_GreaterThanOrEqual, Empty), Array()) = True
+    Debug.Assert evaluate(testCreateOps(iPush, 10, iPush, 10, iComparison_GreaterThanOrEqual, Empty), Array()) = True
+    Debug.Assert evaluate(testCreateOps(iPush, 10, iPush, 11, iComparison_GreaterThanOrEqual, Empty), Array()) = False
+    Debug.Assert evaluate(testCreateOps(iPush, 10, iPush, 9, iComparison_LessThan, Empty), Array()) = False
+    Debug.Assert evaluate(testCreateOps(iPush, 10, iPush, 10, iComparison_LessThan, Empty), Array()) = False
+    Debug.Assert evaluate(testCreateOps(iPush, 10, iPush, 11, iComparison_LessThan, Empty), Array()) = True 
+    Debug.Assert evaluate(testCreateOps(iPush, 10, iPush, 9, iComparison_LessThanOrEqual, Empty), Array()) = False
+    Debug.Assert evaluate(testCreateOps(iPush, 10, iPush, 10, iComparison_LessThanOrEqual, Empty), Array()) = True
+    Debug.Assert evaluate(testCreateOps(iPush, 10, iPush, 11, iComparison_LessThanOrEqual, Empty), Array()) = True
+    Debug.Assert evaluate(testCreateOps(iPush, "A", iPush, "B", iComparison_Like, Empty), Array()) = False
+    Debug.Assert evaluate(testCreateOps(iPush, "A", iPush, "A", iComparison_Like, Empty), Array()) = True
+    Debug.Assert evaluate(testCreateOps(iPush, "AB", iPush, "A*", iComparison_Like, Empty), Array()) = True
+    Debug.Assert evaluate(testCreateOps(iPush, "ABC", iPush, "A*", iComparison_Like, Empty), Array()) = True
+    Debug.Assert evaluate(testCreateOps(iPush, "AB", iPush, "A?", iComparison_Like, Empty), Array()) = True
+    Debug.Assert evaluate(testCreateOps(iPush, "ABC", iPush, "A?", iComparison_Like, Empty), Array()) = False
+    
+    Dim o1 as Collection: Set o1 = new Collection
+    Dim o2 as Collection: Set o2 = new Collection
+    Dim o3 as Collection
+    Debug.Assert evaluate(testCreateOps(iPush, o1, iPush, o2, iComparison_Is, Empty), Array()) = False
+    Debug.Assert evaluate(testCreateOps(iPush, o1, iPush, o1, iComparison_Is, Empty), Array()) = True
+    Debug.Assert evaluate(testCreateOps(iPush, Nothing, iPush, Nothing, iComparison_Is, Empty), Array()) = True
+    Debug.Assert evaluate(testCreateOps(iPush, o3, iPush, Nothing, iComparison_Is, Empty), Array()) = True
+
+    'Miscellaneous operations
+    Debug.Assert evaluate(testCreateOps(iPush, "Hello", iPush, " World", iMisc_Concatenate, Empty), Array()) = "Hello World"
+
+    'Jump instructions
+    'These change instruction pointer, need careful sequencing for observable results
+    'iJump_Unconditional
+    '00: Push 10
+    '01: Jump to 3
+    '02: Push 20   (skipped)
+    '03: <end>
+    'Should return 10
+    Debug.Assert evaluate(testCreateOps(iPush, 10, iJump_Unconditional, 3, iPush, 20), Array()) = 10
+
+    'iJump_IfTrue
+    '00 Push True
+    '01 JumpIfTrue 4
+    '02 Push 10              (skipped)
+    '03 JumpUnconditional 5  (skipped)
+    '04 Push 20
+    '05 <end>
+    'Should return 20.
+    Debug.Assert evaluate(testCreateOps(iPush, True, iJump_IfTrue, 4, iPush, 10, iJump_Unconditional, 5, iPush, 20), Array()) = 20
+
+    'Counter-example for iJump_IfTrue
+    '00 Push False
+    '01 JumpIfTrue 4
+    '02 Push 10
+    '03 JumpUnconditional 5
+    '04 Push 20              (skipped)
+    '05 <end>
+    'Should return 10.
+    Debug.Assert evaluate(testCreateOps(iPush, False, iJump_IfTrue, 4, iPush, 10, iJump_Unconditional, 5, iPush, 20), Array()) = 10
+
+    'iJump_IfFalse (inverse of the above)
+    Debug.Assert evaluate(testCreateOps(iPush, False, iJump_IfFalse, 4, iPush, 10, iJump_Unconditional, 5, iPush, 20), Array()) = 20
+    Debug.Assert evaluate(testCreateOps(iPush, True, iJump_IfFalse, 4, iPush, 10, iJump_Unconditional, 5, iPush, 20), Array()) = 10
+
+    'TODO: iReturn_WithValue - this is a utility used for returning values from functions, need to think how to test it properly
+    'TODO: iReturn_NoValue - as above.
+    
+
+    'iObject_PropGet
+    'TEST1 - With object return value
+    '00: Push Application    'Application _
+    '01: Push "ThisWorkbook" '  .ThisWorkbook
+    '02: Object_PropGet
+    'Should return `ThisWorkbook`
+    Debug.Assert evaluate(testCreateOps(iPush, Application, iPush, "ThisWorkbook", iObject_PropGet, Empty), Array()) Is ThisWorkbook
+
+    'TEST2 - With literal return value
+    '00: Push Application    'Application _
+    '01: Push "ThisWorkbook" '  .Name
+    '02: Object_PropGet
+    'Should return Application.Name e.g. "Microsoft Excel"
+    Debug.Assert evaluate(testCreateOps(iPush, Application, iPush, "Name", iObject_PropGet, Empty), Array()) = Application.Name
+
+    'TEST3 - With parameters
+    '00: Push Application    'Application _
+    '01: Push "Range"        '  .Range( _
+    '02: Push "A1"           '    "A1")
+    '03: Push 1              '(1 arg)
+    '04: Object_PropGet
+    'Should return `Range("A1")`
+    Debug.Assert evaluate(testCreateOps(iPush, Application, iPush, "Range", iPush, "A1", iPush, 1, iObject_PropGet, Empty), Array()) Is Application.Range("A1")
+
+    'iObject_MethodCall
+End Sub
+
+
