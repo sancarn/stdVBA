@@ -1964,7 +1964,7 @@ Private Sub pushV(ByRef stack() As Variant, ByRef index As Long, ByVal item As V
     index = index + 1
 End Sub
 
-Private Function popV(ByRef stack() As Variant, ByRef index As Variant) As Variant
+Private Function popV(ByRef stack() As Variant, ByRef index As Long) As Variant
     Dim size As Long: size = UBound(stack)
     If index < size / 3 And index > minStackSize Then
         ReDim Preserve stack(0 To CLng(size / 2))
