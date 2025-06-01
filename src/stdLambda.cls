@@ -46,12 +46,76 @@ Private Type token
     BracketDepth As Long
 End Type
 Private Type Operation
-    Type As iType
-    subType As ISubType
+    Instruction As IInstruction
     value As Variant
 End Type
 
 'Evaluation operation types
+Private Enum IInstruction
+    ' Data Instructions
+    iPush = 1
+    iPop
+    iMerge
+
+    ' Access Instructions
+    iAccess_General
+    iAccess_Argument
+
+    ' Set Instructions, not to be confused with Object#PropSet
+    iSet_General
+
+    ' Arithmetic Instructions
+    iArithmetic_Add
+    iArithmetic_Subtract
+    iArithmetic_Multiply
+    iArithmetic_Divide
+    iArithmetic_Power
+    iArithmetic_Modulo
+    iArithmetic_Negate
+
+    ' Logical Instructions
+    iLogic_And
+    iLogic_Or
+    iLogic_Not
+    iLogic_Xor
+
+    ' Function Instructions
+    iFunc_Call
+
+    ' Comparison Instructions
+    iComparison_Equal
+    iComparison_NotEqual
+    iComparison_GreaterThan
+    iComparison_GreaterThanOrEqual
+    iComparison_LessThan
+    iComparison_LessThanOrEqual
+    iComparison_Like
+    iComparison_Is
+
+    ' Miscellaneous Instructions
+    iMisc_Concatenate
+
+    ' Jump Instructions
+    iJump_Unconditional
+    iJump_IfTrue
+    iJump_IfFalse
+
+    ' Return Instructions
+    iReturn_WithValue
+    iReturn_NoValue     'Implemented in VM, but not in parser yet
+
+    'Object Instructions
+    iObject_PropGet
+    iObject_PropLet
+    iObject_PropSet
+    iObject_MethodCall
+    iObject_FieldCall    'PropGet OR MethodCall
+
+    ' Control Flow
+    iEndLoop
+End Enum
+
+
 Private Enum iType
     oPush = 1
     oPop = 2
@@ -476,7 +540,7 @@ Private Sub parseBlock(ParamArray endToken() As Variant)
     
     ' Get rid of all extra expression results and declarations
     While this.stackSize > size
-        Call addOperation(oMerge, , , -1)
+        Call addOperation(iMerge, , -1)
     Wend
     this.scopeCount = this.scopeCount - 1
 End Sub
@@ -537,7 +601,7 @@ Private Sub parseLogicPriority1()
     Do
         If optConsume("xor") Then
             Call parseLogicPriority2
-            Call addOperation(oLogic, oXor, , -1)
+            Call addOperation(iLogic_Xor, , -1)
         Else
             bLoop = False
         End If
@@ -551,7 +615,7 @@ Private Sub parseLogicPriority2()
     Do
         If optConsume("or") Then
             Call parseLogicPriority3
-            Call addOperation(oLogic, oOr, , -1)
+            Call addOperation(iLogic_Or, , -1)
         Else
             bLoop = False
         End If
@@ -565,7 +629,7 @@ Private Sub parseLogicPriority3()
     Do
         If optConsume("and") Then
             Call parseLogicPriority4
-            Call addOperation(oLogic, oAnd, , -1)
+            Call addOperation(iLogic_And, , -1)
         Else
             bLoop = False
         End If
@@ -583,9 +647,9 @@ Private Sub parseLogicPriority4() 'not
     Call parseComparisonPriority1
     
     If invert <> vbNull Then
-        Call addOperation(oLogic, oNot)
+        Call addOperation(iLogic_Not)
         If invert = False Then
-            Call addOperation(oLogic, oNot)
+            Call addOperation(iLogic_Not)
         End If
     End If
 End Sub
@@ -597,28 +661,28 @@ Private Sub parseComparisonPriority1()
     Do
         If optConsume("lessThan") Then
             Call parseArithmeticPriority1
-            Call addOperation(oComparison, oLt, , -1)
+            Call addOperation(iComparison_LessThan, , -1)
         ElseIf optConsume("lessThanEqual") Then
             Call parseArithmeticPriority1
-            Call addOperation(oComparison, oLte, , -1)
+            Call addOperation(iComparison_LessThanOrEqual, , -1)
         ElseIf optConsume("greaterThan") Then
             Call parseArithmeticPriority1
-            Call addOperation(oComparison, oGt, , -1)
+            Call addOperation(iComparison_GreaterThan, , -1)
         ElseIf optConsume("greaterThanEqual") Then
             Call parseArithmeticPriority1
-            Call addOperation(oComparison, oGte, , -1)
+            Call addOperation(iComparison_GreaterThanOrEqual, , -1)
         ElseIf optConsume("equal") Then
             Call parseArithmeticPriority1
-            Call addOperation(oComparison, oEql, , -1)
+            Call addOperation(iComparison_Equal, , -1)
         ElseIf optConsume("notEqual") Then
             Call parseArithmeticPriority1
-            Call addOperation(oComparison, oNeq, , -1)
+            Call addOperation(iComparison_NotEqual, , -1)
         ElseIf optConsume("is") Then
             Call parseArithmeticPriority1
-            Call addOperation(oComparison, oIs, , -1)
+            Call addOperation(iComparison_Is, , -1)
         ElseIf optConsume("like") Then
             Call parseArithmeticPriority1
-            Call addOperation(oComparison, oLike, , -1)
+            Call addOperation(iComparison_Like, , -1)
         Else
             bLoop = False
         End If
@@ -632,7 +696,7 @@ Private Sub parseArithmeticPriority1() '&
     Do
         If optConsume("concatenate") Then
             Call parseArithmeticPriority2
-            Call addOperation(oMisc, oCat, , -1)
+            Call addOperation(iMisc_Concatenate, , -1)
         Else
             bLoop = False
         End If
@@ -646,10 +710,10 @@ Private Sub parseArithmeticPriority2()
     Do
         If optConsume("add") Then
             Call parseArithmeticPriority3
-            Call addOperation(oArithmetic, oAdd, , -1)
+            Call addOperation(iArithmetic_Add, , -1)
         ElseIf optConsume("subtract") Then
             Call parseArithmeticPriority3
-            Call addOperation(oArithmetic, oSub, , -1)
+            Call addOperation(iArithmetic_Subtract, , -1)
         Else
             bLoop = False
         End If
@@ -663,7 +727,7 @@ Private Sub parseArithmeticPriority3() 'mod
     Do
         If optConsume("mod") Then
             Call parseArithmeticPriority4
-            Call addOperation(oArithmetic, oMod, , -1)
+            Call addOperation(iArithmetic_Modulo, , -1)
         Else
             bLoop = False
         End If
@@ -677,10 +741,10 @@ Private Sub parseArithmeticPriority4()
     Do
         If optConsume("multiply") Then
             Call parseArithmeticPriority5
-            Call addOperation(oArithmetic, oMul, , -1)
+            Call addOperation(iArithmetic_Multiply, , -1)
         ElseIf optConsume("divide") Then
             Call parseArithmeticPriority5
-            Call addOperation(oArithmetic, oDiv, , -1)
+            Call addOperation(iArithmetic_Divide, , -1)
         Else
             bLoop = False
         End If
@@ -691,7 +755,7 @@ End Sub
 Private Sub parseArithmeticPriority5()
     If optConsume("subtract") Then
         Call parseArithmeticPriority5 'recurse
-        Call addOperation(oArithmetic, oNeg)
+        Call addOperation(iArithmetic_Negate)
     ElseIf optConsume("add") Then
         Call parseArithmeticPriority5 'recurse
     Else
@@ -705,7 +769,7 @@ Private Sub parseArithmeticPriority6() '^
     Do
         If optConsume("power") Then
             Call parseArithmeticPriority6andahalf '- and + are still identity operators
-            Call addOperation(oArithmetic, oPow, , -1)
+            Call addOperation(iArithmetic_Power, , -1)
         Else
             bLoop = False
         End If
@@ -716,7 +780,7 @@ End Sub
 Private Sub parseArithmeticPriority6andahalf()
     If optConsume("subtract") Then
         Call parseArithmeticPriority6andahalf 'recurse
-        Call addOperation(oArithmetic, oNeg)
+        Call addOperation(iArithmetic_Negate)
     ElseIf optConsume("add") Then
         Call parseArithmeticPriority6andahalf 'recurse
     Else
@@ -728,17 +792,17 @@ End Sub
 Private Sub parseFlowPriority1()
     If optConsume("if") Then
         Call parseExpression
-        Dim skipThenJumpIndex As Integer: skipThenJumpIndex = addOperation(oJump, ifFalse, , -1)
+        Dim skipThenJumpIndex As Integer: skipThenJumpIndex = addOperation(iJump_ifFalse, , -1)
         
         Dim size As Integer: size = this.stackSize
         Call consume("then")
         Call parseBlock("else", "end")
-        Dim skipElseJumpIndex As Integer: skipElseJumpIndex = addOperation(oJump)
+        Dim skipElseJumpIndex As Integer: skipElseJumpIndex = addOperation(iJump_Unconditional)
         this.operations(skipThenJumpIndex).value = this.iOperationIndex
         this.stackSize = size
         
         If optConsume("end") Then
-            Call addOperation(oPush, , 0, 1) 'Expressions should always return a value
+            Call addOperation(iPush, 0, 1) 'Expressions should always return a value
             this.operations(skipElseJumpIndex).value = this.iOperationIndex
         Else
             Call consume("else")
@@ -756,19 +820,22 @@ End Sub
 'i.e. `varName.someMethod(1,2,3).someProp`
 Private Sub parseValuePriority1()
     'Prefix unary operators for set/let
-    Dim iOperationType as ISubType
-    iOperationType = iif(optConsume("let"), oPropLet, oFieldCall)
-    iOperationType = iif(optConsume("set"), oPropSet, iOperationType)
+    Dim iOperationType as IInstruction
+    select case true
+        case optConsume("let"): iOperationType = iObject_PropLet
+        case optConsume("set"): iOperationType = iObject_PropSet
+        case else:              iOperationType = iObject_FieldCall
+    end select
 
     If peek("literalNumber") Then
-        Call addOperation(oPush, , CDbl(consume("literalNumber")), 1)
+        Call addOperation(iPush, CDbl(consume("literalNumber")), 1)
     ElseIf peek("arg") Then
-        Call addOperation(oAccess, argument, val(mid(consume("arg"), 2)), 1)
+        Call addOperation(iAccess_Argument, val(mid(consume("arg"), 2)), 1)
         Call parseManyAccessors(iOperationType)
     ElseIf peek("literalString") Then
         Call parseString
     ElseIf peek("literalBoolean") Then
-        Call addOperation(oPush, , consume("literalBoolean") = "true", 1)
+        Call addOperation(iPush, consume("literalBoolean") = "true", 1)
     ElseIf peek("var") Then
         If Not parseScopeAccess Then
             Call parseFunction
@@ -786,41 +853,41 @@ End Sub
 '@remark - This is a special case of a function call. It is parsed differently because it is a built-in function and not 
 'an in-code defined function.
 Private Function parseFunction() As Variant
-    Call addOperation(oPush, , consume("var"), 1)
+    Call addOperation(iPush, consume("var"), 1)
     Dim size As Integer: size = this.stackSize
     Call parseOptParameters
-    Call addOperation(oFunc)
+    Call addOperation(iFunc_Call)
     this.stackSize = size
 End Function
 
 'Parse object field, property and method accessors. Specifically allows for more than one accessor to be chained together
 'i.e. `obj.someMethod(1,"hi").someProp`
-Private Sub parseManyAccessors(Optional ByVal ISubType as ISubType = oFieldCall)
+Private Sub parseManyAccessors(Optional ByVal instruction as IInstruction = iObject_FieldCall)
     Dim bLoop As Boolean: bLoop = True
     Do
         bLoop = False
-        if parseOptObjectField(ISubType) then bLoop = True
-        If parseOptObjectProperty(ISubType) Then bLoop = True
+        if parseOptObjectField(instruction) then bLoop = True
+        If parseOptObjectProperty(instruction) Then bLoop = True
         If parseOptObjectMethod() Then bLoop = True
     Loop While bLoop
 End Sub
 
 'Parse an object's method or property call (i.e. `obj.someMethod` or `obj.someProp`) and add it to the operations stack
-'@param ISubType - Whether this is a property get or property let/set
+'@param instruction - Whether this is a property get or property let/set
 '@returns - Whether a method or property was found
-Private Function parseOptObjectField(Optional ByVal ISubType as ISubType = oFieldCall) as Boolean
+Private Function parseOptObjectField(Optional ByVal instruction as IInstruction = iObject_FieldCall) as Boolean
     parseOptObjectField = false
     if optConsume("fieldAccess") then
         Dim size As Integer: size = this.stackSize
-        Call addOperation(oPush, , consume("var"), 1)
+        Call addOperation(iPush, consume("var"), 1)
         Call parseOptParameters
         'Parse Let/Set ... = ... as a special case
-        if peek("equal") and ISubType  <> oFieldCall then
+        if peek("equal") and instruction  <> iObject_FieldCall then
             Call consume("equal")
             Call parseExpression
-            Call addOperation(oObject, ISubType)
+            Call addOperation(instruction)
         else
-            Call addOperation(oObject, oFieldCall)
+            Call addOperation(iObject_FieldCall)
         end if
         this.stackSize = size
         parseOptObjectField = True
@@ -828,21 +895,21 @@ Private Function parseOptObjectField(Optional ByVal ISubType as ISubType = oFiel
 End Function
 
 'Parse an object's property access (i.e. Obj.someProp) and add it to the operations stack
-'@param ISubType - Whether this is a property get or property let/set
+'@param instruction - Whether this is a property get or property let/set
 '@returns - Whether a property was found
-Private Function parseOptObjectProperty(Optional ByVal ISubType as ISubType = oPropGet) As Boolean
+Private Function parseOptObjectProperty(Optional ByVal instruction as IInstruction = iObject_PropGet) As Boolean
     parseOptObjectProperty = False
     If optConsume("propertyAccess") Then
         Dim size As Integer: size = this.stackSize
-        Call addOperation(oPush, , consume("var"), 1)
+        Call addOperation(iPush, consume("var"), 1)
         Call parseOptParameters
         'Parse Let/Set ... = ... as a special case
-        if peek("equal") and ISubType  <> oPropGet then
+        if peek("equal") and instruction  <> iObject_PropGet then
             Call consume("equal")
             Call parseExpression
-            Call addOperation(oObject, ISubType)
+            Call addOperation(instruction)
         else
-            Call addOperation(oObject, oPropGet)
+            Call addOperation(iObject_PropGet)
         end if
         this.stackSize = size
         parseOptObjectProperty = True
@@ -855,9 +922,9 @@ Private Function parseOptObjectMethod() As Boolean
     parseOptObjectMethod = False
     If optConsume("methodAccess") Then
         Dim size As Integer: size = this.stackSize
-        Call addOperation(oPush, , consume("var"), 1)
+        Call addOperation(iPush, consume("var"), 1)
         Call parseOptParameters
-        Call addOperation(oObject, oMethodCall)
+        Call addOperation(iObject_MethodCall)
         this.stackSize = size
         parseOptObjectMethod = True
     End If
@@ -879,7 +946,7 @@ Private Function parseOptParameters() As Boolean
         Wend
         Call consume("rBracket")
         If iArgCount > 0 Then
-            Call addOperation(oPush, , iArgCount, 1)
+            Call addOperation(iPush, iArgCount, 1)
         End If
         parseOptParameters = True
     End If
@@ -890,7 +957,7 @@ Private Sub parseString()
     Dim sRes As String: sRes = consume("literalString")
     sRes = Mid(sRes, 2, Len(sRes) - 2)
     sRes = Replace(sRes, """""", """")
-    Call addOperation(oPush, , sRes, 1)
+    Call addOperation(iPush, sRes, 1)
 End Sub
 
 'Parse whether a function call or variable access is being made and add it to the operations stack
@@ -911,7 +978,7 @@ Private Function parseVariableAccess() As Boolean
     Dim offset As Long: offset = findVariable(varName)
     If offset >= 0 Then
         parseVariableAccess = True
-        Call addOperation(oAccess, , 1 + offset, 1)
+        Call addOperation(iAccess_General, 1 + offset, 1)
     Else
         this.iTokenIndex = this.iTokenIndex - 1 ' Revert token consumption
     End If
@@ -928,8 +995,8 @@ Private Sub parseAssignment()
     Dim offset As Long: offset = findVariable(varName)
     If offset >= 0 Then
         ' If the variable already existed, move the data to that pos on the stack
-        Call addOperation(oSet, , offset, -1)
-        Call addOperation(oAccess, , offset, 1) ' To keep a return value
+        Call addOperation(iSet, offset, -1)
+        Call addOperation(iAccess_General, offset, 1) ' To keep a return value
     Else
         ' If the variable didn't exist yet, treat this stack pos as its source
         Call this.scopes(this.scopeCount).add(varName, this.stackSize)
@@ -966,7 +1033,7 @@ Private Function parseFunctionAccess() As Boolean
     Dim funcPos As Long: funcPos = findFunction(funcName, argCount)
     If funcPos <> -1 Then
         parseFunctionAccess = True
-        Dim returnPosIndex As Integer: returnPosIndex = addOperation(oPush, , , 1)
+        Dim returnPosIndex As Integer: returnPosIndex = addOperation(iPush, , 1)
         
         ' Consume the arguments
         consume ("lBracket")
@@ -982,7 +1049,7 @@ Private Function parseFunctionAccess() As Boolean
         End If
         
         ' Add call and return data
-        Call addOperation(oJump, , funcPos, -iArgCount) 'only -argCount since pushing Result and popping return pos cancel out
+        Call addOperation(iJump, funcPos, -iArgCount) 'only -argCount since pushing Result and popping return pos cancel out
         this.operations(returnPosIndex).value = this.iOperationIndex
     Else
         this.iTokenIndex = this.iTokenIndex - 1 ' Revert token consumption
@@ -997,7 +1064,7 @@ Private Sub parseFunctionDeclaration()
     this.funcScope = this.scopeCount
     
     ' Add operation to skip this code in normal operation flow
-    Dim skipToIndex As Integer: skipToIndex = addOperation(oJump)
+    Dim skipToIndex As Integer: skipToIndex = addOperation(iJump_Unconditional)
     
     ' Obtain the signature
     Call consume("fun")
@@ -1019,10 +1086,10 @@ Private Sub parseFunctionDeclaration()
     Call parseBlock("end")
     Call consume("end")
     While iArgCount > 0
-        Call addOperation(oMerge, , , -1)
+        Call addOperation(iMerge, , -1)
         iArgCount = iArgCount - 1
     Wend
-    Call addOperation(oReturn, withValue, , -1)
+    Call addOperation(iReturn_WithValue, , -1)
     this.operations(skipToIndex).value = this.iOperationIndex
     
     ' Reset the scope
@@ -1100,160 +1167,249 @@ Private Function evaluate(ByRef ops() As Operation, ByVal vLastArgs As Variant) 
     While opIndex <= opCount
         op = ops(opIndex)
         opIndex = opIndex + 1
-        Select Case op.Type
-            Case iType.oPush
-                Call pushV(stack, stackPtr, op.value)
-            'Arithmetic
-            Case iType.oArithmetic
-                v2 = popV(stack, stackPtr)
-                Select Case op.subType
-                    Case ISubType.oAdd
-                        v1 = popV(stack, stackPtr)
-                        v3 = v1 + v2
-                    Case ISubType.oSub
-                        v1 = popV(stack, stackPtr)
-                        v3 = v1 - v2
-                    Case ISubType.oMul
-                        v1 = popV(stack, stackPtr)
-                        v3 = v1 * v2
-                    Case ISubType.oDiv
-                        v1 = popV(stack, stackPtr)
-                        v3 = v1 / v2
-                    Case ISubType.oPow
-                        v1 = popV(stack, stackPtr)
-                        v3 = v1 ^ v2
-                    Case ISubType.oMod
-                        v1 = popV(stack, stackPtr)
-                        v3 = v1 Mod v2
-                    Case ISubType.oNeg
-                        v3 = -v2
-                    Case Else
-                        v3 = Empty
-                End Select
-                Call pushV(stack, stackPtr, v3)
-            'Comparison
-            Case iType.oComparison
-                Call CopyVariant(v2, popV(stack, stackPtr))
-                Call CopyVariant(v1, popV(stack, stackPtr))
-                if vartype(v1) = vbError or vartype(v2) = vbError then
-                    v3 = false
-                else
-                    Select Case op.subType
-                        Case ISubType.oEql
-                            v3 = v1 = v2
-                        Case ISubType.oNeq
-                            v3 = v1 <> v2
-                        Case ISubType.oGt
-                            v3 = v1 > v2
-                        Case ISubType.oGte
-                            v3 = v1 >= v2
-                        Case ISubType.oLt
-                            v3 = v1 < v2
-                        Case ISubType.oLte
-                            v3 = v1 <= v2
-                        Case ISubType.oLike
-                            v3 = v1 Like v2
-                        Case ISubType.oIs
-                            v3 = v1 is v2
-                        Case Else
-                            v3 = Empty
-                    End Select
-                end if
-                Call pushV(stack, stackPtr, v3)
-            'Logic
-            Case iType.oLogic
-                v2 = popV(stack, stackPtr)
-                Select Case op.subType
-                    Case ISubType.oAnd
-                        v1 = popV(stack, stackPtr)
-                        v3 = v1 And v2
-                    Case ISubType.oOr
-                        v1 = popV(stack, stackPtr)
-                        v3 = v1 Or v2
-                    Case ISubType.oNot
-                        v3 = Not v2
-                    Case ISubType.oXor
-                        v1 = popV(stack, stackPtr)
-                        v3 = v1 Xor v2
-                    Case Else
-                        v3 = Empty
-                End Select
-                Call pushV(stack, stackPtr, v3)
-            'Object
-            Case iType.oObject
-                Call objectCaller(stack, stackPtr, op)
-            'Func
-            Case iType.oFunc
-                Dim args() As Variant
-                args = getArgs(stack, stackPtr)
-                v1 = popV(stack, stackPtr)
-                Call pushV(stack, stackPtr, evaluateFunc(v1, args))
-            'Misc
-            Case iType.oMisc
-                v2 = popV(stack, stackPtr)
-                v1 = popV(stack, stackPtr)
-                Select Case op.subType
-                    Case ISubType.oCat
-                        v3 = v1 & v2
-                    Case Else
-                        v3 = Empty
-                End Select
-                Call pushV(stack, stackPtr, v3)
-            'Variable
-            Case iType.oAccess
-                Select Case op.subType
-                    Case ISubType.argument
-                        Dim iArgIndex As Long: iArgIndex = op.value + LBound(vLastArgs) - 1
-                        If iArgIndex <= UBound(vLastArgs) Then
-                            Call pushV(stack, stackPtr, vLastArgs(iArgIndex))
-                        Else
-                            Call Throw("Argument " & iArgIndex & " not supplied to Lambda.")
-                        End If
-                    Case Else
-                        'HACK: bug where if stack(stackPtr-op.value) was an object, then array will become locked. Array locking occurs by compiler to try to protect	
-                        'instances when re-allocation would move the array, and thus corrupt the pointers. By copying the variant we redivert the compiler's efforts,	
-                        'but we might actually open ourselves to errors... @issue	
-                        Dim vAccessVar: Call CopyVariant(vAccessVar, stack(stackPtr - op.value))	
-                        Call pushV(stack, stackPtr, vAccessVar)
-                End Select
-            Case iType.oSet
-                v1 = popV(stack, stackPtr)
-                stack(stackPtr - op.value) = v1
-            'Flow
-            Case iType.oJump
-                Select Case op.subType
-                    Case ISubType.ifTrue
-                        v1 = popV(stack, stackPtr)
-                        If v1 Then
-                            opIndex = op.value
-                        End If
-                    Case ISubType.ifFalse
-                        v1 = popV(stack, stackPtr)
-                        If Not v1 Then
-                            opIndex = op.value
-                        End If
-                    Case Else
-                        opIndex = op.value
-                End Select
-            Case iType.oReturn
-                Select Case op.subType
-                    Case ISubType.withValue
-                        Call CopyVariant(v1, popV(stack, stackPtr))
-                        opIndex = stack(stackPtr - 1)
-                        Call CopyVariant(stack(stackPtr - 1), v1)
-                    Case Else
-                        opIndex = popV(stack, stackPtr)
-                End Select
-            'Data
-            Case iType.oMerge
-                Call CopyVariant(v1, popV(stack, stackPtr))
-                Call CopyVariant(stack(stackPtr - 1), v1)
-            Case iType.oPop
-                Call popV(stack, stackPtr)
-            Case Else
-                'End loop - This occurs when opIndex > opCount 
-                opIndex = opCount+1
-        End Select
+        
+        'The following is a jump table for operations. This is significantly faster than using a `select case` statement. The label order must be identical to the enum order.
+        'Recommend generating this call using the following regex and list operation:
+        'Regex: "    i(\w+)"
+        'List:  "lbl$1, "
+        On op.Instruction GoTo lblPush, lblPop, lblMerge, lblAccess_General, lblAccess_Argument, lblSet_General, lblArithmetic_Add, lblArithmetic_Subtract, lblArithmetic_Multiply, lblArithmetic_Divide, lblArithmetic_Power, lblArithmetic_Modulo, lblArithmetic_Negate, lblLogic_And, lblLogic_Or, lblLogic_Not, lblLogic_Xor, lblFunc_Call, lblComparison_Equal, lblComparison_NotEqual, lblComparison_GreaterThan, lblComparison_GreaterThanOrEqual, lblComparison_LessThan, lblComparison_LessThanOrEqual, lblComparison_Like, lblComparison_Is, lblMisc_Concatenate, lblJump_Unconditional, lblJump_IfTrue, lblJump_IfFalse, lblReturn_WithValue, lblReturn_NoValue, lblObject_PropGet, lblObject_PropLet, lblObject_PropSet, lblObject_MethodCall, lblObject_FieldCall, lblEndLoop
+        
+        'If not handled by the above, there are 2 options:
+        'If zero then it is an end of loop instruction, skip it
+        'If >0 then it is an unknown instruction, skip it
+        if op.instruction = 0 then
+            opIndex = opCount+1
+            GoTo lblEndLoop
+        else 
+            Throw "Unknown instruction in Lambda Virtual Machine: " & op.Instruction
+            Exit Sub
+        end if
+
+        'NOTE: The following labels are in declaration order, but this has no effect on evaluation. The labels are in their current order purely for readability.
+lblPush:
+        Call pushV(stack, stackPtr, op.value)
+        GoTo lblEndLoop
+
+lblPop:
+        Call popV(stack, stackPtr)
+        GoTo lblEndLoop
+
+lblMerge:
+        Call CopyVariant(v1, popV(stack, stackPtr))
+        Call CopyVariant(stack(stackPtr - 1), v1)
+        GoTo lblEndLoop
+
+lblAccess_General:
+        'HACK: bug where if stack(stackPtr-op.value) was an object, then array will become locked. Array locking occurs by compiler to try to protect
+        'instances when re-allocation would move the array, and thus corrupt the pointers. By copying the variant we redivert the compiler's efforts,
+        'but we might actually open ourselves to errors... @issue
+        Dim vAccessVar As Variant: Call CopyVariant(vAccessVar, stack(stackPtr - op.value))
+        Call pushV(stack, stackPtr, vAccessVar)
+        GoTo lblEndLoop
+
+lblAccess_Argument:
+        Dim iArgIndex As Long: iArgIndex = op.value + LBound(vLastArgs) - 1
+        If iArgIndex <= UBound(vLastArgs) Then
+            Call pushV(stack, stackPtr, vLastArgs(iArgIndex))
+        Else
+            Call Throw("Argument " & iArgIndex & " not supplied to Lambda.")
+        End If
+        GoTo lblEndLoop
+
+lblSet_General:
+        v1 = popV(stack, stackPtr)
+        stack(stackPtr - op.value) = v1
+        GoTo lblEndLoop
+
+lblFunc_Call:
+        Dim args() As Variant
+        args = getArgs(stack, stackPtr)
+        v1 = popV(stack, stackPtr)
+        Call pushV(stack, stackPtr, evaluateFunc(v1, args))
+        GoTo lblEndLoop
+
+lblArithmetic_Add:
+        v2 = popV(stack, stackPtr)
+        v1 = popV(stack, stackPtr)
+        Call pushV(stack, stackPtr, v1 + v2)
+        GoTo lblEndLoop
+
+lblArithmetic_Subtract:
+        v2 = popV(stack, stackPtr)
+        v1 = popV(stack, stackPtr)
+        Call pushV(stack, stackPtr, v1 - v2)
+        GoTo lblEndLoop
+
+lblArithmetic_Multiply:
+        v2 = popV(stack, stackPtr)
+        v1 = popV(stack, stackPtr)
+        Call pushV(stack, stackPtr, v1 * v2)
+        GoTo lblEndLoop
+
+lblArithmetic_Divide:
+        v2 = popV(stack, stackPtr)
+        v1 = popV(stack, stackPtr)
+        Call pushV(stack, stackPtr, v1 / v2)
+        GoTo lblEndLoop
+
+lblArithmetic_Power:
+        v2 = popV(stack, stackPtr)
+        v1 = popV(stack, stackPtr)
+        Call pushV(stack, stackPtr, v1 ^ v2)
+        GoTo lblEndLoop
+
+lblArithmetic_Modulo:
+        v2 = popV(stack, stackPtr)
+        v1 = popV(stack, stackPtr)
+        Call pushV(stack, stackPtr, v1 Mod v2)
+        GoTo lblEndLoop
+
+lblArithmetic_Negate:
+        v2 = popV(stack, stackPtr)
+        Call pushV(stack, stackPtr, -v2)
+        GoTo lblEndLoop
+
+lblLogic_And:
+        v2 = popV(stack, stackPtr)
+        v1 = popV(stack, stackPtr)
+        Call pushV(stack, stackPtr, v1 And v2)
+        GoTo lblEndLoop
+
+lblLogic_Or:
+        v2 = popV(stack, stackPtr)
+        v1 = popV(stack, stackPtr)
+        Call pushV(stack, stackPtr, v1 Or v2)
+        GoTo lblEndLoop
+
+lblLogic_Not:
+        v2 = popV(stack, stackPtr)
+        Call pushV(stack, stackPtr, Not v2)
+        GoTo lblEndLoop
+
+lblLogic_Xor:
+        v2 = popV(stack, stackPtr)
+        v1 = popV(stack, stackPtr)
+        Call pushV(stack, stackPtr, v1 Xor v2)
+        GoTo lblEndLoop
+
+lblComparison_Equal:
+        Call CopyVariant(v2, popV(stack, stackPtr))
+        Call CopyVariant(v1, popV(stack, stackPtr))
+        if (vartype(v1) = vbError or vartype(v2) = vbError) then
+            Call pushV(stack, stackPtr, false)
+        else
+            Call pushV(stack, stackPtr, v1 = v2)
+        end if
+        GoTo lblEndLoop
+
+lblComparison_NotEqual:
+        Call CopyVariant(v2, popV(stack, stackPtr))
+        Call CopyVariant(v1, popV(stack, stackPtr))
+        if (vartype(v1) = vbError or vartype(v2) = vbError) then
+            Call pushV(stack, stackPtr, false)
+        else
+            Call pushV(stack, stackPtr, v1 <> v2)
+        end if
+        GoTo lblEndLoop
+
+lblComparison_GreaterThan:
+        Call CopyVariant(v2, popV(stack, stackPtr))
+        Call CopyVariant(v1, popV(stack, stackPtr))
+        if (vartype(v1) = vbError or vartype(v2) = vbError) then
+            Call pushV(stack, stackPtr, false)
+        else
+            Call pushV(stack, stackPtr, v1 > v2)
+        end if
+        GoTo lblEndLoop
+
+lblComparison_GreaterThanOrEqual:
+        Call CopyVariant(v2, popV(stack, stackPtr))
+        Call CopyVariant(v1, popV(stack, stackPtr))
+        if (vartype(v1) = vbError or vartype(v2) = vbError) then
+            Call pushV(stack, stackPtr, false)
+        else
+            Call pushV(stack, stackPtr, v1 >= v2)
+        end if
+        GoTo lblEndLoop
+
+lblComparison_LessThan:
+        Call CopyVariant(v2, popV(stack, stackPtr))
+        Call CopyVariant(v1, popV(stack, stackPtr))
+        if (vartype(v1) = vbError or vartype(v2) = vbError) then
+            Call pushV(stack, stackPtr, false)
+        else
+            Call pushV(stack, stackPtr, v1 < v2)
+        end if
+        GoTo lblEndLoop
+
+lblComparison_LessThanOrEqual:
+        Call CopyVariant(v2, popV(stack, stackPtr))
+        Call CopyVariant(v1, popV(stack, stackPtr))
+        if (vartype(v1) = vbError or vartype(v2) = vbError) then
+            Call pushV(stack, stackPtr, false)
+        else
+            Call pushV(stack, stackPtr, v1 <= v2)
+        end if
+        GoTo lblEndLoop
+
+lblComparison_Like:
+        Call CopyVariant(v2, popV(stack, stackPtr))
+        Call CopyVariant(v1, popV(stack, stackPtr))
+        if (vartype(v1) = vbError or vartype(v2) = vbError) then
+            Call pushV(stack, stackPtr, false)
+        else
+            Call pushV(stack, stackPtr, v1 Like v2)
+        end if
+        GoTo lblEndLoop
+
+lblComparison_Is:
+        Call CopyVariant(v2, popV(stack, stackPtr))
+        Call CopyVariant(v1, popV(stack, stackPtr))
+        if (vartype(v1) = vbError or vartype(v2) = vbError) then
+            Call pushV(stack, stackPtr, false)
+        else
+            Call pushV(stack, stackPtr, v1 is v2)
+        end if
+        GoTo lblEndLoop
+
+lblMisc_Concatenate:
+        v2 = popV(stack, stackPtr)
+        v1 = popV(stack, stackPtr)
+        Call pushV(stack, stackPtr, v1 & v2)
+        GoTo lblEndLoop
+
+lblJump_Unconditional:
+        opIndex = op.value
+        GoTo lblEndLoop
+
+lblJump_IfTrue:
+        v1 = popV(stack, stackPtr)
+        If v1 Then
+            opIndex = op.value
+        End If
+        GoTo lblEndLoop
+
+lblJump_IfFalse:
+        v1 = popV(stack, stackPtr)
+        If Not v1 Then
+            opIndex = op.value
+        End If
+        GoTo lblEndLoop
+
+lblReturn_WithValue:
+        Call CopyVariant(v1, popV(stack, stackPtr)) 'Get the return value
+        opIndex = stack(stackPtr - 1) 'Get the return position
+        Call CopyVariant(stack(stackPtr - 1), v1) 'Set the return value
+        GoTo lblEndLoop
+
+lblReturn_NoValue:
+        opIndex = popV(stack, stackPtr) 'Get and Set the return position
+        GoTo lblEndLoop
+        
+lblObject_PropGet, lblObject_PropLet, lblObject_PropSet, lblObject_MethodCall, lblObject_FieldCall:
+        Call objectCaller(stack, stackPtr, op)
+        GoTo lblEndLoop
+lblEndLoop:
     Wend
 
     'Add result to performance cache
@@ -1758,12 +1914,11 @@ Private Function isUniqueConst(ByRef test As Variant) As Boolean
 End Function
  
 'Adds an operation to the instance operations list
-'@param {IType} kType         The main type of the operation
-'@param {ISubType} subType    The sub type of the operation
-'@param {Variant} value       The value associated with the operation
-'@param {Integer} stackDelta  The effect this has on the stack size (increasing or decreasing it)
-'@returns {Integer} The index of the created operation
-Private Function addOperation(kType As iType, Optional subType As ISubType, Optional value As Variant, Optional stackDelta As Integer) As Integer
+'@param kInstruction - The main type of the operation
+'@param value - The value associated with the operation
+'@param stackDelta - The effect this has on the stack size (increasing or decreasing it)
+'@returns - The index of the created operation
+Private Function addOperation(kInstruction As IInstruction, Optional value As Variant, Optional stackDelta As Integer) As Integer
     If this.iOperationIndex = 0 Then
         ReDim Preserve this.operations(0 To 1)
     Else
@@ -1774,8 +1929,7 @@ Private Function addOperation(kType As iType, Optional subType As ISubType, Opti
     End If
     
     With this.operations(this.iOperationIndex)
-        .Type = kType
-        .subType = subType
+        .Instruction = kInstruction
         Call CopyVariant(.value, value)
     End With
     addOperation = this.iOperationIndex
