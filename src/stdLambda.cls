@@ -1182,7 +1182,7 @@ Private Function evaluate(ByRef ops() As Operation, ByVal vLastArgs As Variant) 
             GoTo lblEndLoop
         else 
             Throw "Unknown instruction in Lambda Virtual Machine: " & op.Instruction
-            Exit Sub
+            Exit Function
         end if
 
         'NOTE: The following labels are in declaration order, but this has no effect on evaluation. The labels are in their current order purely for readability.
@@ -1406,7 +1406,11 @@ lblReturn_NoValue:
         opIndex = popV(stack, stackPtr) 'Get and Set the return position
         GoTo lblEndLoop
         
-lblObject_PropGet, lblObject_PropLet, lblObject_PropSet, lblObject_MethodCall, lblObject_FieldCall:
+lblObject_PropGet:
+lblObject_PropLet:
+lblObject_PropSet:
+lblObject_MethodCall:
+lblObject_FieldCall:
         Call objectCaller(stack, stackPtr, op)
         GoTo lblEndLoop
 lblEndLoop:
