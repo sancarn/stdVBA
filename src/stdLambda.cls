@@ -1186,7 +1186,7 @@ lblSet_General:
 lblFunc_Call:
         GoSub StackGetFunctionArgs ' Get arguments from stack, writes output to `tempArgs`
         GoSub StackPop: idxV1 = tempPoppedLoc ' Function object/pointer index
-        tempItemToPush = evaluateFunc(stack(idxV1), tempArgs) ' Pass actual value
+        Call CopyVariant(tempItemToPush, evaluateFunc(stack(idxV1), tempArgs))
         GoSub StackPush
         GoTo lblEndLoop
 
@@ -2270,6 +2270,15 @@ Public Sub protRunVMTests()
 
     'iFunc_Call - Use `Len` as an example
     Debug.Assert evaluate(testCreateOps(iPush, "Len", iPush, "TestString", iPush, 1, iFunc_Call, Empty), args) = Len("TestString") 
+    
+    'Test oFunctExts
+    set This.FunctionExtensions = CreateObject("Scripting.Dictionary")
+    This.FunctionExtensions.Add "Proxy", stdLambda.Create("$1")
+    Debug.Assert evaluate(testCreateOps(iPush, "Proxy", iPush, "TestString", iPush, 1, iFunc_Call, Empty), args) = "TestString"
+    'Ensure returns objects too
+    Debug.Assert TypeName(evaluate(testCreateOps(iPush, "Proxy", iPush, Application, iPush, 1, iFunc_Call, Empty), args)) = "Application"
+    set This.FunctionExtensions = Nothing
+
     'TODO: Test other functions
 
     'Comparison operations
@@ -2367,8 +2376,10 @@ Public Sub protRunVMTests()
     '02: Push "A1"           '    "A1")
     '03: Push 1              '(1 arg)
     '04: Object_PropGet
-    'Should return `Range("A1")`
-    Debug.Assert evaluate(testCreateOps(iPush, Application, iPush, "Range", iPush, "A1", iPush, 1, iObject_PropGet, Empty), Array()) Is Application.Range("A1")
+    'Should return `Range("A1")` but note these won't return the same objects so `is` will still fail.
+    'Instead we check the type and address.
+    Debug.Assert TypeName(evaluate(testCreateOps(iPush, Application, iPush, "Range", iPush, "A1", iPush, 1, iObject_PropGet, Empty), Array())) = "Range"
+    Debug.Assert evaluate(testCreateOps(iPush, Application, iPush, "Range", iPush, "A1", iPush, 1, iObject_PropGet, Empty), Array()).Address = "$A$1"
 
     'iObject_MethodCall
 End Sub
