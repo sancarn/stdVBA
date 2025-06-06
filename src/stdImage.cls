@@ -419,7 +419,7 @@ End Function
 Public Function CreateFromUrl(ByVal sURL As String, Optional ByVal format as stdImgFormat = stdImgFormatDefault) As stdImage
   Set CreateFromUrl = New stdImage
   Dim HTTP As Object: Set HTTP = CreateObject("WinHttp.WinHttpRequest.5.1")
-  HTTP.Open "GET", TargetURL, False
+  HTTP.Open "GET", sURL, False
   'TODO: AutoProxy?
   HTTP.send
   If HTTP.status = 200 Then

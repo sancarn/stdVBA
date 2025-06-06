@@ -337,3 +337,7 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2025-04-15 `stdJSON` FEATURE - Added `CreateFromParams` to quickly create JSON objects on the fly.
 - 2025-05-10 `stdAcc` FIX - `Proxy` implementation for `accLocation`
 - 2025-05-10 `stdArray` FEATURE - `CreateFromCollection` added.
+- 2025-06-06 `stdImage` FIX - Typo in CreateFromURL
+- 2025-06-06 `stdQuadTree` FIX - Typo in queryRangeBounds
+- 2025-06-06 `stdCallback` FIX - Missing constant declaration added for CC_STDCALL
+- 2025-06-06 `stdAcc` FEATURE - Changed to application independent.

@@ -337,16 +337,11 @@ End Function
 '@constructor
 '@returns - IAccessible wrapper around desktop window.
 Public Function CreateFromDesktop() As stdAcc
-    'Get this application's accessibility object
-    Dim accThis As IAccessible
-    Set accThis = IAccessibleFromHwnd(Application.hwnd)
-    
-    'Set desktop
-    Dim accDesktop As IAccessible
-    Set accDesktop = accThis.accParent
-    
-    Dim acc as stdAcc: set acc = new stdAcc
-    set acc.protAccessible = accDesktop
+    Dim acc As stdAcc
+    Set acc = CreateFromApplication()
+    While Not acc.Parent Is Nothing
+        Set acc = acc.Parent
+    Wend
     Set CreateFromDesktop = acc
 End Function
 

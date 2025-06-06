@@ -203,7 +203,7 @@ Public Function queryRangeBounds(ByVal minX As Double, ByVal minY As Double, ByV
   Dim r_ As Double: r_ = IIf(ry > rx, ry, rx)
   Dim cx As Double: cx = minX + rx
   Dim cy As Double: cy = minY + ry
-  Dim rect As AABB: rect = AABB_Create(cx, cu, r_)
+  Dim rect As AABB: rect = AABB_Create(cx, cy, r_)
   Set queryRangeBounds = pQueryRange(rect)
 End Function
 

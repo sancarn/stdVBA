@@ -453,6 +453,7 @@ Public Function RunEx(ByVal vArr As Variant) As Variant
           End If
           
           'Call function
+          Const CC_STDCALL = 5
           Dim hResult As Long
           hResult = DispCallFunc(0, .iMethodAddress, CC_STDCALL, .iReturnType, iParamCount, VarPtr(vType(0)), VarPtr(vPtr(0)), vRet)
         End With
