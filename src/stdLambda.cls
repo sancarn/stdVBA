@@ -13,7 +13,7 @@ Attribute VB_Exposed = False
 'Option Explicit
 
 'Used for enabling some debugging features
-#Const devMode = True 
+#Const devMode = True
 
 'For Mac testing purposes only
 '#const Mac = true
@@ -110,9 +110,6 @@ Private Enum IInstruction
     iObject_PropSet
     iObject_MethodCall
     iObject_FieldCall    'PropGet OR MethodCall
-
-    ' Control Flow
-    iEndLoop
 End Enum
 
 Private Enum LambdaType
@@ -122,8 +119,8 @@ End Enum
 
 'Special constant used in parsing:
 Private Const UniqueConst As String = "3207af79-30df-4890-ade1-640f9f28f309"
-Private Const vbGetOrMethod as Long = VbGet Or VbMethod
-Private Const minStackSize as Long = 30 'note that the stack size may become smaller than this
+Private Const vbGetOrMethod As Long = VbGet Or VbMethod
+Private Const minStackSize As Long = 30 'note that the stack size may become smaller than this
 
 Private Type TSingleton
     Cache As Object
@@ -144,17 +141,17 @@ Private Type TThis
     scopesArgCount() As Variant
     scopeCount As Long
     funcScope As Long
-    Equation as string
+    Equation As String
 
     'Instance var on both class and object
     FunctionExtensions As Object
-    isBoundLambda as Boolean
+    isBoundLambda As Boolean
     Bound As TBoundLambda
     
-    UsePerformanceCache as Boolean
-    PerformanceCache as Object
+    UsePerformanceCache As Boolean
+    PerformanceCache As Object
 End Type
-Private This as TThis
+Private This As TThis
 
 
 
@@ -181,15 +178,15 @@ Private This as TThis
 '```
 Public Function Create(ByVal sEquation As String, Optional ByVal bUsePerformanceCache As Boolean = False, Optional ByVal bSandboxExtras As Boolean = False) As stdLambda
     'Cache Lambda created
-    If this.Singleton.Cache Is Nothing Then Set this.Singleton.Cache = CreateObject("Scripting.Dictionary")
+    If This.Singleton.Cache Is Nothing Then Set This.Singleton.Cache = CreateObject("Scripting.Dictionary")
     Dim sID As String: sID = bUsePerformanceCache & "-" & bSandboxExtras & ")" & sEquation
-    If Not this.Singleton.Cache.exists(sID) Then
-        Set this.Singleton.Cache(sID) = New stdLambda
-        Call this.Singleton.Cache(sID).protInit(LambdaType.iStandardLambda, sEquation, bUsePerformanceCache, bSandboxExtras)
+    If Not This.Singleton.Cache.exists(sID) Then
+        Set This.Singleton.Cache(sID) = New stdLambda
+        Call This.Singleton.Cache(sID).protInit(LambdaType.iStandardLambda, sEquation, bUsePerformanceCache, bSandboxExtras)
     End If
     
     'Return cached lambda
-    Set Create = this.Singleton.Cache(sID)
+    Set Create = This.Singleton.Cache(sID)
 End Function
 
 'Create a stdLambda object from an Array of strings
@@ -216,36 +213,36 @@ Public Sub protInit(ByVal iLambdaType As Long, ParamArray params() As Variant)
     Select Case iLambdaType
         Case LambdaType.iStandardLambda
             Dim sEquation As String: sEquation = params(0)
-            this.Equation = sEquation
-            this.UsePerformanceCache = params(1)
+            This.Equation = sEquation
+            This.UsePerformanceCache = params(1)
             Dim bSandboxExtras As Boolean: bSandboxExtras = params(2)
             
             'Performance cache
-            if this.UsePerformanceCache then set this.PerformanceCache = CreateObject("Scripting.Dictionary")
+            If This.UsePerformanceCache Then Set This.PerformanceCache = CreateObject("Scripting.Dictionary")
 
             'Function extensions
-            Set this.FunctionExtensions = stdLambda.oFunctExt
-            If bSandboxExtras OR this.FunctionExtensions is nothing Then set this.FunctionExtensions = CreateObject("Scripting.Dictionary")
+            Set This.FunctionExtensions = stdLambda.oFunctExt
+            If bSandboxExtras Or This.FunctionExtensions Is Nothing Then Set This.FunctionExtensions = CreateObject("Scripting.Dictionary")
 
-            this.isBoundLambda = false
-            this.tokens = Tokenise(sEquation)
-            this.iTokenIndex = 1
-            this.iOperationIndex = 0
-            this.stackSize = 0
-            this.scopeCount = 0
-            this.funcScope = 0
+            This.isBoundLambda = False
+            This.tokens = Tokenise(sEquation)
+            This.iTokenIndex = 1
+            This.iOperationIndex = 0
+            This.stackSize = 0
+            This.scopeCount = 0
+            This.funcScope = 0
             Call parseBlock("eof")
             Call finishOperations
 
         Case LambdaType.iBoundLambda
-            this.isBoundLambda = True
-            Set this.Bound.Lambda = params(0)
-            this.Bound.Args = params(1)
-            this.Equation = "BOUND..."
+            This.isBoundLambda = True
+            Set This.Bound.Lambda = params(0)
+            This.Bound.Args = params(1)
+            This.Equation = "BOUND..."
             
             'Function extensions
-            Set this.FunctionExtensions = stdLambda.oFunctExt
-            If bSandboxExtras OR this.FunctionExtensions is nothing Then set this.FunctionExtensions = CreateObject("Scripting.Dictionary")
+            Set This.FunctionExtensions = stdLambda.oFunctExt
+            If bSandboxExtras Or This.FunctionExtensions Is Nothing Then Set This.FunctionExtensions = CreateObject("Scripting.Dictionary")
         Case Else
             Err.Raise 1, "stdLambda::Init", "No lambda with that type."
     End Select
@@ -256,11 +253,11 @@ End Sub
 '@returns - The result of the lambda
 Public Function Run(ParamArray params() As Variant) As Variant
 Attribute Run.VB_UserMemId = 0
-    If Not this.isBoundLambda Then
+    If Not This.isBoundLambda Then
         'Execute top-down parser
-        Call CopyVariant(Run, evaluate(this.operations, params))
+        Call CopyVariant(Run, evaluate(This.operations, params))
     Else
-        Call CopyVariant(Run, this.Bound.Lambda.RunEx(ConcatArrays(this.Bound.Args, params)))
+        Call CopyVariant(Run, This.Bound.Lambda.RunEx(ConcatArrays(This.Bound.Args, params)))
     End If
 End Function
 
@@ -268,15 +265,15 @@ End Function
 '@param params as Variant<Array<Variant>> - Array of parameters to run the lambda with
 '@returns - The result of the lambda
 Public Function RunEx(ByVal params As Variant) As Variant
-    If Not this.isBoundLambda Then
-        If Not isArray(params) Then
+    If Not This.isBoundLambda Then
+        If Not IsArray(params) Then
             Err.Raise 1, "params to be supplied as array of arguments", ""
         End If
         
         'Execute top-down parser
-        Call CopyVariant(RunEx, evaluate(this.operations, params))
+        Call CopyVariant(RunEx, evaluate(This.operations, params))
     Else
-        Call CopyVariant(RunEx, this.Bound.Lambda.RunEx(ConcatArrays(this.Bound.Args, params)))
+        Call CopyVariant(RunEx, This.Bound.Lambda.RunEx(ConcatArrays(This.Bound.Args, params)))
     End If
 End Function
 
@@ -300,35 +297,35 @@ End Function
 '@param sGlobalName - New global name
 '@param variable - Data to store in global variable
 '@returns - The lambda existing lambda
-Public Function BindGlobal(ByVal sGlobalName as string, ByVal variable as Variant) as stdLambda
-    set BindGlobal = Me
-    If this.isBoundLambda Then
-        Call this.Bound.Lambda.BindGlobal(sGlobalName, variable)
+Public Function BindGlobal(ByVal sGlobalName As String, ByVal variable As Variant) As stdLambda
+    Set BindGlobal = Me
+    If This.isBoundLambda Then
+        Call This.Bound.Lambda.BindGlobal(sGlobalName, variable)
     Else
-        If this.FunctionExtensions is nothing then Set this.FunctionExtensions = CreateObject("Scripting.Dictionary")
+        If This.FunctionExtensions Is Nothing Then Set This.FunctionExtensions = CreateObject("Scripting.Dictionary")
         If IsObject(variable) Then
-            Set this.FunctionExtensions(sGlobalName) = variable
+            Set This.FunctionExtensions(sGlobalName) = variable
         Else
-            Let this.FunctionExtensions(sGlobalName) = variable
+            Let This.FunctionExtensions(sGlobalName) = variable
         End If
     End If
 End Function
 
 'Extend the lambda with new functions and named global variables
 '@returns Object<Dictionary<string,stdICallable> | Dictionary<string,variant>> - Dictionary of functions and named global variables
-Public Property Get oFunctExt() as Object
-  set oFunctExt = this.FunctionExtensions
+Public Property Get oFunctExt() As Object
+  Set oFunctExt = This.FunctionExtensions
 End Property
 
 'Implementation of stdICallable::Run
 '@param params as Array<Variant> - Parameters to run the lambda with
 '@returns - The result of the lambda
 Private Function stdICallable_Run(ParamArray params() As Variant) As Variant
-    If Not this.isBoundLambda Then
+    If Not This.isBoundLambda Then
         'Execute top-down parser
-        Call CopyVariant(stdICallable_Run, evaluate(this.operations, params))
+        Call CopyVariant(stdICallable_Run, evaluate(This.operations, params))
     Else
-        Call CopyVariant(stdICallable_Run, this.Bound.Lambda.RunEx(ConcatArrays(this.Bound.Args, params)))
+        Call CopyVariant(stdICallable_Run, This.Bound.Lambda.RunEx(ConcatArrays(This.Bound.Args, params)))
     End If
 End Function
 
@@ -336,15 +333,15 @@ End Function
 '@param params as Variant<Array<Variant>> - Array of parameters to run the lambda with
 '@returns - The result of the lambda
 Private Function stdICallable_RunEx(ByVal params As Variant) As Variant
-    If Not isArray(params) Then
+    If Not IsArray(params) Then
         Err.Raise 1, "params to be supplied as array of arguments", ""
     End If
     
-    If Not this.isBoundLambda Then
+    If Not This.isBoundLambda Then
         'Execute top-down parser
-        Call CopyVariant(stdICallable_RunEx, evaluate(this.operations, params))
+        Call CopyVariant(stdICallable_RunEx, evaluate(This.operations, params))
     Else
-        Call CopyVariant(stdICallable_RunEx, this.Bound.Lambda.RunEx(ConcatArrays(this.Bound.Args, params)))
+        Call CopyVariant(stdICallable_RunEx, This.Bound.Lambda.RunEx(ConcatArrays(This.Bound.Args, params)))
     End If
 End Function
 
@@ -360,21 +357,21 @@ End Function
 '@param success  - Success of message. If message wasn't processed return false.
 '@param params   - Parameters to pass along with message
 '@returns - Anything returned by the function
-Private Function stdICallable_SendMessage(ByVal sMessage as string, ByRef success as boolean, ByVal params as variant) as Variant
-    select case sMessage
-        case "obj"
-            set stdICallable_SendMessage = Me
-            success = true
-        case "className"
+Private Function stdICallable_SendMessage(ByVal sMessage As String, ByRef success As Boolean, ByVal params As Variant) As Variant
+    Select Case sMessage
+        Case "obj"
+            Set stdICallable_SendMessage = Me
+            success = True
+        Case "className"
             stdICallable_SendMessage = "stdLambda"
-            success = true
-        case "bindGlobal"
+            success = True
+        Case "bindGlobal"
             'Bind global based whether this is a bound lambda or not
             Call BindGlobal(params(0), params(1))
-            success = true
-        case else 
-            success = false
-    end select
+            success = True
+        Case Else
+            success = False
+    End Select
 End Function
 
 '================
@@ -464,7 +461,7 @@ End Function
 '@remark - Entry point for parsing
 Private Sub parseBlock(ParamArray endToken() As Variant)
     Call addScope
-    Dim size As Integer: size = this.stackSize + 1
+    Dim size As Integer: size = This.stackSize + 1
     
     ' Consume multiple lines
     Dim bLoop As Boolean: bLoop = True
@@ -473,6 +470,7 @@ Private Sub parseBlock(ParamArray endToken() As Variant)
         Call parseStatement
         While optConsume("colon"): Wend
         
+        Dim i As Long
         For i = LBound(endToken) To UBound(endToken)
             If peek(endToken(i)) Then
                 bLoop = False
@@ -481,27 +479,27 @@ Private Sub parseBlock(ParamArray endToken() As Variant)
     Loop While bLoop
     
     ' Get rid of all extra expression results and declarations
-    While this.stackSize > size
+    While This.stackSize > size
         Call addOperation(iMerge, , -1)
     Wend
-    this.scopeCount = this.scopeCount - 1
+    This.scopeCount = This.scopeCount - 1
 End Sub
 
 'Increment the number of scopes and initialise them. Scopes are used to store variables, functions and function arg counts.
 Private Sub addScope()
-    this.scopeCount = this.scopeCount + 1
-    Dim scope As Long: scope = this.scopeCount
-    ReDim Preserve this.scopes(1 To scope)
-    ReDim Preserve this.scopesArgCount(1 To scope)
-    Set this.scopes(scope) = CreateObject("Scripting.Dictionary")
-    Set this.scopesArgCount(scope) = CreateObject("Scripting.Dictionary")
+    This.scopeCount = This.scopeCount + 1
+    Dim scope As Long: scope = This.scopeCount
+    ReDim Preserve This.scopes(1 To scope)
+    ReDim Preserve This.scopesArgCount(1 To scope)
+    Set This.scopes(scope) = CreateObject("Scripting.Dictionary")
+    Set This.scopesArgCount(scope) = CreateObject("Scripting.Dictionary")
 End Sub
 
 'Parse a statement of code.
 '@remark - A statement consists of either a variable assignment, a function declaration or an expression
 '(typically this wouldn't classify as a statement, but for the purpose of stdLambda and simplifying parsing it does).
 Private Sub parseStatement()
-    If (peek("set") or peek("let")) and peek("var",2) And peek("equal", 3) Then
+    If (peek("set") Or peek("let")) And peek("var", 2) And peek("equal", 3) Then
         Call parseAssignment
     ElseIf peek("fun") Then
         Call parseFunctionDeclaration
@@ -708,6 +706,7 @@ End Sub
 'Parse power (^) operator
 Private Sub parseArithmeticPriority6() '^
     Call parseFlowPriority1
+    Dim bLoop As Boolean
     Do
         If optConsume("power") Then
             Call parseArithmeticPriority6andahalf '- and + are still identity operators
@@ -734,22 +733,22 @@ End Sub
 Private Sub parseFlowPriority1()
     If optConsume("if") Then
         Call parseExpression
-        Dim skipThenJumpIndex As Integer: skipThenJumpIndex = addOperation(iJump_ifFalse, , -1)
+        Dim skipThenJumpIndex As Integer: skipThenJumpIndex = addOperation(iJump_IfFalse, , -1)
         
-        Dim size As Integer: size = this.stackSize
+        Dim size As Integer: size = This.stackSize
         Call consume("then")
         Call parseBlock("else", "end")
         Dim skipElseJumpIndex As Integer: skipElseJumpIndex = addOperation(iJump_Unconditional)
-        this.operations(skipThenJumpIndex).value = this.iOperationIndex
-        this.stackSize = size
+        This.operations(skipThenJumpIndex).value = This.iOperationIndex
+        This.stackSize = size
         
         If optConsume("end") Then
             Call addOperation(iPush, 0, 1) 'Expressions should always return a value
-            this.operations(skipElseJumpIndex).value = this.iOperationIndex
+            This.operations(skipElseJumpIndex).value = This.iOperationIndex
         Else
             Call consume("else")
             Call parseBlock("eof", "rBracket", "end")
-            this.operations(skipElseJumpIndex).value = this.iOperationIndex
+            This.operations(skipElseJumpIndex).value = This.iOperationIndex
         
             Call optConsume("end")
         End If
@@ -762,17 +761,17 @@ End Sub
 'i.e. `varName.someMethod(1,2,3).someProp`
 Private Sub parseValuePriority1()
     'Prefix unary operators for set/let
-    Dim iOperationType as IInstruction
-    select case true
-        case optConsume("let"): iOperationType = iObject_PropLet
-        case optConsume("set"): iOperationType = iObject_PropSet
-        case else:              iOperationType = iObject_FieldCall
-    end select
+    Dim iOperationType As IInstruction
+    Select Case True
+        Case optConsume("let"): iOperationType = iObject_PropLet
+        Case optConsume("set"): iOperationType = iObject_PropSet
+        Case Else:              iOperationType = iObject_FieldCall
+    End Select
 
     If peek("literalNumber") Then
         Call addOperation(iPush, CDbl(consume("literalNumber")), 1)
     ElseIf peek("arg") Then
-        Call addOperation(iAccess_Argument, val(mid(consume("arg"), 2)), 1)
+        Call addOperation(iAccess_Argument, Val(Mid(consume("arg"), 2)), 1)
         Call parseManyAccessors(iOperationType)
     ElseIf peek("literalString") Then
         Call parseString
@@ -796,19 +795,19 @@ End Sub
 'an in-code defined function.
 Private Function parseFunction() As Variant
     Call addOperation(iPush, consume("var"), 1)
-    Dim size As Integer: size = this.stackSize
+    Dim size As Integer: size = This.stackSize
     Call parseOptParameters
     Call addOperation(iFunc_Call)
-    this.stackSize = size
+    This.stackSize = size
 End Function
 
 'Parse object field, property and method accessors. Specifically allows for more than one accessor to be chained together
 'i.e. `obj.someMethod(1,"hi").someProp`
-Private Sub parseManyAccessors(Optional ByVal instruction as IInstruction = iObject_FieldCall)
+Private Sub parseManyAccessors(Optional ByVal instruction As IInstruction = iObject_FieldCall)
     Dim bLoop As Boolean: bLoop = True
     Do
         bLoop = False
-        if parseOptObjectField(instruction) then bLoop = True
+        If parseOptObjectField(instruction) Then bLoop = True
         If parseOptObjectProperty(instruction) Then bLoop = True
         If parseOptObjectMethod() Then bLoop = True
     Loop While bLoop
@@ -817,43 +816,43 @@ End Sub
 'Parse an object's method or property call (i.e. `obj.someMethod` or `obj.someProp`) and add it to the operations stack
 '@param instruction - Whether this is a property get or property let/set
 '@returns - Whether a method or property was found
-Private Function parseOptObjectField(Optional ByVal instruction as IInstruction = iObject_FieldCall) as Boolean
-    parseOptObjectField = false
-    if optConsume("fieldAccess") then
-        Dim size As Integer: size = this.stackSize
+Private Function parseOptObjectField(Optional ByVal instruction As IInstruction = iObject_FieldCall) As Boolean
+    parseOptObjectField = False
+    If optConsume("fieldAccess") Then
+        Dim size As Integer: size = This.stackSize
         Call addOperation(iPush, consume("var"), 1)
         Call parseOptParameters
         'Parse Let/Set ... = ... as a special case
-        if peek("equal") and instruction  <> iObject_FieldCall then
+        If peek("equal") And instruction <> iObject_FieldCall Then
             Call consume("equal")
             Call parseExpression
             Call addOperation(instruction)
-        else
+        Else
             Call addOperation(iObject_FieldCall)
-        end if
-        this.stackSize = size
+        End If
+        This.stackSize = size
         parseOptObjectField = True
-    end if
+    End If
 End Function
 
 'Parse an object's property access (i.e. Obj.someProp) and add it to the operations stack
 '@param instruction - Whether this is a property get or property let/set
 '@returns - Whether a property was found
-Private Function parseOptObjectProperty(Optional ByVal instruction as IInstruction = iObject_PropGet) As Boolean
+Private Function parseOptObjectProperty(Optional ByVal instruction As IInstruction = iObject_PropGet) As Boolean
     parseOptObjectProperty = False
     If optConsume("propertyAccess") Then
-        Dim size As Integer: size = this.stackSize
+        Dim size As Integer: size = This.stackSize
         Call addOperation(iPush, consume("var"), 1)
         Call parseOptParameters
         'Parse Let/Set ... = ... as a special case
-        if peek("equal") and instruction  <> iObject_PropGet then
+        If peek("equal") And instruction <> iObject_PropGet Then
             Call consume("equal")
             Call parseExpression
             Call addOperation(instruction)
-        else
+        Else
             Call addOperation(iObject_PropGet)
-        end if
-        this.stackSize = size
+        End If
+        This.stackSize = size
         parseOptObjectProperty = True
     End If
 End Function
@@ -863,11 +862,11 @@ End Function
 Private Function parseOptObjectMethod() As Boolean
     parseOptObjectMethod = False
     If optConsume("methodAccess") Then
-        Dim size As Integer: size = this.stackSize
+        Dim size As Integer: size = This.stackSize
         Call addOperation(iPush, consume("var"), 1)
         Call parseOptParameters
         Call addOperation(iObject_MethodCall)
-        this.stackSize = size
+        This.stackSize = size
         parseOptObjectMethod = True
     End If
 End Function
@@ -922,14 +921,14 @@ Private Function parseVariableAccess() As Boolean
         parseVariableAccess = True
         Call addOperation(iAccess_General, 1 + offset, 1)
     Else
-        this.iTokenIndex = this.iTokenIndex - 1 ' Revert token consumption
+        This.iTokenIndex = This.iTokenIndex - 1 ' Revert token consumption
     End If
 End Function
 
 'Parse an assignment and add it to the current scope and operations stack
 Private Sub parseAssignment()
     'Consume set/let keyword
-    if not optConsume("let") then Call consume("set")
+    If Not optConsume("let") Then Call consume("set")
     
     Dim varName As String: varName = consume("var")
     Call consume("equal")
@@ -937,11 +936,11 @@ Private Sub parseAssignment()
     Dim offset As Long: offset = findVariable(varName)
     If offset >= 0 Then
         ' If the variable already existed, move the data to that pos on the stack
-        Call addOperation(iSet, offset, -1)
+        Call addOperation(iSet_General, offset, -1)
         Call addOperation(iAccess_General, offset, 1) ' To keep a return value
     Else
         ' If the variable didn't exist yet, treat this stack pos as its source
-        Call this.scopes(this.scopeCount).add(varName, this.stackSize)
+        Call This.scopes(This.scopeCount).add(varName, This.stackSize)
     End If
 End Sub
 
@@ -949,16 +948,16 @@ End Sub
 '@param varName - Name of variable to find
 '@returns - The position of the variable on the Operations stack
 Private Function findVariable(varName As String) As Long
-    Dim scope As Long: scope = this.scopeCount
+    Dim scope As Long: scope = This.scopeCount
     findVariable = -1
     While scope > 0
-        If this.scopes(scope).exists(varName) Then
-            If scope < this.funcScope Then
+        If This.scopes(scope).exists(varName) Then
+            If scope < This.funcScope Then
                 Call Throw("Can't access """ & varName & """, functions can unfortunately not access data outside their block")
-            ElseIf this.scopesArgCount(scope).exists(varName) Then
+            ElseIf This.scopesArgCount(scope).exists(varName) Then
                 Call Throw("Expected a variable, but found a function for name " & varName)
             Else
-                findVariable = this.stackSize - this.scopes(scope).item(varName)
+                findVariable = This.stackSize - This.scopes(scope).item(varName)
                 scope = 0
             End If
         End If
@@ -991,10 +990,10 @@ Private Function parseFunctionAccess() As Boolean
         End If
         
         ' Add call and return data
-        Call addOperation(iJump, funcPos, -iArgCount) 'only -argCount since pushing Result and popping return pos cancel out
-        this.operations(returnPosIndex).value = this.iOperationIndex
+        Call addOperation(iJump_Unconditional, funcPos, -iArgCount) 'only -argCount since pushing Result and popping return pos cancel out
+        This.operations(returnPosIndex).value = This.iOperationIndex
     Else
-        this.iTokenIndex = this.iTokenIndex - 1 ' Revert token consumption
+        This.iTokenIndex = This.iTokenIndex - 1 ' Revert token consumption
     End If
 End Function
 
@@ -1002,8 +1001,8 @@ End Function
 Private Sub parseFunctionDeclaration()
     ' Create a dedicated scope for this funcion
     Call addScope
-    Dim prevFuncScope As Long: prevFuncScope = this.funcScope
-    this.funcScope = this.scopeCount
+    Dim prevFuncScope As Long: prevFuncScope = This.funcScope
+    This.funcScope = This.scopeCount
     
     ' Add operation to skip this code in normal operation flow
     Dim skipToIndex As Integer: skipToIndex = addOperation(iJump_Unconditional)
@@ -1021,8 +1020,8 @@ Private Sub parseFunctionDeclaration()
     Call consume("rBracket")
     
     ' Register the function
-    Call this.scopes(this.scopeCount - 1).add(funcName, this.iOperationIndex)
-    Call this.scopesArgCount(this.scopeCount - 1).add(funcName, iArgCount)
+    Call This.scopes(This.scopeCount - 1).add(funcName, This.iOperationIndex)
+    Call This.scopesArgCount(This.scopeCount - 1).add(funcName, iArgCount)
     
     ' Obtain the body
     Call parseBlock("end")
@@ -1032,11 +1031,11 @@ Private Sub parseFunctionDeclaration()
         iArgCount = iArgCount - 1
     Wend
     Call addOperation(iReturn_WithValue, , -1)
-    this.operations(skipToIndex).value = this.iOperationIndex
+    This.operations(skipToIndex).value = This.iOperationIndex
     
     ' Reset the scope
-    this.scopeCount = this.scopeCount - 1
-    this.funcScope = prevFuncScope
+    This.scopeCount = This.scopeCount - 1
+    This.funcScope = prevFuncScope
 End Sub
 
 'Parse a parameter declaration and add it to the current scope
@@ -1047,8 +1046,8 @@ Private Sub parseParameterDeclaration()
         Call Throw("You can't declare multiple parameters with the same name")
     Else
         ' Reserve a spot for this parameter, it will be pushed by the caller
-        this.stackSize = this.stackSize + 1
-        Call this.scopes(this.scopeCount).add(varName, this.stackSize)
+        This.stackSize = This.stackSize + 1
+        Call This.scopes(This.scopeCount).add(varName, This.stackSize)
     End If
 End Sub
 
@@ -1057,15 +1056,15 @@ End Sub
 '@param argCount as long - Number of arguments the function takes (out)
 '@returns - The position of the function in the Operations array
 Private Function findFunction(varName As String, Optional ByRef argCount As Long) As Long
-    Dim scope As Long: scope = this.scopeCount
+    Dim scope As Long: scope = This.scopeCount
     findFunction = -1
     While scope > 0
-        If this.scopes(scope).exists(varName) Then
-            If Not this.scopesArgCount(scope).exists(varName) Then
+        If This.scopes(scope).exists(varName) Then
+            If Not This.scopesArgCount(scope).exists(varName) Then
                 Call Throw("Expected a function, but found a variable for name " & varName)
             Else
-                findFunction = this.scopes(scope).item(varName)
-                argCount = this.scopesArgCount(scope).item(varName)
+                findFunction = This.scopes(scope).item(varName)
+                argCount = This.scopesArgCount(scope).item(varName)
                 scope = 0
             End If
         End If
@@ -1122,27 +1121,27 @@ Private Function evaluate(ByRef ops() As Operation, ByVal vLastArgs As Variant) 
         ' Recommend generating this call using the following regex and list operation:
         ' Regex: "    i(\w+)"
         ' List:  "lbl$1, "
-        On op.instruction GoTo lblPush, lblPop, lblMerge, lblAccess_General, lblAccess_Argument, lblSet_General, lblArithmetic_Add, lblArithmetic_Subtract, lblArithmetic_Multiply, lblArithmetic_Divide, lblArithmetic_Power, lblArithmetic_Modulo, lblArithmetic_Negate, lblLogic_And, lblLogic_Or, lblLogic_Not, lblLogic_Xor, lblFunc_Call, lblComparison_Equal, lblComparison_NotEqual, lblComparison_GreaterThan, lblComparison_GreaterThanOrEqual, lblComparison_LessThan, lblComparison_LessThanOrEqual, lblComparison_Like, lblComparison_Is, lblMisc_Concatenate, lblJump_Unconditional, lblJump_IfTrue, lblJump_IfFalse, lblReturn_WithValue, lblReturn_NoValue, lblObject_PropGet, lblObject_PropLet, lblObject_PropSet, lblObject_MethodCall, lblObject_FieldCall, lblEndLoop
+        On op.Instruction GoTo lblPush, lblPop, lblMerge, lblAccess_General, lblAccess_Argument, lblSet_General, lblArithmetic_Add, lblArithmetic_Subtract, lblArithmetic_Multiply, lblArithmetic_Divide, lblArithmetic_Power, lblArithmetic_Modulo, lblArithmetic_Negate, lblLogic_And, lblLogic_Or, lblLogic_Not, lblLogic_Xor, lblFunc_Call, lblComparison_Equal, lblComparison_NotEqual, lblComparison_GreaterThan, lblComparison_GreaterThanOrEqual, lblComparison_LessThan, lblComparison_LessThanOrEqual, lblComparison_Like, lblComparison_Is, lblMisc_Concatenate, lblJump_Unconditional, lblJump_IfTrue, lblJump_IfFalse, lblReturn_WithValue, lblReturn_NoValue, lblObject_PropGet, lblObject_PropLet, lblObject_PropSet, lblObject_MethodCall, lblObject_FieldCall, lblEndLoop
         
         ' If not handled by the above, there are 2 options:
         ' If zero then it is an end of loop instruction, skip it
         ' If >0 then it is an unknown instruction, throw an error
-        If op.instruction = 0 Then
+        If op.Instruction = 0 Then
             opIndex = opCount + 1
             GoTo lblEndLoop ' Jump to the end of the loop
         Else
-            Throw "Unknown instruction in Lambda Virtual Machine: " & op.instruction
+            Throw "Unknown instruction in Lambda Virtual Machine: " & op.Instruction
             Exit Function
         End If
 
         ' NOTE: The following labels are in declaration order, but this has no effect on evaluation. The labels are in their current order purely for readability.
 lblPush:
         'Inline `CopyVariant` for performance, as this is a very common operation
-        if isObject(op.value) Then
-            set tempItemToPush = op.value
-        else
+        If IsObject(op.value) Then
+            Set tempItemToPush = op.value
+        Else
             tempItemToPush = op.value ' Assign value to temp variable
-        end if
+        End If
 
         GoSub StackPush
         GoTo lblEndLoop
@@ -1167,11 +1166,11 @@ lblAccess_Argument:
         Dim iArgIndex As Long: iArgIndex = op.value + LBound(vLastArgs) - 1
         If iArgIndex <= UBound(vLastArgs) Then
             'Inline `CopyVariant` for performance, as this is a very common operation
-            if isObject(vLastArgs(iArgIndex)) Then
-                set tempItemToPush = vLastArgs(iArgIndex) ' Assign object reference to temp variable for push
-            else
+            If IsObject(vLastArgs(iArgIndex)) Then
+                Set tempItemToPush = vLastArgs(iArgIndex) ' Assign object reference to temp variable for push
+            Else
                 tempItemToPush = vLastArgs(iArgIndex) ' Assign value to temp variable for push
-            end if
+            End If
             GoSub StackPush
         Else
             Call Throw("Argument " & iArgIndex & " not supplied to Lambda.")
@@ -1395,7 +1394,7 @@ lblObject_MethodCall:
 lblObject_FieldCall:
         'Get the name and arguments
         Dim bIsSetter As Boolean: bIsSetter = op.Instruction = iObject_PropSet Or op.Instruction = iObject_PropLet 'Corrected for op.Instruction usage
-        Dim iOriginalPos As Long: iOriginalPos = stackPtr 
+        Dim iOriginalPos As Long: iOriginalPos = stackPtr
         stackPtr = stackPtr - IIf(bIsSetter, 1, 0)
         GoSub StackGetFunctionArgs ' Get arguments from stack, writes output to `tempArgs`
 
@@ -1412,12 +1411,12 @@ lblObject_FieldCall:
         
         'Get caller type
         Dim callerType As VbCallType
-        Select Case op.instruction
-            Case iObject_FieldCall:   callerType = VbGetOrMethod
-            Case iObject_PropGet:     callerType = VbGet
-            Case iObject_MethodCall:  callerType = VbMethod
-            Case iObject_PropLet:     callerType = VbLet
-            Case iObject_PropSet:     callerType = VbSet
+        Select Case op.Instruction
+            Case iObject_FieldCall:   callerType = vbGetOrMethod
+            Case iObject_PropGet:     callerType = vbGet
+            Case iObject_MethodCall:  callerType = vbMethod
+            Case iObject_PropLet:     callerType = vbLet
+            Case iObject_PropSet:     callerType = vbSet
         End Select
                     
         'Call rtcCallByName
@@ -1440,7 +1439,7 @@ lblEndLoop:
     If This.UsePerformanceCache Then
         GoSub StackPop: idxV1 = tempPoppedLoc ' Get final result from stack
         Call CopyVariant(v1, stack(idxV1)) ' Copy to temp var for cache check
-        If isObject(v1) Then
+        If IsObject(v1) Then
             Set This.PerformanceCache(sPerformanceCacheID) = v1
         Else
             Let This.PerformanceCache(sPerformanceCacheID) = v1
@@ -1463,7 +1462,7 @@ StackPush:
     End If
     
     'Inline CopyVariant for performance, as this is a very common operation
-    If isObject(tempItemToPush) Then
+    If IsObject(tempItemToPush) Then
         Set stack(stackPtr) = tempItemToPush
     Else
         stack(stackPtr) = tempItemToPush
@@ -1500,10 +1499,10 @@ StackGetFunctionArgs:
         tempArgs = Array()
     Else
         GoSub StackPop ' Pop the argCount from stack, no need to transfer from `tempPoppedLoc` again. 
-        ReDim tempArgs(1 To argCount) 
+        ReDim tempArgs(1 To argCount)
         
         ' Arguments are held on the stack in order, which means that we need to fill the array in reverse order.
-        Dim iParamIndex as Long
+        Dim iParamIndex As Long
         For iParamIndex = argCount To 1 Step -1
             GoSub StackPop
             Call CopyVariant(tempArgs(iParamIndex), stack(tempPoppedLoc)) ' Copy argument value from stack
@@ -1530,9 +1529,9 @@ Private Function stdCallByName(ByRef obj As Object, ByVal funcName As String, By
                   Case vbGetOrMethod
                     'Call DictionaryInstance.Item(funcName) only if funcName exists on the item
                     If obj.exists(funcName) Then Call CopyVariant(stdCallByName, obj.item(funcName))
-                  Case VbSet
+                  Case vbSet
                     Set obj(funcName) = args(0)
-                  Case VbLet
+                  Case vbLet
                     Let obj(funcName) = args(0)
                 End Select
                 Exit Function
@@ -1549,19 +1548,19 @@ Private Function stdCallByName(ByRef obj As Object, ByVal funcName As String, By
     Exit Function
 ErrorInRTCCallByName:
     'HACK: Rarely objects which are poorly implemented might throw missing member errors. This can for instance happen with RecordSet. This try loop is an attempt to catch this
-    Dim iTry as Long: iTry = iTry + 1
-    if iTry < 5 then
-        Dim sCallerTypeName as string
-        select case callerType
-            case vbGetOrMethod: sCallerTypeName = "Property or Method "
-            case VbGet: sCallerTypeName = "Property "
-            Case VbMethod: sCallerTypeName = "Method "
-        end select
-        Err.Raise Err.Number, "", sCallerTypeName & funcName & " doesn't exist on object with type " & typename(obj)
+    Dim iTry As Long: iTry = iTry + 1
+    If iTry < 5 Then
+        Dim sCallerTypeName As String
+        Select Case callerType
+            Case vbGetOrMethod: sCallerTypeName = "Property or Method "
+            Case vbGet: sCallerTypeName = "Property "
+            Case vbMethod: sCallerTypeName = "Method "
+        End Select
+        Err.Raise Err.Number, "", sCallerTypeName & funcName & " doesn't exist on object with type " & TypeName(obj)
         Resume
-    else
+    Else
         Resume
-    end if
+    End If
 End Function
 
 'Evaluates the built in standard functions
@@ -1570,12 +1569,12 @@ End Function
 '@returns The result
 Private Function evaluateFunc(ByVal sFuncName As String, ByVal args As Variant) As Variant
     Dim iArgStart As Long: iArgStart = LBound(args)
-    If TypeName(this.FunctionExtensions) = "Dictionary" Then
-        If this.FunctionExtensions.exists(sFuncName) Then
+    If TypeName(This.FunctionExtensions) = "Dictionary" Then
+        If This.FunctionExtensions.exists(sFuncName) Then
             Dim vInjectedVar As Variant
-            Call CopyVariant(vInjectedVar, this.FunctionExtensions(sFuncName))
+            Call CopyVariant(vInjectedVar, This.FunctionExtensions(sFuncName))
             If TypeOf vInjectedVar Is stdICallable Then
-                Call CopyVariant(evaluateFunc, this.FunctionExtensions(sFuncName).RunEx(args))
+                Call CopyVariant(evaluateFunc, This.FunctionExtensions(sFuncName).RunEx(args))
             Else
                 Call CopyVariant(evaluateFunc, vInjectedVar)
             End If
@@ -1583,18 +1582,19 @@ Private Function evaluateFunc(ByVal sFuncName As String, ByVal args As Variant) 
         End If
     End If
     
+    Dim i As Long
     Select Case LCase(sFuncName)
         'Useful OOP constants
-        Case "thisworkbook": if isObject(ThisWorkbook) then Set evaluateFunc = ThisWorkbook
-        Case "application":  if isObject(Application)  then  Set evaluateFunc = Application
+        Case "thisworkbook": If IsObject(ThisWorkbook) Then Set evaluateFunc = ThisWorkbook
+        Case "application":  If IsObject(Application) Then Set evaluateFunc = Application
 
         'Data structures
         Case "dict":
-            Dim oRetDict as object: set oRetDict = CreateObject("Scripting.Dictionary")
+            Dim oRetDict As Object: Set oRetDict = CreateObject("Scripting.Dictionary")
             For i = iArgStart To UBound(args) Step 2
-                Call oRetDict.add(args(i), args(i+1))
-            next
-            set evaluateFunc = oRetDict
+                Call oRetDict.add(args(i), args(i + 1))
+            Next
+            Set evaluateFunc = oRetDict
 
         'MATH:
         '-----
@@ -1628,9 +1628,9 @@ Private Function evaluateFunc(ByVal sFuncName As String, ByVal args As Variant) 
         Case "vbformfeed":      evaluateFunc = vbFormFeed
         Case "vbverticaltab":   evaluateFunc = vbVerticalTab
         Case "null":            evaluateFunc = Null
-        Case "nothing":         set evaluateFunc = Nothing
+        Case "nothing":         Set evaluateFunc = Nothing
         Case "empty":           evaluateFunc = Empty
-        Case "missing":         evaluateFunc = getMissing()
+        Case "missing":         evaluateFunc = GetMissing()
 
         'VBA Structure
         Case "array": evaluateFunc = args
@@ -1689,13 +1689,13 @@ Private Function evaluateFunc(ByVal sFuncName As String, ByVal args As Variant) 
         Case "hex":     evaluateFunc = VBA.Conversion.Hex(args(iArgStart))
         Case "oct":     evaluateFunc = VBA.Conversion.Oct(args(iArgStart))
         Case "str":     evaluateFunc = VBA.Conversion.Str(args(iArgStart))
-        Case "val":     evaluateFunc = VBA.Conversion.val(args(iArgStart))
+        Case "val":     evaluateFunc = VBA.Conversion.Val(args(iArgStart))
         
         'String functions
         Case "trim":  evaluateFunc = VBA.Trim(args(iArgStart))
         Case "lcase": evaluateFunc = VBA.LCase(args(iArgStart))
         Case "ucase": evaluateFunc = VBA.UCase(args(iArgStart))
-        Case "right": evaluateFunc = VBA.right(args(iArgStart), args(iArgStart + 1))
+        Case "right": evaluateFunc = VBA.Right(args(iArgStart), args(iArgStart + 1))
         Case "left":  evaluateFunc = VBA.Left(args(iArgStart), args(iArgStart + 1))
         Case "len":   evaluateFunc = VBA.Len(args(iArgStart))
 
@@ -1752,9 +1752,9 @@ Private Function evaluateFunc(ByVal sFuncName As String, ByVal args As Variant) 
             End If
         Case "eval": evaluateFunc = stdLambda.Create(args(iArgStart)).Run()
         Case "lambda": 
-            set evaluateFunc = stdLambda.Create(args(iArgStart))
-            set evaluateFunc.oFuncExt = oFuncExt
-        Case "isnumeric": evaluateFunc = isNumeric(args(iArgStart))
+            Set evaluateFunc = stdLambda.Create(args(iArgStart))
+            Set evaluateFunc.oFuncExt = oFunctExt
+        Case "isnumeric": evaluateFunc = IsNumeric(args(iArgStart))
         Case "isobject": evaluateFunc = IsObject(args(iArgStart))
         Case "string": evaluateFunc = String(args(iArgStart), args(iArgStart + 1))
         Case "space": evaluateFunc = String(args(iArgStart), " ")
@@ -1772,7 +1772,7 @@ End Function
 'Class initialisation
 Private Sub Class_Initialize()
     'If this is stdLambda predeclared class, ensure that oFuncExt is defined.
-    If Me Is stdLambda Then Set oFuncExt = CreateObject("Scripting.Dictionary")
+    If Me Is stdLambda Then Set oFunctExt = CreateObject("Scripting.Dictionary")
 End Sub
 
 '------------
@@ -1873,13 +1873,13 @@ End Function
 'Shifts the Tokens array (uses an index)
 '@returns {token} The token at the tokenIndex
 Private Function ShiftTokens() As token
-    If this.iTokenIndex = 0 Then this.iTokenIndex = 1
+    If This.iTokenIndex = 0 Then This.iTokenIndex = 1
     
     'Get next token
-    ShiftTokens = this.tokens(this.iTokenIndex)
+    ShiftTokens = This.tokens(This.iTokenIndex)
     
     'Increment token index
-    this.iTokenIndex = this.iTokenIndex + 1
+    This.iTokenIndex = This.iTokenIndex + 1
 End Function
 
 ' Consumes a token
@@ -1901,9 +1901,9 @@ End Function
 '@param {long} offset   The number of tokens to look into the future, defaults to 1
 '@returns {boolean} Whether the expected token was found
 Private Function peek(ByVal sTokenType As String, Optional offset As Long = 1) As Boolean
-    If this.iTokenIndex = 0 Then this.iTokenIndex = 1
-    If this.iTokenIndex + offset - 1 <= UBound(this.tokens) Then
-        peek = this.tokens(this.iTokenIndex + offset - 1).Type.name = sTokenType
+    If This.iTokenIndex = 0 Then This.iTokenIndex = 1
+    If This.iTokenIndex + offset - 1 <= UBound(This.tokens) Then
+        peek = This.tokens(This.iTokenIndex + offset - 1).Type.name = sTokenType
     Else
         peek = False
     End If
@@ -1941,28 +1941,28 @@ End Function
 '@param stackDelta - The effect this has on the stack size (increasing or decreasing it)
 '@returns - The index of the created operation
 Private Function addOperation(kInstruction As IInstruction, Optional value As Variant, Optional stackDelta As Integer) As Integer
-    If this.iOperationIndex = 0 Then
-        ReDim Preserve this.operations(0 To 1)
+    If This.iOperationIndex = 0 Then
+        ReDim Preserve This.operations(0 To 1)
     Else
-        Dim size As Long: size = UBound(this.operations)
-        If this.iOperationIndex > size Then
-            ReDim Preserve this.operations(0 To size * 2)
+        Dim size As Long: size = UBound(This.operations)
+        If This.iOperationIndex > size Then
+            ReDim Preserve This.operations(0 To size * 2)
         End If
     End If
     
-    With this.operations(this.iOperationIndex)
+    With This.operations(This.iOperationIndex)
         .Instruction = kInstruction
         Call CopyVariant(.value, value)
     End With
-    addOperation = this.iOperationIndex
-    this.stackSize = this.stackSize + stackDelta
+    addOperation = This.iOperationIndex
+    This.stackSize = This.stackSize + stackDelta
     
-    this.iOperationIndex = this.iOperationIndex + 1
+    This.iOperationIndex = This.iOperationIndex + 1
 End Function
 
 'Resizes the operations list so there are no more empty operations
 Private Sub finishOperations()
-    ReDim Preserve this.operations(0 To this.iOperationIndex)
+    ReDim Preserve This.operations(0 To This.iOperationIndex)
 End Sub
 
 'Serializes the argument array passed to a string.
@@ -2173,7 +2173,7 @@ End Function
 '@returns - The created operation
 Private Function testCreateOp(ByVal instruction As IInstruction, ByVal value As Variant) As Operation
     Dim op As Operation
-    op.instruction = instruction
+    op.Instruction = instruction
     Call CopyVariant(op.value, value)
     testCreateOp = op
 End Function
@@ -2269,15 +2269,15 @@ Public Sub protRunVMTests()
     Debug.Assert evaluate(testCreateOps(iPush, False, iPush, False, iLogic_Xor, Empty), Array()) = False
 
     'iFunc_Call - Use `Len` as an example
-    Debug.Assert evaluate(testCreateOps(iPush, "Len", iPush, "TestString", iPush, 1, iFunc_Call, Empty), args) = Len("TestString") 
+    Debug.Assert evaluate(testCreateOps(iPush, "Len", iPush, "TestString", iPush, 1, iFunc_Call, Empty), Array()) = Len("TestString")
     
     'Test oFunctExts
-    set This.FunctionExtensions = CreateObject("Scripting.Dictionary")
+    Set This.FunctionExtensions = CreateObject("Scripting.Dictionary")
     This.FunctionExtensions.Add "Proxy", stdLambda.Create("$1")
-    Debug.Assert evaluate(testCreateOps(iPush, "Proxy", iPush, "TestString", iPush, 1, iFunc_Call, Empty), args) = "TestString"
+    Debug.Assert evaluate(testCreateOps(iPush, "Proxy", iPush, "TestString", iPush, 1, iFunc_Call, Empty), Array()) = "TestString"
     'Ensure returns objects too
-    Debug.Assert TypeName(evaluate(testCreateOps(iPush, "Proxy", iPush, Application, iPush, 1, iFunc_Call, Empty), args)) = "Application"
-    set This.FunctionExtensions = Nothing
+    Debug.Assert TypeName(evaluate(testCreateOps(iPush, "Proxy", iPush, Application, iPush, 1, iFunc_Call, Empty), Array())) = "Application"
+    Set This.FunctionExtensions = Nothing
 
     'TODO: Test other functions
 
@@ -2295,7 +2295,7 @@ Public Sub protRunVMTests()
     Debug.Assert evaluate(testCreateOps(iPush, 10, iPush, 11, iComparison_GreaterThanOrEqual, Empty), Array()) = False
     Debug.Assert evaluate(testCreateOps(iPush, 10, iPush, 9, iComparison_LessThan, Empty), Array()) = False
     Debug.Assert evaluate(testCreateOps(iPush, 10, iPush, 10, iComparison_LessThan, Empty), Array()) = False
-    Debug.Assert evaluate(testCreateOps(iPush, 10, iPush, 11, iComparison_LessThan, Empty), Array()) = True 
+    Debug.Assert evaluate(testCreateOps(iPush, 10, iPush, 11, iComparison_LessThan, Empty), Array()) = True
     Debug.Assert evaluate(testCreateOps(iPush, 10, iPush, 9, iComparison_LessThanOrEqual, Empty), Array()) = False
     Debug.Assert evaluate(testCreateOps(iPush, 10, iPush, 10, iComparison_LessThanOrEqual, Empty), Array()) = True
     Debug.Assert evaluate(testCreateOps(iPush, 10, iPush, 11, iComparison_LessThanOrEqual, Empty), Array()) = True
@@ -2306,9 +2306,9 @@ Public Sub protRunVMTests()
     Debug.Assert evaluate(testCreateOps(iPush, "AB", iPush, "A?", iComparison_Like, Empty), Array()) = True
     Debug.Assert evaluate(testCreateOps(iPush, "ABC", iPush, "A?", iComparison_Like, Empty), Array()) = False
     
-    Dim o1 as Collection: Set o1 = new Collection
-    Dim o2 as Collection: Set o2 = new Collection
-    Dim o3 as Collection
+    Dim o1 As Collection: Set o1 = New Collection
+    Dim o2 As Collection: Set o2 = New Collection
+    Dim o3 As Collection
     Debug.Assert evaluate(testCreateOps(iPush, o1, iPush, o2, iComparison_Is, Empty), Array()) = False
     Debug.Assert evaluate(testCreateOps(iPush, o1, iPush, o1, iComparison_Is, Empty), Array()) = True
     Debug.Assert evaluate(testCreateOps(iPush, Nothing, iPush, Nothing, iComparison_Is, Empty), Array()) = True
@@ -2381,7 +2381,16 @@ Public Sub protRunVMTests()
     Debug.Assert TypeName(evaluate(testCreateOps(iPush, Application, iPush, "Range", iPush, "A1", iPush, 1, iObject_PropGet, Empty), Array())) = "Range"
     Debug.Assert evaluate(testCreateOps(iPush, Application, iPush, "Range", iPush, "A1", iPush, 1, iObject_PropGet, Empty), Array()).Address = "$A$1"
 
-    'iObject_MethodCall
+    'TODO: iObject_MethodCall
+    'TODO: iObject_MethodCall_WithArgs
+    'TODO: iObject_FieldCall           as method
+    'TODO: iObject_FieldCall_WithArgs  as method
+    'TODO: iObject_FieldCall           as property
+    'TODO: iObject_FieldCall_WithArgs  as property
+    'TODO: iObject_PropLet
+    'TODO: iObject_PropLet_WithArgs
+    'TODO: iObject_PropSet
+    'TODO: iObject_PropSet_WithArgs
 End Sub
 
 
