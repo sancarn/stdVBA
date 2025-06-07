@@ -250,7 +250,7 @@ files.forEach((file) => {
     const commentGroups = groupBy(commentData, (c) => c.type);
     if (!!commentGroups.param) {
       commentGroups.param = groupBy(commentGroups.param, (c) =>
-        c.data.name.toLowerCase()
+        c.data.groups.name.toLowerCase()
       );
       Object.keys(commentGroups.param).forEach(
         (name) => (commentGroups.param[name] = commentGroups.param[name][0])
