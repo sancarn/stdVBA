@@ -145,12 +145,17 @@ function parseComment(comment) {
   for (match of matches) {
     let type = match.groups.type;
     if (!!regexTags[type]) {
-      let data = regexTags[type].exec(match[0])?.groups;
+      let data = regexTags[type].exec(match[0]);
       //If comment not valid ignore
       if (!!data) {
-        if (!!data?.description)
-          data.description = data.description.trim().replace(/^'/gm, "");
-        commentStore.push({ type, data });
+        let groups = data?.groups;
+        if (!!groups) {
+          if (!!data?.description)
+            data.description = data.description.trim().replace(/^'/gm, "");
+          commentStore.push({ type, data });
+        } else {
+          commentStore.push({ type, data: true });
+        }
       }
     } else {
       commentStore.push({
@@ -295,9 +300,9 @@ files.forEach((file) => {
     myMethod = {
       name: match.groups.name,
       type: match.groups.type,
-      constructor: !!commentGroups?.constructor?.[0],
-      isDefaultMember: !!commentGroups.defaultMember?.[0],
-      protected: !!commentGroups.protected?.[0],
+      constructor: !!commentGroups?.constructor?.[0]?.data,
+      isDefaultMember: !!commentGroups.defaultMember?.[0]?.data,
+      protected: !!commentGroups.protected?.[0]?.data,
       access,
       description: commentGroups?.description?.[0]?.data?.description ?? "",
       params: params,
