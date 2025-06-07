@@ -1,11 +1,24 @@
 on: [push]
 
 jobs:
-    build-and-publish:
-      runs-on: ubuntu-latest
-      name: My workflow
-      steps:
-        - name: Execute Action Graph
-          uses: actionforge/action@5636645834e4a75cbc8c6c204e872ddc27632738 # v0.9.52
-          with:
-            graph_file: vba_docs_gen.yml
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run doc generator
+        run: node ./Tools/VBDocsGen/main.js
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+          git add docs.json
+          git commit -m "Documentation update" || echo "No changes to commit"
+          git push origin HEAD
