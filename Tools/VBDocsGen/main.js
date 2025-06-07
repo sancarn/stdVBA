@@ -95,7 +95,7 @@
  */
 
 function groupBy(list, keyGetter) {
-  const map = {};
+  const map = { constructor: undefined };
   list.forEach((item) => {
     const key = keyGetter(item);
     const collection = map[key];
