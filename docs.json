@@ -8768,7 +8768,7 @@
         "params": [
           {
             "name": "sGlobalName",
-            "type": "string",
+            "type": "String",
             "description": "New global name",
             "referenceType": "ByVal",
             "paramArray": false,
@@ -8807,6 +8807,26 @@
         "returns": {
           "type": "Object<Dictionary<string,stdICallable> | Dictionary<string,variant>> ",
           "description": "Dictionary of functions and named global variables"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "examples": [],
+        "remarks": []
+      },
+      {
+        "name": "protRunVMTests",
+        "type": "Sub",
+        "constructor": true,
+        "isDefaultMember": false,
+        "protected": false,
+        "access": null,
+        "description": "Runs tests on the class",
+        "params": [],
+        "returns": {
+          "type": "Void",
+          "description": "An array of booleans indicating whether each test passed"
         },
         "deprecation": {
           "status": false,
