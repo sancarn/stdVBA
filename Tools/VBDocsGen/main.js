@@ -105,6 +105,7 @@ function groupBy(list, keyGetter) {
       collection.push(item);
     }
   });
+  if (map.constructor === undefined) delete map.constructor;
   return map;
 }
 
