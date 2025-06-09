@@ -5,7 +5,7 @@
     "methods": [
       {
         "name": "GetDescendents",
-        "description": " Get all descendents of the stdAcc control\r\n",
+        "description": "Get all descendents of the stdAcc control",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -27,16 +27,16 @@
       },
       {
         "name": "FindFirst",
-        "description": " Search the IAccessible tree for elements which match a certain criteria. Return the first element found.\r\n",
+        "description": "Search the IAccessible tree for elements which match a certain criteria. Return the first element found.",
         "remarks": [],
         "examples": [
-          " ```\r\n'Find where name is \"hello\" and class is \"world\":\r\n"
+          "```\r\n'Find where name is \"hello\" and class is \"world\":\r\nel.FindFirst(stdLambda.Create(\"$1.name=\"\"hello\"\" and $1.class=\"\"world\"\"\"))\r\n'Find first element named \"hello\" at depth > 4:\r\nel.FindFirst(stdLambda.Create(\"$1.name = \"\"hello\"\" AND $2 > 4\"))\r\n```"
         ],
         "params": [
           {
             "name": "query",
             "type": "stdICallable<(stdAcc,depth)=>EAccFindResult>",
-            "description": "Callback returning `EAccFindResult` options:",
+            "description": "Callback returning `EAccFindResult` options:\r\n\r\n* `EAccFindResult.NoMatchFound`/`0`/`False`        - Not found, countinue walking",
             "optional": false,
             "defaultValue": null,
             "paramArray": false
@@ -44,7 +44,7 @@
           {
             "name": "searchType",
             "type": "EAccFindType",
-            "description": "The type of search to perform, either Breadth First Search (BFS) or Depth First Search (DFS).",
+            "description": "The type of search to perform, either Breadth First Search (BFS) or Depth First Search (DFS).\r\n To understand the difference between BFS and DFS take this tree:",
             "optional": true,
             "defaultValue": "EAccFindType.DepthFirst",
             "paramArray": false
@@ -68,16 +68,16 @@
       },
       {
         "name": "FindAll",
-        "description": " Search the IAccessible tree for elements which match a certain criteria. Return all elements found.\r\n",
+        "description": "Search the IAccessible tree for elements which match a certain criteria. Return all elements found.",
         "remarks": [],
         "examples": [
-          " ```\r\n'Find where name is \"hello\" and class is \"world\":\r\n"
+          "```\r\n'Find where name is \"hello\" and class is \"world\":\r\nel.FindAll(stdLambda.Create(\"$1.name=\"\"hello\"\" and $1.class=\"\"world\"\"\"))\r\n'Find all elements with depth <= 4:\r\nel.FindAll(stdLambda.Create(\"if $2 < 4 then 4 else if $2 = 4 then 1 else 3\"))\r\n```"
         ],
         "params": [
           {
             "name": "query",
             "type": "stdICallable<(stdAcc,depth)=>EAccFindResult>",
-            "description": "Callback returning `EAccFindResult` options:",
+            "description": "Callback returning `EAccFindResult` options:\r\n\r\n* `EAccFindResult.NoMatchFound`/`0`/`False`           - Not found, countinue walking.",
             "optional": false,
             "defaultValue": null,
             "paramArray": false
@@ -85,7 +85,7 @@
           {
             "name": "searchType",
             "type": "EAccFindType",
-            "description": "The type of search, either Breadth First Search (BFS) or Depth First Search (DFS).",
+            "description": "The type of search, either Breadth First Search (BFS) or Depth First Search (DFS).\r\n To understand the difference between BFS and DFS take this tree:",
             "optional": true,
             "defaultValue": "EAccFindType.DepthFirst",
             "paramArray": false
@@ -109,10 +109,10 @@
       },
       {
         "name": "DoDefaultAction",
-        "description": " Performs the default action of the `IAccessible` object\r\n",
+        "description": "Performs the default action of the `IAccessible` object",
         "remarks": [],
         "examples": [
-          " `app.getButton().DoDefaultAction()`\r\n"
+          "`app.getButton().DoDefaultAction()`"
         ],
         "params": [],
         "returns": null,
@@ -130,7 +130,7 @@
       },
       {
         "name": "SendMessage",
-        "description": " Sends a message to the window\r\n",
+        "description": "Sends a message to the window",
         "remarks": [],
         "examples": [],
         "params": [
@@ -165,7 +165,7 @@
         },
         "deprecation": {
           "status": true,
-          "message": " Use `stdWindow#SendMessage()` instead.\r\n"
+          "message": "Use `stdWindow#SendMessage()` instead."
         },
         "isDefaultMember": false,
         "devNotes": [],
@@ -177,7 +177,7 @@
       },
       {
         "name": "PrintChildTexts",
-        "description": " Print the text of all child elements. Useful for debugging.\r\n",
+        "description": "Print the text of all child elements. Useful for debugging.",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -196,7 +196,7 @@
       },
       {
         "name": "PrintDescTexts",
-        "description": " Prints all descendent texts. Useful for debugging. Also includes all paths of all descendents which can be very beneficial.\r\n",
+        "description": "Prints all descendent texts. Useful for debugging. Also includes all paths of all descendents which can be very beneficial.",
         "remarks": [],
         "examples": [],
         "params": [
@@ -248,7 +248,7 @@
       },
       {
         "name": "getPath",
-        "description": " Returns the path to an element\r\n",
+        "description": "Returns the path to an element",
         "remarks": [],
         "examples": [],
         "params": [
@@ -279,7 +279,7 @@
       },
       {
         "name": "toJSON",
-        "description": " Returns this element and all descendents as a JSON string. Useful for debugging\r\n",
+        "description": "Returns this element and all descendents as a JSON string. Useful for debugging",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -301,9 +301,9 @@
       },
       {
         "name": "AwaitForElement",
-        "description": " Await for the existence of an element which meets a specified condition.\r\n",
+        "description": "Await for the existence of an element which meets a specified condition.",
         "remarks": [
-          " calls `Me.FindFirst(awaitFor)` to wait for chosen element\r\n"
+          "calls `Me.FindFirst(awaitFor)` to wait for chosen element"
         ],
         "examples": [],
         "params": [
@@ -353,7 +353,7 @@
       {
         "name": "protAccessible",
         "access": "ReadWrite",
-        "description": " The object which implements `IAccessible`, with which this class wraps. Please don't modify this object, unless you know what you are doing.\r\n",
+        "description": "The object which implements `IAccessible`, with which this class wraps. Please don't modify this object, unless you know what you are doing.",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -376,7 +376,7 @@
       {
         "name": "Parent",
         "access": "ReadOnly",
-        "description": " Return the parent of the IAccessible object\r\n",
+        "description": "Return the parent of the IAccessible object",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -399,7 +399,7 @@
       {
         "name": "AncestralRoot",
         "access": "ReadOnly",
-        "description": " Obtain the ancestral root of the IAccessible object (A child of the desktop)\r\n",
+        "description": "Obtain the ancestral root of the IAccessible object (A child of the desktop)",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -422,7 +422,7 @@
       {
         "name": "children",
         "access": "ReadOnly",
-        "description": " Return the children of the IAccessible object\r\n",
+        "description": "Return the children of the IAccessible object",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -445,7 +445,7 @@
       {
         "name": "hwnd",
         "access": "ReadOnly",
-        "description": " Return the hwnd of the IAccessible object\r\n",
+        "description": "Return the hwnd of the IAccessible object",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -468,10 +468,10 @@
       {
         "name": "Identity",
         "access": "ReadOnly",
-        "description": " Get a unique identifier for an element.\r\n",
+        "description": "Get a unique identifier for an element.",
         "remarks": [],
         "examples": [
-          " `stdAcc.CreateFromMouse().Identity`\r\n"
+          "`stdAcc.CreateFromMouse().Identity`"
         ],
         "params": [],
         "returns": {
@@ -493,7 +493,7 @@
       {
         "name": "Location",
         "access": "ReadOnly",
-        "description": " Return the location of the element as a collection\r\n",
+        "description": "Return the location of the element as a collection",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -516,7 +516,7 @@
       {
         "name": "HitTest",
         "access": "ReadOnly",
-        "description": " Return the element under the specified location\r\n",
+        "description": "Return the element under the specified location\r\nTODO: Is this needed?",
         "remarks": [],
         "examples": [],
         "params": [
@@ -556,7 +556,7 @@
       {
         "name": "value",
         "access": "ReadWrite",
-        "description": " Gets/Sets the value of the element\r\n",
+        "description": "Gets/Sets the value of the element",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -579,7 +579,7 @@
       {
         "name": "name",
         "access": "ReadOnly",
-        "description": " Returns the name of the element\r\n",
+        "description": "Returns the name of the element",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -602,7 +602,7 @@
       {
         "name": "DefaultAction",
         "access": "ReadOnly",
-        "description": " Returns the description of the default action of the element\r\n",
+        "description": "Returns the description of the default action of the element",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -625,7 +625,7 @@
       {
         "name": "Role",
         "access": "ReadOnly",
-        "description": " Returns the role of the element\r\n",
+        "description": "Returns the role of the element",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -648,7 +648,7 @@
       {
         "name": "States",
         "access": "ReadOnly",
-        "description": " Returns the state of the element\r\n",
+        "description": "Returns the state of the element",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -671,7 +671,7 @@
       {
         "name": "StateData",
         "access": "ReadOnly",
-        "description": " Returns the state(s) of the element\r\n",
+        "description": "Returns the state(s) of the element",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -694,7 +694,7 @@
       {
         "name": "Description",
         "access": "ReadOnly",
-        "description": " Returns the description of the element\r\n",
+        "description": "Returns the description of the element",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -717,7 +717,7 @@
       {
         "name": "KeyboardShortcut",
         "access": "ReadOnly",
-        "description": " Returns the keyboard shortcut used to trigger the default action of the element\r\n",
+        "description": "Returns the keyboard shortcut used to trigger the default action of the element",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -740,7 +740,7 @@
       {
         "name": "Focus",
         "access": "ReadWrite",
-        "description": " Get the Focus of the UI element\r\n",
+        "description": "Get the Focus of the UI element",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -763,7 +763,7 @@
       {
         "name": "Help",
         "access": "ReadOnly",
-        "description": " Returns the help\r\n",
+        "description": "Returns the help",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -786,7 +786,7 @@
       {
         "name": "HelpTopic",
         "access": "ReadOnly",
-        "description": " Returns the help topic\r\n",
+        "description": "Returns the help topic",
         "remarks": [],
         "examples": [],
         "params": [
@@ -818,7 +818,7 @@
       {
         "name": "Text",
         "access": "ReadOnly",
-        "description": " Returns a string containing numerous properties from stdAcc concatenated together.\r\n",
+        "description": "Returns a string containing numerous properties from stdAcc concatenated together.",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -853,7 +853,7 @@
     "constructors": [
       {
         "name": "CreateFromPoint",
-        "description": " Creates an `stdAcc` object from an `X` and `Y` point location on the screen.\r\n",
+        "description": "Creates an `stdAcc` object from an `X` and `Y` point location on the screen.",
         "remarks": [],
         "examples": [],
         "params": [
@@ -892,7 +892,7 @@
       },
       {
         "name": "CreateFromHwnd",
-        "description": " Creates an `stdAcc` object from a window handle.\r\n",
+        "description": "Creates an `stdAcc` object from a window handle.",
         "remarks": [],
         "examples": [],
         "params": [
@@ -923,7 +923,7 @@
       },
       {
         "name": "CreateFromApplication",
-        "description": " Creates an `stdAcc` object from the current running application (e.g. Excel / Word / Powerpoint).\r\n",
+        "description": "Creates an `stdAcc` object from the current running application (e.g. Excel / Word / Powerpoint).",
         "remarks": [],
         "examples": [],
         "params": [
@@ -954,7 +954,7 @@
       },
       {
         "name": "CreateFromDesktop",
-        "description": " Creates an `stdAcc` object from the desktop.\r\n",
+        "description": "Creates an `stdAcc` object from the desktop.",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -976,7 +976,7 @@
       },
       {
         "name": "CreateFromIAccessible",
-        "description": " Creates an `stdAcc` object from an object which implements `IAccessible`.\r\n",
+        "description": "Creates an `stdAcc` object from an object which implements `IAccessible`.",
         "remarks": [],
         "examples": [],
         "params": [
@@ -1007,7 +1007,7 @@
       },
       {
         "name": "CreateFromMouse",
-        "description": " Creates an `stdAcc` object for the element the mouse currently hovers over.\r\n",
+        "description": "Creates an `stdAcc` object for the element the mouse currently hovers over.",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -1029,10 +1029,10 @@
       },
       {
         "name": "CreateFromPath",
-        "description": " Creates an `stdAcc` object for the element at a given path from the current element.\r\n",
+        "description": "Creates an `stdAcc` object for the element at a given path from the current element.",
         "remarks": [],
         "examples": [
-          " `Debug.Print stdAcc.CreateFromApplication().CreateFromPath(\"3.1\").name`\r\n"
+          "`Debug.Print stdAcc.CreateFromApplication().CreateFromPath(\"3.1\").name`"
         ],
         "params": [
           {
@@ -1062,7 +1062,7 @@
       },
       {
         "name": "protInitWithProxy",
-        "description": " Initialises an stdAcc object as a `Proxy` object, who's methods are implemented on the parent instead of on the element itself\r\n",
+        "description": "Initialises an stdAcc object as a `Proxy` object, who's methods are implemented on the parent instead of on the element itself",
         "remarks": [],
         "examples": [],
         "params": [
@@ -1106,7 +1106,7 @@
     "methods": [
       {
         "name": "protInit",
-        "description": " Initialise array\r\n",
+        "description": "Initialise array",
         "remarks": [],
         "examples": [],
         "params": [
@@ -1142,7 +1142,7 @@
       },
       {
         "name": "AsCollection",
-        "description": " Obtain a collection from the data contained within the array. Primarily used for NewEnum() method.\r\n",
+        "description": "Obtain a collection from the data contained within the array. Primarily used for NewEnum() method.",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -1164,7 +1164,7 @@
       },
       {
         "name": "Resize",
-        "description": " Resize the array to a length\r\n",
+        "description": "Resize the array to a length",
         "remarks": [],
         "examples": [],
         "params": [
@@ -1192,7 +1192,7 @@
       },
       {
         "name": "Rechunk",
-        "description": " Rechunk the private array to the length / number of items.\r\n",
+        "description": "Rechunk the private array to the length / number of items.",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -1211,7 +1211,7 @@
       },
       {
         "name": "Sort",
-        "description": " Sort the array\r\n",
+        "description": "Sort the array",
         "remarks": [],
         "examples": [],
         "params": [
@@ -1266,7 +1266,7 @@
       },
       {
         "name": "Push",
-        "description": " Add an element to the end of the array\r\n",
+        "description": "Add an element to the end of the array",
         "remarks": [],
         "examples": [],
         "params": [
@@ -1297,7 +1297,7 @@
       },
       {
         "name": "Pop",
-        "description": " Remove an element from the end of the array\r\n",
+        "description": "Remove an element from the end of the array",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -1319,7 +1319,7 @@
       },
       {
         "name": "Remove",
-        "description": " Remove the ith element from the array\r\n",
+        "description": "Remove the ith element from the array",
         "remarks": [],
         "examples": [],
         "params": [
@@ -1350,7 +1350,7 @@
       },
       {
         "name": "Shift",
-        "description": " Remove and return the first element from the array\r\n",
+        "description": "Remove and return the first element from the array",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -1372,7 +1372,7 @@
       },
       {
         "name": "Unshift",
-        "description": " Add an element to the start of the array\r\n",
+        "description": "Add an element to the start of the array",
         "remarks": [],
         "examples": [],
         "params": [
@@ -1403,7 +1403,7 @@
       },
       {
         "name": "Slice",
-        "description": " Obtain a slice of the array\r\n",
+        "description": "Obtain a slice of the array",
         "remarks": [],
         "examples": [],
         "params": [
@@ -1442,10 +1442,10 @@
       },
       {
         "name": "SplitToChunks",
-        "description": " Split an array into chunks of a specified size\r\n",
+        "description": "Split an array into chunks of a specified size",
         "remarks": [],
         "examples": [
-          " ```vba\r\n"
+          "```vba\r\nstdArray.Create(1,2,3,4,5,6,7).SplitToChunks(3)\r\n  '=> [[1,2,3],[4,5,6],[7]]\r\n```"
         ],
         "params": [
           {
@@ -1475,7 +1475,7 @@
       },
       {
         "name": "Splice",
-        "description": " Splice the array\r\n",
+        "description": "Splice the array",
         "remarks": [],
         "examples": [],
         "params": [
@@ -1522,7 +1522,7 @@
       },
       {
         "name": "Clone",
-        "description": " Creates a new instance of the same array\r\n",
+        "description": "Creates a new instance of the same array",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -1544,7 +1544,7 @@
       },
       {
         "name": "Reverse",
-        "description": " Returns a new array with all elements in reverse order\r\n",
+        "description": "Returns a new array with all elements in reverse order",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -1566,7 +1566,7 @@
       },
       {
         "name": "Concat",
-        "description": " Concatenate an existing array of elements onto the end of this array\r\n",
+        "description": "Concatenate an existing array of elements onto the end of this array",
         "remarks": [],
         "examples": [],
         "params": [
@@ -1597,7 +1597,7 @@
       },
       {
         "name": "Join",
-        "description": " Join each of the elements of this array together as a string\r\n",
+        "description": "Join each of the elements of this array together as a string",
         "remarks": [],
         "examples": [],
         "params": [
@@ -1628,7 +1628,7 @@
       },
       {
         "name": "PutItem",
-        "description": " Copy a variant into the array's ith element. This saves from having to test the item and call the correct `set` keyword\r\n",
+        "description": "Copy a variant into the array's ith element. This saves from having to test the item and call the correct `set` keyword",
         "remarks": [],
         "examples": [],
         "params": [
@@ -1664,7 +1664,7 @@
       },
       {
         "name": "indexOf",
-        "description": " Obtain the index of an element\r\n",
+        "description": "Obtain the index of an element",
         "remarks": [],
         "examples": [],
         "params": [
@@ -1703,7 +1703,7 @@
       },
       {
         "name": "lastIndexOf",
-        "description": " Obtain the last index of an element\r\n",
+        "description": "Obtain the last index of an element",
         "remarks": [],
         "examples": [],
         "params": [
@@ -1734,7 +1734,7 @@
       },
       {
         "name": "includes",
-        "description": " Returns true if the array contains an item\r\n",
+        "description": "Returns true if the array contains an item",
         "remarks": [],
         "examples": [],
         "params": [
@@ -1773,10 +1773,10 @@
       },
       {
         "name": "IsEvery",
-        "description": " Check if all elements in the array pass a test\r\n",
+        "description": "Check if all elements in the array pass a test",
         "remarks": [],
         "examples": [
-          " `if incidents.IsEvery(cbValid) then ...`\r\n"
+          "`if incidents.IsEvery(cbValid) then ...`"
         ],
         "params": [
           {
@@ -1806,10 +1806,10 @@
       },
       {
         "name": "IsSome",
-        "description": " Check if any elements in the array pass a test\r\n",
+        "description": "Check if any elements in the array pass a test",
         "remarks": [],
         "examples": [
-          " `if incidents.IsSome(cbValid) then ...`\r\n"
+          "`if incidents.IsSome(cbValid) then ...`"
         ],
         "params": [
           {
@@ -1839,10 +1839,10 @@
       },
       {
         "name": "ForEach",
-        "description": " Call a callback on each element of the array\r\n",
+        "description": "Call a callback on each element of the array",
         "remarks": [],
         "examples": [
-          " `incidents.ForEach(cbPrint)`\r\n"
+          "`incidents.ForEach(cbPrint)`"
         ],
         "params": [
           {
@@ -1869,10 +1869,10 @@
       },
       {
         "name": "Map",
-        "description": " Call a callback on each element of the array and return a new array with the results\r\n",
+        "description": "Call a callback on each element of the array and return a new array with the results",
         "remarks": [],
         "examples": [
-          " `incidents.Map(cbGetId)`\r\n"
+          "`incidents.Map(cbGetId)`"
         ],
         "params": [
           {
@@ -1902,10 +1902,10 @@
       },
       {
         "name": "Unique",
-        "description": " Remove all non-unqiue elements from the array. Given some callback to generate a key for each element, this method will remove all elements which have the same key.\r\n",
+        "description": "Remove all non-unqiue elements from the array. Given some callback to generate a key for each element, this method will remove all elements which have the same key.",
         "remarks": [],
         "examples": [
-          " `incidents.Unique(cbGetId)`\r\n"
+          "`incidents.Unique(cbGetId)`"
         ],
         "params": [
           {
@@ -1935,10 +1935,10 @@
       },
       {
         "name": "Reduce",
-        "description": " Executes a user-supplied \"reducer\" callback function on each element of the array, in order, passing in the return\r\n",
+        "description": "Executes a user-supplied \"reducer\" callback function on each element of the array, in order, passing in the return\r\nvalue from the calculation on the preceding element. The final result of running the reducer across all elements\r\nof the array is a single value.",
         "remarks": [],
         "examples": [
-          " `values.Reduce(cbSum, 0)`\r\n"
+          "`values.Reduce(cbSum, 0)`"
         ],
         "params": [
           {
@@ -1976,7 +1976,7 @@
       },
       {
         "name": "Filter",
-        "description": " Filter the array based on a condition\r\n",
+        "description": "Filter the array based on a condition",
         "remarks": [],
         "examples": [],
         "params": [
@@ -2007,7 +2007,7 @@
       },
       {
         "name": "Count",
-        "description": " Count the number of elements in the array. If a callback is provided, the number of elements which pass the callback is returned.\r\n",
+        "description": "Count the number of elements in the array. If a callback is provided, the number of elements which pass the callback is returned.",
         "remarks": [],
         "examples": [],
         "params": [
@@ -2038,7 +2038,7 @@
       },
       {
         "name": "GroupBy",
-        "description": " Group the elements of the array by some key generated by a callback\r\n",
+        "description": "Group the elements of the array by some key generated by a callback",
         "remarks": [],
         "examples": [],
         "params": [
@@ -2069,7 +2069,7 @@
       },
       {
         "name": "Max",
-        "description": " Obtain the maximum value in the array\r\n",
+        "description": "Obtain the maximum value in the array",
         "remarks": [],
         "examples": [],
         "params": [
@@ -2108,7 +2108,7 @@
       },
       {
         "name": "Min",
-        "description": " Obtain the minimum value in the array\r\n",
+        "description": "Obtain the minimum value in the array",
         "remarks": [],
         "examples": [],
         "params": [
@@ -2150,10 +2150,10 @@
       {
         "name": "NewEnum",
         "access": "ReadOnly",
-        "description": " For-each compatibility\r\n",
+        "description": "For-each compatibility",
         "remarks": [],
         "examples": [
-          " `For each obj in myEnum: ... : next`\r\n"
+          "`For each obj in myEnum: ... : next`"
         ],
         "params": [],
         "returns": {
@@ -2175,7 +2175,7 @@
       {
         "name": "Length",
         "access": "ReadOnly",
-        "description": " Obtain the length of the array\r\n",
+        "description": "Obtain the length of the array",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -2198,7 +2198,7 @@
       {
         "name": "zProxyLength",
         "access": "ReadOnly",
-        "description": " Obtain the length of the private array which stores the data of this array class\r\n",
+        "description": "Obtain the length of the private array which stores the data of this array class",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -2221,7 +2221,7 @@
       {
         "name": "arr",
         "access": "ReadWrite",
-        "description": " Obtain the array as a regular VBA array\r\n",
+        "description": "Obtain the array as a regular VBA array",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -2244,7 +2244,7 @@
       {
         "name": "item",
         "access": "ReadWrite",
-        "description": " Get/Let/Set item\r\n",
+        "description": "Get/Let/Set item",
         "remarks": [],
         "examples": [],
         "params": [
@@ -2285,7 +2285,7 @@
     "constructors": [
       {
         "name": "Create",
-        "description": " Create a `stdArray` object from params\r\n",
+        "description": "Create a `stdArray` object from params",
         "remarks": [],
         "examples": [],
         "params": [
@@ -2316,7 +2316,7 @@
       },
       {
         "name": "CreateWithOptions",
-        "description": " Create a `stdArray` object from params\r\n",
+        "description": "Create a `stdArray` object from params",
         "remarks": [],
         "examples": [],
         "params": [
@@ -2363,7 +2363,7 @@
       },
       {
         "name": "CreateFromArray",
-        "description": " Create a `stdArray` object from a VBA array\r\n",
+        "description": "Create a `stdArray` object from a VBA array",
         "remarks": [],
         "examples": [],
         "params": [
@@ -2394,7 +2394,7 @@
       },
       {
         "name": "CreateFromCollection",
-        "description": " Create a `stdArray` object from a collection\r\n",
+        "description": "Create a `stdArray` object from a collection",
         "remarks": [],
         "examples": [],
         "params": [
@@ -2425,7 +2425,7 @@
       },
       {
         "name": "CreateFromString",
-        "description": " Create an array by splitting a string\r\n",
+        "description": "Create an array by splitting a string",
         "remarks": [],
         "examples": [],
         "params": [
@@ -2705,10 +2705,10 @@
     "methods": [
       {
         "name": "unkQueryInterface",
-        "description": " Call `IUnknown::QueryInterface` on the object\r\n",
+        "description": "Call `IUnknown::QueryInterface` on the object",
         "remarks": [],
         "examples": [
-          " ```\r\n  'Get ITypeInfo\r\n"
+          "```\r\n  'Get ITypeInfo\r\n  set typeInfo = com.unkQueryInterface(\"00020401-0000-0000-C000-000000000046\")\r\n```"
         ],
         "params": [
           {
@@ -2748,7 +2748,7 @@
       },
       {
         "name": "unkAddRef",
-        "description": " Call `IUnknown::AddRef()`\r\n",
+        "description": "Call `IUnknown::AddRef()`",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -2767,7 +2767,7 @@
       },
       {
         "name": "unkRelease",
-        "description": " Call IUnknown::Release()\r\n",
+        "description": "Call IUnknown::Release()",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -2786,7 +2786,7 @@
       },
       {
         "name": "QueryKnownInterface",
-        "description": " Query the object for a known interface.\r\n",
+        "description": "Query the object for a known interface.",
         "remarks": [],
         "examples": [],
         "params": [
@@ -2821,7 +2821,7 @@
       },
       {
         "name": "RegisterActiveObject",
-        "description": " Register the object held in stdCOM to the ROT as a CLSID or ProgID\r\n",
+        "description": "Register the object held in stdCOM to the ROT as a CLSID or ProgID",
         "remarks": [],
         "examples": [],
         "params": [
@@ -2857,7 +2857,7 @@
       },
       {
         "name": "RevokeActiveObject",
-        "description": " Revoke the previously registered object\r\n",
+        "description": "Revoke the previously registered object",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -2876,10 +2876,10 @@
       },
       {
         "name": "CallVT",
-        "description": " Call a function in the VTable of the object at a specified offset\r\n",
+        "description": "Call a function in the VTable of the object at a specified offset",
         "remarks": [],
         "examples": [
-          " ```\r\n  "
+          "```\r\n  Dim pITypeInfo As IUnknown\r\n  Dim hResult As Long: hResult = com.CallVT(EIUnknown.QueryInterface, vbLong, VarPtr(tGUID.Data1), VarPtr(pITypeInfo))\r\n  If hResult <> S_OK Then Err.Raise hResult, \"InterfaceInfo\", \"stdCOM::InterfaceInfo\"\r\n```"
         ],
         "params": [
           {
@@ -2932,11 +2932,11 @@
       {
         "name": "Object",
         "access": "ReadOnly",
-        "description": " Obtain raw object from stdCOM wrapper\r\n",
+        "description": "Obtain raw object from stdCOM wrapper",
         "remarks": [],
         "examples": [
-          " `stdCOM.Create(Application).Object.Name`\r\n",
-          " `stdCOM.CreateFromPtr(ObjPtr(Application)).Object.Name`\r\n"
+          "`stdCOM.Create(Application).Object.Name`",
+          "`stdCOM.CreateFromPtr(ObjPtr(Application)).Object.Name`"
         ],
         "params": [],
         "returns": {
@@ -2958,11 +2958,11 @@
       {
         "name": "AsObject",
         "access": "ReadOnly",
-        "description": " Obtain raw object from stdCOM wrapper\r\n",
+        "description": "Obtain raw object from stdCOM wrapper",
         "remarks": [],
         "examples": [
-          " `stdCOM.Create(Application).Object.Name`\r\n",
-          " `stdCOM.CreateFromPtr(ObjPtr(Application)).Object.Name`\r\n"
+          "`stdCOM.Create(Application).Object.Name`",
+          "`stdCOM.CreateFromPtr(ObjPtr(Application)).Object.Name`"
         ],
         "params": [],
         "returns": {
@@ -2988,7 +2988,7 @@
       {
         "name": "Pointer",
         "access": "ReadOnly",
-        "description": " Obtain pointer as LongPtr (VBA)/Long (VB6)\r\n",
+        "description": "Obtain pointer as LongPtr (VBA)/Long (VB6)",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -3011,10 +3011,10 @@
       {
         "name": "TypeInfo",
         "access": "ReadOnly",
-        "description": " Obtain Type Information from object\r\n",
+        "description": "Obtain Type Information from object",
         "remarks": [],
         "examples": [
-          " `myCom.TypeInfo.CallVT(EITypeInfo.GetTypeAttr, vbLong, VarPtr(lPtr))`\r\n"
+          "`myCom.TypeInfo.CallVT(EITypeInfo.GetTypeAttr, vbLong, VarPtr(lPtr))`"
         ],
         "params": [],
         "returns": {
@@ -3036,7 +3036,7 @@
       {
         "name": "InterfaceInfo",
         "access": "ReadOnly",
-        "description": " Obtain all properties and methods of an object via it's TypeInfo\r\n",
+        "description": "Obtain all properties and methods of an object via it's TypeInfo",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -3059,7 +3059,7 @@
       {
         "name": "Methods",
         "access": "ReadOnly",
-        "description": " Obtain a collection of all method names on an object\r\n",
+        "description": "Obtain a collection of all method names on an object",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -3082,10 +3082,10 @@
       {
         "name": "Properties",
         "access": "ReadOnly",
-        "description": " Obtain a collection of all property names on an object\r\n",
+        "description": "Obtain a collection of all property names on an object",
         "remarks": [],
         "examples": [
-          " ```\r\n  "
+          "```\r\n  for each vProp in stdCOM.Create(Application).Properties\r\n    Debug.Print vProp\r\n  next\r\n```"
         ],
         "params": [
           {
@@ -3125,7 +3125,7 @@
     "constructors": [
       {
         "name": "Create",
-        "description": " Create from an object\r\n",
+        "description": "Create from an object",
         "remarks": [],
         "examples": [],
         "params": [
@@ -3156,9 +3156,9 @@
       },
       {
         "name": "CreateFromPtr",
-        "description": " Create from a pointer\r\n",
+        "description": "Create from a pointer",
         "remarks": [
-          " Specifically this function reuires a `*Interface` pointer. E.G. `*IUnknown`/`*IDispatch`/`*ITypeInfo`. If your DLL function provides a `[out] **Interface` object the\r\n"
+          "Specifically this function reuires a `*Interface` pointer. E.G. `*IUnknown`/`*IDispatch`/`*ITypeInfo`. If your DLL function provides a `[out] **Interface` object the\r\ntypical method is to pass in a varptr to the dll function as follows `Call SomeDLLCall(VarPtr(myPointer)): ... later ...: stdCOM.CreateFromPtr(myPointer)`"
         ],
         "examples": [],
         "params": [
@@ -3189,9 +3189,9 @@
       },
       {
         "name": "CreateFromActiveObjects",
-        "description": " Create `stdCOM` objects from existing objects in the RunningObjectTable (ROT)\r\n",
+        "description": "Create `stdCOM` objects from existing objects in the RunningObjectTable (ROT)",
         "remarks": [
-          " This function is heavily inspired off code provided by `Jaafar Tribak`\r\n"
+          "This function is heavily inspired off code provided by `Jaafar Tribak`"
         ],
         "examples": [],
         "params": [],
@@ -3205,7 +3205,7 @@
         },
         "isDefaultMember": false,
         "devNotes": [
-          " stdCOM objects will auto-release when not needed\r\n"
+          "stdCOM objects will auto-release when not needed"
         ],
         "todos": [],
         "isProtected": false,
@@ -3215,10 +3215,10 @@
       },
       {
         "name": "CreateFromWinRTClassID",
-        "description": " Create `stdCOM` object from WinRT Activatable ClassID.\r\n",
+        "description": "Create `stdCOM` object from WinRT Activatable ClassID.",
         "remarks": [],
         "examples": [
-          " `stdCOM.CreateFromWinRTClassID(\"Windows.Storage.Pickers.FolderPicker\")`\r\n"
+          "`stdCOM.CreateFromWinRTClassID(\"Windows.Storage.Pickers.FolderPicker\")`"
         ],
         "params": [
           {
@@ -3248,10 +3248,10 @@
       },
       {
         "name": "CreateFromClassAndIID",
-        "description": " Create `stdCOM` object from a CLSID and IID.\r\n",
+        "description": "Create `stdCOM` object from a CLSID and IID.",
         "remarks": [],
         "examples": [
-          " ```\r\n  "
+          "```\r\n  stdCOM.CreateFromClassAndIID(\"FF48DBA4-60EF-4201-AA87-54103EEF594E\",\"30CBE57D-D9D0-452A-AB13-7AC5AC4825EE\") 'IUIAutomation\r\n```"
         ],
         "params": [
           {
@@ -3297,7 +3297,7 @@
     "methods": [
       {
         "name": "Bind",
-        "description": " Bind a parameter to the function. Bound parameters are bound to the left of the passed parameters.\r\n",
+        "description": "Bind a parameter to the function. Bound parameters are bound to the left of the passed parameters.",
         "remarks": [],
         "examples": [],
         "params": [
@@ -3328,7 +3328,7 @@
       },
       {
         "name": "BindEx",
-        "description": " Bind a parameter to the function. Bound parameters are bound to the left of the passed parameters.\r\n",
+        "description": "Bind a parameter to the function. Bound parameters are bound to the left of the passed parameters.",
         "remarks": [],
         "examples": [],
         "params": [
@@ -3359,7 +3359,7 @@
       },
       {
         "name": "Run",
-        "description": " Run the function\r\n",
+        "description": "Run the function",
         "remarks": [],
         "examples": [],
         "params": [
@@ -3390,7 +3390,7 @@
       },
       {
         "name": "RunEx",
-        "description": " Run the function with a array of parameters\r\n",
+        "description": "Run the function with a array of parameters",
         "remarks": [],
         "examples": [],
         "params": [
@@ -3432,7 +3432,7 @@
     "constructors": [
       {
         "name": "Create",
-        "description": " Create a callback object from module type string, translate to enum and initialise callback\r\n",
+        "description": "Create a callback object from module type string, translate to enum and initialise callback",
         "remarks": [],
         "examples": [],
         "params": [
@@ -3487,7 +3487,7 @@
       },
       {
         "name": "CreateFromModule",
-        "description": " Create callback from Module function directly\r\n",
+        "description": "Create callback from Module function directly",
         "remarks": [],
         "examples": [],
         "params": [
@@ -3526,7 +3526,7 @@
       },
       {
         "name": "CreateFromWorkbookModule",
-        "description": " Create callback from Workbook module function directly\r\n",
+        "description": "Create callback from Workbook module function directly",
         "remarks": [],
         "examples": [],
         "params": [
@@ -3573,7 +3573,7 @@
       },
       {
         "name": "CreateFromObjectMethod",
-        "description": " Create callback from object and method name\r\n",
+        "description": "Create callback from object and method name",
         "remarks": [],
         "examples": [],
         "params": [
@@ -3612,7 +3612,7 @@
       },
       {
         "name": "CreateFromObjectProperty",
-        "description": " Create callback from object and property name\r\n",
+        "description": "Create callback from object and property name",
         "remarks": [],
         "examples": [],
         "params": [
@@ -3659,7 +3659,7 @@
       },
       {
         "name": "CreateFromPointer",
-        "description": " Create callback from function pointer\r\n",
+        "description": "Create callback from function pointer",
         "remarks": [],
         "examples": [],
         "params": [
@@ -3767,7 +3767,7 @@
     "methods": [
       {
         "name": "Await",
-        "description": " Waits for the clipboard to be available\r\n",
+        "description": "Waits for the clipboard to be available",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -3786,7 +3786,7 @@
       },
       {
         "name": "Clear",
-        "description": " Clears the clipboard\r\n",
+        "description": "Clears the clipboard",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -3805,9 +3805,9 @@
       },
       {
         "name": "IsFormatAvailable",
-        "description": " Check whether a given format is available based on the clipboards current data.\r\n",
+        "description": "Check whether a given format is available based on the clipboards current data.",
         "remarks": [
-          " - Formats which are technically \"available\" but have 0 bytes in size will return false.\r\n"
+          "- Formats which are technically \"available\" but have 0 bytes in size will return false."
         ],
         "examples": [],
         "params": [
@@ -3838,9 +3838,9 @@
       },
       {
         "name": "FormatSize",
-        "description": " Get the size in bytes of a particular format\r\n",
+        "description": "Get the size in bytes of a particular format",
         "remarks": [
-          " - CF_BITMAP and CF_ENHMETAFILE may be different due to the nature of obtaining their value via stdPicture\r\n"
+          "- CF_BITMAP and CF_ENHMETAFILE may be different due to the nature of obtaining their value via stdPicture"
         ],
         "examples": [],
         "params": [
@@ -3871,11 +3871,11 @@
       },
       {
         "name": "RegisterFormat",
-        "description": " Register a clipboard format and/or return it's identifier if already present.\r\n",
+        "description": "Register a clipboard format and/or return it's identifier if already present.",
         "remarks": [],
         "examples": [
-          " ```vb\r\n",
-          " ```vb\r\n"
+          "```vb\r\nCF_RTF = stdClipboard.registerFormat(\"Rich Text Format\")\r\nstdClipboard.value(CF_RTF) = \"{\\rtf1\\ansi{\\fonttbl\\f0\\fswiss Helvetica;}\\f0\\pard\" & _\r\n  \"This is some {\\b bold} text.\\par\" & _\r\n\"}\"\r\n```",
+          "```vb\r\nCF_HTML = stdClipboard.registerFormat(\"HTML Format\")\r\nstdClipboard.value(CF_HTML) = _\r\n  \"Version:0.9\" & vbCrLf & _\r\n  \"StartHTML:00000000\" & vbCrLf & _\r\n  \"EndHTML:00000000\" & vbCrLf & _\r\n  \"StartFragment:00000000\" & vbCrLf & _\r\n  \"EndFragment:00000000\" & vbCrLf & _\r\n  \"<html><body>\" & vbCrLf & _\r\n  \"<!--StartFragment -->\" & vbCrLf & _\r\n  \"  hello <b>world</b>\" & vbCrLf & _\r\n  \"<!--EndFragment-->\\r\\n\" & vbCrLf & _\r\n  \"</body>\\r\\n\" & vbCrLf & _\r\n  \"</html>\"\r\n```"
         ],
         "params": [
           {
@@ -3905,7 +3905,7 @@
       },
       {
         "name": "SetFilesArr",
-        "description": " Set the clipboard to a selection of Files passed in as an array\r\n",
+        "description": "Set the clipboard to a selection of Files passed in as an array",
         "remarks": [],
         "examples": [],
         "params": [
@@ -3933,7 +3933,7 @@
       },
       {
         "name": "protSetFilesText",
-        "description": " Internal method for setting the clipboard to a selection of Files passed in as a raw file string\r\n",
+        "description": "Internal method for setting the clipboard to a selection of Files passed in as a raw file string\r\nRealistically it might be better for this method to use Value LET directly.",
         "remarks": [],
         "examples": [],
         "params": [
@@ -3961,7 +3961,7 @@
       },
       {
         "name": "protGetFilesArr",
-        "description": " Get the file paths of files stored on the clipboard\r\n",
+        "description": "Get the file paths of files stored on the clipboard",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -3983,7 +3983,7 @@
       },
       {
         "name": "SendPaste",
-        "description": " Raise a paste event to a window with handle hWnd\r\n",
+        "description": "Raise a paste event to a window with handle hWnd",
         "remarks": [],
         "examples": [],
         "params": [
@@ -4011,7 +4011,7 @@
       },
       {
         "name": "SendCopy",
-        "description": " Raise a copy event to a window with handle hWnd\r\n",
+        "description": "Raise a copy event to a window with handle hWnd",
         "remarks": [],
         "examples": [],
         "params": [
@@ -4039,7 +4039,7 @@
       },
       {
         "name": "GetClipFormatFromCopyPictureFormat",
-        "description": " Converts xlCopyPictureFormat to CLIPFORMAT\r\n",
+        "description": "Converts xlCopyPictureFormat to CLIPFORMAT\r\nPublic Enum XlCopyPictureFormat\r\n  xlBitmap = 2\r\n  xlPicture = -4147\r\nEnd Enum",
         "remarks": [],
         "examples": [],
         "params": [
@@ -4073,9 +4073,9 @@
       {
         "name": "ClipboardID",
         "access": "ReadOnly",
-        "description": " Get the ID of the current clipboard value\r\n",
+        "description": "Get the ID of the current clipboard value",
         "remarks": [
-          " - This is incremented every time the clipboard changes. It can be used to track and identify when the clipboard has changed.\r\n"
+          "- This is incremented every time the clipboard changes. It can be used to track and identify when the clipboard has changed."
         ],
         "examples": [],
         "params": [],
@@ -4098,7 +4098,7 @@
       {
         "name": "value",
         "access": "ReadWrite",
-        "description": " Get or set the value of the current\r\n",
+        "description": "Get or set the value of the current",
         "remarks": [],
         "examples": [],
         "params": [
@@ -4130,10 +4130,10 @@
       {
         "name": "text",
         "access": "ReadWrite",
-        "description": " Get or set the clipboard as/to a string\r\n",
+        "description": "Get or set the clipboard as/to a string",
         "remarks": [],
         "examples": [
-          " ```vb\r\n"
+          "```vb\r\nstdClipboard.text = \"Hello World\"\r\n```"
         ],
         "params": [],
         "returns": {
@@ -4155,9 +4155,9 @@
       {
         "name": "formats",
         "access": "ReadOnly",
-        "description": " Obtain the available formats as a Collection of strings\r\n",
+        "description": "Obtain the available formats as a Collection of strings",
         "remarks": [
-          " see `stdClipboard::formatIDs()` to get ids used in Value() from these data.\r\n"
+          "see `stdClipboard::formatIDs()` to get ids used in Value() from these data."
         ],
         "examples": [],
         "params": [],
@@ -4180,9 +4180,9 @@
       {
         "name": "formatIDs",
         "access": "ReadOnly",
-        "description": " Obtain the available format IDs which can be used with value() function\r\n",
+        "description": "Obtain the available format IDs which can be used with value() function",
         "remarks": [
-          " See `stdClipboard::formats()` to get the corresponding names from these data.\r\n"
+          "See `stdClipboard::formats()` to get the corresponding names from these data."
         ],
         "examples": [],
         "params": [],
@@ -4205,7 +4205,7 @@
       {
         "name": "Picture",
         "access": "ReadWrite",
-        "description": " Get/Set the clipboard as/to an IPicture object\r\n",
+        "description": "Get/Set the clipboard as/to an IPicture object",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -4228,7 +4228,7 @@
       {
         "name": "XLPicture",
         "access": "WriteOnly",
-        "description": " Set the clipboard to an Excel picture object, and then proceeds to wait until the format is available.\r\n",
+        "description": "Set the clipboard to an Excel picture object, and then proceeds to wait until the format is available.",
         "remarks": [],
         "examples": [],
         "params": [
@@ -4276,7 +4276,7 @@
       {
         "name": "XLShapeAsPicture",
         "access": "WriteOnly",
-        "description": " Copies a Excel shape as a picture, and then proceeds to wait until the format is available.\r\n",
+        "description": "Copies a Excel shape as a picture, and then proceeds to wait until the format is available.",
         "remarks": [],
         "examples": [],
         "params": [
@@ -4324,7 +4324,7 @@
       {
         "name": "files",
         "access": "ReadWrite",
-        "description": " Get or Set the clipboard to a selection of files paths. Paths provided as a collection for easy stdEnumerator wrapping.\r\n",
+        "description": "Get or Set the clipboard to a selection of files paths. Paths provided as a collection for easy stdEnumerator wrapping.",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -4365,10 +4365,10 @@
     "methods": [
       {
         "name": "enumNext",
-        "description": " Get the next value in the dataset\r\n",
+        "description": "Get the next value in the dataset",
         "remarks": [],
         "examples": [
-          " ```\r\n"
+          "```\r\nDim v as Variant\r\nWhile enumNext(v)\r\n  Debug.Print v\r\nWend\r\n```"
         ],
         "params": [
           {
@@ -4398,7 +4398,7 @@
       },
       {
         "name": "enumRefresh",
-        "description": " Refresh the dataset to the beginning\r\n",
+        "description": "Refresh the dataset to the beginning",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -4417,7 +4417,7 @@
       },
       {
         "name": "AsCollection",
-        "description": " Get this enumerator as a collection\r\n",
+        "description": "Get this enumerator as a collection",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -4439,7 +4439,7 @@
       },
       {
         "name": "AsArray",
-        "description": " Get this enumerator as an array\r\n",
+        "description": "Get this enumerator as an array",
         "remarks": [],
         "examples": [],
         "params": [
@@ -4470,7 +4470,7 @@
       },
       {
         "name": "AsArray2D",
-        "description": " Converts an enumerator of dictionaries to a 2D array\r\n",
+        "description": "Converts an enumerator of dictionaries to a 2D array",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -4492,7 +4492,7 @@
       },
       {
         "name": "AsDictionary",
-        "description": " Returns the stored enumerator as a dictionary\r\n",
+        "description": "Returns the stored enumerator as a dictionary",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -4514,7 +4514,7 @@
       },
       {
         "name": "ForEach",
-        "description": " Calls the callback on each item of the enumerator\r\n",
+        "description": "Calls the callback on each item of the enumerator",
         "remarks": [],
         "examples": [],
         "params": [
@@ -4545,7 +4545,7 @@
       },
       {
         "name": "Map",
-        "description": " Call callback `cb` on each item in the enumerator. Creates a new enumerator from each value returned from `cb`.\r\n",
+        "description": "Call callback `cb` on each item in the enumerator. Creates a new enumerator from each value returned from `cb`.",
         "remarks": [],
         "examples": [],
         "params": [
@@ -4576,7 +4576,7 @@
       },
       {
         "name": "Filter",
-        "description": " Returns a new enumerator containing all elements of `Me` for which the given callback returns `true`.\r\n",
+        "description": "Returns a new enumerator containing all elements of `Me` for which the given callback returns `true`.",
         "remarks": [],
         "examples": [],
         "params": [
@@ -4607,7 +4607,7 @@
       },
       {
         "name": "Sort",
-        "description": " Sort the enumerator contents by the value retrieved by either the values in the enumerator or the values returned by `cb`.\r\n",
+        "description": "Sort the enumerator contents by the value retrieved by either the values in the enumerator or the values returned by `cb`.",
         "remarks": [],
         "examples": [],
         "params": [
@@ -4638,7 +4638,7 @@
       },
       {
         "name": "Unique",
-        "description": " Returns a new enumerator by removing duplicate values from `Me`.\r\n",
+        "description": "Returns a new enumerator by removing duplicate values from `Me`.",
         "remarks": [],
         "examples": [],
         "params": [
@@ -4669,7 +4669,7 @@
       },
       {
         "name": "Reverse",
-        "description": " Returns a new enumerator containing the reverse of the existing items in stdEnumerator.\r\n",
+        "description": "Returns a new enumerator containing the reverse of the existing items in stdEnumerator.",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -4691,7 +4691,7 @@
       },
       {
         "name": "Concat",
-        "description": " Concatenates to enumerators of values.\r\n",
+        "description": "Concatenates to enumerators of values.",
         "remarks": [],
         "examples": [],
         "params": [
@@ -4722,7 +4722,7 @@
       },
       {
         "name": "Join",
-        "description": " Join the elements of the enumerator joint with a delimeter\r\n",
+        "description": "Join the elements of the enumerator joint with a delimeter",
         "remarks": [],
         "examples": [],
         "params": [
@@ -4753,7 +4753,7 @@
       },
       {
         "name": "indexOf",
-        "description": " Find the index of an element\r\n",
+        "description": "Find the index of an element",
         "remarks": [],
         "examples": [],
         "params": [
@@ -4784,7 +4784,7 @@
       },
       {
         "name": "lastIndexOf",
-        "description": " Find the last index of an element in the enumerator\r\n",
+        "description": "Find the last index of an element in the enumerator",
         "remarks": [],
         "examples": [],
         "params": [
@@ -4815,7 +4815,7 @@
       },
       {
         "name": "includes",
-        "description": " Find whether an element is included in the enumerator\r\n",
+        "description": "Find whether an element is included in the enumerator",
         "remarks": [],
         "examples": [],
         "params": [
@@ -4846,7 +4846,7 @@
       },
       {
         "name": "checkAll",
-        "description": " Ensure that all elements in an enumerator satisfy a condition.\r\n",
+        "description": "Ensure that all elements in an enumerator satisfy a condition.",
         "remarks": [],
         "examples": [],
         "params": [
@@ -4877,7 +4877,7 @@
       },
       {
         "name": "checkAny",
-        "description": " Ensure that any of the elements in an enumerator satisfy a condition.\r\n",
+        "description": "Ensure that any of the elements in an enumerator satisfy a condition.",
         "remarks": [],
         "examples": [],
         "params": [
@@ -4908,7 +4908,7 @@
       },
       {
         "name": "checkNone",
-        "description": " Ensure that none of the elements in an enumerator satisfy a condition.\r\n",
+        "description": "Ensure that none of the elements in an enumerator satisfy a condition.",
         "remarks": [],
         "examples": [],
         "params": [
@@ -4939,7 +4939,7 @@
       },
       {
         "name": "checkOnlyOne",
-        "description": " Ensure that only one of the elements in an enumerator satisfy a condition.\r\n",
+        "description": "Ensure that only one of the elements in an enumerator satisfy a condition.",
         "remarks": [],
         "examples": [],
         "params": [
@@ -4970,7 +4970,7 @@
       },
       {
         "name": "reduce",
-        "description": " The reduce() method executes a reducer function (that you provide) on each element of the array, resulting in single output value.\r\n",
+        "description": "The reduce() method executes a reducer function (that you provide) on each element of the array, resulting in single output value.\r\nThe reducer function takes three arguments:\r\n\r\n1. Accumultor\r\n2. Current Value\r\n3. Current Index/Key\r\n\r\nYour reducer function's returned value is assigned to the accumulator, whose value is remembered across each iteration throughout the array,\r\nand ultimately becomes the final, single resulting value.",
         "remarks": [],
         "examples": [],
         "params": [
@@ -5001,7 +5001,7 @@
       },
       {
         "name": "countBy",
-        "description": " Count the number of times a condition is met\r\n",
+        "description": "Count the number of times a condition is met",
         "remarks": [],
         "examples": [],
         "params": [
@@ -5032,7 +5032,7 @@
       },
       {
         "name": "groupBy",
-        "description": " Group elements in stdEnumerator based on the value return by a callback\r\n",
+        "description": "Group elements in stdEnumerator based on the value return by a callback",
         "remarks": [],
         "examples": [],
         "params": [
@@ -5063,11 +5063,11 @@
       },
       {
         "name": "groupByEx",
-        "description": " Returns a new enumerator containing groups from groupBy, with the key and item properties added\r\n",
+        "description": "Returns a new enumerator containing groups from groupBy, with the key and item properties added",
         "remarks": [],
         "examples": [
-          " ```\r\n",
-          " ```\r\n'Get the largest count\r\n"
+          "```\r\nDim e as stdEnumerator: set e = stdEnumerator.CreateFromArray(Array(1,2,3,2,2,1,3,2,3,1,2,3))\r\nDebug.Print e.groupByEx(stdLambda.Create(\"$1\")).Map(stdLambda.Create(\"$1.key & \"\"-\"\" & $1.value.length\")).Join(\";\")\r\n```",
+          "```\r\n'Get the largest count\r\nDim e as stdEnumerator: set e = stdEnumerator.CreateFromArray(Array(1,2,3,2,2,1,3,2,3,1,2,3))\r\nDebug.Print e.groupByEx(stdLambda.Create(\"$1\")).Sort(stdLambda.Create(\"-1 * $1.value.length\")).Item(1)(\"key\")\r\n```"
         ],
         "params": [
           {
@@ -5097,7 +5097,7 @@
       },
       {
         "name": "max",
-        "description": " Obtains the maximum value from the enumerator. If a callback is given the item which returns the largest value from the callback is returned.\r\n",
+        "description": "Obtains the maximum value from the enumerator. If a callback is given the item which returns the largest value from the callback is returned.",
         "remarks": [],
         "examples": [],
         "params": [
@@ -5128,7 +5128,7 @@
       },
       {
         "name": "min",
-        "description": " Obtains the minimum value from the enumerator. If a callback is given the item which returns the largest value from the callback is returned.\r\n",
+        "description": "Obtains the minimum value from the enumerator. If a callback is given the item which returns the largest value from the callback is returned.",
         "remarks": [],
         "examples": [],
         "params": [
@@ -5159,7 +5159,7 @@
       },
       {
         "name": "sum",
-        "description": " Obtains the sum of the elements in an enumerator, or of the values returned by the callback.\r\n",
+        "description": "Obtains the sum of the elements in an enumerator, or of the values returned by the callback.",
         "remarks": [],
         "examples": [],
         "params": [
@@ -5190,7 +5190,7 @@
       },
       {
         "name": "Flatten",
-        "description": " Flatten an enumerator of enumerators\r\n",
+        "description": "Flatten an enumerator of enumerators",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -5212,7 +5212,7 @@
       },
       {
         "name": "Cycle",
-        "description": " Run the callback on an all of the items i times.\r\n",
+        "description": "Run the callback on an all of the items i times.",
         "remarks": [],
         "examples": [],
         "params": [
@@ -5251,7 +5251,7 @@
       },
       {
         "name": "FindFirst",
-        "description": " Finds the first item which matches a certain condition\r\n",
+        "description": "Finds the first item which matches a certain condition",
         "remarks": [],
         "examples": [],
         "params": [
@@ -5290,10 +5290,10 @@
       },
       {
         "name": "First",
-        "description": " Get the first `iCount` elements of the collection. Useful for testing\r\n",
+        "description": "Get the first `iCount` elements of the collection. Useful for testing",
         "remarks": [],
         "examples": [
-          " `stdEnumerator.CreateFromArray(Array(1,2,3,4,5,6,7,8,9)).First(3).Join(\",\") '=>1,2,3`\r\n"
+          "`stdEnumerator.CreateFromArray(Array(1,2,3,4,5,6,7,8,9)).First(3).Join(\",\") '=>1,2,3`"
         ],
         "params": [
           {
@@ -5326,10 +5326,10 @@
       {
         "name": "NewEnum",
         "access": "ReadOnly",
-        "description": " For-each compatibility\r\n",
+        "description": "For-each compatibility",
         "remarks": [],
         "examples": [
-          " ```vb\r\n"
+          "```vb\r\nDim v as variant\r\nFor each v in myEnum\r\n  Debug.Pring v\r\nnext\r\n```"
         ],
         "params": [],
         "returns": {
@@ -5351,7 +5351,7 @@
       {
         "name": "Item",
         "access": "ReadOnly",
-        "description": " Get the item at an index / key\r\n",
+        "description": "Get the item at an index / key",
         "remarks": [],
         "examples": [],
         "params": [
@@ -5391,7 +5391,7 @@
       {
         "name": "Length",
         "access": "ReadOnly",
-        "description": " Get the length of the enumerator\r\n",
+        "description": "Get the length of the enumerator",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -5426,14 +5426,14 @@
     "constructors": [
       {
         "name": "CreateFromCallable",
-        "description": " Create an enumerator from a callable. Simply return either the next item, or null to indicate the end of the item set.\r\n",
+        "description": "Create an enumerator from a callable. Simply return either the next item, or null to indicate the end of the item set.",
         "remarks": [],
         "examples": [],
         "params": [
           {
             "name": "cb",
             "type": "stdICallable<(lastItem: variant,index: long)=> variant | null>",
-            "description": "Callback which returns either the next item.",
+            "description": "Callback which returns either the next item.\r\n       If no next item, null should be returned.",
             "optional": false,
             "defaultValue": null,
             "paramArray": false
@@ -5441,7 +5441,7 @@
           {
             "name": "iMaxLength",
             "type": "Long",
-            "description": "Maximum length of enumerator. The enumerator will refuse to go beyond this number of items.",
+            "description": "Maximum length of enumerator. The enumerator will refuse to go beyond this number of items.\r\n       Used in order to prevent runaway processes.",
             "optional": true,
             "defaultValue": "1000000",
             "paramArray": false
@@ -5465,14 +5465,14 @@
       },
       {
         "name": "CreateFromCallableVerbose",
-        "description": " Creates an enumerator from a callable. This is more complex than non-verbose callable, however offers full flexibility of the loop.\r\n",
+        "description": "Creates an enumerator from a callable. This is more complex than non-verbose callable, however offers full flexibility of the loop.",
         "remarks": [],
         "examples": [],
         "params": [
           {
             "name": "cb",
             "type": "ByVal stdICallable<(lastItem: variant,index: long)=>Array<Boolean,Long,Variant,Variant>>",
-            "description": "Callback which returns an array. The array should be of the form:",
+            "description": "Callback which returns an array. The array should be of the form:\r\n[hasANextItem, NextIndex, ValueToReturn, KeyToReturn]. This allows `ValueToReturn` to be null unlike Non-verbose callable.",
             "optional": false,
             "defaultValue": null,
             "paramArray": false
@@ -5504,7 +5504,7 @@
       },
       {
         "name": "CreateFromArray",
-        "description": " Create an enumerator from an array\r\n",
+        "description": "Create an enumerator from an array",
         "remarks": [],
         "examples": [],
         "params": [
@@ -5543,7 +5543,7 @@
       },
       {
         "name": "CreateFromIEnumVariant",
-        "description": " Create an enumerator from an object which supports IEnumVARIANT.\r\n",
+        "description": "Create an enumerator from an object which supports IEnumVARIANT.",
         "remarks": [],
         "examples": [],
         "params": [
@@ -5582,7 +5582,7 @@
       },
       {
         "name": "CreateEmpty",
-        "description": " Create an empty enumerator\r\n",
+        "description": "Create an empty enumerator",
         "remarks": [],
         "examples": [],
         "params": [
@@ -5613,7 +5613,7 @@
       },
       {
         "name": "CreateFromListObject",
-        "description": " Create an enumerator from an Excel ListObject. Dictionaries are created for each ListRow with Header values as keys.\r\n",
+        "description": "Create an enumerator from an Excel ListObject. Dictionaries are created for each ListRow with Header values as keys.",
         "remarks": [],
         "examples": [],
         "params": [
@@ -5652,7 +5652,7 @@
       },
       {
         "name": "CreateFromTree",
-        "description": " Create a stdEnumerator from a tree of objects\r\n",
+        "description": "Create a stdEnumerator from a tree of objects",
         "remarks": [],
         "examples": [],
         "params": [
@@ -5691,10 +5691,10 @@
       },
       {
         "name": "CreateFromDictionaryEx",
-        "description": " Translates a dictionary to a Enumerator of dictionaries with key and value properties.\r\n",
+        "description": "Translates a dictionary to a Enumerator of dictionaries with key and value properties.",
         "remarks": [],
         "examples": [
-          " ```\r\n"
+          "```\r\nset dict = stdEnumerator.CreateFromArray(Array(1,2,3,2,2,1,3,2,3,1,2,3)).groupBy(stdLambda.Create(\"$1\"))\r\nset dictEx = stdEnumerator.CreateFromDictionaryEx(dict).forEach(stdLambda.Create(\"let $1.value = $1.value.count\")).sort(stdLambda.Create(\"$1.count\")).last\r\n```"
         ],
         "params": [
           {
@@ -5724,7 +5724,7 @@
       },
       {
         "name": "protInit",
-        "description": " Initialse the stdEnumerator\r\n",
+        "description": "Initialse the stdEnumerator",
         "remarks": [],
         "examples": [],
         "params": [
@@ -5776,7 +5776,7 @@
     "methods": [
       {
         "name": "add",
-        "description": " Add a step/sub-process to the fiber\r\n",
+        "description": "Add a step/sub-process to the fiber",
         "remarks": [],
         "examples": [],
         "params": [
@@ -5815,7 +5815,7 @@
       },
       {
         "name": "addErrorHandler",
-        "description": " Add an error handler to the fiber\r\n",
+        "description": "Add an error handler to the fiber",
         "remarks": [],
         "examples": [],
         "params": [
@@ -5846,7 +5846,7 @@
       },
       {
         "name": "addStepChangeHandler",
-        "description": " Add a handler which is triggered at every step change\r\n",
+        "description": "Add a handler which is triggered at every step change",
         "remarks": [],
         "examples": [],
         "params": [
@@ -5877,7 +5877,7 @@
       },
       {
         "name": "Resolve",
-        "description": " Usually called by a sub-process, this will mark the fiber procedure as finished, and return the passed result\r\n",
+        "description": "Usually called by a sub-process, this will mark the fiber procedure as finished, and return the passed result",
         "remarks": [],
         "examples": [],
         "params": [
@@ -5905,7 +5905,7 @@
       },
       {
         "name": "Reset",
-        "description": " Reset to a specific step\r\n",
+        "description": "Reset to a specific step",
         "remarks": [],
         "examples": [],
         "params": [
@@ -5933,7 +5933,7 @@
       },
       {
         "name": "runFibers",
-        "description": " Run a collection/stdArray/stdEnumerator of fiber procedures, across a number of concurrent running fiber runtimes, returning all results as a collection.\r\n",
+        "description": "Run a collection/stdArray/stdEnumerator of fiber procedures, across a number of concurrent running fiber runtimes, returning all results as a collection.",
         "remarks": [],
         "examples": [],
         "params": [
@@ -5996,7 +5996,7 @@
       },
       {
         "name": "Cancel",
-        "description": " Cancel the running fiber\r\n",
+        "description": "Cancel the running fiber",
         "remarks": [],
         "examples": [],
         "params": [
@@ -6027,7 +6027,7 @@
       {
         "name": "ResetCount",
         "access": "ReadOnly",
-        "description": " Obtain the number of times this fiber has reset.\r\n",
+        "description": "Obtain the number of times this fiber has reset.",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -6050,7 +6050,7 @@
       {
         "name": "Result",
         "access": "ReadOnly",
-        "description": " Obtain the result of this fiber\r\n",
+        "description": "Obtain the result of this fiber",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -6073,7 +6073,7 @@
       {
         "name": "ErrorText",
         "access": "ReadOnly",
-        "description": " Obtain errors if any as string\r\n",
+        "description": "Obtain errors if any as string",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -6096,7 +6096,7 @@
       {
         "name": "Meta",
         "access": "ReadOnly",
-        "description": " Obtain the metadata object, usually used by the sub-process\r\n",
+        "description": "Obtain the metadata object, usually used by the sub-process",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -6119,7 +6119,7 @@
       {
         "name": "Step",
         "access": "ReadOnly",
-        "description": " Obtain the current step which the fiber procedure is at.\r\n",
+        "description": "Obtain the current step which the fiber procedure is at.",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -6142,7 +6142,7 @@
       {
         "name": "StepName",
         "access": "ReadOnly",
-        "description": " Obtains the name of the current step in the fiber\r\n",
+        "description": "Obtains the name of the current step in the fiber",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -6165,7 +6165,7 @@
       {
         "name": "StepDuration",
         "access": "ReadOnly",
-        "description": " Obtains the duration of the fiber procedure\r\n",
+        "description": "Obtains the duration of the fiber procedure",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -6188,7 +6188,7 @@
       {
         "name": "TotalDuration",
         "access": "ReadOnly",
-        "description": " Obtains the duration of the fibers entire runtime\r\n",
+        "description": "Obtains the duration of the fibers entire runtime",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -6211,7 +6211,7 @@
       {
         "name": "isFinished",
         "access": "ReadOnly",
-        "description": " Obtains whether the fiber has finished or not\r\n",
+        "description": "Obtains whether the fiber has finished or not",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -6234,7 +6234,7 @@
       {
         "name": "Name",
         "access": "ReadOnly",
-        "description": " Obtain the name of the fiber\r\n",
+        "description": "Obtain the name of the fiber",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -6257,7 +6257,7 @@
       {
         "name": "Agent",
         "access": "ReadOnly",
-        "description": " Obtain the agent information I.E. information unique to the runtime running this fiber\r\n",
+        "description": "Obtain the agent information I.E. information unique to the runtime running this fiber",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -6289,7 +6289,7 @@
     "constructors": [
       {
         "name": "Create",
-        "description": " Create a fiber\r\n",
+        "description": "Create a fiber",
         "remarks": [],
         "examples": [],
         "params": [
@@ -6328,7 +6328,7 @@
     "methods": [
       {
         "name": "CreateHeaders",
-        "description": " Create HTTP request headers\r\n",
+        "description": "Create HTTP request headers",
         "remarks": [],
         "examples": [],
         "params": [
@@ -6359,7 +6359,7 @@
       },
       {
         "name": "CreateOptions",
-        "description": " Create HTTP request options\r\n",
+        "description": "Create HTTP request options",
         "remarks": [],
         "examples": [],
         "params": [
@@ -6438,7 +6438,7 @@
       },
       {
         "name": "CreateProxy",
-        "description": " Obtain proxy information\r\n",
+        "description": "Obtain proxy information",
         "remarks": [],
         "examples": [],
         "params": [
@@ -6501,7 +6501,7 @@
       },
       {
         "name": "Await",
-        "description": " Await for the request to finish. This is only necessary for asynchronous requests.\r\n",
+        "description": "Await for the request to finish. This is only necessary for asynchronous requests.",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -6523,7 +6523,7 @@
       },
       {
         "name": "URIEncode",
-        "description": " Encode a string for use in a URL\r\n",
+        "description": "Encode a string for use in a URL",
         "remarks": [],
         "examples": [],
         "params": [
@@ -6554,7 +6554,7 @@
       },
       {
         "name": "URIDecode",
-        "description": " Decode a string from a URL\r\n",
+        "description": "Decode a string from a URL",
         "remarks": [],
         "examples": [],
         "params": [
@@ -6588,7 +6588,7 @@
       {
         "name": "isFinished",
         "access": "ReadOnly",
-        "description": " Get whether the request has finished. This is only necessary for asynchronous requests.\r\n",
+        "description": "Get whether the request has finished. This is only necessary for asynchronous requests.",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -6611,7 +6611,7 @@
       {
         "name": "ResponseStatus",
         "access": "ReadOnly",
-        "description": " Get the response status code\r\n",
+        "description": "Get the response status code",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -6634,7 +6634,7 @@
       {
         "name": "ResponseStatusText",
         "access": "ReadOnly",
-        "description": " Get the response status text\r\n",
+        "description": "Get the response status text",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -6657,7 +6657,7 @@
       {
         "name": "ResponseText",
         "access": "ReadOnly",
-        "description": " Get the response text\r\n",
+        "description": "Get the response text",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -6680,7 +6680,7 @@
       {
         "name": "ResponseBody",
         "access": "ReadOnly",
-        "description": " Get the response body\r\n",
+        "description": "Get the response body",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -6703,7 +6703,7 @@
       {
         "name": "ResponseHeader",
         "access": "ReadOnly",
-        "description": " Get a response header by name\r\n",
+        "description": "Get a response header by name",
         "remarks": [],
         "examples": [],
         "params": [
@@ -6735,7 +6735,7 @@
       {
         "name": "ResponseHeaders",
         "access": "ReadOnly",
-        "description": " Get all response headers\r\n",
+        "description": "Get all response headers",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -6758,7 +6758,7 @@
       {
         "name": "ResponseMapped",
         "access": "ReadOnly",
-        "description": " Get the mapped response\r\n",
+        "description": "Get the mapped response",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -6781,7 +6781,7 @@
       {
         "name": "ResponseMapper",
         "access": "ReadWrite",
-        "description": " Get/Set the response mapper. This callback will run when ResponeMapped() is called. This would usually be used to convert the response to a JSON/XML VBA object.\r\n",
+        "description": "Get/Set the response mapper. This callback will run when ResponeMapped() is called. This would usually be used to convert the response to a JSON/XML VBA object.",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -6813,7 +6813,7 @@
     "constructors": [
       {
         "name": "Create",
-        "description": " Create a HTTP request\r\n",
+        "description": "Create a HTTP request",
         "remarks": [],
         "examples": [],
         "params": [
@@ -6884,10 +6884,10 @@
     "methods": [
       {
         "name": "WindowsAuthenticator",
-        "description": " Authenticator will logon with Windows login credentials if requested\r\n",
+        "description": "Authenticator will logon with Windows login credentials if requested",
         "remarks": [],
         "examples": [
-          " `stdHTTP.Create(\"someURL\", Authenticator:=stdCallback.CreateFromModule(\"stdHTTPAuthenticators\", \"WindowsAuthenticator\"))`\r\n"
+          "`stdHTTP.Create(\"someURL\", Authenticator:=stdCallback.CreateFromModule(\"stdHTTPAuthenticators\", \"WindowsAuthenticator\"))`"
         ],
         "params": [
           {
@@ -6946,12 +6946,12 @@
       },
       {
         "name": "HttpBasicAuthenticator",
-        "description": " Basic Authenticator. \r\n",
+        "description": "Basic Authenticator.",
         "remarks": [
-          " This authenticator will send the username and password in the clear. It is recommended to use this only over HTTPS.\r\n"
+          "This authenticator will send the username and password in the clear. It is recommended to use this only over HTTPS."
         ],
         "examples": [
-          " `stdHTTP.Create(\"https://postman-echo.com/basic-auth\", Authenticator:=stdCallback.CreateFromModule(\"stdHTTPAuthenticators\", \"HttpBasicAuthenticator\").Bind(\"postman\", \"password\"))`\r\n"
+          "`stdHTTP.Create(\"https://postman-echo.com/basic-auth\", Authenticator:=stdCallback.CreateFromModule(\"stdHTTPAuthenticators\", \"HttpBasicAuthenticator\").Bind(\"postman\", \"password\"))`"
         ],
         "params": [
           {
@@ -7026,10 +7026,10 @@
       },
       {
         "name": "TokenAuthenticator",
-        "description": " Token Authenticator\r\n",
+        "description": "Token Authenticator",
         "remarks": [],
         "examples": [
-          " `stdHTTP.Create(\"https://postman-echo.com/basic-auth\", Authenticator:=stdCallback.CreateFromModule(\"stdHTTPAuthenticators\", \"TokenAuthenticator\").Bind(\"PRIVATE-TOKEN\", \"{{your-token}}\"))`\r\n"
+          "`stdHTTP.Create(\"https://postman-echo.com/basic-auth\", Authenticator:=stdCallback.CreateFromModule(\"stdHTTPAuthenticators\", \"TokenAuthenticator\").Bind(\"PRIVATE-TOKEN\", \"{{your-token}}\"))`"
         ],
         "params": [
           {
@@ -7104,10 +7104,10 @@
       },
       {
         "name": "DigestAuthenticator",
-        "description": " Digest Authenticator\r\n",
+        "description": "Digest Authenticator",
         "remarks": [],
         "examples": [
-          " `stdHTTP.Create(\"https://postman-echo.com/digest-auth\", Authenticator:=stdCallback.CreateFromModule(\"stdHTTPAuthenticators\", \"DigestAuthenticator\").Bind(\"postman\", \"password\", \"postman-echo.com\"))`\r\n"
+          "`stdHTTP.Create(\"https://postman-echo.com/digest-auth\", Authenticator:=stdCallback.CreateFromModule(\"stdHTTPAuthenticators\", \"DigestAuthenticator\").Bind(\"postman\", \"password\", \"postman-echo.com\"))`"
         ],
         "params": [
           {
@@ -7203,7 +7203,7 @@
     "methods": [
       {
         "name": "Run",
-        "description": " Run the function with supplied parameters\r\n",
+        "description": "Run the function with supplied parameters",
         "remarks": [],
         "examples": [],
         "params": [
@@ -7234,7 +7234,7 @@
       },
       {
         "name": "RunEx",
-        "description": " Run the function with a array of parameters\r\n",
+        "description": "Run the function with a array of parameters",
         "remarks": [],
         "examples": [],
         "params": [
@@ -7265,7 +7265,7 @@
       },
       {
         "name": "Bind",
-        "description": " Bind a set of parameters to the function call\r\n",
+        "description": "Bind a set of parameters to the function call",
         "remarks": [],
         "examples": [],
         "params": [
@@ -7296,7 +7296,7 @@
       },
       {
         "name": "SendMessage",
-        "description": " Making late-bound calls to `stdICallable` members. Each object which implements `stdICallable`\r\n",
+        "description": "Making late-bound calls to `stdICallable` members. Each object which implements `stdICallable`\r\nwill support a different set of latebound calls.",
         "remarks": [],
         "examples": [],
         "params": [
@@ -7359,7 +7359,7 @@
     "methods": [
       {
         "name": "CreateFromDataURL",
-        "description": " @constructor\r\n",
+        "description": "@constructor",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -7381,7 +7381,7 @@
       },
       {
         "name": "protInit",
-        "description": " Initialised stdImage\r\n",
+        "description": "Initialised stdImage",
         "remarks": [],
         "examples": [],
         "params": [
@@ -7409,7 +7409,7 @@
       },
       {
         "name": "ToBinary",
-        "description": " Obtain binary data of the image in any format required\r\n",
+        "description": "Obtain binary data of the image in any format required",
         "remarks": [],
         "examples": [],
         "params": [
@@ -7440,7 +7440,7 @@
       },
       {
         "name": "ToFile",
-        "description": " Save image as file\r\n",
+        "description": "Save image as file",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -7459,10 +7459,10 @@
       },
       {
         "name": "ToClipboard",
-        "description": " Copy the image to the clipboard\r\n",
+        "description": "Copy the image to the clipboard",
         "remarks": [],
         "examples": [
-          " `stdImage.CreateFromFile(\"H:\\test1.bmp\").ToClipboard()\r\n"
+          "`stdImage.CreateFromFile(\"H:\\test1.bmp\").ToClipboard()"
         ],
         "params": [],
         "returns": null,
@@ -7480,7 +7480,7 @@
       },
       {
         "name": "ToTempFile",
-        "description": " Save a copy in a temporary file and return the path of this file\r\n",
+        "description": "Save a copy in a temporary file and return the path of this file",
         "remarks": [],
         "examples": [],
         "params": [
@@ -7511,7 +7511,7 @@
       },
       {
         "name": "ToSheet",
-        "description": " Adds the picture to the sheet\r\n",
+        "description": "Adds the picture to the sheet",
         "remarks": [],
         "examples": [],
         "params": [
@@ -7566,10 +7566,10 @@
       },
       {
         "name": "ToUIControl",
-        "description": " Update a UI control's background picture\r\n",
+        "description": "Update a UI control's background picture",
         "remarks": [],
         "examples": [
-          " `stdImage.CreateFromFile(\"H:\\test1.bmp\").ToUIControl(UserForm1.Image1)`\r\n"
+          "`stdImage.CreateFromFile(\"H:\\test1.bmp\").ToUIControl(UserForm1.Image1)`"
         ],
         "params": [
           {
@@ -7596,7 +7596,7 @@
       },
       {
         "name": "ToDataUrl",
-        "description": " Obtain a data URL of the image\r\n",
+        "description": "Obtain a data URL of the image",
         "remarks": [],
         "examples": [],
         "params": [
@@ -7627,10 +7627,10 @@
       },
       {
         "name": "ToShapeFill",
-        "description": " Output the image to a shape's fill\r\n",
+        "description": "Output the image to a shape's fill",
         "remarks": [],
         "examples": [
-          " `stdImage.CreateFromFile(\"H:\\test1.bmp\").ToShapeFill(ActiveSheet.Shapes(1))`\r\n"
+          "`stdImage.CreateFromFile(\"H:\\test1.bmp\").ToShapeFill(ActiveSheet.Shapes(1))`"
         ],
         "params": [
           {
@@ -7657,7 +7657,7 @@
       },
       {
         "name": "ToStdPicture",
-        "description": " Obtain a stdole.StdPicture\r\n",
+        "description": "Obtain a stdole.StdPicture",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -7682,9 +7682,9 @@
       {
         "name": "HBitmap",
         "access": "ReadOnly",
-        "description": " Obtain a HBitmap\r\n",
+        "description": "Obtain a HBitmap",
         "remarks": [
-          " You are in charge of freeing this pointer.\r\n"
+          "You are in charge of freeing this pointer."
         ],
         "examples": [],
         "params": [],
@@ -7707,7 +7707,7 @@
       {
         "name": "HICON",
         "access": "ReadOnly",
-        "description": " Obtain (and cache) an HICON\r\n",
+        "description": "Obtain (and cache) an HICON",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -7730,7 +7730,7 @@
       {
         "name": "Colors",
         "access": "ReadOnly",
-        "description": " Obtain the colors of the image\r\n",
+        "description": "Obtain the colors of the image",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -7768,10 +7768,10 @@
     "constructors": [
       {
         "name": "CreateFromBinary",
-        "description": " Creates a stdImage object from a byte array\r\n",
+        "description": "Creates a stdImage object from a byte array",
         "remarks": [],
         "examples": [
-          " ```\r\n  "
+          "```\r\n  Dim b() as Byte: Redim b(1 to 100)\r\n  Call stdImage.CreateFromBinary(b).ToFile(\"H:\\test1.png\")\r\n```"
         ],
         "params": [
           {
@@ -7801,10 +7801,10 @@
       },
       {
         "name": "CreateFromFile",
-        "description": " Creates a stdImage object from a file\r\n",
+        "description": "Creates a stdImage object from a file",
         "remarks": [],
         "examples": [
-          " `stdImage.CreateFromFile(\"H:\\test1.bmp\").ToFile(\"H:\\test1.png\")`\r\n"
+          "`stdImage.CreateFromFile(\"H:\\test1.bmp\").ToFile(\"H:\\test1.png\")`"
         ],
         "params": [
           {
@@ -7842,12 +7842,12 @@
       },
       {
         "name": "CreateFromUrl",
-        "description": " Creates a stdImage object from a url\r\n",
+        "description": "Creates a stdImage object from a url",
         "remarks": [
-          " - TODO: consider removing\r\n"
+          "- TODO: consider removing"
         ],
         "examples": [
-          " `stdImage.CreateFromURL(\"https://raw.githubusercontent.com/sancarn/awesome-vba/main/resources/VBALogo.png\").ToFile(\"H:\\test.png\", stdImgFormatPNG)`\r\n"
+          "`stdImage.CreateFromURL(\"https://raw.githubusercontent.com/sancarn/awesome-vba/main/resources/VBALogo.png\").ToFile(\"H:\\test.png\", stdImgFormatPNG)`"
         ],
         "params": [
           {
@@ -7885,10 +7885,10 @@
       },
       {
         "name": "CreateFromHBitmap",
-        "description": " Creates a stdImage object from a file\r\n",
+        "description": "Creates a stdImage object from a file",
         "remarks": [],
         "examples": [
-          " ```\r\n  "
+          "```\r\n  stdImage.CreateFromHBitmap(Image1.Picture.Handle).ToFile(\"H:\\test.png\", stdImgFormatPNG)\r\n```"
         ],
         "params": [
           {
@@ -7918,10 +7918,10 @@
       },
       {
         "name": "CreateFromClipboard",
-        "description": " Creates a stdImage from the image in the clipboard\r\n",
+        "description": "Creates a stdImage from the image in the clipboard",
         "remarks": [],
         "examples": [
-          " `stdImage.CreateFromClipboard().ToFile(\"H:\\test.png\", stdImgFormatPNG)`\r\n"
+          "`stdImage.CreateFromClipboard().ToFile(\"H:\\test.png\", stdImgFormatPNG)`"
         ],
         "params": [],
         "returns": {
@@ -7942,10 +7942,10 @@
       },
       {
         "name": "CreateFromIPictureDisp",
-        "description": " Creates a stdImage object from a stdole.IPictureDisp object\r\n",
+        "description": "Creates a stdImage object from a stdole.IPictureDisp object",
         "remarks": [],
         "examples": [
-          " TODO:\r\n"
+          "TODO:"
         ],
         "params": [
           {
@@ -7975,10 +7975,10 @@
       },
       {
         "name": "CreateFromStdPicture",
-        "description": " Creates a stdImage object from a stdole.stdPicture object\r\n",
+        "description": "Creates a stdImage object from a stdole.stdPicture object",
         "remarks": [],
         "examples": [
-          " `stdImage.CreateFromStdPicture(Userform1.Picture).ToFile(\"H:\\test.png\", stdImgFormatPNG)`\r\n"
+          "`stdImage.CreateFromStdPicture(Userform1.Picture).ToFile(\"H:\\test.png\", stdImgFormatPNG)`"
         ],
         "params": [
           {
@@ -8008,10 +8008,10 @@
       },
       {
         "name": "CreateFromIPicture",
-        "description": " Creates a stdImage object from a stdole.IPicture object\r\n",
+        "description": "Creates a stdImage object from a stdole.IPicture object",
         "remarks": [],
         "examples": [
-          " TODO:\r\n"
+          "TODO:"
         ],
         "params": [
           {
@@ -8041,10 +8041,10 @@
       },
       {
         "name": "CreateFromExcelIPicture",
-        "description": " Creates a stdImage object from a Excel.IPicture object\r\n",
+        "description": "Creates a stdImage object from a Excel.IPicture object",
         "remarks": [],
         "examples": [
-          " TODO:\r\n"
+          "TODO:"
         ],
         "params": [
           {
@@ -8074,10 +8074,10 @@
       },
       {
         "name": "CreateFromShape",
-        "description": " Creates a stdImage object from a Shape object\r\n",
+        "description": "Creates a stdImage object from a Shape object",
         "remarks": [],
         "examples": [
-          " `stdImage.CreateFromShape(Sheet1.Shapes(\"Picture 2\")).ToFile(\"H:\\test.png\")`\r\n"
+          "`stdImage.CreateFromShape(Sheet1.Shapes(\"Picture 2\")).ToFile(\"H:\\test.png\")`"
         ],
         "params": [
           {
@@ -8107,10 +8107,10 @@
       },
       {
         "name": "CreateFromChart",
-        "description": " Creates a stdImage object from a Chart object\r\n",
+        "description": "Creates a stdImage object from a Chart object",
         "remarks": [],
         "examples": [
-          " `stdImage.CreateFromChart(Sheet1.ChartObjects(1).Chart).ToFile(\"H:\\test.png\")`\r\n"
+          "`stdImage.CreateFromChart(Sheet1.ChartObjects(1).Chart).ToFile(\"H:\\test.png\")`"
         ],
         "params": [
           {
@@ -8140,10 +8140,10 @@
       },
       {
         "name": "CreateFromScreen",
-        "description": " Creates a stdImage object from the desktop window (screenshot)\r\n",
+        "description": "Creates a stdImage object from the desktop window (screenshot)",
         "remarks": [],
         "examples": [
-          " `stdImage.CreateFromScreen().ToFile(\"H:\\test.png\")`\r\n"
+          "`stdImage.CreateFromScreen().ToFile(\"H:\\test.png\")`"
         ],
         "params": [],
         "returns": {
@@ -8164,7 +8164,7 @@
       },
       {
         "name": "CreateFromWindow",
-        "description": " Creates a stdImage object from a window\r\n",
+        "description": "Creates a stdImage object from a window",
         "remarks": [],
         "examples": [],
         "params": [
@@ -8203,10 +8203,10 @@
       },
       {
         "name": "CreateFromHICON",
-        "description": " Creates a stdImage object from a HICON\r\n",
+        "description": "Creates a stdImage object from a HICON",
         "remarks": [],
         "examples": [
-          " ```\r\n"
+          "```\r\nDim hICON as LongPtr: hICON = stdWindow.CreateFromHwnd(Application.hWnd).HICON\r\nstdImage.CreateFromHICON(hICON).ToFile(\"H:\\test.png\", stdImgFormatPNG)\r\n```"
         ],
         "params": [
           {
@@ -8244,9 +8244,9 @@
     "methods": [
       {
         "name": "Add",
-        "description": " Add a key and value to an object, or a value to an array\r\n",
+        "description": "Add a key and value to an object, or a value to an array",
         "remarks": [
-          " Uses `protAddItem_JSONArray` when `This.iType == eJSONArray`; and `protAddItem_JSONObject` when `This.iType == eJSONObject`.\r\n"
+          "Uses `protAddItem_JSONArray` when `This.iType == eJSONArray`; and `protAddItem_JSONObject` when `This.iType == eJSONObject`."
         ],
         "examples": [],
         "params": [
@@ -8277,10 +8277,10 @@
       },
       {
         "name": "AddArray",
-        "description": " Create and add an array to the JSON object/array.\r\n",
+        "description": "Create and add an array to the JSON object/array.",
         "remarks": [],
         "examples": [
-          " ` .AddArray(fromVar:=Array(1,2,3))`\r\n"
+          "` .AddArray(fromVar:=Array(1,2,3))`"
         ],
         "params": [
           {
@@ -8318,7 +8318,7 @@
       },
       {
         "name": "AddObject",
-        "description": " Create and add an object to the JSON object/array.\r\n",
+        "description": "Create and add an object to the JSON object/array.",
         "remarks": [],
         "examples": [],
         "params": [
@@ -8349,9 +8349,9 @@
       },
       {
         "name": "ChildrenInfo",
-        "description": " Obtain the children of this JSON object\r\n",
+        "description": "Obtain the children of this JSON object",
         "remarks": [
-          " - Because of the nature of the JSON object, this will be a collection of dictionaries with the keys \"key\", \"value\" and \"isJSON\".\r\n"
+          "- Because of the nature of the JSON object, this will be a collection of dictionaries with the keys \"key\", \"value\" and \"isJSON\"."
         ],
         "examples": [],
         "params": [],
@@ -8373,7 +8373,7 @@
       },
       {
         "name": "ToString",
-        "description": " Convert the JSON to string\r\n",
+        "description": "Convert the JSON to string",
         "remarks": [],
         "examples": [],
         "params": [
@@ -8420,7 +8420,7 @@
       },
       {
         "name": "ToFile",
-        "description": " Dump the JSON data to a file\r\n",
+        "description": "Dump the JSON data to a file",
         "remarks": [],
         "examples": [],
         "params": [
@@ -8456,7 +8456,7 @@
       },
       {
         "name": "ToVBObject",
-        "description": " Convert to VBA Object\r\n",
+        "description": "Convert to VBA Object",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -8478,10 +8478,10 @@
       },
       {
         "name": "ToSelf",
-        "description": " Returns the current json object\r\n",
+        "description": "Returns the current json object",
         "remarks": [],
         "examples": [
-          " ```vba\r\n"
+          "```vba\r\nWith stdJSON.Create()\r\n  .add \"X\", \"Y\"\r\n  set j = .ToSelf()\r\nEnd With\r\n```"
         ],
         "params": [],
         "returns": {
@@ -8502,7 +8502,7 @@
       },
       {
         "name": "NewEnum",
-        "description": " Allow `for each x in json` syntax\r\n",
+        "description": "Allow `for each x in json` syntax",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -8527,7 +8527,7 @@
       {
         "name": "JsonType",
         "access": "ReadOnly",
-        "description": " Obtain the JSON type\r\n",
+        "description": "Obtain the JSON type",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -8550,7 +8550,7 @@
       {
         "name": "Length",
         "access": "ReadOnly",
-        "description": " Obtain the length of this JSON object\r\n",
+        "description": "Obtain the length of this JSON object",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -8573,7 +8573,7 @@
       {
         "name": "Item",
         "access": "ReadWrite",
-        "description": " Obtain the item for a key or index\r\n",
+        "description": "Obtain the item for a key or index",
         "remarks": [],
         "examples": [],
         "params": [
@@ -8605,7 +8605,7 @@
       {
         "name": "Exists",
         "access": "ReadOnly",
-        "description": " Obtain the item for a key or index\r\n",
+        "description": "Obtain the item for a key or index",
         "remarks": [],
         "examples": [],
         "params": [
@@ -8644,7 +8644,7 @@
     "constructors": [
       {
         "name": "Create",
-        "description": " Create a JSON object\r\n",
+        "description": "Create a JSON object",
         "remarks": [],
         "examples": [],
         "params": [
@@ -8675,11 +8675,11 @@
       },
       {
         "name": "CreateFromString",
-        "description": " Create a JSON object from string\r\n",
+        "description": "Create a JSON object from string",
         "remarks": [],
         "examples": [
-          " ```\r\n  ",
-          " ```\r\n  "
+          "```\r\n  Dim o as stdJSON: set o = stdJSON.CreateFromString(\"{\"\"a\"\":1,\"\"b\"\":\"\"hello\"\"}\")\r\n  Debug.Print o.ToString()\r\n```",
+          "```\r\n  Dim o as stdJSON: set o = stdJSON.CreateFromString(\"{a: 1, b: 'hello'}\", AllowUnquotedKeys:=true, AllowSingleQuoteStrings:=true)\r\n  Debug.Print o.ToString()\r\n```"
         ],
         "params": [
           {
@@ -8733,7 +8733,7 @@
       },
       {
         "name": "CreateFromFile",
-        "description": " Create a JSON object from file\r\n",
+        "description": "Create a JSON object from file",
         "remarks": [],
         "examples": [],
         "params": [
@@ -8764,7 +8764,7 @@
       },
       {
         "name": "CreateFromVariant",
-        "description": " Create a JSON object from VB variant\r\n",
+        "description": "Create a JSON object from VB variant",
         "remarks": [],
         "examples": [],
         "params": [
@@ -8795,7 +8795,7 @@
       },
       {
         "name": "CreateFromParams",
-        "description": " Create a JSON object from a set of params\r\n",
+        "description": "Create a JSON object from a set of params",
         "remarks": [],
         "examples": [],
         "params": [
@@ -8842,7 +8842,7 @@
     "methods": [
       {
         "name": "protInit",
-        "description": " Initialise the lambda\r\n",
+        "description": "Initialise the lambda",
         "remarks": [],
         "examples": [],
         "params": [
@@ -8878,7 +8878,7 @@
       },
       {
         "name": "Run",
-        "description": " Run the lambda from passed parameters\r\n",
+        "description": "Run the lambda from passed parameters",
         "remarks": [],
         "examples": [],
         "params": [
@@ -8909,7 +8909,7 @@
       },
       {
         "name": "RunEx",
-        "description": " Run the lambda from an array of parameters\r\n",
+        "description": "Run the lambda from an array of parameters",
         "remarks": [],
         "examples": [],
         "params": [
@@ -8940,7 +8940,7 @@
       },
       {
         "name": "Bind",
-        "description": " Bind parameters to the function.  Arguments will be passed in the order they are supplied, before any arguments supplied to the function.\r\n",
+        "description": "Bind parameters to the function.  Arguments will be passed in the order they are supplied, before any arguments supplied to the function.",
         "remarks": [],
         "examples": [],
         "params": [
@@ -8971,7 +8971,7 @@
       },
       {
         "name": "BindEx",
-        "description": " Bind an array of parameters to the function. Arguments will be passed in the order they are supplied, before any arguments supplied to the function.\r\n",
+        "description": "Bind an array of parameters to the function. Arguments will be passed in the order they are supplied, before any arguments supplied to the function.",
         "remarks": [],
         "examples": [],
         "params": [
@@ -9002,7 +9002,7 @@
       },
       {
         "name": "BindGlobal",
-        "description": " Bind a named global variable to the function\r\n",
+        "description": "Bind a named global variable to the function",
         "remarks": [],
         "examples": [],
         "params": [
@@ -9041,7 +9041,7 @@
       },
       {
         "name": "protRunVMTests",
-        "description": " Runs tests on the class\r\n",
+        "description": "Runs tests on the class",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -9063,7 +9063,7 @@
       {
         "name": "oFunctExt",
         "access": "ReadOnly",
-        "description": " Extend the lambda with new functions and named global variables\r\n",
+        "description": "Extend the lambda with new functions and named global variables",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -9112,10 +9112,10 @@
     "constructors": [
       {
         "name": "Create",
-        "description": " Create a stdLambda object from a string equation\r\n",
+        "description": "Create a stdLambda object from a string equation",
         "remarks": [],
         "examples": [
-          " ```vb\r\n"
+          "```vb\r\nDebug.Print stdLambda.Create(\"1+3*8/2*(2+2+3)\").Run()\r\nWith stdLambda.Create(\"$1+1+3*8/2*(2+2+3)\")\r\n    Debug.Print .Run(10)\r\n    Debug.Print .Run(15)\r\n    Debug.Print .Run(20)\r\nEnd With\r\nDebug.Print stdLambda.Create(\"$1.Range(\"\"A1\"\")\").Run(Sheets(1)).Address(True, True, xlA1, True)\r\nDebug.Print stdLambda.Create(\"$1.join(\"\",\"\")\").Run(stdArray.Create(1,2))\r\n```"
         ],
         "params": [
           {
@@ -9161,10 +9161,10 @@
       },
       {
         "name": "CreateMultiline",
-        "description": " Create a stdLambda object from an Array of strings\r\n",
+        "description": "Create a stdLambda object from an Array of strings",
         "remarks": [],
         "examples": [
-          " ```vb\r\n"
+          "```vb\r\nDebug.Print stdLambda.CreateMultiline(Array( _\r\n  \"let x = 8/2*(2+2+3)\", _\r\n  \"1+3*x\"\r\n)).Run()\r\n```"
         ],
         "params": [
           {
@@ -9218,14 +9218,14 @@
     "methods": [
       {
         "name": "protInit",
-        "description": " Initialises the class\r\n",
+        "description": "Initialises the class",
         "remarks": [],
         "examples": [],
         "params": [
           {
             "name": "objType",
             "type": "EPerfObjType",
-            "description": "Type of performance object to initialise.",
+            "description": "Type of performance object to initialise.\r\n\r\n* iMeasure - used for measuring performance",
             "optional": false,
             "defaultValue": null,
             "paramArray": false
@@ -9254,9 +9254,9 @@
       },
       {
         "name": "AddMeasurement",
-        "description": " AddMeasurement\r\n",
+        "description": "AddMeasurement",
         "remarks": [
-          " If a time is added that was previously also added then the average of the times is calculated.\r\n"
+          "If a time is added that was previously also added then the average of the times is calculated."
         ],
         "examples": [],
         "params": [
@@ -9300,7 +9300,7 @@
       },
       {
         "name": "MeasuresClear",
-        "description": " MeasuresClear - Clears all procedures/blocks and times that have been measured\r\n",
+        "description": "MeasuresClear - Clears all procedures/blocks and times that have been measured",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -9322,7 +9322,7 @@
       {
         "name": "Measurement",
         "access": "ReadOnly",
-        "description": " Obtain a measurement\r\n",
+        "description": "Obtain a measurement",
         "remarks": [],
         "examples": [],
         "params": [
@@ -9354,7 +9354,7 @@
       {
         "name": "MeasuresKeys",
         "access": "ReadOnly",
-        "description": " MeasuresKeys\r\n",
+        "description": "MeasuresKeys",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -9387,11 +9387,11 @@
     "constructors": [
       {
         "name": "CreateMeasure",
-        "description": " Measure\r\n",
+        "description": "Measure",
         "remarks": [],
         "examples": [
-          "```vb\r\n",
-          "```vb\r\n"
+          "```vb\r\nWith stdPerformance.Measure(\"Some test expression\")\r\n  Dim v\r\n  For i = 1 to 1000\r\n    v = expressionToTest()\r\n  next\r\nEnd With\r\n```",
+          "```vb\r\nConst C_MAX as Long = 1000\r\nWith stdPerformance.Measure(\"Some test expression\", C_MAX)\r\n  Dim v\r\n  For i = 1 to C_MAX\r\n    v = expressionToTest()\r\n  next\r\nEnd With\r\n```"
         ],
         "params": [
           {
@@ -9429,12 +9429,12 @@
       },
       {
         "name": "CreateOptimiser",
-        "description": " Optimise\r\n",
+        "description": "Optimise",
         "remarks": [
-          " Calculation is defined as long instead of xlCalculation so the function continues to work without compile error in Word, Powerpoint etc.\r\n"
+          "Calculation is defined as long instead of xlCalculation so the function continues to work without compile error in Word, Powerpoint etc."
         ],
         "examples": [
-          "```vb\r\n"
+          "```vb\r\nWith stdPerformance.Optimise\r\n  'some heavy code here\r\nEnd With\r\n```"
         ],
         "params": [
           {
@@ -9488,7 +9488,7 @@
     "methods": [
       {
         "name": "forceQuit",
-        "description": " Wait till the process closes\r\n",
+        "description": "Wait till the process closes",
         "remarks": [],
         "examples": [],
         "params": [
@@ -9516,7 +9516,7 @@
       },
       {
         "name": "waitTilClose",
-        "description": " Wait till the process closes\r\n",
+        "description": "Wait till the process closes",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -9538,7 +9538,7 @@
       {
         "name": "id",
         "access": "ReadOnly",
-        "description": " Obtain the process id\r\n",
+        "description": "Obtain the process id",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -9561,7 +9561,7 @@
       {
         "name": "name",
         "access": "ReadOnly",
-        "description": " Obtain the process name\r\n",
+        "description": "Obtain the process name",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -9584,7 +9584,7 @@
       {
         "name": "path",
         "access": "ReadOnly",
-        "description": " Obtain the process path\r\n",
+        "description": "Obtain the process path",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -9607,7 +9607,7 @@
       {
         "name": "Winmgmt",
         "access": "ReadOnly",
-        "description": " Returns the Winmgmts object representing the process\r\n",
+        "description": "Returns the Winmgmts object representing the process",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -9630,7 +9630,7 @@
       {
         "name": "CommandLine",
         "access": "ReadOnly",
-        "description": " Attempts to return the command line of the application. Please note [the command line may have changed](https://devblogs.microsoft.com/oldnewthing/20091125-00/?p=15923).\r\n",
+        "description": "Attempts to return the command line of the application. Please note [the command line may have changed](https://devblogs.microsoft.com/oldnewthing/20091125-00/?p=15923).",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -9653,7 +9653,7 @@
       {
         "name": "isRunning",
         "access": "ReadOnly",
-        "description": " Returns whether the process is still running or not\r\n",
+        "description": "Returns whether the process is still running or not",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -9676,7 +9676,7 @@
       {
         "name": "isCritical",
         "access": "ReadOnly",
-        "description": " Returns whether the process is critical or not\r\n",
+        "description": "Returns whether the process is critical or not",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -9699,7 +9699,7 @@
       {
         "name": "Priority",
         "access": "ReadOnly",
-        "description": " Get the process' priority\r\n",
+        "description": "Get the process' priority",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -9722,7 +9722,7 @@
       {
         "name": "TimeCreated",
         "access": "ReadOnly",
-        "description": " Get the datetime representing the time the process was started/created\r\n",
+        "description": "Get the datetime representing the time the process was started/created",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -9745,7 +9745,7 @@
       {
         "name": "TimeQuit",
         "access": "ReadOnly",
-        "description": " Get the datetime representing the time the process was quit\r\n",
+        "description": "Get the datetime representing the time the process was quit",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -9768,7 +9768,7 @@
       {
         "name": "TimeKernel",
         "access": "ReadOnly",
-        "description": " Get the amount of time that the process has executed in kernel mode\r\n",
+        "description": "Get the amount of time that the process has executed in kernel mode",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -9791,7 +9791,7 @@
       {
         "name": "TimeUser",
         "access": "ReadOnly",
-        "description": " Get the amount of time that the process has executed in user mode\r\n",
+        "description": "Get the amount of time that the process has executed in user mode",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -9814,7 +9814,7 @@
       {
         "name": "ExitCode",
         "access": "ReadOnly",
-        "description": " Get the exit code of this process. Note, an exit code is only ever received if the process has ended. Check isRunning prior to calling this function.\r\n",
+        "description": "Get the exit code of this process. Note, an exit code is only ever received if the process has ended. Check isRunning prior to calling this function.",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -9847,7 +9847,7 @@
     "constructors": [
       {
         "name": "Create",
-        "description": " Launches a process and creates a stdProcess object for it\r\n",
+        "description": "Launches a process and creates a stdProcess object for it",
         "remarks": [],
         "examples": [],
         "params": [
@@ -9886,7 +9886,7 @@
       },
       {
         "name": "CreateFromProcessId",
-        "description": " Creates a process from a given process id\r\n",
+        "description": "Creates a process from a given process id",
         "remarks": [],
         "examples": [],
         "params": [
@@ -9917,7 +9917,7 @@
       },
       {
         "name": "CreateFromQuery",
-        "description": " Obtains a the first process which matches the query given\r\n",
+        "description": "Obtains a the first process which matches the query given",
         "remarks": [],
         "examples": [],
         "params": [
@@ -9948,7 +9948,7 @@
       },
       {
         "name": "CreateManyFromQuery",
-        "description": " Obtains a collection of processes which match the query given\r\n",
+        "description": "Obtains a collection of processes which match the query given",
         "remarks": [],
         "examples": [],
         "params": [
@@ -9979,7 +9979,7 @@
       },
       {
         "name": "CreateAll",
-        "description": " Obtains a collection of all processes\r\n",
+        "description": "Obtains a collection of all processes",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -10009,7 +10009,7 @@
     "methods": [
       {
         "name": "protInit",
-        "description": " Initialise quadtree\r\n",
+        "description": "Initialise quadtree",
         "remarks": [],
         "examples": [],
         "params": [
@@ -10077,7 +10077,7 @@
       },
       {
         "name": "insertPoint",
-        "description": " @param x - X coord of point\r\n",
+        "description": "@param x - X coord of point",
         "remarks": [],
         "examples": [],
         "params": [
@@ -10116,7 +10116,7 @@
       },
       {
         "name": "queryRange",
-        "description": " Query for points within a range depicted by center and radius (half dimension)\r\n",
+        "description": "Query for points within a range depicted by center and radius (half dimension)",
         "remarks": [],
         "examples": [],
         "params": [
@@ -10163,7 +10163,7 @@
       },
       {
         "name": "queryRangeBounds",
-        "description": " Query for points within a rect\r\n",
+        "description": "Query for points within a rect",
         "remarks": [],
         "examples": [],
         "params": [
@@ -10227,9 +10227,9 @@
     "constructors": [
       {
         "name": "Create",
-        "description": " Create quadtree from center coords and halfDimension / radius\r\n",
+        "description": "Create quadtree from center coords and halfDimension / radius",
         "remarks": [
-          null
+          ""
         ],
         "examples": [],
         "params": [
@@ -10292,7 +10292,7 @@
       },
       {
         "name": "CreateFromBounds",
-        "description": " Creates a quadtree from min/max x/y\r\n",
+        "description": "Creates a quadtree from min/max x/y",
         "remarks": [],
         "examples": [],
         "params": [
@@ -10371,7 +10371,7 @@
     "methods": [
       {
         "name": "Create",
-        "description": " @constructor\r\n",
+        "description": "@constructor",
         "remarks": [],
         "examples": [],
         "params": [
@@ -10402,7 +10402,7 @@
       },
       {
         "name": "protInit",
-        "description": " Intialise the byref array\r\n",
+        "description": "Intialise the byref array",
         "remarks": [],
         "examples": [],
         "params": [
@@ -10446,7 +10446,7 @@
     "methods": [
       {
         "name": "SetValue",
-        "description": " Set value and change type\r\n",
+        "description": "Set value and change type",
         "remarks": [],
         "examples": [],
         "params": [
@@ -10485,7 +10485,7 @@
       {
         "name": "name",
         "access": "ReadOnly",
-        "description": " Obtain name of registry key\r\n",
+        "description": "Obtain name of registry key",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -10508,7 +10508,7 @@
       {
         "name": "RegType",
         "access": "ReadOnly",
-        "description": " Obtain type of registry object. Either `ERegistryType.iKey` or `ERegistryType.iItem`.\r\n",
+        "description": "Obtain type of registry object. Either `ERegistryType.iKey` or `ERegistryType.iItem`.",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -10531,7 +10531,7 @@
       {
         "name": "isRoot",
         "access": "ReadOnly",
-        "description": " Obtain whether registry key/item is root\r\n",
+        "description": "Obtain whether registry key/item is root",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -10554,7 +10554,7 @@
       {
         "name": "path",
         "access": "ReadOnly",
-        "description": " Obtain the path of the registry key/item\r\n",
+        "description": "Obtain the path of the registry key/item",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -10577,7 +10577,7 @@
       {
         "name": "Parent",
         "access": "ReadOnly",
-        "description": " Obtain the parent of the registry key/item\r\n",
+        "description": "Obtain the parent of the registry key/item",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -10600,7 +10600,7 @@
       {
         "name": "children",
         "access": "ReadOnly",
-        "description": " Get all keys and items\r\n",
+        "description": "Get all keys and items",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -10632,7 +10632,7 @@
       {
         "name": "Keys",
         "access": "ReadOnly",
-        "description": " Get all subkeys\r\n",
+        "description": "Get all subkeys",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -10660,7 +10660,7 @@
       {
         "name": "Items",
         "access": "ReadOnly",
-        "description": " Get all items\r\n",
+        "description": "Get all items",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -10688,7 +10688,7 @@
       {
         "name": "ItemType",
         "access": "ReadOnly",
-        "description": " Get the item type of this stdReg Item\r\n",
+        "description": "Get the item type of this stdReg Item",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -10716,7 +10716,7 @@
       {
         "name": "value",
         "access": "ReadWrite",
-        "description": " Get / Set value\r\n",
+        "description": "Get / Set value",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -10764,7 +10764,7 @@
     "constructors": [
       {
         "name": "Create",
-        "description": " Create a new stdReg object from a path with required access\r\n",
+        "description": "Create a new stdReg object from a path with required access",
         "remarks": [],
         "examples": [],
         "params": [
@@ -10811,7 +10811,7 @@
       },
       {
         "name": "CreateFromKey",
-        "description": " Create a new stdReg object from a key path with required access\r\n",
+        "description": "Create a new stdReg object from a key path with required access",
         "remarks": [],
         "examples": [],
         "params": [
@@ -10858,7 +10858,7 @@
       },
       {
         "name": "CreateFromItem",
-        "description": " Create a new stdReg object from a value path with required access\r\n",
+        "description": "Create a new stdReg object from a value path with required access",
         "remarks": [],
         "examples": [],
         "params": [
@@ -10913,10 +10913,10 @@
     "methods": [
       {
         "name": "Test",
-        "description": " Given a text string, return whether the source regex is present\r\n",
+        "description": "Given a text string, return whether the source regex is present",
         "remarks": [],
         "examples": [
-          "For a regex of: `\\d{5}-ST[A-Z]\\d`\r\n"
+          "For a regex of: `\\d{5}-ST[A-Z]\\d`\r\nWith data:\r\n```\r\n* The site with id 12345-STA1 is one hell of a cool site.\r\n```\r\nThe result is: `True`"
         ],
         "params": [
           {
@@ -10946,10 +10946,10 @@
       },
       {
         "name": "Match",
-        "description": " Given a text string, return the first match.\r\n",
+        "description": "Given a text string, return the first match.",
         "remarks": [],
         "examples": [
-          "For Regex: `(?<id>\\d{5}-ST[A-Z]\\d) - (?<desc>.*)` and data:\r\n"
+          "For Regex: `(?<id>\\d{5}-ST[A-Z]\\d) - (?<desc>.*)` and data:\r\n```\r\nSome sites were in critical condition\r\n* 12345-STA1 - Large crack through pipe.\r\n* 12323-STB9 - Acid leakage polluting watercourse.\r\nand some others were largely ok:\r\n* 23565-STC2\r\n* 62346-STZ9\r\n```\r\nProduces result:\r\n```json\r\n{\r\n  0: \"12345-STA1 - Large crack through pipe.\",\r\n  \"id\":\"12345-STA1\",\r\n  1: \"12345-STA1\",\r\n  \"desc\": \"Large crack through pipe.\"\r\n  2: \"Large crack through pipe.\",\r\n  \"$COUNT\":2,\r\n  \"$RAW\": {...}\r\n}\r\n```"
         ],
         "params": [
           {
@@ -10979,10 +10979,10 @@
       },
       {
         "name": "MatchAll",
-        "description": " Given a text string, return all strings which match the source regex pattern.\r\n",
+        "description": "Given a text string, return all strings which match the source regex pattern.",
         "remarks": [],
         "examples": [
-          "For regex: `\\d{5}-ST[A-Z]\\d` and data:\r\n"
+          "For regex: `\\d{5}-ST[A-Z]\\d` and data:\r\n```\r\nSome sites were in critical condition\r\n* 12345-STA1 - Large crack through pipe.\r\n* 12323-STB9 - Acid leakage polluting watercourse.\r\nand some others were largely ok:\r\n* 23565-STC2\r\n* 62346-STZ9\r\n```\r\nWill result in an array of matches like:\r\n```json\r\n[\r\n  {0: \"12345-STA1\", ...},\r\n  {0: \"12323-STB9\", ...},\r\n  {0: \"23565-STC2\", ...}, \r\n  {0: \"62346-STZ9\", ...}\r\n]\r\n```"
         ],
         "params": [
           {
@@ -11012,10 +11012,10 @@
       },
       {
         "name": "Replace",
-        "description": " Given a Haystack and a Replacer, Replace all matches with the source regex with the format given in the Replacer.\r\n\r\n",
+        "description": "Given a Haystack and a Replacer, Replace all matches with the source regex with the format given in the Replacer.",
         "remarks": [],
         "examples": [
-          "For regex: `(?<id>\\d{5}-ST[A-Z]\\d))\\s+(?<count>\\d+)\\s+(?<date>../../....)` and data: \r\n"
+          "For regex: `(?<id>\\d{5}-ST[A-Z]\\d))\\s+(?<count>\\d+)\\s+(?<date>../../....)` and data: \r\n```\r\nHere is some cool data:\r\n12345-STA1  123    10/02/2019\r\n12323-STB9  2123   01/01/2005\r\nand here is some more:\r\n23565-STC2  23     ??/??/????\r\n62346-STZ9  5      01/05/1932\r\n```\r\nWith replacer `$id,$date,$count` will result in:\r\n```\r\nHere is some cool data:\r\n12345-STA1,10/02/2019,123\r\n12323-STB9,01/01/2005,2123\r\nand here is some more:\r\n23565-STC2,??/??/????,23\r\n62346-STZ9,01/05/1932,5\r\n```"
         ],
         "params": [
           {
@@ -11053,10 +11053,10 @@
       },
       {
         "name": "List",
-        "description": " Given a Haystack and a Format, Generate a string containing all matches in the format provided.\r\n\r\n",
+        "description": "Given a Haystack and a Format, Generate a string containing all matches in the format provided.",
         "remarks": [],
         "examples": [
-          "For regex: `(?<id>\\d{5}-ST[A-Z]\\d))\\s+(?<count>\\d+)\\s+(?<date>../../....)` and data:\r\n"
+          "For regex: `(?<id>\\d{5}-ST[A-Z]\\d))\\s+(?<count>\\d+)\\s+(?<date>../../....)` and data:\r\n```\r\n12345-STA1  123    10/02/2019\r\n12323-STB9  2123   01/01/2005\r\n23565-STC2  23     ??/??/????\r\n62346-STZ9  5      01/05/1932\r\n```\r\nWith format: `$id,$date,$count\\n` will result in:\r\n```\r\n12345-STA1,10/02/2019,123\r\n12323-STB9,01/01/2005,2123\r\n23565-STC2,??/??/????,23\r\n62346-STZ9,01/05/1932,5\r\n```"
         ],
         "params": [
           {
@@ -11094,7 +11094,7 @@
       },
       {
         "name": "ListArr",
-        "description": " Supplied with a haystack to search, ListArr will return a 2d array of data where the rows represent each match, and the columns represent the formats passed into vFormats parameter\r\n",
+        "description": "Supplied with a haystack to search, ListArr will return a 2d array of data where the rows represent each match, and the columns represent the formats passed into vFormats parameter",
         "remarks": [],
         "examples": [],
         "params": [
@@ -11136,7 +11136,7 @@
       {
         "name": "pattern",
         "access": "ReadWrite",
-        "description": " Get/Set pattern for regex\r\n",
+        "description": "Get/Set pattern for regex",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -11159,7 +11159,7 @@
       {
         "name": "flags",
         "access": "ReadWrite",
-        "description": " Get/Set Flags for regex\r\n",
+        "description": "Get/Set Flags for regex",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -11191,10 +11191,10 @@
     "constructors": [
       {
         "name": "Create",
-        "description": " Creates a regex object given a pattern and flags.\r\n",
+        "description": "Creates a regex object given a pattern and flags.",
         "remarks": [],
         "examples": [
-          "```vb\r\n"
+          "```vb\r\nstdRegex.Create(\"A\\d+\",\"i\")\r\n```"
         ],
         "params": [
           {
@@ -11240,7 +11240,7 @@
     "methods": [
       {
         "name": "protInitFactory",
-        "description": " Initialise the sentry factory\r\n",
+        "description": "Initialise the sentry factory",
         "remarks": [],
         "examples": [],
         "params": [
@@ -11276,7 +11276,7 @@
       },
       {
         "name": "protInitInstance",
-        "description": " Initialise the sentry instance\r\n",
+        "description": "Initialise the sentry instance",
         "remarks": [],
         "examples": [],
         "params": [
@@ -11320,7 +11320,7 @@
       },
       {
         "name": "Run",
-        "description": " Run the sentry\r\n",
+        "description": "Run the sentry",
         "remarks": [],
         "examples": [],
         "params": [
@@ -11351,7 +11351,7 @@
       },
       {
         "name": "RunEx",
-        "description": " Run the sentry\r\n",
+        "description": "Run the sentry",
         "remarks": [],
         "examples": [],
         "params": [
@@ -11382,7 +11382,7 @@
       },
       {
         "name": "Bind",
-        "description": " Bind arguments to the sentry factory\r\n",
+        "description": "Bind arguments to the sentry factory",
         "remarks": [],
         "examples": [],
         "params": [
@@ -11413,7 +11413,7 @@
       },
       {
         "name": "BindEx",
-        "description": " Bind arguments to the sentry factory\r\n",
+        "description": "Bind arguments to the sentry factory",
         "remarks": [],
         "examples": [],
         "params": [
@@ -11444,7 +11444,7 @@
       },
       {
         "name": "SendMessage",
-        "description": " Making late-bound calls to `stdSentry` members. Each object which implements `stdICallable`\r\n",
+        "description": "Making late-bound calls to `stdSentry` members. Each object which implements `stdICallable`\r\nwill support a different set of latebound calls.",
         "remarks": [],
         "examples": [],
         "params": [
@@ -11502,7 +11502,7 @@
     "constructors": [
       {
         "name": "Create",
-        "description": " Create a sentry factory\r\n",
+        "description": "Create a sentry factory",
         "remarks": [],
         "examples": [],
         "params": [
@@ -11549,10 +11549,10 @@
       },
       {
         "name": "CreateOptimiser",
-        "description": " Create a sentry which acts as an \"optimiser\" for code. Note, setting options doesn't always lead to performance improvements. See [vba-articles performance thread](https://sancarn.github.io/vba-articles/performance-tips.html) for details.\r\n",
+        "description": "Create a sentry which acts as an \"optimiser\" for code. Note, setting options doesn't always lead to performance improvements. See [vba-articles performance thread](https://sancarn.github.io/vba-articles/performance-tips.html) for details.",
         "remarks": [],
         "examples": [
-          " ```vba\r\n"
+          "```vba\r\nWith stdSentry.CreateOptimiser(ScreenUpdating:=False, Calculation:=xlCalculationManual)\r\n  '... heavy range based operations ...\r\nEnd With\r\n```"
         ],
         "params": [
           {
@@ -11594,16 +11594,16 @@
         "isProtected": false,
         "throws": [],
         "requires": [
-          " stdLambda"
+          "stdLambda"
         ],
         "isStatic": false
       },
       {
         "name": "CreateFromObjectProperty",
-        "description": " Create a sentry from a property of an object\r\n",
+        "description": "Create a sentry from a property of an object",
         "remarks": [],
         "examples": [
-          " ```vba\r\n"
+          "```vba\r\nWith stdSentry.CreateFromObjectProperty(Application, \"DisplayAlerts\", false)\r\n  Call ThisWorkbook.SaveAs(\"C:\\temp\\test.xlsx\")\r\nEnd With\r\n```"
         ],
         "params": [
           {
@@ -11645,16 +11645,16 @@
         "isProtected": false,
         "throws": [],
         "requires": [
-          " stdLambda"
+          "stdLambda"
         ],
         "isStatic": false
       },
       {
         "name": "CreateFromObjectMethod",
-        "description": " Create a sentry from a method of an object\r\n",
+        "description": "Create a sentry from a method of an object",
         "remarks": [],
         "examples": [
-          " ```vba\r\n"
+          "```vba\r\nWith stdSentry.CreateFromObjectMethod(stdError, \"AddStack\", Array(\"MethodName\"), \"PopStack\", Array())\r\n  '... our code ...\r\nEnd With\r\n```"
         ],
         "params": [
           {
@@ -11680,16 +11680,16 @@
         "isProtected": false,
         "throws": [],
         "requires": [
-          " stdCallback"
+          "stdCallback"
         ],
         "isStatic": false
       },
       {
         "name": "CreateErrorStack",
-        "description": " Create a sentry for error stack management\r\n",
+        "description": "Create a sentry for error stack management",
         "remarks": [],
         "examples": [
-          " ```vba\r\n"
+          "```vba\r\nPublic Sub MyMethod()\r\n  With stdSentry.CreateErrorStack(\"MyClass.MyMethod\")\r\n    '... our code ...\r\n  End With\r\nEnd Sub\r\n```"
         ],
         "params": [
           {
@@ -11715,16 +11715,16 @@
         "isProtected": false,
         "throws": [],
         "requires": [
-          " stdError, stdCallback"
+          "stdError, stdCallback"
         ],
         "isStatic": false
       },
       {
         "name": "CreateFromAutomationSecurity",
-        "description": " Create a sentry from an AutomationSecurity setting\r\n",
+        "description": "Create a sentry from an AutomationSecurity setting",
         "remarks": [],
         "examples": [
-          " ```vba\r\n"
+          "```vba\r\nWith stdSentry.CreateFromAutomationSecurity(msoAutomationSecurityForceDisable)\r\n  Call ThisWorkbook.SaveAs(\"C:\\temp\\test.xlsx\")\r\nEnd With\r\n```"
         ],
         "params": [
           {
@@ -11750,7 +11750,7 @@
         "isProtected": false,
         "throws": [],
         "requires": [
-          " stdLambda"
+          "stdLambda"
         ],
         "isStatic": false
       }
@@ -11764,7 +11764,7 @@
     "methods": [
       {
         "name": "protInit",
-        "description": " Initialise module\r\n",
+        "description": "Initialise module",
         "remarks": [],
         "examples": [],
         "params": [
@@ -11800,7 +11800,7 @@
       },
       {
         "name": "injectCode",
-        "description": " Inject VBA code into a workbook\r\n",
+        "description": "Inject VBA code into a workbook",
         "remarks": [],
         "examples": [],
         "params": [
@@ -11861,7 +11861,7 @@
     "constructors": [
       {
         "name": "Create",
-        "description": " Create an instance of the timer\r\n",
+        "description": "Create an instance of the timer",
         "remarks": [],
         "examples": [],
         "params": [
@@ -11920,7 +11920,7 @@
       {
         "name": "uiType",
         "access": "ReadOnly",
-        "description": " Obtain type of input control\r\n",
+        "description": "Obtain type of input control",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -11943,7 +11943,7 @@
       {
         "name": "Control",
         "access": "ReadOnly",
-        "description": " Obtain control object\r\n",
+        "description": "Obtain control object",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -11966,7 +11966,7 @@
       {
         "name": "uiObject",
         "access": "ReadOnly",
-        "description": " Obtain ui object raw item\r\n",
+        "description": "Obtain ui object raw item",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -11989,7 +11989,7 @@
       {
         "name": "Value",
         "access": "ReadWrite",
-        "description": " Get/Set Value\r\n",
+        "description": "Get/Set Value",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -12012,7 +12012,7 @@
       {
         "name": "Caption",
         "access": "ReadWrite",
-        "description": " Get/Set Caption - The visible text of a control\r\n",
+        "description": "Get/Set Caption - The visible text of a control",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -12035,7 +12035,7 @@
       {
         "name": "Left",
         "access": "ReadWrite",
-        "description": " Get/Set Position Left\r\n",
+        "description": "Get/Set Position Left",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -12058,7 +12058,7 @@
       {
         "name": "Top",
         "access": "ReadWrite",
-        "description": " Get/Set Position Top\r\n",
+        "description": "Get/Set Position Top",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -12081,7 +12081,7 @@
       {
         "name": "Width",
         "access": "ReadWrite",
-        "description": " Get/Set Size Width\r\n",
+        "description": "Get/Set Size Width",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -12104,7 +12104,7 @@
       {
         "name": "Height",
         "access": "ReadWrite",
-        "description": " Get/Set Size Height\r\n",
+        "description": "Get/Set Size Height",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -12127,7 +12127,7 @@
       {
         "name": "id",
         "access": "ReadOnly",
-        "description": " Getter for id\r\n",
+        "description": "Getter for id",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -12162,7 +12162,7 @@
     "constructors": [
       {
         "name": "CreateFromControl",
-        "description": " Creating a UI Element from an existing control\r\n",
+        "description": "Creating a UI Element from an existing control",
         "remarks": [],
         "examples": [],
         "params": [
@@ -12201,7 +12201,7 @@
       },
       {
         "name": "CreateFromType",
-        "description": " Creating a UI Element from a type\r\n",
+        "description": "Creating a UI Element from a type",
         "remarks": [],
         "examples": [],
         "params": [
@@ -12304,10 +12304,10 @@
     "methods": [
       {
         "name": "protInit",
-        "description": " Initializes the object\r\n",
+        "description": "Initializes the object",
         "remarks": [],
         "examples": [
-          " `ws.protInit(\"wss://echo.websocket.org/\")`\r\n"
+          "`ws.protInit(\"wss://echo.websocket.org/\")`"
         ],
         "params": [
           {
@@ -12334,7 +12334,7 @@
       },
       {
         "name": "Send",
-        "description": " Sends data through the WebSocket\r\n",
+        "description": "Sends data through the WebSocket",
         "remarks": [],
         "examples": [],
         "params": [
@@ -12362,7 +12362,7 @@
       },
       {
         "name": "CloseSocket",
-        "description": " Closes the WebSocket connection\r\n",
+        "description": "Closes the WebSocket connection",
         "remarks": [],
         "examples": [],
         "params": [
@@ -12398,7 +12398,7 @@
       },
       {
         "name": "Disconnect",
-        "description": " Closes and deletes the WebSocket, removing references so the object can be garbage collected\r\n",
+        "description": "Closes and deletes the WebSocket, removing references so the object can be garbage collected",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -12417,7 +12417,7 @@
       },
       {
         "name": "handleEvent",
-        "description": " Handles socket events\r\n",
+        "description": "Handles socket events",
         "remarks": [],
         "examples": [],
         "params": [
@@ -12456,7 +12456,7 @@
       {
         "name": "url",
         "access": "ReadOnly",
-        "description": " Gets the url of the websocket\r\n",
+        "description": "Gets the url of the websocket",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -12486,10 +12486,10 @@
     "constructors": [
       {
         "name": "Create",
-        "description": " Creates and returns a new WebSocket object\r\n",
+        "description": "Creates and returns a new WebSocket object",
         "remarks": [],
         "examples": [
-          " stdWebSocket.Create(\"wss://echo.websocket.org/\")\r\n"
+          "stdWebSocket.Create(\"wss://echo.websocket.org/\")"
         ],
         "params": [
           {
@@ -12626,10 +12626,10 @@
     "methods": [
       {
         "name": "AsAcc",
-        "description": " Converts a stdWindow object to a stdAcc object\r\n",
+        "description": "Converts a stdWindow object to a stdAcc object",
         "remarks": [
-          " - This function requires stdAcc dependency.\r\n",
-          " - For full intellisense, add `stdAccPresent = 1` to the compiler constants\r\n"
+          "- This function requires stdAcc dependency.",
+          "- For full intellisense, add `stdAccPresent = 1` to the compiler constants"
         ],
         "examples": [],
         "params": [],
@@ -12651,7 +12651,7 @@
       },
       {
         "name": "AsIAccessible",
-        "description": " Converts a stdWindow object to a IAccessible object\r\n",
+        "description": "Converts a stdWindow object to a IAccessible object",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -12673,10 +12673,10 @@
       },
       {
         "name": "AsNativeObject",
-        "description": " Converts a stdWindow object to a IAccessible object\r\n",
+        "description": "Converts a stdWindow object to a IAccessible object",
         "remarks": [],
         "examples": [
-          " - `stdWindow.CreateFromHwnd(...).FindFirst(stdLambda.Create(\"$1.Class = \"\"EXCEL7\"\"\")).AsNativeObject.Application)`\r\n"
+          "- `stdWindow.CreateFromHwnd(...).FindFirst(stdLambda.Create(\"$1.Class = \"\"EXCEL7\"\"\")).AsNativeObject.Application)`"
         ],
         "params": [],
         "returns": {
@@ -12697,9 +12697,9 @@
       },
       {
         "name": "setOwnerHandle",
-        "description": " Set the owner HWND of the window. Useful if you want to set the owner to 0 (no owner).\r\n",
+        "description": "Set the owner HWND of the window. Useful if you want to set the owner to 0 (no owner).",
         "remarks": [
-          " - The owner is not the same as the parent. See: Raymond Chen's article: https://devblogs.microsoft.com/oldnewthing/20100315-00/?p=14613.\r\n"
+          "- The owner is not the same as the parent. See: Raymond Chen's article: https://devblogs.microsoft.com/oldnewthing/20100315-00/?p=14613.\r\nCalling `stdWindow.CreateFromIUnknown(Me).setOwnerHandle(0)` is especially useful, as it raises the Excel Userform to a top level window."
         ],
         "examples": [],
         "params": [
@@ -12727,7 +12727,7 @@
       },
       {
         "name": "SetHook",
-        "description": " Set hooks for a window\r\n",
+        "description": "Set hooks for a window",
         "remarks": [],
         "examples": [],
         "params": [
@@ -12782,16 +12782,16 @@
       },
       {
         "name": "FindFirst",
-        "description": " Search the Window tree for elements which match a certain criteria. Return the first element found.\r\n",
+        "description": "Search the Window tree for elements which match a certain criteria. Return the first element found.",
         "remarks": [],
         "examples": [
-          " ```vb\r\n 'Find where name is \"hello\" and class is \"world\":\r\n"
+          "```vb\r\n 'Find where name is \"hello\" and class is \"world\":\r\n el.FindFirst(stdLambda.Create(\"$1.name=\"\"hello\"\" and $1.class=\"\"world\"\"\"))\r\n 'Find first element named \"hello\" at depth > 4:\r\n el.FindFirst(stdLambda.Create(\"$1.name = \"\"hello\"\" AND $2 > 4\"))\r\n ```"
         ],
         "params": [
           {
             "name": "query",
             "type": "stdICallable<(stdWindow,depth)=>EWndFindResult>",
-            "description": "Callback returning `EWndFindResult` options:",
+            "description": "Callback returning `EWndFindResult` options:\r\n\r\n * `EWndFindResult.NoMatchFound`/`0`/`False`        - Not found, countinue walking",
             "optional": false,
             "defaultValue": null,
             "paramArray": false
@@ -12799,7 +12799,7 @@
           {
             "name": "searchType",
             "type": "EWndFindType",
-            "description": "The type of search, 0 for Breadth First Search (BFS) and 1 for Depth First Search (DFS).",
+            "description": "The type of search, 0 for Breadth First Search (BFS) and 1 for Depth First Search (DFS).\r\n To understand the difference between BFS and DFS take this tree:",
             "optional": true,
             "defaultValue": "EWndFindType.BreadthFirst",
             "paramArray": false
@@ -12831,16 +12831,16 @@
       },
       {
         "name": "FindAll",
-        "description": " Search the Window tree for elements which match a certain criteria. Return all elements found.\r\n",
+        "description": "Search the Window tree for elements which match a certain criteria. Return all elements found.",
         "remarks": [],
         "examples": [
-          " ```vb\r\n 'Find where name is \"hello\" and class is \"world\":\r\n"
+          "```vb\r\n 'Find where name is \"hello\" and class is \"world\":\r\n el.FindAll(stdLambda.Create(\"$1.name=\"\"hello\"\" and $1.class=\"\"world\"\"\"))\r\n 'Find all elements with depth <= 4:\r\n el.FindAll(stdLambda.Create(\"if $2 < 4 then 4 else if $2 = 4 then 1 else 3\"))\r\n ```"
         ],
         "params": [
           {
             "name": "query",
             "type": "stdICallable<(stdWindow,depth)=>EWndFindResult>",
-            "description": "Callback returning `EWndFindResult` options:",
+            "description": "Callback returning `EWndFindResult` options:\r\n\r\n * `EWndFindResult.NoMatchFound`/`0`/`False`        - Not found, countinue walking",
             "optional": false,
             "defaultValue": null,
             "paramArray": false
@@ -12848,7 +12848,7 @@
           {
             "name": "searchType",
             "type": "EWndFindType",
-            "description": "The type of search, 0 for Breadth First Search (BFS) and 1 for Depth First Search (DFS).",
+            "description": "The type of search, 0 for Breadth First Search (BFS) and 1 for Depth First Search (DFS).\r\n To understand the difference between BFS and DFS take this tree:",
             "optional": true,
             "defaultValue": "EWndFindType.BreadthFirst",
             "paramArray": false
@@ -12880,7 +12880,7 @@
       },
       {
         "name": "getAllText",
-        "description": " Obtain all text from a window\r\n",
+        "description": "Obtain all text from a window",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -12902,7 +12902,7 @@
       },
       {
         "name": "Quit",
-        "description": " Close the window\r\n",
+        "description": "Close the window",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -12921,7 +12921,7 @@
       },
       {
         "name": "ForceQuit",
-        "description": " Forcefully close the window\r\n",
+        "description": "Forcefully close the window",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -12940,7 +12940,7 @@
       },
       {
         "name": "Activate",
-        "description": " Activate the window\r\n",
+        "description": "Activate the window",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -12959,7 +12959,7 @@
       },
       {
         "name": "GetDescendents",
-        "description": " Get all descendents of the stdWindow\r\n",
+        "description": "Get all descendents of the stdWindow",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -12981,7 +12981,7 @@
       },
       {
         "name": "Redraw",
-        "description": " Redraw the window\r\n",
+        "description": "Redraw the window",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -13000,7 +13000,7 @@
       },
       {
         "name": "SendMessage",
-        "description": " Sends a message to the window\r\n",
+        "description": "Sends a message to the window",
         "remarks": [],
         "examples": [],
         "params": [
@@ -13047,7 +13047,7 @@
       },
       {
         "name": "PostMessage",
-        "description": " Posts a message to the window\r\n",
+        "description": "Posts a message to the window",
         "remarks": [],
         "examples": [],
         "params": [
@@ -13091,7 +13091,7 @@
       },
       {
         "name": "ClickMessage",
-        "description": " Clicks the window using PostMessage\r\n",
+        "description": "Clicks the window using PostMessage",
         "remarks": [],
         "examples": [],
         "params": [
@@ -13151,10 +13151,10 @@
       },
       {
         "name": "SendKeysInput",
-        "description": " Uses `SendInput` to send keystrokes to a window.\r\n",
+        "description": "Uses `SendInput` to send keystrokes to a window.",
         "remarks": [],
         "examples": [
-          " ```\r\n"
+          "```\r\nCall stdWindow.CreateFromHwnd(Application.VBE.mainwindow.hwnd).SendKeysInput(\"^a\")\r\n```"
         ],
         "params": [
           {
@@ -13205,10 +13205,10 @@
       },
       {
         "name": "SendKeysEvent",
-        "description": " Uses `kybd_event` to send keystrokes to a window.\r\n",
+        "description": "Uses `kybd_event` to send keystrokes to a window.",
         "remarks": [],
         "examples": [
-          " `notepadWindow.sendKeysEvent(\"^a\")`\r\n"
+          "`notepadWindow.sendKeysEvent(\"^a\")`"
         ],
         "params": [
           {
@@ -13251,12 +13251,12 @@
       },
       {
         "name": "SendKeysMessage",
-        "description": " Uses `PostMessage` to send keystrokes to a window.\r\n",
+        "description": "Uses `PostMessage` to send keystrokes to a window.",
         "remarks": [
-          " It should be noted that this method is extremely unstable and is unlikely to work in the majority of cases.\r\n"
+          "It should be noted that this method is extremely unstable and is unlikely to work in the majority of cases."
         ],
         "examples": [
-          " `notepadWindow.sendKeysMessage(\"^a\")`\r\n"
+          "`notepadWindow.sendKeysMessage(\"^a\")`"
         ],
         "params": [
           {
@@ -13299,9 +13299,9 @@
       },
       {
         "name": "AwaitForWindow",
-        "description": " Await for the existence of an window which meets a specified condition.\r\n",
+        "description": "Await for the existence of an window which meets a specified condition.",
         "remarks": [
-          " calls `Me.FindFirst(awaitFor)` to wait for element chosen.\r\n"
+          "calls `Me.FindFirst(awaitFor)` to wait for element chosen."
         ],
         "examples": [],
         "params": [
@@ -13348,9 +13348,9 @@
       },
       {
         "name": "setThreadInput",
-        "description": " Sets the thread input state of the window.\r\n",
+        "description": "Sets the thread input state of the window.",
         "remarks": [
-          " This is used to synchronise the thread of the window with the thread of VBA. Important for `SendInput`, Hook procedures as well as usage in drag/drop and DDE.\r\n"
+          "This is used to synchronise the thread of the window with the thread of VBA. Important for `SendInput`, Hook procedures as well as usage in drag/drop and DDE."
         ],
         "examples": [],
         "params": [
@@ -13381,7 +13381,7 @@
       {
         "name": "handle",
         "access": "ReadOnly",
-        "description": " Get the hWND / window ID of the window\r\n",
+        "description": "Get the hWND / window ID of the window",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -13404,7 +13404,7 @@
       {
         "name": "hDC",
         "access": "ReadOnly",
-        "description": " Get the handle to the display context for the window\r\n",
+        "description": "Get the handle to the display context for the window",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -13427,7 +13427,7 @@
       {
         "name": "hDCClient",
         "access": "ReadOnly",
-        "description": " Get the handle to the display context for the window client\r\n",
+        "description": "Get the handle to the display context for the window client",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -13450,7 +13450,7 @@
       {
         "name": "Exists",
         "access": "ReadOnly",
-        "description": " Detect if the window exists\r\n",
+        "description": "Detect if the window exists",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -13473,7 +13473,7 @@
       {
         "name": "IsFrozen",
         "access": "ReadOnly",
-        "description": " Detect if the window is hanging/frozen\r\n",
+        "description": "Detect if the window is hanging/frozen",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -13496,7 +13496,7 @@
       {
         "name": "Caption",
         "access": "ReadWrite",
-        "description": " Get/Set the window caption\r\n",
+        "description": "Get/Set the window caption",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -13519,7 +13519,7 @@
       {
         "name": "Class",
         "access": "ReadOnly",
-        "description": " Get the window class\r\n",
+        "description": "Get the window class",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -13542,7 +13542,7 @@
       {
         "name": "Visible",
         "access": "ReadWrite",
-        "description": " Get/Let visibility of window\r\n",
+        "description": "Get/Let visibility of window",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -13565,7 +13565,7 @@
       {
         "name": "State",
         "access": "ReadWrite",
-        "description": " Get/Let windowState of window\r\n",
+        "description": "Get/Let windowState of window",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -13588,7 +13588,7 @@
       {
         "name": "children",
         "access": "ReadOnly",
-        "description": " Get the child windows of this window\r\n",
+        "description": "Get the child windows of this window",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -13611,7 +13611,7 @@
       {
         "name": "RectClient",
         "access": "ReadOnly",
-        "description": " Get the Client rect - I.E. Position and Size of Window's Client area\r\n",
+        "description": "Get the Client rect - I.E. Position and Size of Window's Client area",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -13634,9 +13634,9 @@
       {
         "name": "RectWindow",
         "access": "ReadWrite",
-        "description": " Get/Set the Window rect - I.E. Position and Size of window\r\n",
+        "description": "Get/Set the Window rect - I.E. Position and Size of window",
         "remarks": [
-          " - Type is wrapped in Variant, because VBA does not support byval Double array parameters. This is a workaround.\r\n"
+          "- Type is wrapped in Variant, because VBA does not support byval Double array parameters. This is a workaround."
         ],
         "examples": [],
         "params": [],
@@ -13659,7 +13659,7 @@
       {
         "name": "RectByType",
         "access": "ReadWrite",
-        "description": " Get/Set the Window rect with passed param\r\n",
+        "description": "Get/Set the Window rect with passed param",
         "remarks": [],
         "examples": [],
         "params": [
@@ -13691,7 +13691,7 @@
       {
         "name": "x",
         "access": "ReadWrite",
-        "description": " Get/Set the X position of this window\r\n",
+        "description": "Get/Set the X position of this window",
         "remarks": [],
         "examples": [],
         "params": [
@@ -13723,7 +13723,7 @@
       {
         "name": "y",
         "access": "ReadWrite",
-        "description": " Get/Set the Y position of this window\r\n",
+        "description": "Get/Set the Y position of this window",
         "remarks": [],
         "examples": [],
         "params": [
@@ -13755,7 +13755,7 @@
       {
         "name": "width",
         "access": "ReadWrite",
-        "description": " Get/Set the width of this window\r\n",
+        "description": "Get/Set the width of this window",
         "remarks": [],
         "examples": [],
         "params": [
@@ -13787,7 +13787,7 @@
       {
         "name": "height",
         "access": "ReadWrite",
-        "description": " Get/Set the height of this window\r\n",
+        "description": "Get/Set the height of this window",
         "remarks": [],
         "examples": [],
         "params": [
@@ -13819,7 +13819,7 @@
       {
         "name": "ProcessID",
         "access": "ReadOnly",
-        "description": " Get the ID of the process running this window\r\n",
+        "description": "Get the ID of the process running this window",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -13842,7 +13842,7 @@
       {
         "name": "ProcessName",
         "access": "ReadOnly",
-        "description": " Get the name of the process running this window\r\n",
+        "description": "Get the name of the process running this window",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -13865,7 +13865,7 @@
       {
         "name": "parent",
         "access": "ReadWrite",
-        "description": " Get/Set the window's parent window:\r\n",
+        "description": "Get/Set the window's parent window:",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -13888,9 +13888,9 @@
       {
         "name": "owner",
         "access": "ReadWrite",
-        "description": " Get/Set the owner of the window.\r\n",
+        "description": "Get/Set the owner of the window.",
         "remarks": [
-          " - The owner is not the same as the parent. See: Raymond Chen's article: https://devblogs.microsoft.com/oldnewthing/20100315-00/?p=14613\r\n"
+          "- The owner is not the same as the parent. See: Raymond Chen's article: https://devblogs.microsoft.com/oldnewthing/20100315-00/?p=14613"
         ],
         "examples": [],
         "params": [],
@@ -13913,10 +13913,10 @@
       {
         "name": "HICON",
         "access": "ReadWrite",
-        "description": " Get/Set a handle to the icon of the window\r\n",
+        "description": "Get/Set a handle to the icon of the window",
         "remarks": [],
         "examples": [
-          " - \r\n"
+          "- \r\n```vb\r\nstdWindow.CreateFromHwnd(hwnd).hIcon = Image1.Picture.Handle`\r\nstdWindow.CreateFromHwnd(hwnd).hIcon = stdImage.CreateFromFile(myFile).hicon 'Future\r\n```"
         ],
         "params": [],
         "returns": {
@@ -13938,7 +13938,7 @@
       {
         "name": "AncestralRoot",
         "access": "ReadOnly",
-        "description": " Get the root window of this Window/ChildWindow\r\n",
+        "description": "Get the root window of this Window/ChildWindow",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -13961,7 +13961,7 @@
       {
         "name": "Style",
         "access": "ReadWrite",
-        "description": " Get/Set the style of the window\r\n",
+        "description": "Get/Set the style of the window",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -13984,7 +13984,7 @@
       {
         "name": "StyleTexts",
         "access": "ReadOnly",
-        "description": " Obtain a semi-colon delimited list of styles\r\n",
+        "description": "Obtain a semi-colon delimited list of styles",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -14007,7 +14007,7 @@
       {
         "name": "StyleEx",
         "access": "ReadWrite",
-        "description": " Get/Set the extended style of the window\r\n",
+        "description": "Get/Set the extended style of the window",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -14030,7 +14030,7 @@
       {
         "name": "StyleExTexts",
         "access": "ReadOnly",
-        "description": " Obtain a semi-colon delimited list of styles\r\n",
+        "description": "Obtain a semi-colon delimited list of styles",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -14053,9 +14053,9 @@
       {
         "name": "UserData",
         "access": "ReadWrite",
-        "description": " Get/Set a pointer to userdata/metadata\r\n",
+        "description": "Get/Set a pointer to userdata/metadata",
         "remarks": [
-          " - This can be set to a VBA object pointer. However, this is not recommended as VBA will still garbage collect the object unless the ref counter is incremented, and if it is the ref counter won't decrement upon window destroy.\r\n"
+          "- This can be set to a VBA object pointer. However, this is not recommended as VBA will still garbage collect the object unless the ref counter is incremented, and if it is the ref counter won't decrement upon window destroy.\r\ni.e. You have to manually manage the lifecycle of this object."
         ],
         "examples": [],
         "params": [],
@@ -14078,9 +14078,9 @@
       {
         "name": "WndProc",
         "access": "ReadWrite",
-        "description": " Get/Set the WndProc of the window\r\n",
+        "description": "Get/Set the WndProc of the window",
         "remarks": [
-          " - This is a pointer to the window's WndProc function. This can be set to a VBA module function pointer if the Window is owned by Excel.\r\n"
+          "- This is a pointer to the window's WndProc function. This can be set to a VBA module function pointer if the Window is owned by Excel."
         ],
         "examples": [],
         "params": [],
@@ -14103,7 +14103,7 @@
       {
         "name": "isResizable",
         "access": "ReadWrite",
-        "description": " Get/Set ability to resize\r\n",
+        "description": "Get/Set ability to resize",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -14126,7 +14126,7 @@
       {
         "name": "isCaptionVisible",
         "access": "ReadWrite",
-        "description": " Get/Set caption visibility\r\n",
+        "description": "Get/Set caption visibility",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -14149,7 +14149,7 @@
       {
         "name": "isBorderVisible",
         "access": "ReadWrite",
-        "description": " Get/Set border visibility\r\n",
+        "description": "Get/Set border visibility",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -14172,7 +14172,7 @@
       {
         "name": "isMaximiseButtonVisible",
         "access": "ReadWrite",
-        "description": " Get/Set maximise button visibility\r\n",
+        "description": "Get/Set maximise button visibility",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -14195,7 +14195,7 @@
       {
         "name": "isMinimiseButtonVisible",
         "access": "ReadWrite",
-        "description": " Get/Set minimise button visibility\r\n",
+        "description": "Get/Set minimise button visibility",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -14218,9 +14218,9 @@
       {
         "name": "isSystemMenuVisible",
         "access": "ReadWrite",
-        "description": " Get/Set system menu visibility\r\n",
+        "description": "Get/Set system menu visibility",
         "remarks": [
-          " - The system menu is the menu that appears when you click the icon in the top left of the window.\r\n          "
+          "- The system menu is the menu that appears when you click the icon in the top left of the window.\r\n          It contains options such as \"Restore\", \"Move\", \"Size\", \"Minimize\", \"Maximize\", \"Close\".\r\n          Toggling the visibility will also toggle the visibility of the close button, as this is part of the system menu."
         ],
         "examples": [],
         "params": [],
@@ -14243,9 +14243,9 @@
       {
         "name": "isVerticalScrollbarVisible",
         "access": "ReadWrite",
-        "description": " Get/Set vertical scrollbar visibility\r\n",
+        "description": "Get/Set vertical scrollbar visibility",
         "remarks": [
-          " - Scrollbar visibility doesn't do anything on VBA userform windows.\r\n"
+          "- Scrollbar visibility doesn't do anything on VBA userform windows."
         ],
         "examples": [],
         "params": [],
@@ -14268,9 +14268,9 @@
       {
         "name": "isHorizontalScrollbarVisible",
         "access": "ReadWrite",
-        "description": " Get/Set horizontal scrollbar visibility\r\n",
+        "description": "Get/Set horizontal scrollbar visibility",
         "remarks": [
-          " - Scrollbar visibility doesn't do anything on VBA userform windows.\r\n"
+          "- Scrollbar visibility doesn't do anything on VBA userform windows."
         ],
         "examples": [],
         "params": [],
@@ -14293,7 +14293,7 @@
       {
         "name": "isChildWindow",
         "access": "ReadWrite",
-        "description": " Get/Set whether the window is a child window\r\n",
+        "description": "Get/Set whether the window is a child window",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -14316,7 +14316,7 @@
       {
         "name": "isPopupWindow",
         "access": "ReadWrite",
-        "description": " Get/Set whether the window is a popup window\r\n",
+        "description": "Get/Set whether the window is a popup window",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -14339,7 +14339,7 @@
       {
         "name": "isAlwaysOnTop",
         "access": "ReadWrite",
-        "description": " Get/Set topmost / Always on top\r\n",
+        "description": "Get/Set topmost / Always on top",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -14362,9 +14362,9 @@
       {
         "name": "isAppWindow",
         "access": "ReadWrite",
-        "description": " Get/Set whether the window is an app window\r\n",
+        "description": "Get/Set whether the window is an app window",
         "remarks": [
-          " - An app window is a window that is intended to be used as a main window for an application.\r\n"
+          "- An app window is a window that is intended to be used as a main window for an application.\r\nTypically an app window will have an icon in the taskbar, and will be shown in the Alt+Tab menu."
         ],
         "examples": [],
         "params": [],
@@ -14387,7 +14387,7 @@
       {
         "name": "isToolWindow",
         "access": "ReadWrite",
-        "description": " Get/Set whether the window is a tool window\r\n",
+        "description": "Get/Set whether the window is a tool window",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -14410,9 +14410,9 @@
       {
         "name": "isClickThroughEnabled",
         "access": "ReadWrite",
-        "description": " Get/Set whether clicks are passed through the window. I.E. Clicks will be passed to the window behind this one.\r\n",
+        "description": "Get/Set whether clicks are passed through the window. I.E. Clicks will be passed to the window behind this one.",
         "remarks": [
-          " - This is useful in combination with layered windows to create click-through windows.\r\n"
+          "- This is useful in combination with layered windows to create click-through windows."
         ],
         "examples": [],
         "params": [],
@@ -14435,7 +14435,7 @@
       {
         "name": "isBorderEdgeSunken",
         "access": "ReadWrite",
-        "description": " Get/Set whether the border has a sunken edge\r\n",
+        "description": "Get/Set whether the border has a sunken edge",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -14458,7 +14458,7 @@
       {
         "name": "isBorderDoubled",
         "access": "ReadWrite",
-        "description": " Get/Set whether the window is double bordered\r\n",
+        "description": "Get/Set whether the window is double bordered",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -14481,7 +14481,7 @@
       {
         "name": "isLayeredWindow",
         "access": "ReadWrite",
-        "description": " Get/Set whether the window is a layered window\r\n",
+        "description": "Get/Set whether the window is a layered window",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -14504,7 +14504,7 @@
       {
         "name": "LayeredWindowFlags",
         "access": "ReadWrite",
-        "description": " Get/Set the existing layered window flags\r\n",
+        "description": "Get/Set the existing layered window flags",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -14527,9 +14527,9 @@
       {
         "name": "TransparentColor",
         "access": "ReadWrite",
-        "description": " Get/Set the transparent color for a window.  for a layered window\r\n",
+        "description": "Get/Set the transparent color for a window.  for a layered window",
         "remarks": [
-          " - Setting this value will also set the window to be a layered window if it is not already.\r\n"
+          "- Setting this value will also set the window to be a layered window if it is not already."
         ],
         "examples": [],
         "params": [],
@@ -14552,9 +14552,9 @@
       {
         "name": "Opacity",
         "access": "ReadWrite",
-        "description": " Get/Set the opacity of a layered window\r\n",
+        "description": "Get/Set the opacity of a layered window",
         "remarks": [
-          " - Setting this value will also set the window to be a layered window if it is not already.\r\n"
+          "- Setting this value will also set the window to be a layered window if it is not already."
         ],
         "examples": [],
         "params": [],
@@ -14577,10 +14577,10 @@
       {
         "name": "ShellWindow",
         "access": "ReadOnly",
-        "description": " Gets the Shell Window COM object for this window if it exists\r\n",
+        "description": "Gets the Shell Window COM object for this window if it exists",
         "remarks": [],
         "examples": [
-          " ```\r\n  "
+          "```\r\n  Dim location as string: location = stdWindow.CreateFromHwnd(hwnd).ShellWindow.LocationURL\r\n```"
         ],
         "params": [],
         "returns": {
@@ -14611,12 +14611,12 @@
     "constructors": [
       {
         "name": "Create",
-        "description": " ================================================================================================\r\n",
+        "description": "================================================================================================\r\n=      PUBLIC CONSTRUCTORS\r\n================================================================================================\r\nCreate a window and return a window object",
         "remarks": [
-          " System Class Names: `BUTTON`, `COMBOBOX`, `EDIT`, `LISTBOX`, `MDICLIENT`, `RICHEDIT`, `RICHEDIT_CLASS`, `SCROLLBAR`, `STATIC`\r\n"
+          "System Class Names: `BUTTON`, `COMBOBOX`, `EDIT`, `LISTBOX`, `MDICLIENT`, `RICHEDIT`, `RICHEDIT_CLASS`, `SCROLLBAR`, `STATIC`"
         ],
         "examples": [
-          " ```vb\r\n"
+          "```vb\r\nDim wnd as stdWindow: set wnd = stdWindow.Create(\"STATIC\", 0, 0, 100, 100, \"Hello World\")\r\nwnd.visible = true\r\n```"
         ],
         "params": [
           {
@@ -14726,9 +14726,9 @@
       },
       {
         "name": "CreateHighlightRect",
-        "description": " Create a static popup window and return a window object\r\n",
+        "description": "Create a static popup window and return a window object",
         "remarks": [
-          " See [Creating a transparent window](https://stackoverflow.com/questions/3970066/creating-a-transparent-window-in-c-win32)\r\n"
+          "See [Creating a transparent window](https://stackoverflow.com/questions/3970066/creating-a-transparent-window-in-c-win32)"
         ],
         "examples": [],
         "params": [
@@ -14799,7 +14799,7 @@
       },
       {
         "name": "CreateFromHwnd",
-        "description": " Create a window object from an existing window handle\r\n",
+        "description": "Create a window object from an existing window handle",
         "remarks": [],
         "examples": [],
         "params": [
@@ -14830,9 +14830,9 @@
       },
       {
         "name": "CreateFromApplication",
-        "description": " Creates an `stdWindow` object from the current running application (e.g. Excel / Word / Powerpoint).\r\n",
+        "description": "Creates an `stdWindow` object from the current running application (e.g. Excel / Word / Powerpoint).",
         "remarks": [
-          " - This function is only implemented for Excel, Word and PowerPoint. For other applications, find the window with `stdWindow.CreateFromDesktop()` and then use `desktop.children` to find the required window object.\r\n"
+          "- This function is only implemented for Excel, Word and PowerPoint. For other applications, find the window with `stdWindow.CreateFromDesktop()` and then use `desktop.children` to find the required window object.\r\nAlternatively you might be able to use CommandBars(\"Status Bar\") for other applications, similar to that of PowerPoint, but this is untested."
         ],
         "examples": [],
         "params": [
@@ -14863,7 +14863,7 @@
       },
       {
         "name": "CreateFromDesktop",
-        "description": " Create a window from the desktop window\r\n",
+        "description": "Create a window from the desktop window",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -14885,7 +14885,7 @@
       },
       {
         "name": "CreateFromPoint",
-        "description": " Find and Create a window object for a window displayed intersecting a point on the screen.\r\n",
+        "description": "Find and Create a window object for a window displayed intersecting a point on the screen.",
         "remarks": [],
         "examples": [],
         "params": [
@@ -14924,10 +14924,10 @@
       },
       {
         "name": "CreateFromIUnknown",
-        "description": " Create a window object from an IUnknown object.\r\n",
+        "description": "Create a window object from an IUnknown object.",
         "remarks": [
-          " - Uses IUserWindow::GetWindow() to get the window handle. This is implemented by `IOleWindow`, `IInternetSecurityMgrSite` and `IShellView`.\r\n",
-          " - A `UserForm` is an example of an object which implements `IOleWindow`.\r\n"
+          "- Uses IUserWindow::GetWindow() to get the window handle. This is implemented by `IOleWindow`, `IInternetSecurityMgrSite` and `IShellView`.",
+          "- A `UserForm` is an example of an object which implements `IOleWindow`."
         ],
         "examples": [],
         "params": [
@@ -14958,7 +14958,7 @@
       },
       {
         "name": "CreateFromIAccessible",
-        "description": " Create a window object from an IAccessible object\r\n",
+        "description": "Create a window object from an IAccessible object",
         "remarks": [],
         "examples": [],
         "params": [
@@ -14989,7 +14989,7 @@
       },
       {
         "name": "CreateFromContextMenu",
-        "description": " Create a window object from the context menu. There should only ever be 1 context menu on the system at one time.\r\n",
+        "description": "Create a window object from the context menu. There should only ever be 1 context menu on the system at one time.",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -15011,9 +15011,9 @@
       },
       {
         "name": "CreateManyFromProcessId",
-        "description": " Create window objects for all desktop windows which have a specified process ID\r\n",
+        "description": "Create window objects for all desktop windows which have a specified process ID",
         "remarks": [
-          " - Functionally equivalent of `stdWindow.CreateFromDesktop().FindAll(stdLambda.Create(\"$2.exists and $2.visible and $2.ProcessID = $1\").bind(processID), iStaticDepthLimit:=1)`\r\n"
+          "- Functionally equivalent of `stdWindow.CreateFromDesktop().FindAll(stdLambda.Create(\"$2.exists and $2.visible and $2.ProcessID = $1\").bind(processID), iStaticDepthLimit:=1)`"
         ],
         "examples": [],
         "params": [
@@ -15044,7 +15044,7 @@
       },
       {
         "name": "CreateManyFromShellWindows",
-        "description": " Create window objects for all shell windows\r\n",
+        "description": "Create window objects for all shell windows",
         "remarks": [],
         "examples": [],
         "params": [],
