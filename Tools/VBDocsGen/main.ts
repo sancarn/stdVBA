@@ -92,6 +92,26 @@
  * ]
  */
 
+function log(
+  message: string,
+  type: "info" | "warn" | "error" | "success" = "info"
+) {
+  switch (type) {
+    case "info":
+      console.log(`\x1b[36mℹ️  Info: ${message}\x1b[0m`);
+      break;
+    case "warn":
+      console.log(`\x1b[33;1m⚠️  Warn: ${message}\x1b[0m`);
+      break;
+    case "error":
+      console.log(`\x1b[31;1m❌  Error: ${message}\x1b[0m`);
+      break;
+    case "success":
+      console.log(`\x1b[32;1m✅  Success: ${message}\x1b[0m`);
+      break;
+  }
+}
+
 /**
  * Groups an array of objects by a key getter
  * @param list - The array to group
@@ -103,6 +123,7 @@ function groupBy<T>(
   keyGetter: (item: T) => string
 ): { [key: string]: T[] } {
   const map = Object.create(null) as { [key: string]: T[] };
+  if (!list) return map;
 
   list.forEach((item) => {
     const key = keyGetter(item);
@@ -144,6 +165,7 @@ type IMethod = {
   devNotes: string[];
   todos: string[];
 
+  isProtected: boolean;
   isDefaultMember: boolean;
   deprecation: {
     status: boolean;
@@ -187,7 +209,7 @@ type ITagTypes =
   | "description"
   | "remark"
   | "devNote"
-  | "todo";
+  | "TODO";
 
 type ITagLine = {
   tag: ITagTypes;
@@ -310,8 +332,11 @@ function parseToTagLines(comment: string): ITagLine[] {
  * @returns - The comment store object
  */
 function parseComment(comment: string): ICommentStore {
+  //If undefined or empty, return empty array
+  if (!comment) return [];
+
   //inject @description into 1st line of comment for easier parsing
-  comment = comment.replace(/^'/, "'@description ");
+  comment = comment.replace(/^'/g, "'@description ");
   const tagLines = parseToTagLines(comment);
 
   //Extracts and groups comments under their flag/tag type e.g. "@example hello\r\n'world"
@@ -325,14 +350,18 @@ function parseComment(comment: string): ICommentStore {
     remark: /(?<description>.+\s*(?:'[^@][^\n]*\n?)*)/i,
     deprecated: /(?<description>.+\s*(?:'[^@][^\n]*\n?)*)/i,
     devNote: /(?<description>.+\s*(?:'[^@][^\n]*\n?)*)/i,
-    todo: /(?<description>.+\s*(?:'[^@][^\n]*\n?)*)/i,
+    TODO: /(?<description>.+\s*(?:'[^@][^\n]*\n?)*)/i,
+    constructor: /(?:constructor)?/g, //overwrites native constructor
   };
 
   //Parse comment into comment store
   const commentStore: ICommentStore = [];
   for (let tagLine of tagLines) {
     let tag = tagLine.tag;
-    let groups = regexTags[tag].exec(tagLine.content)?.groups;
+    let groups;
+    if (!!regexTags[tag]) {
+      groups = regexTags[tag].exec(tagLine.content)?.groups;
+    }
 
     //If comment not valid ignore
     switch (tag) {
@@ -369,8 +398,20 @@ function parseComment(comment: string): ICommentStore {
       case "devNote":
         commentStore.push({ tag, data: groups?.description });
         break;
+      case "constructor":
+        commentStore.push({ tag });
+        break;
+      case "protected":
+        commentStore.push({ tag });
+        break;
+      case "deprecated":
+        commentStore.push({ tag, data: groups?.description });
+        break;
+      case "TODO":
+        commentStore.push({ tag, data: groups?.description });
+        break;
       default:
-        console.error(`Unknown tag "${tag}"`);
+        log(`Unknown tag "${tag}"`, "warn");
     }
   }
 
@@ -400,7 +441,7 @@ function parseParams(params: string, dataParams: IDataParam[]): IDataParam[] {
     if (!name) continue;
 
     //Get param data from comment
-    if (!paramData.hasOwnProperty(name.toLowerCase())) continue;
+    if (!paramData[name.toLowerCase()]?.length) continue;
     const commentData = paramData[name.toLowerCase()][0].data;
 
     /**
@@ -461,6 +502,7 @@ function parseModuleOrClass(
   const moduleNameFinder = /Attribute VB_Name = "(?<name>[^"]+)"/i;
   const moduleName =
     moduleNameFinder.exec(content)?.groups?.name ?? fileName.split(".")[0];
+  log(`Parsing module "${moduleName}"`);
   const moduleDocsFinder = /'@module.*\r?\n('.*\r?\n)*/i;
   const moduleDocsString = moduleDocsFinder.exec(content)?.groups?.[0];
   const moduleDocs = parseComment(moduleDocsString);
@@ -537,10 +579,10 @@ function parseModuleOrClass(
       return {
         name: param.data.name,
         type: param.data.type,
-        description: param.data.description,
-        optional: param.data.optional,
-        defaultValue: param.data.defaultValue,
-        paramArray: param.data.paramArray,
+        description: param.data?.description ?? "",
+        optional: param.data?.optional ?? false,
+        defaultValue: param.data?.defaultValue ?? null,
+        paramArray: param.data?.paramArray ?? false,
       };
     });
 
@@ -558,33 +600,33 @@ function parseModuleOrClass(
           description:
             (commentDataByTag["description"]?.[0] as IDataDescription)?.data ??
             "",
-          remarks: commentDataByTag["remark"].map((c: IDataRemark) => c.data),
-          examples: commentDataByTag["example"].map(
-            (c: IDataExample) => c.data
-          ),
+          remarks:
+            commentDataByTag["remark"]?.map((c: IDataRemark) => c.data) ?? [],
+          examples:
+            commentDataByTag["example"]?.map((c: IDataExample) => c.data) ?? [],
           params,
           returns:
             sType === "sub"
               ? null
               : {
                   type:
-                    (commentDataByTag["returns"]?.[0] as IDataReturn).data
+                    (commentDataByTag["returns"]?.[0] as IDataReturn)?.data
                       .type ?? sRetType,
                   description:
-                    (commentDataByTag["returns"]?.[0] as IDataReturn).data
+                    (commentDataByTag["returns"]?.[0] as IDataReturn)?.data
                       .description ?? "",
                 },
           deprecation: {
-            status: !!commentDataByTag["deprecated"].length,
+            status: !!commentDataByTag["deprecated"]?.length,
             message:
               (commentDataByTag["deprecated"]?.[0] as IDataDeprecated)?.data ??
               "",
           },
           isDefaultMember: defaultMember === sName,
-          devNotes: commentDataByTag["devNote"].map(
-            (c: IDataDevNote) => c.data
-          ),
-          todos: commentDataByTag["todo"].map((c: IDataTODO) => c.data),
+          devNotes:
+            commentDataByTag["devNote"]?.map((c: IDataDevNote) => c.data) ?? [],
+          todos: commentDataByTag["todo"]?.map((c: IDataTODO) => c.data) ?? [],
+          isProtected: !!commentDataByTag["protected"]?.length,
         };
         arrToPushTo.push(func);
         break;
@@ -595,47 +637,46 @@ function parseModuleOrClass(
           description:
             (commentDataByTag["description"]?.[0] as IDataDescription)?.data ??
             "",
-          remarks: commentDataByTag["remark"].map((c: IDataRemark) => c.data),
-          examples: commentDataByTag["example"].map(
-            (c: IDataExample) => c.data
-          ),
+          remarks:
+            commentDataByTag["remark"]?.map((c: IDataRemark) => c.data) ?? [],
+          examples:
+            commentDataByTag["example"]?.map((c: IDataExample) => c.data) ?? [],
           params,
           returns: {
             type:
-              (commentDataByTag["returns"]?.[0] as IDataReturn).data.type ??
+              (commentDataByTag["returns"]?.[0] as IDataReturn)?.data.type ??
               sRetType,
             description:
-              (commentDataByTag["returns"]?.[0] as IDataReturn).data
+              (commentDataByTag["returns"]?.[0] as IDataReturn)?.data
                 .description ?? "",
           },
           deprecation: {
-            status: !!commentDataByTag["deprecated"].length,
+            status: !!commentDataByTag["deprecated"]?.length,
             message:
               (commentDataByTag["deprecated"]?.[0] as IDataDeprecated)?.data ??
               "",
           },
           isDefaultMember: defaultMember === sName,
-          devNotes: commentDataByTag["devNote"].map(
-            (c: IDataDevNote) => c.data
-          ),
-          todos: commentDataByTag["todo"].map((c: IDataTODO) => c.data),
+          devNotes:
+            commentDataByTag["devNote"]?.map((c: IDataDevNote) => c.data) ?? [],
+          todos: commentDataByTag["todo"]?.map((c: IDataTODO) => c.data) ?? [],
+          isProtected: !!commentDataByTag["protected"]?.length,
         });
         break;
       case "event":
         events.push({
           name: sName,
           description:
-            (commentDataByTag["returns"]?.[0] as IDataReturn).data
+            (commentDataByTag["returns"]?.[0] as IDataReturn)?.data
               .description ?? "",
-          remarks: commentDataByTag["remark"].map((c: IDataRemark) => c.data),
-          examples: commentDataByTag["example"].map(
-            (c: IDataExample) => c.data
-          ),
+          remarks:
+            commentDataByTag["remark"]?.map((c: IDataRemark) => c.data) ?? [],
+          examples:
+            commentDataByTag["example"]?.map((c: IDataExample) => c.data) ?? [],
           params,
-          devNotes: commentDataByTag["devNote"].map(
-            (c: IDataDevNote) => c.data
-          ),
-          todos: commentDataByTag["todo"].map((c: IDataTODO) => c.data),
+          devNotes:
+            commentDataByTag["devNote"]?.map((c: IDataDevNote) => c.data) ?? [],
+          todos: commentDataByTag["todo"]?.map((c: IDataTODO) => c.data) ?? [],
         });
         break;
     }

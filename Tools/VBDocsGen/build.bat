@@ -1,0 +1,1 @@
+esbuild main.ts --outfile=main.js --bundle --platform=node --target=esnext --format=cjs --sourcemap

@@ -1,101 +1,47 @@
-/**
-* TODO: Figure out how to handle conditional compilation
-     'Some comment
-     '@param MethodPointer as LongPtr - Pointer to the method to call
-     '@param iRetType as VbVarType - The return type of the method
-     '@param vParamTypes as Array<Variant<VbVarType>> - The types of the parameters
-     #If VBA7 Then
-       Public Function CreateFromPointer(ByVal MethodPointer As LongPtr, Optional ByVal iRetType As VbVarType = 0, Optional vParamTypes = Null) As stdCallback
-     #Else
-       Public Function CreateFromPointer(ByVal MethodPointer As Long, Optional ByVal iRetType As VbVarType = 0, Optional vParamTypes = Null) As stdCallback
-     #End If
-* TODO: Add public enums
-* TODO: Add implemented interfaces
-* TODO: Add public types?
-* TODO: Add public constants
+var __create = Object.create;
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getProtoOf = Object.getPrototypeOf;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
+  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+  mod
+));
 
-*/
-
-/**
- * Take input stubs like:
- *
- *   'Creates an `stdAcc` object from an `X` and `Y` point location on the screen.
- *   '@constructor
- *   '@protected
- *   '@deprecated
- *   '@param x as Long - X Coordinate
- *   '@param y as Long - Y Coordinate
- *   '@returns stdAcc - Object at the specified point
- *   '@example `acc.CreateFromPoint(100, 200).DoDefaultAction`
- *   '@example ```
- *   '  acc.CreateFromPoint(0, 0).FindFirst(stdLambda.Create("$1.name=""hello"" and $1.class=""world"""))
- *   '```
- *   Public Function CreateFromPoint(ByVal x As Long, ByVal y As Long) As stdAcc
- *
- *   'Search the IAccessible tree for elements which match a certain criteria. Return the first element found.
- *   '@param ByVal query as stdICallable<(stdAcc,depth)=>EAccFindResult> - Callback returning
- *   '  EAccFindResult options:
- *   '    EAccFindResult.NoMatchFound/0/False             - Not found, countinue walking
- *   '    EAccFindResult.MatchFound/1/-1/True             - Found, return this element
- *   '    EAccFindResult.NoMatchCancelSearch/2            - Not found, cancel search
- *   '    EAccFindResult.NoMatchSkipDescendents/3,else    - Not found, don't search descendents
- *   '    EAccFindResult.MatchFoundSearchDescendents/4    - Same as EAccFindResult.MatchFound
- *   '@param {EAccFindType=1} - The type of search, 0 for Breadth First Search (BFS) and 1 for Depth First Search (DFS).
- *   ' To understand the difference between BFS and DFS take this tree:
- *   '        A
- *   '       / \
- *   '      B   C
- *   '     /   / \
- *   '    D   E   F
- *   ' A BFS will walk this tree in the following order: A, B, C, D, E, F
- *   ' A DFS will walk this tree in a different order:   A, C, F, E, B, D
- *   '@examples
- *   ' ```
- *   ' 'Find where name is "hello" and class is "world":
- *   ' el.FindFirst(stdLambda.Create("$1.name=""hello"" and $1.class=""world"""))
- *   ' 'Find first element named "hello" at depth > 4:
- *   ' el.FindFirst(stdLambda.Create("$1.name = ""hello"" AND $2 > 4"))
- *   ' ```
- *   Public Function FindFirst(ByVal query As stdICallable, optional byval searchType as EAccFindType=EAccFindType.DepthFirst) As stdAcc
- *
- * And dump these to docs array, with structure:
- * [
- *   {
- *     name: string //name in VBattributes code
- *     methods: [
- *       {
- *         name: string //name in code
- *         type: "sub"|"function"|"property"
- *         params: [
- *           {
- *             name: string //name in code
- *             type: string //type in code or type in comment if present
- *             description: string //description in comment,
- *             optional: boolean //true if param is optional
- *             defaultValue: string //default value if param is optional
- *             paramArray: boolean //true if param is paramarray, false otherwise
- *           },
- *           ...
- *         ],
- *         returns: {
- *           type: string //return type in code or type in comment if present
- *           description: string //description in comment
- *         },
- *         description: string //description in comment
- *         access: "ReadOnly"|"WriteOnly"|"ReadWrite" //access in code
- *         protected: boolean //true if protected as per comment
- *         deprecated: boolean //true if deprecated as per comment
- *         constructor: boolean //true if constructor as per comment
- *         examples: string[] //examples in comment as markdown
- *       },
- *       ...
- *     ]
- *   }
- * ]
- */
-
+// main.ts
+var fs = __toESM(require("fs"));
+function log(message, type = "info") {
+  switch (type) {
+    case "info":
+      console.log(`\x1B[36m\u2139\uFE0F  Info: ${message}\x1B[0m`);
+      break;
+    case "warn":
+      console.log(`\x1B[33;1m\u26A0\uFE0F  Warn: ${message}\x1B[0m`);
+      break;
+    case "error":
+      console.log(`\x1B[31;1m\u274C  Error: ${message}\x1B[0m`);
+      break;
+    case "success":
+      console.log(`\x1B[32;1m\u2705  Success: ${message}\x1B[0m`);
+      break;
+  }
+}
 function groupBy(list, keyGetter) {
-  const map = { constructor: undefined };
+  const map = /* @__PURE__ */ Object.create(null);
+  if (!list) return map;
   list.forEach((item) => {
     const key = keyGetter(item);
     const collection = map[key];
@@ -105,229 +51,300 @@ function groupBy(list, keyGetter) {
       collection.push(item);
     }
   });
-  if (map.constructor === undefined) delete map.constructor;
   return map;
 }
-
-/**
- * Transforms a comment into a comment store object
- * @param {string} comment - The comment to parse
- * @returns {CommentStore} - The comment store object
- * @typedef {(CommentRecord[])} CommentStore
- * @typedef {({type: ICommentType, data: ICommentData})} CommentRecord
- * @typedef {null|IParamData|IReturnData|IExampleData} ICommentData
- * @typedef {{name: string, type: string, description: string}} IParamData //Note: Optional, ByVal/ByRef, ParamArray, DefaultValue obtained from code
- * @typedef {{type: string, description: string}} IReturnData
- * @typedef {{example: string}} IExampleData
- * @typedef {"constructor"|"protected"|"deprecated"|"param"|"returns"|"example"|"description"} ICommentType
- */
-function parseComment(comment) {
-  //inject @description into 1st line of comment
-  comment = comment.replace(/^'/, "'@description ");
-
-  const groupByRx = /'@(?<type>\w+)(?<content>.*\s+(?:'[^@][^\n]*\s+)*)/g;
-  const regexTags = {
-    description: /'@description\s+(?<description>.+\s*(?:'[^@][^\n]*\n?)*)/i,
-    param:
-      /'@param\s+(?<name>\w+)\s*(?:as\s+(?<type>[^-]+))?(?:\s*-\s*(?<description>.+\s*(?:'[^@][^\n]*\n?)*))?/i, //regex needs work
-    returns:
-      /'@returns\s+(?<type>[^-\r\n]+)?(?:\s*-\s+(?<description>.+\s*(?:'[^@][^\n]*\n?)*))?/i,
-    example: /'@example\s+(?<description>.+\s*(?:'[^@][^\n]*\n?)*)/i,
-    remark: /'@remark\s+(?<description>.+\s*(?:'[^@][^\n]*\n?)*)/i,
-    constructor: /@constructor/i,
-    protected: /@protected/i,
-    deprecated: /@deprecated (?<description>.+\s*(?:'[^@][^\n]*\n?)*)/i,
-    defaultMember: /@defaultMember/i,
-  };
-
-  //Parse comment into comment store
-  const commentStore = [];
+function parseToTagLines(comment) {
+  const groupByRx = /'@(?<type>\w+)(?<content>.*\s+(?:'[^@][^\n]*\s+)*)?/g;
   const matches = [...comment.matchAll(groupByRx)];
-  for (match of matches) {
-    let type = match.groups.type;
-    if (!!regexTags[type]) {
-      let data = regexTags[type].exec(match[0]);
-      //If comment not valid ignore
-      if (!!data) {
-        let groups = data?.groups;
-        if (!!groups) {
-          if (!!data?.description)
-            data.description = data.description.trim().replace(/^'/gm, "");
-          commentStore.push({ type, data });
-        } else {
-          commentStore.push({ type, data: true });
-        }
-      }
-    } else {
-      commentStore.push({
-        type,
-        data: match.groups.content.trim().replace(/^'/gm, ""),
-      });
+  return matches.map((match) => ({
+    tag: match.groups?.type,
+    content: match.groups?.content?.replace(/^'/gm, "") ?? ""
+  }));
+}
+function parseComment(comment) {
+  if (!comment) return [];
+  comment = comment.replace(/^'/g, "'@description ");
+  const tagLines = parseToTagLines(comment);
+  const regexTags = {
+    description: /(?<description>.+\s*(?:'[^@][^\n]*\n?)*)/i,
+    param: /(?<name>\w+)\s*(?:as\s+(?<type>[^-]+))?(?:\s*-\s*(?<description>.+\s*(?:'[^@][^\n]*\n?)*))?/i,
+    //regex needs work
+    returns: /(?<type>[^-\r\n]+)?(?:\s*-\s+(?<description>.+\s*(?:'[^@][^\n]*\n?)*))?/i,
+    example: /(?<description>.+\s*(?:'[^@][^\n]*\n?)*)/i,
+    remark: /(?<description>.+\s*(?:'[^@][^\n]*\n?)*)/i,
+    deprecated: /(?<description>.+\s*(?:'[^@][^\n]*\n?)*)/i,
+    devNote: /(?<description>.+\s*(?:'[^@][^\n]*\n?)*)/i,
+    TODO: /(?<description>.+\s*(?:'[^@][^\n]*\n?)*)/i,
+    constructor: /(?:constructor)?/g
+    //overwrites native constructor
+  };
+  const commentStore = [];
+  for (let tagLine of tagLines) {
+    let tag = tagLine.tag;
+    let groups;
+    if (!!regexTags[tag]) {
+      groups = regexTags[tag].exec(tagLine.content)?.groups;
+    }
+    switch (tag) {
+      case "description":
+        if (!!groups?.description)
+          commentStore.push({ tag, data: groups.description });
+        break;
+      case "param":
+        if (!!groups?.name)
+          commentStore.push({
+            tag,
+            data: {
+              name: groups.name,
+              type: groups?.type,
+              description: groups?.description
+            }
+          });
+        break;
+      case "returns":
+        commentStore.push({
+          tag,
+          data: {
+            type: groups?.type,
+            description: groups?.description
+          }
+        });
+        break;
+      case "example":
+        commentStore.push({ tag, data: groups?.description });
+        break;
+      case "remark":
+        commentStore.push({ tag, data: groups?.description });
+        break;
+      case "devNote":
+        commentStore.push({ tag, data: groups?.description });
+        break;
+      case "constructor":
+        commentStore.push({ tag });
+        break;
+      case "protected":
+        commentStore.push({ tag });
+        break;
+      case "deprecated":
+        commentStore.push({ tag, data: groups?.description });
+        break;
+      case "TODO":
+        commentStore.push({ tag, data: groups?.description });
+        break;
+      default:
+        log(`Unknown tag "${tag}"`, "warn");
     }
   }
-
   return commentStore;
 }
-
-/**
- * Parse params string into params array
- * @param {string} params
- * @param {CommentGroups} commentGroups
- * @typedef {"param": {[key: string]: IParamData},[key: ICommentType]: ICommentData[]} CommentGroups
- */
-function parseParams(params, commentGroups) {
-  const paramRegex =
-    /(?<optional>optional\s+)?(?:(?<referenceType>byval|byref)\s+)?(?:(?<paramarray>paramarray)\s+)?(?<name>\w+)(?<isArray>\(\))?(?:\s+as\s+(?<type>[^, )]+))?(?:\s*=\s*(?<defaultValue>[^,\)]+))?/gi;
+function parseParams(params, dataParams) {
+  const paramData = groupBy(
+    dataParams,
+    (d) => d.data.name.toLowerCase()
+  );
+  const paramRegex = /(?<optional>optional\s+)?(?:(?<referenceType>byval|byref)\s+)?(?:(?<paramarray>paramarray)\s+)?(?<name>\w+)(?<isArray>\(\))?(?:\s+as\s+(?<type>[^, )]+))?(?:\s*=\s*(?<defaultValue>[^,\)]+))?/gi;
   const paramMatches = [...params.matchAll(paramRegex)];
   const paramStore = [];
-  for (paramMatch of paramMatches) {
-    const comment =
-      commentGroups?.param?.[paramMatch.groups.name.toLowerCase()];
-    //Parse param type, prioritise comment type, then code type, then default to Variant
-    let paramType;
-    if (!!comment?.data.type) {
-      paramType = comment?.data.type;
-    } else if (!!paramMatch.groups.type) {
-      if (paramMatch.groups.isArray) {
-        paramType = `Array<${paramMatch.groups.type}>`;
-      } else {
-        paramType = paramMatch.groups.type;
-      }
-    } else {
-      paramType = "Variant";
-    }
+  for (let paramMatch of paramMatches) {
+    let name = paramMatch.groups?.name;
+    if (!name) continue;
+    if (!paramData[name.toLowerCase()]?.length) continue;
+    const commentData = paramData[name.toLowerCase()][0].data;
+    let paramType = commentData.type ?? paramMatch.groups?.type ?? "Variant";
+    let paramDescription = commentData.description ?? "";
+    let paramReferenceType = paramMatch.groups?.referenceType ?? "ByRef";
+    let paramIsParamArray = !!paramMatch.groups?.paramArray;
+    let paramIsArray = !!paramMatch.groups?.isArray;
+    let paramIsOptional = !!paramMatch.groups?.optional;
+    let paramDefaultValue = !!paramMatch.groups?.optional ? paramMatch.groups.defaultValue ?? null : null;
+    if (paramIsArray && !!commentData.type) paramType = `Array<${paramType}>`;
     paramStore.push({
-      name: paramMatch.groups.name.trim(),
-      type: paramType.trim(),
-      description: comment?.data.description.trim() ?? "",
-      referenceType: paramMatch.groups?.referenceType ?? "ByRef",
-      paramArray: !!paramMatch.groups.paramArray,
-      optional: !!paramMatch.groups.optional,
-      defaultValue: !!paramMatch.groups.optional
-        ? paramMatch.groups.defaultValue ?? "Unspecified"
-        : null,
+      tag: "param",
+      data: {
+        name: name.trim(),
+        type: paramType.trim(),
+        description: paramDescription.trim(),
+        referenceType: paramReferenceType,
+        paramArray: paramIsParamArray,
+        optional: paramIsOptional,
+        defaultValue: paramDefaultValue
+      }
     });
   }
-
   return paramStore;
 }
-
-//Find all files in ../../src directory
-let fs = require("fs");
-let files = fs.readdirSync(__dirname + "/../../src");
-files = files.filter((f) =>
-  fs.lstatSync(__dirname + "/../../src/" + f).isFile()
-);
-let modules = [];
-
-//Scan files for public methods and properties, dump to docs array
-files.forEach((file) => {
-  let content = fs.readFileSync(__dirname + "/../../src/" + file, "utf8");
-  //remove all conditional compilation
-  content = content.replace(/#if.+then\s+(.+)(.|\s)+?#end if/gi, "$1");
-
-  //Initialise module
-  const moduleNameFinder = /Attribute VB_Name = "([^"]+)"/i;
-  const myModule = {
-    name: moduleNameFinder.exec(content)[1],
-    fileName: file,
-    methods: [],
-  };
-
-  const docsFinder =
-    /(?<comments>(?:\'.*\r?\n)*)(?<!' *)Public (?:(?<type>Function|Sub|Event|Property) ?(?<access>Get|Let|Set)?) (?<name>\w+)\((?<params>[^)]*)\)(?: as (?<retType>\w+))?/gim;
-  const matches = Array.from(content.matchAll(docsFinder));
-  matches.forEach((match) => {
-    if (match.processed) return;
-
-    if (match.groups.name.toLowerCase() == "findfirst") {
-      1 == 1;
-    }
-
-    const commentData = parseComment(match.groups.comments);
-
-    //Convert commentData to object with type as key, and param name as subkey of param
-    const commentGroups = groupBy(commentData, (c) => c.type);
-    if (!!commentGroups.param) {
-      commentGroups.param = groupBy(commentGroups.param, (c) =>
-        c.data.groups.name.toLowerCase()
+function parseModuleOrClass(content, fileName) {
+  let isClass = /^VERSION 1.0 CLASS/.test(content);
+  let regexConditionalCompilation = /#if.+then\s+((.|\s)+?)#end if/gi;
+  while (regexConditionalCompilation.test(content)) {
+    content = content.replace(regexConditionalCompilation, "$1");
+  }
+  const moduleNameFinder = /Attribute VB_Name = "(?<name>[^"]+)"/i;
+  const moduleName = moduleNameFinder.exec(content)?.groups?.name ?? fileName.split(".")[0];
+  log(`Parsing module "${moduleName}"`);
+  const moduleDocsFinder = /'@module.*\r?\n('.*\r?\n)*/i;
+  const moduleDocsString = moduleDocsFinder.exec(content)?.groups?.[0];
+  const moduleDocs = parseComment(moduleDocsString);
+  const moduleDocsByTag = groupBy(moduleDocs, (c) => c.tag);
+  const moduleTODOs = Array.from(content.matchAll(/'TODO: (.*)/gi)).map(
+    (m) => m[1]
+  );
+  const defaultMemberFinder = /Attribute (\w+).VB_(Var)?UserMemId += +0/i;
+  const defaultMember = defaultMemberFinder.exec(content)?.groups?.[1];
+  const implementsFinder = /implements +(?<interface>\w+)/gi;
+  const _implements = Array.from(content.matchAll(implementsFinder)).map(
+    (m) => m.groups?.interface
+  );
+  const memberDocsFinder = /(?<comments>(?:\'.*\r?\n)*)(?<!' *)Public (?:(?<type>Function|Sub|Event|Property) ?(?<access>Get|Let|Set)?) (?<name>\w+)\((?<params>[^)]*)\)(?: as (?<retType>\w+))?/gim;
+  const memberMatches = Array.from(content.matchAll(memberDocsFinder));
+  let constructors = [];
+  let events = [];
+  let properties = [];
+  let methods = [];
+  let membersByName = groupBy(
+    memberMatches,
+    (m) => m.groups?.name.toLowerCase()
+  );
+  let memberAlreadyProcessed = {};
+  memberMatches.forEach((match) => {
+    let sComment = match.groups?.comments;
+    let sType = match.groups?.type.toLowerCase();
+    let sName = match.groups?.name;
+    let sParams = match.groups?.params ?? "";
+    let sRetType = match.groups?.retType ?? "Void";
+    if (memberAlreadyProcessed[sName.toLowerCase()]) return;
+    memberAlreadyProcessed[sName.toLowerCase()] = true;
+    let access;
+    if (sType === "property") {
+      let accessTypes = membersByName[sName.toLowerCase()].map(
+        (match2) => match2.groups?.access.toLowerCase()
       );
-      Object.keys(commentGroups.param).forEach(
-        (name) => (commentGroups.param[name] = commentGroups.param[name][0])
-      );
-    }
-
-    const params = parseParams(match.groups.params, commentGroups);
-
-    //obtain access from scanning matches for Get/Let/Set. If Get only, access is ReadOnly. If Let/Set only, access is WriteOnly. If both, access is ReadWrite.
-    let access = null;
-    if (match.groups.type.toLowerCase() === "property") {
-      access =
-        match.groups.access.toLowerCase() === "get" ? "ReadOnly" : "WriteOnly";
-      let others = [];
-      switch (access) {
-        case "ReadOnly":
-          others = matches.filter(
-            (m) =>
-              m.groups.name === match.groups.name &&
-              ["let", "set"].includes(m.groups.access.toLowerCase())
-          );
-          break;
-        case "WriteOnly":
-          others = matches.filter(
-            (m) =>
-              m.groups.name === match.groups.name &&
-              ["get"].includes(m.groups.access.toLowerCase())
-          );
-          break;
-      }
-      //If there are other matches, this is a ReadWrite property and we need to mark the others as processed
-      if (others.length > 0) {
+      let readAccess = accessTypes.includes("get");
+      let writeAccess = accessTypes.includes("let") || accessTypes.includes("set");
+      if (readAccess && writeAccess) {
         access = "ReadWrite";
-        others.forEach((m) => {
-          m.processed = true;
-        });
+      } else if (readAccess) {
+        access = "ReadOnly";
+      } else if (writeAccess) {
+        access = "WriteOnly";
       }
     }
-
-    //obtain return type from comment if present, otherwise from code
-    let returnType = match.groups.retType;
-    if (!!commentGroups.returns)
-      returnType = commentGroups.returns[0].data.type;
-    if (["sub", "event"].includes(match.groups.type.toLowerCase()))
-      returnType = "Void";
-
-    //Add method to module
-    myMethod = {
-      name: match.groups.name,
-      type: match.groups.type,
-      constructor: !!commentGroups?.constructor?.[0]?.data,
-      isDefaultMember: !!commentGroups.defaultMember?.[0]?.data,
-      protected: !!commentGroups.protected?.[0]?.data,
-      access,
-      description: commentGroups?.description?.[0]?.data?.description ?? "",
-      params: params,
-      returns: {
-        type: returnType,
-        description: commentGroups?.returns?.[0]?.data?.description ?? "",
-      },
-      deprecation: {
-        status: !!commentGroups.deprecated,
-        message: commentGroups?.deprecated?.[0]?.data?.description ?? "",
-      },
-      examples: commentGroups?.example?.map((c) => c.data.description) ?? [],
-      remarks: commentGroups?.remark?.map((c) => c.data.description) ?? [],
-    };
-    console.log(myMethod);
-    myModule.methods.push(myMethod);
+    let commentData;
+    if (sComment.length > 0) {
+      commentData = parseComment(sComment);
+    }
+    let commentDataByTag = groupBy(commentData, (c) => c.tag);
+    let params = parseParams(
+      sParams,
+      commentDataByTag["param"]
+    ).map((param) => {
+      return {
+        name: param.data.name,
+        type: param.data.type,
+        description: param.data?.description ?? "",
+        optional: param.data?.optional ?? false,
+        defaultValue: param.data?.defaultValue ?? null,
+        paramArray: param.data?.paramArray ?? false
+      };
+    });
+    switch (sType) {
+      case "sub":
+      case "function":
+        let arrToPushTo = !!commentDataByTag["constructor"]?.length ? constructors : methods;
+        let func = {
+          name: sName,
+          description: commentDataByTag["description"]?.[0]?.data ?? "",
+          remarks: commentDataByTag["remark"]?.map((c) => c.data) ?? [],
+          examples: commentDataByTag["example"]?.map((c) => c.data) ?? [],
+          params,
+          returns: sType === "sub" ? null : {
+            type: commentDataByTag["returns"]?.[0]?.data.type ?? sRetType,
+            description: commentDataByTag["returns"]?.[0]?.data.description ?? ""
+          },
+          deprecation: {
+            status: !!commentDataByTag["deprecated"]?.length,
+            message: commentDataByTag["deprecated"]?.[0]?.data ?? ""
+          },
+          isDefaultMember: defaultMember === sName,
+          devNotes: commentDataByTag["devNote"]?.map((c) => c.data) ?? [],
+          todos: commentDataByTag["todo"]?.map((c) => c.data) ?? [],
+          isProtected: !!commentDataByTag["protected"]?.length
+        };
+        arrToPushTo.push(func);
+        break;
+      case "property":
+        properties.push({
+          name: sName,
+          access,
+          description: commentDataByTag["description"]?.[0]?.data ?? "",
+          remarks: commentDataByTag["remark"]?.map((c) => c.data) ?? [],
+          examples: commentDataByTag["example"]?.map((c) => c.data) ?? [],
+          params,
+          returns: {
+            type: commentDataByTag["returns"]?.[0]?.data.type ?? sRetType,
+            description: commentDataByTag["returns"]?.[0]?.data.description ?? ""
+          },
+          deprecation: {
+            status: !!commentDataByTag["deprecated"]?.length,
+            message: commentDataByTag["deprecated"]?.[0]?.data ?? ""
+          },
+          isDefaultMember: defaultMember === sName,
+          devNotes: commentDataByTag["devNote"]?.map((c) => c.data) ?? [],
+          todos: commentDataByTag["todo"]?.map((c) => c.data) ?? [],
+          isProtected: !!commentDataByTag["protected"]?.length
+        });
+        break;
+      case "event":
+        events.push({
+          name: sName,
+          description: commentDataByTag["returns"]?.[0]?.data.description ?? "",
+          remarks: commentDataByTag["remark"]?.map((c) => c.data) ?? [],
+          examples: commentDataByTag["example"]?.map((c) => c.data) ?? [],
+          params,
+          devNotes: commentDataByTag["devNote"]?.map((c) => c.data) ?? [],
+          todos: commentDataByTag["todo"]?.map((c) => c.data) ?? []
+        });
+        break;
+    }
   });
-
-  modules.push(myModule);
-});
-
-//Dump docs array to docs.json
-fs.writeFileSync(
-  __dirname + "/../../docs.json",
-  JSON.stringify(modules, null, 2),
-  "utf8"
-);
+  let mod = {
+    name: moduleName,
+    fileName,
+    methods,
+    properties,
+    description: moduleDocsByTag["description"]?.[0]?.data ?? "",
+    remarks: moduleDocsByTag["remark"]?.map((c) => c.data) ?? [],
+    examples: moduleDocsByTag["example"]?.map((c) => c.data) ?? [],
+    devNotes: moduleDocsByTag["devNote"]?.map((c) => c.data) ?? [],
+    todos: moduleTODOs
+  };
+  if (isClass) {
+    return {
+      ...mod,
+      constructors,
+      events,
+      implements: _implements
+    };
+  } else {
+    return mod;
+  }
+}
+function main() {
+  let files = fs.readdirSync(__dirname + "/../../src");
+  files = files.filter(
+    (f) => fs.lstatSync(__dirname + "/../../src/" + f).isFile()
+  );
+  let docs = files.map((file) => {
+    return parseModuleOrClass(
+      fs.readFileSync(__dirname + "/../../src/" + file, "utf8"),
+      file
+    );
+  });
+  fs.writeFileSync(
+    __dirname + "/../../docs.json",
+    JSON.stringify(docs, null, 2),
+    "utf8"
+  );
+}
+main();
+//# sourceMappingURL=main.js.map
