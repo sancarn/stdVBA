@@ -20,7 +20,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "FindFirst",
@@ -58,7 +61,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "FindAll",
@@ -96,7 +102,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "DoDefaultAction",
@@ -114,7 +123,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "SendMessage",
@@ -158,7 +170,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "PrintChildTexts",
@@ -174,7 +189,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "PrintDescTexts",
@@ -223,7 +241,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "getPath",
@@ -251,7 +272,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "toJSON",
@@ -270,7 +294,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "AwaitForElement",
@@ -316,7 +343,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "properties": [
@@ -338,7 +368,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": true
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Parent",
@@ -358,7 +391,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "AncestralRoot",
@@ -378,7 +414,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "children",
@@ -398,7 +437,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "hwnd",
@@ -418,7 +460,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Identity",
@@ -440,7 +485,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Location",
@@ -460,7 +508,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "HitTest",
@@ -497,7 +548,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "value",
@@ -517,7 +571,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "name",
@@ -537,7 +594,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "DefaultAction",
@@ -557,7 +617,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Role",
@@ -577,7 +640,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "States",
@@ -597,7 +663,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "StateData",
@@ -617,7 +686,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Description",
@@ -637,7 +709,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "KeyboardShortcut",
@@ -657,7 +732,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Focus",
@@ -677,7 +755,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Help",
@@ -697,7 +778,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "HelpTopic",
@@ -726,7 +810,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Text",
@@ -746,7 +833,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "description": "",
@@ -759,6 +849,7 @@
       "Fallback identity",
       "Is this needed?"
     ],
+    "requires": [],
     "constructors": [
       {
         "name": "CreateFromPoint",
@@ -794,7 +885,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromHwnd",
@@ -822,7 +916,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromApplication",
@@ -850,7 +947,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromDesktop",
@@ -869,7 +969,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromIAccessible",
@@ -897,7 +1000,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromMouse",
@@ -916,7 +1022,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromPath",
@@ -946,7 +1055,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "protInitWithProxy",
@@ -979,7 +1091,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": true
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "events": [],
@@ -1017,7 +1132,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateWithOptions",
@@ -1061,7 +1179,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromArray",
@@ -1089,7 +1210,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromCollection",
@@ -1117,7 +1241,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromString",
@@ -1153,7 +1280,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "protInit",
@@ -1186,7 +1316,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": true
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "AsCollection",
@@ -1205,7 +1338,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Resize",
@@ -1230,7 +1366,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Rechunk",
@@ -1246,7 +1385,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": true
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Sort",
@@ -1298,7 +1440,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Push",
@@ -1326,7 +1471,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Pop",
@@ -1345,7 +1493,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Remove",
@@ -1373,7 +1524,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Shift",
@@ -1392,7 +1546,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Unshift",
@@ -1420,7 +1577,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Slice",
@@ -1456,7 +1616,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "SplitToChunks",
@@ -1486,7 +1649,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Splice",
@@ -1530,7 +1696,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Clone",
@@ -1549,7 +1718,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Reverse",
@@ -1568,7 +1740,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Concat",
@@ -1596,7 +1771,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Join",
@@ -1624,7 +1802,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "PutItem",
@@ -1657,7 +1838,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "indexOf",
@@ -1693,7 +1877,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "lastIndexOf",
@@ -1721,7 +1908,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "includes",
@@ -1757,7 +1947,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "IsEvery",
@@ -1787,7 +1980,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "IsSome",
@@ -1817,7 +2013,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "ForEach",
@@ -1844,7 +2043,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Map",
@@ -1874,7 +2076,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Unique",
@@ -1904,7 +2109,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Reduce",
@@ -1942,7 +2150,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Filter",
@@ -1970,7 +2181,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Count",
@@ -1998,7 +2212,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "GroupBy",
@@ -2026,7 +2243,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Max",
@@ -2062,7 +2282,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Min",
@@ -2098,7 +2321,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "properties": [
@@ -2122,7 +2348,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": true
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Length",
@@ -2142,7 +2371,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "zProxyLength",
@@ -2162,7 +2394,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": true
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "arr",
@@ -2182,7 +2417,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "item",
@@ -2211,7 +2449,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "description": "",
@@ -2221,6 +2462,7 @@
     "todos": [
       "Need to find a better more low level approach to creating arrays from existing arrays/preventing redim for methods like this"
     ],
+    "requires": [],
     "constructors": [],
     "events": [
       {
@@ -2488,7 +2730,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "BindEx",
@@ -2516,7 +2761,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Run",
@@ -2544,7 +2792,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "RunEx",
@@ -2572,7 +2823,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "properties": [],
@@ -2583,6 +2837,7 @@
     "todos": [
       "Use fancy accessor mechanism https://codereview.stackexchange.com/questions/274532/low-level-vba-hacking-making-private-functions-public "
     ],
+    "requires": [],
     "constructors": [
       {
         "name": "Create",
@@ -2634,7 +2889,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromModule",
@@ -2670,7 +2928,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromWorkbookModule",
@@ -2714,7 +2975,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromObjectMethod",
@@ -2750,7 +3014,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromObjectProperty",
@@ -2794,7 +3061,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromPointer",
@@ -2838,7 +3108,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "events": [
@@ -2917,7 +3190,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Clear",
@@ -2933,7 +3209,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "IsFormatAvailable",
@@ -2963,7 +3242,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "FormatSize",
@@ -2993,7 +3275,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "RegisterFormat",
@@ -3024,7 +3309,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "SetFilesArr",
@@ -3049,7 +3337,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "protSetFilesText",
@@ -3074,7 +3365,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": true
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "protGetFilesArr",
@@ -3093,7 +3387,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": true
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "SendPaste",
@@ -3118,7 +3415,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "SendCopy",
@@ -3143,7 +3443,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "GetClipFormatFromCopyPictureFormat",
@@ -3171,7 +3474,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "properties": [
@@ -3195,7 +3501,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "value",
@@ -3224,7 +3533,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "text",
@@ -3246,7 +3558,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "formats",
@@ -3268,7 +3583,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "formatIDs",
@@ -3290,7 +3608,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Picture",
@@ -3310,7 +3631,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "XLPicture",
@@ -3355,7 +3679,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "XLShapeAsPicture",
@@ -3400,7 +3727,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "files",
@@ -3420,7 +3750,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "description": "",
@@ -3432,6 +3765,7 @@
       "Elsewhere not here:",
       "refactor away from using Excel specific functionality"
     ],
+    "requires": [],
     "constructors": [],
     "events": [],
     "implements": []
@@ -3468,7 +3802,20 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [
+          {
+            "errNumber": null
+          },
+          {
+            "errNumber": null
+          },
+          {
+            "errNumber": null
+          }
+        ],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "unkAddRef",
@@ -3484,7 +3831,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "unkRelease",
@@ -3500,7 +3850,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "QueryKnownInterface",
@@ -3528,7 +3881,14 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [
+          {
+            "errNumber": null
+          }
+        ],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "RegisterActiveObject",
@@ -3561,7 +3921,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "RevokeActiveObject",
@@ -3577,7 +3940,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CallVT",
@@ -3623,7 +3989,14 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [
+          {
+            "errNumber": null
+          }
+        ],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "properties": [
@@ -3648,7 +4021,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "AsObject",
@@ -3671,7 +4047,14 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [
+          {
+            "errNumber": null
+          }
+        ],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Pointer",
@@ -3691,7 +4074,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "TypeInfo",
@@ -3713,7 +4099,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "InterfaceInfo",
@@ -3733,7 +4122,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Methods",
@@ -3753,7 +4145,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Properties",
@@ -3784,7 +4179,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "description": "",
@@ -3794,6 +4192,7 @@
     "todos": [
       "Analyse and add anything missing from:"
     ],
+    "requires": [],
     "constructors": [
       {
         "name": "Create",
@@ -3821,7 +4220,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromPtr",
@@ -3851,7 +4253,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromActiveObjects",
@@ -3874,7 +4279,10 @@
           " stdCOM objects will auto-release when not needed\r\n"
         ],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromWinRTClassID",
@@ -3904,7 +4312,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromClassAndIID",
@@ -3942,7 +4353,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "events": [],
@@ -3980,7 +4394,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "enumRefresh",
@@ -3996,7 +4413,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "AsCollection",
@@ -4015,7 +4435,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "AsArray",
@@ -4043,7 +4466,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "AsArray2D",
@@ -4062,7 +4488,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "AsDictionary",
@@ -4081,7 +4510,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "ForEach",
@@ -4109,7 +4541,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Map",
@@ -4137,7 +4572,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Filter",
@@ -4165,7 +4603,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Sort",
@@ -4193,7 +4634,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Unique",
@@ -4221,7 +4665,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Reverse",
@@ -4240,7 +4687,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Concat",
@@ -4268,7 +4718,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Join",
@@ -4296,7 +4749,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "indexOf",
@@ -4324,7 +4780,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "lastIndexOf",
@@ -4352,7 +4811,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "includes",
@@ -4380,7 +4842,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "checkAll",
@@ -4408,7 +4873,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "checkAny",
@@ -4436,7 +4904,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "checkNone",
@@ -4464,7 +4935,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "checkOnlyOne",
@@ -4492,7 +4966,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "reduce",
@@ -4520,7 +4997,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "countBy",
@@ -4548,7 +5028,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "groupBy",
@@ -4576,7 +5059,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "groupByEx",
@@ -4607,7 +5093,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "max",
@@ -4635,7 +5124,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "min",
@@ -4663,7 +5155,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "sum",
@@ -4691,7 +5186,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Flatten",
@@ -4710,7 +5208,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Cycle",
@@ -4746,7 +5247,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "FindFirst",
@@ -4782,7 +5286,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "First",
@@ -4812,7 +5319,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "properties": [
@@ -4836,7 +5346,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": true
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Item",
@@ -4873,7 +5386,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Length",
@@ -4893,7 +5409,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "description": "",
@@ -4906,6 +5425,7 @@
       "LongPtr?",
       "Implement raw API for working with IEnumVARIANT:"
     ],
+    "requires": [],
     "constructors": [
       {
         "name": "CreateFromCallable",
@@ -4941,7 +5461,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromCallableVerbose",
@@ -4977,7 +5500,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromArray",
@@ -5013,7 +5539,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromIEnumVariant",
@@ -5049,7 +5578,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateEmpty",
@@ -5077,7 +5609,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromListObject",
@@ -5113,7 +5648,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromTree",
@@ -5149,7 +5687,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromDictionaryEx",
@@ -5179,7 +5720,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "protInit",
@@ -5220,7 +5764,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": true
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "events": [],
@@ -5264,7 +5811,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "addErrorHandler",
@@ -5292,7 +5842,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "addStepChangeHandler",
@@ -5320,7 +5873,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Resolve",
@@ -5345,7 +5901,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Reset",
@@ -5370,7 +5929,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "runFibers",
@@ -5430,7 +5992,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": true
       },
       {
         "name": "Cancel",
@@ -5455,7 +6020,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "properties": [
@@ -5477,7 +6045,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Result",
@@ -5497,7 +6068,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "ErrorText",
@@ -5517,7 +6091,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Meta",
@@ -5537,7 +6114,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Step",
@@ -5557,7 +6137,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "StepName",
@@ -5577,7 +6160,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "StepDuration",
@@ -5597,7 +6183,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "TotalDuration",
@@ -5617,7 +6206,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "isFinished",
@@ -5637,7 +6229,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Name",
@@ -5657,7 +6252,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Agent",
@@ -5677,7 +6275,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "description": "",
@@ -5687,6 +6288,7 @@
     "todos": [
       "Consider sectioning off data between runtime data TFiberRuntime (procStartTime, meta, agent, ...) and TFiberBuildTime (name, procsCount, procs)"
     ],
+    "requires": [],
     "constructors": [
       {
         "name": "Create",
@@ -5714,7 +6316,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "events": [],
@@ -5782,7 +6387,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateHeaders",
@@ -5810,7 +6418,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateOptions",
@@ -5886,7 +6497,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateProxy",
@@ -5946,7 +6560,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Await",
@@ -5965,7 +6582,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "URIEncode",
@@ -5993,7 +6613,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "URIDecode",
@@ -6021,7 +6644,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "properties": [
@@ -6043,7 +6669,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "ResponseStatus",
@@ -6063,7 +6692,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "ResponseStatusText",
@@ -6083,7 +6715,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "ResponseText",
@@ -6103,7 +6738,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "ResponseBody",
@@ -6123,7 +6761,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "ResponseHeader",
@@ -6152,7 +6793,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "ResponseHeaders",
@@ -6172,7 +6816,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "ResponseMapped",
@@ -6192,7 +6839,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "ResponseMapper",
@@ -6212,7 +6862,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "description": "",
@@ -6222,6 +6875,7 @@
     "todos": [
       "Check if user/pass credentials with auto-proxy will ever be needed"
     ],
+    "requires": [],
     "constructors": [],
     "events": [],
     "implements": []
@@ -6287,7 +6941,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "HttpBasicAuthenticator",
@@ -6364,7 +7021,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "TokenAuthenticator",
@@ -6439,7 +7099,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "DigestAuthenticator",
@@ -6522,7 +7185,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "properties": [],
@@ -6530,7 +7196,8 @@
     "remarks": [],
     "examples": [],
     "devNotes": [],
-    "todos": []
+    "todos": [],
+    "requires": []
   },
   {
     "name": "stdICallable",
@@ -6562,7 +7229,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "RunEx",
@@ -6590,7 +7260,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Bind",
@@ -6618,7 +7291,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "SendMessage",
@@ -6662,7 +7338,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": true
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "properties": [],
@@ -6671,6 +7350,7 @@
     "examples": [],
     "devNotes": [],
     "todos": [],
+    "requires": [],
     "constructors": [],
     "events": [],
     "implements": []
@@ -6707,7 +7387,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromDataURL",
@@ -6726,7 +7409,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromFile",
@@ -6764,7 +7450,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromUrl",
@@ -6804,7 +7493,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromHBitmap",
@@ -6834,7 +7526,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromClipboard",
@@ -6855,7 +7550,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromIPictureDisp",
@@ -6885,7 +7583,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromStdPicture",
@@ -6915,7 +7616,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromIPicture",
@@ -6945,7 +7649,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromExcelIPicture",
@@ -6975,7 +7682,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromShape",
@@ -7005,7 +7715,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromChart",
@@ -7035,7 +7748,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromScreen",
@@ -7056,7 +7772,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromWindow",
@@ -7092,7 +7811,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromHICON",
@@ -7122,7 +7844,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "protInit",
@@ -7147,7 +7872,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "ToBinary",
@@ -7175,7 +7903,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "ToFile",
@@ -7191,7 +7922,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "ToClipboard",
@@ -7209,7 +7943,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "ToTempFile",
@@ -7237,7 +7974,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "ToSheet",
@@ -7289,7 +8029,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "ToUIControl",
@@ -7316,7 +8059,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "ToDataUrl",
@@ -7344,7 +8090,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "ToShapeFill",
@@ -7371,7 +8120,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "ToStdPicture",
@@ -7390,7 +8142,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "properties": [
@@ -7414,7 +8169,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "HICON",
@@ -7434,7 +8192,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Colors",
@@ -7454,7 +8215,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "description": "",
@@ -7470,6 +8234,7 @@
       "Implement a more efficient way to do this.",
       "A less hacky method can be found here:  http://access.mvps.org/access/api/api0042.htm"
     ],
+    "requires": [],
     "constructors": [],
     "events": [],
     "implements": []
@@ -7506,7 +8271,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "AddArray",
@@ -7544,7 +8312,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "AddObject",
@@ -7572,7 +8343,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "ChildrenInfo",
@@ -7593,7 +8367,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "ToString",
@@ -7637,7 +8414,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "ToFile",
@@ -7670,7 +8450,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "ToVBObject",
@@ -7689,7 +8472,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "ToSelf",
@@ -7710,7 +8496,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "NewEnum",
@@ -7729,7 +8518,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "properties": [
@@ -7751,7 +8543,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Length",
@@ -7771,7 +8566,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Item",
@@ -7800,7 +8598,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Exists",
@@ -7829,7 +8630,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "description": "",
@@ -7837,6 +8641,7 @@
     "examples": [],
     "devNotes": [],
     "todos": [],
+    "requires": [],
     "constructors": [
       {
         "name": "Create",
@@ -7864,7 +8669,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromString",
@@ -7919,7 +8727,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromFile",
@@ -7947,7 +8758,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromVariant",
@@ -7975,7 +8789,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromParams",
@@ -8011,7 +8828,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "events": [],
@@ -8052,7 +8872,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": true
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Run",
@@ -8080,7 +8903,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "RunEx",
@@ -8108,7 +8934,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Bind",
@@ -8136,7 +8965,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "BindEx",
@@ -8164,7 +8996,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "BindGlobal",
@@ -8200,7 +9035,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "protRunVMTests",
@@ -8216,7 +9054,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "properties": [
@@ -8238,7 +9079,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "description": "",
@@ -8265,6 +9109,7 @@
       "iObject_PropSet",
       "iObject_PropSet_WithArgs"
     ],
+    "requires": [],
     "constructors": [
       {
         "name": "Create",
@@ -8310,7 +9155,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateMultiline",
@@ -8356,7 +9204,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "events": [],
@@ -8399,7 +9250,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": true
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "AddMeasurement",
@@ -8442,7 +9296,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": true
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "MeasuresClear",
@@ -8458,7 +9315,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "properties": [
@@ -8489,7 +9349,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "MeasuresKeys",
@@ -8509,7 +9372,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "description": "",
@@ -8517,6 +9383,7 @@
     "examples": [],
     "devNotes": [],
     "todos": [],
+    "requires": [],
     "constructors": [
       {
         "name": "CreateMeasure",
@@ -8555,7 +9422,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateOptimiser",
@@ -8603,7 +9473,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "events": [],
@@ -8636,7 +9509,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "waitTilClose",
@@ -8652,7 +9528,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "properties": [
@@ -8674,7 +9553,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "name",
@@ -8694,7 +9576,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "path",
@@ -8714,7 +9599,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Winmgmt",
@@ -8734,7 +9622,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CommandLine",
@@ -8754,7 +9645,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "isRunning",
@@ -8774,7 +9668,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "isCritical",
@@ -8794,7 +9691,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Priority",
@@ -8814,7 +9714,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "TimeCreated",
@@ -8834,7 +9737,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "TimeQuit",
@@ -8854,7 +9760,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "TimeKernel",
@@ -8874,7 +9783,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "TimeUser",
@@ -8894,7 +9806,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "ExitCode",
@@ -8914,7 +9829,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "description": "",
@@ -8925,6 +9843,7 @@
       "SessionID",
       "ThreadID"
     ],
+    "requires": [],
     "constructors": [
       {
         "name": "Create",
@@ -8960,7 +9879,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromProcessId",
@@ -8988,7 +9910,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromQuery",
@@ -9016,7 +9941,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateManyFromQuery",
@@ -9044,7 +9972,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateAll",
@@ -9063,7 +9994,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "events": [],
@@ -9133,7 +10067,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromBounds",
@@ -9201,7 +10138,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "protInit",
@@ -9266,7 +10206,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": true
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "insertPoint",
@@ -9302,7 +10245,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "queryRange",
@@ -9346,7 +10292,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "queryRangeBounds",
@@ -9398,7 +10347,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "properties": [],
@@ -9407,6 +10359,7 @@
     "examples": [],
     "devNotes": [],
     "todos": [],
+    "requires": [],
     "constructors": [],
     "events": [],
     "implements": []
@@ -9432,7 +10385,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "protInit",
@@ -9448,7 +10404,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "properties": [],
@@ -9457,6 +10416,7 @@
     "examples": [],
     "devNotes": [],
     "todos": [],
+    "requires": [],
     "constructors": [],
     "events": [],
     "implements": []
@@ -9507,7 +10467,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromKey",
@@ -9551,7 +10514,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromItem",
@@ -9595,7 +10561,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "SetValue",
@@ -9628,7 +10597,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "properties": [
@@ -9650,7 +10622,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "RegType",
@@ -9670,7 +10645,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "isRoot",
@@ -9690,7 +10668,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "path",
@@ -9710,7 +10691,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Parent",
@@ -9730,7 +10714,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "children",
@@ -9750,7 +10737,19 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [
+          {
+            "errNumber": 1,
+            "errText": "\"ERROR: Only stdReg keys have subkeys\""
+          },
+          {
+            "errNumber": 1,
+            "errText": "\"ERROR: Only stdReg keys have items\""
+          }
+        ],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Keys",
@@ -9770,7 +10769,15 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [
+          {
+            "errNumber": 1,
+            "errText": "\"ERROR: Only stdReg keys have subkeys\""
+          }
+        ],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Items",
@@ -9790,7 +10797,15 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [
+          {
+            "errNumber": 1,
+            "errText": "\"ERROR: Only stdReg keys have items\""
+          }
+        ],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "ItemType",
@@ -9810,7 +10825,15 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [
+          {
+            "errNumber": 1,
+            "errText": "\"ERROR: Only stdReg items have values\""
+          }
+        ],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "value",
@@ -9830,7 +10853,23 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [
+          {
+            "errNumber": 1,
+            "errText": "\"stdReg\", \"ERROR: Unknown value type\""
+          },
+          {
+            "errNumber": 2,
+            "errText": "\"stdReg\", \"ERROR: Cannot get value (0x\" & Hex(iStatus) & \")\""
+          },
+          {
+            "errNumber": 3,
+            "errText": "\"\", \"ERROR: Only stdReg items have values\""
+          }
+        ],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "description": "",
@@ -9843,6 +10882,7 @@
       "SWAP",
       "TBC "
     ],
+    "requires": [],
     "constructors": [],
     "events": [],
     "implements": []
@@ -9879,7 +10919,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Match",
@@ -9909,7 +10952,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "MatchAll",
@@ -9939,7 +10985,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Replace",
@@ -9977,7 +11026,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "List",
@@ -10015,7 +11067,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "ListArr",
@@ -10051,7 +11106,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "properties": [
@@ -10073,7 +11131,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "flags",
@@ -10093,7 +11154,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "description": "",
@@ -10103,6 +11167,7 @@
     "todos": [
       "Make this more efficient, ideally we'd only loop through the format once"
     ],
+    "requires": [],
     "constructors": [
       {
         "name": "Create",
@@ -10140,7 +11205,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "events": [],
@@ -10192,7 +11260,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateOptimiser",
@@ -10238,7 +11309,12 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [
+          " stdLambda"
+        ],
+        "isStatic": false
       },
       {
         "name": "CreateFromObjectProperty",
@@ -10284,7 +11360,12 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [
+          " stdLambda"
+        ],
+        "isStatic": false
       },
       {
         "name": "CreateFromObjectMethod",
@@ -10314,7 +11395,12 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [
+          " stdCallback"
+        ],
+        "isStatic": false
       },
       {
         "name": "CreateErrorStack",
@@ -10344,7 +11430,12 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [
+          " stdError, stdCallback"
+        ],
+        "isStatic": false
       },
       {
         "name": "CreateFromAutomationSecurity",
@@ -10374,7 +11465,12 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [
+          " stdLambda"
+        ],
+        "isStatic": false
       },
       {
         "name": "protInitFactory",
@@ -10399,7 +11495,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "protInitInstance",
@@ -10415,7 +11514,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Run",
@@ -10443,7 +11545,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "RunEx",
@@ -10471,7 +11576,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Bind",
@@ -10499,7 +11607,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "BindEx",
@@ -10527,7 +11638,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "SendMessage",
@@ -10571,7 +11685,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": true
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "properties": [],
@@ -10582,6 +11699,7 @@
     "todos": [
       ""
     ],
+    "requires": [],
     "constructors": [],
     "events": [],
     "implements": [
@@ -10626,7 +11744,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "protInit",
@@ -10659,7 +11780,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": true
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "injectCode",
@@ -10708,7 +11832,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "properties": [],
@@ -10717,6 +11844,7 @@
     "examples": [],
     "devNotes": [],
     "todos": [],
+    "requires": [],
     "constructors": [],
     "events": [
       {
@@ -10769,7 +11897,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromType",
@@ -10861,7 +11992,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "properties": [
@@ -10883,7 +12017,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Control",
@@ -10903,7 +12040,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "uiObject",
@@ -10923,7 +12063,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Value",
@@ -10943,7 +12086,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Caption",
@@ -10963,7 +12109,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Left",
@@ -10983,7 +12132,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Top",
@@ -11003,7 +12155,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Width",
@@ -11023,7 +12178,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Height",
@@ -11043,7 +12201,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "id",
@@ -11063,7 +12224,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "description": "",
@@ -11076,6 +12240,7 @@
       "ScrollBar_DblClick using MouseDown",
       "Image_DblClick using MouseDown"
     ],
+    "requires": [],
     "constructors": [],
     "events": [],
     "implements": []
@@ -11109,7 +12274,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": true
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Send",
@@ -11134,7 +12302,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CloseSocket",
@@ -11167,7 +12338,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Disconnect",
@@ -11183,7 +12357,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "handleEvent",
@@ -11216,7 +12393,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": true
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "properties": [
@@ -11238,7 +12418,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "description": "",
@@ -11246,6 +12429,7 @@
     "examples": [],
     "devNotes": [],
     "todos": [],
+    "requires": [],
     "constructors": [
       {
         "name": "Create",
@@ -11275,7 +12459,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "events": [
@@ -11404,7 +12591,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "setOwnerHandle",
@@ -11431,7 +12621,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "SetHook",
@@ -11483,7 +12676,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "FindFirst",
@@ -11529,7 +12725,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "FindAll",
@@ -11575,7 +12774,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "getAllText",
@@ -11594,7 +12796,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Quit",
@@ -11610,7 +12815,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "ForceQuit",
@@ -11626,7 +12834,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Activate",
@@ -11642,7 +12853,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "GetDescendents",
@@ -11661,7 +12875,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Redraw",
@@ -11677,7 +12894,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "SendMessage",
@@ -11721,7 +12941,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "PostMessage",
@@ -11762,7 +12985,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "ClickMessage",
@@ -11819,7 +13045,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "SendKeysInput",
@@ -11870,7 +13099,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "SendKeysEvent",
@@ -11913,7 +13145,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "SendKeysMessage",
@@ -11958,7 +13193,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "AwaitForWindow",
@@ -12004,7 +13242,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "setThreadInput",
@@ -12031,7 +13272,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": true
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "properties": [
@@ -12053,7 +13297,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "hDC",
@@ -12073,7 +13320,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "hDCClient",
@@ -12093,7 +13343,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Exists",
@@ -12113,7 +13366,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "IsFrozen",
@@ -12133,7 +13389,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Caption",
@@ -12153,7 +13412,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Class",
@@ -12173,7 +13435,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Visible",
@@ -12193,7 +13458,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "State",
@@ -12213,7 +13481,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "children",
@@ -12233,7 +13504,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "RectClient",
@@ -12253,7 +13527,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "RectWindow",
@@ -12275,7 +13552,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "RectByType",
@@ -12304,7 +13584,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "x",
@@ -12333,7 +13616,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "y",
@@ -12362,7 +13648,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "width",
@@ -12391,7 +13680,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "height",
@@ -12420,7 +13712,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "ProcessID",
@@ -12440,7 +13735,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "ProcessName",
@@ -12460,7 +13758,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "parent",
@@ -12480,7 +13781,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "owner",
@@ -12502,7 +13806,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "HICON",
@@ -12524,7 +13831,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "AncestralRoot",
@@ -12544,7 +13854,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Style",
@@ -12564,7 +13877,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "StyleTexts",
@@ -12584,7 +13900,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "StyleEx",
@@ -12604,7 +13923,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "StyleExTexts",
@@ -12624,7 +13946,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "UserData",
@@ -12646,7 +13971,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "WndProc",
@@ -12668,7 +13996,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "isResizable",
@@ -12688,7 +14019,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "isCaptionVisible",
@@ -12708,7 +14042,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "isBorderVisible",
@@ -12728,7 +14065,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "isMaximiseButtonVisible",
@@ -12748,7 +14088,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "isMinimiseButtonVisible",
@@ -12768,7 +14111,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "isSystemMenuVisible",
@@ -12790,7 +14136,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "isVerticalScrollbarVisible",
@@ -12812,7 +14161,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "isHorizontalScrollbarVisible",
@@ -12834,7 +14186,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "isChildWindow",
@@ -12854,7 +14209,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "isPopupWindow",
@@ -12874,7 +14232,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "isAlwaysOnTop",
@@ -12894,7 +14255,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "isAppWindow",
@@ -12916,7 +14280,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "isToolWindow",
@@ -12936,7 +14303,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "isClickThroughEnabled",
@@ -12958,7 +14328,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "isBorderEdgeSunken",
@@ -12978,7 +14351,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "isBorderDoubled",
@@ -12998,7 +14374,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "isLayeredWindow",
@@ -13018,7 +14397,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "LayeredWindowFlags",
@@ -13038,7 +14420,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "TransparentColor",
@@ -13060,7 +14445,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "Opacity",
@@ -13082,7 +14470,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "ShellWindow",
@@ -13104,7 +14495,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "description": "",
@@ -13114,6 +14508,7 @@
     "todos": [
       "Use SendInput()"
     ],
+    "requires": [],
     "constructors": [
       {
         "name": "Create",
@@ -13225,7 +14620,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateHighlightRect",
@@ -13295,7 +14693,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromHwnd",
@@ -13323,7 +14724,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromApplication",
@@ -13353,7 +14757,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromDesktop",
@@ -13372,7 +14779,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromPoint",
@@ -13408,7 +14818,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromIUnknown",
@@ -13439,7 +14852,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromIAccessible",
@@ -13467,7 +14883,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateFromContextMenu",
@@ -13486,7 +14905,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateManyFromProcessId",
@@ -13516,7 +14938,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "CreateManyFromShellWindows",
@@ -13535,7 +14960,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "AsIAccessible",
@@ -13554,7 +14982,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       },
       {
         "name": "AsNativeObject",
@@ -13575,7 +15006,10 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "events": [],

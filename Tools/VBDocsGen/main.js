@@ -75,8 +75,10 @@ function parseComment(comment) {
     deprecated: /(?<description>.+\s*(?:'[^@][^\n]*\n?)*)/i,
     devNote: /(?<description>.+\s*(?:'[^@][^\n]*\n?)*)/i,
     TODO: /(?<description>.+\s*(?:'[^@][^\n]*\n?)*)/i,
-    constructor: /(?:constructor)?/g
+    constructor: /(?:constructor)?/g,
     //overwrites native constructor
+    throws: /(?<errNumber>\d+)\s*,\s*(?<errText>.+)/i,
+    requires: /(?<description>.+)/i
   };
   const commentStore = [];
   for (let tagLine of tagLines) {
@@ -130,6 +132,21 @@ function parseComment(comment) {
         break;
       case "TODO":
         commentStore.push({ tag, data: groups?.description });
+        break;
+      case "throws":
+        commentStore.push({
+          tag,
+          data: {
+            errNumber: Number(groups?.errNumber),
+            errText: groups?.errText
+          }
+        });
+        break;
+      case "requires":
+        commentStore.push({ tag, data: groups?.description });
+        break;
+      case "static":
+        commentStore.push({ tag });
         break;
       default:
         log(`Unknown tag "${tag}"`, "warn");
@@ -268,12 +285,15 @@ function parseModuleOrClass(content, fileName) {
           isDefaultMember: defaultMember === sName,
           devNotes: commentDataByTag["devNote"]?.map((c) => c.data) ?? [],
           todos: commentDataByTag["todo"]?.map((c) => c.data) ?? [],
-          isProtected: !!commentDataByTag["protected"]?.length
+          isProtected: !!commentDataByTag["protected"]?.length,
+          throws: commentDataByTag["throws"]?.map((c) => c.data) ?? [],
+          requires: commentDataByTag["requires"]?.map((c) => c.data) ?? [],
+          isStatic: !!commentDataByTag["static"]?.length
         };
         arrToPushTo.push(func);
         break;
       case "property":
-        properties.push({
+        let prop = {
           name: sName,
           access,
           description: commentDataByTag["description"]?.[0]?.data ?? "",
@@ -291,8 +311,12 @@ function parseModuleOrClass(content, fileName) {
           isDefaultMember: defaultMember === sName,
           devNotes: commentDataByTag["devNote"]?.map((c) => c.data) ?? [],
           todos: commentDataByTag["todo"]?.map((c) => c.data) ?? [],
-          isProtected: !!commentDataByTag["protected"]?.length
-        });
+          isProtected: !!commentDataByTag["protected"]?.length,
+          throws: commentDataByTag["throws"]?.map((c) => c.data) ?? [],
+          requires: commentDataByTag["requires"]?.map((c) => c.data) ?? [],
+          isStatic: !!commentDataByTag["static"]?.length
+        };
+        properties.push(prop);
         break;
       case "event":
         events.push({
@@ -316,7 +340,8 @@ function parseModuleOrClass(content, fileName) {
     remarks: moduleDocsByTag["remark"]?.map((c) => c.data) ?? [],
     examples: moduleDocsByTag["example"]?.map((c) => c.data) ?? [],
     devNotes: moduleDocsByTag["devNote"]?.map((c) => c.data) ?? [],
-    todos: moduleTODOs
+    todos: moduleTODOs,
+    requires: moduleDocsByTag["requires"]?.map((c) => c.data) ?? []
   };
   if (isClass) {
     return {

@@ -11,7 +11,8 @@
 * TODO: Add public enums
 * TODO: Add public types?
 * TODO: Add public constants
-
+* TODO: Add @throws    e.g. @throws 1, "ERROR: Only stdReg keys have subkeys"
+* TODO: Add @requires  e.g. @requires stdLambda
 */
 
 /**
@@ -149,6 +150,7 @@ type IModule = {
   properties: IProperty[];
   devNotes: string[];
   todos: string[];
+  requires: string[];
 };
 type IClass = IModule & {
   implements: string[];
@@ -164,7 +166,10 @@ type IMethod = {
   returns: IReturn;
   devNotes: string[];
   todos: string[];
+  throws: IThrows[];
+  requires: string[];
 
+  isStatic: boolean;
   isProtected: boolean;
   isDefaultMember: boolean;
   deprecation: {
@@ -198,6 +203,10 @@ type IReturn = {
   type: string;
   description: string;
 };
+type IThrows = {
+  errNumber: number;
+  errText: string;
+};
 
 type ITagTypes =
   | "constructor"
@@ -209,7 +218,10 @@ type ITagTypes =
   | "description"
   | "remark"
   | "devNote"
-  | "TODO";
+  | "TODO"
+  | "throws"
+  | "requires"
+  | "static";
 
 type ITagLine = {
   tag: ITagTypes;
@@ -227,7 +239,10 @@ type ICommentRecord =
   | IDataDescription
   | IDataRemark
   | IDataDevNote
-  | IDataTODO;
+  | IDataTODO
+  | IDataThrows
+  | IDataRequires
+  | IDataStatic;
 
 type IDataConstructor = {
   tag: "constructor";
@@ -275,8 +290,22 @@ type IDataDevNote = {
   data: string;
 };
 type IDataTODO = {
-  tag: "todo";
+  tag: "TODO";
   data: string;
+};
+type IDataThrows = {
+  tag: "throws";
+  data: {
+    errNumber: number;
+    errText: string;
+  };
+};
+type IDataRequires = {
+  tag: "requires";
+  data: string;
+};
+type IDataStatic = {
+  tag: "static";
 };
 
 //Assertions to ensure all tags declared in ITagTypes are implemented
@@ -352,6 +381,8 @@ function parseComment(comment: string): ICommentStore {
     devNote: /(?<description>.+\s*(?:'[^@][^\n]*\n?)*)/i,
     TODO: /(?<description>.+\s*(?:'[^@][^\n]*\n?)*)/i,
     constructor: /(?:constructor)?/g, //overwrites native constructor
+    throws: /(?<errNumber>\d+)\s*,\s*(?<errText>.+)/i,
+    requires: /(?<description>.+)/i,
   };
 
   //Parse comment into comment store
@@ -409,6 +440,21 @@ function parseComment(comment: string): ICommentStore {
         break;
       case "TODO":
         commentStore.push({ tag, data: groups?.description });
+        break;
+      case "throws":
+        commentStore.push({
+          tag,
+          data: {
+            errNumber: Number(groups?.errNumber),
+            errText: groups?.errText,
+          },
+        });
+        break;
+      case "requires":
+        commentStore.push({ tag, data: groups?.description });
+        break;
+      case "static":
+        commentStore.push({ tag });
         break;
       default:
         log(`Unknown tag "${tag}"`, "warn");
@@ -627,11 +673,17 @@ function parseModuleOrClass(
             commentDataByTag["devNote"]?.map((c: IDataDevNote) => c.data) ?? [],
           todos: commentDataByTag["todo"]?.map((c: IDataTODO) => c.data) ?? [],
           isProtected: !!commentDataByTag["protected"]?.length,
+          throws:
+            commentDataByTag["throws"]?.map((c: IDataThrows) => c.data) ?? [],
+          requires:
+            commentDataByTag["requires"]?.map((c: IDataRequires) => c.data) ??
+            [],
+          isStatic: !!commentDataByTag["static"]?.length,
         };
         arrToPushTo.push(func);
         break;
       case "property":
-        properties.push({
+        let prop: IProperty = {
           name: sName,
           access,
           description:
@@ -661,7 +713,14 @@ function parseModuleOrClass(
             commentDataByTag["devNote"]?.map((c: IDataDevNote) => c.data) ?? [],
           todos: commentDataByTag["todo"]?.map((c: IDataTODO) => c.data) ?? [],
           isProtected: !!commentDataByTag["protected"]?.length,
-        });
+          throws:
+            commentDataByTag["throws"]?.map((c: IDataThrows) => c.data) ?? [],
+          requires:
+            commentDataByTag["requires"]?.map((c: IDataRequires) => c.data) ??
+            [],
+          isStatic: !!commentDataByTag["static"]?.length,
+        };
+        properties.push(prop);
         break;
       case "event":
         events.push({
@@ -696,6 +755,8 @@ function parseModuleOrClass(
     devNotes:
       moduleDocsByTag["devNote"]?.map((c: IDataDevNote) => c.data) ?? [],
     todos: moduleTODOs,
+    requires:
+      moduleDocsByTag["requires"]?.map((c: IDataRequires) => c.data) ?? [],
   };
 
   //If it's a class then add additional members
@@ -711,6 +772,7 @@ function parseModuleOrClass(
   }
 }
 
+import { throws } from "assert";
 import * as fs from "fs";
 function main() {
   //Find all files in ../../src directory
