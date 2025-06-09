@@ -195,7 +195,9 @@ End Function
 'For-each compatibility
 '@protected
 '@returns IEnumVARIANT - An enumerator with methods enumNext, enumRefresh etc.
-'@example `For each obj in myEnum: ... : next`
+'@example ```vb
+'For each obj in myEnum: ... : next
+'```
 '@TODO: Use custom `IEnumVARIANT` instead of casting to `Collection`
 Public Property Get NewEnum() As IUnknown
 Attribute NewEnum.VB_UserMemId = -4
@@ -528,7 +530,7 @@ End Function
 'Split an array into chunks of a specified size
 '@param Size - the size of the new internal arrays to create
 '@returns - An array of arrays at a specified size
-'@example ```vba
+'@example ```vb
 'stdArray.Create(1,2,3,4,5,6,7).SplitToChunks(3)
 '  '=> [[1,2,3],[4,5,6],[7]]
 '```
@@ -772,7 +774,9 @@ End Function
 'Check if all elements in the array pass a test
 '@param cb as stdICallable<(element: Variant)=>Boolean> - Callback to run on each element
 '@returns - True if all elements pass the test
-'@example `if incidents.IsEvery(cbValid) then ...`
+'@example ```vb
+'if incidents.IsEvery(cbValid) then ...
+'```
 Public Function IsEvery(ByVal cb As stdICallable) As Boolean
   If This.Initialised Then
     Dim i As Long
@@ -795,7 +799,9 @@ End Function
 'Check if any elements in the array pass a test
 '@param cb as stdICallable<(element: Variant)=>Boolean> - Callback to run on each element
 '@returns - True if any elements pass the test
-'@example `if incidents.IsSome(cbValid) then ...`
+'@example ```vb
+'if incidents.IsSome(cbValid) then ...
+'```
 Public Function IsSome(ByVal cb As stdICallable) As Boolean
   If This.Initialised Then
     Dim i As Long
@@ -816,7 +822,9 @@ End Function
 
 'Call a callback on each element of the array
 '@param cb as stdICallable<(element: Variant)=>Void> - Callback to run on each element
-'@example `incidents.ForEach(cbPrint)`
+'@example ```vb
+'incidents.ForEach(cbPrint)
+'```
 Public Sub ForEach(ByVal cb As stdICallable)
   If This.Initialised Then
     Dim i As Long
@@ -831,7 +839,9 @@ End Sub
 'Call a callback on each element of the array and return a new array with the results
 '@param cb as stdICallable<(element: Variant)=>Variant> - Callback to run on each element
 '@returns - A new array with the results of the callback
-'@example `incidents.Map(cbGetId)`
+'@example ```vb
+'incidents.Map(cbGetId)
+'```
 Public Function Map(ByVal cb As stdICallable) As stdArray
   If This.Initialised Then
     Dim pMap As stdArray
@@ -856,7 +866,9 @@ End Function
 'Remove all non-unqiue elements from the array. Given some callback to generate a key for each element, this method will remove all elements which have the same key.
 '@param cb as stdICallable<(element: Variant)=>Variant> - Callback to generate a key for each element
 '@returns - A new array with all non-unique elements removed
-'@example `incidents.Unique(cbGetId)`
+'@example ```vb
+'incidents.Unique(cbGetId)
+'```
 '@TODO: Needs optimisation. Currently very sub-optimal
 Public Function Unique(Optional ByVal cb As stdICallable = Nothing) As stdArray
   Dim ret As stdArray: Set ret = stdArray.CreateWithOptions(This.Length, This.Chunking)
@@ -889,7 +901,9 @@ End Function
 '@param cb as stdICallable<(accumulator: Variant, element: Variant) => Variant> - Reducer callback to run on each element
 '@param initialValue - Initial value to pass to the reducer callback
 '@returns - The final value returned by the reducer callback
-'@example `values.Reduce(cbSum, 0)`
+'@example ```vb
+'values.Reduce(cbSum, 0)
+'```
 Public Function Reduce(ByVal cb As stdICallable, Optional ByVal initialValue As Variant) As Variant
   Dim iStart As Long
   If This.Initialised Then

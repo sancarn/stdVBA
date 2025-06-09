@@ -571,9 +571,6 @@ End Type
 Private This As TThis
 
 
-'================================================================================================
-'=      PUBLIC CONSTRUCTORS
-'================================================================================================
 'Create a window and return a window object
 '@constructor
 '@param sClassName - The class name can be any name registered with RegisterClass or RegisterClassEx, provided that the module that registers the class is also the module that creates the window. The class name can also be any of the predefined system class names. For a list of system class names, see the Remarks section.
@@ -802,7 +799,9 @@ End Function
 
 'Converts a stdWindow object to a IAccessible object
 '@returns Object<IAccessible> - IAccessible object representing the window
-'@example - `stdWindow.CreateFromHwnd(...).FindFirst(stdLambda.Create("$1.Class = ""EXCEL7""")).AsNativeObject.Application)`
+'@example - ```vb
+'stdWindow.CreateFromHwnd(...).FindFirst(stdLambda.Create("$1.Class = ""EXCEL7""")).AsNativeObject.Application)
+'```
 Public Function AsNativeObject() As Object
   Const OBJID_NATIVEOM = &HFFFFFFF0
   Dim Guid As tGUID: Guid = convertGUID("00020400-0000-0000-C000-000000000046")
@@ -1239,8 +1238,7 @@ End Sub
 
 'Get/Set a handle to the icon of the window
 '@returns - Icon handle
-'@example - 
-'```vb
+'@example ```vb
 'stdWindow.CreateFromHwnd(hwnd).hIcon = Image1.Picture.Handle`
 'stdWindow.CreateFromHwnd(hwnd).hIcon = stdImage.CreateFromFile(myFile).hicon 'Future
 '```
@@ -1632,7 +1630,7 @@ End Property
 
 'Gets the Shell Window COM object for this window if it exists
 '@returns Object<Shell.IWebBrowser2|Nothing> - Shell Window COM object
-'@example ```
+'@example ```vb
 '  Dim location as string: location = stdWindow.CreateFromHwnd(hwnd).ShellWindow.LocationURL
 '```
 '@TODO: is there a better way?
@@ -2063,7 +2061,7 @@ End Sub
 '@param bRaw - Whether to ignore special chars or not e.g. `{Enter}`
 '@param keyDelay - Delay between each keystroke
 '@param bAutoRelease - Whether keys pressed down should be auto-released
-'@example ```
+'@example ```vb
 'Call stdWindow.CreateFromHwnd(Application.VBE.mainwindow.hwnd).SendKeysInput("^a")
 '```
 Public Sub SendKeysInput(ByVal sKeys As String, Optional ByVal bRaw As Boolean = False, Optional ByVal keyDelay As Long = 0, Optional bAutoRelease As Boolean = True)
@@ -2112,7 +2110,9 @@ End Sub
 '@param sKeys - Keys to send to the window
 '@param keyDelay - Delay between each keystroke
 '@param bAutoRelease - Whether keys pressed down should be auto-released
-'@example `notepadWindow.sendKeysEvent("^a")`
+'@example ```vb
+'notepadWindow.sendKeysEvent("^a")
+'```
 Public Sub SendKeysEvent(ByVal sKeys As String, Optional ByVal keyDelay As Long = 10, Optional ByVal bAutoRelease As Boolean = True)
   Const KEYEVENTF_KEYUP = &H2
   Const WM_KEYDOWN = &H100
@@ -2157,7 +2157,9 @@ End Sub
 '@param keyDelay - Delay between each keystroke
 '@param bAutoRelease - Whether keys pressed down should be auto-released
 '@remark It should be noted that this method is extremely unstable and is unlikely to work in the majority of cases.
-'@example `notepadWindow.sendKeysMessage("^a")`
+'@example ```vb
+'notepadWindow.sendKeysMessage("^a")
+'```
 Public Sub SendKeysMessage(ByVal sKeys As String, Optional ByVal keyDelay As Long = 30, Optional ByVal bAutoRelease As Boolean = True)
   Const WM_KEYDOWN = &H100
   Const WM_KEYUP = &H101
@@ -2478,7 +2480,9 @@ End Sub
 'Parses a set of keys and converts them into a KeyToken array
 '@param sKeys - Key string to tokenise
 '@returns Array<KeyToken> - Array of key tokens containing all data required for SendKeysMessage / SendKeysEvent / SendKeysInput
-'@example `stdWindow.TokeniseKeys("^a{home up 3}{LControl up}")`
+'@example ```vb
+'stdWindow.TokeniseKeys("^a{home up 3}{LControl up}")
+'```
 Private Function TokeniseKeys(ByVal sKeys As String, Optional ByVal bAutoRelease As Boolean = True) As KeyToken()
   Const MAPVK_VK_TO_VSC As Long = 0
   Dim iKeyCount As Long: iKeyCount = 0

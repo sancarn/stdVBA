@@ -13,7 +13,9 @@ End Type
 '@param sURL - The URL from the stdHTTP.Create() call
 '@param ThreadingStyle - The threading style from the stdHTTP.Create() call
 '@param options - The options object from the stdHTTP.Create() call
-'@example `stdHTTP.Create("someURL", Authenticator:=stdCallback.CreateFromModule("stdHTTPAuthenticators", "WindowsAuthenticator"))`
+'@example ```vb
+'stdHTTP.Create("someURL", Authenticator:=stdCallback.CreateFromModule("stdHTTPAuthenticators", "WindowsAuthenticator"))
+'```
 Public Sub WindowsAuthenticator(ByVal pHTTP As Object, ByVal RequestMethod As String, ByVal sURL As String, ByVal ThreadingStyle As Long, ByVal options As Object)
   Const AutoLogonPolicy_Always = 0
   Const AutoLogonPolicy_OnlyIfBypassProxy = 1
@@ -29,7 +31,9 @@ End Sub
 '@param sURL - The URL from the stdHTTP.Create() call
 '@param ThreadingStyle - The threading style from the stdHTTP.Create() call
 '@param options - The options object from the stdHTTP.Create() call
-'@example `stdHTTP.Create("https://postman-echo.com/basic-auth", Authenticator:=stdCallback.CreateFromModule("stdHTTPAuthenticators", "HttpBasicAuthenticator").Bind("postman", "password"))`
+'@example ```vb
+'stdHTTP.Create("https://postman-echo.com/basic-auth", Authenticator:=stdCallback.CreateFromModule("stdHTTPAuthenticators", "HttpBasicAuthenticator").Bind("postman", "password"))
+'```
 '@remark This authenticator will send the username and password in the clear. It is recommended to use this only over HTTPS.
 Public Sub HttpBasicAuthenticator(ByVal Username As String, ByVal Password As String, ByVal pHTTP As Object, ByVal RequestMethod As String, ByVal sURL As String, ByVal ThreadingStyle As Long, ByVal options As Object)
   Const SetCredentialsType_ForServer = 0
@@ -44,7 +48,9 @@ End Sub
 '@param sURL - The URL from the stdHTTP.Create() call
 '@param ThreadingStyle - The threading style from the stdHTTP.Create() call
 '@param options - The options object from the stdHTTP.Create() call
-'@example `stdHTTP.Create("https://postman-echo.com/basic-auth", Authenticator:=stdCallback.CreateFromModule("stdHTTPAuthenticators", "TokenAuthenticator").Bind("PRIVATE-TOKEN", "{{your-token}}"))`
+'@example ```vb
+'stdHTTP.Create("https://postman-echo.com/basic-auth", Authenticator:=stdCallback.CreateFromModule("stdHTTPAuthenticators", "TokenAuthenticator").Bind("PRIVATE-TOKEN", "{{your-token}}"))
+'```
 Public Sub TokenAuthenticator(ByVal HeaderName As String, ByVal Token As String, ByVal pHTTP As Object, ByVal RequestMethod As String, ByVal sURL As String, ByVal ThreadingStyle As Long, ByVal options As Object)
   Call pHTTP.SetHeader(HeaderName, Token)
 End Sub
@@ -59,7 +65,9 @@ End Sub
 '@param sURL - The URL from the stdHTTP.Create() call
 '@param ThreadingStyle - The threading style from the stdHTTP.Create() call
 '@param options - The options object from the stdHTTP.Create() call
-'@example `stdHTTP.Create("https://postman-echo.com/digest-auth", Authenticator:=stdCallback.CreateFromModule("stdHTTPAuthenticators", "DigestAuthenticator").Bind("postman", "password", "postman-echo.com"))`
+'@example ```vb
+'stdHTTP.Create("https://postman-echo.com/digest-auth", Authenticator:=stdCallback.CreateFromModule("stdHTTPAuthenticators", "DigestAuthenticator").Bind("postman", "password", "postman-echo.com"))
+'```
 '@TODO: Complete this
 Public Sub DigestAuthenticator(ByVal Username As String, ByVal Password As String, ByVal sDomain As String, ByVal pHTTP As Object,  ByVal RequestMethod As String, ByVal sURL As String, ByVal ThreadingStyle As Long, ByVal options As Object)
   Err.Raise 1, "", "Work in progress - This does not work yet"

@@ -72,7 +72,9 @@ End Function
 'Initializes the object
 '@protected
 '@param url - The websocket url to track.
-'@example `ws.protInit("wss://echo.websocket.org/")`
+'@example ```vb
+'ws.protInit("wss://echo.websocket.org/")
+'```
 Public Sub protInit(ByVal url As String)
   'Create IE object
   Set ie = CreateObject("InternetExplorer.Application")

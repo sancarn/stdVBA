@@ -1970,12 +1970,17 @@ End Sub
 '@returns {String} Serialized representation of the arguments.
 '@remark Objects cannot be split into their components and thus are cached as a conglomerate of type and pointer (e.g. Dictionary<12341234123>). 
 '@TODO: Potentially use [StgSerializePropVariant ](https://docs.microsoft.com/en-us/windows/win32/api/propvarutil/nf-propvarutil-stgserializepropvariant) as this'd be more optimal
-'@example
-'  Debug.Print getPerformanceCacheID(Array())=""
-'  Debug.Print getPerformanceCacheID(Array(Array(1, 2, Null), "yop", Empty, "", Nothing, New Collection, DateSerial(2020, 1, 1), False, True)) = "Array[1;2;null;];""yop"";empty;"""";Nothing;Collection<1720260481920>;01/01/2020;False;True;"
+'@example ```vb
+'Debug.Print getPerformanceCacheID(Array())=""
+'Debug.Print getPerformanceCacheID(Array(Array(1, 2, Null), "yop", Empty, "", Nothing, New Collection, DateSerial(2020, 1, 1), False, True)) = "Array[1;2;null;];""yop"";empty;"""";Nothing;Collection<1720260481920>;01/01/2020;False;True;"
+'```
+'
 'returns
-'  True
-'  True
+'
+'```
+'True
+'True
+'```
 Private Function getPerformanceCacheID(ByRef Arguments As Variant) As String
     Dim length As Long: length = UBound(Arguments) - LBound(Arguments) + 1
     If length > 0 Then

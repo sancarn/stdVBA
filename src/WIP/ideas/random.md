@@ -33,7 +33,7 @@ http://www.vbforums.com/showthread.php?724529-Anyone-know-what-this-code-is-what
 M2000 - Custom Language Interpreter written in VB6
 https://github.com/M2000Interpreter/Version9
 
-```
+'```
 Module Alfa {
       Print @alfa(100) ' 200
       Function alfa(x)
@@ -50,7 +50,7 @@ Module Beta {
 Alfa
 Beta
 Beta
-```
+'```
 
 M2000 Fast collection
 https://github.com/M2000Interpreter/Version9/blob/master/FastCollection.cls

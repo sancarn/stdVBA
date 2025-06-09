@@ -91,7 +91,7 @@ End Function
 '@param Calculation    - If not -1, sets Application.Calculation to this value. If -1, Application.Calculation remains unchanged.
 '@returns - A sentry which will restore the original settings when destroyed.
 '@requires stdLambda
-'@example ```vba
+'@example ```vb
 'With stdSentry.CreateOptimiser(ScreenUpdating:=False, Calculation:=xlCalculationManual)
 '  '... heavy range based operations ...
 'End With
@@ -133,7 +133,7 @@ End Function
 '@param value - Value to set the property to
 '@returns - The sentry
 '@requires stdLambda
-'@example ```vba
+'@example ```vb
 'With stdSentry.CreateFromObjectProperty(Application, "DisplayAlerts", false)
 '  Call ThisWorkbook.SaveAs("C:\temp\test.xlsx")
 'End With
@@ -159,7 +159,7 @@ End Function
 '@param sOnDestroyName - Name of the method to call when the sentry is destroyed
 '@returns - The sentry
 '@requires stdCallback
-'@example ```vba
+'@example ```vb
 'With stdSentry.CreateFromObjectMethod(stdError, "AddStack", Array("MethodName"), "PopStack", Array())
 '  '... our code ...
 'End With
@@ -176,7 +176,7 @@ End Function
 '@param name - Name of the stack to add
 '@returns - The sentry
 '@requires stdError, stdCallback
-'@example ```vba
+'@example ```vb
 'Public Sub MyMethod()
 '  With stdSentry.CreateErrorStack("MyClass.MyMethod")
 '    '... our code ...
@@ -193,7 +193,7 @@ End Function
 '@param sec - AutomationSecurity setting desired
 '@returns - The sentry
 '@requires stdLambda
-'@example ```vba
+'@example ```vb
 'With stdSentry.CreateFromAutomationSecurity(msoAutomationSecurityForceDisable)
 '  Call ThisWorkbook.SaveAs("C:\temp\test.xlsx")
 'End With

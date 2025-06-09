@@ -368,7 +368,9 @@ End Function
 '@constructor
 '@param sPath - Path to element, e.g. "P.1.2.3" or "1.2.3". If starting with "P." or ".", these are ignored as they are taken as the current element.
 '@returns - IAccessible wrapper from a supplied path.
-'@example `Debug.Print stdAcc.CreateFromApplication().CreateFromPath("3.1").name`
+'@example ```vb
+'Debug.Print stdAcc.CreateFromApplication().CreateFromPath("3.1").name
+'```
 Public Function CreateFromPath(ByVal sPath As String) As stdAcc
     'If starting with "." remove it
     If Left(sPath, 1) = "P" Then sPath = Mid(sPath, 2)
@@ -462,7 +464,7 @@ End Function
 '* A BFS will walk this tree in the following order: A, B, C, D, E, F
 '* A DFS will walk this tree in a different order:   A, C, F, E, B, D
 '@returns {stdAcc} - Element found.
-'@example ```
+'@example ```vb
 ''Find where name is "hello" and class is "world":
 'el.FindFirst(stdLambda.Create("$1.name=""hello"" and $1.class=""world"""))
 ''Find first element named "hello" at depth > 4:
@@ -548,7 +550,7 @@ End Function
 '* A BFS will walk this tree in the following order: A, B, C, D, E, F.
 '* A DFS will walk this tree in a different order:   A, C, F, E, B, D.
 '@returns Collection<stdAcc> - Collection of elements found.
-'@example ```
+'@example ```vb
 ''Find where name is "hello" and class is "world":
 'el.FindAll(stdLambda.Create("$1.name=""hello"" and $1.class=""world"""))
 ''Find all elements with depth <= 4:
@@ -679,7 +681,9 @@ End Property
 
 'Get a unique identifier for an element.
 '@returns string - Hex string identifier for element.
-'@example `stdAcc.CreateFromMouse().Identity`
+'@example ```vb
+'stdAcc.CreateFromMouse().Identity
+'```
 Public Property Get Identity() As String
   On Error GoTo Fallback
   Dim accIdent As IUnknown: Set accIdent = unkQueryInterface(protAccessible, "{7852B78D-1CFD-41C1-A615-9C0C85960B5F}")
@@ -892,7 +896,9 @@ Public Property Get Text() As String
 End Property
 
 'Performs the default action of the `IAccessible` object
-'@example `app.getButton().DoDefaultAction()`
+'@example ```vb
+'app.getButton().DoDefaultAction()
+'```
 Public Sub DoDefaultAction()
   If This.isProxy Then
     Call This.Proxy.Parent.accDoDefaultAction(This.Proxy.Index)

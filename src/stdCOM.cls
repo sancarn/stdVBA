@@ -552,7 +552,9 @@ End Function
 '@constructor
 '@param sActivatableClassId - An activatable WinRT class ID.
 '@returns - A COM wrapper for the object.
-'@example `stdCOM.CreateFromWinRTClassID("Windows.Storage.Pickers.FolderPicker")`
+'@example ```vb
+'stdCOM.CreateFromWinRTClassID("Windows.Storage.Pickers.FolderPicker")
+'```
 Public Function CreateFromWinRTClassID(ByVal sActivatableClassId As String) As stdCOM
   Dim hString As LongPtr
   If WindowsCreateString(StrPtr(sActivatableClassId), Len(sActivatableClassId), hString) <> S_OK Then Err.Raise 1, "stdCOM::CreateFromWinRTClassID", "Cannot create HSTRING"
@@ -574,7 +576,7 @@ End Function
 '@param sClassID - A CLSID as a string.
 '@param sIID - An IID as a string. Default is `IDispatch`.
 '@returns - A COM wrapper for the object.
-'@example ```
+'@example ```vb
 '  stdCOM.CreateFromClassAndIID("FF48DBA4-60EF-4201-AA87-54103EEF594E","30CBE57D-D9D0-452A-AB13-7AC5AC4825EE") 'IUIAutomation
 '```
 Public Function CreateFromClassAndIID(ByVal sClassID As String, Optional ByVal sIID As String = "00020400-0000-0000-C000-000000000046") As stdCOM
@@ -595,8 +597,12 @@ End Function
 
 'Obtain raw object from stdCOM wrapper
 '@returns - Raw object
-'@example `stdCOM.Create(Application).Object.Name`
-'@example `stdCOM.CreateFromPtr(ObjPtr(Application)).Object.Name`
+'@example ```vb
+'stdCOM.Create(Application).Object.Name
+'```
+'@example ```vb
+'stdCOM.CreateFromPtr(ObjPtr(Application)).Object.Name
+'```
 Public Property Get Object() As IUnknown
   If This.Meta Is Nothing Then
     Set Object = Deref(This.ObjPtr)
@@ -607,8 +613,12 @@ End Property
 
 'Obtain raw object from stdCOM wrapper
 '@returns - `IDispatch` for object
-'@example `stdCOM.Create(Application).Object.Name`
-'@example `stdCOM.CreateFromPtr(ObjPtr(Application)).Object.Name`
+'@example ```vb
+'stdCOM.Create(Application).Object.Name
+'```
+'@example ```vb
+'stdCOM.CreateFromPtr(ObjPtr(Application)).Object.Name
+'```
 '@throws {...} Unsupported interface IDispatch
 Public Property Get AsObject() As Object
   If This.Meta Is Nothing Then
@@ -638,7 +648,7 @@ End Property
 '@throws stdCOM<IUnknown>#unkQueryInterface - Cannot retrieve IID from String.
 '@throws stdCOM<IUnknown>#unkQueryInterface - Interface not implemented.
 '@throws stdCOM<IUnknown>#unkQueryInterface - Unknown error occurred.
-'@example ```
+'@example ```vb
 '  'Get ITypeInfo
 '  set typeInfo = com.unkQueryInterface("00020401-0000-0000-C000-000000000046")
 '```
@@ -693,7 +703,9 @@ End Function
 
 'Obtain Type Information from object
 '@returns stdCOM<ITypeInfo> - TypeInfo structure for this object
-'@example `myCom.TypeInfo.CallVT(EITypeInfo.GetTypeAttr, vbLong, VarPtr(lPtr))`
+'@example ```vb
+'myCom.TypeInfo.CallVT(EITypeInfo.GetTypeAttr, vbLong, VarPtr(lPtr))
+'```
 Public Property Get TypeInfo() As stdCOM
   On Error GoTo CannotQuery
     Set TypeInfo = QueryKnownInterface(ITypeInfo)
@@ -795,7 +807,7 @@ End Property
 'Obtain a collection of all property names on an object
 '@param bIncludeReadWriteType - Include GET/LET/SET/UNK prefixes representing call conv
 '@returns Collection<string> - Collection of property names
-'@example ```
+'@example ```vb
 '  for each vProp in stdCOM.Create(Application).Properties
 '    Debug.Print vProp
 '  next
@@ -850,7 +862,7 @@ End Sub
 '@param FunctionParameters as Array<Variant> - Arguments to send to function.
 '@returns                                    - Return value of function
 '@throws {...} "DispCallFunc - Unknown error occurred."
-'@example ```
+'@example ```vb
 '  Dim pITypeInfo As IUnknown
 '  Dim hResult As Long: hResult = com.CallVT(EIUnknown.QueryInterface, vbLong, VarPtr(tGUID.Data1), VarPtr(pITypeInfo))
 '  If hResult <> S_OK Then Err.Raise hResult, "InterfaceInfo", "stdCOM::InterfaceInfo"

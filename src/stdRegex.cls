@@ -90,8 +90,7 @@ Private This As TThis
 '@param pattern - The pattern to match
 '@param flags   - Optional flags to apply
 '@returns - Regular expression object
-'@example
-'```vb
+'@example ```vb
 'stdRegex.Create("A\d+","i")
 '```
 Public Function Create(ByVal pattern As String, Optional ByVal flags As String = "") As stdRegex

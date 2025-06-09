@@ -25,7 +25,9 @@
  *   '@param x as Long - X Coordinate
  *   '@param y as Long - Y Coordinate
  *   '@returns stdAcc - Object at the specified point
- *   '@example `acc.CreateFromPoint(100, 200).DoDefaultAction`
+ *   '@example ```vb
+'acc.CreateFromPoint(100, 200).DoDefaultAction
+'```
  *   '@example ```
  *   '  acc.CreateFromPoint(0, 0).FindFirst(stdLambda.Create("$1.name=""hello"" and $1.class=""world"""))
  *   '```

@@ -83,11 +83,11 @@ End Function
 '@param AllowSingleQuoteStrings - Allow single quoted strings? E.G. "{'a':'hello'}"
 '@param StoreLargeNumsAsString  - Store Large numbers >16 chars as string instead of doubles. This may be useful if precision is important.
 '@returns - `stdJSON` object from string.
-'@example ```
+'@example ```vb
 '  Dim o as stdJSON: set o = stdJSON.CreateFromString("{""a"":1,""b"":""hello""}")
 '  Debug.Print o.ToString()
 '```
-'@example ```
+'@example ```vb
 '  Dim o as stdJSON: set o = stdJSON.CreateFromString("{a: 1, b: 'hello'}", AllowUnquotedKeys:=true, AllowSingleQuoteStrings:=true)
 '  Debug.Print o.ToString()
 '```
@@ -246,7 +246,9 @@ End Function
 '@param key - If `this.iType == eJSONObject` then this is the key it should be assigned to. Else this param is unused.
 '@param fromVar as Variant<Array|Collection> - If provided the object will be pre-filled with data
 '@returns - The array created
-'@example ` .AddArray(fromVar:=Array(1,2,3))`
+'@example ```vb
+' .AddArray(fromVar:=Array(1,2,3))
+'```
 Public Function AddArray(Optional ByVal key As String = "", Optional ByVal fromVar As Variant) As stdJSON
   'Create array
   Dim oRet As stdJSON
@@ -487,7 +489,7 @@ Public Function ToVBObject() As Object
 End Function
 
 'Returns the current json object
-'@example ```vba
+'@example ```vb
 'With stdJSON.Create()
 '  .add "X", "Y"
 '  set j = .ToSelf()

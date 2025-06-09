@@ -172,8 +172,7 @@ End Sub
 '@param sProc   - Name of method or block to measure
 '@param nCount  - Number of times the block will be ran (used to calculate average time), default = 1.
 '@returns stdPerformance<iMeasure> - Object which upon termination, adds measurement of block to global cache
-'@example
-'```vb
+'@example ```vb
 'With stdPerformance.Measure("Some test expression")
 '  Dim v
 '  For i = 1 to 1000

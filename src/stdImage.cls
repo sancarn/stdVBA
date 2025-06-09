@@ -346,7 +346,7 @@ Private This As TThis
 '@param b - Bytes of Bitmap/Jpeg/Png/... image
 '@param format - The format of the image
 '@returns - Picture object representing data
-'@example ```
+'@example ```vb
 '  Dim b() as Byte: Redim b(1 to 100)
 '  Call stdImage.CreateFromBinary(b).ToFile("H:\test1.png")
 '```
@@ -367,7 +367,9 @@ End Function
 '@param sPath - Path of file
 '@param format - The format of the image
 '@returns - Picture object representing data
-'@example `stdImage.CreateFromFile("H:\test1.bmp").ToFile("H:\test1.png")`
+'@example ```vb
+'stdImage.CreateFromFile("H:\test1.bmp").ToFile("H:\test1.png")
+'```
 Public Function CreateFromFile(ByVal sPath As String, Optional ByVal format As stdImgFormat = stdImgFormatDefault, Optional ByVal transparentColor As Long = 0) As stdImage
   If format = stdImgFormatDefault Then
     Dim pathParts: pathParts = Split(sPath, ".")
@@ -420,7 +422,9 @@ End Function
 '@param sUrl - Url of file
 '@param format - The format of the image
 '@returns - Picture object representing data
-'@example `stdImage.CreateFromURL("https://raw.githubusercontent.com/sancarn/awesome-vba/main/resources/VBALogo.png").ToFile("H:\test.png", stdImgFormatPNG)`
+'@example ```vb
+'stdImage.CreateFromURL("https://raw.githubusercontent.com/sancarn/awesome-vba/main/resources/VBALogo.png").ToFile("H:\test.png", stdImgFormatPNG)
+'```
 '@remark - TODO: consider removing
 Public Function CreateFromUrl(ByVal sURL As String, Optional ByVal format As stdImgFormat = stdImgFormatDefault) As stdImage
   Set CreateFromUrl = New stdImage
@@ -443,7 +447,7 @@ End Function
 '@constructor
 '@param hBitmap - hBitmap (handle to Bitmap)
 '@returns - Picture object representing data
-'@example ```
+'@example ```vb
 '  stdImage.CreateFromHBitmap(Image1.Picture.Handle).ToFile("H:\test.png", stdImgFormatPNG)
 '```
 Public Function CreateFromHBitmap(ByVal hBitmap As LongPtr) As stdImage
@@ -459,7 +463,9 @@ End Function
 'Creates a stdImage from the image in the clipboard
 '@constructor
 '@returns - Picture object representing data
-'@example `stdImage.CreateFromClipboard().ToFile("H:\test.png", stdImgFormatPNG)`
+'@example ```vb
+'stdImage.CreateFromClipboard().ToFile("H:\test.png", stdImgFormatPNG)
+'```
 Public Function CreateFromClipboard() As stdImage
   'Open clipboard
   If Not CBool(OpenClipboardTimeout(getAppHwnd())) Then Call Err.Raise(1, "Value [GET]", "Unable to open clipboard (DllError: " & Err.LastDllError & ")")
@@ -490,7 +496,9 @@ End Function
 '@constructor
 '@param picture - Object to create picture from
 '@returns - Picture object representing data
-'@example `stdImage.CreateFromStdPicture(Userform1.Picture).ToFile("H:\test.png", stdImgFormatPNG)`
+'@example ```vb
+'stdImage.CreateFromStdPicture(Userform1.Picture).ToFile("H:\test.png", stdImgFormatPNG)
+'```
 Public Function CreateFromStdPicture(ByVal picture As stdole.StdPicture) As stdImage
   Set CreateFromStdPicture = CreateFromHBitmap(picture.Handle)
 End Function
@@ -518,7 +526,9 @@ End Function
 '@constructor
 '@param shp as Object<(Excel|Word|PowerPoint).Shape> - Object to create picture from
 '@returns - Picture object representing data
-'@example `stdImage.CreateFromShape(Sheet1.Shapes("Picture 2")).ToFile("H:\test.png")`
+'@example ```vb
+'stdImage.CreateFromShape(Sheet1.Shapes("Picture 2")).ToFile("H:\test.png")
+'```
 Public Function CreateFromShape(ByVal shp As Object) As stdImage
   Select Case Application.Name
     Case "Microsoft Excel"
@@ -532,7 +542,9 @@ End Function
 '@constructor
 '@param chart as Object<(Excel|Word|PowerPoint).Chart> - Object to create picture from
 '@returns - Picture object representing data
-'@example `stdImage.CreateFromChart(Sheet1.ChartObjects(1).Chart).ToFile("H:\test.png")`
+'@example ```vb
+'stdImage.CreateFromChart(Sheet1.ChartObjects(1).Chart).ToFile("H:\test.png")
+'```
 Public Function CreateFromChart(ByVal chart As Object) As stdImage
   Select Case Application.Name
     Case "Microsoft Excel"
@@ -545,7 +557,9 @@ End Function
 'Creates a stdImage object from the desktop window (screenshot)
 '@constructor
 '@returns - Picture object containing screenshot data
-'@example `stdImage.CreateFromScreen().ToFile("H:\test.png")`
+'@example ```vb
+'stdImage.CreateFromScreen().ToFile("H:\test.png")
+'```
 '@TODO: Capture both monitors https://stackoverflow.com/a/34445431/6302131
 Public Function CreateFromScreen() As stdImage
   Dim hDesktop As LongPtr: hDesktop = GetDesktopWindow()
@@ -601,7 +615,7 @@ End Function
 '@constructor
 '@param hIcon - Handle to icon
 '@returns - Picture object representing data
-'@example ```
+'@example ```vb
 'Dim hICON as LongPtr: hICON = stdWindow.CreateFromHwnd(Application.hWnd).HICON
 'stdImage.CreateFromHICON(hICON).ToFile("H:\test.png", stdImgFormatPNG)
 '```
@@ -837,7 +851,9 @@ End Function
 
 'Update a UI control's background picture
 '@param oControl as Object<Control> - The control to update the picture of
-'@example `stdImage.CreateFromFile("H:\test1.bmp").ToUIControl(UserForm1.Image1)`
+'@example ```vb
+'stdImage.CreateFromFile("H:\test1.bmp").ToUIControl(UserForm1.Image1)
+'```
 Public Sub ToUIControl(ByVal oControl As Object)
   Set oControl.Picture = ToStdPicture()
 End Sub
@@ -852,7 +868,9 @@ End Function
 
 'Output the image to a shape's fill
 '@param shp as Object<Excel.Shape> - The shape to fill
-'@example `stdImage.CreateFromFile("H:\test1.bmp").ToShapeFill(ActiveSheet.Shapes(1))`
+'@example ```vb
+'stdImage.CreateFromFile("H:\test1.bmp").ToShapeFill(ActiveSheet.Shapes(1))
+'```
 Public Sub ToShapeFill(ByVal shp As Object)
   Select Case Application.Name
     Case "Microsoft Excel"
