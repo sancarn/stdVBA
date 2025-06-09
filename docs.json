@@ -43,10 +43,10 @@
           },
           {
             "name": "searchType",
-            "type": "EAccFindType=EAccFindType.DepthFirst",
+            "type": "EAccFindType",
             "description": "The type of search to perform, either Breadth First Search (BFS) or Depth First Search (DFS).",
             "optional": true,
-            "defaultValue": null,
+            "defaultValue": "EAccFindType.DepthFirst",
             "paramArray": false
           }
         ],
@@ -84,10 +84,10 @@
           },
           {
             "name": "searchType",
-            "type": "EAccFindType=EAccFindType.DepthFirst",
+            "type": "EAccFindType",
             "description": "The type of search, either Breadth First Search (BFS) or Depth First Search (DFS).",
             "optional": true,
-            "defaultValue": null,
+            "defaultValue": "EAccFindType.DepthFirst",
             "paramArray": false
           }
         ],
@@ -202,7 +202,7 @@
         "params": [
           {
             "name": "sToFilePath",
-            "type": "string",
+            "type": "String",
             "description": "File path to dump text to.",
             "optional": true,
             "defaultValue": "\"\"",
@@ -210,10 +210,10 @@
           },
           {
             "name": "bPrintToDebug",
-            "type": "boolean",
+            "type": "Boolean",
             "description": "Whether to print output to debug window or not.",
             "optional": true,
-            "defaultValue": "true",
+            "defaultValue": "True",
             "paramArray": false
           },
           {
@@ -226,7 +226,7 @@
           },
           {
             "name": "fileNum",
-            "type": "long",
+            "type": "Long",
             "description": "Filenum to output too, typically this will be left unprovided",
             "optional": true,
             "defaultValue": "0",
@@ -792,7 +792,7 @@
         "params": [
           {
             "name": "sFile",
-            "type": "string",
+            "type": "String",
             "description": "File to get help topic for",
             "optional": true,
             "defaultValue": "\"\"",
@@ -1076,7 +1076,7 @@
           },
           {
             "name": "index",
-            "type": "long",
+            "type": "Long",
             "description": "Index of element in parent",
             "optional": false,
             "defaultValue": null,
@@ -1254,7 +1254,7 @@
         "params": [
           {
             "name": "sHaystack",
-            "type": "string",
+            "type": "String",
             "description": "Haystack to split",
             "optional": false,
             "defaultValue": null,
@@ -1262,7 +1262,7 @@
           },
           {
             "name": "sDelimiter",
-            "type": "string",
+            "type": "String",
             "description": "Delimiter",
             "optional": true,
             "defaultValue": "\"",
@@ -1815,7 +1815,7 @@
         "params": [
           {
             "name": "i",
-            "type": "long",
+            "type": "Long",
             "description": "The index at which the item's data should be set",
             "optional": false,
             "defaultValue": null,
@@ -1859,7 +1859,7 @@
           },
           {
             "name": "start",
-            "type": "long",
+            "type": "Long",
             "description": "Location to start search for element.",
             "optional": true,
             "defaultValue": "1",
@@ -1929,7 +1929,7 @@
           },
           {
             "name": "startFrom",
-            "type": "long",
+            "type": "Long",
             "description": "Index to start search for item at. (Internally uses indexOf())",
             "optional": true,
             "defaultValue": "1",
@@ -2197,7 +2197,7 @@
             "type": "stdICallable<(element: Variant)=>Boolean>",
             "description": "Callback to run on each element. If the callback returns true, the element is included in the count.",
             "optional": true,
-            "defaultValue": "nothing",
+            "defaultValue": "Nothing",
             "paramArray": false
           }
         ],
@@ -2259,7 +2259,7 @@
             "type": "stdICallable<(element: Variant)=>Variant>",
             "description": "Callback to run on each element. The return value of this callback is used to determine the maximum value.",
             "optional": true,
-            "defaultValue": "nothing",
+            "defaultValue": "Nothing",
             "paramArray": false
           },
           {
@@ -2298,7 +2298,7 @@
             "type": "stdICallable<(element: Variant)=>Variant>",
             "description": "Callback to run on each element. The return value of this callback is used to determine the minimum value.",
             "optional": true,
-            "defaultValue": "nothing",
+            "defaultValue": "Nothing",
             "paramArray": false
           },
           {
@@ -2431,7 +2431,7 @@
         "params": [
           {
             "name": "i",
-            "type": "long",
+            "type": "Long",
             "description": "The location to get/set the item",
             "optional": false,
             "defaultValue": null,
@@ -2481,7 +2481,7 @@
           },
           {
             "name": "arr2",
-            "type": "variant",
+            "type": "Variant",
             "description": "The array which is being assigned to this array",
             "optional": false,
             "defaultValue": null,
@@ -2507,7 +2507,7 @@
           },
           {
             "name": "arr2",
-            "type": "variant",
+            "type": "Variant",
             "description": "The array which is being assigned to this array",
             "optional": false,
             "defaultValue": null,
@@ -2575,7 +2575,7 @@
           },
           {
             "name": "iIndex",
-            "type": "long",
+            "type": "Long",
             "description": "The index at which the item was added",
             "optional": false,
             "defaultValue": null,
@@ -2583,7 +2583,7 @@
           },
           {
             "name": "item",
-            "type": "variant",
+            "type": "Variant",
             "description": "The item which was be added",
             "optional": false,
             "defaultValue": null,
@@ -2609,7 +2609,7 @@
           },
           {
             "name": "iIndex",
-            "type": "long",
+            "type": "Long",
             "description": "The index at which the item will be removed",
             "optional": false,
             "defaultValue": null,
@@ -2617,7 +2617,7 @@
           },
           {
             "name": "item",
-            "type": "variant",
+            "type": "Variant",
             "description": "The item which will be removed",
             "optional": false,
             "defaultValue": null,
@@ -2651,7 +2651,7 @@
           },
           {
             "name": "iIndex",
-            "type": "long",
+            "type": "Long",
             "description": "The index at which the item was removed",
             "optional": false,
             "defaultValue": null,
@@ -3224,7 +3224,7 @@
         "params": [
           {
             "name": "sActivatableClassId",
-            "type": "string",
+            "type": "String",
             "description": "An activatable WinRT class ID.",
             "optional": false,
             "defaultValue": null,
@@ -3533,7 +3533,7 @@
         "params": [
           {
             "name": "sWorkbookPath",
-            "type": "string",
+            "type": "String",
             "description": "The path of the workbook to create the callback from.",
             "optional": false,
             "defaultValue": null,
@@ -3541,7 +3541,7 @@
           },
           {
             "name": "sModuleName",
-            "type": "string",
+            "type": "String",
             "description": "The name of the module to create the callback from.",
             "optional": false,
             "defaultValue": null,
@@ -3549,7 +3549,7 @@
           },
           {
             "name": "sMethodName",
-            "type": "string",
+            "type": "String",
             "description": "The name of the method to create the callback from.",
             "optional": false,
             "defaultValue": null,
@@ -3883,7 +3883,7 @@
         "params": [
           {
             "name": "sFormatName",
-            "type": "string",
+            "type": "String",
             "description": "Name of format to obtain",
             "optional": false,
             "defaultValue": null,
@@ -4448,7 +4448,7 @@
         "params": [
           {
             "name": "iType",
-            "type": "vbVarType",
+            "type": "VbVarType",
             "description": "The vartype of the array generated",
             "optional": true,
             "defaultValue": "vbVarType.vbVariant",
@@ -4619,7 +4619,7 @@
             "type": "stdICallable<(element: Variant)=>Variant>",
             "description": "If a callback provided, sorts items based on values returned by the callback. Otherwise sorts items based on values in enumerator",
             "optional": true,
-            "defaultValue": "nothing",
+            "defaultValue": "Nothing",
             "paramArray": false
           }
         ],
@@ -4650,7 +4650,7 @@
             "type": "stdICallable<(element: Variant)=>Variant>",
             "description": "If a callback provided, filters out duplicate items based on values returned by the callback. Otherwise filters duplicate item based on their value.",
             "optional": true,
-            "defaultValue": "nothing",
+            "defaultValue": "Nothing",
             "paramArray": false
           }
         ],
@@ -4731,7 +4731,7 @@
         "params": [
           {
             "name": "sDelimiter",
-            "type": "string",
+            "type": "String",
             "description": "Enumerator to concat with that of `me`.",
             "optional": true,
             "defaultValue": "\"",
@@ -4762,7 +4762,7 @@
         "params": [
           {
             "name": "tv",
-            "type": "variant",
+            "type": "Variant",
             "description": "Element to find.",
             "optional": false,
             "defaultValue": null,
@@ -4793,7 +4793,7 @@
         "params": [
           {
             "name": "tv",
-            "type": "variant",
+            "type": "Variant",
             "description": "Element to find",
             "optional": false,
             "defaultValue": null,
@@ -4824,7 +4824,7 @@
         "params": [
           {
             "name": "tv",
-            "type": "variant",
+            "type": "Variant",
             "description": "Element to find",
             "optional": false,
             "defaultValue": null,
@@ -5109,7 +5109,7 @@
             "type": "stdICallable<(element: Variant)=>Variant>",
             "description": "If callback given, callback to obtain max value of. Else max of the elements values are found.",
             "optional": true,
-            "defaultValue": "nothing",
+            "defaultValue": "Nothing",
             "paramArray": false
           }
         ],
@@ -5140,7 +5140,7 @@
             "type": "stdICallable<(element: Variant)=>Variant>",
             "description": "If callback given, callback to obtain min value of. Else min of the elements values are found.",
             "optional": true,
-            "defaultValue": "nothing",
+            "defaultValue": "Nothing",
             "paramArray": false
           }
         ],
@@ -5171,7 +5171,7 @@
             "type": "stdICallable<(element: Variant)=>Variant>",
             "description": "A callback returning an item to sum. If no callback supplied then the elements themselves will be summed",
             "optional": true,
-            "defaultValue": "nothing",
+            "defaultValue": "Nothing",
             "paramArray": false
           }
         ],
@@ -5221,7 +5221,7 @@
         "params": [
           {
             "name": "iTimes",
-            "type": "long",
+            "type": "Long",
             "description": "Times to execute the cb on the collection",
             "optional": false,
             "defaultValue": null,
@@ -5268,10 +5268,10 @@
           },
           {
             "name": "ifMissing",
-            "type": "variant",
+            "type": "Variant",
             "description": "Value to return if missing",
             "optional": true,
-            "defaultValue": "null",
+            "defaultValue": "Null",
             "paramArray": false
           }
         ],
@@ -5368,10 +5368,10 @@
           },
           {
             "name": "byIndex",
-            "type": "boolean",
+            "type": "Boolean",
             "description": "If true, then index of item is used, instead of potentially key.",
             "optional": true,
-            "defaultValue": "false",
+            "defaultValue": "False",
             "paramArray": false
           }
         ],
@@ -5443,7 +5443,7 @@
           },
           {
             "name": "iMaxLength",
-            "type": "long",
+            "type": "Long",
             "description": "Maximum length of enumerator. The enumerator will refuse to go beyond this number of items.",
             "optional": true,
             "defaultValue": "1000000",
@@ -5482,7 +5482,7 @@
           },
           {
             "name": "iMaxLength",
-            "type": "long",
+            "type": "Long",
             "description": "Maximum length of enumerator. The enumerator will refuse to go beyond this number of items. Used in order to prevent runaway processes.",
             "optional": true,
             "defaultValue": "1000000",
@@ -5513,7 +5513,7 @@
         "params": [
           {
             "name": "v",
-            "type": "variant",
+            "type": "Variant",
             "description": "the Array to create the enumerator from.",
             "optional": false,
             "defaultValue": null,
@@ -5521,7 +5521,7 @@
           },
           {
             "name": "iMaxLength",
-            "type": "long",
+            "type": "Long",
             "description": "Maximum length of enumerator. The enumerator will refuse to go beyond this number of items. Used in order to prevent runaway processes.",
             "optional": true,
             "defaultValue": "1000000",
@@ -5560,7 +5560,7 @@
           },
           {
             "name": "iMaxLength",
-            "type": "long",
+            "type": "Long",
             "description": "Maximum length of enumerator. The enumerator will refuse to go beyond this number of items. Used in order to prevent runaway processes.",
             "optional": true,
             "defaultValue": "1000000",
@@ -5591,7 +5591,7 @@
         "params": [
           {
             "name": "iMaxLength",
-            "type": "long",
+            "type": "Long",
             "description": "Maximum length of enumerator. The enumerator will refuse to go beyond this number of items. Used in order to prevent runaway processes.",
             "optional": true,
             "defaultValue": "1000000",
@@ -5702,7 +5702,7 @@
         "params": [
           {
             "name": "dictionary",
-            "type": "object",
+            "type": "Object",
             "description": "The dictionary to create the enumerator from.",
             "optional": false,
             "defaultValue": null,
@@ -5733,7 +5733,7 @@
         "params": [
           {
             "name": "iEnumeratorType",
-            "type": "long",
+            "type": "Long",
             "description": "Enumerator type to create",
             "optional": false,
             "defaultValue": null,
@@ -5741,7 +5741,7 @@
           },
           {
             "name": "iMaxLength",
-            "type": "long",
+            "type": "Long",
             "description": "Maximum length of enumerator. The enumerator will refuse to go beyond this number of items. Used in order to prevent runaway processes.",
             "optional": false,
             "defaultValue": null,
@@ -5793,7 +5793,7 @@
           },
           {
             "name": "stepName",
-            "type": "string",
+            "type": "String",
             "description": "The name of the step. This can be used for resetting and error reporting purposes.",
             "optional": true,
             "defaultValue": "\"\"",
@@ -5886,7 +5886,7 @@
         "params": [
           {
             "name": "vResult",
-            "type": "variant",
+            "type": "Variant",
             "description": "The result to return",
             "optional": false,
             "defaultValue": null,
@@ -5914,7 +5914,7 @@
         "params": [
           {
             "name": "sName",
-            "type": "string",
+            "type": "String",
             "description": "Step name to jump to (if not specified, will reset to first step).",
             "optional": true,
             "defaultValue": "\"\"",
@@ -5961,7 +5961,7 @@
             "type": "stdICallable<(agent as Object)=>void>",
             "description": "Called when an agent has been initialised. This is called only once per agent object. The agent environment is received as the parameter.",
             "optional": true,
-            "defaultValue": "nothing",
+            "defaultValue": "Nothing",
             "paramArray": false
           },
           {
@@ -5969,7 +5969,7 @@
             "type": "stdICallable<(agent as Object)=>void>",
             "description": "Called when an agent is about to be destroyed. This is called only once per agent object. The agent environment is received as the parameter. Typically used to cleanup.",
             "optional": true,
-            "defaultValue": "nothing",
+            "defaultValue": "Nothing",
             "paramArray": false
           },
           {
@@ -5977,7 +5977,7 @@
             "type": "stdICallable<(iFinishedCount as long, iFiberCount as long)=>void>",
             "description": "A callback to call every second to update on progress.",
             "optional": true,
-            "defaultValue": "nothing",
+            "defaultValue": "Nothing",
             "paramArray": false
           }
         ],
@@ -6298,7 +6298,7 @@
         "params": [
           {
             "name": "sName",
-            "type": "string",
+            "type": "String",
             "description": "The name of the fiber",
             "optional": false,
             "defaultValue": null,
@@ -6518,7 +6518,7 @@
           },
           {
             "name": "Server",
-            "type": "string",
+            "type": "String",
             "description": "the IP address (or hostname) of the proxy server",
             "optional": true,
             "defaultValue": null,
@@ -6534,7 +6534,7 @@
           },
           {
             "name": "User",
-            "type": "string",
+            "type": "String",
             "description": "Username for proxy server authentication",
             "optional": true,
             "defaultValue": null,
@@ -6542,7 +6542,7 @@
           },
           {
             "name": "Pass",
-            "type": "string",
+            "type": "String",
             "description": "Password for proxy server authentication",
             "optional": true,
             "defaultValue": null,
@@ -6829,7 +6829,7 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": "variant",
+          "type": "Variant",
           "description": ""
         },
         "deprecation": {
@@ -7598,7 +7598,7 @@
         "params": [
           {
             "name": "picture",
-            "type": "stdole.stdPicture",
+            "type": "stdole.StdPicture",
             "description": "Object to create picture from",
             "optional": false,
             "defaultValue": null,
@@ -7796,7 +7796,7 @@
             "type": "Boolean",
             "description": "If true, only the client area of the window is captured. If false, the entire window is captured.",
             "optional": true,
-            "defaultValue": "false",
+            "defaultValue": "False",
             "paramArray": false
           }
         ],
@@ -7998,7 +7998,7 @@
             "type": "Double",
             "description": "Top coord of the newly placed image",
             "optional": true,
-            "defaultValue": "0 ",
+            "defaultValue": "0",
             "paramArray": false
           },
           {
@@ -8286,7 +8286,7 @@
         "params": [
           {
             "name": "key",
-            "type": "string",
+            "type": "String",
             "description": "If `this.iType == eJSONObject` then this is the key it should be assigned to. Else this param is unused.",
             "optional": true,
             "defaultValue": "\"\"",
@@ -8325,7 +8325,7 @@
         "params": [
           {
             "name": "key",
-            "type": "string",
+            "type": "String",
             "description": "If `this.iType == eJSONObject` then this is the key it should be assigned to. Else this param is unused.",
             "optional": true,
             "defaultValue": "\"\"",
@@ -8427,7 +8427,7 @@
         "params": [
           {
             "name": "sPath",
-            "type": "string",
+            "type": "String",
             "description": "Path to file to dump JSON data to",
             "optional": false,
             "defaultValue": null,
@@ -8685,7 +8685,7 @@
         "params": [
           {
             "name": "sJSON",
-            "type": "string",
+            "type": "String",
             "description": "string to create json from",
             "optional": false,
             "defaultValue": null,
@@ -8693,26 +8693,26 @@
           },
           {
             "name": "AllowUnquotedKeys",
-            "type": "boolean",
+            "type": "Boolean",
             "description": "Allow unquoted keys? E.G. \"{a:\"\"hello\"\"}\"",
             "optional": true,
-            "defaultValue": "false",
+            "defaultValue": "False",
             "paramArray": false
           },
           {
             "name": "AllowSingleQuoteStrings",
-            "type": "boolean",
+            "type": "Boolean",
             "description": "Allow single quoted strings? E.G. \"{'a':'hello'}\"",
             "optional": true,
-            "defaultValue": "false",
+            "defaultValue": "False",
             "paramArray": false
           },
           {
             "name": "StoreLargeNumsAsString",
-            "type": "boolean",
+            "type": "Boolean",
             "description": "Store Large numbers >16 chars as string instead of doubles. This may be useful if precision is important.",
             "optional": true,
-            "defaultValue": "false",
+            "defaultValue": "False",
             "paramArray": false
           }
         ],
@@ -8740,7 +8740,7 @@
         "params": [
           {
             "name": "sJSONFile",
-            "type": "string",
+            "type": "String",
             "description": "Path to file containing json data",
             "optional": false,
             "defaultValue": null,
@@ -9265,7 +9265,7 @@
         "params": [
           {
             "name": "sKey",
-            "type": "string",
+            "type": "String",
             "description": "Name of measurement to add to global cache",
             "optional": false,
             "defaultValue": null,
@@ -9382,7 +9382,10 @@
     "remarks": [],
     "examples": [],
     "devNotes": [],
-    "todos": [],
+    "todos": [
+      "Need to make this more application agnostic",
+      "Make this more application agnostic"
+    ],
     "requires": [],
     "constructors": [
       {
@@ -9396,7 +9399,7 @@
         "params": [
           {
             "name": "sProc",
-            "type": "string",
+            "type": "String",
             "description": "Name of method or block to measure",
             "optional": false,
             "defaultValue": null,
@@ -9404,10 +9407,10 @@
           },
           {
             "name": "nCount",
-            "type": "double=1",
+            "type": "Double",
             "description": "Number of times the block will be ran (used to calculate average time), default = 1.",
             "optional": true,
-            "defaultValue": null,
+            "defaultValue": "1",
             "paramArray": false
           }
         ],
@@ -9439,23 +9442,23 @@
         "params": [
           {
             "name": "ScreenUpdating",
-            "type": "boolean",
+            "type": "Boolean",
             "description": "ScreenUpdating set value",
             "optional": true,
-            "defaultValue": "false",
+            "defaultValue": "False",
             "paramArray": false
           },
           {
             "name": "EnableEvents",
-            "type": "boolean",
+            "type": "Boolean",
             "description": "EnableEvents set value",
             "optional": true,
-            "defaultValue": "false",
+            "defaultValue": "False",
             "paramArray": false
           },
           {
             "name": "Calculation",
-            "type": "long",
+            "type": "Long",
             "description": "Calculation set value",
             "optional": true,
             "defaultValue": "-4135",
@@ -10194,7 +10197,7 @@
             "type": "stdQuadTree",
             "description": "The parent of this quadtree element",
             "optional": true,
-            "defaultValue": "nothing",
+            "defaultValue": "Nothing",
             "paramArray": false
           }
         ],
@@ -11080,7 +11083,7 @@
         "params": [
           {
             "name": "sHaystack",
-            "type": "string",
+            "type": "String",
             "description": "Haystack to search",
             "optional": false,
             "defaultValue": null,
@@ -11910,7 +11913,7 @@
         "params": [
           {
             "name": "oControls",
-            "type": "MSForms.controls",
+            "type": "MSForms.Controls",
             "description": "The controls collection to add the control to",
             "optional": false,
             "defaultValue": null,
@@ -14742,7 +14745,7 @@
             "type": "Object",
             "description": "Optional. Application object to create window from. If not specified, the current running application is used.",
             "optional": true,
-            "defaultValue": "nothing",
+            "defaultValue": "Nothing",
             "paramArray": false
           }
         ],
