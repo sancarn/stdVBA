@@ -1,0 +1,7 @@
+{
+  "compilerOptions": {
+    "types": ["node"],
+    "target": "es2020",
+    "lib": ["es2020"]
+  }
+}

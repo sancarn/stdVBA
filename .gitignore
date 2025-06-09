@@ -1,1 +1,2 @@
 *.DS_Store
+Tools/VBDocsGen/node_modules/*
