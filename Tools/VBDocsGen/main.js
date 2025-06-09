@@ -208,7 +208,7 @@ function parseModuleOrClass(content, fileName) {
   );
   const defaultMemberFinder = /Attribute (\w+).VB_(Var)?UserMemId += +0/i;
   const defaultMember = defaultMemberFinder.exec(content)?.groups?.[1];
-  const implementsFinder = /implements +(?<interface>\w+)/gi;
+  const implementsFinder = /^implements +(?<interface>\w+)/gi;
   const _implements = Array.from(content.matchAll(implementsFinder)).map(
     (m) => m.groups?.interface
   );
