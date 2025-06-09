@@ -370,19 +370,12 @@ function parseComment(comment: string): ICommentStore {
 
   //Extracts and groups comments under their flag/tag type e.g. "@example hello\r\n'world"
   const regexTags = {
-    description: /(?<description>.+\s*(?:'[^@][^\n]*\n?)*)/i,
+    description: /(?<description>.+\s*(?:.*\n?)*)/i,
     param:
-      /(?<name>\w+)\s*(?:as\s+(?<type>[^-]+))?(?:\s*-\s*(?<description>.+\s*(?:'[^@][^\n]*\n?)*))?/i, //regex needs work
-    returns:
-      /(?<type>[^-\r\n]+)?(?:\s*-\s+(?<description>.+\s*(?:'[^@][^\n]*\n?)*))?/i,
-    example: /(?<description>.+\s*(?:'[^@][^\n]*\n?)*)/i,
-    remark: /(?<description>.+\s*(?:'[^@][^\n]*\n?)*)/i,
-    deprecated: /(?<description>.+\s*(?:'[^@][^\n]*\n?)*)/i,
-    devNote: /(?<description>.+\s*(?:'[^@][^\n]*\n?)*)/i,
-    TODO: /(?<description>.+\s*(?:'[^@][^\n]*\n?)*)/i,
+      /(?<name>\w+)\s*(?:as\s+(?<type>[^-]+))?(?:\s*-\s*(?<description>.+\s*(?:.*\n?)*))?/i, //regex needs work
+    returns: /(?<type>[^-\r\n]+)?(?:\s*-\s+(?<description>.+\s*(?:.*\n?)*))?/i,
     constructor: /(?:constructor)?/g, //overwrites native constructor
     throws: /(?<errNumber>\d+)\s*,\s*(?<errText>.+)/i,
-    requires: /(?<description>.+)/i,
   };
 
   //Parse comment into comment store
@@ -397,8 +390,7 @@ function parseComment(comment: string): ICommentStore {
     //If comment not valid ignore
     switch (tag) {
       case "description":
-        if (!!groups?.description)
-          commentStore.push({ tag, data: groups.description });
+        commentStore.push({ tag, data: tagLine.content.trim() });
         break;
       case "param":
         if (!!groups?.name)
@@ -421,13 +413,13 @@ function parseComment(comment: string): ICommentStore {
         });
         break;
       case "example":
-        commentStore.push({ tag, data: groups?.description });
+        commentStore.push({ tag, data: tagLine.content.trim() });
         break;
       case "remark":
-        commentStore.push({ tag, data: groups?.description });
+        commentStore.push({ tag, data: tagLine.content.trim() });
         break;
       case "devNote":
-        commentStore.push({ tag, data: groups?.description });
+        commentStore.push({ tag, data: tagLine.content.trim() });
         break;
       case "constructor":
         commentStore.push({ tag });
@@ -436,10 +428,10 @@ function parseComment(comment: string): ICommentStore {
         commentStore.push({ tag });
         break;
       case "deprecated":
-        commentStore.push({ tag, data: groups?.description });
+        commentStore.push({ tag, data: tagLine.content.trim() });
         break;
       case "TODO":
-        commentStore.push({ tag, data: groups?.description });
+        commentStore.push({ tag, data: tagLine.content.trim() });
         break;
       case "throws":
         commentStore.push({
@@ -451,7 +443,7 @@ function parseComment(comment: string): ICommentStore {
         });
         break;
       case "requires":
-        commentStore.push({ tag, data: groups?.description });
+        commentStore.push({ tag, data: tagLine.content.trim() });
         break;
       case "static":
         commentStore.push({ tag });
