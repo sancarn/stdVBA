@@ -30,7 +30,7 @@
         "description": "Search the IAccessible tree for elements which match a certain criteria. Return the first element found.",
         "remarks": [],
         "examples": [
-          "```\r\n'Find where name is \"hello\" and class is \"world\":\r\nel.FindFirst(stdLambda.Create(\"$1.name=\"\"hello\"\" and $1.class=\"\"world\"\"\"))\r\n'Find first element named \"hello\" at depth > 4:\r\nel.FindFirst(stdLambda.Create(\"$1.name = \"\"hello\"\" AND $2 > 4\"))\r\n```"
+          "```vb\r\n'Find where name is \"hello\" and class is \"world\":\r\nel.FindFirst(stdLambda.Create(\"$1.name=\"\"hello\"\" and $1.class=\"\"world\"\"\"))\r\n'Find first element named \"hello\" at depth > 4:\r\nel.FindFirst(stdLambda.Create(\"$1.name = \"\"hello\"\" AND $2 > 4\"))\r\n```"
         ],
         "params": [
           {
@@ -71,7 +71,7 @@
         "description": "Search the IAccessible tree for elements which match a certain criteria. Return all elements found.",
         "remarks": [],
         "examples": [
-          "```\r\n'Find where name is \"hello\" and class is \"world\":\r\nel.FindAll(stdLambda.Create(\"$1.name=\"\"hello\"\" and $1.class=\"\"world\"\"\"))\r\n'Find all elements with depth <= 4:\r\nel.FindAll(stdLambda.Create(\"if $2 < 4 then 4 else if $2 = 4 then 1 else 3\"))\r\n```"
+          "```vb\r\n'Find where name is \"hello\" and class is \"world\":\r\nel.FindAll(stdLambda.Create(\"$1.name=\"\"hello\"\" and $1.class=\"\"world\"\"\"))\r\n'Find all elements with depth <= 4:\r\nel.FindAll(stdLambda.Create(\"if $2 < 4 then 4 else if $2 = 4 then 1 else 3\"))\r\n```"
         ],
         "params": [
           {
@@ -112,7 +112,7 @@
         "description": "Performs the default action of the `IAccessible` object",
         "remarks": [],
         "examples": [
-          "`app.getButton().DoDefaultAction()`"
+          "```vb\r\napp.getButton().DoDefaultAction()\r\n```"
         ],
         "params": [],
         "returns": null,
@@ -471,7 +471,7 @@
         "description": "Get a unique identifier for an element.",
         "remarks": [],
         "examples": [
-          "`stdAcc.CreateFromMouse().Identity`"
+          "```vb\r\nstdAcc.CreateFromMouse().Identity\r\n```"
         ],
         "params": [],
         "returns": {
@@ -1032,7 +1032,7 @@
         "description": "Creates an `stdAcc` object for the element at a given path from the current element.",
         "remarks": [],
         "examples": [
-          "`Debug.Print stdAcc.CreateFromApplication().CreateFromPath(\"3.1\").name`"
+          "```vb\r\nDebug.Print stdAcc.CreateFromApplication().CreateFromPath(\"3.1\").name\r\n```"
         ],
         "params": [
           {
@@ -1445,7 +1445,7 @@
         "description": "Split an array into chunks of a specified size",
         "remarks": [],
         "examples": [
-          "```vba\r\nstdArray.Create(1,2,3,4,5,6,7).SplitToChunks(3)\r\n  '=> [[1,2,3],[4,5,6],[7]]\r\n```"
+          "```vb\r\nstdArray.Create(1,2,3,4,5,6,7).SplitToChunks(3)\r\n  '=> [[1,2,3],[4,5,6],[7]]\r\n```"
         ],
         "params": [
           {
@@ -1776,7 +1776,7 @@
         "description": "Check if all elements in the array pass a test",
         "remarks": [],
         "examples": [
-          "`if incidents.IsEvery(cbValid) then ...`"
+          "```vb\r\nif incidents.IsEvery(cbValid) then ...\r\n```"
         ],
         "params": [
           {
@@ -1809,7 +1809,7 @@
         "description": "Check if any elements in the array pass a test",
         "remarks": [],
         "examples": [
-          "`if incidents.IsSome(cbValid) then ...`"
+          "```vb\r\nif incidents.IsSome(cbValid) then ...\r\n```"
         ],
         "params": [
           {
@@ -1842,7 +1842,7 @@
         "description": "Call a callback on each element of the array",
         "remarks": [],
         "examples": [
-          "`incidents.ForEach(cbPrint)`"
+          "```vb\r\nincidents.ForEach(cbPrint)\r\n```"
         ],
         "params": [
           {
@@ -1872,7 +1872,7 @@
         "description": "Call a callback on each element of the array and return a new array with the results",
         "remarks": [],
         "examples": [
-          "`incidents.Map(cbGetId)`"
+          "```vb\r\nincidents.Map(cbGetId)\r\n```"
         ],
         "params": [
           {
@@ -1905,7 +1905,7 @@
         "description": "Remove all non-unqiue elements from the array. Given some callback to generate a key for each element, this method will remove all elements which have the same key.",
         "remarks": [],
         "examples": [
-          "`incidents.Unique(cbGetId)`"
+          "```vb\r\nincidents.Unique(cbGetId)\r\n```"
         ],
         "params": [
           {
@@ -1938,7 +1938,7 @@
         "description": "Executes a user-supplied \"reducer\" callback function on each element of the array, in order, passing in the return\r\nvalue from the calculation on the preceding element. The final result of running the reducer across all elements\r\nof the array is a single value.",
         "remarks": [],
         "examples": [
-          "`values.Reduce(cbSum, 0)`"
+          "```vb\r\nvalues.Reduce(cbSum, 0)\r\n```"
         ],
         "params": [
           {
@@ -2153,7 +2153,7 @@
         "description": "For-each compatibility",
         "remarks": [],
         "examples": [
-          "`For each obj in myEnum: ... : next`"
+          "```vb\r\nFor each obj in myEnum: ... : next\r\n```"
         ],
         "params": [],
         "returns": {
@@ -2708,7 +2708,7 @@
         "description": "Call `IUnknown::QueryInterface` on the object",
         "remarks": [],
         "examples": [
-          "```\r\n  'Get ITypeInfo\r\n  set typeInfo = com.unkQueryInterface(\"00020401-0000-0000-C000-000000000046\")\r\n```"
+          "```vb\r\n  'Get ITypeInfo\r\n  set typeInfo = com.unkQueryInterface(\"00020401-0000-0000-C000-000000000046\")\r\n```"
         ],
         "params": [
           {
@@ -2879,7 +2879,7 @@
         "description": "Call a function in the VTable of the object at a specified offset",
         "remarks": [],
         "examples": [
-          "```\r\n  Dim pITypeInfo As IUnknown\r\n  Dim hResult As Long: hResult = com.CallVT(EIUnknown.QueryInterface, vbLong, VarPtr(tGUID.Data1), VarPtr(pITypeInfo))\r\n  If hResult <> S_OK Then Err.Raise hResult, \"InterfaceInfo\", \"stdCOM::InterfaceInfo\"\r\n```"
+          "```vb\r\n  Dim pITypeInfo As IUnknown\r\n  Dim hResult As Long: hResult = com.CallVT(EIUnknown.QueryInterface, vbLong, VarPtr(tGUID.Data1), VarPtr(pITypeInfo))\r\n  If hResult <> S_OK Then Err.Raise hResult, \"InterfaceInfo\", \"stdCOM::InterfaceInfo\"\r\n```"
         ],
         "params": [
           {
@@ -2935,8 +2935,8 @@
         "description": "Obtain raw object from stdCOM wrapper",
         "remarks": [],
         "examples": [
-          "`stdCOM.Create(Application).Object.Name`",
-          "`stdCOM.CreateFromPtr(ObjPtr(Application)).Object.Name`"
+          "```vb\r\nstdCOM.Create(Application).Object.Name\r\n```",
+          "```vb\r\nstdCOM.CreateFromPtr(ObjPtr(Application)).Object.Name\r\n```"
         ],
         "params": [],
         "returns": {
@@ -2961,8 +2961,8 @@
         "description": "Obtain raw object from stdCOM wrapper",
         "remarks": [],
         "examples": [
-          "`stdCOM.Create(Application).Object.Name`",
-          "`stdCOM.CreateFromPtr(ObjPtr(Application)).Object.Name`"
+          "```vb\r\nstdCOM.Create(Application).Object.Name\r\n```",
+          "```vb\r\nstdCOM.CreateFromPtr(ObjPtr(Application)).Object.Name\r\n```"
         ],
         "params": [],
         "returns": {
@@ -3014,7 +3014,7 @@
         "description": "Obtain Type Information from object",
         "remarks": [],
         "examples": [
-          "`myCom.TypeInfo.CallVT(EITypeInfo.GetTypeAttr, vbLong, VarPtr(lPtr))`"
+          "```vb\r\nmyCom.TypeInfo.CallVT(EITypeInfo.GetTypeAttr, vbLong, VarPtr(lPtr))\r\n```"
         ],
         "params": [],
         "returns": {
@@ -3085,7 +3085,7 @@
         "description": "Obtain a collection of all property names on an object",
         "remarks": [],
         "examples": [
-          "```\r\n  for each vProp in stdCOM.Create(Application).Properties\r\n    Debug.Print vProp\r\n  next\r\n```"
+          "```vb\r\n  for each vProp in stdCOM.Create(Application).Properties\r\n    Debug.Print vProp\r\n  next\r\n```"
         ],
         "params": [
           {
@@ -3218,7 +3218,7 @@
         "description": "Create `stdCOM` object from WinRT Activatable ClassID.",
         "remarks": [],
         "examples": [
-          "`stdCOM.CreateFromWinRTClassID(\"Windows.Storage.Pickers.FolderPicker\")`"
+          "```vb\r\nstdCOM.CreateFromWinRTClassID(\"Windows.Storage.Pickers.FolderPicker\")\r\n```"
         ],
         "params": [
           {
@@ -3251,7 +3251,7 @@
         "description": "Create `stdCOM` object from a CLSID and IID.",
         "remarks": [],
         "examples": [
-          "```\r\n  stdCOM.CreateFromClassAndIID(\"FF48DBA4-60EF-4201-AA87-54103EEF594E\",\"30CBE57D-D9D0-452A-AB13-7AC5AC4825EE\") 'IUIAutomation\r\n```"
+          "```vb\r\n  stdCOM.CreateFromClassAndIID(\"FF48DBA4-60EF-4201-AA87-54103EEF594E\",\"30CBE57D-D9D0-452A-AB13-7AC5AC4825EE\") 'IUIAutomation\r\n```"
         ],
         "params": [
           {
@@ -4368,7 +4368,7 @@
         "description": "Get the next value in the dataset",
         "remarks": [],
         "examples": [
-          "```\r\nDim v as Variant\r\nWhile enumNext(v)\r\n  Debug.Print v\r\nWend\r\n```"
+          "```vb\r\nDim v as Variant\r\nWhile enumNext(v)\r\n  Debug.Print v\r\nWend\r\n```"
         ],
         "params": [
           {
@@ -5066,8 +5066,8 @@
         "description": "Returns a new enumerator containing groups from groupBy, with the key and item properties added",
         "remarks": [],
         "examples": [
-          "```\r\nDim e as stdEnumerator: set e = stdEnumerator.CreateFromArray(Array(1,2,3,2,2,1,3,2,3,1,2,3))\r\nDebug.Print e.groupByEx(stdLambda.Create(\"$1\")).Map(stdLambda.Create(\"$1.key & \"\"-\"\" & $1.value.length\")).Join(\";\")\r\n```",
-          "```\r\n'Get the largest count\r\nDim e as stdEnumerator: set e = stdEnumerator.CreateFromArray(Array(1,2,3,2,2,1,3,2,3,1,2,3))\r\nDebug.Print e.groupByEx(stdLambda.Create(\"$1\")).Sort(stdLambda.Create(\"-1 * $1.value.length\")).Item(1)(\"key\")\r\n```"
+          "```vb\r\nDim e as stdEnumerator: set e = stdEnumerator.CreateFromArray(Array(1,2,3,2,2,1,3,2,3,1,2,3))\r\nDebug.Print e.groupByEx(stdLambda.Create(\"$1\")).Map(stdLambda.Create(\"$1.key & \"\"-\"\" & $1.value.length\")).Join(\";\")\r\n```",
+          "```vb\r\n'Get the largest count\r\nDim e as stdEnumerator: set e = stdEnumerator.CreateFromArray(Array(1,2,3,2,2,1,3,2,3,1,2,3))\r\nDebug.Print e.groupByEx(stdLambda.Create(\"$1\")).Sort(stdLambda.Create(\"-1 * $1.value.length\")).Item(1)(\"key\")\r\n```"
         ],
         "params": [
           {
@@ -5293,7 +5293,7 @@
         "description": "Get the first `iCount` elements of the collection. Useful for testing",
         "remarks": [],
         "examples": [
-          "`stdEnumerator.CreateFromArray(Array(1,2,3,4,5,6,7,8,9)).First(3).Join(\",\") '=>1,2,3`"
+          "```vb\r\nstdEnumerator.CreateFromArray(Array(1,2,3,4,5,6,7,8,9)).First(3).Join(\",\") '=>1,2,3\r\n```"
         ],
         "params": [
           {
@@ -5694,7 +5694,7 @@
         "description": "Translates a dictionary to a Enumerator of dictionaries with key and value properties.",
         "remarks": [],
         "examples": [
-          "```\r\nset dict = stdEnumerator.CreateFromArray(Array(1,2,3,2,2,1,3,2,3,1,2,3)).groupBy(stdLambda.Create(\"$1\"))\r\nset dictEx = stdEnumerator.CreateFromDictionaryEx(dict).forEach(stdLambda.Create(\"let $1.value = $1.value.count\")).sort(stdLambda.Create(\"$1.count\")).last\r\n```"
+          "```vb\r\nset dict = stdEnumerator.CreateFromArray(Array(1,2,3,2,2,1,3,2,3,1,2,3)).groupBy(stdLambda.Create(\"$1\"))\r\nset dictEx = stdEnumerator.CreateFromDictionaryEx(dict).forEach(stdLambda.Create(\"let $1.value = $1.value.count\")).sort(stdLambda.Create(\"$1.count\")).last\r\n```"
         ],
         "params": [
           {
@@ -6887,7 +6887,7 @@
         "description": "Authenticator will logon with Windows login credentials if requested",
         "remarks": [],
         "examples": [
-          "`stdHTTP.Create(\"someURL\", Authenticator:=stdCallback.CreateFromModule(\"stdHTTPAuthenticators\", \"WindowsAuthenticator\"))`"
+          "```vb\r\nstdHTTP.Create(\"someURL\", Authenticator:=stdCallback.CreateFromModule(\"stdHTTPAuthenticators\", \"WindowsAuthenticator\"))\r\n```"
         ],
         "params": [
           {
@@ -6951,7 +6951,7 @@
           "This authenticator will send the username and password in the clear. It is recommended to use this only over HTTPS."
         ],
         "examples": [
-          "`stdHTTP.Create(\"https://postman-echo.com/basic-auth\", Authenticator:=stdCallback.CreateFromModule(\"stdHTTPAuthenticators\", \"HttpBasicAuthenticator\").Bind(\"postman\", \"password\"))`"
+          "```vb\r\nstdHTTP.Create(\"https://postman-echo.com/basic-auth\", Authenticator:=stdCallback.CreateFromModule(\"stdHTTPAuthenticators\", \"HttpBasicAuthenticator\").Bind(\"postman\", \"password\"))\r\n```"
         ],
         "params": [
           {
@@ -7029,7 +7029,7 @@
         "description": "Token Authenticator",
         "remarks": [],
         "examples": [
-          "`stdHTTP.Create(\"https://postman-echo.com/basic-auth\", Authenticator:=stdCallback.CreateFromModule(\"stdHTTPAuthenticators\", \"TokenAuthenticator\").Bind(\"PRIVATE-TOKEN\", \"{{your-token}}\"))`"
+          "```vb\r\nstdHTTP.Create(\"https://postman-echo.com/basic-auth\", Authenticator:=stdCallback.CreateFromModule(\"stdHTTPAuthenticators\", \"TokenAuthenticator\").Bind(\"PRIVATE-TOKEN\", \"{{your-token}}\"))\r\n```"
         ],
         "params": [
           {
@@ -7107,7 +7107,7 @@
         "description": "Digest Authenticator",
         "remarks": [],
         "examples": [
-          "`stdHTTP.Create(\"https://postman-echo.com/digest-auth\", Authenticator:=stdCallback.CreateFromModule(\"stdHTTPAuthenticators\", \"DigestAuthenticator\").Bind(\"postman\", \"password\", \"postman-echo.com\"))`"
+          "```vb\r\nstdHTTP.Create(\"https://postman-echo.com/digest-auth\", Authenticator:=stdCallback.CreateFromModule(\"stdHTTPAuthenticators\", \"DigestAuthenticator\").Bind(\"postman\", \"password\", \"postman-echo.com\"))\r\n```"
         ],
         "params": [
           {
@@ -7569,7 +7569,7 @@
         "description": "Update a UI control's background picture",
         "remarks": [],
         "examples": [
-          "`stdImage.CreateFromFile(\"H:\\test1.bmp\").ToUIControl(UserForm1.Image1)`"
+          "```vb\r\nstdImage.CreateFromFile(\"H:\\test1.bmp\").ToUIControl(UserForm1.Image1)\r\n```"
         ],
         "params": [
           {
@@ -7630,7 +7630,7 @@
         "description": "Output the image to a shape's fill",
         "remarks": [],
         "examples": [
-          "`stdImage.CreateFromFile(\"H:\\test1.bmp\").ToShapeFill(ActiveSheet.Shapes(1))`"
+          "```vb\r\nstdImage.CreateFromFile(\"H:\\test1.bmp\").ToShapeFill(ActiveSheet.Shapes(1))\r\n```"
         ],
         "params": [
           {
@@ -7771,7 +7771,7 @@
         "description": "Creates a stdImage object from a byte array",
         "remarks": [],
         "examples": [
-          "```\r\n  Dim b() as Byte: Redim b(1 to 100)\r\n  Call stdImage.CreateFromBinary(b).ToFile(\"H:\\test1.png\")\r\n```"
+          "```vb\r\n  Dim b() as Byte: Redim b(1 to 100)\r\n  Call stdImage.CreateFromBinary(b).ToFile(\"H:\\test1.png\")\r\n```"
         ],
         "params": [
           {
@@ -7804,7 +7804,7 @@
         "description": "Creates a stdImage object from a file",
         "remarks": [],
         "examples": [
-          "`stdImage.CreateFromFile(\"H:\\test1.bmp\").ToFile(\"H:\\test1.png\")`"
+          "```vb\r\nstdImage.CreateFromFile(\"H:\\test1.bmp\").ToFile(\"H:\\test1.png\")\r\n```"
         ],
         "params": [
           {
@@ -7847,7 +7847,7 @@
           "- TODO: consider removing"
         ],
         "examples": [
-          "`stdImage.CreateFromURL(\"https://raw.githubusercontent.com/sancarn/awesome-vba/main/resources/VBALogo.png\").ToFile(\"H:\\test.png\", stdImgFormatPNG)`"
+          "```vb\r\nstdImage.CreateFromURL(\"https://raw.githubusercontent.com/sancarn/awesome-vba/main/resources/VBALogo.png\").ToFile(\"H:\\test.png\", stdImgFormatPNG)\r\n```"
         ],
         "params": [
           {
@@ -7888,7 +7888,7 @@
         "description": "Creates a stdImage object from a file",
         "remarks": [],
         "examples": [
-          "```\r\n  stdImage.CreateFromHBitmap(Image1.Picture.Handle).ToFile(\"H:\\test.png\", stdImgFormatPNG)\r\n```"
+          "```vb\r\n  stdImage.CreateFromHBitmap(Image1.Picture.Handle).ToFile(\"H:\\test.png\", stdImgFormatPNG)\r\n```"
         ],
         "params": [
           {
@@ -7921,7 +7921,7 @@
         "description": "Creates a stdImage from the image in the clipboard",
         "remarks": [],
         "examples": [
-          "`stdImage.CreateFromClipboard().ToFile(\"H:\\test.png\", stdImgFormatPNG)`"
+          "```vb\r\nstdImage.CreateFromClipboard().ToFile(\"H:\\test.png\", stdImgFormatPNG)\r\n```"
         ],
         "params": [],
         "returns": {
@@ -7978,7 +7978,7 @@
         "description": "Creates a stdImage object from a stdole.stdPicture object",
         "remarks": [],
         "examples": [
-          "`stdImage.CreateFromStdPicture(Userform1.Picture).ToFile(\"H:\\test.png\", stdImgFormatPNG)`"
+          "```vb\r\nstdImage.CreateFromStdPicture(Userform1.Picture).ToFile(\"H:\\test.png\", stdImgFormatPNG)\r\n```"
         ],
         "params": [
           {
@@ -8077,7 +8077,7 @@
         "description": "Creates a stdImage object from a Shape object",
         "remarks": [],
         "examples": [
-          "`stdImage.CreateFromShape(Sheet1.Shapes(\"Picture 2\")).ToFile(\"H:\\test.png\")`"
+          "```vb\r\nstdImage.CreateFromShape(Sheet1.Shapes(\"Picture 2\")).ToFile(\"H:\\test.png\")\r\n```"
         ],
         "params": [
           {
@@ -8110,7 +8110,7 @@
         "description": "Creates a stdImage object from a Chart object",
         "remarks": [],
         "examples": [
-          "`stdImage.CreateFromChart(Sheet1.ChartObjects(1).Chart).ToFile(\"H:\\test.png\")`"
+          "```vb\r\nstdImage.CreateFromChart(Sheet1.ChartObjects(1).Chart).ToFile(\"H:\\test.png\")\r\n```"
         ],
         "params": [
           {
@@ -8143,7 +8143,7 @@
         "description": "Creates a stdImage object from the desktop window (screenshot)",
         "remarks": [],
         "examples": [
-          "`stdImage.CreateFromScreen().ToFile(\"H:\\test.png\")`"
+          "```vb\r\nstdImage.CreateFromScreen().ToFile(\"H:\\test.png\")\r\n```"
         ],
         "params": [],
         "returns": {
@@ -8206,7 +8206,7 @@
         "description": "Creates a stdImage object from a HICON",
         "remarks": [],
         "examples": [
-          "```\r\nDim hICON as LongPtr: hICON = stdWindow.CreateFromHwnd(Application.hWnd).HICON\r\nstdImage.CreateFromHICON(hICON).ToFile(\"H:\\test.png\", stdImgFormatPNG)\r\n```"
+          "```vb\r\nDim hICON as LongPtr: hICON = stdWindow.CreateFromHwnd(Application.hWnd).HICON\r\nstdImage.CreateFromHICON(hICON).ToFile(\"H:\\test.png\", stdImgFormatPNG)\r\n```"
         ],
         "params": [
           {
@@ -8280,7 +8280,7 @@
         "description": "Create and add an array to the JSON object/array.",
         "remarks": [],
         "examples": [
-          "` .AddArray(fromVar:=Array(1,2,3))`"
+          "```vb\r\n .AddArray(fromVar:=Array(1,2,3))\r\n```"
         ],
         "params": [
           {
@@ -8481,7 +8481,7 @@
         "description": "Returns the current json object",
         "remarks": [],
         "examples": [
-          "```vba\r\nWith stdJSON.Create()\r\n  .add \"X\", \"Y\"\r\n  set j = .ToSelf()\r\nEnd With\r\n```"
+          "```vb\r\nWith stdJSON.Create()\r\n  .add \"X\", \"Y\"\r\n  set j = .ToSelf()\r\nEnd With\r\n```"
         ],
         "params": [],
         "returns": {
@@ -8678,8 +8678,8 @@
         "description": "Create a JSON object from string",
         "remarks": [],
         "examples": [
-          "```\r\n  Dim o as stdJSON: set o = stdJSON.CreateFromString(\"{\"\"a\"\":1,\"\"b\"\":\"\"hello\"\"}\")\r\n  Debug.Print o.ToString()\r\n```",
-          "```\r\n  Dim o as stdJSON: set o = stdJSON.CreateFromString(\"{a: 1, b: 'hello'}\", AllowUnquotedKeys:=true, AllowSingleQuoteStrings:=true)\r\n  Debug.Print o.ToString()\r\n```"
+          "```vb\r\n  Dim o as stdJSON: set o = stdJSON.CreateFromString(\"{\"\"a\"\":1,\"\"b\"\":\"\"hello\"\"}\")\r\n  Debug.Print o.ToString()\r\n```",
+          "```vb\r\n  Dim o as stdJSON: set o = stdJSON.CreateFromString(\"{a: 1, b: 'hello'}\", AllowUnquotedKeys:=true, AllowSingleQuoteStrings:=true)\r\n  Debug.Print o.ToString()\r\n```"
         ],
         "params": [
           {
@@ -11552,7 +11552,7 @@
         "description": "Create a sentry which acts as an \"optimiser\" for code. Note, setting options doesn't always lead to performance improvements. See [vba-articles performance thread](https://sancarn.github.io/vba-articles/performance-tips.html) for details.",
         "remarks": [],
         "examples": [
-          "```vba\r\nWith stdSentry.CreateOptimiser(ScreenUpdating:=False, Calculation:=xlCalculationManual)\r\n  '... heavy range based operations ...\r\nEnd With\r\n```"
+          "```vb\r\nWith stdSentry.CreateOptimiser(ScreenUpdating:=False, Calculation:=xlCalculationManual)\r\n  '... heavy range based operations ...\r\nEnd With\r\n```"
         ],
         "params": [
           {
@@ -11603,7 +11603,7 @@
         "description": "Create a sentry from a property of an object",
         "remarks": [],
         "examples": [
-          "```vba\r\nWith stdSentry.CreateFromObjectProperty(Application, \"DisplayAlerts\", false)\r\n  Call ThisWorkbook.SaveAs(\"C:\\temp\\test.xlsx\")\r\nEnd With\r\n```"
+          "```vb\r\nWith stdSentry.CreateFromObjectProperty(Application, \"DisplayAlerts\", false)\r\n  Call ThisWorkbook.SaveAs(\"C:\\temp\\test.xlsx\")\r\nEnd With\r\n```"
         ],
         "params": [
           {
@@ -11654,7 +11654,7 @@
         "description": "Create a sentry from a method of an object",
         "remarks": [],
         "examples": [
-          "```vba\r\nWith stdSentry.CreateFromObjectMethod(stdError, \"AddStack\", Array(\"MethodName\"), \"PopStack\", Array())\r\n  '... our code ...\r\nEnd With\r\n```"
+          "```vb\r\nWith stdSentry.CreateFromObjectMethod(stdError, \"AddStack\", Array(\"MethodName\"), \"PopStack\", Array())\r\n  '... our code ...\r\nEnd With\r\n```"
         ],
         "params": [
           {
@@ -11689,7 +11689,7 @@
         "description": "Create a sentry for error stack management",
         "remarks": [],
         "examples": [
-          "```vba\r\nPublic Sub MyMethod()\r\n  With stdSentry.CreateErrorStack(\"MyClass.MyMethod\")\r\n    '... our code ...\r\n  End With\r\nEnd Sub\r\n```"
+          "```vb\r\nPublic Sub MyMethod()\r\n  With stdSentry.CreateErrorStack(\"MyClass.MyMethod\")\r\n    '... our code ...\r\n  End With\r\nEnd Sub\r\n```"
         ],
         "params": [
           {
@@ -11724,7 +11724,7 @@
         "description": "Create a sentry from an AutomationSecurity setting",
         "remarks": [],
         "examples": [
-          "```vba\r\nWith stdSentry.CreateFromAutomationSecurity(msoAutomationSecurityForceDisable)\r\n  Call ThisWorkbook.SaveAs(\"C:\\temp\\test.xlsx\")\r\nEnd With\r\n```"
+          "```vb\r\nWith stdSentry.CreateFromAutomationSecurity(msoAutomationSecurityForceDisable)\r\n  Call ThisWorkbook.SaveAs(\"C:\\temp\\test.xlsx\")\r\nEnd With\r\n```"
         ],
         "params": [
           {
@@ -12307,7 +12307,7 @@
         "description": "Initializes the object",
         "remarks": [],
         "examples": [
-          "`ws.protInit(\"wss://echo.websocket.org/\")`"
+          "```vb\r\nws.protInit(\"wss://echo.websocket.org/\")\r\n```"
         ],
         "params": [
           {
@@ -12676,7 +12676,7 @@
         "description": "Converts a stdWindow object to a IAccessible object",
         "remarks": [],
         "examples": [
-          "- `stdWindow.CreateFromHwnd(...).FindFirst(stdLambda.Create(\"$1.Class = \"\"EXCEL7\"\"\")).AsNativeObject.Application)`"
+          "- ```vb\r\nstdWindow.CreateFromHwnd(...).FindFirst(stdLambda.Create(\"$1.Class = \"\"EXCEL7\"\"\")).AsNativeObject.Application)\r\n```"
         ],
         "params": [],
         "returns": {
@@ -13154,7 +13154,7 @@
         "description": "Uses `SendInput` to send keystrokes to a window.",
         "remarks": [],
         "examples": [
-          "```\r\nCall stdWindow.CreateFromHwnd(Application.VBE.mainwindow.hwnd).SendKeysInput(\"^a\")\r\n```"
+          "```vb\r\nCall stdWindow.CreateFromHwnd(Application.VBE.mainwindow.hwnd).SendKeysInput(\"^a\")\r\n```"
         ],
         "params": [
           {
@@ -13208,7 +13208,7 @@
         "description": "Uses `kybd_event` to send keystrokes to a window.",
         "remarks": [],
         "examples": [
-          "`notepadWindow.sendKeysEvent(\"^a\")`"
+          "```vb\r\nnotepadWindow.sendKeysEvent(\"^a\")\r\n```"
         ],
         "params": [
           {
@@ -13256,7 +13256,7 @@
           "It should be noted that this method is extremely unstable and is unlikely to work in the majority of cases."
         ],
         "examples": [
-          "`notepadWindow.sendKeysMessage(\"^a\")`"
+          "```vb\r\nnotepadWindow.sendKeysMessage(\"^a\")\r\n```"
         ],
         "params": [
           {
@@ -13916,7 +13916,7 @@
         "description": "Get/Set a handle to the icon of the window",
         "remarks": [],
         "examples": [
-          "- \r\n```vb\r\nstdWindow.CreateFromHwnd(hwnd).hIcon = Image1.Picture.Handle`\r\nstdWindow.CreateFromHwnd(hwnd).hIcon = stdImage.CreateFromFile(myFile).hicon 'Future\r\n```"
+          "```vb\r\nstdWindow.CreateFromHwnd(hwnd).hIcon = Image1.Picture.Handle`\r\nstdWindow.CreateFromHwnd(hwnd).hIcon = stdImage.CreateFromFile(myFile).hicon 'Future\r\n```"
         ],
         "params": [],
         "returns": {
@@ -14580,7 +14580,7 @@
         "description": "Gets the Shell Window COM object for this window if it exists",
         "remarks": [],
         "examples": [
-          "```\r\n  Dim location as string: location = stdWindow.CreateFromHwnd(hwnd).ShellWindow.LocationURL\r\n```"
+          "```vb\r\n  Dim location as string: location = stdWindow.CreateFromHwnd(hwnd).ShellWindow.LocationURL\r\n```"
         ],
         "params": [],
         "returns": {
@@ -14611,7 +14611,7 @@
     "constructors": [
       {
         "name": "Create",
-        "description": "================================================================================================\r\n=      PUBLIC CONSTRUCTORS\r\n================================================================================================\r\nCreate a window and return a window object",
+        "description": "Create a window and return a window object",
         "remarks": [
           "System Class Names: `BUTTON`, `COMBOBOX`, `EDIT`, `LISTBOX`, `MDICLIENT`, `RICHEDIT`, `RICHEDIT_CLASS`, `SCROLLBAR`, `STATIC`"
         ],
