@@ -331,7 +331,6 @@ Private Function stdICallable_SendMessage(ByVal sMessage As String, ByRef succes
 End Function
 
 'Run the function
-'@defaultMember
 '@param params - The parameters to run the function with
 '@returns      - The result of the function
 Public Function Run(ParamArray params() As Variant)

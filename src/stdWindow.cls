@@ -582,7 +582,7 @@ Private This as TThis
 '@param hInstance  - Module Instance handle.
 '@param lpParam    - Pointer to a location where extra information is stored. Or ClientCreateStruct (for MDI windows), or null if no extra data required
 '@returns - The created window
-'@remarks System Class Names: `BUTTON`, `COMBOBOX`, `EDIT`, `LISTBOX`, `MDICLIENT`, `RICHEDIT`, `RICHEDIT_CLASS`, `SCROLLBAR`, `STATIC`
+'@remark System Class Names: `BUTTON`, `COMBOBOX`, `EDIT`, `LISTBOX`, `MDICLIENT`, `RICHEDIT`, `RICHEDIT_CLASS`, `SCROLLBAR`, `STATIC`
 '@example ```vb
 'Dim wnd as stdWindow: set wnd = stdWindow.Create("STATIC", 0, 0, 100, 100, "Hello World")
 'wnd.visible = true
@@ -608,7 +608,7 @@ End Function
 '@param BorderWidth - The width of the colored border
 '@param BorderColor - The color of the colored border
 '@returns           - The created highlighting box
-'@remarks See [Creating a transparent window](https://stackoverflow.com/questions/3970066/creating-a-transparent-window-in-c-win32)
+'@remark See [Creating a transparent window](https://stackoverflow.com/questions/3970066/creating-a-transparent-window-in-c-win32)
 Public Function CreateHighlightRect(ByVal x As Long, ByVal y As Long, ByVal width As Long, ByVal height As Long, Optional ByVal BorderWidth As Long = 5, Optional ByVal BorderColor As Long = 255) As stdWindow
   set CreateHighlightRect = Create("STATIC", x, y, width, height)
   CreateHighlightRect.transparentColor = RGB(255,255,255)
@@ -650,7 +650,7 @@ End Function
 '@constructor
 '@param oApp - Optional. Application object to create window from. If not specified, the current running application is used.
 '@returns - Window object representing the current running application
-'@remarks - This function is only implemented for Excel, Word and PowerPoint. For other applications, find the window with `stdWindow.CreateFromDesktop()` and then use `desktop.children` to find the required window object.
+'@remark - This function is only implemented for Excel, Word and PowerPoint. For other applications, find the window with `stdWindow.CreateFromDesktop()` and then use `desktop.children` to find the required window object.
 'Alternatively you might be able to use CommandBars("Status Bar") for other applications, similar to that of PowerPoint, but this is untested.
 Public Function CreateFromApplication(Optional ByVal oApp as Object = nothing) As stdWindow
   if oApp is nothing then set oApp = Application
@@ -745,7 +745,7 @@ End Function
 '@constructor
 '@param processID - Process ID to find windows for
 '@returns - Collection of visible windows for the process
-'@remarks - Functionally equivalent of `stdWindow.CreateFromDesktop().FindAll(stdLambda.Create("$2.exists and $2.visible and $2.ProcessID = $1").bind(processID), iStaticDepthLimit:=1)`
+'@remark - Functionally equivalent of `stdWindow.CreateFromDesktop().FindAll(stdLambda.Create("$2.exists and $2.visible and $2.ProcessID = $1").bind(processID), iStaticDepthLimit:=1)`
 Public Function CreateManyFromProcessId(ByVal processID As Long) As Collection
   Dim ret As Collection: Set ret = New Collection
   Dim win As stdWindow
@@ -1683,7 +1683,7 @@ End Function
 ' * A DFS will walk this tree in a different order:   A, C, F, E, B, D
 '@param iStaticDepthLimit - Static depth limit. E.G. if you want to search children only, set this value to 1
 '@returns - First element found, or `Nothing` if no element found.
-'@examples
+'@example
 ' ```vb
 ' 'Find where name is "hello" and class is "world":
 ' el.FindFirst(stdLambda.Create("$1.name=""hello"" and $1.class=""world"""))
@@ -1773,7 +1773,7 @@ End Function
 ' * A DFS will walk this tree in a different order:   A, C, F, E, B, D
 '@param iStaticDepthLimit - Static depth limit. E.G. if you want to search children only, set this value to 1
 '@returns Collection<stdWindow> - Collection of elements found, or `Nothing` if no element found.
-'@examples
+'@example
 ' ```vb
 ' 'Find where name is "hello" and class is "world":
 ' el.FindAll(stdLambda.Create("$1.name=""hello"" and $1.class=""world"""))

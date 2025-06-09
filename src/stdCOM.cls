@@ -375,9 +375,9 @@ Public Enum EIEnumMoniker
 End Enum
 
 '[IMoniker](https://github.com/tpn/winsdk-10/blob/9b69fd26ac0c7d0b83d378dba01080e93349c2ed/Include/10.0.14393.0/um/ObjIdl.Idl#L504-L621)
-'@devRemark includes [IUnknown](https://en.wikipedia.org/wiki/IUnknown)
-'@devRemark includes [IPersist](https://github.com/tpn/winsdk-10/blob/9b69fd26ac0c7d0b83d378dba01080e93349c2ed/Include/10.0.14393.0/um/ObjIdl.Idl#L453-L462)
-'@devRemark includes [IPersistStream](https://github.com/tpn/winsdk-10/blob/9b69fd26ac0c7d0b83d378dba01080e93349c2ed/Include/10.0.14393.0/um/ObjIdl.Idl#L470-L496)
+'@devNote includes [IUnknown](https://en.wikipedia.org/wiki/IUnknown)
+'@devNote includes [IPersist](https://github.com/tpn/winsdk-10/blob/9b69fd26ac0c7d0b83d378dba01080e93349c2ed/Include/10.0.14393.0/um/ObjIdl.Idl#L453-L462)
+'@devNote includes [IPersistStream](https://github.com/tpn/winsdk-10/blob/9b69fd26ac0c7d0b83d378dba01080e93349c2ed/Include/10.0.14393.0/um/ObjIdl.Idl#L470-L496)
 '0      HRESULT QueryInterface      ([in]  REFIID riid, [out] void **ppvObject)
 '1      HRESULT AddRef              ()
 '2      HRESULT Release             ()
@@ -493,7 +493,7 @@ End Function
 '@constructor
 '@returns - A collection of `stdCOM` objects
 '@remark This function is heavily inspired off code provided by `Jaafar Tribak`
-'@devRemark stdCOM objects will auto-release when not needed
+'@devNote stdCOM objects will auto-release when not needed
 Public Function CreateFromActiveObjects() As Collection
   #If VBA7 Then
     Dim pROT As LongPtr, pBindCtx As LongPtr, pEnumMoniker As LongPtr, pMoniker As LongPtr, pStr As LongPtr, pMonikerObject As LongPtr
@@ -1078,7 +1078,7 @@ End Function
 'Deref pointer to IUnknown helper
 '@param memAddress - Pointer to IUnknown
 '@returns - IUnknown
-'@devRemark DO NOT RETURN `result`
+'@devNote DO NOT RETURN `result`
 #If VBA7 Then
   Private Function Deref(ByVal memAddress As LongPtr) As IUnknown
 #Else

@@ -654,7 +654,6 @@ Public Function Join(Optional ByVal delimiter As String = ",") As String
 End Function
 
 'Get/Let/Set item
-'@defaultMember
 '@param i - The location to get/set the item
 '@returns - The item at the location
 Public Property Get item(ByVal i As long) As Variant

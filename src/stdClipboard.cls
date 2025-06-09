@@ -398,7 +398,7 @@ End Property
 
 'Obtain the available format IDs which can be used with value() function
 '@returns Collection<Long> - Formats allowed. We use Collection for easy enumeration with stdEnumerator.
-'@see `stdClipboard::formats()` to get the corresponding names from these data.
+'@remark See `stdClipboard::formats()` to get the corresponding names from these data.
 Public Property Get formatIDs() As Collection
   Dim iFormat As CLIPFORMAT: iFormat = CF_NOFORMAT
   Dim ret As Collection: Set ret = New Collection

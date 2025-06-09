@@ -198,7 +198,7 @@ End Function
 '@param EnableEvents    - EnableEvents set value
 '@param Calculation     - Calculation set value
 '@returns stdPerformance<iOptimiser> - Object termination has special behaviour. See Measure and Optimise methods for further details.
-'@note Calculation is defined as long instead of xlCalculation so the function continues to work without compile error in Word, Powerpoint etc.
+'@remark Calculation is defined as long instead of xlCalculation so the function continues to work without compile error in Word, Powerpoint etc.
 '@example
 '```vb
 'With stdPerformance.Optimise

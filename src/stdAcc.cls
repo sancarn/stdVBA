@@ -462,7 +462,7 @@ End Function
 '* A BFS will walk this tree in the following order: A, B, C, D, E, F
 '* A DFS will walk this tree in a different order:   A, C, F, E, B, D
 '@returns {stdAcc} - Element found.
-'@examples ```
+'@example ```
 ''Find where name is "hello" and class is "world":
 'el.FindFirst(stdLambda.Create("$1.name=""hello"" and $1.class=""world"""))
 ''Find first element named "hello" at depth > 4:
@@ -548,7 +548,7 @@ End Function
 '* A BFS will walk this tree in the following order: A, B, C, D, E, F.
 '* A DFS will walk this tree in a different order:   A, C, F, E, B, D.
 '@returns Collection<stdAcc> - Collection of elements found.
-'@examples ```
+'@example ```
 ''Find where name is "hello" and class is "world":
 'el.FindAll(stdLambda.Create("$1.name=""hello"" and $1.class=""world"""))
 ''Find all elements with depth <= 4:
