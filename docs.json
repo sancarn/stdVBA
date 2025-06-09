@@ -1098,9 +1098,7 @@
       }
     ],
     "events": [],
-    "implements": [
-      "IDispatch"
-    ]
+    "implements": []
   },
   {
     "name": "stdArray",
@@ -3760,9 +3758,7 @@
         "todos": []
       }
     ],
-    "implements": [
-      "stdICallable"
-    ]
+    "implements": []
   },
   {
     "name": "stdClipboard",
@@ -9211,9 +9207,7 @@
       }
     ],
     "events": [],
-    "implements": [
-      "stdICallable"
-    ]
+    "implements": []
   },
   {
     "name": "stdPerformance",
@@ -11705,9 +11699,7 @@
     "requires": [],
     "constructors": [],
     "events": [],
-    "implements": [
-      "stdICallable"
-    ]
+    "implements": []
   },
   {
     "name": "stdTimer",
@@ -15016,9 +15008,6 @@
       }
     ],
     "events": [],
-    "implements": [
-      "GetWindow",
-      "IAccessible"
-    ]
+    "implements": []
   }
 ]
