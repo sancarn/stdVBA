@@ -85,41 +85,41 @@ Attribute VB_Exposed = False
 
 
 Private Type TFiberQueue
-  index as long
-  count as long
-  queue() as stdFiber
+  index As Long
+  count As Long
+  queue() As stdFiber
 End Type
 Private Type TProc
-  proc as stdICallable
-  name as string
-  startTime as Date
+  proc As stdICallable
+  name As String
+  startTime As Date
 End Type
 
 'TODO: Consider sectioning off data between runtime data TFiberRuntime (procStartTime, meta, agent, ...) and TFiberBuildTime (name, procsCount, procs)
 Private Type TThis
-  name as string
-  procStep as Long
-  procsCount as long
-  resetCount as long
-  procs() as TProc
-  fiberStartTime as Date
-  meta as object
-  isFinished as boolean
-  result as Variant
-  errorText as string
-  errorHandler as stdICallable
+  name As String
+  procStep As Long
+  procsCount As Long
+  resetCount As Long
+  procs() As TProc
+  fiberStartTime As Date
+  meta As Object
+  isFinished As Boolean
+  result As Variant
+  errorText As String
+  errorHandler As stdICallable
   stepChangeHandler As stdICallable
-  agent as object
-  endTime as Date
+  agent As Object
+  endTime As Date
 End Type
-Private This as TThis
+Private This As TThis
 
 'Create a fiber
 '@constructor
 '@param sName - The name of the fiber
 '@returns - A fiber procedure - a wrapper around a number of procedures used for concurrent programming.
-Public Function Create(ByVal sName as string) as stdFiber
-  set Create = new stdFiber
+Public Function Create(ByVal sName As String) As stdFiber
+  Set Create = New stdFiber
   Call Create.protInit(sName)
 End Function
 
@@ -127,130 +127,130 @@ End Function
 '@constructor
 '@protected
 '@param sName - The name of the fiber
-Friend Sub protInit(ByVal sName as string)
-  this.name = sName
-  this.procStep = 1
-  set this.meta = CreateObject("Scripting.Dictionary")
+Friend Sub protInit(ByVal sName As String)
+  This.name = sName
+  This.procStep = 1
+  Set This.meta = CreateObject("Scripting.Dictionary")
 End Sub
 
 'Add a step/sub-process to the fiber
 '@param processStep as stdICallable<(stdFiber)=>boolean> - Callback process / step, consumes the fiber parent, returns `true` if caller can proceed to next step. returns `false` otherwise.
 '@param stepName - The name of the step. This can be used for resetting and error reporting purposes.
 '@returns - A fiber procedure - A reference to the fiber the step has been added to
-Public Function add(ByVal processStep as stdICallable, Optional ByVal stepName as string = "") as stdFiber
-  this.procsCount = this.procsCount + 1
-  Redim Preserve this.procs(1 to this.procsCount)
-  With this.procs(this.procsCount)
-    set .proc = processStep
+Public Function add(ByVal processStep As stdICallable, Optional ByVal stepName As String = "") As stdFiber
+  This.procsCount = This.procsCount + 1
+  ReDim Preserve This.procs(1 To This.procsCount)
+  With This.procs(This.procsCount)
+    Set .proc = processStep
     .name = stepName
-  end with
-  set add = Me
+  End With
+  Set add = Me
 End Function
 
 'Add an error handler to the fiber
 '@param handler as stdICallable<(stdFiber)=>void> - Callback to run when an error occurs in the fiber
 '@returns - A fiber procedure - A reference to the fiber the step has been added to, to allow chaining
-Public Function addErrorHandler(ByVal handler as stdICallable) as stdFiber
-  set this.errorHandler = handler
-  set addErrorHandler = Me
+Public Function addErrorHandler(ByVal handler As stdICallable) As stdFiber
+  Set This.errorHandler = handler
+  Set addErrorHandler = Me
 End Function
 
 'Add a handler which is triggered at every step change
 '@param handler as stdICallable<(stdFiber)=>void> - Callback to run when an error occurs in the fiber
 '@returns - A fiber procedure - A reference to the fiber the step has been added to, to allow chaining
 Public Function addStepChangeHandler(ByVal handler As stdICallable) As stdFiber
-  Set This.StepHandler = handler
+  Set This.stepChangeHandler = handler
   Set addStepChangeHandler = Me
 End Function
 
 'Calls current sub-process in the fiber procedure. Advances the queue if the ran sub-process is finished.
 '@param agent as Object<Dictionary> - An object storing information unique to the runtime agent. This agent is bound to the fiber, allowing use of window or accessibility elements initialised on the agent.
 '@returns - `True` if this fiber procedure has finished execution (i.e. future stepping not required anymore).
-Friend Function protStep(Byval agent as Object) as Boolean
+Friend Function protStep(ByVal agent As Object) As Boolean
   Dim oMe As Object: Set oMe = Me
   On Error GoTo ErrorHandler
-    If this.fiberStartTime = 0 then this.fiberStartTime = now()
-    if this.procs(this.procStep).startTime = 0 then this.procs(this.procStep).startTime = now()
+    If This.fiberStartTime = 0 Then This.fiberStartTime = Now()
+    If This.procs(This.procStep).startTime = 0 Then This.procs(This.procStep).startTime = Now()
     
-    set this.agent = agent
-    if this.procs(this.procStep).proc.Run(oMe) then 
-      this.procStep = this.procStep + 1
-      this.isFinished = this.procStep > this.procsCount
-      If this.isFinished then
-        this.endTime = now()
-      else
+    Set This.agent = agent
+    If This.procs(This.procStep).proc.Run(oMe) Then
+      This.procStep = This.procStep + 1
+      This.isFinished = This.procStep > This.procsCount
+      If This.isFinished Then
+        This.endTime = Now()
+      Else
         If Not This.stepChangeHandler Is Nothing Then Call This.stepChangeHandler.Run(oMe)
-      end if
-    end if
-    protStep = this.isFinished
+      End If
+    End If
+    protStep = This.isFinished
     Exit Function
   On Error GoTo 0
 ErrorHandler:
   protStep = True
-  this.isFinished = true
-  this.result = Null
-  this.endTime = now()
-  this.ErrorText = Err.Description & "(" & Err.Number & ", " & Err.Source & ")"
-  Call this.errorHandler.Run(oMe)
+  This.isFinished = True
+  This.result = Null
+  This.endTime = Now()
+  This.errorText = Err.Description & "(" & Err.Number & ", " & Err.Source & ")"
+  Call This.errorHandler.Run(oMe)
 End Function
 
 'Usually called by a sub-process, this will mark the fiber procedure as finished, and return the passed result
 '@param vResult - The result to return
-Public Sub Resolve(ByVal vResult as variant)
-  this.isFinished = true
-  this.endTime = now()
-  Call CopyVariant(this.result, vResult)
+Public Sub Resolve(ByVal vResult As Variant)
+  This.isFinished = True
+  This.endTime = Now()
+  Call CopyVariant(This.result, vResult)
 End Sub
 
 'Reset to a specific step
 '@param sName - Step name to jump to (if not specified, will reset to first step).
-Public Sub Reset(Optional ByVal sName As string = "")
-  this.resetCount = this.resetCount + 1
-  if sName <> "" then
-    Dim i as long
-    For i = 1 to this.procsCount
-      if this.procs(i).name = sName then
-        Dim j as Long
-        For j = i to this.procStep
-          this.procs(j).startTime = 0
-        next
+Public Sub Reset(Optional ByVal sName As String = "")
+  This.resetCount = This.resetCount + 1
+  If sName <> "" Then
+    Dim i As Long
+    For i = 1 To This.procsCount
+      If This.procs(i).name = sName Then
+        Dim j As Long
+        For j = i To This.procStep
+          This.procs(j).startTime = 0
+        Next
         This.procStep = i
-        exit sub
-      end if
-    next
-  else
-    this.procStep = 1
-  end if
+        Exit Sub
+      End If
+    Next
+  Else
+    This.procStep = 1
+  End If
 End Sub
 
 'Obtain the number of times this fiber has reset.
 '@returns - The number of times this fiber has been reset.
-Public Property Get ResetCount() as Long
-  ResetCount = this.resetCount
+Public Property Get ResetCount() As Long
+  ResetCount = This.resetCount
 End Property
 
 'Obtain the result of this fiber
 '@returns - The result of this fiber
-Public Property Get Result() as Variant
-  Call CopyVariant(Result, this.result)
+Public Property Get Result() As Variant
+  Call CopyVariant(Result, This.result)
 End Property
 
 'Obtain errors if any as string
 '@returns - The error text
-Public Property Get ErrorText() As string
-  ErrorText = this.errorText
+Public Property Get ErrorText() As String
+  ErrorText = This.errorText
 End Property
 
 'Obtain the metadata object, usually used by the sub-process
 '@returns - The metadata object
-Public Property Get Meta() as Object
-  set Meta = this.Meta
+Public Property Get Meta() As Object
+  Set Meta = This.meta
 End Property
 
 'Obtain the current step which the fiber procedure is at.
 '@returns - The current step
-Public Property Get Step() as Long
-  Step = procStep
+Public Property Get Step() As Long
+  Step = This.procStep
 End Property
 
 'Obtains the name of the current step in the fiber
@@ -261,32 +261,32 @@ End Property
 
 'Obtains the duration of the fiber procedure
 '@returns - The duration of the fiber procedure in seconds
-Public Property Get StepDuration() as Long
-  StepDuration = DateDiff("s", this.procs(this.procStep).startTime, now())
+Public Property Get StepDuration() As Long
+  StepDuration = DateDiff("s", This.procs(This.procStep).startTime, Now())
 End Property
 
 'Obtains the duration of the fibers entire runtime
 '@returns - The duration of the fibers entire runtime in seconds
-Public Property Get TotalDuration() as Long
-  StepDuration = DateDiff("s", this.procs(this.procsCount).startTime, this.endTime)
+Public Property Get TotalDuration() As Long
+  TotalDuration = DateDiff("s", This.procs(This.procsCount).startTime, This.endTime)
 End Property
 
 'Obtains whether the fiber has finished or not
 '@returns - `True` if the fiber has finished, `False` otherwise
-Public Property Get isFinished() as Boolean
-  isFinished = this.isFinished
+Public Property Get isFinished() As Boolean
+  isFinished = This.isFinished
 End Property
 
 'Obtain the name of the fiber
 '@returns - The name of the fiber
-Public Property Get Name() as string
-  Name = this.Name
+Public Property Get Name() As String
+  Name = This.name
 End Property
 
 'Obtain the agent information I.E. information unique to the runtime running this fiber
 '@returns - The agent information. 
-Public Property Get Agent() as Object
-  set Agent = this.Agent
+Public Property Get Agent() As Object
+  Set Agent = This.agent
 End Property
 
 'Run a collection/stdArray/stdEnumerator of fiber procedures, across a number of concurrent running fiber runtimes, returning all results as a collection.
@@ -298,71 +298,72 @@ End Property
 '@param runtimeUpdateCB as stdICallable<(iFinishedCount as long, iFiberCount as long)=>void> - A callback to call every second to update on progress.
 '@returns - Collection of results of ran fiber procedures. You can use the variant from param1 if you need to check for errors using ErrorText.
 '@TODO: Consider whether return data is correct. If we create fibers from table, how would we refer back to errornous records on the table?
-Public Function runFibers(ByVal vFibers as variant, Optional byval numAgents as Long = 1, Optional ByVal agentInitCB as stdICallable = nothing, Optional ByVal agentDestroyCB as stdICallable = nothing, Optional ByVal runtimeUpdateCB as stdICallable = nothing) as Collection
+Public Function runFibers(ByVal vFibers As Variant, Optional ByVal numAgents As Long = 1, Optional ByVal agentInitCB As stdICallable = Nothing, Optional ByVal agentDestroyCB As stdICallable = Nothing, Optional ByVal runtimeUpdateCB As stdICallable = Nothing) As Collection
   'Intiialise
-  Dim fibers as TFiberQueue: fibers = TFiberQueue_Create(vFibers)
-  Dim running() as stdFiber: ReDim running(1 to numAgents)
-  Dim agents() as Object: Redim agents(1 to numAgents)
-  For i = 1 to numAgents
-    set agents(i) = CreateObject("Scripting.Dictionary")
+  Dim fibers As TFiberQueue: fibers = TFiberQueue_Create(vFibers)
+  Dim running() As stdFiber: ReDim running(1 To numAgents)
+  Dim agents() As Object: ReDim agents(1 To numAgents)
+  Dim i as long
+  For i = 1 To numAgents
+    Set agents(i) = CreateObject("Scripting.Dictionary")
     agents(i)("id") = i
-    if not agentInitCB is nothing then Call agentInitCB.Run(agents(i))
-  next
+    If Not agentInitCB Is Nothing Then Call agentInitCB.Run(agents(i))
+  Next
 
   'Await completion of all processes
-  Dim iRuntimeClock as Long: iRuntimeClock = 0
-  Dim isFinished as Boolean
-  Do While not isFinished
-    Dim iAgentsRunning as long: iAgentsRunning = 0
-    For i = 1 to numAgents
+  Dim iRuntimeClock As Long: iRuntimeClock = 0
+  Dim isFinished As Boolean
+  Do While Not isFinished
+    Dim iAgentsRunning As Long: iAgentsRunning = 0
+    For i = 1 To numAgents
       'Step fiber if it exists, if it finishes remove it to signify this agent is ready for a new fiber
-      if not running(i) is nothing then
-        if running(i).protStep(agents(i)) then
-          set running(i) = nothing
-        end if
-      end if
+      If Not running(i) Is Nothing Then
+        If running(i).protStep(agents(i)) Then
+          Set running(i) = Nothing
+        End If
+      End If
 
       'Get next fiber if nothing is running in this agent
-      if running(i) is nothing then
-        if TFiberQueue_HasNext(fibers) then
-          set running(i) = TFiberQueue_Get(fibers)
+      If running(i) Is Nothing Then
+        If TFiberQueue_HasNext(fibers) Then
+          Set running(i) = TFiberQueue_Get(fibers)
           iAgentsRunning = iAgentsRunning + 1
-        end if
-      else
+        End If
+      Else
         iAgentsRunning = iAgentsRunning + 1
-      end if
+      End If
 
       DoEvents
-    next
+    Next
 
     'Process is finished only when no agents are running
     isFinished = iAgentsRunning = 0
 
     'Update on progress every 1k cycles
     iRuntimeClock = iRuntimeClock + 1
-    if iRuntimeClock mod 1000 = 0 then
+    If iRuntimeClock Mod 1000 = 0 Then
       iRuntimeClock = 0
-      if not runtimeUpdateCB is nothing then 
-        Dim iFiberCount as Long: iFiberCount = fibers.count
-        Dim iFinishedCount as long: iFinishedCount = fibers.index - iAgentsRunning
-        Call runtimeUpdateCB.run(iFinishedCount, iFiberCount)
-      end if
-    end if
+      If Not runtimeUpdateCB Is Nothing Then
+        Dim iFiberCount As Long: iFiberCount = fibers.count
+        Dim iFinishedCount As Long: iFinishedCount = fibers.index - iAgentsRunning
+        Call runtimeUpdateCB.Run(iFinishedCount, iFiberCount)
+      End If
+    End If
   Loop
 
   'Cleanup agents
-  For i = 1 to numAgents
-    if not agentDestroyCB is nothing then Call agentDestroyCB.Run(agents(i))
-    set agents(i) = nothing 'objects will still be present on the individual fibers until end of this scope
-  next
+  For i = 1 To numAgents
+    If Not agentDestroyCB Is Nothing Then Call agentDestroyCB.Run(agents(i))
+    Set agents(i) = Nothing 'objects will still be present on the individual fibers until end of this scope
+  Next
 
   'Collect results
-  Dim results as Collection: set results = new Collection
-  For i = 1 to fibers.count
-    results.add fibers.queue(i).result
-  next
+  Dim results As Collection: Set results = New Collection
+  For i = 1 To fibers.count
+    results.Add fibers.queue(i).Result
+  Next
 
-  set runFibers = results
+  Set runFibers = results
 End Function
 
 'Cancel the running fiber
@@ -370,10 +371,10 @@ End Function
 Public Sub Cancel(Optional ByVal errorText As String = "")
   This.errorText = errorText
   This.isFinished = True
-  this.endTime = now()
-  If Not This.ErrorHandler Is Nothing And errorText <> "" Then
+  This.endTime = Now()
+  If Not This.errorHandler Is Nothing And errorText <> "" Then
     Dim oMe As Object: Set oMe = Me
-    Call This.ErrorHandler.Run(oMe)
+    Call This.errorHandler.Run(oMe)
   End If
 End Sub
 
@@ -385,64 +386,64 @@ End Sub
 '@param vDest - Destination
 '@param vSrc  - Source
 Private Sub CopyVariant(ByRef vDest, ByVal vSrc)
-  if isObject(vSrc) then
-    set vDest = vSrc
-  else
-    let vDest = vSrc
-  End if
+  If IsObject(vSrc) Then
+    Set vDest = vSrc
+  Else
+    Let vDest = vSrc
+  End If
 End Sub
 
 'Creates a queue of fiber procedures (TFiberQueue)
 '@param vFibers as Variant<Collection|Array|stdArray|stdEnumerator> - Fibers to execute over
 '@returns - Queue representing fibers
-Private Function TFiberQueue_Create(ByRef vFibers as Variant) as TFiberQueue
+Private Function TFiberQueue_Create(ByRef vFibers As Variant) As TFiberQueue
   TFiberQueue_Create.index = 0
-  Dim i as long
-  select case vartype(vFibers)
-    case vbObject
-      select case typename(vFibers)
+  Dim i As Long
+  Select Case VarType(vFibers)
+    Case vbObject
+      Select Case TypeName(vFibers)
         Case "Collection"
-          Redim TFiberQueue_Create.queue(1 to vFibers.count)
-          Dim oFiber as stdFiber
-          For each oFiber in vFibers
-            i=i+1
-            set TFiberQueue_Create.queue(i) = oFiber
-          next
-        case "stdArray"
-          Dim vQueue() as Variant: vQueue = vFibers.arr
-          Redim TFiberQueue_Create.queue(1 to vFibers.Length)
-          For i = 1 to vFibers.length
-            set TFiberQueue_Create.queue(i) = vQueue(i)
-          next
-        case "stdEnumerator"
-          Dim oQueue() as Object: oQueue = vFibers.asArray(vbObject)
-          Redim TFiberQueue_Create.queue(1 to vFibers.Length)
-          For i = 1 to vFibers.length
-            set TFiberQueue_Create.queue(i) = oQueue(i)
-          next
-      end select
-    case Is > vbArray
-      Dim iLB as Long: iLB = lbound(vFibers)
-      Dim iLen as Long: iLen = ubound(vFibers) - iLB + 1
-      Redim TFiberQueue_Create.queue(1 to iLen)
-      For i = 0 to iLen-1
-        set TFiberQueue_Create.queue(i+1) = vFibers(i+iLB)
-      next
-  end select
-  TFiberQueue_Create.count = ubound(TFiberQueue_Create.queue)
-End Function    
+          ReDim TFiberQueue_Create.queue(1 To vFibers.count)
+          Dim oFiber As stdFiber
+          For Each oFiber In vFibers
+            i = i + 1
+            Set TFiberQueue_Create.queue(i) = oFiber
+          Next
+        Case "stdArray"
+          Dim vQueue() As Variant: vQueue = vFibers.arr
+          ReDim TFiberQueue_Create.queue(1 To vFibers.Length)
+          For i = 1 To vFibers.length
+            Set TFiberQueue_Create.queue(i) = vQueue(i)
+          Next
+        Case "stdEnumerator"
+          Dim oQueue() As Object: oQueue = vFibers.asArray(vbObject)
+          ReDim TFiberQueue_Create.queue(1 To vFibers.Length)
+          For i = 1 To vFibers.length
+            Set TFiberQueue_Create.queue(i) = oQueue(i)
+          Next
+      End Select
+    Case Is > vbArray
+      Dim iLB As Long: iLB = LBound(vFibers)
+      Dim iLen As Long: iLen = UBound(vFibers) - iLB + 1
+      ReDim TFiberQueue_Create.queue(1 To iLen)
+      For i = 0 To iLen - 1
+        Set TFiberQueue_Create.queue(i + 1) = vFibers(i + iLB)
+      Next
+  End Select
+  TFiberQueue_Create.count = UBound(TFiberQueue_Create.queue)
+End Function
 
 'Gets the next element in a queue
 '@param queue - The queue to get the item from
 '@returns - The resultant fiber
-Private Function TFiberQueue_Get(ByRef queue as TFiberQueue) as stdFiber
-  queue.index = queue.index+1
-  set TFiberQueue_Get = queue.queue(queue.index)
+Private Function TFiberQueue_Get(ByRef queue As TFiberQueue) As stdFiber
+  queue.index = queue.index + 1
+  Set TFiberQueue_Get = queue.queue(queue.index)
 End Function
 
 'Checks if a next element exists in a queue
 '@param queue - The queue to check
 '@returns - The result
-Private Function TFiberQueue_HasNext(ByRef queue as TFiberQueue) as Boolean
+Private Function TFiberQueue_HasNext(ByRef queue As TFiberQueue) As Boolean
   TFiberQueue_HasNext = queue.index < queue.count
 End Function

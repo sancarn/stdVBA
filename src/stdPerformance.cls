@@ -80,43 +80,43 @@ Attribute VB_Exposed = False
 
 'Enum for sentry object type
 Public Enum EPerfObjType
-  iMeasure=1
-  iOptimiser=2
+  iMeasure = 1
+  iOptimiser = 2
 End Enum
 
 
 'For Performance Optimisation sentries
 Private Type TOptimiser
-  EnableEvents as boolean
-  ScreenUpdating as boolean
-  Calculation as long
+  EnableEvents As Boolean
+  ScreenUpdating As Boolean
+  Calculation As Long
 End Type
 
 'For Performance Measurement
 Private Type TMeasure
-  StartTime as long
-  KeyName as string
-  Divider as double
+  StartTime As Long
+  KeyName As String
+  Divider As Double
 End Type
 
 'For Measurement storage
 Private Type FakeDictItem
-  key as string
-  val as variant
+  key As String
+  val As Variant
 End Type
 
 Private Type TSingleton
-  FakeDict() as FakeDictItem   'was Private FakeDict() as FakeDictItem
+  FakeDict() As FakeDictItem   'was Private FakeDict() as FakeDictItem
 End Type
 
 Private Type TThis
-  Singleton as TSingleton
+  Singleton As TSingleton
 
-  ObjectType as EPerfObjType
-  Measure as TMeasure
-  Optimiser as TOptimiser
+  ObjectType As EPerfObjType
+  Measure As TMeasure
+  Optimiser As TOptimiser
 End Type
-Private This as TThis
+Private This As TThis
 
 
 
@@ -127,8 +127,8 @@ Private This as TThis
 '@param params as Variant<Array<Variant>> - Additional params supplied as array.
 '@returns stdPerformance<EPerfObjType> - Object termination has special behaviour. See Measure and Optimise methods for further details.
 '@remark 2023-11-23 This function is not intended to be called directly and thus has been made private. Use the Measure or Optimise methods instead. If absolutely required use `protInit`.
-Private Function Create(ByVal objType as EPerfObjType, ByVal params as Variant) as stdPerformance
-  Set Create = new stdPerformance
+Private Function Create(ByVal objType As EPerfObjType, ByVal params As Variant) As stdPerformance
+  Set Create = New stdPerformance
   Call Create.protInit(objType, params)
 End Function
 
@@ -139,29 +139,32 @@ End Function
 '* iMeasure - used for measuring performance
 '* iOptimiser - used for optimising performance 
 '@param params as Variant<Array<Variant>> - Additional params supplied as array.
-Public Sub protInit(ByVal objType as EPerfObjType, ByVal params as variant)
-  this.ObjectType = objType
-  select case objType
-    case iMeasure
-      this.Measure.KeyName = params(0)
-      this.Measure.Divider = params(1)
-      this.Measure.StartTime = GetTickCount()
-    case iOptimiser
+Public Sub protInit(ByVal objType As EPerfObjType, ByVal params As Variant)
+  This.ObjectType = objType
+  Select Case objType
+    Case iMeasure
+      This.Measure.KeyName = params(0)
+      This.Measure.Divider = params(1)
+      This.Measure.StartTime = GetTickCount()
+    Case iOptimiser
+      'TODO: Need to make this more application agnostic
+      Dim oApp As Object: Set oApp = Application
+      
       'Store vals
-      this.Optimiser.ScreenUpdating = Application.ScreenUpdating
-      this.Optimiser.EnableEvents = Application.EnableEvents
+      This.Optimiser.ScreenUpdating = oApp.ScreenUpdating
+      This.Optimiser.EnableEvents = oApp.EnableEvents
       
       'Set vals
-      Application.ScreenUpdating = params(0)
-      Application.EnableEvents = params(1)
+      oApp.ScreenUpdating = params(0)
+      oApp.EnableEvents = params(1)
       
       'Different options for different applications
-      select case Application.Name 
-        case "Microsoft Excel"
-          this.Optimiser.Calculation = Application.Calculation
-          Application.Calculation = params(2)
-      end select
-  end select
+      Select Case oApp.Name
+        Case "Microsoft Excel"
+          This.Optimiser.Calculation = oApp.Calculation
+          oApp.Calculation = params(2)
+      End Select
+  End Select
 End Sub
 
 'Measure
@@ -188,8 +191,8 @@ End Sub
 '  next
 'End With
 '```
-Public Function CreateMeasure(ByVal sProc as string, Optional ByVal nCount as double=1) as stdPerformance
-  set CreateMeasure = Create(iMeasure, Array(sProc,nCount))
+Public Function CreateMeasure(ByVal sProc As String, Optional ByVal nCount As Double = 1) As stdPerformance
+  Set CreateMeasure = Create(iMeasure, Array(sProc, nCount))
 End Function
 
 'Optimise
@@ -205,8 +208,8 @@ End Function
 '  'some heavy code here
 'End With
 '```
-Public Function CreateOptimiser(Optional ByVal ScreenUpdating as boolean = false, Optional ByVal EnableEvents as boolean = false, Optional ByVal Calculation as long = -4135) as stdPerformance
-  set CreateOptimiser = Create(iOptimiser, Array(ScreenUpdating,EnableEvents,Calculation))
+Public Function CreateOptimiser(Optional ByVal ScreenUpdating As Boolean = False, Optional ByVal EnableEvents As Boolean = False, Optional ByVal Calculation As Long = -4135) As stdPerformance
+  Set CreateOptimiser = Create(iOptimiser, Array(ScreenUpdating, EnableEvents, Calculation))
 End Function
 
 
@@ -230,78 +233,81 @@ End Property
 '@param time   - time to add to global cache
 '@param nCount - number of operations (divisor)
 '@remark If a time is added that was previously also added then the average of the times is calculated.
-Public Sub AddMeasurement(ByVal sKey as string, ByVal time as Double, ByVal nCount as Double)
-  if Me is stdPerformance then
-    Debug.Print sKey & ": " & time & " ms" & iif(nCount>1," (" & (1000*time/nCount) & chr(181) & "s per operation)","")
-    Dim ind as long: ind = getDictIndex(sKey)
-    if ind = -1 then
-      Call setDictItem(sKey, Array(time,1))
-    else
+Public Sub AddMeasurement(ByVal sKey As String, ByVal time As Double, ByVal nCount As Double)
+  If Me Is stdPerformance Then
+    Debug.Print sKey & ": " & time & " ms" & IIf(nCount > 1, " (" & (1000 * time / nCount) & Chr(181) & "s per operation)", "")
+    Dim ind As Long: ind = getDictIndex(sKey)
+    If ind = -1 Then
+      Call setDictItem(sKey, Array(time, 1))
+    Else
       Dim vItem: vItem = getDictItem(sKey)
-      Dim average as long: average = vItem(0)
-      Dim count as long: count = vItem(1) + 1
-      average = average + (time - average)/count
-      Call setDictItem(sKey, Array(average,count))
-    end if
-  end if
+      Dim average As Long: average = vItem(0)
+      Dim count As Long: count = vItem(1) + 1
+      average = average + (time - average) / count
+      Call setDictItem(sKey, Array(average, count))
+    End If
+  End If
 End Sub
 
 'MeasuresClear - Clears all procedures/blocks and times that have been measured
 Public Sub MeasuresClear()
-  ReDim this.Singleton.FakeDict(0 to 0)
+  ReDim This.Singleton.FakeDict(0 To 0)
 End Sub
 
 'MeasuresKeys
 '@returns Array<String> - Array containing the procedures or blocks that have been measured.
-Public Property Get MeasuresKeys() as string()
-  if Me is stdPerformance then
-    if ubound(this.Singleton.FakeDict) = 0 then
+Public Property Get MeasuresKeys() As String()
+  If Me Is stdPerformance Then
+    If UBound(This.Singleton.FakeDict) = 0 Then
       MeasuresKeys = Split("")
-    else
+    Else
       'Define return array
-      Dim sOut() as string
-      Redim Preserve sOut(0 to ubound(this.Singleton.FakeDict)-1)
+      Dim sOut() As String
+      ReDim Preserve sOut(0 To UBound(This.Singleton.FakeDict) - 1)
 
       'Fill keys array 
-      Dim i as long
-      For i = 0 to ubound(this.Singleton.FakeDict)-1
-        sOut(i) = this.Singleton.FakeDict(i).key
-      next
+      Dim i As Long
+      For i = 0 To UBound(This.Singleton.FakeDict) - 1
+        sOut(i) = This.Singleton.FakeDict(i).key
+      Next
 
       'return data
       MeasuresKeys = sOut
-    end if
-  end if 
+    End If
+  End If
 End Property
 
 'Used by static class only
 '@constructor
 Private Sub Class_Initialize()
-  if me is stdPerformance then
-    Redim this.Singleton.FakeDict(0 to 0)
-  end if
+  If Me Is stdPerformance Then
+    ReDim This.Singleton.FakeDict(0 To 0)
+  End If
 End Sub
 
 'Used by instance objects only
 '@destructor
 Private Sub Class_Terminate()
-  if not me is stdPerformance then
-    select case this.ObjectType
-      case iMeasure
-        Dim pEndTime as long: pEndTime = GetTickCount()
-        Call stdPerformance.AddMeasurement(this.Measure.KeyName, Abs(pEndTime - this.Measure.StartTime),this.Measure.Divider)
-      case iOptimiser
+  If Not Me Is stdPerformance Then
+    Select Case This.ObjectType
+      Case iMeasure
+        Dim pEndTime As Long: pEndTime = GetTickCount()
+        Call stdPerformance.AddMeasurement(This.Measure.KeyName, Abs(pEndTime - This.Measure.StartTime), This.Measure.Divider)
+      Case iOptimiser
+        'TODO: Make this more application agnostic
+        
+        Dim oApp As Object: Set oApp = Application
         'Store vals
-        Application.ScreenUpdating = this.Optimiser.ScreenUpdating
-        Application.EnableEvents = this.Optimiser.EnableEvents
+        oApp.ScreenUpdating = This.Optimiser.ScreenUpdating
+        oApp.EnableEvents = This.Optimiser.EnableEvents
         
         'Different options for different applications
-        select case Application.Name 
-          case "Microsoft Excel"
-            Application.Calculation = this.Optimiser.Calculation
-        end select
-    end select
-  end if
+        Select Case oApp.Name
+          Case "Microsoft Excel"
+            oApp.Calculation = This.Optimiser.Calculation
+        End Select
+    End Select
+  End If
 End Sub
 
 
@@ -316,16 +322,16 @@ End Sub
 'Returns the index where a particular key is stored
 '@param key - Key to find in dictionary
 '@returns   - Index of key in dictionary
-Private Function getDictIndex(ByVal key as string) as Long
+Private Function getDictIndex(ByVal key As String) As Long
   On Error GoTo ErrorOccurred
-    Dim i as long
-    For i = 0 to ubound(this.Singleton.FakeDict)
-      if this.Singleton.FakeDict(i).key = key then
+    Dim i As Long
+    For i = 0 To UBound(This.Singleton.FakeDict)
+      If This.Singleton.FakeDict(i).key = key Then
         getDictIndex = i
         Exit Function
-      end if
-    next
-  On Error Goto 0
+      End If
+    Next
+  On Error GoTo 0
 ErrorOccurred:
   getDictIndex = -1
 End Function
@@ -335,23 +341,23 @@ End Function
 '@param key - Key to find in dictionary
 '@param v   - Value to set dictionary too
 '@param ind - Index of item. If not given `getDictIndex()` is used
-Private Sub setDictItem(ByVal key as string, ByVal v as variant, Optional ByVal ind as long = -1)
+Private Sub setDictItem(ByVal key As String, ByVal v As Variant, Optional ByVal ind As Long = -1)
   'get index of item in fake dict
-  if ind = -1 then ind = getDictIndex(key)
+  If ind = -1 Then ind = getDictIndex(key)
   
   'If item not exist, add it
-  if ind = -1 then
-    ind = getUB(this.Singleton.FakeDict)
-    this.Singleton.FakeDict(ind).key = key
-    Redim Preserve this.Singleton.FakeDict(0 to ind+1)
-  end if
+  If ind = -1 Then
+    ind = getUB(This.Singleton.FakeDict)
+    This.Singleton.FakeDict(ind).key = key
+    ReDim Preserve This.Singleton.FakeDict(0 To ind + 1)
+  End If
 
   'Assign value to index
-  if isObject(v) then
-    set this.Singleton.FakeDict(ind).val = v
-  else
-    this.Singleton.FakeDict(ind).val = v
-  end if
+  If IsObject(v) Then
+    Set This.Singleton.FakeDict(ind).val = v
+  Else
+    This.Singleton.FakeDict(ind).val = v
+  End If
 End Sub
 
 'getUB
@@ -370,15 +376,15 @@ End Function
 'Returns the item paired with some key
 '@param key - Key to find in dictionary
 '@returns - Item stored at key
-Private Function getDictItem(ByVal key as string) as variant
-  Dim ind as Long: ind = getDictIndex(key)
-  if ind <> -1 then 
-    if isObject(this.Singleton.FakeDict(ind).val) then
-      set getDictItem = this.Singleton.FakeDict(ind).val
-    else
-      getDictItem = this.Singleton.FakeDict(ind).val
-    end if
-  else
+Private Function getDictItem(ByVal key As String) As Variant
+  Dim ind As Long: ind = getDictIndex(key)
+  If ind <> -1 Then
+    If IsObject(This.Singleton.FakeDict(ind).val) Then
+      Set getDictItem = This.Singleton.FakeDict(ind).val
+    Else
+      getDictItem = This.Singleton.FakeDict(ind).val
+    End If
+  Else
     getDictItem = Empty
-  end if
+  End If
 End Function

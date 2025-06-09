@@ -93,6 +93,12 @@ Attribute VB_Exposed = False
 '--------------------------------------------------------------------------------
 'Win API Declares
 '--------------------------------------------------------------------------------
+#If Win64 Then
+Private Const NULL_PTR As LongLong = 0^
+#Else
+Private Const NULL_PTR As Long = 0&
+#End If
+
 Private Type apiRect
   left As Long
   top As Long
@@ -560,9 +566,9 @@ Private Type TThis
   Initialized As Boolean
   LayeredWindowInfo As TLayeredWindowInfo
   Lookups As Object
-  isCreatedByVBA as Boolean
+  isCreatedByVBA As Boolean
 End Type
-Private This as TThis
+Private This As TThis
 
 
 '================================================================================================
@@ -592,11 +598,11 @@ Public Function Create(ByVal sClassName As String, ByVal x As Long, ByVal y As L
 #Else
 Public Function Create(ByVal sClassName As String, ByVal x As Long, ByVal y As Long, ByVal width As Long, ByVal height As Long, Optional ByVal sCaption As String = vbNullString, Optional ByVal dwStyle As Long = WS_POPUP, Optional ByVal dwStyleEx As Long = 0, Optional ByVal hWndParent As Long = 0, Optional ByVal hMenu As Long = 0, Optional ByVal hInstance As Long = 0, Optional ByVal lpParam As Long = 0) As stdWindow
 #End If
-  Dim hwnd as LongPtr: hwnd = CreateWindowEx(dwStyleEx, sClassName, sCaption, dwStyle, x, y, width, height, hWndParent, hMenu, hInstance, lpParam)
+  Dim hwnd As LongPtr: hwnd = CreateWindowEx(dwStyleEx, sClassName, sCaption, dwStyle, x, y, width, height, hWndParent, hMenu, hInstance, lpParam)
   If hwnd = 0 Then Err.Raise 1, "Create", "Failed to create window."
   
-  Set Create = new stdWindow
-  Call Create.protInit(hwnd, true)
+  Set Create = New stdWindow
+  Call Create.protInit(hwnd, True)
 End Function
 
 'Create a static popup window and return a window object
@@ -610,27 +616,27 @@ End Function
 '@returns           - The created highlighting box
 '@remark See [Creating a transparent window](https://stackoverflow.com/questions/3970066/creating-a-transparent-window-in-c-win32)
 Public Function CreateHighlightRect(ByVal x As Long, ByVal y As Long, ByVal width As Long, ByVal height As Long, Optional ByVal BorderWidth As Long = 5, Optional ByVal BorderColor As Long = 255) As stdWindow
-  set CreateHighlightRect = Create("STATIC", x, y, width, height)
-  CreateHighlightRect.transparentColor = RGB(255,255,255)
-  CreateHighlightRect.isClickThroughEnabled = true
+  Set CreateHighlightRect = Create("STATIC", x, y, width, height)
+  CreateHighlightRect.TransparentColor = RGB(255, 255, 255)
+  CreateHighlightRect.isClickThroughEnabled = True
   CreateHighlightRect.Visible = True
-  Call UpdateWindow(CreateHighlightRect.Handle)
+  Call UpdateWindow(CreateHighlightRect.handle)
   
   'Create highlighted border
-  Dim hDC as LongPtr: hDC = CreateHighlightRect.hDCClient
-  Dim hPen as LongPtr: hPen = CreatePen(0, BorderWidth, BorderColor)
+  Dim hDC As LongPtr: hDC = CreateHighlightRect.hDCClient
+  Dim hPen As LongPtr: hPen = CreatePen(0, BorderWidth, BorderColor)
   SelectObject hDC, hPen
   Rectangle hDC, 0, 0, width, height
   SelectObject hDC, 0
   DeleteObject hPen
-  Call ReleaseDC(CreateHighlightRect.Handle, hDC)
+  Call ReleaseDC(CreateHighlightRect.handle, hDC)
 End Function
 
 'Whenever object is destroyed, destroy window if it was created by VBA
 Private Sub Class_Terminate()
-  if This.isCreatedByVBA then
-    if This.Handle <> 0 then Call DestroyWindow(This.Handle)
-  end if
+  If This.isCreatedByVBA Then
+    If This.Handle <> 0 Then Call DestroyWindow(This.Handle)
+  End If
 End Sub
 
 'Create a window object from an existing window handle
@@ -652,24 +658,24 @@ End Function
 '@returns - Window object representing the current running application
 '@remark - This function is only implemented for Excel, Word and PowerPoint. For other applications, find the window with `stdWindow.CreateFromDesktop()` and then use `desktop.children` to find the required window object.
 'Alternatively you might be able to use CommandBars("Status Bar") for other applications, similar to that of PowerPoint, but this is untested.
-Public Function CreateFromApplication(Optional ByVal oApp as Object = nothing) As stdWindow
-  if oApp is nothing then set oApp = Application
-  select case oApp.Name
-    case "Microsoft Excel"
+Public Function CreateFromApplication(Optional ByVal oApp As Object = Nothing) As stdWindow
+  If oApp Is Nothing Then Set oApp = Application
+  Select Case oApp.Name
+    Case "Microsoft Excel"
       Set CreateFromApplication = CreateFromHwnd(oApp.hwnd)
-    case "Microsoft Word"
+    Case "Microsoft Word"
       Set CreateFromApplication = CreateFromHwnd(oApp.ActiveWindow.Hwnd)
-    case "Microsoft PowerPoint"
-      set CreateFromApplication = CreateFromIAccessible(oApp.CommandBars("Status Bar")).AncestralRoot
-    case "Microsoft Access"
-      set CreateFromApplication = CreateFromHwnd(oApp.hWndAccessApp)
+    Case "Microsoft PowerPoint"
+      Set CreateFromApplication = CreateFromIAccessible(oApp.CommandBars("Status Bar")).AncestralRoot
+    Case "Microsoft Access"
+      Set CreateFromApplication = CreateFromHwnd(oApp.hWndAccessApp)
     Case "Outlook"
       Set CreateFromApplication = CreateFromIAccessible(oApp.ActiveWindow.CommandBars("Status Bar")).AncestralRoot
     Case "Microsoft Publisher"
       Set CreateFromApplication = CreateFromIAccessible(oApp.CommandBars("Status Bar")).AncestralRoot
-    case else
-      Err.Raise 1, "stdAcc::CreateFromApplication()", "No implementation for getting application window of " & Application.name
-  end select
+    Case Else
+      Err.Raise 1, "stdAcc::CreateFromApplication()", "No implementation for getting application window of " & Application.Name
+  End Select
 End Function
 
 'Create a window from the desktop window
@@ -750,11 +756,11 @@ Public Function CreateManyFromProcessId(ByVal processID As Long) As Collection
   Dim ret As Collection: Set ret = New Collection
   Dim win As stdWindow
   For Each win In stdWindow.CreateFromDesktop().children
-    If win.exists and win.visible then
-      If win.processID = processID Then
-        ret.add win
+    If win.Exists And win.Visible Then
+      If win.ProcessID = processID Then
+        ret.Add win
       End If
-    end if
+    End If
   Next
   Set CreateManyFromProcessId = ret
 End Function
@@ -762,29 +768,29 @@ End Function
 'Create window objects for all shell windows
 '@constructor
 '@returns Collection<stdWindow> - Collection of shell windows
-Public Function CreateManyFromShellWindows() as Collection
-  set CreateManyFromShellWindows = new Collection
-  Dim shell: set shell = CreateObject("Shell.Application")
-  Dim win as object
-  For each win in shell.windows
-    CreateManyFromShellWindows.add CreateFromHwnd(win.hwnd)
-  next
+Public Function CreateManyFromShellWindows() As Collection
+  Set CreateManyFromShellWindows = New Collection
+  Dim shell: Set shell = CreateObject("Shell.Application")
+  Dim win As Object
+  For Each win In shell.windows
+    CreateManyFromShellWindows.Add CreateFromHwnd(win.hwnd)
+  Next
 End Function
 
 'Converts a stdWindow object to a stdAcc object
 '@returns Object<stdAcc>|stdAcc - stdAcc object representing the window
 '@remark - This function requires stdAcc dependency.
 '@remark - For full intellisense, add `stdAccPresent = 1` to the compiler constants
-#if stdAccPresent then
+#If stdAccPresent Then
 Public Function AsAcc() as stdAcc
-#else
-Public Function AsAcc() as Object
-#end if
-  if isObject(stdAcc) then
-    set AsAcc = stdAcc.CreateFromHwnd(This.Handle)
-  else
+#Else
+Public Function AsAcc() As Object
+#End If
+  If IsObject(stdAcc) Then
+    Set AsAcc = stdAcc.CreateFromHwnd(This.Handle)
+  Else
     Err.Raise 1, "", "This function requires stdAcc dependency."
-  end if
+  End If
 End Function
 
 'Converts a stdWindow object to a IAccessible object
@@ -792,7 +798,7 @@ End Function
 '@returns Object<IAccessible> - IAccessible object representing the window
 Public Function AsIAccessible() As Object
   Dim Guid As tGUID: Guid = convertGUID("618736E0-3C3D-11CF-810C-00AA00389B71")
-  Call AccessibleObjectFromWindow(This.handle, 0, Guid, AsIAccessible)
+  Call AccessibleObjectFromWindow(This.Handle, 0, Guid, AsIAccessible)
 End Function
 
 'Converts a stdWindow object to a IAccessible object
@@ -802,7 +808,7 @@ End Function
 Public Function AsNativeObject() As Object
   Const OBJID_NATIVEOM = &HFFFFFFF0
   Dim Guid As tGUID: Guid = convertGUID("00020400-0000-0000-C000-000000000046")
-  Call AccessibleObjectFromWindow(This.handle, OBJID_NATIVEOM, Guid, AsNativeObject)
+  Call AccessibleObjectFromWindow(This.Handle, OBJID_NATIVEOM, Guid, AsNativeObject)
 End Function
 
 'Notes:
@@ -818,7 +824,7 @@ End Function
 '@param hwnd - Handle to window (hwnd) to create window object for
 '@returns - Specificed window.
 #If VBA7 Then
-Friend Sub protInit(ByVal hwnd As LongPtr, Optional ByVal isCreatedByVBA as Boolean = false)
+Friend Sub protInit(ByVal hwnd As LongPtr, Optional ByVal isCreatedByVBA As Boolean = False)
 #Else
 Friend Sub protInit(ByVal hwnd As Long, Optional ByVal isCreatedByVBA as Boolean = false)
 #End If
@@ -888,7 +894,7 @@ End Property
 Public Property Get Caption() As String
   If Exists Then
     Dim sCharBuffer As String, iNumChars As Long
-    sCharBuffer = space(256)
+    sCharBuffer = Space(256)
     iNumChars = GetWindowText(This.Handle, sCharBuffer, 256)
     Caption = Mid(sCharBuffer, 1, iNumChars)
   Else
@@ -910,7 +916,7 @@ End Property
 Public Property Get Class() As String
   If Exists Then
     Dim sCharBuffer As String, iNumChars As Long
-    sCharBuffer = space(256)
+    sCharBuffer = Space(256)
     iNumChars = GetClassName(This.Handle, sCharBuffer, 256)
     Class = Mid(sCharBuffer, 1, iNumChars)
   Else
@@ -975,11 +981,11 @@ End Property
 
 'Get the child windows of this window
 '@returns Collection<stdWindow> - Collection of child windows
-Public Property Get children() As collection
+Public Property Get children() As Collection
   If Exists Then
     'Define collection to return
-    Dim ret As collection
-    Set ret = New collection
+    Dim ret As Collection
+    Set ret = New Collection
 
     'Attempt to get a child window
     Dim childHandle As LongPtr
@@ -1059,7 +1065,7 @@ Public Property Get RectWindow() As Variant
   End If
 End Property
 Public Property Let RectWindow(ByVal rect As Variant)
-  If isArray(rect) Then
+  If IsArray(rect) Then
     If Exists Then
       Call MoveWindow(This.Handle, rect(0), rect(1), rect(2), rect(3), True)
     Else
@@ -1181,7 +1187,7 @@ End Property
 Public Property Get ProcessName() As String
   If Exists Then
     Dim sCharBuffer As String, iNumChars As Long
-    sCharBuffer = space(256)
+    sCharBuffer = Space(256)
     iNumChars = GetWindowModuleFileName(This.Handle, sCharBuffer, 256)
     ProcessName = Mid(sCharBuffer, 1, iNumChars)
   Else
@@ -1211,11 +1217,11 @@ End Property
 
 'Get/Set the owner of the window.
 '@remark - The owner is not the same as the parent. See: Raymond Chen's article: https://devblogs.microsoft.com/oldnewthing/20100315-00/?p=14613
-Public Property Get owner() as stdWindow
-  Dim tOwner as LongPtr: tOwner = GetWindowLongPtrA(This.Handle, apiWindowLongType.GWL_HWNDPARENT)
-  set owner = stdWindow.CreateFromHwnd(tOwner)
-end property
-Public Property Set owner(ByVal win as stdWindow)
+Public Property Get owner() As stdWindow
+  Dim tOwner As LongPtr: tOwner = GetWindowLongPtrA(This.Handle, apiWindowLongType.GWL_HWNDPARENT)
+  Set owner = stdWindow.CreateFromHwnd(tOwner)
+End Property
+Public Property Set owner(ByVal win As stdWindow)
   If Not Exists Then
     Err.Raise 1, "Owner [Set]", "Window does not exist."
   ElseIf Not win.Exists Then
@@ -1229,7 +1235,7 @@ End Property
 '@param hwnd - Handle to window to set as owner
 '@remark - The owner is not the same as the parent. See: Raymond Chen's article: https://devblogs.microsoft.com/oldnewthing/20100315-00/?p=14613.
 'Calling `stdWindow.CreateFromIUnknown(Me).setOwnerHandle(0)` is especially useful, as it raises the Excel Userform to a top level window.
-Public Sub setOwnerHandle(ByVal hwnd as LongPtr)
+Public Sub setOwnerHandle(ByVal hwnd As LongPtr)
   Call SetWindowLongPtrA(This.Handle, apiWindowLongType.GWL_HWNDPARENT, hwnd)
 End Sub
 
@@ -1243,16 +1249,16 @@ End Sub
 Public Property Get HICON() As LongPtr
   If Exists Then
     HICON = SendMessage(apiWindowMessage.WM_GETICON, apiWindowIconType.ICON_SMALL2, 0)
-    if HICON = NULL_PTR then HICON = GetClassLongPtrA(This.Handle, apiClassLongType.GCL_HICONSM)
-    If HICON = NULL_PTR then Err.Raise 1, "HICON", "No icon found."
+    If HICON = NULL_PTR Then HICON = GetClassLongPtrA(This.Handle, apiClassLongType.GCL_HICONSM)
+    If HICON = NULL_PTR Then Err.Raise 1, "HICON", "No icon found."
   Else
     Err.Raise 1, "HICON", "Window does not exist."
   End If
 End Property
 Public Property Let HICON(ByVal v As LongPtr)
   If Exists Then
-    Call SendMessage(apiWindowMessage.WM_SETICON, apiWindowIconType.ICON_BIG, CLNG(v))
-    Call SendMessage(apiWindowMessage.WM_SETICON, apiWindowIconType.ICON_SMALL, CLNG(v))
+    Call SendMessage(apiWindowMessage.WM_SETICON, apiWindowIconType.ICON_BIG, CLng(v))
+    Call SendMessage(apiWindowMessage.WM_SETICON, apiWindowIconType.ICON_SMALL, CLng(v))
   Else
     Err.Raise 1, "HICON [Let]", "Window does not exist."
   End If
@@ -1294,15 +1300,15 @@ End Property
 
 'Obtain a semi-colon delimited list of styles
 '@returns - semi-colon delimited list of style names e.g. "WS_BORDER;WS_CAPTION"
-Public Property Get StyleTexts() as String
-  Dim iStyle as Long: iStyle = Style
-  static vKeys   as variant: if isEmpty(vKeys)   then vKeys   = This.Lookups("EWndStyles").keys()
-  static vStyles as variant: if isEmpty(vStyles) then vStyles = This.Lookups("EWndStyles").items()
+Public Property Get StyleTexts() As String
+  Dim iStyle As Long: iStyle = Style
+  Static vKeys   As Variant: If IsEmpty(vKeys) Then vKeys = This.Lookups("EWndStyles").keys()
+  Static vStyles As Variant: If IsEmpty(vStyles) Then vStyles = This.Lookups("EWndStyles").items()
   
-  Dim s as string
-  Dim i as long: For i = 0 to ubound(vKeys)
-    if iStyle and vStyles(i) then s = s & vKeys(i) & ";"
-  next
+  Dim s As String
+  Dim i As Long: For i = 0 To UBound(vKeys)
+    If iStyle And vStyles(i) Then s = s & vKeys(i) & ";"
+  Next
   StyleTexts = s
 End Property
 
@@ -1332,15 +1338,15 @@ End Property
 
 'Obtain a semi-colon delimited list of styles
 '@returns - semi-colon delimited list of styleex names e.g. "WS_EX_APPWINDOW;WS_EX_TOPMOST"
-Public Property Get StyleExTexts() as String
-  Dim iStyleEx as Long: iStyleEx = StyleEx
-  static vKeys   as variant: if isEmpty(vKeys)   then vKeys   = This.Lookups("EWndExStyles").keys()
-  static vStyles as variant: if isEmpty(vStyles) then vStyles = This.Lookups("EWndExStyles").items()
+Public Property Get StyleExTexts() As String
+  Dim iStyleEx As Long: iStyleEx = StyleEx
+  Static vKeys   As Variant: If IsEmpty(vKeys) Then vKeys = This.Lookups("EWndExStyles").keys()
+  Static vStyles As Variant: If IsEmpty(vStyles) Then vStyles = This.Lookups("EWndExStyles").items()
   
-  Dim s as string
-  Dim i as long: For i = 0 to ubound(vKeys)
-    if iStyleEx and vStyles(i) then s = s & vKeys(i) & ";"
-  next
+  Dim s As String
+  Dim i As Long: For i = 0 To UBound(vKeys)
+    If iStyleEx And vStyles(i) Then s = s & vKeys(i) & ";"
+  Next
   StyleExTexts = s
 End Property
 
@@ -1352,18 +1358,18 @@ End Property
   Public Property Get UserData() As LongPtr
 #Else
   Public Property Get UserData() As Long
-#end if
+#End If
   If Exists Then
     UserData = GetWindowLongPtrA(This.Handle, apiWindowLongType.GWL_USERDATA)
   Else
     Err.Raise 1, "UserData", "Window does not exist."
   End If
 End Property
-#If VBA7 then
+#If VBA7 Then
   Public Property Let UserData(ByVal newUserData As LongPtr)
-#else
+#Else
   Public Property Let UserData(ByVal newUserData As Long)
-#end if
+#End If
   If Exists Then
     'Clear Error. See return value at https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowlonga
     Err.Clear
@@ -1381,22 +1387,22 @@ End Property
 'Get/Set the WndProc of the window
 '@returns - Window's WndProc
 '@remark - This is a pointer to the window's WndProc function. This can be set to a VBA module function pointer if the Window is owned by Excel.
-#If VBA7 then
+#If VBA7 Then
   Public Property Get WndProc() As LongPtr
-#else
+#Else
   Public Property Get WndProc() As Long
-#end if
+#End If
   If Exists Then
     WndProc = GetWindowLongPtrA(This.Handle, apiWindowLongType.GWL_WNDPROC)
   Else
     Err.Raise 1, "WndProc", "Window does not exist."
   End If
 End Property
-#If VBA7 then
+#If VBA7 Then
   Public Property Let WndProc(ByVal newWndProc As LongPtr)
-#else
+#Else
   Public Property Let WndProc(ByVal newWndProc As Long)
-#end if
+#End If
   If Exists Then
     'Clear Error. See return value at https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowlonga
     Err.Clear
@@ -1517,7 +1523,7 @@ Public Property Let isAlwaysOnTop(ByVal v As Boolean)
   Const HWND_NOTOPMOST = -2
   Const SWP_NOSIZE = &H1
   Const SWP_NOMOVE = &H2
-  Call SetWindowPos(This.Handle, iif(v, HWND_TOPMOST, HWND_NOTOPMOST), 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE)
+  Call SetWindowPos(This.Handle, IIf(v, HWND_TOPMOST, HWND_NOTOPMOST), 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE)
 End Property
 
 'Get/Set whether the window is an app window
@@ -1593,20 +1599,20 @@ End Property
 '@returns - The transparent color for the window. If isLayeredWindow is false, or the window's LayeredWindowFlags does not have the ChromaKey flag set, this will return -1.
 '@remark - Setting this value will also set the window to be a layered window if it is not already.
 Public Property Get TransparentColor() As Long
-  if isLayeredWindow then 
-    if bitFlagCheck(LayeredWindowFlags, LayeredWindowFlag.lwfChromaKey) then
+  If isLayeredWindow Then
+    If bitFlagCheck(LayeredWindowFlags, LayeredWindowFlag.lwfChromaKey) Then
       Call GetLayeredWindowAttributes(This.Handle, TransparentColor, 0, 0)
-    else
+    Else
       TransparentColor = -1
-    end if
-  else
+    End If
+  Else
     TransparentColor = -1
-  end if
+  End If
 End Property
 Public Property Let TransparentColor(ByVal v As Long)
-  isLayeredWindow = true
+  isLayeredWindow = True
   This.LayeredWindowInfo.crKey = v
-  Dim newFlags as Long: newFlags = bitFlagSet(LayeredWindowFlags, LayeredWindowFlag.lwfChromaKey, True)
+  Dim newFlags As Long: newFlags = bitFlagSet(LayeredWindowFlags, LayeredWindowFlag.lwfChromaKey, True)
   Call SetLayeredWindowAttributes(This.Handle, This.LayeredWindowInfo.crKey, This.LayeredWindowInfo.bAlpha, newFlags)
 End Property
 
@@ -1620,9 +1626,9 @@ Public Property Get Opacity() As Byte
   End If
 End Property
 Public Property Let Opacity(ByVal v As Byte)
-  isLayeredWindow = true
+  isLayeredWindow = True
   This.LayeredWindowInfo.bAlpha = v
-  Dim newFlags as Long: newFlags = bitFlagSet(LayeredWindowFlags, LayeredWindowFlag.lwfOpacity, True)
+  Dim newFlags As Long: newFlags = bitFlagSet(LayeredWindowFlags, LayeredWindowFlag.lwfOpacity, True)
   Call SetLayeredWindowAttributes(This.Handle, This.LayeredWindowInfo.crKey, This.LayeredWindowInfo.bAlpha, newFlags)
 End Property
 
@@ -1632,14 +1638,14 @@ End Property
 '  Dim location as string: location = stdWindow.CreateFromHwnd(hwnd).ShellWindow.LocationURL
 '```
 '@TODO: is there a better way?
-Public Property Get ShellWindow() as Object
-  if Class = "CabinetWClass" then
+Public Property Get ShellWindow() As Object
+  If Class = "CabinetWClass" Then
     With stdWindow.protGetShellWindowCache(This.Handle)
-      if .exists(CStr(This.Handle)) then
-        set ShellWindow = .item(CStr(This.Handle))
-      end if
-    end with
-  end if
+      If .exists(CStr(This.Handle)) Then
+        Set ShellWindow = .item(CStr(This.Handle))
+      End If
+    End With
+  End If
 End Property
 
 '================================================================================================
@@ -1780,7 +1786,7 @@ End Function
 ' 'Find all elements with depth <= 4:
 ' el.FindAll(stdLambda.Create("if $2 < 4 then 4 else if $2 = 4 then 1 else 3"))
 ' ```
-Public Function FindAll(ByVal query As stdICallable, Optional ByVal searchType As EWndFindType = EWndFindType.BreadthFirst, Optional ByVal iStaticDepthLimit As Long = -1) As collection
+Public Function FindAll(ByVal query As stdICallable, Optional ByVal searchType As EWndFindType = EWndFindType.BreadthFirst, Optional ByVal iStaticDepthLimit As Long = -1) As Collection
     Dim stack() As tFindNode
     ReDim stack(0 To 0)
     stack(0).initialised = True
@@ -1794,7 +1800,7 @@ Public Function FindAll(ByVal query As stdICallable, Optional ByVal searchType A
     Call BindGlobals(query)
 
     'Initialise collection
-    Set FindAll = New collection
+    Set FindAll = New Collection
 
     'Loop over the stack/array
     While Length > 0 And index < Length
@@ -1868,7 +1874,7 @@ End Function
 'Close the window
 Public Sub Quit()
   If Exists Then
-    Call PostMessage(&H10&,0,0)
+    Call PostMessage(&H10&, 0, 0)
   Else
     Err.Raise 1, "Close", "Window does not exist."
   End If
@@ -1898,10 +1904,10 @@ End Sub
 
 'Get all descendents of the stdWindow
 '@returns Collection<stdWindow> - Collection of descendents
-Public Function GetDescendents() As collection
+Public Function GetDescendents() As Collection
   'Create collection which will be returned
-  Dim c As collection
-  Set c = New collection
+  Dim c As Collection
+  Set c = New Collection
   
   Dim child As stdWindow, desc As stdWindow
   For Each child In children
@@ -1929,7 +1935,7 @@ End Sub
 '@param wParam - wParam to send
 '@param lParam - lParam to send
 '@returns - Result of SendMessage
-Public Function SendMessage(ByVal wMsg As Long, ByVal wParam As Long, ByVal lParam As Long) as Long
+Public Function SendMessage(ByVal wMsg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
   If Exists Then
     SendMessage = SendMessageA(This.Handle, wMsg, wParam, lParam)
   Else
@@ -1947,7 +1953,7 @@ Public Sub PostMessage(ByVal wMsg As Long, ByVal wParam As Long, ByVal lParam As
     Dim hwnd As LongPtr: hwnd = This.Handle
     If This.Handle = GetDesktopWindow Then hwnd = &HFFFF
     
-    If PostMessageA(hwnd, wMsg, wParam, lParam) =  0 Then
+    If PostMessageA(hwnd, wMsg, wParam, lParam) = 0 Then
       Err.Raise 1, "PostMessage", "An unexpected error occurred while posting the message.", Err.LastDllError
     End If
   Else
@@ -1962,7 +1968,7 @@ End Sub
 '@param TimeoutMilliseconds - Timeout in milliseconds
 '@returns - Result of SendMessageTimeout
 '@TODO: Complete this function
-Private Function SendMessageTimeout(ByVal wMsg As Long, ByVal wParam As Long, ByVal lParam As Long, ByVal TimeoutMilliseconds As Long) as Long
+Private Function SendMessageTimeout(ByVal wMsg As Long, ByVal wParam As Long, ByVal lParam As Long, ByVal TimeoutMilliseconds As Long) As Long
   If Exists Then
     Err.Raise 1, "SendMessageTimeout", "Error: Not implemented."
   Else
@@ -2122,11 +2128,12 @@ Public Sub SendKeysEvent(ByVal sKeys As String, Optional ByVal keyDelay As Long 
       Call Sleep(keyDelay)
       
       'Use keybd event
-      Dim iKey as Long
+      Dim iKey As Long
       For iKey = 1 To UBound(keys)
         Dim key As KeyToken: key = keys(iKey)
         
         'Loop as many times as required times
+        Dim n As Long
         For n = 1 To key.iTimes
           'Key down event
           If key.iKeyState = tap Or key.iKeyState = down Then
@@ -2165,6 +2172,7 @@ Public Sub SendKeysMessage(ByVal sKeys As String, Optional ByVal keyDelay As Lon
         Dim key As KeyToken: key = keys(iKey)
         
         'Loop as many times as required times
+        Dim n As Long
         For n = 1 To key.iTimes
           'Key down event
           If key.iKeyState = tap Or key.iKeyState = down Then
@@ -2215,11 +2223,11 @@ End Function
 '@protected
 '@param hwnd - Handle of the window to test for in the cache. If this window is not in the cache, the cache will be updated.
 '@returns - Shell window cache
-#if VBA7 then
-  Friend Function protGetShellWindowCache(ByVal hwnd as LongPtr) as object
-#else
+#If VBA7 Then
+  Friend Function protGetShellWindowCache(ByVal hwnd As LongPtr) As Object
+#Else
   Friend Function protGetShellWindowCache(ByVal hwnd as Long) as object
-#end if
+#End If
   Static cache As Object: If cache Is Nothing Then Set cache = CreateObject("Scripting.Dictionary")
   If Not cache.Exists(CStr(hwnd)) Then
     Static shell As Object: If shell Is Nothing Then Set shell = CreateObject("Shell.Application")
@@ -2240,7 +2248,7 @@ End Function
 '@param DFS - Whether to use Depth First Search or not
 '@param Prev - Previous window
 '@returns - Next window
-Friend Function protGetNextDescendent(ByVal stack As collection, ByVal DFS As Boolean, ByVal Prev As stdWindow) As stdWindow
+Friend Function protGetNextDescendent(ByVal stack As Collection, ByVal DFS As Boolean, ByVal Prev As stdWindow) As stdWindow
   If stack.Count > 0 Then
     'Get the next window, use popCol if we want to do Depth First Search, else use shiftCol
     Dim oNext As stdWindow
@@ -2251,7 +2259,8 @@ Friend Function protGetNextDescendent(ByVal stack As collection, ByVal DFS As Bo
     End If
 
     'Add all children to stack
-    Dim windows As collection: Set windows = oNext.children.Object
+    Dim windows As Collection: Set windows = oNext.children
+    Dim child As stdWindow
     For Each child In windows
       stack.Add child
     Next
@@ -2266,7 +2275,7 @@ End Function
 'Returns the lookups object
 '@protected
 '@returns Object<Dictionary<Dictionary<Dictionary<string|long>>>> - Lookups object
-Friend Function protGetLookups() as Object
+Friend Function protGetLookups() As Object
     If This.Lookups Is Nothing Then
         'Notes:
         'EWndShowStyle is not needed, use isVisible, isMinimized and isMaximised
@@ -2328,17 +2337,17 @@ End Function
 'Pop a value out of the end of a collection
 '@param col as Collection<stdWindow> - Collection to pop value out of
 '@returns - Window popped out of collection
-Private Function PopCol(ByRef col As collection) As stdWindow
+Private Function PopCol(ByRef col As Collection) As stdWindow
   Set PopCol = col(col.Count)
-  Call col.remove(col.Count)
+  Call col.Remove(col.Count)
 End Function
 
 'Shift a value out of a collection
 '@param col as Collection<stdWindow> - Collection to shift value out of
 '@returns - Window shifted out of collection
-Private Function ShiftCol(ByRef col As collection) As stdWindow
+Private Function ShiftCol(ByRef col As Collection) As stdWindow
   Set ShiftCol = col(1)
-  Call col.remove(1)
+  Call col.Remove(1)
 End Function
 
 'Obtain a DWord from the high and low parts
@@ -2361,6 +2370,7 @@ End Function
 Private Sub BindGlobals(ByRef query As stdICallable)
     Dim bSuccess As Boolean
     Dim keys: keys = This.Lookups.keys()
+    Dim key As String
     For Each key In keys
       Call query.SendMessage("bindGlobal", bSuccess, Array(key, This.Lookups(key)("S2N")))
     Next
@@ -2431,7 +2441,7 @@ Private Function CreateLookupDict(arr As Variant) As Object
     Set oRet("N2S") = CreateObject("Scripting.Dictionary")
     oRet("N2S").CompareMode = 1
     For i = LBound(arr) To UBound(arr) Step 2
-      If isObject(arr(i)) Then
+      If IsObject(arr(i)) Then
         Set oRet("N2S")(arr(i + 1)) = arr(i)
       Else
         Let oRet("N2S")(arr(i + 1)) = arr(i)
@@ -2458,13 +2468,13 @@ Public Sub setThreadInput(ByVal bAttach As Boolean)
     Dim dwThisTID As Long: dwThisTID = GetWindowThreadProcessId(This.Handle, 0)
     
     'Synchonise Excel's thread with this window's thread
-    if Exists then
-      if dwExcelTID <> dwThisTID then
-        If AttachThreadInput(dwExcelTID, dwThisTID, iif(bAttach, 1, 0)) = 0 Then
+    If Exists Then
+      If dwExcelTID <> dwThisTID Then
+        If AttachThreadInput(dwExcelTID, dwThisTID, IIf(bAttach, 1, 0)) = 0 Then
             Err.Raise Err.LastDllError
         End If
-      end if
-    end if
+      End If
+    End If
 End Sub
 
 'Parses a set of keys and converts them into a KeyToken array
@@ -2552,6 +2562,7 @@ Private Function TokeniseKeys(ByVal sKeys As String, Optional ByVal bAutoRelease
         'Arguments can either be UP, DOWN, TAP (key state), or a number (times key is pressed)
         Dim iArg As Long
         For iArg = 1 To UBound(vExpression)
+          Dim vArg As Variant
           vArg = UCase(vExpression(iArg))
           Select Case vArg
             Case "UP"
@@ -2806,7 +2817,7 @@ End Function
 '@param bDown - Whether the key is down
 '@returns - key as an lParam
 Private Function createKeyLParam(ByVal repeatCount As Long, ByVal scanCode As Long, ByVal extended As Boolean, ByVal bDown As Boolean) As Long
-  createKeyLParam = repeatCount Or lshift(scanCode, 16) Or lshift(extended, 24) Or lshift(iif(bDown, 0, 1), 29) Or lshift(iif(bDown, 0, 1), 30) Or lshift(iif(bDown, 0, 1), 31)
+  createKeyLParam = repeatCount Or lshift(scanCode, 16) Or lshift(extended, 24) Or lshift(IIf(bDown, 0, 1), 29) Or lshift(IIf(bDown, 0, 1), 30) Or lshift(IIf(bDown, 0, 1), 31)
 End Function
 
 'Left shift a value by n times
@@ -2862,9 +2873,9 @@ Private Function convertGUID(Guid As String) As tGUID
     Dim vArr: vArr = Split(Guid, "-")
     
     'Generate GUID structure from string of hex
-    convertGUID.lData1       = CLng("&H" & vArr(0))             '618736E0
-    convertGUID.nData2       = CInt("&H" & vArr(1))             '3C3D
-    convertGUID.nData3       = CInt("&H" & vArr(2))             '11CF
+    convertGUID.lData1 = CLng("&H" & vArr(0))             '618736E0
+    convertGUID.nData2 = CInt("&H" & vArr(1))             '3C3D
+    convertGUID.nData3 = CInt("&H" & vArr(2))             '11CF
     convertGUID.abytData4(0) = CInt("&H" & Mid(vArr(3), 1, 2))  '81
     convertGUID.abytData4(1) = CInt("&H" & Mid(vArr(3), 3, 2))  '0C
     convertGUID.abytData4(2) = CInt("&H" & Mid(vArr(4), 1, 2))  '00

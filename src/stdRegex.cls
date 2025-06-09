@@ -101,9 +101,9 @@ Public Function Create(ByVal pattern As String, Optional ByVal flags As String =
   End If
   
   'Cache regex objects for faster speed
-  static cache as object: if cache is nothing then set cache = CreateObject("Scripting.Dictionary")
-  Dim sKey as string: sKey = pattern & "&" & flags
-  if not cache.exists(sKey) then
+  Static cache As Object: If cache Is Nothing Then Set cache = CreateObject("Scripting.Dictionary")
+  Dim sKey As String: sKey = pattern & "&" & flags
+  If Not cache.exists(sKey) Then
     'Call to [friend] init requires type information, can't use dict directly
     Dim r As stdRegex
     Set r = New stdRegex
@@ -111,10 +111,10 @@ Public Function Create(ByVal pattern As String, Optional ByVal flags As String =
     
     'Set cache
     Set cache(sKey) = r
-  end if
+  End If
 
   'Return cached object
-  set Create = cache(sKey)
+  Set Create = cache(sKey)
 End Function
 
 
@@ -384,7 +384,7 @@ Public Function MatchAll(ByVal sHaystack As String) As Collection
   
   'Create array to hold match data
   Dim oRet As Collection
-  Set oRet = new Collection
+  Set oRet = New Collection
   
   'Loop over all matches
   Dim i As Long, j As Long
@@ -401,13 +401,13 @@ Public Function MatchAll(ByVal sHaystack As String) As Collection
     'Loop over submatches and apply to dict
     For j = 1 To This.namesDict.Count
       oDict(j) = oMatches(i - 1).Submatches(j - 1)
-      If Not IsEmpty(oMatches(i - 1).Submatches(j - 1)) then
+      If Not IsEmpty(oMatches(i - 1).Submatches(j - 1)) Then
         If Not IsEmpty(This.namesDict(j - 1).Submatches(0)) Then oDict(This.namesDict(j - 1).Submatches(0)) = oMatches(i - 1).Submatches(j - 1)
-      end if
+      End If
     Next
 
     'Push dictionary to array
-    Call oRet.add(oDict)
+    Call oRet.Add(oDict)
   Next
 
   'Return data
@@ -447,6 +447,7 @@ Public Function Replace(ByVal sHaystack As String, ByVal sReplacer As String) As
   End If
   
   'Replace names in sReplacer with indexed replacers ($1,$2,...)
+  Dim i As Long
   For i = 1 To This.namesDict.Count
     If Not IsEmpty(This.namesDict(i - 1).Submatches(0)) Then
       Dim sName As String
@@ -493,10 +494,10 @@ Public Function List(ByVal sHaystack As String, ByVal sFormat As String) As Stri
   Set matches = MatchAll(sHaystack)
   
   'Loop over all matches and list
-  Dim match As variant, j As Long, sList As String, sTmpFormat As String
-  For each match in matches
+  Dim match As Variant, j As Long, sList As String, sTmpFormat As String
+  For Each match In matches
     'Concatenate to sList
-    sList = sList & FormatFromMatch(match,sFormat)
+    sList = sList & FormatFromMatch(match, sFormat)
   Next
 
   'Return sList
@@ -509,7 +510,7 @@ End Function
 '@param sHaystack - Haystack to search
 '@param vFormats as Variant<Array<String>> - Array of formats to print into seperate columns. E.G. `Array("$id-$date","$detail")`
 '@returns Variant<Array[2d]<String>> - All matches as a 2d array. Useful especially for dumping matches to Excel.
-Public Function ListArr(ByVal sHaystack as string, ByVal vFormats as variant) as variant
+Public Function ListArr(ByVal sHaystack As String, ByVal vFormats As Variant) As Variant
   If Me Is stdRegex Then
     Call CriticalRaise("Method called on class not object")
     Exit Function
@@ -519,19 +520,19 @@ Public Function ListArr(ByVal sHaystack as string, ByVal vFormats as variant) as
   Dim matches As Collection
   Set matches = MatchAll(sHaystack)
   
-  Dim numCols as long: numCols = ubound(vFormats)-lbound(vFormats)+1
+  Dim numCols As Long: numCols = UBound(vFormats) - LBound(vFormats) + 1
   
-  Dim v() as variant
-  Redim v(1 to matches.count, 1 to numCols)
+  Dim v() As Variant
+  ReDim v(1 To matches.Count, 1 To numCols)
 
   'Loop over all matches
-  Dim match As variant, j As Long, iRow as long, iCol as long
-  For each match in matches
+  Dim match As Variant, j As Long, iRow As Long, iCol As Long
+  For Each match In matches
     iRow = iRow + 1
     iCol = 0
-    For j = lbound(vFormats) to ubound(vFormats)
+    For j = LBound(vFormats) To UBound(vFormats)
       iCol = iCol + 1
-      v(iRow,iCol) = FormatFromMatch(match,vFormats(j))
+      v(iRow, iCol) = FormatFromMatch(match, vFormats(j))
     Next
   Next
 
@@ -548,7 +549,7 @@ End Function
 '@param match as Object<Dictionary> - Match dictionary with numerical keys for each match, key 0 is whole match and also named matches.
 '@param sFormat - Format to return data in. Indexed submatches to be extracted using $1, $2, ... . Named submatches to be extracted using $name syntax. \r\n will be 
 '@returns - String formatted with data from match object.
-Private Function FormatFromMatch(ByVal match as object, ByVal sFormat as string) as string
+Private Function FormatFromMatch(ByVal match As Object, ByVal sFormat As String) As String
   'TODO: Make this more efficient, ideally we'd only loop through the format once
 
   'Get keys of each match
@@ -564,6 +565,7 @@ Private Function FormatFromMatch(ByVal match as object, ByVal sFormat as string)
   sFormat = VBA.Replace(sFormat, "f934b47b-b799-4f52-9b4c-f170a82b52fe", "\")
 
   'Loop over remaining keys and make replacements
+  Dim j As Long
   For j = 1 To UBound(keys)
     Select Case keys(j)
       Case "$RAW", "$COUNT"
@@ -572,7 +574,7 @@ Private Function FormatFromMatch(ByVal match as object, ByVal sFormat as string)
     End Select
   Next
 
-  sFormat = VBA.Replace(sFormat, "bfde0637-8207-418d-9d34-68ba974e8110","$")
+  sFormat = VBA.Replace(sFormat, "bfde0637-8207-418d-9d34-68ba974e8110", "$")
   FormatFromMatch = sFormat
 End Function
 
@@ -597,9 +599,9 @@ End Function
 'Raise an error with the class name as the source
 '@param sMessage - Error message
 Private Sub CriticalRaise(ByVal sMessage As String)
-  if isObject(stdError) then
+  If IsObject(stdError) Then
     Call stdError.Raise(sMessage, "stdRegex")
-  else
+  Else
     Call Err.Raise(1, "stdRegex", sMessage)
-  end if
+  End If
 End Sub

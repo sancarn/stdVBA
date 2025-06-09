@@ -117,10 +117,10 @@ End Enum
 'Used while walking the Accessibility tree. Can be used to discard entire trees of elements, to increase speed of walk algorithms.
 Public Enum EAccFindResult
     MatchFound = 1                 'Matched                                    
-    MatchFoundSearchDescendents=4  'Same as `ESearchResult.MatchFound`         
+    MatchFoundSearchDescendents = 4  'Same as `ESearchResult.MatchFound`         
     NoMatchFound = 0               'Not found, continue searching descendents  
-    NoMatchCancelSearch= 2         'Not found, cancel search                   
-    NoMatchSkipDescendents= 3      'Not found, don't search descendents        
+    NoMatchCancelSearch = 2         'Not found, cancel search                   
+    NoMatchSkipDescendents = 3      'Not found, don't search descendents        
 End Enum
 
 Public Enum EAccRoles
@@ -259,9 +259,9 @@ Private Type tPOINT
     y As Long
 End Type
 Private Type tFindNode
-    initialised as boolean
-    depth as long
-    element as object
+    initialised As Boolean
+    depth As Long
+    element As Object
 End Type
 
 
@@ -275,13 +275,13 @@ Private Type TProxy
     Index As Long
 End Type
 Private Type TThis
-    Singleton as TSingleton
+    Singleton As TSingleton
 
     isProxy As Boolean
-    Proxy as TProxy
+    Proxy As TProxy
     IAccessible As Object
 End Type
-Private This as TThis
+Private This As TThis
 
 '****************
 '* Constructors *
@@ -294,7 +294,7 @@ Private This as TThis
 '@returns stdAcc - Object at the specified point
 Public Function CreateFromPoint(ByVal x As Long, ByVal y As Long) As stdAcc
     Set CreateFromPoint = New stdAcc
-    set CreateFromPoint.protAccessible = AccessibilityObjectFromPointEx(x,y)
+    Set CreateFromPoint.protAccessible = AccessibilityObjectFromPointEx(x, y)
 End Function
 
 'Creates an `stdAcc` object from a window handle.
@@ -302,10 +302,10 @@ End Function
 '@param hwnd - Window handle to wrap
 '@returns stdAcc - stdAcc object for the window 
 Public Function CreateFromHwnd(ByVal hwnd As LongPtr) As stdAcc
-    Dim acc as stdAcc: set acc = new stdAcc
+    Dim acc As stdAcc: Set acc = New stdAcc
     Dim obj As IAccessible
     Set obj = IAccessibleFromHwnd(hwnd)
-    set acc.protAccessible = obj
+    Set acc.protAccessible = obj
     Set CreateFromHwnd = acc
 End Function
 
@@ -313,24 +313,24 @@ End Function
 '@constructor
 '@param oApp - Application to create from. Defaults to `Application` if unspecified.
 '@returns - IAccessible wrapper around application window.
-Public Function CreateFromApplication(Optional ByVal oApp as Object = Nothing) As stdAcc
-  if oApp is nothing then set oApp = Application
-  select case oApp.Name
-    case "Microsoft Excel"
+Public Function CreateFromApplication(Optional ByVal oApp As Object = Nothing) As stdAcc
+  If oApp Is Nothing Then Set oApp = Application
+  Select Case oApp.Name
+    Case "Microsoft Excel"
       Set CreateFromApplication = CreateFromHwnd(oApp.hwnd)
-    case "Microsoft Word"
+    Case "Microsoft Word"
       Set CreateFromApplication = CreateFromHwnd(oApp.ActiveWindow.Hwnd)
-    case "Microsoft Access"
-      set CreateFromApplication = CreateFromHwnd(oApp.hWndAccessApp)
-    case "Microsoft PowerPoint"
-      set CreateFromApplication = CreateFromIAccessible(oApp.CommandBars("Status Bar")).AncestralRoot
+    Case "Microsoft Access"
+      Set CreateFromApplication = CreateFromHwnd(oApp.hWndAccessApp)
+    Case "Microsoft PowerPoint"
+      Set CreateFromApplication = CreateFromIAccessible(oApp.CommandBars("Status Bar")).AncestralRoot
     Case "Outlook"
       Set CreateFromApplication = CreateFromIAccessible(oApp.ActiveWindow.CommandBars("Status Bar")).AncestralRoot
     Case "Microsoft Publisher"
       Set CreateFromApplication = CreateFromIAccessible(oApp.CommandBars("Status Bar")).AncestralRoot
-    case else
-      Err.Raise 1, "stdAcc::CreateFromApplication()", "No implementation for getting application window of " & Application.name
-  end select
+    Case Else
+      Err.Raise 1, "stdAcc::CreateFromApplication()", "No implementation for getting application window of " & Application.Name
+  End Select
 End Function
 
 'Creates an `stdAcc` object from the desktop.
@@ -351,7 +351,7 @@ End Function
 '@returns - IAccessible wrapper around an IAccessible object.
 Public Function CreateFromIAccessible(ByVal obj As IAccessible) As stdAcc
     Set CreateFromIAccessible = New stdAcc
-    set CreateFromIAccessible.protAccessible = obj
+    Set CreateFromIAccessible.protAccessible = obj
 End Function
 
 'Creates an `stdAcc` object for the element the mouse currently hovers over.
@@ -361,7 +361,7 @@ Public Function CreateFromMouse() As stdAcc
     Dim pT As tPOINT
     Dim success As Long
     success = GetCursorPos(pT)
-    Set CreateFromMouse = CreateFromPoint(pt.x,pt.y)
+    Set CreateFromMouse = CreateFromPoint(pT.x, pT.y)
 End Function
 
 'Creates an `stdAcc` object for the element at a given path from the current element.
@@ -371,8 +371,8 @@ End Function
 '@example `Debug.Print stdAcc.CreateFromApplication().CreateFromPath("3.1").name`
 Public Function CreateFromPath(ByVal sPath As String) As stdAcc
     'If starting with "." remove it
-    If left(sPath, 1) = "P" Then sPath = Mid(sPath, 2)
-    If left(sPath, 1) = "." Then sPath = Mid(sPath, 2)
+    If Left(sPath, 1) = "P" Then sPath = Mid(sPath, 2)
+    If Left(sPath, 1) = "." Then sPath = Mid(sPath, 2)
     
     'Get descendants list
     Dim descendants As Variant
@@ -401,10 +401,10 @@ End Function
 '@protected
 '@param oParent - Parent object to proxy
 '@param index - Index of element in parent
-Public Sub protInitWithProxy(ByRef oParent as stdAcc, ByVal index as long)
-    this.isProxy = true
-    set this.Proxy.Parent = oParent.protAccessible
-    this.Proxy.Index = index
+Public Sub protInitWithProxy(ByRef oParent As stdAcc, ByVal index As Long)
+    This.isProxy = True
+    Set This.Proxy.Parent = oParent.protAccessible
+    This.Proxy.Index = index
 End Sub
 
 'The object which implements `IAccessible`, with which this class wraps. Please don't modify this object, unless you know what you are doing.
@@ -468,10 +468,10 @@ End Function
 ''Find first element named "hello" at depth > 4:
 'el.FindFirst(stdLambda.Create("$1.name = ""hello"" AND $2 > 4"))
 '```
-Public Function FindFirst(ByVal query As stdICallable, optional byval searchType as EAccFindType=EAccFindType.DepthFirst) As stdAcc
+Public Function FindFirst(ByVal query As stdICallable, Optional ByVal searchType As EAccFindType = EAccFindType.DepthFirst) As stdAcc
     Dim stack() As tFindNode
     ReDim stack(0 To 0)
-    stack(0).initialised = true
+    stack(0).initialised = True
     stack(0).depth = 0
     Set stack(0).element = Me
     
@@ -484,20 +484,20 @@ Public Function FindFirst(ByVal query As stdICallable, optional byval searchType
     'Loop over the stack/array
     While length > 0 And index < length
         Dim part As tFindNode
-        select case searchType
-            case EAccFindType.DepthFirst
+        Select Case searchType
+            Case EAccFindType.DepthFirst
                 'Depth first search, so pop the item out of the stack
-                part = stackPopV(stack,length)
-            case EAccFindType.BreadthFirst
+                part = stackPopV(stack, length)
+            Case EAccFindType.BreadthFirst
                 'Breadth first search, get item directly out of array, no need to change array size
                 index = index + 1
                 part = stack(index)
-            case else
+            Case Else
                 Err.Raise 1, "stdAcc#FindFirst", "Invalid search type given. Please use EAccFindType"
-        end select
+        End Select
         
         With part
-            If not .initialised Then Exit Function
+            If Not .initialised Then Exit Function
             
             'Run query and test options
             Select Case query.Run(.element, .depth)
@@ -515,7 +515,7 @@ Public Function FindFirst(ByVal query As stdICallable, optional byval searchType
                     'Nothing found, cancel function
                     Set FindFirst = Nothing
                     Exit Function
-                case EAccFindResult.NoMatchSkipDescendents
+                Case EAccFindResult.NoMatchSkipDescendents
                 '    Nothing found, don't search descendents
             End Select
         End With
@@ -554,10 +554,10 @@ End Function
 ''Find all elements with depth <= 4:
 'el.FindAll(stdLambda.Create("if $2 < 4 then 4 else if $2 = 4 then 1 else 3"))
 '```
-Public Function FindAll(ByVal query As stdICallable, optional byval searchType as EAccFindType=EAccFindType.DepthFirst) As Collection
+Public Function FindAll(ByVal query As stdICallable, Optional ByVal searchType As EAccFindType = EAccFindType.DepthFirst) As Collection
     Dim stack() As tFindNode
     ReDim stack(0 To 0)
-    stack(0).initialised = true
+    stack(0).initialised = True
     stack(0).depth = 0
     Set stack(0).element = Me
     
@@ -568,50 +568,50 @@ Public Function FindAll(ByVal query As stdICallable, optional byval searchType a
     Call BindGlobals(query)
 
     'Initialise collection
-    set FindAll = new Collection
+    Set FindAll = New Collection
 
     'Loop over the stack/array
     While length > 0 And index < length
-        Dim part as tFindNode
-        select case searchType
-            case EAccFindType.DepthFirst
+        Dim part As tFindNode
+        Select Case searchType
+            Case EAccFindType.DepthFirst
                 'Depth first search, so pop the item out of the stack
-                part = stackPopV(stack,length)
-            case EAccFindType.BreadthFirst
+                part = stackPopV(stack, length)
+            Case EAccFindType.BreadthFirst
                 'Breadth first search, get item directly out of array, no need to change array size
                 index = index + 1
                 part = stack(index)
-            case else
+            Case Else
                 Err.Raise 1, "stdAcc#FindAll", "Invalid search type given. Please use EAccFindType"
-        end select
+        End Select
         
         With part
             'When hitting the edge of the stack quit
-            if not .initialised then Exit Function
+            If Not .initialised Then Exit Function
 
             'Run query and test options
-            Dim child as stdAcc
-            select case query.Run(.element,.depth)
+            Dim child As stdAcc
+            Select Case query.Run(.element,.depth)
                 Case EAccFindResult.NoMatchFound
                     'Nothing found, search descendents
-                    for each child in .element.children
-                        Call stackPushV(stack,length,CreateFindNode(.depth+1,child))
-                    next
+                    For Each child In .element.children
+                        Call stackPushV(stack, length, CreateFindNode(.depth + 1, child))
+                    Next
                 Case EAccFindResult.MatchFound, True
                     'Found, add element
-                    Call FindAll.add(.element)
+                    Call FindAll.Add(.element)
                 Case EAccFindResult.NoMatchCancelSearch
                     'Nothing found, cancel function
                     Exit Function
                 Case EAccFindResult.NoMatchSkipDescendents
                     'Nothing found, don't search descendents
                 Case EAccFindResult.MatchFoundSearchDescendents
-                    Call FindAll.add(.element)
-                    for each child in .element.children
-                        Call stackPushV(stack,length,CreateFindNode(.depth+1,child))
-                    next
-            end select
-        End with
+                    Call FindAll.Add(.element)
+                    For Each child In .element.children
+                        Call stackPushV(stack, length, CreateFindNode(.depth + 1, child))
+                    Next
+            End Select
+        End With
         'Just make sure no freezing occurs
         DoEvents
     Wend
@@ -620,13 +620,13 @@ End Function
 'Return the parent of the IAccessible object
 '@returns stdAcc - Parent of this element
 Public Property Get Parent() As stdAcc
-    If this.isProxy Then
-        Set Parent = stdAcc.CreateFromIAccessible(this.Proxy.Parent)
-    else
+    If This.isProxy Then
+        Set Parent = stdAcc.CreateFromIAccessible(This.Proxy.Parent)
+    Else
         On Error GoTo handle_error
             Set Parent = stdAcc.CreateFromIAccessible(protAccessible.accParent)
         On Error GoTo 0
-    End if
+    End If
     Exit Property
 handle_error:
     Set Parent = Nothing
@@ -635,7 +635,7 @@ End Property
 'Obtain the ancestral root of the IAccessible object (A child of the desktop)
 '@returns - Ancestral root of this element (child window of the desktop)
 Public Property Get AncestralRoot() As stdAcc
-    Dim desktop as stdAcc: set desktop = stdAcc.CreateFromDesktop()
+    Dim desktop As stdAcc: Set desktop = stdAcc.CreateFromDesktop()
     'Walk up the tree until we hit the element just before desktop
     Dim acc As stdAcc: Set acc = Me
     While Not acc.Parent.hwnd <> desktop.hwnd
@@ -657,7 +657,7 @@ End Property
 
 'Return the hwnd of the IAccessible object
 '@returns LongPtr - hwnd of this element
-#if VBA7 then
+#If VBA7 Then
   Public Property Get hwnd() As LongPtr
 #Else
   Public Property Get hwnd() As Long
@@ -700,7 +700,7 @@ Public Property Get Location() As Collection
         Dim pxLeft As Long
         Dim pyTop As Long
         If This.isProxy Then
-          Call This.Proxy.Parent.accLocation(pxLeft, pyTop, pcxWidth, pcyHeight, This.Proxy.index)
+          Call This.Proxy.Parent.accLocation(pxLeft, pyTop, pcxWidth, pcyHeight, This.Proxy.Index)
         Else
           Call This.IAccessible.accLocation(pxLeft, pyTop, pcxWidth, pcyHeight, CHILDID_SELF)
         End If
@@ -727,33 +727,33 @@ Public Property Get HitTest(ByVal x As Long, ByVal y As Long) As stdAcc
   Set HitTest = New stdAcc
   Dim NewAcc As Object
   Call protAccessible.accHitTest(x, y, NewAcc)
-  set HitTest.protAccessible = NewAcc
+  Set HitTest.protAccessible = NewAcc
 End Property
 
 'Gets/Sets the value of the element
 '@returns String - the current value of the element
 Public Property Get value() As String
   On Error Resume Next 'FIX: Sometimes this is unsupported, so leave this error.
-  if this.isProxy then
-    value = this.Proxy.Parent.accValue(this.Proxy.Index)
-  else
+  If This.isProxy Then
+    value = This.Proxy.Parent.accValue(This.Proxy.Index)
+  Else
     value = protAccessible.accValue(CHILDID_SELF)
-  end if
+  End If
 End Property
 Public Property Let value(val As String)
-  if this.isProxy then
-    this.Proxy.Parent.accValue(this.Proxy.Index) = val
-  else
+  If This.isProxy Then
+    This.Proxy.Parent.accValue(This.Proxy.Index) = val
+  Else
     protAccessible.accValue(CHILDID_SELF) = val
-  end if
+  End If
 End Property
 
 'Returns the name of the element
 '@returns String - the name of the element
 Public Property Get name() As String
   On Error Resume Next 'FIX: Sometimes this is unsupported, so leave this error.
-  If this.isProxy Then
-    name = this.Proxy.Parent.accName(this.Proxy.Index)
+  If This.isProxy Then
+    name = This.Proxy.Parent.accName(This.Proxy.Index)
   Else
     name = protAccessible.accName(CHILDID_SELF)
   End If
@@ -763,30 +763,30 @@ End Property
 '@returns String - the description of the default action of the element
 Public Property Get DefaultAction() As String
   On Error Resume Next 'FIX: Sometimes this is unsupported, so leave this error.
-  If this.isProxy Then
-    DefaultAction = this.Proxy.Parent.accDefaultAction(this.Proxy.Index)
-  else
+  If This.isProxy Then
+    DefaultAction = This.Proxy.Parent.accDefaultAction(This.Proxy.Index)
+  Else
     DefaultAction = protAccessible.accDefaultAction(CHILDID_SELF)
-  end if
+  End If
 End Property
 
 'Returns the role of the element
 '@returns String - the role of the element
 Public Property Get Role() As String
   On Error Resume Next 'FIXME: On extremely rare occasions the OLE object will disconnect / not expect automation. `On Error Resume Next` silences the error but this isn't a real fix.
-  if this.isProxy then
-    Role = this.Singleton.Lookups("EAccRoles")("N2S")(this.Proxy.Parent.accRole(this.Proxy.Index))
-  else
-    Role = this.Singleton.Lookups("EAccRoles")("N2S")(protAccessible.accRole(CHILDID_SELF))
-  end if
+  If This.isProxy Then
+    Role = This.Singleton.Lookups("EAccRoles")("N2S")(This.Proxy.Parent.accRole(This.Proxy.Index))
+  Else
+    Role = This.Singleton.Lookups("EAccRoles")("N2S")(protAccessible.accRole(CHILDID_SELF))
+  End If
 End Property
 
 'Returns the state of the element
 '@returns String - the state of the element
 Public Property Get States() As String
   Dim iStateData As Long: iStateData = StateData
-  Dim oLookup As Object: Set oLookup = this.Singleton.Lookups("EAccStates")("S2N")
-  Dim sStates As String, vKey as variant
+  Dim oLookup As Object: Set oLookup = This.Singleton.Lookups("EAccStates")("S2N")
+  Dim sStates As String, vKey As Variant
   For Each vKey In oLookup.keys()
     If (oLookup(vKey) And iStateData) = oLookup(vKey) Then
         sStates = sStates & vKey & ";"
@@ -800,78 +800,78 @@ End Property
 '@returns Long - the state(s) of the element
 Public Property Get StateData() As Long
   On Error Resume Next 'FIXME: On extremely rare occasions the OLE object will disconnect / not expect automation. `On Error Resume Next` silences the error but this isn't a real fix.
-  if this.isProxy then
-    StateData = this.Proxy.Parent.accState(this.Proxy.Index)
-  else
+  If This.isProxy Then
+    StateData = This.Proxy.Parent.accState(This.Proxy.Index)
+  Else
     StateData = protAccessible.accState(CHILDID_SELF)
-  end if
+  End If
 End Property
 
 'Returns the description of the element
 '@returns String - the description of the element
 Public Property Get Description() As String
   On Error Resume Next 'FIX: Sometimes this is unsupported, so leave this error.
-  if this.isProxy then
-    Description = this.Proxy.Parent.accDescription(this.Proxy.Index)
-  else
+  If This.isProxy Then
+    Description = This.Proxy.Parent.accDescription(This.Proxy.Index)
+  Else
     Description = protAccessible.accDescription(CHILDID_SELF)
-  end if
+  End If
 End Property
 
 'Returns the keyboard shortcut used to trigger the default action of the element
 '@returns String - The keyboard shortcut used to trigger the default action of the element
 Public Property Get KeyboardShortcut() As String
   On Error Resume Next 'FIX: Sometimes this is unsupported, so leave this error handling.
-  if this.isProxy then
-    KeyboardShortcut = this.Proxy.Parent.accKeyboardShortcut(this.Proxy.Index)
-  else
+  If This.isProxy Then
+    KeyboardShortcut = This.Proxy.Parent.accKeyboardShortcut(This.Proxy.Index)
+  Else
     KeyboardShortcut = protAccessible.accKeyboardShortcut(CHILDID_SELF)
-  end if
+  End If
 End Property
 
 'Get the Focus of the UI element
 '@returns Boolean - Whether the element has focus
 Public Property Get Focus() As Boolean
   'On Error Resume Next
-  if this.isProxy then
-    Focus = this.Proxy.Parent.accFocus(this.Proxy.Index)
-  else
+  If This.isProxy Then
+    Focus = This.Proxy.Parent.accFocus(This.Proxy.Index)
+  Else
     Focus = protAccessible.accFocus(CHILDID_SELF)
-  end if
+  End If
 End Property
 
 'Set the Focus of the UI element
 '@param Boolean - `True` if the element should be focussed, otherwise `false`
 Public Property Let Focus(ByVal val As Boolean)
   'On Error Resume Next
-  if this.isProxy then
-    this.Proxy.Parent.accFocus(this.Proxy.Index) = val
-  else
+  If This.isProxy Then
+    This.Proxy.Parent.accFocus(This.Proxy.Index) = val
+  Else
     protAccessible.accFocus(CHILDID_SELF) = val
-  end if
+  End If
 End Property
 
 'Returns the help
 '@returns String - the help for the element
 Public Property Get Help() As String
   On Error Resume Next 'FIX#97: Sometimes this is unsupported, so leave this error handling.
-  if this.isProxy then
-    Help = this.Proxy.Parent.accHelp(this.Proxy.Index)
-  else
+  If This.isProxy Then
+    Help = This.Proxy.Parent.accHelp(This.Proxy.Index)
+  Else
     Help = protAccessible.accHelp(CHILDID_SELF)
-  end if
+  End If
 End Property
 
 'Returns the help topic
 '@param sFile - File to get help topic for
 '@returns - the help topic for the element
-Public Property Get HelpTopic(Optional ByVal sFile as string = "") As String
+Public Property Get HelpTopic(Optional ByVal sFile As String = "") As String
   On Error Resume Next 'FIX: Sometimes this is unsupported, so leave this error.
-  if this.isProxy then
-    HelpTopic = this.Proxy.Parent.accHelpTopic(sFile, this.Proxy.Index)
-  else
+  If This.isProxy Then
+    HelpTopic = This.Proxy.Parent.accHelpTopic(sFile, This.Proxy.Index)
+  Else
     HelpTopic = protAccessible.accHelpTopic(sFile, CHILDID_SELF)
-  end if
+  End If
 End Property
 
 'Returns a string containing numerous properties from stdAcc concatenated together.
@@ -894,8 +894,8 @@ End Property
 'Performs the default action of the `IAccessible` object
 '@example `app.getButton().DoDefaultAction()`
 Public Sub DoDefaultAction()
-  If this.isProxy Then
-    Call this.Proxy.Parent.accDoDefaultAction(this.Proxy.Index)
+  If This.isProxy Then
+    Call This.Proxy.Parent.accDoDefaultAction(This.Proxy.Index)
   Else
     Call protAccessible.accDoDefaultAction(CHILDID_SELF)
   End If
@@ -930,14 +930,14 @@ End Sub
 '@param bPrintToDebug - Whether to print output to debug window or not.
 '@param sPath         - Prefix path (sometimes you might wnat to use Me.getPath(...))
 '@param fileNum       - Filenum to output too, typically this will be left unprovided
-Public Sub PrintDescTexts(Optional ByVal sToFilePath as string = "", Optional ByVal bPrintToDebug as boolean = true, Optional ByVal sPath As String = "P", Optional ByVal fileNum as long = 0)
+Public Sub PrintDescTexts(Optional ByVal sToFilePath As String = "", Optional ByVal bPrintToDebug As Boolean = True, Optional ByVal sPath As String = "P", Optional ByVal fileNum As Long = 0)
     'Open file is file name passed and file num not given
-    Dim bFileOpened as boolean
-    if fileNum = 0 and len(sToFilePath) > 0 then
-        bFileOpened = true
+    Dim bFileOpened As Boolean
+    If fileNum = 0 And Len(sToFilePath) > 0 Then
+        bFileOpened = True
         fileNum = FreeFile()
-        open sToFilePath for Output as #fileNum
-    end if
+        Open sToFilePath For Output As #fileNum
+    End If
 
     'Loop over all children
     Dim child As stdAcc
@@ -953,16 +953,16 @@ Public Sub PrintDescTexts(Optional ByVal sToFilePath as string = "", Optional By
         If fileNum <> 0 Then Print #fileNum, myPath & ". " & child.Text
         
         'Only print to debug if bPrintToDebug
-        if bPrintToDebug then Debug.Print myPath & ". " & child.Text
+        If bPrintToDebug Then Debug.Print myPath & ". " & child.Text
 
         'Recurse to all children
         Call child.PrintDescTexts(sToFilePath, bPrintToDebug, myPath, fileNum)
     Next
 
     'Only close file if file was opened within sub
-    if bFileOpened then
+    If bFileOpened Then
         Close #fileNum
-    end if
+    End If
 End Sub
 
 'Returns the path to an element
@@ -977,12 +977,12 @@ Public Function getPath(Optional toAccessible As stdAcc = Nothing) As String
     Dim col As Collection: Set col = New Collection
         
     'Collect parents
-    if not acc.parent is nothing then
-      While Not acc.parent.name = "Desktop"
+    If Not acc.Parent Is Nothing Then
+      While Not acc.Parent.name = "Desktop"
           Dim child As stdAcc
           Dim index As Long: index = 0
           Dim savedIndex As Long: savedIndex = 0
-          For Each child In acc.parent.children
+          For Each child In acc.Parent.children
               index = index + 1
               If child.hwnd = acc.hwnd And child.Role = acc.Role Then
                   savedIndex = index
@@ -992,7 +992,7 @@ Public Function getPath(Optional toAccessible As stdAcc = Nothing) As String
           
           'Add index to stack
           If savedIndex > 0 Then
-              col.add savedIndex
+              col.Add savedIndex
           Else
               'In some scenarios this has occurred where acc tree has changed after initial pass. Not much we can do if this is the case.
               getPath = "UNKNOWN"
@@ -1000,7 +1000,7 @@ Public Function getPath(Optional toAccessible As stdAcc = Nothing) As String
           End If
                   
           'Elevate parent
-          Set acc = acc.parent
+          Set acc = acc.Parent
       Wend
       
       'Create path
@@ -1012,9 +1012,9 @@ Public Function getPath(Optional toAccessible As stdAcc = Nothing) As String
       
       'Return path
       getPath = "D.W" & path
-    else
+    Else
       getPath = "D"
-    end if
+    End If
 End Function
 
 'Returns this element and all descendents as a JSON string. Useful for debugging
@@ -1048,7 +1048,7 @@ End Function
 '@param timeout                                   - Timeout in seconds. Default = NoTimeout. When timeout is reached the return value of the function is `nothing`
 '@returns stdAcc                                  - Element awaited for
 '@remark calls `Me.FindFirst(awaitFor)` to wait for chosen element
-Public Function AwaitForElement(awaitFor as stdICallable, Optional error as stdICallable = Nothing, Optional timeout As Long = -1) As stdAcc
+Public Function AwaitForElement(awaitFor As stdICallable, Optional error As stdICallable = Nothing, Optional timeout As Long = -1) As stdAcc
   Dim bCond As Boolean: bCond = True
   Dim el As Object: Set el = Nothing
   Dim oldTime As Date: oldTime = Now()
@@ -1066,60 +1066,60 @@ End Function
 
 'Returns the lookups object
 '@returns Object<Dictionary<string,Dictionary<string,Dictionary<string,long>>>>
-Friend Function protGetLookups() as Object
-    if this.Singleton.Lookups is nothing then
-        set this.Singleton.Lookups = CreateObject("Scripting.Dictionary")
-        set this.Singleton.Lookups("EAccStates") = CreateLookupDict(Array( _
-            "STATE_NORMAL", &H0,                "STATE_UNAVAILABLE", &H1, _
-            "STATE_SELECTED", &H2,              "STATE_FOCUSED", &H4, _
-            "STATE_PRESSED", &H8,               "STATE_CHECKED", &H10, _
-            "STATE_MIXED", &H20,                "STATE_INDETERMINATE", &H99, _
-            "STATE_READONLY", &H40,             "STATE_HOTTRACKED", &H80, _
-            "STATE_DEFAULT", &H100,             "STATE_EXPANDED", &H200, _
-            "STATE_COLLAPSED", &H400,           "STATE_BUSY", &H800, _
-            "STATE_FLOATING", &H1000,           "STATE_MARQUEED", &H2000, _
-            "STATE_ANIMATED", &H4000,           "STATE_INVISIBLE", &H8000, _
-            "STATE_OFFSCREEN", &H10000,         "STATE_SIZEABLE", &H20000, _
-            "STATE_MOVEABLE", &H40000,          "STATE_SELFVOICING", &H80000, _
-            "STATE_FOCUSABLE", &H100000,        "STATE_SELECTABLE", &H200000, _
-            "STATE_LINKED", &H400000,           "STATE_TRAVERSED", &H800000, _
+Friend Function protGetLookups() As Object
+    If This.Singleton.Lookups Is Nothing Then
+        Set This.Singleton.Lookups = CreateObject("Scripting.Dictionary")
+        Set This.Singleton.Lookups("EAccStates") = CreateLookupDict(Array( _
+            "STATE_NORMAL", &H0, "STATE_UNAVAILABLE", &H1, _
+            "STATE_SELECTED", &H2, "STATE_FOCUSED", &H4, _
+            "STATE_PRESSED", &H8, "STATE_CHECKED", &H10, _
+            "STATE_MIXED", &H20, "STATE_INDETERMINATE", &H99, _
+            "STATE_READONLY", &H40, "STATE_HOTTRACKED", &H80, _
+            "STATE_DEFAULT", &H100, "STATE_EXPANDED", &H200, _
+            "STATE_COLLAPSED", &H400, "STATE_BUSY", &H800, _
+            "STATE_FLOATING", &H1000, "STATE_MARQUEED", &H2000, _
+            "STATE_ANIMATED", &H4000, "STATE_INVISIBLE", &H8000, _
+            "STATE_OFFSCREEN", &H10000, "STATE_SIZEABLE", &H20000, _
+            "STATE_MOVEABLE", &H40000, "STATE_SELFVOICING", &H80000, _
+            "STATE_FOCUSABLE", &H100000, "STATE_SELECTABLE", &H200000, _
+            "STATE_LINKED", &H400000, "STATE_TRAVERSED", &H800000, _
             "STATE_MULTISELECTABLE", &H1000000, "STATE_EXTSELECTABLE", &H2000000, _
-            "STATE_ALERT_LOW", &H4000000,       "STATE_ALERT_MEDIUM", &H8000000, _
-            "STATE_ALERT_HIGH", &H10000000,     "STATE_PROTECTED", &H20000000, _
+            "STATE_ALERT_LOW", &H4000000, "STATE_ALERT_MEDIUM", &H8000000, _
+            "STATE_ALERT_HIGH", &H10000000, "STATE_PROTECTED", &H20000000, _
             "STATE_VALID", &H7FFFFFFF _
         ))
-        set this.Singleton.Lookups("EAccRoles") = CreateLookupDict(Array( _
-            "ROLE_TITLEBAR", &H1&            , "ROLE_MENUBAR", &H2&          , "ROLE_SCROLLBAR", &H3&, _
-            "ROLE_GRIP", &H4&                , "ROLE_SOUND", &H5&            , "ROLE_CURSOR", &H6&, _
-            "ROLE_CARET", &H7&               , "ROLE_ALERT", &H8&            , "ROLE_WINDOW", &H9&, _
-            "ROLE_CLIENT", &HA&              , "ROLE_MENUPOPUP", &HB&        , "ROLE_MENUITEM", &HC&, _
-            "ROLE_TOOLTIP", &HD&             , "ROLE_APPLICATION", &HE&      , "ROLE_DOCUMENT", &HF&, _
-            "ROLE_PANE", &H10&               , "ROLE_CHART", &H11&           , "ROLE_DIALOG", &H12&, _
-            "ROLE_BORDER", &H13&             , "ROLE_GROUPING", &H14&        , "ROLE_SEPARATOR", &H15&, _
-            "ROLE_TOOLBAR", &H16&            , "ROLE_STATUSBAR", &H17&       , "ROLE_TABLE", &H18&, _
-            "ROLE_COLUMNHEADER", &H19&       , "ROLE_ROWHEADER", &H1A&       , "ROLE_COLUMN", &H1B&, _
-            "ROLE_ROW", &H1C&                , "ROLE_CELL", &H1D&            , "ROLE_LINK", &H1E&, _
-            "ROLE_HELPBALLOON", &H1F&        , "ROLE_CHARACTER", &H20&       , "ROLE_LIST", &H21&, _
-            "ROLE_LISTITEM", &H22&           , "ROLE_OUTLINE", &H23&         , "ROLE_OUTLINEITEM", &H24&, _
-            "ROLE_PAGETAB", &H25&            , "ROLE_PROPERTYPAGE", &H26&    , "ROLE_INDICATOR", &H27&, _
-            "ROLE_GRAPHIC", &H28&            , "ROLE_STATICTEXT", &H29&      , "ROLE_TEXT", &H2A&, _
-            "ROLE_PUSHBUTTON", &H2B&         , "ROLE_CHECKBUTTON", &H2C&     , "ROLE_RADIOBUTTON", &H2D&, _
-            "ROLE_COMBOBOX", &H2E&           , "ROLE_DROPLIST", &H2F&        , "ROLE_PROGRESSBAR", &H30&, _
-            "ROLE_DIAL", &H31&               , "ROLE_HOTKEYFIELD", &H32&     , "ROLE_SLIDER", &H33&, _
-            "ROLE_SPINBUTTON", &H34&         , "ROLE_DIAGRAM", &H35&         , "ROLE_ANIMATION", &H36&, _
-            "ROLE_EQUATION", &H37&           , "ROLE_BUTTONDROPDOWN", &H38&  , "ROLE_BUTTONMENU", &H39&, _
-            "ROLE_BUTTONDROPDOWNGRID", &H3A& , "ROLE_WHITESPACE", &H3B&      , "ROLE_PAGETABLIST", &H3C&, _
-            "ROLE_CLOCK",&H3D&  _
+        Set This.Singleton.Lookups("EAccRoles") = CreateLookupDict(Array( _
+            "ROLE_TITLEBAR", &H1&, "ROLE_MENUBAR", &H2&, "ROLE_SCROLLBAR", &H3&, _
+            "ROLE_GRIP", &H4&, "ROLE_SOUND", &H5&, "ROLE_CURSOR", &H6&, _
+            "ROLE_CARET", &H7&, "ROLE_ALERT", &H8&, "ROLE_WINDOW", &H9&, _
+            "ROLE_CLIENT", &HA&, "ROLE_MENUPOPUP", &HB&, "ROLE_MENUITEM", &HC&, _
+            "ROLE_TOOLTIP", &HD&, "ROLE_APPLICATION", &HE&, "ROLE_DOCUMENT", &HF&, _
+            "ROLE_PANE", &H10&, "ROLE_CHART", &H11&, "ROLE_DIALOG", &H12&, _
+            "ROLE_BORDER", &H13&, "ROLE_GROUPING", &H14&, "ROLE_SEPARATOR", &H15&, _
+            "ROLE_TOOLBAR", &H16&, "ROLE_STATUSBAR", &H17&, "ROLE_TABLE", &H18&, _
+            "ROLE_COLUMNHEADER", &H19&, "ROLE_ROWHEADER", &H1A&, "ROLE_COLUMN", &H1B&, _
+            "ROLE_ROW", &H1C&, "ROLE_CELL", &H1D&, "ROLE_LINK", &H1E&, _
+            "ROLE_HELPBALLOON", &H1F&, "ROLE_CHARACTER", &H20&, "ROLE_LIST", &H21&, _
+            "ROLE_LISTITEM", &H22&, "ROLE_OUTLINE", &H23&, "ROLE_OUTLINEITEM", &H24&, _
+            "ROLE_PAGETAB", &H25&, "ROLE_PROPERTYPAGE", &H26&, "ROLE_INDICATOR", &H27&, _
+            "ROLE_GRAPHIC", &H28&, "ROLE_STATICTEXT", &H29&, "ROLE_TEXT", &H2A&, _
+            "ROLE_PUSHBUTTON", &H2B&, "ROLE_CHECKBUTTON", &H2C&, "ROLE_RADIOBUTTON", &H2D&, _
+            "ROLE_COMBOBOX", &H2E&, "ROLE_DROPLIST", &H2F&, "ROLE_PROGRESSBAR", &H30&, _
+            "ROLE_DIAL", &H31&, "ROLE_HOTKEYFIELD", &H32&, "ROLE_SLIDER", &H33&, _
+            "ROLE_SPINBUTTON", &H34&, "ROLE_DIAGRAM", &H35&, "ROLE_ANIMATION", &H36&, _
+            "ROLE_EQUATION", &H37&, "ROLE_BUTTONDROPDOWN", &H38&, "ROLE_BUTTONMENU", &H39&, _
+            "ROLE_BUTTONDROPDOWNGRID", &H3A&, "ROLE_WHITESPACE", &H3B&, "ROLE_PAGETABLIST", &H3C&, _
+            "ROLE_CLOCK", &H3D& _
         ))
-        set this.Singleton.Lookups("EAccFindResult") = CreateLookupDict(Array( _
+        Set This.Singleton.Lookups("EAccFindResult") = CreateLookupDict(Array( _
             "MatchFound", EAccFindResult.MatchFound, _
             "MatchFoundSearchDescendents", EAccFindResult.MatchFoundSearchDescendents, _
             "NoMatchFound", EAccFindResult.NoMatchFound, _
             "NoMatchCancelSearch", EAccFindResult.NoMatchCancelSearch, _
             "NoMatchSkipDescendents", EAccFindResult.NoMatchSkipDescendents _
         ))
-    end if
-    set protGetLookups = this.Singleton.Lookups
+    End If
+    Set protGetLookups = This.Singleton.Lookups
 End Function
 
 
@@ -1129,9 +1129,9 @@ End Function
   '@param x - X coordinate (Horizontal)
   '@param y - Y coordinate (Vertical)
   '@returns - Accessibility object
-  Private Function AccessibilityObjectFromPointEx(ByVal x as long, ByVal y as long) As IAccessible
+  Private Function AccessibilityObjectFromPointEx(ByVal x As Long, ByVal y As Long) As IAccessible
     Dim o As IAccessible, v As Variant
-    Call AccessibleObjectFromPoint(PointToLongLong(x,y), o, v)
+    Call AccessibleObjectFromPoint(PointToLongLong(x, y), o, v)
     Set AccessibilityObjectFromPointEx = o
   End Function
 
@@ -1143,7 +1143,7 @@ End Function
   '        I believe this is because stdCall convention puts arguments onto the stack in the reverse order, but in this case
   '        Since we are providing a single argument, we have to do that instead of the compiler. This ordering has been confirmed
   '        experimentally, this is just my hypothesis for this weird ordering.
-  Private Function PointToLongLong(ByVal x as long, ByVal y as long) As LongLong
+  Private Function PointToLongLong(ByVal x As Long, ByVal y As Long) As LongLong
     'If sign bit is set (10000000 00000000 00000000 00000000) then shifting by 4 bytes left will cause an overflow.
     'Therefore exclude it (XOR part) but set the sign bit.
     Dim sign As LongLong
@@ -1209,9 +1209,9 @@ Private Function convertGUID(Guid As String) As tGUID
     Dim vArr: vArr = Split(Guid, "-")
     
     'Generate GUID structure from string of hex
-    convertGUID.lData1       = CLng("&H" & vArr(0))             '618736E0
-    convertGUID.nData2       = CInt("&H" & vArr(1))             '3C3D
-    convertGUID.nData3       = CInt("&H" & vArr(2))             '11CF
+    convertGUID.lData1 = CLng("&H" & vArr(0))             '618736E0
+    convertGUID.nData2 = CInt("&H" & vArr(1))             '3C3D
+    convertGUID.nData3 = CInt("&H" & vArr(2))             '11CF
     convertGUID.abytData4(0) = CInt("&H" & Mid(vArr(3), 1, 2))  '81
     convertGUID.abytData4(1) = CInt("&H" & Mid(vArr(3), 3, 2))  '0C
     convertGUID.abytData4(2) = CInt("&H" & Mid(vArr(4), 1, 2))  '00
@@ -1224,11 +1224,11 @@ End Function
 
 'Bind standard acc global variables to a callable
 '@param stdICallable - A callable to bind global variables to (if the callable supports it)
-Private Sub BindGlobals(ByRef query as stdICallable)
-    Dim bSuccess as boolean
-    Call query.SendMessage("bindGlobal", bSuccess, Array("EAccRoles", this.Singleton.Lookups("EAccRoles")("S2N")))
-    Call query.SendMessage("bindGlobal", bSuccess, Array("EAccStates", this.Singleton.Lookups("EAccStates")("S2N")))
-    Call query.SendMessage("bindGlobal", bSuccess, Array("EAccFindResult", this.Singleton.Lookups("EAccFindResult")("S2N")))
+Private Sub BindGlobals(ByRef query As stdICallable)
+    Dim bSuccess As Boolean
+    Call query.SendMessage("bindGlobal", bSuccess, Array("EAccRoles", This.Singleton.Lookups("EAccRoles")("S2N")))
+    Call query.SendMessage("bindGlobal", bSuccess, Array("EAccStates", This.Singleton.Lookups("EAccStates")("S2N")))
+    Call query.SendMessage("bindGlobal", bSuccess, Array("EAccFindResult", This.Singleton.Lookups("EAccFindResult")("S2N")))
 End Sub
 
 'Creates a collection of stdAcc objects representing the children of the element
@@ -1237,18 +1237,19 @@ Private Function getChildrenAsIAcc() As Collection
   'Get IAccessible children as Array of children
   Dim vChildren()
   ReDim vChildren(1 To protAccessible.accChildCount)
-  Dim iChildrenObtained as long
+  Dim iChildrenObtained As Long
   Call AccessibleChildren(protAccessible, 0, protAccessible.accChildCount, vChildren(1), iChildrenObtained)
   
   Set getChildrenAsIAcc = New Collection
   Dim child As Variant
-  For iChildID = 1 To iChildrenObtained
+  Dim iChildId As Long
+  For iChildId = 1 To iChildrenObtained
     'Check if child is an object, if it is set it, otherwise let it
-    if vartype(vChildren(iChildID)) = vbObject Then
-      getChildrenAsIAcc.Add CreateFromIAccessible(vChildren(iChildID))
+    If VarType(vChildren(iChildId)) = vbObject Then
+      getChildrenAsIAcc.Add CreateFromIAccessible(vChildren(iChildId))
     Else
-      getChildrenAsIAcc.Add createProxyChild(vChildren(iChildID))
-    end if
+      getChildrenAsIAcc.Add createProxyChild(vChildren(iChildId))
+    End If
   Next
 End Function
 
@@ -1273,34 +1274,34 @@ End Function
 
 'Whenever we initialise ensure to get Lookups from `stdAcc`
 Private Sub Class_Initialize()
-    set this.Singleton.Lookups = stdAcc.protGetLookups()
+    Set This.Singleton.Lookups = stdAcc.protGetLookups()
 End Sub
 
 'From an array of Key-Value pairs, create a dictionary of Key-->Value and Value-->Key lookups
 '@param arr as Array<Variant> - 1D array of Key,Value pairs
 '@returns Object<Dictionary<S2N: Dictionary<key: string,value: variant>, N2S: Dictionary<value: variant, key: string>>> - Dictionary of dictionaries containing the lookups
-Private Function CreateLookupDict(arr as Variant) as Object
-    Dim oRet as object
-    set oRet = CreateObject("Scripting.Dictionary")
+Private Function CreateLookupDict(arr As Variant) As Object
+    Dim oRet As Object
+    Set oRet = CreateObject("Scripting.Dictionary")
     oRet.CompareMode = 1
-    Dim i as long
+    Dim i As Long
 
     'Create string --> number dictionary
-    set oRet("S2N") = CreateObject("Scripting.Dictionary")
+    Set oRet("S2N") = CreateObject("Scripting.Dictionary")
     oRet("S2N").CompareMode = 1
-    For i = lbound(arr) to ubound(arr) step 2
-        Call oRet("S2N").add(arr(i), arr(i+1))
-    next
+    For i = LBound(arr) To UBound(arr) Step 2
+        Call oRet("S2N").add(arr(i), arr(i + 1))
+    Next
 
     'Create number --> string dictionary
-    set oRet("N2S") = CreateObject("Scripting.Dictionary")
+    Set oRet("N2S") = CreateObject("Scripting.Dictionary")
     oRet("N2S").CompareMode = 1
-    For i = lbound(arr) to ubound(arr) step 2
-        Call oRet("N2S").add(arr(i+1), arr(i))
-    next
+    For i = LBound(arr) To UBound(arr) Step 2
+        Call oRet("N2S").add(arr(i + 1), arr(i))
+    Next
 
     'Return dictionary
-    set CreateLookupDict = oRet
+    Set CreateLookupDict = oRet
 End Function
 
 '****************************************
@@ -1310,10 +1311,10 @@ End Function
 '@param depth - depth of element
 '@param element - element to store in tFindNode
 '@returns - FindNode struct
-Private Function CreateFindNode(ByVal depth as long, ByVal element as stdAcc) as tFindNode
-    CreateFindNode.initialised = true
+Private Function CreateFindNode(ByVal depth As Long, ByVal element As stdAcc) As tFindNode
+    CreateFindNode.initialised = True
     CreateFindNode.depth = depth
-    set CreateFindNode.element = element
+    Set CreateFindNode.element = element
 End Function
 
 'Given an array `stack`, and length `index`, append `item` onto the stack 
@@ -1346,7 +1347,7 @@ Private Function stackPopV(ByRef stack() As tFindNode, ByRef index As Variant) A
     
     stackPopV.initialised = stack(index).initialised
     stackPopV.depth = stack(index).depth
-    set stackPopV.element = stack(index).element
+    Set stackPopV.element = stack(index).element
     stack(index).initialised = False
     stack(index).depth = 0
     Set stack(index).element = Nothing
@@ -1489,7 +1490,7 @@ Private Function DispCallFuncEx(ByRef unk As IUnknown, ByVal VTableOffset As Lon
 
     'Call function
     Dim ox As LongPtr: ox = ObjPtr(unk)
-    Dim hResult As Long
+    Dim hResult As Long, vv as Variant
     hResult = DispCallFunc(ox, VTableOffset * PTRSIZE, CC_STDCALL, ReturnType, iParamCount, VarPtr(vType(0)), VarPtr(vPtr(0)), vv)
     If IsObject(vv) Then
       Set DispCallFuncEx = vv

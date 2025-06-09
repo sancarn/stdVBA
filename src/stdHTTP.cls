@@ -201,8 +201,8 @@ Private Type ProxyInfoEx
 End Type
 
 Private Type TThis
-  HTTP as object
-  ResponseMapper as stdICallable
+  HTTP As Object
+  ResponseMapper As stdICallable
 End Type
 Private This As TThis
 
@@ -267,11 +267,11 @@ Public Function CreateOptions(Optional Body As String = "", Optional Headers As 
   If Cookies Is Nothing Then Set Cookies = CreateHeaders()
   Set oRet("Cookies") = Cookies
   
-  if Proxy is nothing then 
-    set oRet("Proxy") = CreateProxy(ProxyTypeAuto)
-  else
-    set oRet("Proxy") = Proxy
-  end if
+  If Proxy Is Nothing Then
+    Set oRet("Proxy") = CreateProxy(ProxyTypeAuto)
+  Else
+    Set oRet("Proxy") = Proxy
+  End If
 
   oRet("TimeoutMS") = TimeoutMS
   oRet("Insecure") = Insecure
@@ -287,28 +287,28 @@ End Function
 '@param user - Username for proxy server authentication
 '@param pass - Password for proxy server authentication
 '@returns - Proxy information object
-Public Function CreateProxy(Byval proxyType as EHTTPProxyType, Optional ByVal Server as string, Optional ByVal ByPass as String, Optional ByVal User as string, Optional ByVal Pass as string)
+Public Function CreateProxy(ByVal proxyType As EHTTPProxyType, Optional ByVal Server As String, Optional ByVal ByPass As String, Optional ByVal User As String, Optional ByVal Pass As String)
   Dim oRet As Object
   Set oRet = CreateObject("Scripting.Dictionary")
   oRet.CompareMode = vbTextCompare
   
-  select case proxyType
-    case ProxyTypeAuto
+  Select Case proxyType
+    Case ProxyTypeAuto
       'Loads the system proxy settings for a given URL at runtime
-      oRet("hasAutoProxy") = true
-    case ProxyTypeManual
-      oRet("hasAutoProxy") = false
-      oRet("hasProxy") = true
-      oRet("server") = server
-      oRet("bypass") = bypass
-      oRet("user") = user
-      oRet("pass") = pass
-    case ProxyTypeNone
-      oRet("hasAutoProxy") = false
-      oRet("hasProxy") = false
-  end select
+      oRet("hasAutoProxy") = True
+    Case ProxyTypeManual
+      oRet("hasAutoProxy") = False
+      oRet("hasProxy") = True
+      oRet("server") = Server
+      oRet("bypass") = ByPass
+      oRet("user") = User
+      oRet("pass") = Pass
+    Case ProxyTypeNone
+      oRet("hasAutoProxy") = False
+      oRet("hasProxy") = False
+  End Select
 
-  set CreateProxy = oRet
+  Set CreateProxy = oRet
 End Function
 
 'Await for the request to finish. This is only necessary for asynchronous requests.
@@ -324,16 +324,16 @@ End Function
 '@returns - `True` if the request has finished, `False` otherwise.
 Public Property Get isFinished() As Boolean
   On Error GoTo Skip 'Sometimes `responseBody` and `status` isn't ready yet. So will skip if so
-  if This.HTTP.status = 202 then 'No content
-    isFinished = true
-  else
+  If This.HTTP.status = 202 Then 'No content
+    isFinished = True
+  Else
     isFinished = This.HTTP.WaitForResponse(0.001) And This.HTTP.ResponseBody()(0) >= 0
-  end if
+  End If
   Exit Property
 Skip:
-  If Err.Description like "The data necessary to complete this operation is not yet available*" then Exit Property
+  If Err.Description Like "The data necessary to complete this operation is not yet available*" Then Exit Property
   
-  Debug.Print "Error in stdHTTP#isFinished: '" & err.Description & "'"
+  Debug.Print "Error in stdHTTP#isFinished: '" & Err.Description & "'"
 End Property
 
 'Get the response status code
@@ -390,18 +390,18 @@ Public Property Get ResponseHeaders() As Object
 End Property
 
 'Get the mapped response
-Public Property Get ResponseMapped() as variant
-  if This.ResponseMapper is nothing then Err.Raise 1, "", "No response mapper provided"
-  Dim oMe as object: set oMe = Me
+Public Property Get ResponseMapped() As Variant
+  If This.ResponseMapper Is Nothing Then Err.Raise 1, "", "No response mapper provided"
+  Dim oMe As Object: Set oMe = Me
   Call CopyVariant(ResponseMapped, This.ResponseMapper.Run(oMe))
 End Property
 
 'Get/Set the response mapper. This callback will run when ResponeMapped() is called. This would usually be used to convert the response to a JSON/XML VBA object.
-Public Property Get ResponseMapper() as stdICallable
-  set ResponseMapper = this.ResponseMapper
+Public Property Get ResponseMapper() As stdICallable
+  Set ResponseMapper = This.ResponseMapper
 End Property
-Public Property Set ResponseMapper(Byval v as stdICallable)
-  set This.ResponseMapper = v
+Public Property Set ResponseMapper(ByVal v As stdICallable)
+  Set This.ResponseMapper = v
 End Property
 
 'Initialize the request
@@ -419,18 +419,18 @@ Friend Sub protInit(ByVal sURL As String, Optional ByVal RequestMethod As String
   
   'Set proxy info
   With options("Proxy")
-    If .item("hasAutoProxy") then Call LoadAutoProxy(sURL, options("Proxy"))
+    If .item("hasAutoProxy") Then Call LoadAutoProxy(sURL, options("Proxy"))
     If .item("hasProxy") Then
       'See http://msdn.microsoft.com/en-us/library/windows/desktop/aa384059(v=vs.85).aspx for details
       This.HTTP.SetProxy ProxySetting.Proxy, .item("Server"), .item("Bypass")
-      If .item("User") <> vbNullString then
+      If .item("User") <> vbNullString Then
         This.HTTP.SetCredentials .item("User"), .item("Pass"), SetCredentialsType.ForProxy
-      end if
-    else
+      End If
+    Else
       'Use Proxycfg.exe
       This.HTTP.SetProxy ProxySetting.PreConfig
-    end if
-  end with
+    End If
+  End With
 
   If options("Insecure") Then
     This.HTTP.Option(WinHttpRequestOption.EnableCertificateRevocationCheck) = False
@@ -461,11 +461,11 @@ End Sub
 'Get the HSesssion
 '@protected
 '@returns - The HSesssion
-#If VBA7 then
+#If VBA7 Then
 Friend Property Get protHSession() As LongPtr
-#else
+#Else
 Friend Property Get protHSession() As Long
-#end if
+#End If
   If Me Is stdHTTP Then
     Static hSession As LongPtr: If hSession = 0 Then hSession = WinHttpOpen(0, 1, 0, 0, 0)
     protHSession = hSession
@@ -491,7 +491,7 @@ Public Function URIEncode(ByVal strInput As String) As String
        (bytInput(i) >= 97 And bytInput(i) <= 122) Then
       strOutput = strOutput & Chr(bytInput(i))
     Else
-      strOutput = strOutput & "%" & right("0" & Hex(bytInput(i)), 2)
+      strOutput = strOutput & "%" & Right("0" & Hex(bytInput(i)), 2)
     End If
   Next i
 
@@ -537,7 +537,7 @@ End Function
 'Load the system proxy settings for a given URL
 '@param sURL - The url to query
 '@param oProxy - The proxy object to load the settings into
-Private Sub LoadAutoProxy(ByVal sURL as string, ByVal oProxy as Object)
+Private Sub LoadAutoProxy(ByVal sURL As String, ByVal oProxy As Object)
   Dim info As ProxyInfoEx: info = GetProxyCurrentUser(sURL)
   If Not info.Error.isSet Then
     'FIX: Sometimes proxy server is empty without the error being set. Ignore these proxys.
@@ -545,15 +545,15 @@ Private Sub LoadAutoProxy(ByVal sURL as string, ByVal oProxy as Object)
     oProxy("server") = info.ProxyServer
     oProxy("bypass") = info.ProxyBypass
     oProxy("user") = Empty  'TODO: Check if user/pass credentials with auto-proxy will ever be needed
-    oProxy("pass") = Empty  
-  else
-    if info.Error.isRecoverable then
+    oProxy("pass") = Empty
+  Else
+    If info.Error.isRecoverable Then
       'Assume no proxy
-      oProxy("hasProxy") = false
-    else
-      Err.Raise info.Error.Num, "stdHTTP", info.Error.Msg 
-    end if
-  end if
+      oProxy("hasProxy") = False
+    Else
+      Err.Raise info.Error.Num, "stdHTTP", info.Error.Msg
+    End If
+  End If
 End Sub
 
 'Get the system proxy settings for a given URL
@@ -619,7 +619,7 @@ Private Function GetProxyCurrentUser(ByVal sURL As String) As ProxyInfoEx
       GetProxyCurrentUser.Error.isSet = True
       GetProxyCurrentUser.Error.Num = ProxyErrorNum
       Select Case ProxyErrorNum
-        Case ERROR_INVALID_PARAMETER, ERROR_WINHTTP_AUTO_PROXY_SERVICE_ERROR, ERROR_WINHTTP_AUTODETECTION_FAILED, ERROR_WINHTTP_BAD_AUTO_PROXY_SCRIPT, _
+        Case ERROR_WINHTTP_INVALID_PARAMETER, ERROR_WINHTTP_AUTO_PROXY_SERVICE_ERROR, ERROR_WINHTTP_AUTODETECTION_FAILED, ERROR_WINHTTP_BAD_AUTO_PROXY_SCRIPT, _
              ERROR_WINHTTP_LOGIN_FAILURE, ERROR_WINHTTP_OPERATION_CANCELLED, ERROR_WINHTTP_TIMEOUT, ERROR_WINHTTP_UNABLE_TO_DOWNLOAD_SCRIPT, ERROR_WINHTTP_UNRECOGNIZED_SCHEME
           GetProxyCurrentUser.Error.isRecoverable = True
       End Select
@@ -674,10 +674,10 @@ End Function
 'Copies a variant from the source variable to the dest variable
 '@param dest - Destination to copy variant to
 '@param src - Source to copy variant from
-Private Sub CopyVariant(ByRef dest as variant, ByVal src as variant)
-  If isObject(src) then
-    set dest = src
-  else
-    let dest = src
-  end if
+Private Sub CopyVariant(ByRef dest As Variant, ByVal src As Variant)
+  If IsObject(src) Then
+    Set dest = src
+  Else
+    Let dest = src
+  End If
 End Sub

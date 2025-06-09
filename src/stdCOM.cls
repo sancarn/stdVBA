@@ -15,7 +15,7 @@ Attribute VB_Exposed = True
 'TODO: Analyse and add anything missing from:
 ' * https://referencesource.microsoft.com/#system.data/fx/src/data/System/Data/OleDb/OLEDB_Util.cs,4254532afac0bd58,references
 #If Win64 Then
-  Private Const NULL_PTR as LongLong = 0^
+  Private Const NULL_PTR As LongLong = 0^
 #Else
   Private Const NULL_PTR As Long = 0&
 #End If
@@ -32,7 +32,7 @@ Attribute VB_Exposed = True
     Private Declare PtrSafe Function GetRunningObjectTable Lib "ole32.dll" (ByVal dwReserved As Long, pROT As LongPtr) As Long
     Private Declare PtrSafe Function CreateBindCtx Lib "ole32.dll" (ByVal dwReserved As Long, pBindCtx As LongPtr) As Long
     Private Declare PtrSafe Function SysReAllocString Lib "oleAut32.dll" (ByVal pBSTR As LongPtr, Optional ByVal pszStrPtr As LongPtr) As Long
-    Private Declare PtrSafe Function ProgIDFromCLSID Lib "ole32.dll" (ByRef rclsid As GUID, ByVal ProgID as LongPtr) as Long
+    Private Declare PtrSafe Function ProgIDFromCLSID Lib "ole32.dll" (ByRef rclsid As GUID, ByVal ProgID As LongPtr) As Long
 
     'Register to ROT
     Private Declare PtrSafe Function RegisterActiveObject32 Lib "oleAut32.dll" Alias "RegisterActiveObject" (ByVal pUnk As IUnknown, ByRef rclsid As GUID, ByVal dwFlags As Long, ByRef pdwRegister As Long) As Long
@@ -446,16 +446,16 @@ Private Const CC_STDCALL    As Long = 4
 '* STATE VARIABLES *
 '*******************
 Private Type TThis
-  Meta as IUnknown
-  RegisteredOLEInstance as Long
-  RegisteredTimerOLEInstance as Long
-  #if VBA7 then
-    ObjPtr as LongPtr
+  Meta As IUnknown
+  RegisteredOLEInstance As Long
+  RegisteredTimerOLEInstance As Long
+  #If VBA7 Then
+    ObjPtr As LongPtr
   #Else
     ObjPtr as Long
   #End If
 End Type
-Private This as TThis
+Private This As TThis
 
 '**********
 '* EVENTS *
@@ -480,11 +480,11 @@ End Function
 '@returns - A wrapper around a raw COM object
 '@remark Specifically this function reuires a `*Interface` pointer. E.G. `*IUnknown`/`*IDispatch`/`*ITypeInfo`. If your DLL function provides a `[out] **Interface` object the
 'typical method is to pass in a varptr to the dll function as follows `Call SomeDLLCall(VarPtr(myPointer)): ... later ...: stdCOM.CreateFromPtr(myPointer)`
-#if VBA7 then
+#If VBA7 Then
   Public Function CreateFromPtr(ByVal ptr As LongPtr) As stdCOM
-#else
+#Else
   Public Function CreateFromPtr(ByVal ptr As Long) As stdCOM
-#end if 
+#End If
   Set CreateFromPtr = New stdCOM
   Call CreateFromPtr.protInitFromPtr(ptr)
 End Function
@@ -515,7 +515,7 @@ Public Function CreateFromActiveObjects() As Collection
   Dim nCountFetched As Long: nCountFetched = 1& 'Note: This has to be set else a crash occurs
   Do While e.CallVT(EIEnumMoniker.Nextt, vbLong, nCount, VarPtr(pMoniker), VarPtr(nCountFetched)) = S_OK     '*IMoniker
     'Note: This check is required, in some instances (still not certain when specifically) S_OK is returned, despite `nCountFetched` holding `0` and `nCount` holding `1`
-    if nCountFetched = 0 then Exit Do
+    If nCountFetched = 0 Then Exit Do
 
     Dim moniker As stdCOM: Set moniker = stdCOM.CreateFromPtr(pMoniker)                                   'stdCOM<IMoniker>
 
@@ -528,13 +528,13 @@ Public Function CreateFromActiveObjects() As Collection
     'Get ProgID from PathName
     Dim CLSID As GUID: CLSID.Data1 = 0: CLSID.Data2 = 0: CLSID.Data3 = 0: Erase CLSID.Data4
     Dim ProgID As String: ProgID = ""
-    if sName like "!{*}" then
-      Dim tCLSID as string: tCLSID = mid(sName, 2)
-      Call IIDFromString(StrPtr(tCLSID), clsid)
-      If ProgIDFromCLSID(clsid, VarPtr(pStr)) = S_OK then
+    If sName Like "!{*}" Then
+      Dim tCLSID As String: tCLSID = Mid(sName, 2)
+      Call IIDFromString(StrPtr(tCLSID), CLSID)
+      If ProgIDFromCLSID(CLSID, VarPtr(pStr)) = S_OK Then
         ProgID = GetStrFromPtrW(pStr)
-      end if
-    end if
+      End If
+    End If
     
     'Wrap return value in dictionary for easy enumeration with stdLambda
     Dim oDict As Object: Set oDict = CreateObject("Scripting.Dictionary")
@@ -553,16 +553,16 @@ End Function
 '@param sActivatableClassId - An activatable WinRT class ID.
 '@returns - A COM wrapper for the object.
 '@example `stdCOM.CreateFromWinRTClassID("Windows.Storage.Pickers.FolderPicker")`
-Public Function CreateFromWinRTClassID(ByVal sActivatableClassId as string) as stdCOM
-  Dim hString as LongPtr
-  if WindowsCreateString(StrPtr(sActivatableClassId), Len(sActivatableClassId), hString) <> S_OK then Err.Raise 1, "stdCOM::CreateFromWinRTClassID", "Cannot create HSTRING"
-  if hString = NULL_PTR then Err.Raise 1, "stdCOM::CreateFromWinRTClassID", "Cannot create HSTRING"
+Public Function CreateFromWinRTClassID(ByVal sActivatableClassId As String) As stdCOM
+  Dim hString As LongPtr
+  If WindowsCreateString(StrPtr(sActivatableClassId), Len(sActivatableClassId), hString) <> S_OK Then Err.Raise 1, "stdCOM::CreateFromWinRTClassID", "Cannot create HSTRING"
+  If hString = NULL_PTR Then Err.Raise 1, "stdCOM::CreateFromWinRTClassID", "Cannot create HSTRING"
 
   'Obtain stdCOM object
-  Dim pIInspectable as LongPtr
-  if RoActivateInstance(hString, pIInspectable) <> S_OK then Err.Raise 1, "stdCOM::CreateFromWinRTClassID", "Cannot activate class ID"
-  if pIInspectable = 0 then Err.Raise 1, "stdCOM::CreateFromWinRTClassID", "Cannot activate class ID"
-  set CreateFromWinRTClassID = CreateFromPtr(pIInspectable)
+  Dim pIInspectable As LongPtr
+  If RoActivateInstance(hString, pIInspectable) <> S_OK Then Err.Raise 1, "stdCOM::CreateFromWinRTClassID", "Cannot activate class ID"
+  If pIInspectable = 0 Then Err.Raise 1, "stdCOM::CreateFromWinRTClassID", "Cannot activate class ID"
+  Set CreateFromWinRTClassID = CreateFromPtr(pIInspectable)
 
   'Delete string
   Call WindowsDeleteString(hString)
@@ -598,10 +598,10 @@ End Function
 '@example `stdCOM.Create(Application).Object.Name`
 '@example `stdCOM.CreateFromPtr(ObjPtr(Application)).Object.Name`
 Public Property Get Object() As IUnknown
-  If this.Meta Is Nothing Then
+  If This.Meta Is Nothing Then
     Set Object = Deref(This.ObjPtr)
   Else
-    Set Object = this.Meta
+    Set Object = This.Meta
   End If
 End Property
 
@@ -611,10 +611,10 @@ End Property
 '@example `stdCOM.CreateFromPtr(ObjPtr(Application)).Object.Name`
 '@throws {...} Unsupported interface IDispatch
 Public Property Get AsObject() As Object
-  If this.Meta Is Nothing Then
+  If This.Meta Is Nothing Then
     Set AsObject = Deref(This.ObjPtr)
   Else
-    Set AsObject = this.Meta
+    Set AsObject = This.Meta
   End If
 End Property
 
@@ -625,10 +625,10 @@ End Property
 #Else
   Public Property Get Pointer() As Long
 #End If
-  If this.Meta Is Nothing Then
+  If This.Meta Is Nothing Then
     Pointer = This.ObjPtr
   Else
-    Pointer = ObjPtr(this.Meta)
+    Pointer = ObjPtr(This.Meta)
   End If
 End Property
 
@@ -648,11 +648,11 @@ Public Function unkQueryInterface(ByVal sIID As String) As stdCOM
   If IIDFromString(StrPtr(sIID), tGUID) = S_OK Then
     Dim hResult As Long: hResult = CallVT(EIUnknown.QueryInterface, vbLong, VarPtr(tGUID.Data1), VarPtr(IInterface))
     If hResult = S_OK Then
-      if IInterface is nothing then 
-        set unkQueryInterface = nothing
-      else
+      If IInterface Is Nothing Then
+        Set unkQueryInterface = Nothing
+      Else
         Set unkQueryInterface = stdCOM.Create(IInterface)
-      end if
+      End If
     ElseIf hResult = E_POINTER Then
       Set unkQueryInterface = Nothing
     ElseIf hResult = E_NOINTERFACE Then
@@ -682,9 +682,9 @@ End Sub
 Public Function QueryKnownInterface(ByVal interface As EKnownInterfaces) As stdCOM
   Dim sIID As String: sIID = KnownIID(interface)
   If sIID <> "" Then
-    Dim oRet as stdCOM: Set oRet = unkQueryInterface(sIID)
-    if not oRet is nothing then Call oRet.unkAddRef
-    set QueryKnownInterface = oRet
+    Dim oRet As stdCOM: Set oRet = unkQueryInterface(sIID)
+    If Not oRet Is Nothing Then Call oRet.unkAddRef
+    Set QueryKnownInterface = oRet
   Else
     Err.Raise 1, "stdCOM::QueryKnownInterface", "Interface IID not known."
   End If
@@ -706,7 +706,7 @@ CannotQuery:
     Dim pTypeInfo As IUnknown
     Dim hResult As Long: hResult = .CallVT(EIDispatch.GetTypeInfo, vbLongPtr, NULL_PTR, NULL_PTR, VarPtr(pTypeInfo))
     If hResult <> S_OK Then Err.Raise hResult, "InterfaceInfo", "stdCOM::InterfaceInfo"
-    if not pTypeInfo is nothing then Set TypeInfo = stdCOM.Create(pTypeInfo)
+    If Not pTypeInfo Is Nothing Then Set TypeInfo = stdCOM.Create(pTypeInfo)
   End With
   Exit Property
 UnknownError:
@@ -810,9 +810,9 @@ Public Property Get Properties(Optional bIncludeReadWriteType As Boolean = False
           Dim sReadWritePrefix As String
           If bIncludeReadWriteType Then
             Select Case info(1)
-              Case VbGet: sReadWritePrefix = "GET"
-              Case VbLet: sReadWritePrefix = "LET"
-              Case VbSet: sReadWritePrefix = "SET"
+              Case vbGet: sReadWritePrefix = "GET"
+              Case vbLet: sReadWritePrefix = "LET"
+              Case vbSet: sReadWritePrefix = "SET"
               Case Else: sReadWritePrefix = "UNK"
             End Select
             oProperties.Add sReadWritePrefix & " " & info(0)
@@ -832,12 +832,12 @@ End Property
 '@param sCLSID - CLSID if required. If this arg isn't provided, a ProgID must be provided.
 '@param ProgID - ProgID if required. If this arg isn't provided, a CLSID must be provided.
 Public Sub RegisterActiveObject(Optional ByVal sCLSID As String = "", Optional ByVal ProgID As String = "")
-    Call RegisterActiveObjectEx(Object, this.RegisteredOLEInstance, sCLSID, ProgID)
+    Call RegisterActiveObjectEx(Object, This.RegisteredOLEInstance, sCLSID, ProgID)
 End Sub
 
 'Revoke the previously registered object
 Public Sub RevokeActiveObject()
-    Call RevokeActiveObjectEx(Object, this.RegisteredOLEInstance)
+    Call RevokeActiveObjectEx(Object, This.RegisteredOLEInstance)
 End Sub
 
 '############################
@@ -878,13 +878,13 @@ Public Function CallVT(ByVal VTableOffset As Long, ByVal ReturnType As VbVarType
     
       Dim lIdx As Long
       For lIdx = 0 To iParamCount - 1
-        vType(lIdx) = varType(vParam(lIdx))
+        vType(lIdx) = VarType(vParam(lIdx))
         vPtr(lIdx) = VarPtr(vParam(lIdx))
       Next
     End If
     
     'Call function
-    Dim hResult As Long
+    Dim hResult As Long, vv as variant
     hResult = DispCallFunc(This.ObjPtr, VTableOffset * PTRSIZE, CC_STDCALL, ReturnType, iParamCount, VarPtr(vType(0)), VarPtr(vPtr(0)), vv)
     
     If hResult < 0 Then
@@ -900,7 +900,7 @@ End Function
 '@param obj - Object to create raw COM object from
 Friend Sub protInitFromObject(ByVal obj As IUnknown)
   This.ObjPtr = ObjPtr(obj)
-  Set this.Meta = obj
+  Set This.Meta = obj
 End Sub
 
 'Initialise from pointer to object
@@ -915,11 +915,11 @@ End Sub
 '@destructor
 Private Sub Class_Terminate()
   'Revoke active objects
-  If this.RegisteredOLEInstance > 0 Then Call RevokeActiveObjectEx(Object(), this.RegisteredOLEInstance)
-  If this.RegisteredTimerOLEInstance > 0 Then Call RevokeActiveObjectEx(Me, this.RegisteredTimerOLEInstance)
+  If This.RegisteredOLEInstance > 0 Then Call RevokeActiveObjectEx(Object(), This.RegisteredOLEInstance)
+  If This.RegisteredTimerOLEInstance > 0 Then Call RevokeActiveObjectEx(Me, This.RegisteredTimerOLEInstance)
   
   'Call unknown release (prevent memory leaks)
-  If this.Meta Is Nothing Then Call unkRelease
+  If This.Meta Is Nothing Then Call unkRelease
 End Sub
 
 'Register an object in the ROT

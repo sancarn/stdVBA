@@ -87,7 +87,7 @@ Private WithEvents pCommandButton  As MSForms.CommandButton
 '@returns - The UI Element
 Public Function CreateFromControl(ByVal ctrl As Control, callback As stdICallable) As stdUIElement
   Set CreateFromControl = New stdUIElement
-  if not callback is nothing then Call BindGlobals(callback)
+  If Not callback Is Nothing Then Call BindGlobals(callback)
   Call CreateFromControl.protInit(ctrl, callback)
 End Function
 
@@ -102,7 +102,7 @@ End Function
 '@param fWidth - The width of the control
 '@param fHeight - The height of the control
 '@returns - The UI Element
-Public Function CreateFromType(ByVal oControls As MSForms.controls, ByVal iCtrlType As EUIElementType, Optional ByVal sName As String, Optional ByVal Caption As String, Optional ByVal Value As Variant, Optional ByVal callback As stdICallable, Optional ByVal fLeft As Double = 0, Optional ByVal fTop As Double = 0, Optional ByVal fWidth As Double, Optional ByVal fHeight As Double) As stdUIElement
+Public Function CreateFromType(ByVal oControls As MSForms.Controls, ByVal iCtrlType As EUIElementType, Optional ByVal sName As String, Optional ByVal Caption As String, Optional ByVal Value As Variant, Optional ByVal callback As stdICallable, Optional ByVal fLeft As Double = 0, Optional ByVal fTop As Double = 0, Optional ByVal fWidth As Double, Optional ByVal fHeight As Double) As stdUIElement
   Set CreateFromType = New stdUIElement
   Dim ctrl As Control
   Select Case iCtrlType
@@ -123,15 +123,15 @@ Public Function CreateFromType(ByVal oControls As MSForms.controls, ByVal iCtrlT
     Case uiCommandButton: Set ctrl = oControls.Add("Forms.CommandButton.1", sName)
   End Select
   If sName <> "" Then ctrl.name = sName
-  if not callback is nothing then Call BindGlobals(callback)
+  If Not callback Is Nothing Then Call BindGlobals(callback)
   Call CreateFromType.protInit(ctrl, callback)
-  If not isMissing(Value) then
+  If Not IsMissing(Value) Then
     If IsObject(Value) Then
       Set CreateFromType.Value = Value
     Else
       CreateFromType.Value = Value
     End If
-  end if
+  End If
   CreateFromType.Caption = Caption
   CreateFromType.Left = fLeft
   CreateFromType.Top = fTop
@@ -204,13 +204,13 @@ End Property
 Public Property Get Caption() As String
   Select Case this.iType
     Case uiUserForm, uiFrame, uiLabel, uiCheckBox, uiOptionButton, uiToggleButton, uiCommandButton
-      Caption = This.Control.Caption
+      Caption = this.Control.Caption
   End Select
 End Property
 Public Property Let Caption(v As String)
   Select Case this.iType
     Case uiUserForm, uiFrame, uiLabel, uiCheckBox, uiOptionButton, uiToggleButton, uiCommandButton
-      This.Control.Caption = v
+      this.Control.Caption = v
   End Select
   Call callEventCB(ObjRef(Me), uiElementEventChange, Array(v))
 End Property
@@ -226,7 +226,7 @@ Public Property Let Left(fLeft As Double)
     Case uiTextBox, uiCombobox, uiListBox, uiOptionButton, uiToggleButton, uiScrollbar, uiSpinButton, uiLabel
       uiObject.Left = this.Left
     Case uiCheckBox
-      uiObject.Left = this.Left + iif(this.Width <= 12, 0, this.Width / 2 - 6)
+      uiObject.Left = this.Left + IIf(this.Width <= 12, 0, this.Width / 2 - 6)
   End Select
   Call callEventCB(ObjRef(Me), uiElementEventMove, Array(this.Left, this.Control.Top))
 End Property
@@ -370,35 +370,35 @@ End Function
 
 
 'Bind globals to the callback object
-Private Sub BindGlobals(ByVal query as stdICallable)
-  Dim bSuccess as boolean
+Private Sub BindGlobals(ByVal query As stdICallable)
+  Dim bSuccess As Boolean
   Call query.SendMessage("bindGlobal", bSuccess, Array("EUIElementEvent", stdUIElement.protUIElementEventLookup()))
 End Sub
 
 'Get a dictionary of event names and their corresponding event handler
 '@protected
 '@returns - A dictionary of event names and their corresponding event handler
-Friend Function protUIElementEventLookup() as Object
-  static obj as Object
-  if obj is nothing then
-    set obj = CreateObject("Scripting.Dictionary")
+Friend Function protUIElementEventLookup() As Object
+  Static obj As Object
+  If obj Is Nothing Then
+    Set obj = CreateObject("Scripting.Dictionary")
     obj.CompareMode = vbTextCompare
-    obj.add "uiElementEventChange"       , uiElementEventChange
-    obj.add "uiElementEventMove"         , uiElementEventMove
-    obj.add "uiElementEventResize"       , uiElementEventResize
-    obj.add "uiElementEventMouseClick"   , uiElementEventMouseClick
+    obj.add "uiElementEventChange", uiElementEventChange
+    obj.add "uiElementEventMove", uiElementEventMove
+    obj.add "uiElementEventResize", uiElementEventResize
+    obj.add "uiElementEventMouseClick", uiElementEventMouseClick
     obj.add "uiElementEventMouseDblClick", uiElementEventMouseDblClick
-    obj.add "uiElementEventMouseFocus"   , uiElementEventMouseFocus
-    obj.add "uiElementEventMouseMove"    , uiElementEventMouseMove
-    obj.add "uiElementEventMouseDown"    , uiElementEventMouseDown
-    obj.add "uiElementEventMouseUp"      , uiElementEventMouseUp
-    obj.add "uiElementEventTabSelected"  , uiElementEventTabSelected
-    obj.add "uiElementEventAddChild"     , uiElementEventAddChild
-    obj.add "uiElementEventKeyDown"      , uiElementEventKeyDown
-    obj.add "uiElementEventKeyUp"        , uiElementEventKeyUp
-    obj.add "uiElementEventKeyPress"     , uiElementEventKeyPress
-  end if
-  set protUIElementEventLookup = obj
+    obj.add "uiElementEventMouseFocus", uiElementEventMouseFocus
+    obj.add "uiElementEventMouseMove", uiElementEventMouseMove
+    obj.add "uiElementEventMouseDown", uiElementEventMouseDown
+    obj.add "uiElementEventMouseUp", uiElementEventMouseUp
+    obj.add "uiElementEventTabSelected", uiElementEventTabSelected
+    obj.add "uiElementEventAddChild", uiElementEventAddChild
+    obj.add "uiElementEventKeyDown", uiElementEventKeyDown
+    obj.add "uiElementEventKeyUp", uiElementEventKeyUp
+    obj.add "uiElementEventKeyPress", uiElementEventKeyPress
+  End If
+  Set protUIElementEventLookup = obj
 End Function
 
 'Return a reference to an object
@@ -427,11 +427,11 @@ Private Sub pCheckBox_Click():      Call callEventCB(ObjRef(Me), EUIElementEvent
 Private Sub pOptionButton_Click():  Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseClick): End Sub
 Private Sub pToggleButton_Click():  Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseClick): End Sub
 Private Sub pCommandButton_Click(): Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseClick): End Sub
-Private Sub pMultiPage_Click(ByVal Index As Long)
+Private Sub pMultiPage_Click(ByRef Index As Long)
   Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseClick)
   Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventTabSelected, Array(Index))
 End Sub
-Private Sub pTabStrip_Click(ByVal Index As Long)
+Private Sub pTabStrip_Click(ByRef Index As Long)
   Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseClick)
   Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventTabSelected, Array(Index))
 End Sub
@@ -458,112 +458,112 @@ Private Sub pToggleButton_Change(): Call callEventCB(ObjRef(Me), EUIElementEvent
 '* KEYBOARD EVENTS *
 '*******************
 
-Private Sub pToggleButton_KeyDown(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift As Integer):  Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyDown, Array(KeyCode, Shift)): End Sub
-Private Sub pUserForm_KeyDown(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift As Integer):      Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyDown, Array(KeyCode, Shift)): End Sub
-Private Sub pCheckBox_KeyDown(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift As Integer):      Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyDown, Array(KeyCode, Shift)): End Sub
-Private Sub pComboBox_KeyDown(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift As Integer):      Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyDown, Array(KeyCode, Shift)): End Sub
-Private Sub pCommandButton_KeyDown(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift As Integer): Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyDown, Array(KeyCode, Shift)): End Sub
-Private Sub pFrame_KeyDown(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift As Integer):         Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyDown, Array(KeyCode, Shift)): End Sub
-Private Sub pListBox_KeyDown(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift As Integer):       Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyDown, Array(KeyCode, Shift)): End Sub
-Private Sub pMultiPage_KeyDown(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift As Integer):     Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyDown, Array(KeyCode, Shift)): End Sub
-Private Sub pOptionButton_KeyDown(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift As Integer):  Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyDown, Array(KeyCode, Shift)): End Sub
-Private Sub pScrollBar_KeyDown(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift As Integer):     Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyDown, Array(KeyCode, Shift)): End Sub
-Private Sub pSpinButton_KeyDown(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift As Integer):    Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyDown, Array(KeyCode, Shift)): End Sub
-Private Sub pTabStrip_KeyDown(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift As Integer):      Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyDown, Array(KeyCode, Shift)): End Sub
-Private Sub pTextBox_KeyDown(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift As Integer):       Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyDown, Array(KeyCode, Shift)): End Sub
+Private Sub pToggleButton_KeyDown(ByRef KeyCode As MSForms.ReturnInteger, ByRef Shift As Integer):  Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyDown, Array(KeyCode, Shift)): End Sub
+Private Sub pUserForm_KeyDown(ByRef KeyCode As MSForms.ReturnInteger, ByRef Shift As Integer):      Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyDown, Array(KeyCode, Shift)): End Sub
+Private Sub pCheckBox_KeyDown(ByRef KeyCode As MSForms.ReturnInteger, ByRef Shift As Integer):      Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyDown, Array(KeyCode, Shift)): End Sub
+Private Sub pComboBox_KeyDown(ByRef KeyCode As MSForms.ReturnInteger, ByRef Shift As Integer):      Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyDown, Array(KeyCode, Shift)): End Sub
+Private Sub pCommandButton_KeyDown(ByRef KeyCode As MSForms.ReturnInteger, ByRef Shift As Integer): Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyDown, Array(KeyCode, Shift)): End Sub
+Private Sub pFrame_KeyDown(ByRef KeyCode As MSForms.ReturnInteger, ByRef Shift As Integer):         Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyDown, Array(KeyCode, Shift)): End Sub
+Private Sub pListBox_KeyDown(ByRef KeyCode As MSForms.ReturnInteger, ByRef Shift As Integer):       Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyDown, Array(KeyCode, Shift)): End Sub
+Private Sub pMultiPage_KeyDown(ByRef KeyCode As MSForms.ReturnInteger, ByRef Shift As Integer):     Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyDown, Array(KeyCode, Shift)): End Sub
+Private Sub pOptionButton_KeyDown(ByRef KeyCode As MSForms.ReturnInteger, ByRef Shift As Integer):  Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyDown, Array(KeyCode, Shift)): End Sub
+Private Sub pScrollBar_KeyDown(ByRef KeyCode As MSForms.ReturnInteger, ByRef Shift As Integer):     Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyDown, Array(KeyCode, Shift)): End Sub
+Private Sub pSpinButton_KeyDown(ByRef KeyCode As MSForms.ReturnInteger, ByRef Shift As Integer):    Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyDown, Array(KeyCode, Shift)): End Sub
+Private Sub pTabStrip_KeyDown(ByRef KeyCode As MSForms.ReturnInteger, ByRef Shift As Integer):      Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyDown, Array(KeyCode, Shift)): End Sub
+Private Sub pTextBox_KeyDown(ByRef KeyCode As MSForms.ReturnInteger, ByRef Shift As Integer):       Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyDown, Array(KeyCode, Shift)): End Sub
 
-Private Sub pToggleButton_KeyPress(ByVal KeyAscii As MSForms.ReturnInteger):  Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyPress, Array(KeyAscii)): End Sub
-Private Sub pUserForm_KeyPress(ByVal KeyAscii As MSForms.ReturnInteger):      Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyPress, Array(KeyAscii)): End Sub
-Private Sub pCheckBox_KeyPress(ByVal KeyAscii As MSForms.ReturnInteger):      Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyPress, Array(KeyAscii)): End Sub
-Private Sub pComboBox_KeyPress(ByVal KeyAscii As MSForms.ReturnInteger):      Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyPress, Array(KeyAscii)): End Sub
-Private Sub pCommandButton_KeyPress(ByVal KeyAscii As MSForms.ReturnInteger): Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyPress, Array(KeyAscii)): End Sub
-Private Sub pFrame_KeyPress(ByVal KeyAscii As MSForms.ReturnInteger):         Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyPress, Array(KeyAscii)): End Sub
-Private Sub pListBox_KeyPress(ByVal KeyAscii As MSForms.ReturnInteger):       Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyPress, Array(KeyAscii)): End Sub
-Private Sub pMultiPage_KeyPress(ByVal KeyAscii As MSForms.ReturnInteger):     Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyPress, Array(KeyAscii)): End Sub
-Private Sub pOptionButton_KeyPress(ByVal KeyAscii As MSForms.ReturnInteger):  Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyPress, Array(KeyAscii)): End Sub
-Private Sub pScrollBar_KeyPress(ByVal KeyAscii As MSForms.ReturnInteger):     Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyPress, Array(KeyAscii)): End Sub
-Private Sub pSpinButton_KeyPress(ByVal KeyAscii As MSForms.ReturnInteger):    Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyPress, Array(KeyAscii)): End Sub
-Private Sub pTabStrip_KeyPress(ByVal KeyAscii As MSForms.ReturnInteger):      Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyPress, Array(KeyAscii)): End Sub
-Private Sub pTextBox_KeyPress(ByVal KeyAscii As MSForms.ReturnInteger):       Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyPress, Array(KeyAscii)): End Sub
+Private Sub pToggleButton_KeyPress(ByRef KeyAscii As MSForms.ReturnInteger):  Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyPress, Array(KeyAscii)): End Sub
+Private Sub pUserForm_KeyPress(ByRef KeyAscii As MSForms.ReturnInteger):      Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyPress, Array(KeyAscii)): End Sub
+Private Sub pCheckBox_KeyPress(ByRef KeyAscii As MSForms.ReturnInteger):      Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyPress, Array(KeyAscii)): End Sub
+Private Sub pComboBox_KeyPress(ByRef KeyAscii As MSForms.ReturnInteger):      Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyPress, Array(KeyAscii)): End Sub
+Private Sub pCommandButton_KeyPress(ByRef KeyAscii As MSForms.ReturnInteger): Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyPress, Array(KeyAscii)): End Sub
+Private Sub pFrame_KeyPress(ByRef KeyAscii As MSForms.ReturnInteger):         Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyPress, Array(KeyAscii)): End Sub
+Private Sub pListBox_KeyPress(ByRef KeyAscii As MSForms.ReturnInteger):       Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyPress, Array(KeyAscii)): End Sub
+Private Sub pMultiPage_KeyPress(ByRef KeyAscii As MSForms.ReturnInteger):     Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyPress, Array(KeyAscii)): End Sub
+Private Sub pOptionButton_KeyPress(ByRef KeyAscii As MSForms.ReturnInteger):  Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyPress, Array(KeyAscii)): End Sub
+Private Sub pScrollBar_KeyPress(ByRef KeyAscii As MSForms.ReturnInteger):     Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyPress, Array(KeyAscii)): End Sub
+Private Sub pSpinButton_KeyPress(ByRef KeyAscii As MSForms.ReturnInteger):    Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyPress, Array(KeyAscii)): End Sub
+Private Sub pTabStrip_KeyPress(ByRef KeyAscii As MSForms.ReturnInteger):      Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyPress, Array(KeyAscii)): End Sub
+Private Sub pTextBox_KeyPress(ByRef KeyAscii As MSForms.ReturnInteger):       Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyPress, Array(KeyAscii)): End Sub
 
-Private Sub pToggleButton_KeyUp(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift As Integer):  Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyUp, Array(KeyCode, Shift)): End Sub
-Private Sub pUserForm_KeyUp(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift As Integer):      Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyUp, Array(KeyCode, Shift)): End Sub
-Private Sub pCheckBox_KeyUp(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift As Integer):      Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyUp, Array(KeyCode, Shift)): End Sub
-Private Sub pComboBox_KeyUp(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift As Integer):      Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyUp, Array(KeyCode, Shift)): End Sub
-Private Sub pCommandButton_KeyUp(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift As Integer): Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyUp, Array(KeyCode, Shift)): End Sub
-Private Sub pFrame_KeyUp(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift As Integer):         Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyUp, Array(KeyCode, Shift)): End Sub
-Private Sub pListBox_KeyUp(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift As Integer):       Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyUp, Array(KeyCode, Shift)): End Sub
-Private Sub pMultiPage_KeyUp(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift As Integer):     Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyUp, Array(KeyCode, Shift)): End Sub
-Private Sub pOptionButton_KeyUp(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift As Integer):  Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyUp, Array(KeyCode, Shift)): End Sub
-Private Sub pScrollBar_KeyUp(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift As Integer):     Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyUp, Array(KeyCode, Shift)): End Sub
-Private Sub pSpinButton_KeyUp(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift As Integer):    Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyUp, Array(KeyCode, Shift)): End Sub
-Private Sub pTabStrip_KeyUp(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift As Integer):      Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyUp, Array(KeyCode, Shift)): End Sub
-Private Sub pTextBox_KeyUp(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift As Integer):       Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyUp, Array(KeyCode, Shift)): End Sub
+Private Sub pToggleButton_KeyUp(ByRef KeyCode As MSForms.ReturnInteger, ByRef Shift As Integer):  Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyUp, Array(KeyCode, Shift)): End Sub
+Private Sub pUserForm_KeyUp(ByRef KeyCode As MSForms.ReturnInteger, ByRef Shift As Integer):      Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyUp, Array(KeyCode, Shift)): End Sub
+Private Sub pCheckBox_KeyUp(ByRef KeyCode As MSForms.ReturnInteger, ByRef Shift As Integer):      Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyUp, Array(KeyCode, Shift)): End Sub
+Private Sub pComboBox_KeyUp(ByRef KeyCode As MSForms.ReturnInteger, ByRef Shift As Integer):      Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyUp, Array(KeyCode, Shift)): End Sub
+Private Sub pCommandButton_KeyUp(ByRef KeyCode As MSForms.ReturnInteger, ByRef Shift As Integer): Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyUp, Array(KeyCode, Shift)): End Sub
+Private Sub pFrame_KeyUp(ByRef KeyCode As MSForms.ReturnInteger, ByRef Shift As Integer):         Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyUp, Array(KeyCode, Shift)): End Sub
+Private Sub pListBox_KeyUp(ByRef KeyCode As MSForms.ReturnInteger, ByRef Shift As Integer):       Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyUp, Array(KeyCode, Shift)): End Sub
+Private Sub pMultiPage_KeyUp(ByRef KeyCode As MSForms.ReturnInteger, ByRef Shift As Integer):     Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyUp, Array(KeyCode, Shift)): End Sub
+Private Sub pOptionButton_KeyUp(ByRef KeyCode As MSForms.ReturnInteger, ByRef Shift As Integer):  Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyUp, Array(KeyCode, Shift)): End Sub
+Private Sub pScrollBar_KeyUp(ByRef KeyCode As MSForms.ReturnInteger, ByRef Shift As Integer):     Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyUp, Array(KeyCode, Shift)): End Sub
+Private Sub pSpinButton_KeyUp(ByRef KeyCode As MSForms.ReturnInteger, ByRef Shift As Integer):    Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyUp, Array(KeyCode, Shift)): End Sub
+Private Sub pTabStrip_KeyUp(ByRef KeyCode As MSForms.ReturnInteger, ByRef Shift As Integer):      Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyUp, Array(KeyCode, Shift)): End Sub
+Private Sub pTextBox_KeyUp(ByRef KeyCode As MSForms.ReturnInteger, ByRef Shift As Integer):       Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventKeyUp, Array(KeyCode, Shift)): End Sub
 
 '****************
 '* MOUSE EVENTS *
 '****************
 
-Private Sub pUserForm_MouseDown(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single):                       Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDown, Array(Button, Shift, X, Y)): End Sub
-Private Sub pCheckBox_MouseDown(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single):                       Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDown, Array(Button, Shift, X, Y)): End Sub
-Private Sub pComboBox_MouseDown(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single):                       Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDown, Array(Button, Shift, X, Y)): End Sub
-Private Sub pCommandButton_MouseDown(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single):                  Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDown, Array(Button, Shift, X, Y)): End Sub
-Private Sub pFrame_MouseDown(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single):                          Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDown, Array(Button, Shift, X, Y)): End Sub
-Private Sub pLabel_MouseDown(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single):                          Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDown, Array(Button, Shift, X, Y)): End Sub
-Private Sub pListBox_MouseDown(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single):                        Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDown, Array(Button, Shift, X, Y)): End Sub
-Private Sub pMultiPage_MouseDown(ByVal Index As Long, ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single): Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDown, Array(Button, Shift, X, Y)): End Sub
-Private Sub pOptionButton_MouseDown(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single):                   Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDown, Array(Button, Shift, X, Y)): End Sub
-Private Sub pTabStrip_MouseDown(ByVal Index As Long, ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single):  Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDown, Array(Button, Shift, X, Y)): End Sub
-Private Sub pToggleButton_MouseDown(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single):                   Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDown, Array(Button, Shift, X, Y)): End Sub
-Private Sub pImage_MouseDown(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single)
+Private Sub pUserForm_MouseDown(ByRef Button As Integer, ByRef Shift As Integer, ByRef X As Single, ByRef Y As Single):                       Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDown, Array(Button, Shift, X, Y)): End Sub
+Private Sub pCheckBox_MouseDown(ByRef Button As Integer, ByRef Shift As Integer, ByRef X As Single, ByRef Y As Single):                       Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDown, Array(Button, Shift, X, Y)): End Sub
+Private Sub pComboBox_MouseDown(ByRef Button As Integer, ByRef Shift As Integer, ByRef X As Single, ByRef Y As Single):                       Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDown, Array(Button, Shift, X, Y)): End Sub
+Private Sub pCommandButton_MouseDown(ByRef Button As Integer, ByRef Shift As Integer, ByRef X As Single, ByRef Y As Single):                  Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDown, Array(Button, Shift, X, Y)): End Sub
+Private Sub pFrame_MouseDown(ByRef Button As Integer, ByRef Shift As Integer, ByRef X As Single, ByRef Y As Single):                          Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDown, Array(Button, Shift, X, Y)): End Sub
+Private Sub pLabel_MouseDown(ByRef Button As Integer, ByRef Shift As Integer, ByRef X As Single, ByRef Y As Single):                          Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDown, Array(Button, Shift, X, Y)): End Sub
+Private Sub pListBox_MouseDown(ByRef Button As Integer, ByRef Shift As Integer, ByRef X As Single, ByRef Y As Single):                        Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDown, Array(Button, Shift, X, Y)): End Sub
+Private Sub pMultiPage_MouseDown(ByRef Index As Long, ByRef Button As Integer, ByRef Shift As Integer, ByRef X As Single, ByRef Y As Single): Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDown, Array(Button, Shift, X, Y)): End Sub
+Private Sub pOptionButton_MouseDown(ByRef Button As Integer, ByRef Shift As Integer, ByRef X As Single, ByRef Y As Single):                   Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDown, Array(Button, Shift, X, Y)): End Sub
+Private Sub pTabStrip_MouseDown(ByRef Index As Long, ByRef Button As Integer, ByRef Shift As Integer, ByRef X As Single, ByRef Y As Single):  Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDown, Array(Button, Shift, X, Y)): End Sub
+Private Sub pToggleButton_MouseDown(ByRef Button As Integer, ByRef Shift As Integer, ByRef X As Single, ByRef Y As Single):                   Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDown, Array(Button, Shift, X, Y)): End Sub
+Private Sub pImage_MouseDown(ByRef Button As Integer, ByRef Shift As Integer, ByRef X As Single, ByRef Y As Single)
   Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseClick) 'There is no MouseClick event for Image, so we raise this here too
   Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDown, Array(Button, Shift, X, Y))
 End Sub
-Private Sub pTextBox_MouseDown(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single)
+Private Sub pTextBox_MouseDown(ByRef Button As Integer, ByRef Shift As Integer, ByRef X As Single, ByRef Y As Single)
   Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseClick) 'There is no MouseClick event for TextBox, so we raise this here too
   Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDown, Array(Button, Shift, X, Y))
 End Sub
 
-Private Sub pUserForm_MouseMove(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single):                       Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseMove, Array(Button, Shift, X, Y)): End Sub
-Private Sub pCheckBox_MouseMove(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single):                       Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseMove, Array(Button, Shift, X, Y)): End Sub
-Private Sub pComboBox_MouseMove(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single):                       Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseMove, Array(Button, Shift, X, Y)): End Sub
-Private Sub pCommandButton_MouseMove(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single):                  Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseMove, Array(Button, Shift, X, Y)): End Sub
-Private Sub pFrame_MouseMove(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single):                          Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseMove, Array(Button, Shift, X, Y)): End Sub
-Private Sub pImage_MouseMove(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single):                          Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseMove, Array(Button, Shift, X, Y)): End Sub
-Private Sub pLabel_MouseMove(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single):                          Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseMove, Array(Button, Shift, X, Y)): End Sub
-Private Sub pListBox_MouseMove(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single):                        Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseMove, Array(Button, Shift, X, Y)): End Sub
-Private Sub pMultiPage_MouseMove(ByVal Index As Long, ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single): Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseMove, Array(Button, Shift, X, Y)): End Sub
-Private Sub pOptionButton_MouseMove(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single):                   Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseMove, Array(Button, Shift, X, Y)): End Sub
-Private Sub pTabStrip_MouseMove(ByVal Index As Long, ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single):  Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseMove, Array(Button, Shift, X, Y)): End Sub
-Private Sub pTextBox_MouseMove(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single):                        Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseMove, Array(Button, Shift, X, Y)): End Sub
-Private Sub pToggleButton_MouseMove(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single):                   Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseMove, Array(Button, Shift, X, Y)): End Sub
+Private Sub pUserForm_MouseMove(ByRef Button As Integer, ByRef Shift As Integer, ByRef X As Single, ByRef Y As Single):                       Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseMove, Array(Button, Shift, X, Y)): End Sub
+Private Sub pCheckBox_MouseMove(ByRef Button As Integer, ByRef Shift As Integer, ByRef X As Single, ByRef Y As Single):                       Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseMove, Array(Button, Shift, X, Y)): End Sub
+Private Sub pComboBox_MouseMove(ByRef Button As Integer, ByRef Shift As Integer, ByRef X As Single, ByRef Y As Single):                       Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseMove, Array(Button, Shift, X, Y)): End Sub
+Private Sub pCommandButton_MouseMove(ByRef Button As Integer, ByRef Shift As Integer, ByRef X As Single, ByRef Y As Single):                  Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseMove, Array(Button, Shift, X, Y)): End Sub
+Private Sub pFrame_MouseMove(ByRef Button As Integer, ByRef Shift As Integer, ByRef X As Single, ByRef Y As Single):                          Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseMove, Array(Button, Shift, X, Y)): End Sub
+Private Sub pImage_MouseMove(ByRef Button As Integer, ByRef Shift As Integer, ByRef X As Single, ByRef Y As Single):                          Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseMove, Array(Button, Shift, X, Y)): End Sub
+Private Sub pLabel_MouseMove(ByRef Button As Integer, ByRef Shift As Integer, ByRef X As Single, ByRef Y As Single):                          Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseMove, Array(Button, Shift, X, Y)): End Sub
+Private Sub pListBox_MouseMove(ByRef Button As Integer, ByRef Shift As Integer, ByRef X As Single, ByRef Y As Single):                        Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseMove, Array(Button, Shift, X, Y)): End Sub
+Private Sub pMultiPage_MouseMove(ByRef Index As Long, ByRef Button As Integer, ByRef Shift As Integer, ByRef X As Single, ByRef Y As Single): Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseMove, Array(Button, Shift, X, Y)): End Sub
+Private Sub pOptionButton_MouseMove(ByRef Button As Integer, ByRef Shift As Integer, ByRef X As Single, ByRef Y As Single):                   Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseMove, Array(Button, Shift, X, Y)): End Sub
+Private Sub pTabStrip_MouseMove(ByRef Index As Long, ByRef Button As Integer, ByRef Shift As Integer, ByRef X As Single, ByRef Y As Single):  Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseMove, Array(Button, Shift, X, Y)): End Sub
+Private Sub pTextBox_MouseMove(ByRef Button As Integer, ByRef Shift As Integer, ByRef X As Single, ByRef Y As Single):                        Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseMove, Array(Button, Shift, X, Y)): End Sub
+Private Sub pToggleButton_MouseMove(ByRef Button As Integer, ByRef Shift As Integer, ByRef X As Single, ByRef Y As Single):                   Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseMove, Array(Button, Shift, X, Y)): End Sub
 
-Private Sub pUserForm_MouseUp(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single):                       Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseUp, Array(Button, Shift, X, Y)): End Sub
-Private Sub pCheckBox_MouseUp(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single):                       Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseUp, Array(Button, Shift, X, Y)): End Sub
-Private Sub pComboBox_MouseUp(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single):                       Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseUp, Array(Button, Shift, X, Y)): End Sub
-Private Sub pCommandButton_MouseUp(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single):                  Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseUp, Array(Button, Shift, X, Y)): End Sub
-Private Sub pFrame_MouseUp(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single):                          Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseUp, Array(Button, Shift, X, Y)): End Sub
-Private Sub pImage_MouseUp(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single):                          Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseUp, Array(Button, Shift, X, Y)): End Sub
-Private Sub pLabel_MouseUp(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single):                          Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseUp, Array(Button, Shift, X, Y)): End Sub
-Private Sub pListBox_MouseUp(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single):                        Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseUp, Array(Button, Shift, X, Y)): End Sub
-Private Sub pMultiPage_MouseUp(ByVal Index As Long, ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single): Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseUp, Array(Button, Shift, X, Y)): End Sub
-Private Sub pOptionButton_MouseUp(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single):                   Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseUp, Array(Button, Shift, X, Y)): End Sub
-Private Sub pTabStrip_MouseUp(ByVal Index As Long, ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single):  Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseUp, Array(Button, Shift, X, Y)): End Sub
-Private Sub pTextBox_MouseUp(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single):                        Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseUp, Array(Button, Shift, X, Y)): End Sub
-Private Sub pToggleButton_MouseUp(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single):                   Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseUp, Array(Button, Shift, X, Y)): End Sub
+Private Sub pUserForm_MouseUp(ByRef Button As Integer, ByRef Shift As Integer, ByRef X As Single, ByRef Y As Single):                       Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseUp, Array(Button, Shift, X, Y)): End Sub
+Private Sub pCheckBox_MouseUp(ByRef Button As Integer, ByRef Shift As Integer, ByRef X As Single, ByRef Y As Single):                       Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseUp, Array(Button, Shift, X, Y)): End Sub
+Private Sub pComboBox_MouseUp(ByRef Button As Integer, ByRef Shift As Integer, ByRef X As Single, ByRef Y As Single):                       Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseUp, Array(Button, Shift, X, Y)): End Sub
+Private Sub pCommandButton_MouseUp(ByRef Button As Integer, ByRef Shift As Integer, ByRef X As Single, ByRef Y As Single):                  Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseUp, Array(Button, Shift, X, Y)): End Sub
+Private Sub pFrame_MouseUp(ByRef Button As Integer, ByRef Shift As Integer, ByRef X As Single, ByRef Y As Single):                          Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseUp, Array(Button, Shift, X, Y)): End Sub
+Private Sub pImage_MouseUp(ByRef Button As Integer, ByRef Shift As Integer, ByRef X As Single, ByRef Y As Single):                          Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseUp, Array(Button, Shift, X, Y)): End Sub
+Private Sub pLabel_MouseUp(ByRef Button As Integer, ByRef Shift As Integer, ByRef X As Single, ByRef Y As Single):                          Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseUp, Array(Button, Shift, X, Y)): End Sub
+Private Sub pListBox_MouseUp(ByRef Button As Integer, ByRef Shift As Integer, ByRef X As Single, ByRef Y As Single):                        Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseUp, Array(Button, Shift, X, Y)): End Sub
+Private Sub pMultiPage_MouseUp(ByRef Index As Long, ByRef Button As Integer, ByRef Shift As Integer, ByRef X As Single, ByRef Y As Single): Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseUp, Array(Button, Shift, X, Y)): End Sub
+Private Sub pOptionButton_MouseUp(ByRef Button As Integer, ByRef Shift As Integer, ByRef X As Single, ByRef Y As Single):                   Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseUp, Array(Button, Shift, X, Y)): End Sub
+Private Sub pTabStrip_MouseUp(ByRef Index As Long, ByRef Button As Integer, ByRef Shift As Integer, ByRef X As Single, ByRef Y As Single):  Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseUp, Array(Button, Shift, X, Y)): End Sub
+Private Sub pTextBox_MouseUp(ByRef Button As Integer, ByRef Shift As Integer, ByRef X As Single, ByRef Y As Single):                        Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseUp, Array(Button, Shift, X, Y)): End Sub
+Private Sub pToggleButton_MouseUp(ByRef Button As Integer, ByRef Shift As Integer, ByRef X As Single, ByRef Y As Single):                   Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseUp, Array(Button, Shift, X, Y)): End Sub
 
-Private Sub pCheckBox_DblClick(ByVal Cancel As MSForms.ReturnBoolean):                        Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDblClick, Array(Cancel, 0)): End Sub
-Private Sub pComboBox_DblClick(ByVal Cancel As MSForms.ReturnBoolean):                        Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDblClick, Array(Cancel, 0)): End Sub
-Private Sub pCommandButton_DblClick(ByVal Cancel As MSForms.ReturnBoolean):                   Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDblClick, Array(Cancel, 0)): End Sub
-Private Sub pFrame_DblClick(ByVal Cancel As MSForms.ReturnBoolean):                           Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDblClick, Array(Cancel, 0)): End Sub
-Private Sub pLabel_DblClick(ByVal Cancel As MSForms.ReturnBoolean):                           Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDblClick, Array(Cancel, 0)): End Sub
-Private Sub pListBox_DblClick(ByVal Cancel As MSForms.ReturnBoolean):                         Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDblClick, Array(Cancel, 0)): End Sub
-Private Sub pOptionButton_DblClick(ByVal Cancel As MSForms.ReturnBoolean):                    Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDblClick, Array(Cancel, 0)): End Sub
-Private Sub pTextBox_DblClick(ByVal Cancel As MSForms.ReturnBoolean):                         Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDblClick, Array(Cancel, 0)): End Sub
-Private Sub pToggleButton_DblClick(ByVal Cancel As MSForms.ReturnBoolean):                    Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDblClick, Array(Cancel, 0)): End Sub
-Private Sub pUserForm_DblClick(ByVal Cancel As MSForms.ReturnBoolean):                        Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDblClick, Array(Cancel, 0)): End Sub
-Private Sub pMultiPage_DblClick(ByVal Index As Long, ByVal Cancel As MSForms.ReturnBoolean):  Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDblClick, Array(Cancel, Index)): End Sub
-Private Sub pTabStrip_DblClick(ByVal Index As Long, ByVal Cancel As MSForms.ReturnBoolean):   Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDblClick, Array(Cancel, Index)): End Sub
+Private Sub pCheckBox_DblClick(ByRef Cancel As MSForms.ReturnBoolean):                        Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDblClick, Array(Cancel, 0)): End Sub
+Private Sub pComboBox_DblClick(ByRef Cancel As MSForms.ReturnBoolean):                        Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDblClick, Array(Cancel, 0)): End Sub
+Private Sub pCommandButton_DblClick(ByRef Cancel As MSForms.ReturnBoolean):                   Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDblClick, Array(Cancel, 0)): End Sub
+Private Sub pFrame_DblClick(ByRef Cancel As MSForms.ReturnBoolean):                           Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDblClick, Array(Cancel, 0)): End Sub
+Private Sub pLabel_DblClick(ByRef Cancel As MSForms.ReturnBoolean):                           Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDblClick, Array(Cancel, 0)): End Sub
+Private Sub pListBox_DblClick(ByRef Cancel As MSForms.ReturnBoolean):                         Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDblClick, Array(Cancel, 0)): End Sub
+Private Sub pOptionButton_DblClick(ByRef Cancel As MSForms.ReturnBoolean):                    Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDblClick, Array(Cancel, 0)): End Sub
+Private Sub pTextBox_DblClick(ByRef Cancel As MSForms.ReturnBoolean):                         Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDblClick, Array(Cancel, 0)): End Sub
+Private Sub pToggleButton_DblClick(ByRef Cancel As MSForms.ReturnBoolean):                    Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDblClick, Array(Cancel, 0)): End Sub
+Private Sub pUserForm_DblClick(ByRef Cancel As MSForms.ReturnBoolean):                        Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDblClick, Array(Cancel, 0)): End Sub
+Private Sub pMultiPage_DblClick(ByRef Index As Long, ByRef Cancel As MSForms.ReturnBoolean):  Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDblClick, Array(Cancel, Index)): End Sub
+Private Sub pTabStrip_DblClick(ByRef Index As Long, ByRef Cancel As MSForms.ReturnBoolean):   Call callEventCB(ObjRef(Me), EUIElementEvent.uiElementEventMouseDblClick, Array(Cancel, Index)): End Sub
 'TODO: SpinButton_DblClick using MouseDown
 'TODO: ScrollBar_DblClick using MouseDown
 'TODO: Image_DblClick using MouseDown

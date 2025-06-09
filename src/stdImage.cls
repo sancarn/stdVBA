@@ -143,7 +143,7 @@ End Enum
   Private Declare PtrSafe Function GdiplusStartup Lib "gdiplus" (token As LongPtr, inputbuf As GdiplusStartupInput, Optional ByVal outputbuf As LongPtr = 0) As Long
   Private Declare PtrSafe Function GdipCreateBitmapFromFile Lib "gdiplus" (ByVal FILENAME As LongPtr, BITMAP As LongPtr) As Long
   Private Declare PtrSafe Function GdipCreateHBITMAPFromBitmap Lib "gdiplus" (ByVal BITMAP As LongPtr, hbmReturn As LongPtr, ByVal background As LongPtr) As Long
-  Private Declare PtrSafe Function GdipCreateBitmapFromHBITMAP Lib "gdiplus" (ByVal hBitmap as LongPtr, ByVal hPalette as LongPtr, gdipBitmap as LongPtr) As Long
+  Private Declare PtrSafe Function GdipCreateBitmapFromHBITMAP Lib "gdiplus" (ByVal hBitmap As LongPtr, ByVal hPalette As LongPtr, gdipBitmap As LongPtr) As Long
   Private Declare PtrSafe Function GdipDisposeImage Lib "gdiplus" (ByVal Image As LongPtr) As Long
   Private Declare PtrSafe Sub GdiplusShutdown Lib "gdiplus" (ByVal token As LongPtr)
   Private Declare PtrSafe Function GdipSaveImageToFile Lib "gdiplus" (ByVal Image As LongPtr, ByVal Filename As LongPtr, ByRef clsidEncoder As GUID, ByRef encoderParams As Any) As Long
@@ -159,7 +159,7 @@ End Enum
   Private Declare PtrSafe Function CreateCompatibleDC Lib "gdi32" (ByVal hdc As LongPtr) As LongPtr
   Private Declare PtrSafe Function SelectObject Lib "gdi32" (ByVal hdc As LongPtr, ByVal hObject As LongPtr) As LongPtr
   Private Declare PtrSafe Function BitBlt Lib "gdi32" (ByVal hDestDC As LongPtr, ByVal x As Long, ByVal y As Long, ByVal nWidth As Long, ByVal nHeight As Long, ByVal hSrcDC As LongPtr, ByVal xSrc As Long, ByVal ySrc As Long, ByVal dwRop As Long) As Long
-  Private Declare PtrSafe Function DeleteDC Lib "gdi32" (ByVal hdc As LongPtr) As Long  
+  Private Declare PtrSafe Function DeleteDC Lib "gdi32" (ByVal hdc As LongPtr) As Long
 #Else
   Enum LongPtr
     [_]
@@ -317,7 +317,7 @@ End Type
 Private Type ICONINFO
   fIcon As Long       ' Specifies whether this structure defines an icon or a cursor. A value of 1 specifies an icon; 0 specifies a cursor.
   xHotspot As Long
-  yHotspot As Long    
+  yHotspot As Long
   hbmMask As LongPtr  'HBITMAP
   hbmColor As LongPtr 'HBITMAP
 End Type
@@ -327,13 +327,13 @@ End Type
 '*  State  *
 '***********
 Private Type TThisCache
-  HICON as LongPtr
+  HICON As LongPtr
 End Type
 Private Type TThis
-  HBITMAP as LongPtr
-  Cache as TThisCache
+  HBITMAP As LongPtr
+  Cache As TThisCache
 End Type
-Private This as TThis
+Private This As TThis
 
 
 '****************
@@ -348,13 +348,13 @@ Private This as TThis
 '  Dim b() as Byte: Redim b(1 to 100)
 '  Call stdImage.CreateFromBinary(b).ToFile("H:\test1.png")
 '```
-Public Function CreateFromBinary(ByRef b() As Byte, ByVal format as stdImgFormat) As stdImage
+Public Function CreateFromBinary(ByRef b() As Byte, ByVal format As stdImgFormat) As stdImage
   'TODO: Create Stream, Write to stream, CreateBitmapFromStream
   Err.Raise 1, , "Not implemented"
 End Function
 
 
-Public Function CreateFromDataURL(ByVal sURL as string) as stdImage
+Public Function CreateFromDataURL(ByVal sURL As String) As stdImage
   'TODO: Parse Base64, CreateFromBinary
   Err.Raise 1, , "Not implemented"
 End Function
@@ -364,7 +364,7 @@ End Function
 '@param format - The format of the image
 '@returns - Picture object representing data
 '@example `stdImage.CreateFromFile("H:\test1.bmp").ToFile("H:\test1.png")`
-Public Function CreateFromFile(ByVal sPath As String, Optional ByVal format as stdImgFormat = stdImgFormatDefault, optional byval transparentColor as Long = 0) As stdImage
+Public Function CreateFromFile(ByVal sPath As String, Optional ByVal format As stdImgFormat = stdImgFormatDefault, Optional ByVal transparentColor As Long = 0) As stdImage
   If format = stdImgFormatDefault Then
     Dim pathParts: pathParts = Split(sPath, ".")
     Dim ext As String: ext = pathParts(UBound(pathParts))
@@ -376,7 +376,7 @@ Public Function CreateFromFile(ByVal sPath As String, Optional ByVal format as s
       Case "tiff": format = stdImgFormat.stdImgFormatTIFF
       Case "webp": Err.Raise 5, "stdImage::CreateFromFile", "WEBP format is not currently supported"
       Case "svg": Err.Raise 5, "stdImage::CreateFromFile", "SVG format is not currently supported"
-      case else
+      Case Else
         Err.Raise 1, "stdImage::CreateFromFile", "Could not determine format from file extension"
     End Select
   End If
@@ -385,28 +385,29 @@ Public Function CreateFromFile(ByVal sPath As String, Optional ByVal format as s
     Case Else 'BMP, GIF, JPEG, PNG, TIFF, Exif, WMF, and EMF - Load using GDI+
       Dim uGdiInput As GdiplusStartupInput
       uGdiInput.GdiplusVersion = 1
-      Dim lResult as Long: lResult = GdiplusStartup(hGdiPlus, uGdiInput)
-      if lResult = 0 then
+      Dim hGDIPlus As LongPtr
+      Dim lResult As Long: lResult = GdiplusStartup(hGDIPlus, uGdiInput)
+      If lResult = 0 Then
         Dim hGDIImage As LongPtr
         lResult = GdipCreateBitmapFromFile(StrPtr(sPath), hGDIImage)
-        if lResult = 0 then
-          Dim hBitmap as LongPtr
+        If lResult = 0 Then
+          Dim hBitmap As LongPtr
           lResult = GdipCreateHBITMAPFromBitmap(hGDIImage, hBitmap, BGR(transparentColor))
-          if lResult = 0 then
+          If lResult = 0 Then
             Set CreateFromFile = CreateFromHBitmap(hBitmap)
-          else
+          Else
             Err.Raise 1, "stdImage::CreateFromFile", "Could not convert GDI+ image to HBITMAP (Error Result: " & lResult & ")"
-          end if
+          End If
 
           Call GdipDisposeImage(hGDIImage)
-        else
+        Else
           Err.Raise 1, "stdImage::CreateFromFile", "Could not load image (Error Result: " & lResult & ")"
-        end if
+        End If
 
-        Call GdiplusShutdown(hGdiPlus)
-      else
+        Call GdiplusShutdown(hGDIPlus)
+      Else
         Err.Raise 1, "stdImage::CreateFromFile", "Could not start GDI+ (Error Result: " & lResult & ")"
-      end if
+      End If
   End Select
 End Function
 
@@ -416,7 +417,7 @@ End Function
 '@returns - Picture object representing data
 '@example `stdImage.CreateFromURL("https://raw.githubusercontent.com/sancarn/awesome-vba/main/resources/VBALogo.png").ToFile("H:\test.png", stdImgFormatPNG)`
 '@remark - TODO: consider removing
-Public Function CreateFromUrl(ByVal sURL As String, Optional ByVal format as stdImgFormat = stdImgFormatDefault) As stdImage
+Public Function CreateFromUrl(ByVal sURL As String, Optional ByVal format As stdImgFormat = stdImgFormatDefault) As stdImage
   Set CreateFromUrl = New stdImage
   Dim HTTP As Object: Set HTTP = CreateObject("WinHttp.WinHttpRequest.5.1")
   HTTP.Open "GET", sURL, False
@@ -424,9 +425,9 @@ Public Function CreateFromUrl(ByVal sURL As String, Optional ByVal format as std
   HTTP.send
   If HTTP.status = 200 Then
     Dim body() As Byte: body = HTTP.responseBody
-    if format = stdImgFormatDefault then
+    If format = stdImgFormatDefault Then
       'TODO: Detect format
-    end if
+    End If
     Set CreateFromUrl = CreateFromBinary(body, format)
   Else
     Err.Raise 1, "", "Could not get file (HTTP Status: " & HTTP.status & ")"
@@ -441,12 +442,12 @@ End Function
 '```
 Public Function CreateFromHBitmap(ByVal hBitmap As LongPtr) As stdImage
   Dim bmp As BITMAP
-  if GetObjectAPI(hBitmap, LenB(bmp), bmp) <> 0 then
-    set CreateFromHBitmap = New stdImage
+  If GetObjectAPI(hBitmap, LenB(bmp), bmp) <> 0 Then
+    Set CreateFromHBitmap = New stdImage
     Call CreateFromHBitmap.protInit(hBitmap)
-  else
-    Err.Raise 1, "stdImage::CreateFromHBitmap" , "The provided hBITMAP is not valid"
-  end if
+  Else
+    Err.Raise 1, "stdImage::CreateFromHBitmap", "The provided hBITMAP is not valid"
+  End If
 End Function
 
 'Creates a stdImage from the image in the clipboard
@@ -454,7 +455,7 @@ End Function
 '@example `stdImage.CreateFromClipboard().ToFile("H:\test.png", stdImgFormatPNG)`
 Public Function CreateFromClipboard() As stdImage
   'Open clipboard
-  If Not CBool(OpenClipboardTimeout(Application.hWnd)) Then Call Err.Raise(1, "Value [GET]", "Unable to open clipboard (DllError: " & Err.LastDllError & ")")
+  If Not CBool(OpenClipboardTimeout(getAppHwnd())) Then Call Err.Raise(1, "Value [GET]", "Unable to open clipboard (DllError: " & Err.LastDllError & ")")
   
   'Check image in clipboard
   If CBool(IsClipboardFormatAvailable(CF_BITMAP)) Then
@@ -481,7 +482,7 @@ End Function
 '@param picture - Object to create picture from
 '@returns - Picture object representing data
 '@example `stdImage.CreateFromStdPicture(Userform1.Picture).ToFile("H:\test.png", stdImgFormatPNG)`
-Public Function CreateFromStdPicture(ByVal picture As stdole.stdPicture) As stdImage
+Public Function CreateFromStdPicture(ByVal picture As stdole.StdPicture) As stdImage
   Set CreateFromStdPicture = CreateFromHBitmap(picture.Handle)
 End Function
 
@@ -522,7 +523,7 @@ End Function
 Public Function CreateFromChart(ByVal chart As Object) As stdImage
   Select Case Application.Name
     Case "Microsoft Excel"
-      Dim xlChart As Excel.chart: Set xlChart = chart
+      Dim xlChart As Excel.Chart: Set xlChart = chart
       Call xlChart.CopyPicture(, XlCopyPictureFormat.xlBitmap)
       Set CreateFromChart = stdImage.CreateFromClipboard()
   End Select
@@ -532,9 +533,9 @@ End Function
 '@returns - Picture object containing screenshot data
 '@example `stdImage.CreateFromScreen().ToFile("H:\test.png")`
 '@TODO: Capture both monitors https://stackoverflow.com/a/34445431/6302131
-Public Function CreateFromScreen() as stdImage
-  Dim hDesktop as LongPtr: hDesktop = GetDesktopWindow()
-  set CreateFromScreen = CreateFromWindow(hDesktop)
+Public Function CreateFromScreen() As stdImage
+  Dim hDesktop As LongPtr: hDesktop = GetDesktopWindow()
+  Set CreateFromScreen = CreateFromWindow(hDesktop)
 End Function
 
 'Creates a stdImage object from a window
@@ -542,35 +543,35 @@ End Function
 '@param bClientArea - If true, only the client area of the window is captured. If false, the entire window is captured.
 '@returns - Picture object representing data
 '@TODO: Option to include cursor https://stackoverflow.com/a/48925443/6302131
-#if VBA7 then
-  Public Function CreateFromWindow(ByVal hwnd as LongPtr, Optional ByVal bClientArea as Boolean = false) as stdImage
-#else
+#If VBA7 Then
+  Public Function CreateFromWindow(ByVal hwnd As LongPtr, Optional ByVal bClientArea As Boolean = False) As stdImage
+#Else
   Public Function CreateFromWindow(ByVal hwnd as Long, Optional ByVal bClientArea as Boolean = false) as stdImage
-#end if
+#End If
   Const SRCCOPY As Long = &HCC0020
   
   'Get the proper Device Context (DC) depending on the value of bClient.
   'Additionally get the rect of the window/client.
-  Dim hDCSource as LongPtr, tRect as RECT
-  if bClientArea then
+  Dim hDCSource As LongPtr, tRect As RECT
+  If bClientArea Then
     hDCSource = GetDC(hwnd)
     Call GetClientRect(hwnd, tRect)
-  else
+  Else
     hDCSource = GetWindowDC(hwnd)
     Call GetWindowRect(hwnd, tRect)
-  end if
+  End If
 
   'Create an in-memory DC for the copy process
-  Dim hCaptureDC as LongPtr: hCaptureDC = CreateCompatibleDC(hDCSource)  
+  Dim hCaptureDC As LongPtr: hCaptureDC = CreateCompatibleDC(hDCSource)
 
   'Create a bitmap to capture the window
-  Dim hCaptureBitmap as LongPtr: hCaptureBitmap = CreateCompatibleBitmap(hDCSource, tRect.Right - tRect.Left, tRect.Bottom - tRect.Top)
+  Dim hCaptureBitmap As LongPtr: hCaptureBitmap = CreateCompatibleBitmap(hDCSource, tRect.Right - tRect.Left, tRect.Bottom - tRect.Top)
   
   'Load bitmap into in-memory DC
-  Dim hOldBitmap as LongPtr: hOldBitmap = SelectObject(hCaptureDC, hCaptureBitmap)
+  Dim hOldBitmap As LongPtr: hOldBitmap = SelectObject(hCaptureDC, hCaptureBitmap)
 
   'Copy the on-screen image into the memory DC.
-  r = BitBlt(hCaptureDC, 0, 0, tRect.Right - tRect.Left, tRect.Bottom - tRect.Top, hDCSource, 0, 0, SRCCOPY)
+  Dim r As Long: r = BitBlt(hCaptureDC, 0, 0, tRect.Right - tRect.Left, tRect.Bottom - tRect.Top, hDCSource, 0, 0, SRCCOPY)
 
   'Move old bitmap back into capture DC
   Call SelectObject(hCaptureDC, hOldBitmap)
@@ -578,7 +579,7 @@ End Function
   Call DeleteDC(hCaptureDC)
 
   'Create stdImage from bitmap
-  set CreateFromWindow = CreateFromHBitmap(hCaptureBitmap)  
+  Set CreateFromWindow = CreateFromHBitmap(hCaptureBitmap)
 End Function
 
 'Creates a stdImage object from a HICON
@@ -588,38 +589,38 @@ End Function
 'Dim hICON as LongPtr: hICON = stdWindow.CreateFromHwnd(Application.hWnd).HICON
 'stdImage.CreateFromHICON(hICON).ToFile("H:\test.png", stdImgFormatPNG)
 '```
-#if VBA7 then
-  Public Function CreateFromHICON(ByVal hIcon as LongPtr) as stdImage
-#else
+#If VBA7 Then
+  Public Function CreateFromHICON(ByVal hIcon As LongPtr) As stdImage
+#Else
   Public Function CreateFromHICON(ByVal hIcon as Long) as stdImage
-#end if
+#End If
   'Get icon information from HICON
-  Dim iconInf as ICONINFO: if GetIconInfo(hIcon, iconInf) = 0 then Err.Raise 1, "stdImage::CreateFromHICON", "Could not get icon information"
+  Dim iconInf As ICONINFO: If GetIconInfo(hIcon, iconInf) = 0 Then Err.Raise 1, "stdImage::CreateFromHICON", "Could not get icon information"
   
   'Get bitmap from icon
-  Dim bmp as BITMAP: Call GetObjectAPI(iconInf.hbmColor, LenB(bmp), bmp)
+  Dim bmp As BITMAP: Call GetObjectAPI(iconInf.hbmColor, LenB(bmp), bmp)
 
   'Get DC
-  Dim hDC as LongPtr: hDC = GetDC(0)
+  Dim hDC As LongPtr: hDC = GetDC(0)
 
   'Create an in-memory DC for the copy process
-  Dim hCaptureDC as LongPtr: hCaptureDC = CreateCompatibleDC(hDC)  
+  Dim hCaptureDC As LongPtr: hCaptureDC = CreateCompatibleDC(hDC)
 
   'Create a bitmap to capture the window
-  Dim hCaptureBitmap as LongPtr: hCaptureBitmap = CreateCompatibleBitmap(hDC, bmp.bmWidth, bmp.bmHeight)
+  Dim hCaptureBitmap As LongPtr: hCaptureBitmap = CreateCompatibleBitmap(hDC, bmp.bmWidth, bmp.bmHeight)
 
   'Load bitmap into in-memory DC
-  Dim hOldBitmap as LongPtr: hOldBitmap = SelectObject(hCaptureDC, hCaptureBitmap)
+  Dim hOldBitmap As LongPtr: hOldBitmap = SelectObject(hCaptureDC, hCaptureBitmap)
 
   'Copy the on-screen image into the memory DC.
-  const DI_NORMAL as Long = &H3
-  r = DrawIconEx(hCaptureDC, 0, 0, hIcon, bmp.bmWidth, bmp.bmHeight, 0, 0, DI_NORMAL)
+  Const DI_NORMAL As Long = &H3
+  Dim r As Long: r = DrawIconEx(hCaptureDC, 0, 0, hIcon, bmp.bmWidth, bmp.bmHeight, 0, 0, DI_NORMAL)
 
   'Move old bitmap back into capture DC
   Call SelectObject(hCaptureDC, hOldBitmap)
 
   'Create stdImage from bitmap
-  set CreateFromHICON = CreateFromHBitmap(hCaptureBitmap)
+  Set CreateFromHICON = CreateFromHBitmap(hCaptureBitmap)
 
   'Clean up
   Call DeleteObject(iconInf.hbmColor)
@@ -638,19 +639,19 @@ End Sub
 'Obtain a HBitmap
 '@returns stdole.StdPicture - Obtain the image as a stdole.StdPicture
 '@remark You are in charge of freeing this pointer.
-Public Property Get HBitmap() as LongPtr
+Public Property Get HBitmap() As LongPtr
   HBitmap = This.HBITMAP
 End Property
 
 'Obtain (and cache) an HICON
-Public Property Get HICON() as LongPtr
-  if This.Cache.HICON = 0 then
-    Dim iconInf as ICONINFO
+Public Property Get HICON() As LongPtr
+  If This.Cache.HICON = 0 Then
+    Dim iconInf As ICONINFO
     iconInf.fIcon = 1
     iconInf.hbmMask = This.HBITMAP
     iconInf.hbmColor = This.HBITMAP
     This.Cache.HICON = CreateIconIndirect(iconInf)
-  end if
+  End If
   HICON = This.Cache.HICON
 End Property
 
@@ -658,7 +659,7 @@ End Property
 '@returns ARGB() - 2D array of colors. Colors ordered from (1,1) = bottom-left, (1,height) = top-left, across to (width, height) = top-right.
 Public Property Get Colors() As Long()
   'Get the bitmap data
-  Dim hBitmap As LongPtr: hBitmap = This.hBitmap
+  Dim hBitmap As LongPtr: hBitmap = This.HBITMAP
   Dim bmp As BITMAP: Call GetObjectAPI(hBitmap, LenB(bmp), bmp)
   Dim lWidth As Long: lWidth = bmp.bmWidth
   Dim lHeight As Long: lHeight = bmp.bmHeight
@@ -677,8 +678,8 @@ End Property
 Public Function ToBinary(Optional ByVal eFormat As stdImgFormat = stdImgFormatDefault) As Byte()
   'HACK: This is a hack to get the image data as a byte array. It is not the most efficient way to do this.
   'TODO: Implement a more efficient way to do this.
-  Dim sPath as string: sPath = ToTempFile()
-  Dim ff as long: ff = FreeFile()
+  Dim sPath As String: sPath = ToTempFile()
+  Dim ff As Long: ff = FreeFile()
   Open sPath For Binary As #ff
     ToBinary = InputB(LOF(ff), 1)
   Close #ff
@@ -688,7 +689,7 @@ End Function
 '@param sSaveAsFile - Path to new file
 '@param eFormat - The required format of the file. Default is the current assosciated format.
 Public Sub ToFile(ByVal FileName As String, Optional format As stdImgFormat = stdImgFormatDefault, Optional ByVal Quality As Byte = 80, Optional ByVal TIFF_ColorDepth As Long = 24, Optional ByVal TIFF_Compression As Long = 6)
-  if format = stdImgFormatDefault then
+  If format = stdImgFormatDefault Then
     Dim pathParts: pathParts = Split(FileName, ".")
     Dim ext As String: ext = pathParts(UBound(pathParts))
     Select Case LCase(ext)
@@ -698,10 +699,10 @@ Public Sub ToFile(ByVal FileName As String, Optional format As stdImgFormat = st
       Case "jpeg", "jpg": format = stdImgFormat.stdImgFormatJPEG
       Case "tiff": format = stdImgFormat.stdImgFormatTIFF
       Case "webp": Err.Raise 1, "stdImage::CreateFromFile", "WEBP format is not currently supported"
-      case else
+      Case Else
         Err.Raise 1, "stdImage::CreateFromFile", "Could not determine format from file extension"
     End Select
-  end if
+  End If
   
   Dim tSI As GdiplusStartupInput
   tSI.GdiplusVersion = 1
@@ -763,7 +764,7 @@ Public Sub ToFile(ByVal FileName As String, Optional format As stdImgFormat = st
       If lRes <> 0 Then Err.Raise 1, "stdImage::ToFile", "Could not save image to file (Error Result: " & lRes & ")"
 
       GdipDisposeImage gdipBitmap
-    else 
+    Else
       Err.Raise 1, "stdImage::ToFile", "Could not convert HBITMAP to GDI+ image (Error Result: " & lRes & ")"
     End If
     GdiplusShutdown lGDIP
@@ -775,25 +776,25 @@ End Sub
 Public Sub ToClipboard()
   Dim oHtml As Object
   Set oHtml = CreateObject("htmlfile")
-  if VarType(Clipboard) = vbObject then
+  If VarType(Clipboard) = vbObject Then
     Call oHtml.parentWindow.clipboardData.SetData(ToStdPicture())
-  else
+  Else
     'Hack: This is a hack; better approach would be to get the image data as a byte array and use clipboard directly.
     'TODO: A less hacky method can be found here:  http://access.mvps.org/access/api/api0042.htm
     With ActiveSheet.OLEObjects.Add(ClassType:="Forms.Image.1", Link:=False, DisplayAsIcon:=False, Left:=330, Top:=215)
       .Activate
-      set .Picture = ToStdPicture()
-      .AutoSize = true
+      Set .Picture = ToStdPicture()
+      .AutoSize = True
       .CopyPicture
       .Delete
-    End with
-  end if
+    End With
+  End If
 End Sub
 
 'Save a copy in a temporary file and return the path of this file
 '@param eFormat - The format the data should be in.
 '@returns - The path to the temporary file.
-Public Function ToTempFile(Optional ByVal eFormat As stdImgFormat = stdImgFormatDefault) as string
+Public Function ToTempFile(Optional ByVal eFormat As stdImgFormat = stdImgFormatDefault) As String
   Dim sExt As String
   Select Case eFormat
     Case stdImgFormatBMP:  sExt = "bmp"
@@ -802,7 +803,7 @@ Public Function ToTempFile(Optional ByVal eFormat As stdImgFormat = stdImgFormat
     Case stdImgFormatJPEG: sExt = "jpeg"
     Case stdImgFormatTIFF: sExt = "tiff"
   End Select
-  Dim sPath as string: sPath = Environ("Temp") & "\" & getGUID() & "." & sExt
+  Dim sPath As String: sPath = Environ("Temp") & "\" & getGUID() & "." & sExt
   Call ToFile(sPath, eFormat)
   ToTempFile = sPath
 End Function
@@ -813,23 +814,23 @@ End Function
 '@param Left - Left coord of the newly placed image
 '@param compress - Whether to compress the image on import.
 '@returns Object<Picture> - Picture object
-Public Function ToSheet(ByVal ws as Worksheet, Optional ByVal Top as Double = 0 , Optional ByVal Left as Double = 0, optional ByVal compress as MsoPictureCompress) as Object
-  set ToSheet = ws.Shapes.AddPicture2(toTempFile(), false, 0, Top, Left, -1, -1, compress)
+Public Function ToSheet(ByVal ws As Worksheet, Optional ByVal Top As Double = 0, Optional ByVal Left As Double = 0, Optional ByVal compress As MsoPictureCompress) As Object
+  Set ToSheet = ws.Shapes.AddPicture2(ToTempFile(), False, 0, Top, Left, -1, -1, compress)
 End Function
 
 'Update a UI control's background picture
 '@param oControl as Object<Control> - The control to update the picture of
 '@example `stdImage.CreateFromFile("H:\test1.bmp").ToUIControl(UserForm1.Image1)`
-Public Sub ToUIControl(Byval oControl as object)
-  set oControl.Picture = ToStdPicture()
+Public Sub ToUIControl(ByVal oControl As Object)
+  Set oControl.Picture = ToStdPicture()
 End Sub
 
 'Obtain a data URL of the image
 '@param eFormat - The format of the image
 '@returns - Data URL of the image
-Public Function ToDataUrl(Optional ByVal eFormat As stdImgFormat = stdImgFormatDefault) as string
+Public Function ToDataUrl(Optional ByVal eFormat As stdImgFormat = stdImgFormatDefault) As String
   'TODO:
-  Err.raise 1, , "Not implemented"
+  Err.Raise 1, , "Not implemented"
 End Function
 
 'Output the image to a shape's fill
@@ -845,7 +846,7 @@ End Sub
 
 'Obtain a stdole.StdPicture
 '@returns - Obtain the image as a stdole.StdPicture
-Public Function ToStdPicture() as stdole.StdPicture
+Public Function ToStdPicture() As stdole.StdPicture
   Const PICTYPE_BITMAP = 1
 
   Dim IID_IDispatch As GUID
@@ -935,7 +936,7 @@ End Function
 '@param hWnd - hWnd to open clipboard in
 '@param dwTimeoutMilliseconds - number of milliseconds to wait
 '@returns - true if clipboard is open, false if clipboard couldn't be opened
-Private Function OpenClipboardTimeout(ByVal hWnd As Long, Optional ByVal dwTimeoutMilliseconds As Long = 5000) As Boolean
+Private Function OpenClipboardTimeout(ByVal hWnd As LongPtr, Optional ByVal dwTimeoutMilliseconds As Long = 5000) As Boolean
   Dim iStart As Long: iStart = GetTickCount()
   Dim bOpen As Boolean, bExpired As Boolean
   While Not (bOpen Or bExpired)
@@ -969,4 +970,32 @@ End Function
 Private Function BGR(ByVal longColor As Long) As Long
   Call OleTranslateColor(longColor, 0, longColor)
   BGR = RGB((longColor \ 65536) Mod 256, (longColor \ 256) Mod 256, (longColor Mod 256))
+End Function
+
+#If VBA7 Then
+Private Function getAppHwnd() As LongPtr
+#Else
+Private Function getAppHwnd() As Long
+#End If
+Static hWnd As LongPtr
+If hWnd = 0 Then
+    Dim oApp As Object: Set oApp = Application
+    Select Case oApp.Name
+    Case "Microsoft Excel"
+        hWnd = oApp.hwnd
+    Case "Microsoft Word"
+        hWnd = oApp.ActiveWindow.Hwnd
+    Case "Microsoft Access"
+        hWnd = oApp.hWndAccessApp.Hwnd
+    Case "Microsoft PowerPoint"
+        hWnd = oApp.CommandBars("Status Bar").Hwnd
+    Case "Outlook"
+        hWnd = oApp.ActiveWindow.CommandBars("Status Bar").Hwnd
+    Case "Microsoft Publisher"
+        hWnd = oApp.CommandBars("Status Bar").Hwnd
+    Case Else
+        Err.Raise 1, "stdAcc::CreateFromApplication()", "No implementation for getting application window of " & oApp.Name
+    End Select
+End If
+getAppHwnd = hWnd
 End Function

@@ -34,35 +34,35 @@ Private Enum BranchIndex
   branchSouthEast
 End Enum
 Private Type BranchInfo
-  children(BranchIndex.branchNorthWest to BranchIndex.branchSouthEast) as stdQuadTree
-end type
+  children(BranchIndex.branchNorthWest To BranchIndex.branchSouthEast) As stdQuadTree
+End Type
 Private Type LeafInfo
-  points() as XY
-  index as Long
+  points() As XY
+  index As Long
 End Type
 Private Enum QuadTreeType
     QuadTreeBranch
     QuadTreeLeaf
-end enum
+End Enum
 
 
 'Arbitrary constant to indicate how many elements can be stored in this quad tree node
 Private Type TThis
-  Type as QuadTreeType
-  Branch as BranchInfo
-  Leaf as LeafInfo
+  Type As QuadTreeType
+  Branch As BranchInfo
+  Leaf As LeafInfo
 
   'Capacity before subdivision
   capacityBeforeSubdivision As Long
   
   'Min boundary size
-  minimumHalfDimension as Double
+  minimumHalfDimension As Double
 
   'Axis-aligned bounding box stored as a center with half-dimensions to represent the boundaries of this quad tree
   boundary As AABB
 
   'Parent of this quadtree
-  parent as stdQuadTree
+  parent As stdQuadTree
 End Type
 Private This As TThis
 
@@ -74,7 +74,7 @@ Private This As TThis
 '@param minimumHalfDimension - Minimum boundary size when points stop causing subdivisions. Helps handle duplicate points
 '@returns - Quadtree instance
 '@remark
-Public Function Create(ByVal cx As Double, ByVal cy As Double, ByVal halfDimension As Double, Optional ByVal capacityBeforeSubdivision As Long = 4, Optional minimumHalfDimension as Double = 0.00001) As stdQuadTree
+Public Function Create(ByVal cx As Double, ByVal cy As Double, ByVal halfDimension As Double, Optional ByVal capacityBeforeSubdivision As Long = 4, Optional minimumHalfDimension As Double = 0.00001) As stdQuadTree
   Set Create = New stdQuadTree
   Call Create.protInit(cx, cy, halfDimension, capacityBeforeSubdivision, minimumHalfDimension)
 End Function
@@ -87,7 +87,7 @@ End Function
 '@param capacityBeforeSubdivision - The number of nodes a quadtree can hold before it subdivides. This can also be seen as the number of duplicate points allowed. If there are duplicates beyond this number you will get a stack overflow error.
 '@param minimumHalfDimension - Minimum boundary size when points stop causing subdivisions. Helps handle duplicate points
 '@returns - Quadtree instance
-Public Function CreateFromBounds(ByVal minX As Double, ByVal minY As Double, ByVal maxX As Double, ByVal maxY As Double, Optional ByVal capacityBeforeSubdivision As Long = 4, Optional minimumHalfDimension as Double = 0.00001) As stdQuadTree
+Public Function CreateFromBounds(ByVal minX As Double, ByVal minY As Double, ByVal maxX As Double, ByVal maxY As Double, Optional ByVal capacityBeforeSubdivision As Long = 4, Optional minimumHalfDimension As Double = 0.00001) As stdQuadTree
   Dim rx As Double: rx = (maxX - minX) / 2
   Dim ry As Double: ry = (maxY - minY) / 2
   Dim r_ As Double: r_ = IIf(ry > rx, ry, rx)
@@ -106,7 +106,7 @@ End Function
 '@param capacityBeforeSubdivision - The number of nodes a quadtree can hold before it subdivides. This can also be seen as the number of duplicate points allowed. If there are duplicates beyond this number you will get a stack overflow error.
 '@param minimumHalfDimension - Minimum boundary size when points stop causing subdivisions. Helps handle duplicate points
 '@returns - Quadtree instance with parent
-Private Function CreateChild(ByVal cx As Double, ByVal cy As Double, ByVal halfDimension As Double, Optional ByVal capacityBeforeSubdivision As Long = 4, Optional minimumHalfDimension as Double = 0.00001) As stdQuadTree
+Private Function CreateChild(ByVal cx As Double, ByVal cy As Double, ByVal halfDimension As Double, Optional ByVal capacityBeforeSubdivision As Long = 4, Optional minimumHalfDimension As Double = 0.00001) As stdQuadTree
   Set CreateChild = New stdQuadTree
   Call CreateChild.protInit(cx, cy, halfDimension, capacityBeforeSubdivision, minimumHalfDimension, Me)
 End Function
@@ -119,21 +119,21 @@ End Function
 '@param capacityBeforeSubdivision - The number of nodes a quadtree can hold before it subdivides. This can also be seen as the number of duplicate points allowed. If there are duplicates beyond this number you will get a stack overflow error.
 '@param minimumHalfDimension - Minimum boundary size when points stop causing subdivisions. Helps handle duplicate points
 '@param parent - The parent of this quadtree element
-Public Sub protInit(ByVal cx As Double, ByVal cy As Double, ByVal halfDimension As Double, capacityBeforeSubdivision As Long, minimumHalfDimension as Double, optional byval parent as stdQuadTree = nothing)
+Public Sub protInit(ByVal cx As Double, ByVal cy As Double, ByVal halfDimension As Double, capacityBeforeSubdivision As Long, minimumHalfDimension As Double, Optional ByVal parent As stdQuadTree = Nothing)
   With This
-    .type = QuadTreeLeaf
+    .Type = QuadTreeLeaf
     .capacityBeforeSubdivision = capacityBeforeSubdivision
     .minimumHalfDimension = minimumHalfDimension
-    set .parent = parent
-    With .leaf
-      Redim .points(1 To capacityBeforeSubdivision)
+    Set .parent = parent
+    With .Leaf
+      ReDim .points(1 To capacityBeforeSubdivision)
       .index = 0
     End With
     With .boundary
       .center.x = cx
       .center.y = cy
       .halfDimension = halfDimension
-    End with
+    End With
   End With
 End Sub
 
@@ -147,12 +147,12 @@ Public Function insertPoint(ByVal x As Double, ByVal y As Double, Optional ByVal
   'If not within bounds then object cannot be added
   If Not AABB_containsXY(This.boundary, x, y) Then Exit Function
   
-  select case this.Type 
-    case QuadTreeLeaf
-      With this.leaf
+  Select Case This.Type
+    Case QuadTreeLeaf
+      With This.Leaf
         'If there is space within this quadtree and no subdivisions, add point
-        If .index < This.capacityBeforeSubdivision Or This.boundary.halfDimension < this.minimumHalfDimension Then
-          If This.boundary.halfDimension < this.minimumHalfDimension Then ReDim Preserve .points(1 To .index + 1)
+        If .index < This.capacityBeforeSubdivision Or This.boundary.halfDimension < This.minimumHalfDimension Then
+          If This.boundary.halfDimension < This.minimumHalfDimension Then ReDim Preserve .points(1 To .index + 1)
           .index = .index + 1
           With .points(.index)
             .x = x
@@ -161,24 +161,25 @@ Public Function insertPoint(ByVal x As Double, ByVal y As Double, Optional ByVal
           End With
           insertPoint = True
           Exit Function
-        else
+        Else
           Call SubDivide
           GoTo insertQuadTreeBranch
         End If
-      end with
-    case QuadTreeBranch
+      End With
+    Case QuadTreeBranch
 insertQuadTreeBranch:
       'We have to add the points/data contained in this quad array to the new quads if we only want the last node to hold the data
-      For i = branchNorthWest to branchSouthEast
-        If This.branch.children(i).insertPoint(x, y, meta) Then 
+      Dim i as long
+      For i = branchNorthWest To branchSouthEast
+        If This.Branch.children(i).insertPoint(x, y, meta) Then
           insertPoint = True
           Exit Function
-        end if
-      next
-    case else
+        End If
+      Next
+    Case Else
       'Otherwise point cannot be inserted for some unknown reason (this should never happen)
       Debug.Print "stdQuadTree Error: Couldn't add point (" & x & "," & y & ")"
-  end select
+  End Select
 End Function
 
 'Query for points within a range depicted by center and radius (half dimension)
@@ -218,44 +219,44 @@ End Function
 Private Function pQueryRange(ByRef rect As AABB) As Collection
   Set pQueryRange = New Collection
   If Not AABB_intersects(This.boundary, rect) Then Exit Function
-  select case this.type
-    case QuadTreeLeaf
-      Dim i As Long: For i = 1 To this.leaf.index
-        If AABB_containsPoint(rect, this.leaf.points(i)) Then
-          With this.leaf.points(i)
+  Select Case This.Type
+    Case QuadTreeLeaf
+      Dim i As Long: For i = 1 To This.Leaf.index
+        If AABB_containsPoint(rect, This.Leaf.points(i)) Then
+          With This.Leaf.points(i)
             Call pQueryRange.Add(Array(.x, .y, .meta))
           End With
         End If
       Next
-    case QuadTreeBranch
-      For i = branchNorthWest to branchSouthEast
-        Call inplaceConcat(pQueryRange, This.branch.children(i).queryRange(rect.center.x, rect.center.y, rect.halfDimension))
-      next
-  end select
+    Case QuadTreeBranch
+      For i = branchNorthWest To branchSouthEast
+        Call inplaceConcat(pQueryRange, This.Branch.children(i).queryRange(rect.center.x, rect.center.y, rect.halfDimension))
+      Next
+  End Select
 End Function
 
 'Create four children that fully divide this quad into four quads of equal area, and move all points to these children
 Private Sub SubDivide()
-  This.type = QuadTreeBranch
+  This.Type = QuadTreeBranch
 
   'Create the new quadrants
   Dim r_ As Double: r_ = This.boundary.halfDimension / 2
   With This.boundary.center
-    Set This.branch.children(branchNorthWest) = CreateChild(.x - r_, .y + r_, r_, This.capacityBeforeSubdivision, This.minimumHalfDimension)
-    Set This.branch.children(branchNorthEast) = CreateChild(.x + r_, .y + r_, r_, This.capacityBeforeSubdivision, This.minimumHalfDimension)
-    Set This.branch.children(branchSouthWest) = CreateChild(.x - r_, .y - r_, r_, This.capacityBeforeSubdivision, This.minimumHalfDimension)
-    Set This.branch.children(branchSouthEast) = CreateChild(.x + r_, .y - r_, r_, This.capacityBeforeSubdivision, This.minimumHalfDimension)
+    Set This.Branch.children(branchNorthWest) = CreateChild(.x - r_, .y + r_, r_, This.capacityBeforeSubdivision, This.minimumHalfDimension)
+    Set This.Branch.children(branchNorthEast) = CreateChild(.x + r_, .y + r_, r_, This.capacityBeforeSubdivision, This.minimumHalfDimension)
+    Set This.Branch.children(branchSouthWest) = CreateChild(.x - r_, .y - r_, r_, This.capacityBeforeSubdivision, This.minimumHalfDimension)
+    Set This.Branch.children(branchSouthEast) = CreateChild(.x + r_, .y - r_, r_, This.capacityBeforeSubdivision, This.minimumHalfDimension)
   End With
   
   'Insert points into children
   Dim pt As XY, inserted As Boolean
   Dim i As Long
-  For i = 1 To this.leaf.index
-    pt = this.leaf.points(i)
+  For i = 1 To This.Leaf.index
+    pt = This.Leaf.points(i)
     inserted = False
-    Dim j as long
-    For j = branchNorthWest to branchSouthEast
-      Dim qt As stdQuadTree: Set qt = this.branch.children(j)
+    Dim j As Long
+    For j = branchNorthWest To branchSouthEast
+      Dim qt As stdQuadTree: Set qt = This.Branch.children(j)
       'Note: This may recurse down to a lower level
       If qt.insertPoint(pt.x, pt.y, pt.meta) Then
         inserted = True
@@ -268,7 +269,7 @@ Private Sub SubDivide()
   Next
   
   'Free memory
-  Erase this.leaf.points
+  Erase This.Leaf.points
 End Sub
 
 
@@ -321,7 +322,7 @@ End Function
 '@param x - The x coord of a point to check
 '@param y - The y coord of a point to check
 '@returns - True if the box contains the point, false otherwise.
-Private Function AABB_containsXY(ByRef box As AABB, ByRef x as double, ByVal y as double) As Boolean
+Private Function AABB_containsXY(ByRef box As AABB, ByRef x As Double, ByVal y As Double) As Boolean
   AABB_containsXY = True
   AABB_containsXY = AABB_containsXY And ((box.center.x - box.halfDimension) <= x)
   AABB_containsXY = AABB_containsXY And ((box.center.x + box.halfDimension) >= x)
