@@ -1105,185 +1105,6 @@
     "fileName": "stdArray.cls",
     "methods": [
       {
-        "name": "Create",
-        "description": " Create a `stdArray` object from params\r\n",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "params",
-            "type": "Variant",
-            "description": "The items of the array",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false
-          }
-        ],
-        "returns": {
-          "type": " stdArray<variant> ",
-          "description": "A `stdArray` from the parameters.\r\n"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "CreateWithOptions",
-        "description": " Create a `stdArray` object from params\r\n",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "iInitialLength",
-            "type": "Long",
-            "description": "The length of the initial private array created",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false
-          },
-          {
-            "name": "iChunking",
-            "type": "Long",
-            "description": "The number of items the private array is increased by when required.",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false
-          },
-          {
-            "name": "params",
-            "type": "Variant",
-            "description": "The items of the array",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false
-          }
-        ],
-        "returns": {
-          "type": " stdArray<variant> ",
-          "description": "A `stdArray` from the parameters.\r\n"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "CreateFromArray",
-        "description": " Create a `stdArray` object from a VBA array\r\n",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "arr",
-            "type": "Variant",
-            "description": "Variant array to create a `stdArray` object from.",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false
-          }
-        ],
-        "returns": {
-          "type": " stdArray<variant> ",
-          "description": "Returns `stdArray` of variants. \r\n"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "CreateFromCollection",
-        "description": " Create a `stdArray` object from a collection\r\n",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "col",
-            "type": "Collection",
-            "description": "Collection to create a `stdArray` object from.",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false
-          }
-        ],
-        "returns": {
-          "type": " stdArray<variant> ",
-          "description": "Returns `stdArray` of variants.\r\n"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "CreateFromString",
-        "description": " Create an array by splitting a string\r\n",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "sHaystack",
-            "type": "String",
-            "description": "Haystack to split",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false
-          },
-          {
-            "name": "sDelimiter",
-            "type": "String",
-            "description": "Delimiter",
-            "optional": true,
-            "defaultValue": "\"",
-            "paramArray": false
-          }
-        ],
-        "returns": {
-          "type": " stdArray<String> ",
-          "description": "A list of strings\r\n"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
         "name": "protInit",
         "description": " Initialise array\r\n",
         "remarks": [],
@@ -2461,7 +2282,187 @@
       "Need to find a better more low level approach to creating arrays from existing arrays/preventing redim for methods like this"
     ],
     "requires": [],
-    "constructors": [],
+    "constructors": [
+      {
+        "name": "Create",
+        "description": " Create a `stdArray` object from params\r\n",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "params",
+            "type": "Variant",
+            "description": "The items of the array",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false
+          }
+        ],
+        "returns": {
+          "type": " stdArray<variant> ",
+          "description": "A `stdArray` from the parameters.\r\n"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "CreateWithOptions",
+        "description": " Create a `stdArray` object from params\r\n",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "iInitialLength",
+            "type": "Long",
+            "description": "The length of the initial private array created",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false
+          },
+          {
+            "name": "iChunking",
+            "type": "Long",
+            "description": "The number of items the private array is increased by when required.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false
+          },
+          {
+            "name": "params",
+            "type": "Variant",
+            "description": "The items of the array",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false
+          }
+        ],
+        "returns": {
+          "type": " stdArray<variant> ",
+          "description": "A `stdArray` from the parameters.\r\n"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "CreateFromArray",
+        "description": " Create a `stdArray` object from a VBA array\r\n",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "arr",
+            "type": "Variant",
+            "description": "Variant array to create a `stdArray` object from.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false
+          }
+        ],
+        "returns": {
+          "type": " stdArray<variant> ",
+          "description": "Returns `stdArray` of variants. \r\n"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "CreateFromCollection",
+        "description": " Create a `stdArray` object from a collection\r\n",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "col",
+            "type": "Collection",
+            "description": "Collection to create a `stdArray` object from.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false
+          }
+        ],
+        "returns": {
+          "type": " stdArray<variant> ",
+          "description": "Returns `stdArray` of variants.\r\n"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "CreateFromString",
+        "description": " Create an array by splitting a string\r\n",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "sHaystack",
+            "type": "String",
+            "description": "Haystack to split",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false
+          },
+          {
+            "name": "sDelimiter",
+            "type": "String",
+            "description": "Delimiter",
+            "optional": true,
+            "defaultValue": "\"",
+            "paramArray": false
+          }
+        ],
+        "returns": {
+          "type": " stdArray<String> ",
+          "description": "A list of strings\r\n"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      }
+    ],
     "events": [
       {
         "name": "BeforeArrLet",
@@ -6326,69 +6327,6 @@
     "fileName": "stdHTTP.cls",
     "methods": [
       {
-        "name": "Create",
-        "description": " Create a HTTP request\r\n",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "sURL",
-            "type": "String",
-            "description": "The url to query",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false
-          },
-          {
-            "name": "RequestMethod",
-            "type": "String",
-            "description": "Typically \"GET\", \"POST\", \"PUT\", \"DELETE\", but can be any string which the server responds to",
-            "optional": true,
-            "defaultValue": "\"GET\"",
-            "paramArray": false
-          },
-          {
-            "name": "ThreadingStyle",
-            "type": "EHTTPSynchronisity",
-            "description": "The Threading approach. Either HTTPSync (Synchronous) or HTTPAsync (Asynchronous).",
-            "optional": true,
-            "defaultValue": "HTTPSync",
-            "paramArray": false
-          },
-          {
-            "name": "options",
-            "type": "Object<Dictionary>",
-            "description": "Use `stdHTTP.CreateOptions()` to generate these.",
-            "optional": true,
-            "defaultValue": "Nothing",
-            "paramArray": false
-          },
-          {
-            "name": "Authenticator",
-            "type": "stdICallable<(HTTP: Object, RequestMethod: String, URL: String, ThreadingStyle: Long, options: Object)=>Void>",
-            "description": "A callable object which will be called before the request is sent. This can be used to add authentication headers, etc.",
-            "optional": true,
-            "defaultValue": "Nothing",
-            "paramArray": false
-          }
-        ],
-        "returns": {
-          "type": " ",
-          "description": "A http request object\r\n"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
         "name": "CreateHeaders",
         "description": " Create HTTP request headers\r\n",
         "remarks": [],
@@ -6417,7 +6355,7 @@
         "isProtected": false,
         "throws": [],
         "requires": [],
-        "isStatic": false
+        "isStatic": true
       },
       {
         "name": "CreateOptions",
@@ -6496,7 +6434,7 @@
         "isProtected": false,
         "throws": [],
         "requires": [],
-        "isStatic": false
+        "isStatic": true
       },
       {
         "name": "CreateProxy",
@@ -6559,7 +6497,7 @@
         "isProtected": false,
         "throws": [],
         "requires": [],
-        "isStatic": false
+        "isStatic": true
       },
       {
         "name": "Await",
@@ -6872,7 +6810,71 @@
       "Check if user/pass credentials with auto-proxy will ever be needed"
     ],
     "requires": [],
-    "constructors": [],
+    "constructors": [
+      {
+        "name": "Create",
+        "description": " Create a HTTP request\r\n",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "sURL",
+            "type": "String",
+            "description": "The url to query",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false
+          },
+          {
+            "name": "RequestMethod",
+            "type": "String",
+            "description": "Typically \"GET\", \"POST\", \"PUT\", \"DELETE\", but can be any string which the server responds to",
+            "optional": true,
+            "defaultValue": "\"GET\"",
+            "paramArray": false
+          },
+          {
+            "name": "ThreadingStyle",
+            "type": "EHTTPSynchronisity",
+            "description": "The Threading approach. Either HTTPSync (Synchronous) or HTTPAsync (Asynchronous).",
+            "optional": true,
+            "defaultValue": "HTTPSync",
+            "paramArray": false
+          },
+          {
+            "name": "options",
+            "type": "Object<Dictionary>",
+            "description": "Use `stdHTTP.CreateOptions()` to generate these.",
+            "optional": true,
+            "defaultValue": "Nothing",
+            "paramArray": false
+          },
+          {
+            "name": "Authenticator",
+            "type": "stdICallable<(HTTP: Object, RequestMethod: String, URL: String, ThreadingStyle: Long, options: Object)=>Void>",
+            "description": "A callable object which will be called before the request is sent. This can be used to add authentication headers, etc.",
+            "optional": true,
+            "defaultValue": "Nothing",
+            "paramArray": false
+          }
+        ],
+        "returns": {
+          "type": " ",
+          "description": "A http request object\r\n"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      }
+    ],
     "events": [],
     "implements": []
   },
@@ -7356,6 +7358,415 @@
     "fileName": "stdImage.cls",
     "methods": [
       {
+        "name": "CreateFromDataURL",
+        "description": " @constructor\r\n",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "stdImage",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "protInit",
+        "description": " Initialised stdImage\r\n",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "hBITMAP",
+            "type": "LongPtr",
+            "description": "Handle to bitmap",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false
+          }
+        ],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "ToBinary",
+        "description": " Obtain binary data of the image in any format required\r\n",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "eFormat",
+            "type": "stdImgFormat",
+            "description": "The format the data should be in.",
+            "optional": true,
+            "defaultValue": "stdImgFormatDefault",
+            "paramArray": false
+          }
+        ],
+        "returns": {
+          "type": " ",
+          "description": "Binary data of image, ready to load into a file\r\n"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "ToFile",
+        "description": " Save image as file\r\n",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "ToClipboard",
+        "description": " Copy the image to the clipboard\r\n",
+        "remarks": [],
+        "examples": [
+          " `stdImage.CreateFromFile(\"H:\\test1.bmp\").ToClipboard()\r\n"
+        ],
+        "params": [],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "ToTempFile",
+        "description": " Save a copy in a temporary file and return the path of this file\r\n",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "eFormat",
+            "type": "stdImgFormat",
+            "description": "The format the data should be in.",
+            "optional": true,
+            "defaultValue": "stdImgFormatDefault",
+            "paramArray": false
+          }
+        ],
+        "returns": {
+          "type": " ",
+          "description": "The path to the temporary file.\r\n"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "ToSheet",
+        "description": " Adds the picture to the sheet\r\n",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "ws",
+            "type": "Worksheet",
+            "description": "Worksheet to add image to",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false
+          },
+          {
+            "name": "Top",
+            "type": "Double",
+            "description": "Top coord of the newly placed image",
+            "optional": true,
+            "defaultValue": "0",
+            "paramArray": false
+          },
+          {
+            "name": "Left",
+            "type": "Double",
+            "description": "Left coord of the newly placed image",
+            "optional": true,
+            "defaultValue": "0",
+            "paramArray": false
+          },
+          {
+            "name": "compress",
+            "type": "MsoPictureCompress",
+            "description": "Whether to compress the image on import.",
+            "optional": true,
+            "defaultValue": null,
+            "paramArray": false
+          }
+        ],
+        "returns": {
+          "type": " Object<Picture> ",
+          "description": "Picture object\r\n"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "ToUIControl",
+        "description": " Update a UI control's background picture\r\n",
+        "remarks": [],
+        "examples": [
+          " `stdImage.CreateFromFile(\"H:\\test1.bmp\").ToUIControl(UserForm1.Image1)`\r\n"
+        ],
+        "params": [
+          {
+            "name": "oControl",
+            "type": "Object<Control>",
+            "description": "The control to update the picture of",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false
+          }
+        ],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "ToDataUrl",
+        "description": " Obtain a data URL of the image\r\n",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "eFormat",
+            "type": "stdImgFormat",
+            "description": "The format of the image",
+            "optional": true,
+            "defaultValue": "stdImgFormatDefault",
+            "paramArray": false
+          }
+        ],
+        "returns": {
+          "type": " ",
+          "description": "Data URL of the image\r\n"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "ToShapeFill",
+        "description": " Output the image to a shape's fill\r\n",
+        "remarks": [],
+        "examples": [
+          " `stdImage.CreateFromFile(\"H:\\test1.bmp\").ToShapeFill(ActiveSheet.Shapes(1))`\r\n"
+        ],
+        "params": [
+          {
+            "name": "shp",
+            "type": "Object<Excel.Shape>",
+            "description": "The shape to fill",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false
+          }
+        ],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "ToStdPicture",
+        "description": " Obtain a stdole.StdPicture\r\n",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": " ",
+          "description": "Obtain the image as a stdole.StdPicture\r\n"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      }
+    ],
+    "properties": [
+      {
+        "name": "HBitmap",
+        "access": "ReadOnly",
+        "description": " Obtain a HBitmap\r\n",
+        "remarks": [
+          " You are in charge of freeing this pointer.\r\n"
+        ],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": " stdole.StdPicture ",
+          "description": "Obtain the image as a stdole.StdPicture\r\n"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "HICON",
+        "access": "ReadOnly",
+        "description": " Obtain (and cache) an HICON\r\n",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "LongPtr",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "Colors",
+        "access": "ReadOnly",
+        "description": " Obtain the colors of the image\r\n",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": " ARGB() ",
+          "description": "2D array of colors. Colors ordered from (1,1) = bottom-left, (1,height) = top-left, across to (width, height) = top-right.\r\n"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      }
+    ],
+    "description": "",
+    "remarks": [],
+    "examples": [],
+    "devNotes": [],
+    "todos": [
+      "Create Stream, Write to stream, CreateBitmapFromStream",
+      "Parse Base64, CreateFromBinary",
+      "Case webp",
+      "AutoProxy?",
+      "Detect format",
+      "Implement a more efficient way to do this.",
+      "A less hacky method can be found here:  http://access.mvps.org/access/api/api0042.htm"
+    ],
+    "requires": [],
+    "constructors": [
+      {
         "name": "CreateFromBinary",
         "description": " Creates a stdImage object from a byte array\r\n",
         "remarks": [],
@@ -7375,28 +7786,6 @@
         "returns": {
           "type": " ",
           "description": "Picture object representing data\r\n"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "CreateFromDataURL",
-        "description": "",
-        "remarks": [],
-        "examples": [],
-        "params": [],
-        "returns": {
-          "type": "stdImage",
-          "description": ""
         },
         "deprecation": {
           "status": false,
@@ -7844,394 +8233,8 @@
         "throws": [],
         "requires": [],
         "isStatic": false
-      },
-      {
-        "name": "protInit",
-        "description": " Initialised stdImage\r\n",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "hBITMAP",
-            "type": "LongPtr",
-            "description": "Handle to bitmap",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false
-          }
-        ],
-        "returns": null,
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "ToBinary",
-        "description": " Obtain binary data of the image in any format required\r\n",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "eFormat",
-            "type": "stdImgFormat",
-            "description": "The format the data should be in.",
-            "optional": true,
-            "defaultValue": "stdImgFormatDefault",
-            "paramArray": false
-          }
-        ],
-        "returns": {
-          "type": " ",
-          "description": "Binary data of image, ready to load into a file\r\n"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "ToFile",
-        "description": " Save image as file\r\n",
-        "remarks": [],
-        "examples": [],
-        "params": [],
-        "returns": null,
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "ToClipboard",
-        "description": " Copy the image to the clipboard\r\n",
-        "remarks": [],
-        "examples": [
-          " `stdImage.CreateFromFile(\"H:\\test1.bmp\").ToClipboard()\r\n"
-        ],
-        "params": [],
-        "returns": null,
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "ToTempFile",
-        "description": " Save a copy in a temporary file and return the path of this file\r\n",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "eFormat",
-            "type": "stdImgFormat",
-            "description": "The format the data should be in.",
-            "optional": true,
-            "defaultValue": "stdImgFormatDefault",
-            "paramArray": false
-          }
-        ],
-        "returns": {
-          "type": " ",
-          "description": "The path to the temporary file.\r\n"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "ToSheet",
-        "description": " Adds the picture to the sheet\r\n",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "ws",
-            "type": "Worksheet",
-            "description": "Worksheet to add image to",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false
-          },
-          {
-            "name": "Top",
-            "type": "Double",
-            "description": "Top coord of the newly placed image",
-            "optional": true,
-            "defaultValue": "0",
-            "paramArray": false
-          },
-          {
-            "name": "Left",
-            "type": "Double",
-            "description": "Left coord of the newly placed image",
-            "optional": true,
-            "defaultValue": "0",
-            "paramArray": false
-          },
-          {
-            "name": "compress",
-            "type": "MsoPictureCompress",
-            "description": "Whether to compress the image on import.",
-            "optional": true,
-            "defaultValue": null,
-            "paramArray": false
-          }
-        ],
-        "returns": {
-          "type": " Object<Picture> ",
-          "description": "Picture object\r\n"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "ToUIControl",
-        "description": " Update a UI control's background picture\r\n",
-        "remarks": [],
-        "examples": [
-          " `stdImage.CreateFromFile(\"H:\\test1.bmp\").ToUIControl(UserForm1.Image1)`\r\n"
-        ],
-        "params": [
-          {
-            "name": "oControl",
-            "type": "Object<Control>",
-            "description": "The control to update the picture of",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false
-          }
-        ],
-        "returns": null,
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "ToDataUrl",
-        "description": " Obtain a data URL of the image\r\n",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "eFormat",
-            "type": "stdImgFormat",
-            "description": "The format of the image",
-            "optional": true,
-            "defaultValue": "stdImgFormatDefault",
-            "paramArray": false
-          }
-        ],
-        "returns": {
-          "type": " ",
-          "description": "Data URL of the image\r\n"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "ToShapeFill",
-        "description": " Output the image to a shape's fill\r\n",
-        "remarks": [],
-        "examples": [
-          " `stdImage.CreateFromFile(\"H:\\test1.bmp\").ToShapeFill(ActiveSheet.Shapes(1))`\r\n"
-        ],
-        "params": [
-          {
-            "name": "shp",
-            "type": "Object<Excel.Shape>",
-            "description": "The shape to fill",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false
-          }
-        ],
-        "returns": null,
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "ToStdPicture",
-        "description": " Obtain a stdole.StdPicture\r\n",
-        "remarks": [],
-        "examples": [],
-        "params": [],
-        "returns": {
-          "type": " ",
-          "description": "Obtain the image as a stdole.StdPicture\r\n"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
       }
     ],
-    "properties": [
-      {
-        "name": "HBitmap",
-        "access": "ReadOnly",
-        "description": " Obtain a HBitmap\r\n",
-        "remarks": [
-          " You are in charge of freeing this pointer.\r\n"
-        ],
-        "examples": [],
-        "params": [],
-        "returns": {
-          "type": " stdole.StdPicture ",
-          "description": "Obtain the image as a stdole.StdPicture\r\n"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "HICON",
-        "access": "ReadOnly",
-        "description": " Obtain (and cache) an HICON\r\n",
-        "remarks": [],
-        "examples": [],
-        "params": [],
-        "returns": {
-          "type": "LongPtr",
-          "description": ""
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "Colors",
-        "access": "ReadOnly",
-        "description": " Obtain the colors of the image\r\n",
-        "remarks": [],
-        "examples": [],
-        "params": [],
-        "returns": {
-          "type": " ARGB() ",
-          "description": "2D array of colors. Colors ordered from (1,1) = bottom-left, (1,height) = top-left, across to (width, height) = top-right.\r\n"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      }
-    ],
-    "description": "",
-    "remarks": [],
-    "examples": [],
-    "devNotes": [],
-    "todos": [
-      "Create Stream, Write to stream, CreateBitmapFromStream",
-      "Parse Base64, CreateFromBinary",
-      "Case webp",
-      "AutoProxy?",
-      "Detect format",
-      "Implement a more efficient way to do this.",
-      "A less hacky method can be found here:  http://access.mvps.org/access/api/api0042.htm"
-    ],
-    "requires": [],
-    "constructors": [],
     "events": [],
     "implements": []
   },
@@ -10005,142 +10008,6 @@
     "fileName": "stdQuadTree.cls",
     "methods": [
       {
-        "name": "Create",
-        "description": " Create quadtree from center coords and halfDimension / radius\r\n",
-        "remarks": [
-          null
-        ],
-        "examples": [],
-        "params": [
-          {
-            "name": "cx",
-            "type": "Double",
-            "description": "The center x coord",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false
-          },
-          {
-            "name": "cy",
-            "type": "Double",
-            "description": "The center y coord",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false
-          },
-          {
-            "name": "halfDimension",
-            "type": "Double",
-            "description": "the \"radius\" of the cell",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false
-          },
-          {
-            "name": "capacityBeforeSubdivision",
-            "type": "Long",
-            "description": "The number of nodes a quadtree can hold before it subdivides. This can also be seen as the number of duplicate points allowed. If there are duplicates beyond this number you will get a stack overflow error.",
-            "optional": true,
-            "defaultValue": "4",
-            "paramArray": false
-          },
-          {
-            "name": "minimumHalfDimension",
-            "type": "Double",
-            "description": "Minimum boundary size when points stop causing subdivisions. Helps handle duplicate points",
-            "optional": true,
-            "defaultValue": "0.00001",
-            "paramArray": false
-          }
-        ],
-        "returns": {
-          "type": " ",
-          "description": "Quadtree instance\r\n"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "CreateFromBounds",
-        "description": " Creates a quadtree from min/max x/y\r\n",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "minX",
-            "type": "Double",
-            "description": "Minimum x coord",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false
-          },
-          {
-            "name": "minY",
-            "type": "Double",
-            "description": "Minimum y coord",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false
-          },
-          {
-            "name": "maxX",
-            "type": "Double",
-            "description": "Maximum x coord",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false
-          },
-          {
-            "name": "maxY",
-            "type": "Double",
-            "description": "Maximum y coord",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false
-          },
-          {
-            "name": "capacityBeforeSubdivision",
-            "type": "Long",
-            "description": "The number of nodes a quadtree can hold before it subdivides. This can also be seen as the number of duplicate points allowed. If there are duplicates beyond this number you will get a stack overflow error.",
-            "optional": true,
-            "defaultValue": "4",
-            "paramArray": false
-          },
-          {
-            "name": "minimumHalfDimension",
-            "type": "Double",
-            "description": "Minimum boundary size when points stop causing subdivisions. Helps handle duplicate points",
-            "optional": true,
-            "defaultValue": "0.00001",
-            "paramArray": false
-          }
-        ],
-        "returns": {
-          "type": " ",
-          "description": "Quadtree instance\r\n"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
         "name": "protInit",
         "description": " Initialise quadtree\r\n",
         "remarks": [],
@@ -10357,7 +10224,144 @@
     "devNotes": [],
     "todos": [],
     "requires": [],
-    "constructors": [],
+    "constructors": [
+      {
+        "name": "Create",
+        "description": " Create quadtree from center coords and halfDimension / radius\r\n",
+        "remarks": [
+          null
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "cx",
+            "type": "Double",
+            "description": "The center x coord",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false
+          },
+          {
+            "name": "cy",
+            "type": "Double",
+            "description": "The center y coord",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false
+          },
+          {
+            "name": "halfDimension",
+            "type": "Double",
+            "description": "the \"radius\" of the cell",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false
+          },
+          {
+            "name": "capacityBeforeSubdivision",
+            "type": "Long",
+            "description": "The number of nodes a quadtree can hold before it subdivides. This can also be seen as the number of duplicate points allowed. If there are duplicates beyond this number you will get a stack overflow error.",
+            "optional": true,
+            "defaultValue": "4",
+            "paramArray": false
+          },
+          {
+            "name": "minimumHalfDimension",
+            "type": "Double",
+            "description": "Minimum boundary size when points stop causing subdivisions. Helps handle duplicate points",
+            "optional": true,
+            "defaultValue": "0.00001",
+            "paramArray": false
+          }
+        ],
+        "returns": {
+          "type": " ",
+          "description": "Quadtree instance\r\n"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "CreateFromBounds",
+        "description": " Creates a quadtree from min/max x/y\r\n",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "minX",
+            "type": "Double",
+            "description": "Minimum x coord",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false
+          },
+          {
+            "name": "minY",
+            "type": "Double",
+            "description": "Minimum y coord",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false
+          },
+          {
+            "name": "maxX",
+            "type": "Double",
+            "description": "Maximum x coord",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false
+          },
+          {
+            "name": "maxY",
+            "type": "Double",
+            "description": "Maximum y coord",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false
+          },
+          {
+            "name": "capacityBeforeSubdivision",
+            "type": "Long",
+            "description": "The number of nodes a quadtree can hold before it subdivides. This can also be seen as the number of duplicate points allowed. If there are duplicates beyond this number you will get a stack overflow error.",
+            "optional": true,
+            "defaultValue": "4",
+            "paramArray": false
+          },
+          {
+            "name": "minimumHalfDimension",
+            "type": "Double",
+            "description": "Minimum boundary size when points stop causing subdivisions. Helps handle duplicate points",
+            "optional": true,
+            "defaultValue": "0.00001",
+            "paramArray": false
+          }
+        ],
+        "returns": {
+          "type": " ",
+          "description": "Quadtree instance\r\n"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      }
+    ],
     "events": [],
     "implements": []
   },
@@ -10367,13 +10371,22 @@
     "methods": [
       {
         "name": "Create",
-        "description": "",
+        "description": " @constructor\r\n",
         "remarks": [],
         "examples": [],
-        "params": [],
+        "params": [
+          {
+            "name": "Data",
+            "type": "Variant",
+            "description": "Array to wrap",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false
+          }
+        ],
         "returns": {
-          "type": "stdRefArray",
-          "description": ""
+          "type": " ",
+          "description": "The array by reference\r\n"
         },
         "deprecation": {
           "status": false,
@@ -10389,10 +10402,19 @@
       },
       {
         "name": "protInit",
-        "description": "",
+        "description": " Intialise the byref array\r\n",
         "remarks": [],
         "examples": [],
-        "params": [],
+        "params": [
+          {
+            "name": "DataIn",
+            "type": "Variant",
+            "description": "Array to wrap",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false
+          }
+        ],
         "returns": null,
         "deprecation": {
           "status": false,
@@ -10401,7 +10423,7 @@
         "isDefaultMember": false,
         "devNotes": [],
         "todos": [],
-        "isProtected": false,
+        "isProtected": true,
         "throws": [],
         "requires": [],
         "isStatic": false
@@ -10422,147 +10444,6 @@
     "name": "stdReg",
     "fileName": "stdReg.cls",
     "methods": [
-      {
-        "name": "Create",
-        "description": " Create a new stdReg object from a path with required access\r\n",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "path",
-            "type": "String",
-            "description": "Path to registry key or value",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false
-          },
-          {
-            "name": "access",
-            "type": "ERegistryAccess",
-            "description": "Access required to open key i.e. `PERM_READ`, `PERM_WRITE`, `PERM_ALL_ACCESS`",
-            "optional": true,
-            "defaultValue": "ERegistryAccess.PERM_READ",
-            "paramArray": false
-          },
-          {
-            "name": "normalisePath",
-            "type": "Boolean",
-            "description": "If `true`, then path will be normalised to use `\"\\\"` as path separator",
-            "optional": true,
-            "defaultValue": "True",
-            "paramArray": false
-          }
-        ],
-        "returns": {
-          "type": " ",
-          "description": "`stdReg` object\r\n"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "CreateFromKey",
-        "description": " Create a new stdReg object from a key path with required access\r\n",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "path",
-            "type": "String",
-            "description": "Path to registry key",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false
-          },
-          {
-            "name": "access",
-            "type": "ERegistryAccess",
-            "description": "Access required to open key i.e. `PERM_READ`, `PERM_WRITE`, `PERM_ALL_ACCESS`",
-            "optional": true,
-            "defaultValue": "ERegistryAccess.PERM_READ",
-            "paramArray": false
-          },
-          {
-            "name": "normalisePath",
-            "type": "Boolean",
-            "description": "If `true`, then path will be normalised to use `\"\\\"` as path separator",
-            "optional": true,
-            "defaultValue": "True",
-            "paramArray": false
-          }
-        ],
-        "returns": {
-          "type": " ",
-          "description": "`stdReg` object representing registry key\r\n"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "CreateFromItem",
-        "description": " Create a new stdReg object from a value path with required access\r\n",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "path",
-            "type": "String",
-            "description": "Path to registry value",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false
-          },
-          {
-            "name": "access",
-            "type": "ERegistryAccess",
-            "description": "Access required to open key i.e. `PERM_READ`, `PERM_WRITE`, `PERM_ALL_ACCESS`",
-            "optional": true,
-            "defaultValue": "ERegistryAccess.PERM_READ",
-            "paramArray": false
-          },
-          {
-            "name": "normalisePath",
-            "type": "Boolean",
-            "description": "If `true`, then path will be normalised to use `\"\\\"` as path separator",
-            "optional": true,
-            "defaultValue": "True",
-            "paramArray": false
-          }
-        ],
-        "returns": {
-          "type": " ",
-          "description": "`stdReg` object representing registry value\r\n"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
       {
         "name": "SetValue",
         "description": " Set value and change type\r\n",
@@ -10880,7 +10761,149 @@
       "TBC "
     ],
     "requires": [],
-    "constructors": [],
+    "constructors": [
+      {
+        "name": "Create",
+        "description": " Create a new stdReg object from a path with required access\r\n",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "path",
+            "type": "String",
+            "description": "Path to registry key or value",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false
+          },
+          {
+            "name": "access",
+            "type": "ERegistryAccess",
+            "description": "Access required to open key i.e. `PERM_READ`, `PERM_WRITE`, `PERM_ALL_ACCESS`",
+            "optional": true,
+            "defaultValue": "ERegistryAccess.PERM_READ",
+            "paramArray": false
+          },
+          {
+            "name": "normalisePath",
+            "type": "Boolean",
+            "description": "If `true`, then path will be normalised to use `\"\\\"` as path separator",
+            "optional": true,
+            "defaultValue": "True",
+            "paramArray": false
+          }
+        ],
+        "returns": {
+          "type": " ",
+          "description": "`stdReg` object\r\n"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "CreateFromKey",
+        "description": " Create a new stdReg object from a key path with required access\r\n",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "path",
+            "type": "String",
+            "description": "Path to registry key",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false
+          },
+          {
+            "name": "access",
+            "type": "ERegistryAccess",
+            "description": "Access required to open key i.e. `PERM_READ`, `PERM_WRITE`, `PERM_ALL_ACCESS`",
+            "optional": true,
+            "defaultValue": "ERegistryAccess.PERM_READ",
+            "paramArray": false
+          },
+          {
+            "name": "normalisePath",
+            "type": "Boolean",
+            "description": "If `true`, then path will be normalised to use `\"\\\"` as path separator",
+            "optional": true,
+            "defaultValue": "True",
+            "paramArray": false
+          }
+        ],
+        "returns": {
+          "type": " ",
+          "description": "`stdReg` object representing registry key\r\n"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "CreateFromItem",
+        "description": " Create a new stdReg object from a value path with required access\r\n",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "path",
+            "type": "String",
+            "description": "Path to registry value",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false
+          },
+          {
+            "name": "access",
+            "type": "ERegistryAccess",
+            "description": "Access required to open key i.e. `PERM_READ`, `PERM_WRITE`, `PERM_ALL_ACCESS`",
+            "optional": true,
+            "defaultValue": "ERegistryAccess.PERM_READ",
+            "paramArray": false
+          },
+          {
+            "name": "normalisePath",
+            "type": "Boolean",
+            "description": "If `true`, then path will be normalised to use `\"\\\"` as path separator",
+            "optional": true,
+            "defaultValue": "True",
+            "paramArray": false
+          }
+        ],
+        "returns": {
+          "type": " ",
+          "description": "`stdReg` object representing registry value\r\n"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      }
+    ],
     "events": [],
     "implements": []
   },
@@ -11216,6 +11239,268 @@
     "fileName": "stdSentry.cls",
     "methods": [
       {
+        "name": "protInitFactory",
+        "description": " Initialise the sentry factory\r\n",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "OnInit",
+            "type": "stdICallable",
+            "description": "Function to run when the sentry is created. Should return arguments to pass to OnDestroy. If OnInit returns Empty, no arguments are passed to OnDestroy.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false
+          },
+          {
+            "name": "OnDestroy",
+            "type": "stdICallable",
+            "description": "Function to run when the sentry is destroyed. Should take the arguments returned by OnInit.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false
+          }
+        ],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "protInitInstance",
+        "description": " Initialise the sentry instance\r\n",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "onDestroy",
+            "type": "stdICallable",
+            "description": "Function to run when the sentry is destroyed.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false
+          },
+          {
+            "name": "args",
+            "type": "Variant",
+            "description": "Arguments to pass to the OnDestroy function",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false
+          },
+          {
+            "name": "passVars",
+            "type": "boolean",
+            "description": "If true, `args` will be passed to OnDestroy. If false, no arguments are passed to OnDestroy.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false
+          }
+        ],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "Run",
+        "description": " Run the sentry\r\n",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "args",
+            "type": "Variant",
+            "description": "Arguments to pass to the OnInit function",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false
+          }
+        ],
+        "returns": {
+          "type": " ",
+          "description": "The sentry\r\n"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "RunEx",
+        "description": " Run the sentry\r\n",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "args",
+            "type": "Variant",
+            "description": "Arguments to pass to the OnInit function",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false
+          }
+        ],
+        "returns": {
+          "type": " ",
+          "description": "The sentry\r\n"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "Bind",
+        "description": " Bind arguments to the sentry factory\r\n",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "args",
+            "type": "Variant",
+            "description": "Arguments to bind to the sentry",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false
+          }
+        ],
+        "returns": {
+          "type": " ",
+          "description": "The sentry\r\n"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "BindEx",
+        "description": " Bind arguments to the sentry factory\r\n",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "args",
+            "type": "Variant<Array<Variant>>",
+            "description": "Arguments to bind to the sentry",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false
+          }
+        ],
+        "returns": {
+          "type": " ",
+          "description": "The sentry\r\n"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "SendMessage",
+        "description": " Making late-bound calls to `stdSentry` members. Each object which implements `stdICallable`\r\n",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "sMessage",
+            "type": "string",
+            "description": "Message to send. Standard messages include \"obj\" returning the object, \"className\" returning the class name. Other messages are implementation specific.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false
+          },
+          {
+            "name": "success",
+            "type": "boolean",
+            "description": "Whether the call was successful",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false
+          },
+          {
+            "name": "params",
+            "type": "variant",
+            "description": "Any variant, typically parameters as an array. Passed along with the message.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false
+          }
+        ],
+        "returns": {
+          "type": " ",
+          "description": "Any return value.\r\n"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      }
+    ],
+    "properties": [],
+    "description": "",
+    "remarks": [],
+    "examples": [],
+    "devNotes": [],
+    "todos": [
+      ""
+    ],
+    "requires": [],
+    "constructors": [
+      {
         "name": "Create",
         "description": " Create a sentry factory\r\n",
         "remarks": [],
@@ -11468,236 +11753,8 @@
           " stdLambda"
         ],
         "isStatic": false
-      },
-      {
-        "name": "protInitFactory",
-        "description": " @param OnInit - Function to run when the sentry is created. Should return arguments to pass to OnDestroy. If OnInit returns Empty, no arguments are passed to OnDestroy.\r\n",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "OnDestroy",
-            "type": "stdICallable",
-            "description": "Function to run when the sentry is destroyed. Should take the arguments returned by OnInit.",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false
-          }
-        ],
-        "returns": null,
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "protInitInstance",
-        "description": "",
-        "remarks": [],
-        "examples": [],
-        "params": [],
-        "returns": null,
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "Run",
-        "description": " Run the sentry\r\n",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "args",
-            "type": "Variant",
-            "description": "Arguments to pass to the OnInit function",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false
-          }
-        ],
-        "returns": {
-          "type": " ",
-          "description": "The sentry\r\n"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "RunEx",
-        "description": " Run the sentry\r\n",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "args",
-            "type": "Variant",
-            "description": "Arguments to pass to the OnInit function",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false
-          }
-        ],
-        "returns": {
-          "type": " ",
-          "description": "The sentry\r\n"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "Bind",
-        "description": " Bind arguments to the sentry factory\r\n",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "args",
-            "type": "Variant",
-            "description": "Arguments to bind to the sentry",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false
-          }
-        ],
-        "returns": {
-          "type": " ",
-          "description": "The sentry\r\n"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "BindEx",
-        "description": " Bind arguments to the sentry factory\r\n",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "args",
-            "type": "Variant<Array<Variant>>",
-            "description": "Arguments to bind to the sentry",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false
-          }
-        ],
-        "returns": {
-          "type": " ",
-          "description": "The sentry\r\n"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "SendMessage",
-        "description": " Making late-bound calls to `stdSentry` members. Each object which implements `stdICallable`\r\n",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "sMessage",
-            "type": "string",
-            "description": "Message to send. Standard messages include \"obj\" returning the object, \"className\" returning the class name. Other messages are implementation specific.",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false
-          },
-          {
-            "name": "success",
-            "type": "boolean",
-            "description": "Whether the call was successful",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false
-          },
-          {
-            "name": "params",
-            "type": "variant",
-            "description": "Any variant, typically parameters as an array. Passed along with the message.",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false
-          }
-        ],
-        "returns": {
-          "type": " ",
-          "description": "Any return value.\r\n"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": true,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
       }
     ],
-    "properties": [],
-    "description": "",
-    "remarks": [],
-    "examples": [],
-    "devNotes": [],
-    "todos": [
-      ""
-    ],
-    "requires": [],
-    "constructors": [],
     "events": [],
     "implements": []
   },
@@ -11705,45 +11762,6 @@
     "name": "stdTimer",
     "fileName": "stdTimer.cls",
     "methods": [
-      {
-        "name": "Create",
-        "description": " Create an instance of the timer\r\n",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "iMilliseconds",
-            "type": "Long",
-            "description": "Number of milliseconds to raise Tick Event between",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false
-          },
-          {
-            "name": "callback",
-            "type": "stdICallable<()=>void>",
-            "description": "Callback object. Must contain a Run() method.",
-            "optional": true,
-            "defaultValue": "Nothing",
-            "paramArray": false
-          }
-        ],
-        "returns": {
-          "type": " ",
-          "description": "The frequency isn't guaranteed but it will be as close as humanly possible.\r\n"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
       {
         "name": "protInit",
         "description": " Initialise module\r\n",
@@ -11840,7 +11858,47 @@
     "devNotes": [],
     "todos": [],
     "requires": [],
-    "constructors": [],
+    "constructors": [
+      {
+        "name": "Create",
+        "description": " Create an instance of the timer\r\n",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "iMilliseconds",
+            "type": "Long",
+            "description": "Number of milliseconds to raise Tick Event between",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false
+          },
+          {
+            "name": "callback",
+            "type": "stdICallable<()=>void>",
+            "description": "Callback object. Must contain a Run() method.",
+            "optional": true,
+            "defaultValue": "Nothing",
+            "paramArray": false
+          }
+        ],
+        "returns": {
+          "type": " ",
+          "description": "The frequency isn't guaranteed but it will be as close as humanly possible.\r\n"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      }
+    ],
     "events": [
       {
         "name": "Tick",
@@ -11857,142 +11915,7 @@
   {
     "name": "stdUIElement",
     "fileName": "stdUIElement.cls",
-    "methods": [
-      {
-        "name": "CreateFromControl",
-        "description": " Creating a UI Element from an existing control\r\n",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "ctrl",
-            "type": "Control",
-            "description": "The control to create the UI Element from",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false
-          },
-          {
-            "name": "callback",
-            "type": "stdICallable<(el: stdUIElement, event: EUIElementEvent, params: Variant<Array<Variant>>)=>void>",
-            "description": "The callback object to use for event handling",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false
-          }
-        ],
-        "returns": {
-          "type": " ",
-          "description": "The UI Element\r\n"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "CreateFromType",
-        "description": " Creating a UI Element from a type\r\n",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "oControls",
-            "type": "MSForms.Controls",
-            "description": "The controls collection to add the control to",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false
-          },
-          {
-            "name": "iCtrlType",
-            "type": "EUIElementType",
-            "description": "The type of control to create",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false
-          },
-          {
-            "name": "sName",
-            "type": "String",
-            "description": "The name of the control",
-            "optional": true,
-            "defaultValue": null,
-            "paramArray": false
-          },
-          {
-            "name": "Caption",
-            "type": "String",
-            "description": "The caption of the control",
-            "optional": true,
-            "defaultValue": null,
-            "paramArray": false
-          },
-          {
-            "name": "callback",
-            "type": "stdICallable<(el: stdUIElement, event: EUIElementEvent, params: Variant<Array<Variant>>)=>void>",
-            "description": "The callback object to use for event handling",
-            "optional": true,
-            "defaultValue": null,
-            "paramArray": false
-          },
-          {
-            "name": "fLeft",
-            "type": "Double",
-            "description": "The left position of the control",
-            "optional": true,
-            "defaultValue": "0",
-            "paramArray": false
-          },
-          {
-            "name": "fTop",
-            "type": "Double",
-            "description": "The top position of the control",
-            "optional": true,
-            "defaultValue": "0",
-            "paramArray": false
-          },
-          {
-            "name": "fWidth",
-            "type": "Double",
-            "description": "The width of the control",
-            "optional": true,
-            "defaultValue": null,
-            "paramArray": false
-          },
-          {
-            "name": "fHeight",
-            "type": "Double",
-            "description": "The height of the control",
-            "optional": true,
-            "defaultValue": null,
-            "paramArray": false
-          }
-        ],
-        "returns": {
-          "type": " ",
-          "description": "The UI Element\r\n"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      }
-    ],
+    "methods": [],
     "properties": [
       {
         "name": "uiType",
@@ -12236,7 +12159,142 @@
       "Image_DblClick using MouseDown"
     ],
     "requires": [],
-    "constructors": [],
+    "constructors": [
+      {
+        "name": "CreateFromControl",
+        "description": " Creating a UI Element from an existing control\r\n",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "ctrl",
+            "type": "Control",
+            "description": "The control to create the UI Element from",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false
+          },
+          {
+            "name": "callback",
+            "type": "stdICallable<(el: stdUIElement, event: EUIElementEvent, params: Variant<Array<Variant>>)=>void>",
+            "description": "The callback object to use for event handling",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false
+          }
+        ],
+        "returns": {
+          "type": " ",
+          "description": "The UI Element\r\n"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "CreateFromType",
+        "description": " Creating a UI Element from a type\r\n",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "oControls",
+            "type": "MSForms.Controls",
+            "description": "The controls collection to add the control to",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false
+          },
+          {
+            "name": "iCtrlType",
+            "type": "EUIElementType",
+            "description": "The type of control to create",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false
+          },
+          {
+            "name": "sName",
+            "type": "String",
+            "description": "The name of the control",
+            "optional": true,
+            "defaultValue": null,
+            "paramArray": false
+          },
+          {
+            "name": "Caption",
+            "type": "String",
+            "description": "The caption of the control",
+            "optional": true,
+            "defaultValue": null,
+            "paramArray": false
+          },
+          {
+            "name": "callback",
+            "type": "stdICallable<(el: stdUIElement, event: EUIElementEvent, params: Variant<Array<Variant>>)=>void>",
+            "description": "The callback object to use for event handling",
+            "optional": true,
+            "defaultValue": null,
+            "paramArray": false
+          },
+          {
+            "name": "fLeft",
+            "type": "Double",
+            "description": "The left position of the control",
+            "optional": true,
+            "defaultValue": "0",
+            "paramArray": false
+          },
+          {
+            "name": "fTop",
+            "type": "Double",
+            "description": "The top position of the control",
+            "optional": true,
+            "defaultValue": "0",
+            "paramArray": false
+          },
+          {
+            "name": "fWidth",
+            "type": "Double",
+            "description": "The width of the control",
+            "optional": true,
+            "defaultValue": null,
+            "paramArray": false
+          },
+          {
+            "name": "fHeight",
+            "type": "Double",
+            "description": "The height of the control",
+            "optional": true,
+            "defaultValue": null,
+            "paramArray": false
+          }
+        ],
+        "returns": {
+          "type": " ",
+          "description": "The UI Element\r\n"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      }
+    ],
     "events": [],
     "implements": []
   },
@@ -12578,6 +12636,52 @@
         "returns": {
           "type": " Object<stdAcc>|stdAcc ",
           "description": "stdAcc object representing the window\r\n"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "AsIAccessible",
+        "description": " Converts a stdWindow object to a IAccessible object\r\n",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": " Object<IAccessible> ",
+          "description": "IAccessible object representing the window\r\n"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "AsNativeObject",
+        "description": " Converts a stdWindow object to a IAccessible object\r\n",
+        "remarks": [],
+        "examples": [
+          " - `stdWindow.CreateFromHwnd(...).FindFirst(stdLambda.Create(\"$1.Class = \"\"EXCEL7\"\"\")).AsNativeObject.Application)`\r\n"
+        ],
+        "params": [],
+        "returns": {
+          "type": " Object<IAccessible> ",
+          "description": "IAccessible object representing the window\r\n"
         },
         "deprecation": {
           "status": false,
@@ -14947,52 +15051,6 @@
         "returns": {
           "type": " Collection<stdWindow> ",
           "description": "Collection of shell windows\r\n"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "AsIAccessible",
-        "description": " Converts a stdWindow object to a IAccessible object\r\n",
-        "remarks": [],
-        "examples": [],
-        "params": [],
-        "returns": {
-          "type": " Object<IAccessible> ",
-          "description": "IAccessible object representing the window\r\n"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "AsNativeObject",
-        "description": " Converts a stdWindow object to a IAccessible object\r\n",
-        "remarks": [],
-        "examples": [
-          " - `stdWindow.CreateFromHwnd(...).FindFirst(stdLambda.Create(\"$1.Class = \"\"EXCEL7\"\"\")).AsNativeObject.Application)`\r\n"
-        ],
-        "params": [],
-        "returns": {
-          "type": " Object<IAccessible> ",
-          "description": "IAccessible object representing the window\r\n"
         },
         "deprecation": {
           "status": false,
