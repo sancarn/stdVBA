@@ -227,7 +227,6 @@ End Function
 End Function
 
 'Initialise the callback object
-'@constructor
 '@protected
 '@param iParentType - The type of parent to create the callback from. Can be either ParentType.Module or ParentType.object
 '@param params      - The parameters to initialise the callback with. This should not be called directly unless building a ctor routine e.g. Create().

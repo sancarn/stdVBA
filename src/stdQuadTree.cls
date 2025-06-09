@@ -67,6 +67,7 @@ End Type
 Private This As TThis
 
 'Create quadtree from center coords and halfDimension / radius
+'@constructor
 '@param cx - The center x coord
 '@param cy - The center y coord
 '@param halfDimension - the "radius" of the cell
@@ -80,6 +81,7 @@ Public Function Create(ByVal cx As Double, ByVal cy As Double, ByVal halfDimensi
 End Function
 
 'Creates a quadtree from min/max x/y
+'@constructor
 '@param minX - Minimum x coord
 '@param minY - Minimum y coord
 '@param maxX - Maximum x coord
@@ -99,6 +101,7 @@ Public Function CreateFromBounds(ByVal minX As Double, ByVal minY As Double, ByV
 End Function
 
 'Creates a quadtree from min/max x/y
+'@constructor
 '@param minX - Minimum x coord
 '@param minY - Minimum y coord
 '@param maxX - Maximum x coord

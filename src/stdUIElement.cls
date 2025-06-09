@@ -82,6 +82,7 @@ Private WithEvents pCommandButton  As MSForms.CommandButton
 
 
 'Creating a UI Element from an existing control
+'@constructor
 '@param ctrl - The control to create the UI Element from
 '@param callback as stdICallable<(el: stdUIElement, event: EUIElementEvent, params: Variant<Array<Variant>>)=>void> - The callback object to use for event handling
 '@returns - The UI Element
@@ -92,6 +93,7 @@ Public Function CreateFromControl(ByVal ctrl As Control, callback As stdICallabl
 End Function
 
 'Creating a UI Element from a type
+'@constructor
 '@param oControls - The controls collection to add the control to
 '@param iCtrlType - The type of control to create
 '@param sName - The name of the control

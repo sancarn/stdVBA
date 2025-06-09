@@ -83,6 +83,7 @@ Public Event AfterClone(ByRef clone As stdArray)
 Public Event AfterCreate(ByRef arr As stdArray)
 
 'Create a `stdArray` object from params
+'@constructor
 '@param params - The items of the array
 '@returns stdArray<variant> - A `stdArray` from the parameters.
 Public Function Create(ParamArray params() As Variant) As stdArray
@@ -103,6 +104,7 @@ Public Function Create(ParamArray params() As Variant) As stdArray
 End Function
 
 'Create a `stdArray` object from params
+'@constructor
 '@param iInitialLength - The length of the initial private array created
 '@param iChunking - The number of items the private array is increased by when required.
 '@param params - The items of the array
@@ -124,6 +126,7 @@ Public Function CreateWithOptions(ByVal iInitialLength As Long, ByVal iChunking 
 End Function
 
 'Create a `stdArray` object from a VBA array
+'@constructor
 '@param arr - Variant array to create a `stdArray` object from.
 '@returns stdArray<variant> - Returns `stdArray` of variants. 
 Public Function CreateFromArray(ByVal arr As Variant) As stdArray
@@ -143,6 +146,7 @@ Public Function CreateFromArray(ByVal arr As Variant) As stdArray
 End Function
 
 'Create a `stdArray` object from a collection
+'@constructor
 '@param col - Collection to create a `stdArray` object from.
 '@returns stdArray<variant> - Returns `stdArray` of variants.
 Public Function CreateFromCollection(ByVal col As Collection) As stdArray
@@ -156,6 +160,7 @@ Public Function CreateFromCollection(ByVal col As Collection) As stdArray
 End Function
 
 'Create an array by splitting a string
+'@constructor
 '@param sHaystack  - Haystack to split
 '@param sDelimiter - Delimiter
 '@returns stdArray<String> - A list of strings

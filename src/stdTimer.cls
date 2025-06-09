@@ -49,6 +49,7 @@ Attribute xlRemoteWorkbook.VB_VarHelpID = -1
 Private pCallback As Object 'stdICallable
 
 'Create an instance of the timer
+'@constructor
 '@param iMilliseconds - Number of milliseconds to raise Tick Event between
 '@param callback as stdICallable<()=>void> - Callback object. Must contain a Run() method.
 '@returns - The frequency isn't guaranteed but it will be as close as humanly possible.

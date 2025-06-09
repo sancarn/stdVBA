@@ -74,6 +74,7 @@ End Type
 Private This as TThis
 
 'Create a sentry factory
+'@constructor
 '@param OnInit - Function to run when the sentry is created.
 '@param OnDestroy - Function to run when the sentry is destroyed.
 '@param passVars - If true, the result of OnInit is passed to OnDestroy. If false, no arguments are passed to OnDestroy.
@@ -84,6 +85,7 @@ Public Function Create(ByVal OnInit as stdICallable, ByVal OnDestroy as stdICall
 End Function
 
 'Create a sentry which acts as an "optimiser" for code. Note, setting options doesn't always lead to performance improvements. See [vba-articles performance thread](https://sancarn.github.io/vba-articles/performance-tips.html) for details.
+'@constructor
 '@param EnableEvents   - If not Empty, sets Application.EnableEvents to this value. If Empty, Application.EnableEvents remains unchanged.
 '@param ScreenUpdating - If not Empty, sets Application.ScreenUpdating to this value. If Empty, Application.ScreenUpdating remains unchanged.
 '@param Calculation    - If not -1, sets Application.Calculation to this value. If -1, Application.Calculation remains unchanged.
@@ -125,6 +127,7 @@ Public Function CreateOptimiser(Optional ByVal EnableEvents as vbTriState = vbUs
 End Function
 
 'Create a sentry from a property of an object
+'@constructor
 '@param obj - Object to bind the property to
 '@param sPropertyName - Name of the property to bind
 '@param value - Value to set the property to
@@ -150,6 +153,7 @@ Public Function CreateFromObjectProperty(ByVal obj as Object, ByVal sPropertyNam
 End Function
 
 'Create a sentry from a method of an object
+'@constructor
 '@param obj - Object to bind the method to
 '@param sOnCreateName - Name of the method to call when the sentry is created
 '@param sOnDestroyName - Name of the method to call when the sentry is destroyed
@@ -168,6 +172,7 @@ Public Function CreateFromObjectMethod(ByVal obj as Object, ByVal OnInitName as 
 End Function
 
 'Create a sentry for error stack management
+'@constructor
 '@param name - Name of the stack to add
 '@returns - The sentry
 '@requires stdError, stdCallback
@@ -184,6 +189,7 @@ Public Function CreateErrorStack(ByVal name as String) as stdSentry
 End Function
 
 'Create a sentry from an AutomationSecurity setting
+'@constructor
 '@param sec - AutomationSecurity setting desired
 '@returns - The sentry
 '@requires stdLambda
@@ -196,7 +202,8 @@ Public Function CreateFromAutomationSecurity(ByVal sec as MsoAutomationSecurity)
   set CreateFromAutomationSecurity = CreateFromObjectProperty(Application, "AutomationSecurity", sec)
 End Function
 
-
+'Initialise the sentry factory
+'@protected
 '@param OnInit - Function to run when the sentry is created. Should return arguments to pass to OnDestroy. If OnInit returns Empty, no arguments are passed to OnDestroy.
 '@param OnDestroy - Function to run when the sentry is destroyed. Should take the arguments returned by OnInit.
 Public Sub protInitFactory(ByVal OnInit as stdICallable, ByVal OnDestroy as stdICallable, ByVal passVars as boolean)
@@ -206,6 +213,12 @@ Public Sub protInitFactory(ByVal OnInit as stdICallable, ByVal OnDestroy as stdI
     .passVars = passVars
   End With
 End Sub
+
+'Initialise the sentry instance
+'@protected
+'@param onDestroy - Function to run when the sentry is destroyed.
+'@param args - Arguments to pass to the OnDestroy function
+'@param passVars - If true, `args` will be passed to OnDestroy. If false, no arguments are passed to OnDestroy.
 Public Sub protInitInstance(ByVal onDestroy as stdICallable, ByVal args as Variant, ByVal passVars as boolean)
   With This.Instance
     Set .onDestroy = onDestroy

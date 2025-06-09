@@ -130,6 +130,7 @@ End Type
 Private This As TThis
 
 'Create a new stdReg object from a path with required access
+'@constructor
 '@param path - Path to registry key or value
 '@param access - Access required to open key i.e. `PERM_READ`, `PERM_WRITE`, `PERM_ALL_ACCESS`
 '@param normalisePath - If `true`, then path will be normalised to use `"\"` as path separator
@@ -140,6 +141,7 @@ Public Function Create(ByVal path As String, Optional ByVal access As ERegistryA
 End Function
 
 'Create a new stdReg object from a key path with required access
+'@constructor
 '@param path - Path to registry key
 '@param access - Access required to open key i.e. `PERM_READ`, `PERM_WRITE`, `PERM_ALL_ACCESS`
 '@param normalisePath - If `true`, then path will be normalised to use `"\"` as path separator
@@ -150,6 +152,7 @@ Public Function CreateFromKey(ByVal path As String, Optional ByVal access As ERe
 End Function
 
 'Create a new stdReg object from a value path with required access
+'@constructor
 '@param path - Path to registry value
 '@param access - Access required to open key i.e. `PERM_READ`, `PERM_WRITE`, `PERM_ALL_ACCESS`
 '@param normalisePath - If `true`, then path will be normalised to use `"\"` as path separator

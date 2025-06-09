@@ -38,14 +38,21 @@ Private Const VT_BYREF As Long = &H4000
 #End If
 
 
+'The data within the array
 Public Data As Variant
 
 
-
+'@constructor
+'@param Data - Array to wrap
+'@returns - The array by reference
 Public Function Create(ByRef Data As Variant) As stdRefArray
     Set Create = New stdRefArray
     Call Create.protInit(Data)
 End Function
+
+'Intialise the byref array
+'@protected
+'@param DataIn - Array to wrap
 Public Sub protInit(ByRef DataIn As Variant)
     if isArray(DataIn) then
       'Set the variant data to a pointer

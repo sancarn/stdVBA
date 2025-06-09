@@ -208,6 +208,7 @@ Private This As TThis
 
 
 'Create a HTTP request
+'@constructor
 '@param sURL - The url to query
 '@param RequestMethod - Typically "GET", "POST", "PUT", "DELETE", but can be any string which the server responds to
 '@param ThreadingStyle - The Threading approach. Either HTTPSync (Synchronous) or HTTPAsync (Asynchronous).
@@ -220,6 +221,7 @@ Public Function Create(ByVal sURL As String, Optional ByVal RequestMethod As Str
 End Function
 
 'Create HTTP request headers
+'@static
 '@param v - Headers to load into the http request in the form key1, value1, key2, value2, ...
 '@returns Object<Dictionary> - A dictionary of headers
 Public Function CreateHeaders(ParamArray v()) As Object
@@ -236,6 +238,7 @@ Public Function CreateHeaders(ParamArray v()) As Object
 End Function
 
 'Create HTTP request options
+'@static
 '@param Body - The body of the request
 '@param Headers as Object<Dictionary> - The headers of the request
 '@param Cookies as Object<Dictionary> - The cookies of the request
@@ -281,6 +284,7 @@ Public Function CreateOptions(Optional Body As String = "", Optional Headers As 
 End Function
 
 'Obtain proxy information
+'@static
 '@param proxyType - 
 '@param server - the IP address (or hostname) of the proxy server
 '@param bypass - A proxy bypass list is not always needed, but it's useful. It specifies URLs or IP ranges that should be accessed directly, bypassing the proxy. This is often used for local or intranet addresses.

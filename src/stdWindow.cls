@@ -794,7 +794,6 @@ Public Function AsAcc() As Object
 End Function
 
 'Converts a stdWindow object to a IAccessible object
-'@constructor
 '@returns Object<IAccessible> - IAccessible object representing the window
 Public Function AsIAccessible() As Object
   Dim Guid As tGUID: Guid = convertGUID("618736E0-3C3D-11CF-810C-00AA00389B71")
@@ -802,7 +801,6 @@ Public Function AsIAccessible() As Object
 End Function
 
 'Converts a stdWindow object to a IAccessible object
-'@constructor
 '@returns Object<IAccessible> - IAccessible object representing the window
 '@example - `stdWindow.CreateFromHwnd(...).FindFirst(stdLambda.Create("$1.Class = ""EXCEL7""")).AsNativeObject.Application)`
 Public Function AsNativeObject() As Object

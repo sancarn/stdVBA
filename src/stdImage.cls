@@ -341,6 +341,8 @@ Private This As TThis
 '****************
 
 'Creates a stdImage object from a byte array
+'@constructor
+'@TODO: Awaiting implementation
 '@param b - Bytes of Bitmap/Jpeg/Png/... image
 '@param format - The format of the image
 '@returns - Picture object representing data
@@ -353,13 +355,15 @@ Public Function CreateFromBinary(ByRef b() As Byte, ByVal format As stdImgFormat
   Err.Raise 1, , "Not implemented"
 End Function
 
-
+'@constructor
+'@TODO: Awaiting implementation
 Public Function CreateFromDataURL(ByVal sURL As String) As stdImage
   'TODO: Parse Base64, CreateFromBinary
   Err.Raise 1, , "Not implemented"
 End Function
 
 'Creates a stdImage object from a file
+'@constructor
 '@param sPath - Path of file
 '@param format - The format of the image
 '@returns - Picture object representing data
@@ -412,6 +416,7 @@ Public Function CreateFromFile(ByVal sPath As String, Optional ByVal format As s
 End Function
 
 'Creates a stdImage object from a url
+'@constructor
 '@param sUrl - Url of file
 '@param format - The format of the image
 '@returns - Picture object representing data
@@ -435,6 +440,7 @@ Public Function CreateFromUrl(ByVal sURL As String, Optional ByVal format As std
 End Function
 
 'Creates a stdImage object from a file
+'@constructor
 '@param hBitmap - hBitmap (handle to Bitmap)
 '@returns - Picture object representing data
 '@example ```
@@ -451,6 +457,7 @@ Public Function CreateFromHBitmap(ByVal hBitmap As LongPtr) As stdImage
 End Function
 
 'Creates a stdImage from the image in the clipboard
+'@constructor
 '@returns - Picture object representing data
 '@example `stdImage.CreateFromClipboard().ToFile("H:\test.png", stdImgFormatPNG)`
 Public Function CreateFromClipboard() As stdImage
@@ -471,6 +478,7 @@ Public Function CreateFromClipboard() As stdImage
 End Function
 
 'Creates a stdImage object from a stdole.IPictureDisp object
+'@constructor
 '@param picture - Object to create picture from
 '@returns - Picture object representing data
 '@example TODO:
@@ -479,6 +487,7 @@ Public Function CreateFromIPictureDisp(ByVal picture As stdole.IPictureDisp) As 
 End Function
 
 'Creates a stdImage object from a stdole.stdPicture object
+'@constructor
 '@param picture - Object to create picture from
 '@returns - Picture object representing data
 '@example `stdImage.CreateFromStdPicture(Userform1.Picture).ToFile("H:\test.png", stdImgFormatPNG)`
@@ -487,6 +496,7 @@ Public Function CreateFromStdPicture(ByVal picture As stdole.StdPicture) As stdI
 End Function
 
 'Creates a stdImage object from a stdole.IPicture object
+'@constructor
 '@param picture - Object to create picture from
 '@returns - Picture object representing data
 '@example TODO:
@@ -495,6 +505,7 @@ Public Function CreateFromIPicture(ByVal picture As stdole.IPicture) As stdImage
 End Function
 
 'Creates a stdImage object from a Excel.IPicture object
+'@constructor
 '@param picture as Object<Excel.IPicture> - Object to create picture from
 '@returns - Picture object representing data
 '@example TODO:
@@ -504,6 +515,7 @@ Public Function CreateFromExcelIPicture(ByVal picture As Object) As stdImage
 End Function
 
 'Creates a stdImage object from a Shape object
+'@constructor
 '@param shp as Object<(Excel|Word|PowerPoint).Shape> - Object to create picture from
 '@returns - Picture object representing data
 '@example `stdImage.CreateFromShape(Sheet1.Shapes("Picture 2")).ToFile("H:\test.png")`
@@ -517,6 +529,7 @@ Public Function CreateFromShape(ByVal shp As Object) As stdImage
 End Function
 
 'Creates a stdImage object from a Chart object
+'@constructor
 '@param chart as Object<(Excel|Word|PowerPoint).Chart> - Object to create picture from
 '@returns - Picture object representing data
 '@example `stdImage.CreateFromChart(Sheet1.ChartObjects(1).Chart).ToFile("H:\test.png")`
@@ -530,6 +543,7 @@ Public Function CreateFromChart(ByVal chart As Object) As stdImage
 End Function
 
 'Creates a stdImage object from the desktop window (screenshot)
+'@constructor
 '@returns - Picture object containing screenshot data
 '@example `stdImage.CreateFromScreen().ToFile("H:\test.png")`
 '@TODO: Capture both monitors https://stackoverflow.com/a/34445431/6302131
@@ -539,6 +553,7 @@ Public Function CreateFromScreen() As stdImage
 End Function
 
 'Creates a stdImage object from a window
+'@constructor
 '@param hwnd - Handle to window
 '@param bClientArea - If true, only the client area of the window is captured. If false, the entire window is captured.
 '@returns - Picture object representing data
@@ -583,6 +598,7 @@ End Function
 End Function
 
 'Creates a stdImage object from a HICON
+'@constructor
 '@param hIcon - Handle to icon
 '@returns - Picture object representing data
 '@example ```
@@ -630,6 +646,7 @@ End Function
 End Function
 
 'Initialised stdImage
+'@protected
 '@param hBITMAP - Handle to bitmap
 Public Sub protInit(ByVal hBITMAP As LongPtr)
   This.HBITMAP = hBITMAP
