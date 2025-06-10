@@ -10,8 +10,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " Collection<stdAcc> ",
-          "description": "Collection of descendents\r\n"
+          "type": "Collection<stdAcc>",
+          "description": "Collection of descendents"
         },
         "deprecation": {
           "status": false,
@@ -36,7 +36,7 @@
           {
             "name": "query",
             "type": "stdICallable<(stdAcc,depth)=>EAccFindResult>",
-            "description": "Callback returning `EAccFindResult` options:\r\n\r\n* `EAccFindResult.NoMatchFound`/`0`/`False`        - Not found, countinue walking",
+            "description": "Callback returning `EAccFindResult` options:\r\n\r\n* `EAccFindResult.NoMatchFound`/`0`/`False`        - Not found, countinue walking\r\n* `EAccFindResult.MatchFound`/`1`/`-1`/`True`      - Found, return this element\r\n* `EAccFindResult.NoMatchCancelSearch`/`2`         - Not found, cancel search\r\n* `EAccFindResult.NoMatchSkipDescendents`/`3`      - Not found, don't search descendents\r\n* `EAccFindResult.MatchFoundSearchDescendents`/`4` - Same as `EAccFindResult.MatchFound` in this case.",
             "optional": false,
             "defaultValue": null,
             "paramArray": false
@@ -44,15 +44,15 @@
           {
             "name": "searchType",
             "type": "EAccFindType",
-            "description": "The type of search to perform, either Breadth First Search (BFS) or Depth First Search (DFS).\r\n To understand the difference between BFS and DFS take this tree:",
+            "description": "The type of search to perform, either Breadth First Search (BFS) or Depth First Search (DFS).\r\n To understand the difference between BFS and DFS take this tree:\r\n```\r\n     A\r\n    / \\\r\n   B   C\r\n  /   / \\\r\n D   E   F\r\n```\r\n\r\n* A BFS will walk this tree in the following order: A, B, C, D, E, F\r\n* A DFS will walk this tree in a different order:   A, C, F, E, B, D",
             "optional": true,
             "defaultValue": "EAccFindType.DepthFirst",
             "paramArray": false
           }
         ],
         "returns": {
-          "type": " {stdAcc} ",
-          "description": "Element found.\r\n"
+          "type": "{stdAcc}",
+          "description": "Element found."
         },
         "deprecation": {
           "status": false,
@@ -77,7 +77,7 @@
           {
             "name": "query",
             "type": "stdICallable<(stdAcc,depth)=>EAccFindResult>",
-            "description": "Callback returning `EAccFindResult` options:\r\n\r\n* `EAccFindResult.NoMatchFound`/`0`/`False`           - Not found, countinue walking.",
+            "description": "Callback returning `EAccFindResult` options:\r\n\r\n* `EAccFindResult.NoMatchFound`/`0`/`False`           - Not found, countinue walking.\r\n* `EAccFindResult.MatchFound`/`1`/`-1`/`True`         - Found, return this element, won't search descendents of elements found.\r\n* `EAccFindResult.NoMatchCancelSearch`/`2`            - Not found, cancel search.\r\n* `EAccFindResult.NoMatchSkipDescendents`/`3`         - Not found, don't search descendents.\r\n* `EAccFindResult.MatchFoundSearchDescendents`/`4`    - Found, return this element, but continue searching descendents.",
             "optional": false,
             "defaultValue": null,
             "paramArray": false
@@ -85,15 +85,15 @@
           {
             "name": "searchType",
             "type": "EAccFindType",
-            "description": "The type of search, either Breadth First Search (BFS) or Depth First Search (DFS).\r\n To understand the difference between BFS and DFS take this tree:",
+            "description": "The type of search, either Breadth First Search (BFS) or Depth First Search (DFS).\r\n To understand the difference between BFS and DFS take this tree:\r\n```\r\n     A\r\n    / \\\r\n   B   C\r\n  /   / \\\r\n D   E   F\r\n```\r\n\r\n* A BFS will walk this tree in the following order: A, B, C, D, E, F.\r\n* A DFS will walk this tree in a different order:   A, C, F, E, B, D.",
             "optional": true,
             "defaultValue": "EAccFindType.DepthFirst",
             "paramArray": false
           }
         ],
         "returns": {
-          "type": " Collection<stdAcc> ",
-          "description": "Collection of elements found.\r\n"
+          "type": "Collection<stdAcc>",
+          "description": "Collection of elements found."
         },
         "deprecation": {
           "status": false,
@@ -160,8 +160,8 @@
           }
         ],
         "returns": {
-          "type": " Long ",
-          "description": "Return value\r\n"
+          "type": "Long",
+          "description": "Return value"
         },
         "deprecation": {
           "status": true,
@@ -262,8 +262,8 @@
           }
         ],
         "returns": {
-          "type": " String ",
-          "description": "String representing path to element from either Desktop or toAccessible.\r\n"
+          "type": "String",
+          "description": "String representing path to element from either Desktop or toAccessible."
         },
         "deprecation": {
           "status": false,
@@ -284,8 +284,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " String ",
-          "description": "JSON representation of element tree\r\n"
+          "type": "String",
+          "description": "JSON representation of element tree"
         },
         "deprecation": {
           "status": false,
@@ -333,8 +333,8 @@
           }
         ],
         "returns": {
-          "type": " stdAcc                                  ",
-          "description": "Element awaited for\r\n"
+          "type": "stdAcc",
+          "description": "Element awaited for"
         },
         "deprecation": {
           "status": false,
@@ -358,8 +358,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " Object<IAccessible> ",
-          "description": "The object which implements `IAccessible`\r\n"
+          "type": "Object<IAccessible>",
+          "description": "The object which implements `IAccessible`"
         },
         "deprecation": {
           "status": false,
@@ -381,8 +381,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " stdAcc ",
-          "description": "Parent of this element\r\n"
+          "type": "stdAcc",
+          "description": "Parent of this element"
         },
         "deprecation": {
           "status": false,
@@ -404,8 +404,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "Ancestral root of this element (child window of the desktop)\r\n"
+          "type": "stdAcc",
+          "description": "Ancestral root of this element (child window of the desktop)"
         },
         "deprecation": {
           "status": false,
@@ -427,8 +427,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " Collection<stdAcc> ",
-          "description": "Children of this element\r\n"
+          "type": "Collection<stdAcc>",
+          "description": "Children of this element"
         },
         "deprecation": {
           "status": false,
@@ -450,8 +450,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " LongPtr ",
-          "description": "hwnd of this element\r\n"
+          "type": "LongPtr",
+          "description": "hwnd of this element"
         },
         "deprecation": {
           "status": false,
@@ -475,8 +475,8 @@
         ],
         "params": [],
         "returns": {
-          "type": " string ",
-          "description": "Hex string identifier for element.\r\n"
+          "type": "string",
+          "description": "Hex string identifier for element."
         },
         "deprecation": {
           "status": false,
@@ -498,8 +498,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " Collection<Long|stdAcc> ",
-          "description": "The location of the element. Collection has 5 named keys: \"Width\", \"Height\", \"Left\", \"Top\" and \"Parent\". \"Parent\" refers to the element itself.\r\n"
+          "type": "Collection<Long|stdAcc>",
+          "description": "The location of the element. Collection has 5 named keys: \"Width\", \"Height\", \"Left\", \"Top\" and \"Parent\". \"Parent\" refers to the element itself."
         },
         "deprecation": {
           "status": false,
@@ -538,8 +538,8 @@
           }
         ],
         "returns": {
-          "type": " stdAcc ",
-          "description": "element under point\r\n"
+          "type": "stdAcc",
+          "description": "element under point"
         },
         "deprecation": {
           "status": false,
@@ -561,8 +561,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " String ",
-          "description": "the current value of the element\r\n"
+          "type": "String",
+          "description": "the current value of the element"
         },
         "deprecation": {
           "status": false,
@@ -584,8 +584,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " String ",
-          "description": "the name of the element\r\n"
+          "type": "String",
+          "description": "the name of the element"
         },
         "deprecation": {
           "status": false,
@@ -607,8 +607,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " String ",
-          "description": "the description of the default action of the element\r\n"
+          "type": "String",
+          "description": "the description of the default action of the element"
         },
         "deprecation": {
           "status": false,
@@ -630,8 +630,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " String ",
-          "description": "the role of the element\r\n"
+          "type": "String",
+          "description": "the role of the element"
         },
         "deprecation": {
           "status": false,
@@ -653,8 +653,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " String ",
-          "description": "the state of the element\r\n"
+          "type": "String",
+          "description": "the state of the element"
         },
         "deprecation": {
           "status": false,
@@ -676,8 +676,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " Long ",
-          "description": "the state(s) of the element\r\n"
+          "type": "Long",
+          "description": "the state(s) of the element"
         },
         "deprecation": {
           "status": false,
@@ -699,8 +699,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " String ",
-          "description": "the description of the element\r\n"
+          "type": "String",
+          "description": "the description of the element"
         },
         "deprecation": {
           "status": false,
@@ -722,8 +722,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " String ",
-          "description": "The keyboard shortcut used to trigger the default action of the element\r\n"
+          "type": "String",
+          "description": "The keyboard shortcut used to trigger the default action of the element"
         },
         "deprecation": {
           "status": false,
@@ -745,8 +745,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " Boolean ",
-          "description": "Whether the element has focus\r\n"
+          "type": "Boolean",
+          "description": "Whether the element has focus"
         },
         "deprecation": {
           "status": false,
@@ -768,8 +768,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " String ",
-          "description": "the help for the element\r\n"
+          "type": "String",
+          "description": "the help for the element"
         },
         "deprecation": {
           "status": false,
@@ -800,8 +800,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "the help topic for the element\r\n"
+          "type": "String",
+          "description": "the help topic for the element"
         },
         "deprecation": {
           "status": false,
@@ -823,8 +823,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " String ",
-          "description": "Concatenation of Name, Value, DefaultAction, Description, Role, Help, HelpTopic and KeyboardShortcut.\r\n"
+          "type": "String",
+          "description": "Concatenation of Name, Value, DefaultAction, Description, Role, Help, HelpTopic and KeyboardShortcut."
         },
         "deprecation": {
           "status": false,
@@ -875,8 +875,8 @@
           }
         ],
         "returns": {
-          "type": " stdAcc ",
-          "description": "Object at the specified point\r\n"
+          "type": "stdAcc",
+          "description": "Object at the specified point"
         },
         "deprecation": {
           "status": false,
@@ -906,8 +906,8 @@
           }
         ],
         "returns": {
-          "type": " stdAcc ",
-          "description": "stdAcc object for the window \r\n"
+          "type": "stdAcc",
+          "description": "stdAcc object for the window"
         },
         "deprecation": {
           "status": false,
@@ -937,8 +937,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "IAccessible wrapper around application window.\r\n"
+          "type": "stdAcc",
+          "description": "IAccessible wrapper around application window."
         },
         "deprecation": {
           "status": false,
@@ -959,8 +959,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "IAccessible wrapper around desktop window.\r\n"
+          "type": "stdAcc",
+          "description": "IAccessible wrapper around desktop window."
         },
         "deprecation": {
           "status": false,
@@ -990,8 +990,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "IAccessible wrapper around an IAccessible object.\r\n"
+          "type": "stdAcc",
+          "description": "IAccessible wrapper around an IAccessible object."
         },
         "deprecation": {
           "status": false,
@@ -1012,8 +1012,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "IAccessible wrapper around element under mouse.\r\n"
+          "type": "stdAcc",
+          "description": "IAccessible wrapper around element under mouse."
         },
         "deprecation": {
           "status": false,
@@ -1045,8 +1045,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "IAccessible wrapper from a supplied path.\r\n"
+          "type": "stdAcc",
+          "description": "IAccessible wrapper from a supplied path."
         },
         "deprecation": {
           "status": false,
@@ -1147,8 +1147,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " Collection ",
-          "description": "Collection from Array\r\n"
+          "type": "Collection",
+          "description": "Collection from Array"
         },
         "deprecation": {
           "status": false,
@@ -1249,8 +1249,8 @@
           }
         ],
         "returns": {
-          "type": " stdArray                                                ",
-          "description": "A sorted array\r\n"
+          "type": "stdArray",
+          "description": "A sorted array"
         },
         "deprecation": {
           "status": false,
@@ -1280,8 +1280,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "A reference to the array to allow chaining.\r\n"
+          "type": "stdArray",
+          "description": "A reference to the array to allow chaining."
         },
         "deprecation": {
           "status": false,
@@ -1302,8 +1302,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "The element removed from the array\r\n"
+          "type": "Variant",
+          "description": "The element removed from the array"
         },
         "deprecation": {
           "status": false,
@@ -1333,8 +1333,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "The element removed\r\n"
+          "type": "Variant",
+          "description": "The element removed"
         },
         "deprecation": {
           "status": false,
@@ -1355,8 +1355,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "Element removed\r\n"
+          "type": "Variant",
+          "description": "Element removed"
         },
         "deprecation": {
           "status": false,
@@ -1386,8 +1386,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "A reference to the array to allow chaining.\r\n"
+          "type": "stdArray",
+          "description": "A reference to the array to allow chaining."
         },
         "deprecation": {
           "status": false,
@@ -1425,8 +1425,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "A slice of the array\r\n"
+          "type": "stdArray",
+          "description": "A slice of the array"
         },
         "deprecation": {
           "status": false,
@@ -1458,8 +1458,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "An array of arrays at a specified size\r\n"
+          "type": "stdArray",
+          "description": "An array of arrays at a specified size"
         },
         "deprecation": {
           "status": false,
@@ -1505,8 +1505,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "An array containing the deleted elements\r\n"
+          "type": "stdArray",
+          "description": "An array containing the deleted elements"
         },
         "deprecation": {
           "status": false,
@@ -1527,8 +1527,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "A new instance of the same array\r\n"
+          "type": "stdArray",
+          "description": "A new instance of the same array"
         },
         "deprecation": {
           "status": false,
@@ -1549,8 +1549,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "A new array with all elements in reverse order\r\n"
+          "type": "stdArray",
+          "description": "A new array with all elements in reverse order"
         },
         "deprecation": {
           "status": false,
@@ -1580,8 +1580,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "New composite array.\r\n"
+          "type": "stdArray",
+          "description": "New composite array."
         },
         "deprecation": {
           "status": false,
@@ -1611,8 +1611,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "A string containing all elements of the array joined together with the delimiter\r\n"
+          "type": "String",
+          "description": "A string containing all elements of the array joined together with the delimiter"
         },
         "deprecation": {
           "status": false,
@@ -1686,8 +1686,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Index of element\r\n"
+          "type": "Long",
+          "description": "Index of element"
         },
         "deprecation": {
           "status": false,
@@ -1717,8 +1717,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Last index of element\r\n"
+          "type": "Long",
+          "description": "Last index of element"
         },
         "deprecation": {
           "status": false,
@@ -1756,8 +1756,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "True if the array contains the item\r\n"
+          "type": "Boolean",
+          "description": "True if the array contains the item"
         },
         "deprecation": {
           "status": false,
@@ -1789,8 +1789,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "True if all elements pass the test\r\n"
+          "type": "Boolean",
+          "description": "True if all elements pass the test"
         },
         "deprecation": {
           "status": false,
@@ -1822,8 +1822,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "True if any elements pass the test\r\n"
+          "type": "Boolean",
+          "description": "True if any elements pass the test"
         },
         "deprecation": {
           "status": false,
@@ -1885,8 +1885,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "A new array with the results of the callback\r\n"
+          "type": "stdArray",
+          "description": "A new array with the results of the callback"
         },
         "deprecation": {
           "status": false,
@@ -1918,8 +1918,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "A new array with all non-unique elements removed\r\n"
+          "type": "stdArray",
+          "description": "A new array with all non-unique elements removed"
         },
         "deprecation": {
           "status": false,
@@ -1959,8 +1959,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "The final value returned by the reducer callback\r\n"
+          "type": "Variant",
+          "description": "The final value returned by the reducer callback"
         },
         "deprecation": {
           "status": false,
@@ -1990,8 +1990,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "A new array containing only the elements which passed the filter\r\n"
+          "type": "stdArray",
+          "description": "A new array containing only the elements which passed the filter"
         },
         "deprecation": {
           "status": false,
@@ -2021,8 +2021,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "The number of elements in the array. If a callback is provided, the number of elements which pass the callback is returned.\r\n"
+          "type": "Long",
+          "description": "The number of elements in the array. If a callback is provided, the number of elements which pass the callback is returned."
         },
         "deprecation": {
           "status": false,
@@ -2052,8 +2052,8 @@
           }
         ],
         "returns": {
-          "type": " Object<Dictionary<Variant, stdArray<Variant>>> ",
-          "description": "The keys of the dictionary are the keys generated by the callback. The values of the dictionary are arrays containing the elements which were grouped by the key.\r\n"
+          "type": "Object<Dictionary<Variant, stdArray<Variant>>>",
+          "description": "The keys of the dictionary are the keys generated by the callback. The values of the dictionary are arrays containing the elements which were grouped by the key."
         },
         "deprecation": {
           "status": false,
@@ -2091,8 +2091,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "The maximum value in the array\r\n"
+          "type": "Variant",
+          "description": "The maximum value in the array"
         },
         "deprecation": {
           "status": false,
@@ -2130,8 +2130,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "The minimum value in the array\r\n"
+          "type": "Variant",
+          "description": "The minimum value in the array"
         },
         "deprecation": {
           "status": false,
@@ -2157,8 +2157,8 @@
         ],
         "params": [],
         "returns": {
-          "type": " IEnumVARIANT ",
-          "description": "An enumerator with methods enumNext, enumRefresh etc.\r\n"
+          "type": "IEnumVARIANT",
+          "description": "An enumerator with methods enumNext, enumRefresh etc."
         },
         "deprecation": {
           "status": false,
@@ -2180,8 +2180,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " Long ",
-          "description": "Length of the array\r\n"
+          "type": "Long",
+          "description": "Length of the array"
         },
         "deprecation": {
           "status": false,
@@ -2203,8 +2203,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " Long ",
-          "description": "Length of the private array\r\n"
+          "type": "Long",
+          "description": "Length of the private array"
         },
         "deprecation": {
           "status": false,
@@ -2226,8 +2226,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " Variant ",
-          "description": "A VBA array\r\n"
+          "type": "Variant",
+          "description": "A VBA array"
         },
         "deprecation": {
           "status": false,
@@ -2258,8 +2258,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "The item at the location\r\n"
+          "type": "Variant",
+          "description": "The item at the location"
         },
         "deprecation": {
           "status": false,
@@ -2299,8 +2299,8 @@
           }
         ],
         "returns": {
-          "type": " stdArray<variant> ",
-          "description": "A `stdArray` from the parameters.\r\n"
+          "type": "stdArray<variant>",
+          "description": "A `stdArray` from the parameters."
         },
         "deprecation": {
           "status": false,
@@ -2346,8 +2346,8 @@
           }
         ],
         "returns": {
-          "type": " stdArray<variant> ",
-          "description": "A `stdArray` from the parameters.\r\n"
+          "type": "stdArray<variant>",
+          "description": "A `stdArray` from the parameters."
         },
         "deprecation": {
           "status": false,
@@ -2377,8 +2377,8 @@
           }
         ],
         "returns": {
-          "type": " stdArray<variant> ",
-          "description": "Returns `stdArray` of variants. \r\n"
+          "type": "stdArray<variant>",
+          "description": "Returns `stdArray` of variants."
         },
         "deprecation": {
           "status": false,
@@ -2408,8 +2408,8 @@
           }
         ],
         "returns": {
-          "type": " stdArray<variant> ",
-          "description": "Returns `stdArray` of variants.\r\n"
+          "type": "stdArray<variant>",
+          "description": "Returns `stdArray` of variants."
         },
         "deprecation": {
           "status": false,
@@ -2447,8 +2447,8 @@
           }
         ],
         "returns": {
-          "type": " stdArray<String> ",
-          "description": "A list of strings\r\n"
+          "type": "stdArray<String>",
+          "description": "A list of strings"
         },
         "deprecation": {
           "status": false,
@@ -2721,8 +2721,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "`stdCOM` object for interface\r\n"
+          "type": "stdCOM",
+          "description": "`stdCOM` object for interface"
         },
         "deprecation": {
           "status": false,
@@ -2800,8 +2800,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "interface queried.\r\n"
+          "type": "stdCOM",
+          "description": "interface queried."
         },
         "deprecation": {
           "status": false,
@@ -2908,8 +2908,8 @@
           }
         ],
         "returns": {
-          "type": "                                    ",
-          "description": "Return value of function\r\n"
+          "type": "Variant",
+          "description": "Return value of function"
         },
         "deprecation": {
           "status": false,
@@ -2940,8 +2940,8 @@
         ],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "Raw object\r\n"
+          "type": "IUnknown",
+          "description": "Raw object"
         },
         "deprecation": {
           "status": false,
@@ -2966,8 +2966,8 @@
         ],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "`IDispatch` for object\r\n"
+          "type": "Object",
+          "description": "`IDispatch` for object"
         },
         "deprecation": {
           "status": false,
@@ -2993,8 +2993,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "Pointer to object\r\n"
+          "type": "LongPtr",
+          "description": "Pointer to object"
         },
         "deprecation": {
           "status": false,
@@ -3018,8 +3018,8 @@
         ],
         "params": [],
         "returns": {
-          "type": " stdCOM<ITypeInfo> ",
-          "description": "TypeInfo structure for this object\r\n"
+          "type": "stdCOM<ITypeInfo>",
+          "description": "TypeInfo structure for this object"
         },
         "deprecation": {
           "status": false,
@@ -3041,8 +3041,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " Collection<Array<string, vbCallType, long, long>> ",
-          "description": "Collection of arrays containing Method/Property name, CallType, Index in type info and DispID\r\n"
+          "type": "Collection<Array<string, vbCallType, long, long>>",
+          "description": "Collection of arrays containing Method/Property name, CallType, Index in type info and DispID"
         },
         "deprecation": {
           "status": false,
@@ -3064,8 +3064,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " Collection<string> ",
-          "description": "Collection of method names\r\n"
+          "type": "Collection<string>",
+          "description": "Collection of method names"
         },
         "deprecation": {
           "status": false,
@@ -3098,8 +3098,8 @@
           }
         ],
         "returns": {
-          "type": " Collection<string> ",
-          "description": "Collection of property names\r\n"
+          "type": "Collection<string>",
+          "description": "Collection of property names"
         },
         "deprecation": {
           "status": false,
@@ -3139,8 +3139,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "A wrapper around a raw COM object\r\n"
+          "type": "stdCOM",
+          "description": "A wrapper around a raw COM object"
         },
         "deprecation": {
           "status": false,
@@ -3172,8 +3172,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "A wrapper around a raw COM object\r\n"
+          "type": "stdCOM",
+          "description": "A wrapper around a raw COM object"
         },
         "deprecation": {
           "status": false,
@@ -3196,8 +3196,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "A collection of `stdCOM` objects\r\n"
+          "type": "Collection",
+          "description": "A collection of `stdCOM` objects"
         },
         "deprecation": {
           "status": false,
@@ -3231,8 +3231,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "A COM wrapper for the object.\r\n"
+          "type": "stdCOM",
+          "description": "A COM wrapper for the object."
         },
         "deprecation": {
           "status": false,
@@ -3272,8 +3272,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "A COM wrapper for the object.\r\n"
+          "type": "stdCOM",
+          "description": "A COM wrapper for the object."
         },
         "deprecation": {
           "status": false,
@@ -3311,8 +3311,8 @@
           }
         ],
         "returns": {
-          "type": "                        ",
-          "description": "A new callback with the parameters bound\r\n"
+          "type": "Variant",
+          "description": "A new callback with the parameters bound"
         },
         "deprecation": {
           "status": false,
@@ -3342,8 +3342,8 @@
           }
         ],
         "returns": {
-          "type": "                        ",
-          "description": "A new callback with the parameters bound\r\n"
+          "type": "stdCallback",
+          "description": "A new callback with the parameters bound"
         },
         "deprecation": {
           "status": false,
@@ -3373,8 +3373,8 @@
           }
         ],
         "returns": {
-          "type": "      ",
-          "description": "The result of the function\r\n"
+          "type": "Variant",
+          "description": "The result of the function"
         },
         "deprecation": {
           "status": false,
@@ -3404,8 +3404,8 @@
           }
         ],
         "returns": {
-          "type": "                                 ",
-          "description": "The result of the function\r\n"
+          "type": "Variant",
+          "description": "The result of the function"
         },
         "deprecation": {
           "status": false,
@@ -3470,8 +3470,8 @@
           }
         ],
         "returns": {
-          "type": "                                ",
-          "description": "A 1st class callback function object\r\n"
+          "type": "stdCallback",
+          "description": "A 1st class callback function object"
         },
         "deprecation": {
           "status": false,
@@ -3509,8 +3509,8 @@
           }
         ],
         "returns": {
-          "type": "           ",
-          "description": "A 1st class callback function object\r\n"
+          "type": "stdCallback",
+          "description": "A 1st class callback function object"
         },
         "deprecation": {
           "status": false,
@@ -3556,8 +3556,8 @@
           }
         ],
         "returns": {
-          "type": "             ",
-          "description": "A 1st class callback function object\r\n"
+          "type": "stdCallback",
+          "description": "A 1st class callback function object"
         },
         "deprecation": {
           "status": false,
@@ -3595,8 +3595,8 @@
           }
         ],
         "returns": {
-          "type": "           ",
-          "description": "A 1st class callback function object\r\n"
+          "type": "stdCallback",
+          "description": "A 1st class callback function object"
         },
         "deprecation": {
           "status": false,
@@ -3642,8 +3642,8 @@
           }
         ],
         "returns": {
-          "type": "           ",
-          "description": "A 1st class callback function object\r\n"
+          "type": "stdCallback",
+          "description": "A 1st class callback function object"
         },
         "deprecation": {
           "status": false,
@@ -3689,8 +3689,8 @@
           }
         ],
         "returns": {
-          "type": "                                 ",
-          "description": "A 1st class callback function object\r\n"
+          "type": "stdCallback",
+          "description": "A 1st class callback function object"
         },
         "deprecation": {
           "status": false,
@@ -3821,8 +3821,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "`True` if the format is allowed, `false` otherwise\r\n"
+          "type": "Boolean",
+          "description": "`True` if the format is allowed, `false` otherwise"
         },
         "deprecation": {
           "status": false,
@@ -3854,8 +3854,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "The number of bytes being the size of the format.\r\n"
+          "type": "Long",
+          "description": "The number of bytes being the size of the format."
         },
         "deprecation": {
           "status": false,
@@ -3888,8 +3888,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Clipboard format identifier\r\n"
+          "type": "Long",
+          "description": "Clipboard format identifier"
         },
         "deprecation": {
           "status": false,
@@ -3966,8 +3966,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " Array<String> ",
-          "description": "The array of file paths stored in the clipboard\r\n"
+          "type": "Array<String>",
+          "description": "The array of file paths stored in the clipboard"
         },
         "deprecation": {
           "status": false,
@@ -4053,8 +4053,8 @@
           }
         ],
         "returns": {
-          "type": " CLIPFORMAT ",
-          "description": "The CLIPFORMAT to use\r\n"
+          "type": "CLIPFORMAT",
+          "description": "The CLIPFORMAT to use"
         },
         "deprecation": {
           "status": false,
@@ -4080,8 +4080,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "The latest clipboard ID / sequence number\r\n"
+          "type": "Long",
+          "description": "The latest clipboard ID / sequence number"
         },
         "deprecation": {
           "status": false,
@@ -4112,8 +4112,8 @@
           }
         ],
         "returns": {
-          "type": " Variant ",
-          "description": "The value stored in the clipboard\r\n"
+          "type": "Variant",
+          "description": "The value stored in the clipboard"
         },
         "deprecation": {
           "status": false,
@@ -4137,8 +4137,8 @@
         ],
         "params": [],
         "returns": {
-          "type": " String ",
-          "description": "The string stored on the clipboard\r\n"
+          "type": "String",
+          "description": "The string stored on the clipboard"
         },
         "deprecation": {
           "status": false,
@@ -4162,8 +4162,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " Collection<String> ",
-          "description": "The format names you can use for the current clipboard data.\r\n"
+          "type": "Collection<String>",
+          "description": "The format names you can use for the current clipboard data."
         },
         "deprecation": {
           "status": false,
@@ -4187,8 +4187,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " Collection<Long> ",
-          "description": "Formats allowed. We use Collection for easy enumeration with stdEnumerator.\r\n"
+          "type": "Collection<Long>",
+          "description": "Formats allowed. We use Collection for easy enumeration with stdEnumerator."
         },
         "deprecation": {
           "status": false,
@@ -4210,8 +4210,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "The picture stored on the clipboard\r\n"
+          "type": "stdole",
+          "description": "The picture stored on the clipboard"
         },
         "deprecation": {
           "status": false,
@@ -4329,8 +4329,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " Collection<String> ",
-          "description": "The collection of file paths stored in the clipboard\r\n"
+          "type": "Collection<String>",
+          "description": "The collection of file paths stored in the clipboard"
         },
         "deprecation": {
           "status": false,
@@ -4381,8 +4381,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "`True` if a value was retrieved, `false` if the end of the enumerator has been reached.\r\n"
+          "type": "Boolean",
+          "description": "`True` if a value was retrieved, `false` if the end of the enumerator has been reached."
         },
         "deprecation": {
           "status": false,
@@ -4422,8 +4422,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "The enumerator's data as a collection\r\n"
+          "type": "Collection",
+          "description": "The enumerator's data as a collection"
         },
         "deprecation": {
           "status": false,
@@ -4453,8 +4453,8 @@
           }
         ],
         "returns": {
-          "type": " Array<T> ",
-          "description": "The enumerator's data as an array\r\n"
+          "type": "Array<T>",
+          "description": "The enumerator's data as an array"
         },
         "deprecation": {
           "status": false,
@@ -4475,8 +4475,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " Array2d<Variant> ",
-          "description": "2D Array of data including headers. Number of rows is equal to the length of the enumerator, number of columns is equal to the number of keys in the first item.\r\n"
+          "type": "Array2d<Variant>",
+          "description": "2D Array of data including headers. Number of rows is equal to the length of the enumerator, number of columns is equal to the number of keys in the first item."
         },
         "deprecation": {
           "status": false,
@@ -4497,8 +4497,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " Object<Dictionary> ",
-          "description": "Dictionary containing enumerator data\r\n"
+          "type": "Object<Dictionary>",
+          "description": "Dictionary containing enumerator data"
         },
         "deprecation": {
           "status": false,
@@ -4528,8 +4528,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "This is the enumerator itself for chaining\r\n"
+          "type": "stdEnumerator",
+          "description": "This is the enumerator itself for chaining"
         },
         "deprecation": {
           "status": false,
@@ -4559,8 +4559,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Enumerator containing mapped values\r\n"
+          "type": "stdEnumerator",
+          "description": "Enumerator containing mapped values"
         },
         "deprecation": {
           "status": false,
@@ -4590,8 +4590,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Enumerator containing all elements of `Me` for which the given callback returns `true`.\r\n"
+          "type": "stdEnumerator",
+          "description": "Enumerator containing all elements of `Me` for which the given callback returns `true`."
         },
         "deprecation": {
           "status": false,
@@ -4621,8 +4621,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "enumerator of sorted values\r\n"
+          "type": "stdEnumerator",
+          "description": "enumerator of sorted values"
         },
         "deprecation": {
           "status": false,
@@ -4652,8 +4652,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "enumerator of unique values\r\n"
+          "type": "stdEnumerator",
+          "description": "enumerator of unique values"
         },
         "deprecation": {
           "status": false,
@@ -4674,8 +4674,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "enumerator of values in reverse order\r\n"
+          "type": "stdEnumerator",
+          "description": "enumerator of values in reverse order"
         },
         "deprecation": {
           "status": false,
@@ -4705,8 +4705,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "A concatenated array of values.\r\n"
+          "type": "stdEnumerator",
+          "description": "A concatenated array of values."
         },
         "deprecation": {
           "status": false,
@@ -4736,8 +4736,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "A concatenated array of values.\r\n"
+          "type": "String",
+          "description": "A concatenated array of values."
         },
         "deprecation": {
           "status": false,
@@ -4767,8 +4767,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Index of element.\r\n"
+          "type": "Long",
+          "description": "Index of element."
         },
         "deprecation": {
           "status": false,
@@ -4798,8 +4798,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Last index of element.\r\n"
+          "type": "Long",
+          "description": "Last index of element."
         },
         "deprecation": {
           "status": false,
@@ -4829,8 +4829,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "`True` if element is found, else `false`.\r\n"
+          "type": "Boolean",
+          "description": "`True` if element is found, else `false`."
         },
         "deprecation": {
           "status": false,
@@ -4860,8 +4860,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "`True` if all elements satisfy the condition, else `false`.\r\n"
+          "type": "Boolean",
+          "description": "`True` if all elements satisfy the condition, else `false`."
         },
         "deprecation": {
           "status": false,
@@ -4891,8 +4891,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "`True` if any element satisfies the condition, else `false`.\r\n"
+          "type": "Boolean",
+          "description": "`True` if any element satisfies the condition, else `false`."
         },
         "deprecation": {
           "status": false,
@@ -4922,8 +4922,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "`True` if none of the elements satisfy the condition, else `false`.\r\n"
+          "type": "Boolean",
+          "description": "`True` if none of the elements satisfy the condition, else `false`."
         },
         "deprecation": {
           "status": false,
@@ -4953,8 +4953,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "`True` if only one of the elements satisfy the condition, else `false`.\r\n"
+          "type": "Boolean",
+          "description": "`True` if only one of the elements satisfy the condition, else `false`."
         },
         "deprecation": {
           "status": false,
@@ -4984,8 +4984,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "The reduced value.\r\n"
+          "type": "Variant",
+          "description": "The reduced value."
         },
         "deprecation": {
           "status": false,
@@ -5015,8 +5015,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "The number of times a condition is met\r\n"
+          "type": "Long",
+          "description": "The number of times a condition is met"
         },
         "deprecation": {
           "status": false,
@@ -5046,8 +5046,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Creates a dictionary, who's keys lead to `stdEnumerator`'s of elements matching that grouping.\r\n"
+          "type": "Object",
+          "description": "Creates a dictionary, who's keys lead to `stdEnumerator`'s of elements matching that grouping."
         },
         "deprecation": {
           "status": false,
@@ -5080,8 +5080,8 @@
           }
         ],
         "returns": {
-          "type": " stdEnumerator<Object<Dictionary<key:string, item:variant>>> ",
-          "description": "Enumerator containing grouped data\r\n"
+          "type": "stdEnumerator<Object<Dictionary<key:string, item:variant>>>",
+          "description": "Enumerator containing grouped data"
         },
         "deprecation": {
           "status": false,
@@ -5111,8 +5111,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Value containing max data\r\n"
+          "type": "Variant",
+          "description": "Value containing max data"
         },
         "deprecation": {
           "status": false,
@@ -5142,8 +5142,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Value containing min data\r\n"
+          "type": "Variant",
+          "description": "Value containing min data"
         },
         "deprecation": {
           "status": false,
@@ -5173,8 +5173,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "The sum value\r\n"
+          "type": "Variant",
+          "description": "The sum value"
         },
         "deprecation": {
           "status": false,
@@ -5195,8 +5195,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "A flattened enumerator (depth = 1)\r\n"
+          "type": "stdEnumerator",
+          "description": "A flattened enumerator (depth = 1)"
         },
         "deprecation": {
           "status": false,
@@ -5234,8 +5234,8 @@
           }
         ],
         "returns": {
-          "type": "  ",
-          "description": "This object.\r\n"
+          "type": "stdEnumerator",
+          "description": "This object."
         },
         "deprecation": {
           "status": false,
@@ -5273,8 +5273,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Value found or value of isMissing if missing\r\n"
+          "type": "Variant",
+          "description": "Value found or value of isMissing if missing"
         },
         "deprecation": {
           "status": false,
@@ -5306,8 +5306,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Enumerator containing the first `iCount` elements.\r\n"
+          "type": "stdEnumerator",
+          "description": "Enumerator containing the first `iCount` elements."
         },
         "deprecation": {
           "status": false,
@@ -5333,8 +5333,8 @@
         ],
         "params": [],
         "returns": {
-          "type": " IEnumVARIANT ",
-          "description": "An enumerator with methods enumNext, enumRefresh etc.\r\n"
+          "type": "IEnumVARIANT",
+          "description": "An enumerator with methods enumNext, enumRefresh etc."
         },
         "deprecation": {
           "status": false,
@@ -5373,8 +5373,8 @@
           }
         ],
         "returns": {
-          "type": "       ",
-          "description": "Item returned at index/key\r\n"
+          "type": "Variant",
+          "description": "Item returned at index/key"
         },
         "deprecation": {
           "status": false,
@@ -5396,8 +5396,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "Length of enumerator.\r\n"
+          "type": "Long",
+          "description": "Length of enumerator."
         },
         "deprecation": {
           "status": false,
@@ -5448,8 +5448,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Enumerator created from callback function\r\n"
+          "type": "stdEnumerator",
+          "description": "Enumerator created from callback function"
         },
         "deprecation": {
           "status": false,
@@ -5487,8 +5487,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Enumerator created from callback function\r\n"
+          "type": "stdEnumerator",
+          "description": "Enumerator created from callback function"
         },
         "deprecation": {
           "status": false,
@@ -5526,8 +5526,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "An enumerator representing data in array\r\n"
+          "type": "stdEnumerator",
+          "description": "An enumerator representing data in array"
         },
         "deprecation": {
           "status": false,
@@ -5565,8 +5565,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "An enumerator representing variants in the IEnumVARIANT\r\n"
+          "type": "stdEnumerator",
+          "description": "An enumerator representing variants in the IEnumVARIANT"
         },
         "deprecation": {
           "status": false,
@@ -5596,8 +5596,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "An empty enumerator\r\n"
+          "type": "stdEnumerator",
+          "description": "An empty enumerator"
         },
         "deprecation": {
           "status": false,
@@ -5635,8 +5635,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Enumerator representing ListObject data\r\n"
+          "type": "stdEnumerator",
+          "description": "Enumerator representing ListObject data"
         },
         "deprecation": {
           "status": false,
@@ -5674,8 +5674,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Flat enumerator of all objects in the tree.\r\n"
+          "type": "stdEnumerator",
+          "description": "Flat enumerator of all objects in the tree."
         },
         "deprecation": {
           "status": false,
@@ -5707,8 +5707,8 @@
           }
         ],
         "returns": {
-          "type": " stdEnumerator<Object<Scripting.Dictionary<key: string, value: variant>>> ",
-          "description": "An enumerator representing the dictionary data\r\n"
+          "type": "stdEnumerator<Object<Scripting.Dictionary<key: string, value: variant>>>",
+          "description": "An enumerator representing the dictionary data"
         },
         "deprecation": {
           "status": false,
@@ -5798,8 +5798,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "A fiber procedure - A reference to the fiber the step has been added to\r\n"
+          "type": "stdFiber",
+          "description": "A fiber procedure - A reference to the fiber the step has been added to"
         },
         "deprecation": {
           "status": false,
@@ -5829,8 +5829,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "A fiber procedure - A reference to the fiber the step has been added to, to allow chaining\r\n"
+          "type": "stdFiber",
+          "description": "A fiber procedure - A reference to the fiber the step has been added to, to allow chaining"
         },
         "deprecation": {
           "status": false,
@@ -5860,8 +5860,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "A fiber procedure - A reference to the fiber the step has been added to, to allow chaining\r\n"
+          "type": "stdFiber",
+          "description": "A fiber procedure - A reference to the fiber the step has been added to, to allow chaining"
         },
         "deprecation": {
           "status": false,
@@ -5979,8 +5979,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Collection of results of ran fiber procedures. You can use the variant from param1 if you need to check for errors using ErrorText.\r\n"
+          "type": "Collection",
+          "description": "Collection of results of ran fiber procedures. You can use the variant from param1 if you need to check for errors using ErrorText."
         },
         "deprecation": {
           "status": false,
@@ -6032,8 +6032,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "The number of times this fiber has been reset.\r\n"
+          "type": "Long",
+          "description": "The number of times this fiber has been reset."
         },
         "deprecation": {
           "status": false,
@@ -6055,8 +6055,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "The result of this fiber\r\n"
+          "type": "Variant",
+          "description": "The result of this fiber"
         },
         "deprecation": {
           "status": false,
@@ -6078,8 +6078,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "The error text\r\n"
+          "type": "String",
+          "description": "The error text"
         },
         "deprecation": {
           "status": false,
@@ -6101,8 +6101,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "The metadata object\r\n"
+          "type": "Object",
+          "description": "The metadata object"
         },
         "deprecation": {
           "status": false,
@@ -6124,8 +6124,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "The current step\r\n"
+          "type": "Long",
+          "description": "The current step"
         },
         "deprecation": {
           "status": false,
@@ -6147,8 +6147,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "The name of the fiber step\r\n"
+          "type": "String",
+          "description": "The name of the fiber step"
         },
         "deprecation": {
           "status": false,
@@ -6170,8 +6170,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "The duration of the fiber procedure in seconds\r\n"
+          "type": "Long",
+          "description": "The duration of the fiber procedure in seconds"
         },
         "deprecation": {
           "status": false,
@@ -6193,8 +6193,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "The duration of the fibers entire runtime in seconds\r\n"
+          "type": "Long",
+          "description": "The duration of the fibers entire runtime in seconds"
         },
         "deprecation": {
           "status": false,
@@ -6216,8 +6216,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "`True` if the fiber has finished, `False` otherwise\r\n"
+          "type": "Boolean",
+          "description": "`True` if the fiber has finished, `False` otherwise"
         },
         "deprecation": {
           "status": false,
@@ -6239,8 +6239,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "The name of the fiber\r\n"
+          "type": "String",
+          "description": "The name of the fiber"
         },
         "deprecation": {
           "status": false,
@@ -6262,8 +6262,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "The agent information. \r\n"
+          "type": "Object",
+          "description": "The agent information."
         },
         "deprecation": {
           "status": false,
@@ -6303,8 +6303,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "A fiber procedure - a wrapper around a number of procedures used for concurrent programming.\r\n"
+          "type": "stdFiber",
+          "description": "A fiber procedure - a wrapper around a number of procedures used for concurrent programming."
         },
         "deprecation": {
           "status": false,
@@ -6342,8 +6342,8 @@
           }
         ],
         "returns": {
-          "type": " Object<Dictionary> ",
-          "description": "A dictionary of headers\r\n"
+          "type": "Object<Dictionary>",
+          "description": "A dictionary of headers"
         },
         "deprecation": {
           "status": false,
@@ -6421,8 +6421,8 @@
           }
         ],
         "returns": {
-          "type": " Object<Dictionary> ",
-          "description": "A dictionary of options\r\n"
+          "type": "Object<Dictionary>",
+          "description": "A dictionary of options"
         },
         "deprecation": {
           "status": false,
@@ -6484,8 +6484,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Proxy information object\r\n"
+          "type": "Void",
+          "description": "Proxy information object"
         },
         "deprecation": {
           "status": false,
@@ -6506,8 +6506,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "The request/response object\r\n"
+          "type": "stdHTTP",
+          "description": "The request/response object"
         },
         "deprecation": {
           "status": false,
@@ -6537,8 +6537,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "The encoded string\r\n"
+          "type": "String",
+          "description": "The encoded string"
         },
         "deprecation": {
           "status": false,
@@ -6568,8 +6568,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "The decoded string\r\n"
+          "type": "String",
+          "description": "The decoded string"
         },
         "deprecation": {
           "status": false,
@@ -6593,8 +6593,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "`True` if the request has finished, `False` otherwise.\r\n"
+          "type": "Boolean",
+          "description": "`True` if the request has finished, `False` otherwise."
         },
         "deprecation": {
           "status": false,
@@ -6616,8 +6616,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "The response status code\r\n"
+          "type": "Void",
+          "description": "The response status code"
         },
         "deprecation": {
           "status": false,
@@ -6639,8 +6639,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "The response status text\r\n"
+          "type": "Void",
+          "description": "The response status text"
         },
         "deprecation": {
           "status": false,
@@ -6662,8 +6662,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "The response text\r\n"
+          "type": "Void",
+          "description": "The response text"
         },
         "deprecation": {
           "status": false,
@@ -6685,8 +6685,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "The response body\r\n"
+          "type": "Void",
+          "description": "The response body"
         },
         "deprecation": {
           "status": false,
@@ -6717,8 +6717,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "The response header\r\n"
+          "type": "Variant",
+          "description": "The response header"
         },
         "deprecation": {
           "status": false,
@@ -6740,8 +6740,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "All response headers\r\n"
+          "type": "Object",
+          "description": "All response headers"
         },
         "deprecation": {
           "status": false,
@@ -6859,8 +6859,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "A http request object\r\n"
+          "type": "stdHTTP",
+          "description": "A http request object"
         },
         "deprecation": {
           "status": false,
@@ -7217,8 +7217,8 @@
           }
         ],
         "returns": {
-          "type": "      ",
-          "description": "The result of the function\r\n"
+          "type": "variant",
+          "description": "The result of the function"
         },
         "deprecation": {
           "status": false,
@@ -7248,8 +7248,8 @@
           }
         ],
         "returns": {
-          "type": "                                 ",
-          "description": "The result of the function\r\n"
+          "type": "variant",
+          "description": "The result of the function"
         },
         "deprecation": {
           "status": false,
@@ -7279,8 +7279,8 @@
           }
         ],
         "returns": {
-          "type": "      ",
-          "description": "A new function with the parameters bound\r\n"
+          "type": "variant",
+          "description": "A new function with the parameters bound"
         },
         "deprecation": {
           "status": false,
@@ -7326,8 +7326,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Any return value.\r\n"
+          "type": "Variant",
+          "description": "Any return value."
         },
         "deprecation": {
           "status": false,
@@ -7423,8 +7423,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Binary data of image, ready to load into a file\r\n"
+          "type": "Byte",
+          "description": "Binary data of image, ready to load into a file"
         },
         "deprecation": {
           "status": false,
@@ -7494,8 +7494,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "The path to the temporary file.\r\n"
+          "type": "String",
+          "description": "The path to the temporary file."
         },
         "deprecation": {
           "status": false,
@@ -7549,8 +7549,8 @@
           }
         ],
         "returns": {
-          "type": " Object<Picture> ",
-          "description": "Picture object\r\n"
+          "type": "Object<Picture>",
+          "description": "Picture object"
         },
         "deprecation": {
           "status": false,
@@ -7610,8 +7610,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Data URL of the image\r\n"
+          "type": "String",
+          "description": "Data URL of the image"
         },
         "deprecation": {
           "status": false,
@@ -7662,8 +7662,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "Obtain the image as a stdole.StdPicture\r\n"
+          "type": "stdole",
+          "description": "Obtain the image as a stdole.StdPicture"
         },
         "deprecation": {
           "status": false,
@@ -7689,8 +7689,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " stdole.StdPicture ",
-          "description": "Obtain the image as a stdole.StdPicture\r\n"
+          "type": "stdole.StdPicture",
+          "description": "Obtain the image as a stdole.StdPicture"
         },
         "deprecation": {
           "status": false,
@@ -7735,8 +7735,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ARGB() ",
-          "description": "2D array of colors. Colors ordered from (1,1) = bottom-left, (1,height) = top-left, across to (width, height) = top-right.\r\n"
+          "type": "ARGB()",
+          "description": "2D array of colors. Colors ordered from (1,1) = bottom-left, (1,height) = top-left, across to (width, height) = top-right."
         },
         "deprecation": {
           "status": false,
@@ -7784,8 +7784,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Picture object representing data\r\n"
+          "type": "Byte",
+          "description": "Picture object representing data"
         },
         "deprecation": {
           "status": false,
@@ -7825,8 +7825,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Picture object representing data\r\n"
+          "type": "stdImage",
+          "description": "Picture object representing data"
         },
         "deprecation": {
           "status": false,
@@ -7868,8 +7868,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Picture object representing data\r\n"
+          "type": "stdImage",
+          "description": "Picture object representing data"
         },
         "deprecation": {
           "status": false,
@@ -7901,8 +7901,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Picture object representing data\r\n"
+          "type": "stdImage",
+          "description": "Picture object representing data"
         },
         "deprecation": {
           "status": false,
@@ -7925,8 +7925,8 @@
         ],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "Picture object representing data\r\n"
+          "type": "stdImage",
+          "description": "Picture object representing data"
         },
         "deprecation": {
           "status": false,
@@ -7958,8 +7958,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Picture object representing data\r\n"
+          "type": "stdImage",
+          "description": "Picture object representing data"
         },
         "deprecation": {
           "status": false,
@@ -7991,8 +7991,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Picture object representing data\r\n"
+          "type": "stdImage",
+          "description": "Picture object representing data"
         },
         "deprecation": {
           "status": false,
@@ -8024,8 +8024,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Picture object representing data\r\n"
+          "type": "stdImage",
+          "description": "Picture object representing data"
         },
         "deprecation": {
           "status": false,
@@ -8057,8 +8057,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Picture object representing data\r\n"
+          "type": "stdImage",
+          "description": "Picture object representing data"
         },
         "deprecation": {
           "status": false,
@@ -8090,8 +8090,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Picture object representing data\r\n"
+          "type": "stdImage",
+          "description": "Picture object representing data"
         },
         "deprecation": {
           "status": false,
@@ -8123,8 +8123,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Picture object representing data\r\n"
+          "type": "stdImage",
+          "description": "Picture object representing data"
         },
         "deprecation": {
           "status": false,
@@ -8147,8 +8147,8 @@
         ],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "Picture object containing screenshot data\r\n"
+          "type": "stdImage",
+          "description": "Picture object containing screenshot data"
         },
         "deprecation": {
           "status": false,
@@ -8186,8 +8186,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Picture object representing data\r\n"
+          "type": "stdImage",
+          "description": "Picture object representing data"
         },
         "deprecation": {
           "status": false,
@@ -8219,8 +8219,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Picture object representing data\r\n"
+          "type": "stdImage",
+          "description": "Picture object representing data"
         },
         "deprecation": {
           "status": false,
@@ -8260,8 +8260,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "if value was a stdJSON, this is returned, else `Nothing`.\r\n"
+          "type": "Void",
+          "description": "if value was a stdJSON, this is returned, else `Nothing`."
         },
         "deprecation": {
           "status": false,
@@ -8301,8 +8301,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "The array created\r\n"
+          "type": "stdJSON",
+          "description": "The array created"
         },
         "deprecation": {
           "status": false,
@@ -8332,8 +8332,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "The object created\r\n"
+          "type": "stdJSON",
+          "description": "The object created"
         },
         "deprecation": {
           "status": false,
@@ -8356,8 +8356,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "The children of this JSON object of the form [{key: string, value: variant, isJSON: boolean},...]\r\n"
+          "type": "Collection",
+          "description": "The children of this JSON object of the form [{key: string, value: variant, isJSON: boolean},...]"
         },
         "deprecation": {
           "status": false,
@@ -8403,8 +8403,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "JSON encoded data.\r\n"
+          "type": "String",
+          "description": "JSON encoded data."
         },
         "deprecation": {
           "status": false,
@@ -8461,8 +8461,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " Object<Collection|Dictionary> ",
-          "description": "`Dictionary` if `eJSONObject`, `Collection` if `eJSONArray`\r\n"
+          "type": "Object<Collection|Dictionary>",
+          "description": "`Dictionary` if `eJSONObject`, `Collection` if `eJSONArray`"
         },
         "deprecation": {
           "status": false,
@@ -8507,8 +8507,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "The enumerator to iterate over\r\n"
+          "type": "IUnknown",
+          "description": "The enumerator to iterate over"
         },
         "deprecation": {
           "status": false,
@@ -8532,8 +8532,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "The JSON type\r\n"
+          "type": "EStdJsonType",
+          "description": "The JSON type"
         },
         "deprecation": {
           "status": false,
@@ -8555,8 +8555,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "The length of the JSON object\r\n"
+          "type": "Long",
+          "description": "The length of the JSON object"
         },
         "deprecation": {
           "status": false,
@@ -8587,8 +8587,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "The item for the key or index\r\n"
+          "type": "Variant",
+          "description": "The item for the key or index"
         },
         "deprecation": {
           "status": false,
@@ -8619,8 +8619,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Whether the key or index exists\r\n"
+          "type": "Boolean",
+          "description": "Whether the key or index exists"
         },
         "deprecation": {
           "status": false,
@@ -8658,8 +8658,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "stdJSON object of the specified type.\r\n"
+          "type": "stdJSON",
+          "description": "stdJSON object of the specified type."
         },
         "deprecation": {
           "status": false,
@@ -8716,8 +8716,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "`stdJSON` object from string.\r\n"
+          "type": "stdJSON",
+          "description": "`stdJSON` object from string."
         },
         "deprecation": {
           "status": false,
@@ -8747,8 +8747,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "stdJSON object from file data.\r\n"
+          "type": "stdJSON",
+          "description": "stdJSON object from file data."
         },
         "deprecation": {
           "status": false,
@@ -8778,8 +8778,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "stdJSON object from variant data.\r\n"
+          "type": "stdJSON",
+          "description": "stdJSON object from variant data."
         },
         "deprecation": {
           "status": false,
@@ -8817,8 +8817,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Created json object\r\n"
+          "type": "Void",
+          "description": "Created json object"
         },
         "deprecation": {
           "status": false,
@@ -8892,8 +8892,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "The result of the lambda\r\n"
+          "type": "Variant",
+          "description": "The result of the lambda"
         },
         "deprecation": {
           "status": false,
@@ -8923,8 +8923,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "The result of the lambda\r\n"
+          "type": "Variant",
+          "description": "The result of the lambda"
         },
         "deprecation": {
           "status": false,
@@ -8954,8 +8954,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "The lambda \r\n"
+          "type": "Variant",
+          "description": "The lambda"
         },
         "deprecation": {
           "status": false,
@@ -8985,8 +8985,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "The lambda existing lambda\r\n"
+          "type": "stdLambda",
+          "description": "The lambda existing lambda"
         },
         "deprecation": {
           "status": false,
@@ -9024,8 +9024,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "The lambda existing lambda\r\n"
+          "type": "stdLambda",
+          "description": "The lambda existing lambda"
         },
         "deprecation": {
           "status": false,
@@ -9068,8 +9068,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " Object<Dictionary<string,stdICallable> | Dictionary<string,variant>> ",
-          "description": "Dictionary of functions and named global variables\r\n"
+          "type": "Object<Dictionary<string,stdICallable> | Dictionary<string,variant>>",
+          "description": "Dictionary of functions and named global variables"
         },
         "deprecation": {
           "status": false,
@@ -9144,8 +9144,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "A first class object representing the equation. Can be called with `.Run(param1, param2, ...)` or `.RunEx(params)`\r\n"
+          "type": "stdLambda",
+          "description": "A first class object representing the equation. Can be called with `.Run(param1, param2, ...)` or `.RunEx(params)`"
         },
         "deprecation": {
           "status": false,
@@ -9193,8 +9193,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "A first class object representing the equation. Can be called with `.Run(param1, param2, ...)` or `.RunEx(params)`\r\n"
+          "type": "stdLambda",
+          "description": "A first class object representing the equation. Can be called with `.Run(param1, param2, ...)` or `.RunEx(params)`"
         },
         "deprecation": {
           "status": false,
@@ -9225,7 +9225,7 @@
           {
             "name": "objType",
             "type": "EPerfObjType",
-            "description": "Type of performance object to initialise.\r\n\r\n* iMeasure - used for measuring performance",
+            "description": "Type of performance object to initialise.\r\n\r\n* iMeasure - used for measuring performance\r\n* iOptimiser - used for optimising performance",
             "optional": false,
             "defaultValue": null,
             "paramArray": false
@@ -9336,8 +9336,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Average measurement time\r\n"
+          "type": "Double",
+          "description": "Average measurement time"
         },
         "deprecation": {
           "status": false,
@@ -9359,8 +9359,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " Array<String> ",
-          "description": "Array containing the procedures or blocks that have been measured.\r\n"
+          "type": "Array<String>",
+          "description": "Array containing the procedures or blocks that have been measured."
         },
         "deprecation": {
           "status": false,
@@ -9412,8 +9412,8 @@
           }
         ],
         "returns": {
-          "type": " stdPerformance<iMeasure> ",
-          "description": "Object which upon termination, adds measurement of block to global cache\r\n"
+          "type": "stdPerformance<iMeasure>",
+          "description": "Object which upon termination, adds measurement of block to global cache"
         },
         "deprecation": {
           "status": false,
@@ -9463,8 +9463,8 @@
           }
         ],
         "returns": {
-          "type": " stdPerformance<iOptimiser> ",
-          "description": "Object termination has special behaviour. See Measure and Optimise methods for further details.\r\n"
+          "type": "stdPerformance<iOptimiser>",
+          "description": "Object termination has special behaviour. See Measure and Optimise methods for further details."
         },
         "deprecation": {
           "status": false,
@@ -9543,8 +9543,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": "  ",
-          "description": "the process id\r\n"
+          "type": "Long",
+          "description": "the process id"
         },
         "deprecation": {
           "status": false,
@@ -9566,8 +9566,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "the process name\r\n"
+          "type": "String",
+          "description": "the process name"
         },
         "deprecation": {
           "status": false,
@@ -9589,8 +9589,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "the process path\r\n"
+          "type": "String",
+          "description": "the process path"
         },
         "deprecation": {
           "status": false,
@@ -9612,8 +9612,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " Object<SWbemObjectEx> ",
-          "description": "The Winmgmts object representing the process\r\n"
+          "type": "Object<SWbemObjectEx>",
+          "description": "The Winmgmts object representing the process"
         },
         "deprecation": {
           "status": false,
@@ -9635,8 +9635,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "The string which originally contained the command line arguments passed to this application.\r\n"
+          "type": "String",
+          "description": "The string which originally contained the command line arguments passed to this application."
         },
         "deprecation": {
           "status": false,
@@ -9658,8 +9658,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "`true` if the process is still running, `false` otherwise\r\n"
+          "type": "Boolean",
+          "description": "`true` if the process is still running, `false` otherwise"
         },
         "deprecation": {
           "status": false,
@@ -9681,8 +9681,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "`true` if the process is critical, `false` otherwise\r\n"
+          "type": "Boolean",
+          "description": "`true` if the process is critical, `false` otherwise"
         },
         "deprecation": {
           "status": false,
@@ -9704,8 +9704,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "the process' priority\r\n"
+          "type": "EProcessPriority",
+          "description": "the process' priority"
         },
         "deprecation": {
           "status": false,
@@ -9727,8 +9727,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "The datetime representing the time the process was started/created\r\n"
+          "type": "Date",
+          "description": "The datetime representing the time the process was started/created"
         },
         "deprecation": {
           "status": false,
@@ -9750,8 +9750,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "The datetime representing the time the process was quit\r\n"
+          "type": "Date",
+          "description": "The datetime representing the time the process was quit"
         },
         "deprecation": {
           "status": false,
@@ -9773,8 +9773,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "The datetime representing the kernel time\r\n"
+          "type": "Date",
+          "description": "The datetime representing the kernel time"
         },
         "deprecation": {
           "status": false,
@@ -9796,8 +9796,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "The datetime representing the user time\r\n"
+          "type": "Date",
+          "description": "The datetime representing the user time"
         },
         "deprecation": {
           "status": false,
@@ -9819,8 +9819,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "the exit code provided at runtime\r\n"
+          "type": "Long",
+          "description": "the exit code provided at runtime"
         },
         "deprecation": {
           "status": false,
@@ -9869,8 +9869,8 @@
           }
         ],
         "returns": {
-          "type": "        ",
-          "description": "The launched process\r\n"
+          "type": "stdProcess",
+          "description": "The launched process"
         },
         "deprecation": {
           "status": false,
@@ -9900,8 +9900,8 @@
           }
         ],
         "returns": {
-          "type": "   ",
-          "description": "the queried process\r\n"
+          "type": "stdProcess",
+          "description": "the queried process"
         },
         "deprecation": {
           "status": false,
@@ -9931,8 +9931,8 @@
           }
         ],
         "returns": {
-          "type": "     ",
-          "description": "the queried process\r\n"
+          "type": "stdProcess",
+          "description": "the queried process"
         },
         "deprecation": {
           "status": false,
@@ -9962,8 +9962,8 @@
           }
         ],
         "returns": {
-          "type": " Collection<stdProcess> ",
-          "description": "the queried processes\r\n"
+          "type": "Collection<stdProcess>",
+          "description": "the queried processes"
         },
         "deprecation": {
           "status": false,
@@ -9984,8 +9984,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " Collection<stdProcess> ",
-          "description": "All processes\r\n"
+          "type": "Collection<stdProcess>",
+          "description": "All processes"
         },
         "deprecation": {
           "status": false,
@@ -10099,8 +10099,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "True if inserted into the tree, false if error e.g. out of bounds.\r\n"
+          "type": "Boolean",
+          "description": "True if inserted into the tree, false if error e.g. out of bounds."
         },
         "deprecation": {
           "status": false,
@@ -10146,8 +10146,8 @@
           }
         ],
         "returns": {
-          "type": " Collection<Variant<Array1D<xcoord, ycoord, metadata>>> ",
-          "description": "The points found within the range\r\n"
+          "type": "Collection<Variant<Array1D<xcoord, ycoord, metadata>>>",
+          "description": "The points found within the range"
         },
         "deprecation": {
           "status": false,
@@ -10201,8 +10201,8 @@
           }
         ],
         "returns": {
-          "type": " Collection<Variant<Array1D<xcoord, ycoord, metadata>>> ",
-          "description": "The points found within the bounds\r\n"
+          "type": "Collection<Variant<Array1D<xcoord, ycoord, metadata>>>",
+          "description": "The points found within the bounds"
         },
         "deprecation": {
           "status": false,
@@ -10275,8 +10275,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Quadtree instance\r\n"
+          "type": "stdQuadTree",
+          "description": "Quadtree instance"
         },
         "deprecation": {
           "status": false,
@@ -10346,8 +10346,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Quadtree instance\r\n"
+          "type": "stdQuadTree",
+          "description": "Quadtree instance"
         },
         "deprecation": {
           "status": false,
@@ -10385,8 +10385,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "The array by reference\r\n"
+          "type": "stdRefArray",
+          "description": "The array by reference"
         },
         "deprecation": {
           "status": false,
@@ -10490,8 +10490,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "Name of registry key\r\n"
+          "type": "String",
+          "description": "Name of registry key"
         },
         "deprecation": {
           "status": false,
@@ -10513,8 +10513,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "Type of registry Either `ERegistryType.iKey` or `ERegistryType.iItem`.\r\n"
+          "type": "ERegistryType",
+          "description": "Type of registry Either `ERegistryType.iKey` or `ERegistryType.iItem`."
         },
         "deprecation": {
           "status": false,
@@ -10536,8 +10536,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "Whether registry key/item is root\r\n"
+          "type": "Boolean",
+          "description": "Whether registry key/item is root"
         },
         "deprecation": {
           "status": false,
@@ -10559,8 +10559,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "Path of the registry key/item\r\n"
+          "type": "String",
+          "description": "Path of the registry key/item"
         },
         "deprecation": {
           "status": false,
@@ -10582,8 +10582,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "Parent of the registry key/item\r\n"
+          "type": "stdReg",
+          "description": "Parent of the registry key/item"
         },
         "deprecation": {
           "status": false,
@@ -10605,8 +10605,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " Collection<stdReg> ",
-          "description": "Collection of stdReg keys and items\r\n"
+          "type": "Collection<stdReg>",
+          "description": "Collection of stdReg keys and items"
         },
         "deprecation": {
           "status": false,
@@ -10637,8 +10637,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " Collection<stdReg> ",
-          "description": "Collection of stdReg keys\r\n"
+          "type": "Collection<stdReg>",
+          "description": "Collection of stdReg keys"
         },
         "deprecation": {
           "status": false,
@@ -10665,8 +10665,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " Collection<stdReg> ",
-          "description": "Collection of stdReg items\r\n"
+          "type": "Collection<stdReg>",
+          "description": "Collection of stdReg items"
         },
         "deprecation": {
           "status": false,
@@ -10693,8 +10693,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "Type of stdReg Item\r\n"
+          "type": "ERegistryValueType",
+          "description": "Type of stdReg Item"
         },
         "deprecation": {
           "status": false,
@@ -10721,8 +10721,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "Value of stdReg Item\r\n"
+          "type": "Variant",
+          "description": "Value of stdReg Item"
         },
         "deprecation": {
           "status": false,
@@ -10794,8 +10794,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "`stdReg` object\r\n"
+          "type": "stdReg",
+          "description": "`stdReg` object"
         },
         "deprecation": {
           "status": false,
@@ -10841,8 +10841,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "`stdReg` object representing registry key\r\n"
+          "type": "stdReg",
+          "description": "`stdReg` object representing registry key"
         },
         "deprecation": {
           "status": false,
@@ -10888,8 +10888,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "`stdReg` object representing registry value\r\n"
+          "type": "stdReg",
+          "description": "`stdReg` object representing registry value"
         },
         "deprecation": {
           "status": false,
@@ -10929,8 +10929,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "`True` if the regex pattern is present, `false` otherwise.\r\n"
+          "type": "Boolean",
+          "description": "`True` if the regex pattern is present, `false` otherwise."
         },
         "deprecation": {
           "status": false,
@@ -10962,8 +10962,8 @@
           }
         ],
         "returns": {
-          "type": " Object<Dictionary<string|number,string>> ",
-          "description": "A dictionary containing the match, submatches, named matches, Count and Raw match object\r\n"
+          "type": "Object<Dictionary<string|number,string>>",
+          "description": "A dictionary containing the match, submatches, named matches, Count and Raw match object"
         },
         "deprecation": {
           "status": false,
@@ -10995,8 +10995,8 @@
           }
         ],
         "returns": {
-          "type": " Collection<Object<Dictionary<string|number,string>>> ",
-          "description": "An array of strings which match the regex.\r\n"
+          "type": "Collection<Object<Dictionary<string|number,string>>>",
+          "description": "An array of strings which match the regex."
         },
         "deprecation": {
           "status": false,
@@ -11036,8 +11036,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "The haystack with replaced details.\r\n"
+          "type": "String",
+          "description": "The haystack with replaced details."
         },
         "deprecation": {
           "status": false,
@@ -11077,8 +11077,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "A list of strings matched.\r\n"
+          "type": "String",
+          "description": "A list of strings matched."
         },
         "deprecation": {
           "status": false,
@@ -11116,8 +11116,8 @@
           }
         ],
         "returns": {
-          "type": " Variant<Array[2d]<String>> ",
-          "description": "All matches as a 2d array. Useful especially for dumping matches to Excel.\r\n"
+          "type": "Variant<Array[2d]<String>>",
+          "description": "All matches as a 2d array. Useful especially for dumping matches to Excel."
         },
         "deprecation": {
           "status": false,
@@ -11141,8 +11141,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "Pattern for regex\r\n"
+          "type": "String",
+          "description": "Pattern for regex"
         },
         "deprecation": {
           "status": false,
@@ -11164,8 +11164,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "Flags for regex\r\n"
+          "type": "String",
+          "description": "Flags for regex"
         },
         "deprecation": {
           "status": false,
@@ -11215,8 +11215,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Regular expression object\r\n"
+          "type": "stdRegex",
+          "description": "Regular expression object"
         },
         "deprecation": {
           "status": false,
@@ -11334,8 +11334,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "The sentry\r\n"
+          "type": "Variant",
+          "description": "The sentry"
         },
         "deprecation": {
           "status": false,
@@ -11365,8 +11365,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "The sentry\r\n"
+          "type": "stdSentry",
+          "description": "The sentry"
         },
         "deprecation": {
           "status": false,
@@ -11396,8 +11396,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "The sentry\r\n"
+          "type": "Variant",
+          "description": "The sentry"
         },
         "deprecation": {
           "status": false,
@@ -11427,8 +11427,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "The sentry\r\n"
+          "type": "stdSentry",
+          "description": "The sentry"
         },
         "deprecation": {
           "status": false,
@@ -11474,8 +11474,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Any return value.\r\n"
+          "type": "Variant",
+          "description": "Any return value."
         },
         "deprecation": {
           "status": false,
@@ -11532,8 +11532,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "The sentry factory\r\n"
+          "type": "stdSentry",
+          "description": "The sentry factory"
         },
         "deprecation": {
           "status": false,
@@ -11581,8 +11581,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "A sentry which will restore the original settings when destroyed.\r\n"
+          "type": "stdSentry",
+          "description": "A sentry which will restore the original settings when destroyed."
         },
         "deprecation": {
           "status": false,
@@ -11632,8 +11632,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "The sentry\r\n"
+          "type": "stdSentry",
+          "description": "The sentry"
         },
         "deprecation": {
           "status": false,
@@ -11667,8 +11667,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "The sentry\r\n"
+          "type": "stdSentry",
+          "description": "The sentry"
         },
         "deprecation": {
           "status": false,
@@ -11702,8 +11702,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "The sentry\r\n"
+          "type": "stdSentry",
+          "description": "The sentry"
         },
         "deprecation": {
           "status": false,
@@ -11737,8 +11737,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "The sentry\r\n"
+          "type": "stdSentry",
+          "description": "The sentry"
         },
         "deprecation": {
           "status": false,
@@ -11883,8 +11883,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "The frequency isn't guaranteed but it will be as close as humanly possible.\r\n"
+          "type": "stdTimer",
+          "description": "The frequency isn't guaranteed but it will be as close as humanly possible."
         },
         "deprecation": {
           "status": false,
@@ -11925,8 +11925,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "The type of input control\r\n"
+          "type": "EUIElementType",
+          "description": "The type of input control"
         },
         "deprecation": {
           "status": false,
@@ -11948,8 +11948,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "The control object\r\n"
+          "type": "Control",
+          "description": "The control object"
         },
         "deprecation": {
           "status": false,
@@ -11971,8 +11971,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "The ui object raw item / event sink\r\n"
+          "type": "Object",
+          "description": "The ui object raw item / event sink"
         },
         "deprecation": {
           "status": false,
@@ -11994,8 +11994,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "The value of the control\r\n"
+          "type": "Variant",
+          "description": "The value of the control"
         },
         "deprecation": {
           "status": false,
@@ -12017,8 +12017,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "The caption of the control\r\n"
+          "type": "String",
+          "description": "The caption of the control"
         },
         "deprecation": {
           "status": false,
@@ -12040,8 +12040,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "The left position of the control\r\n"
+          "type": "Double",
+          "description": "The left position of the control"
         },
         "deprecation": {
           "status": false,
@@ -12063,8 +12063,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "The top position of the control\r\n"
+          "type": "Double",
+          "description": "The top position of the control"
         },
         "deprecation": {
           "status": false,
@@ -12086,8 +12086,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "The width of the control\r\n"
+          "type": "Double",
+          "description": "The width of the control"
         },
         "deprecation": {
           "status": false,
@@ -12109,8 +12109,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "The height of the control\r\n"
+          "type": "Double",
+          "description": "The height of the control"
         },
         "deprecation": {
           "status": false,
@@ -12132,8 +12132,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "The id of the control. This is a generated GUID\r\n"
+          "type": "String",
+          "description": "The id of the control. This is a generated GUID"
         },
         "deprecation": {
           "status": false,
@@ -12184,8 +12184,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "The UI Element\r\n"
+          "type": "stdUIElement",
+          "description": "The UI Element"
         },
         "deprecation": {
           "status": false,
@@ -12279,8 +12279,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "The UI Element\r\n"
+          "type": "stdUIElement",
+          "description": "The UI Element"
         },
         "deprecation": {
           "status": false,
@@ -12461,8 +12461,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "The url of the websocket\r\n"
+          "type": "String",
+          "description": "The url of the websocket"
         },
         "deprecation": {
           "status": false,
@@ -12502,8 +12502,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "The new WebSocket object.\r\n"
+          "type": "stdWebSocket",
+          "description": "The new WebSocket object."
         },
         "deprecation": {
           "status": false,
@@ -12634,8 +12634,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " Object<stdAcc>|stdAcc ",
-          "description": "stdAcc object representing the window\r\n"
+          "type": "Object<stdAcc>|stdAcc",
+          "description": "stdAcc object representing the window"
         },
         "deprecation": {
           "status": false,
@@ -12656,8 +12656,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " Object<IAccessible> ",
-          "description": "IAccessible object representing the window\r\n"
+          "type": "Object<IAccessible>",
+          "description": "IAccessible object representing the window"
         },
         "deprecation": {
           "status": false,
@@ -12680,8 +12680,8 @@
         ],
         "params": [],
         "returns": {
-          "type": " Object<IAccessible> ",
-          "description": "IAccessible object representing the window\r\n"
+          "type": "Object<IAccessible>",
+          "description": "IAccessible object representing the window"
         },
         "deprecation": {
           "status": false,
@@ -12765,8 +12765,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Handle to the hook\r\n"
+          "type": "LongPtr",
+          "description": "Handle to the hook"
         },
         "deprecation": {
           "status": false,
@@ -12791,7 +12791,7 @@
           {
             "name": "query",
             "type": "stdICallable<(stdWindow,depth)=>EWndFindResult>",
-            "description": "Callback returning `EWndFindResult` options:\r\n\r\n * `EWndFindResult.NoMatchFound`/`0`/`False`        - Not found, countinue walking",
+            "description": "Callback returning `EWndFindResult` options:\r\n\r\n * `EWndFindResult.NoMatchFound`/`0`/`False`        - Not found, countinue walking\r\n * `EWndFindResult.MatchFound`/`1`/`-1`/`True`      - Found, return this element\r\n * `EWndFindResult.NoMatchCancelSearch`/`2`         - Not found, cancel search\r\n * `EWndFindResult.NoMatchSkipDescendents`/`3`,     - Not found, don't search descendents\r\n * `EWndFindResult.MatchFoundSearchDescendents`/`4` - Same as `EWndFindResult.MatchFound` in this case.",
             "optional": false,
             "defaultValue": null,
             "paramArray": false
@@ -12799,7 +12799,7 @@
           {
             "name": "searchType",
             "type": "EWndFindType",
-            "description": "The type of search, 0 for Breadth First Search (BFS) and 1 for Depth First Search (DFS).\r\n To understand the difference between BFS and DFS take this tree:",
+            "description": "The type of search, 0 for Breadth First Search (BFS) and 1 for Depth First Search (DFS).\r\n To understand the difference between BFS and DFS take this tree:\r\n```\r\n        A\r\n       / \\\r\n      B   C\r\n     /   / \\\r\n    D   E   F\r\n```\r\n * A BFS will walk this tree in the following order: A, B, C, D, E, F\r\n * A DFS will walk this tree in a different order:   A, C, F, E, B, D",
             "optional": true,
             "defaultValue": "EWndFindType.BreadthFirst",
             "paramArray": false
@@ -12814,8 +12814,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "First element found, or `Nothing` if no element found.\r\n"
+          "type": "stdWindow",
+          "description": "First element found, or `Nothing` if no element found."
         },
         "deprecation": {
           "status": false,
@@ -12840,7 +12840,7 @@
           {
             "name": "query",
             "type": "stdICallable<(stdWindow,depth)=>EWndFindResult>",
-            "description": "Callback returning `EWndFindResult` options:\r\n\r\n * `EWndFindResult.NoMatchFound`/`0`/`False`        - Not found, countinue walking",
+            "description": "Callback returning `EWndFindResult` options:\r\n\r\n * `EWndFindResult.NoMatchFound`/`0`/`False`        - Not found, countinue walking\r\n * `EWndFindResult.MatchFound`/`1`/`-1`/`True`      - Found, return this element, won't search descendents of elements found\r\n * `EWndFindResult.NoMatchCancelSearch`/`2`         - Not found, cancel search\r\n * `EWndFindResult.NoMatchSkipDescendents`/`3`,     - Not found, don't search descendents\r\n * `EWndFindResult.MatchFoundSearchDescendents`/`4` - Found, return this element, but continue searching descendents",
             "optional": false,
             "defaultValue": null,
             "paramArray": false
@@ -12848,7 +12848,7 @@
           {
             "name": "searchType",
             "type": "EWndFindType",
-            "description": "The type of search, 0 for Breadth First Search (BFS) and 1 for Depth First Search (DFS).\r\n To understand the difference between BFS and DFS take this tree:",
+            "description": "The type of search, 0 for Breadth First Search (BFS) and 1 for Depth First Search (DFS).\r\n To understand the difference between BFS and DFS take this tree:\r\n```\r\n        A\r\n       / \\\r\n      B   C\r\n     /   / \\\r\n    D   E   F\r\n```\r\n * A BFS will walk this tree in the following order: A, B, C, D, E, F\r\n * A DFS will walk this tree in a different order:   A, C, F, E, B, D",
             "optional": true,
             "defaultValue": "EWndFindType.BreadthFirst",
             "paramArray": false
@@ -12863,8 +12863,8 @@
           }
         ],
         "returns": {
-          "type": " Collection<stdWindow> ",
-          "description": "Collection of elements found, or `Nothing` if no element found.\r\n"
+          "type": "Collection<stdWindow>",
+          "description": "Collection of elements found, or `Nothing` if no element found."
         },
         "deprecation": {
           "status": false,
@@ -12885,8 +12885,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "All captions from a window concatenated together (DFS-ordering)\r\n"
+          "type": "String",
+          "description": "All captions from a window concatenated together (DFS-ordering)"
         },
         "deprecation": {
           "status": false,
@@ -12964,8 +12964,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " Collection<stdWindow> ",
-          "description": "Collection of descendents\r\n"
+          "type": "Collection<stdWindow>",
+          "description": "Collection of descendents"
         },
         "deprecation": {
           "status": false,
@@ -13030,8 +13030,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Result of SendMessage\r\n"
+          "type": "Long",
+          "description": "Result of SendMessage"
         },
         "deprecation": {
           "status": false,
@@ -13331,8 +13331,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Window awaited for\r\n"
+          "type": "stdWindow",
+          "description": "Window awaited for"
         },
         "deprecation": {
           "status": false,
@@ -13386,8 +13386,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "Window handle\r\n"
+          "type": "LongPtr",
+          "description": "Window handle"
         },
         "deprecation": {
           "status": false,
@@ -13409,8 +13409,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "Window display context\r\n"
+          "type": "LongPtr",
+          "description": "Window display context"
         },
         "deprecation": {
           "status": false,
@@ -13432,8 +13432,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "Window display context\r\n"
+          "type": "LongPtr",
+          "description": "Window display context"
         },
         "deprecation": {
           "status": false,
@@ -13455,8 +13455,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "`true` if window exists, `false` otherwise\r\n"
+          "type": "Boolean",
+          "description": "`true` if window exists, `false` otherwise"
         },
         "deprecation": {
           "status": false,
@@ -13478,8 +13478,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "`true` if window is hanging/frozen, `false` otherwise\r\n"
+          "type": "Boolean",
+          "description": "`true` if window is hanging/frozen, `false` otherwise"
         },
         "deprecation": {
           "status": false,
@@ -13501,8 +13501,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "Window caption\r\n"
+          "type": "String",
+          "description": "Window caption"
         },
         "deprecation": {
           "status": false,
@@ -13524,8 +13524,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "Window's win32 class\r\n"
+          "type": "String",
+          "description": "Window's win32 class"
         },
         "deprecation": {
           "status": false,
@@ -13547,8 +13547,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "`true` if window is visible, `false` otherwise\r\n"
+          "type": "Boolean",
+          "description": "`true` if window is visible, `false` otherwise"
         },
         "deprecation": {
           "status": false,
@@ -13570,8 +13570,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "Window state\r\n"
+          "type": "EWndState",
+          "description": "Window state"
         },
         "deprecation": {
           "status": false,
@@ -13593,8 +13593,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " Collection<stdWindow> ",
-          "description": "Collection of child windows\r\n"
+          "type": "Collection<stdWindow>",
+          "description": "Collection of child windows"
         },
         "deprecation": {
           "status": false,
@@ -13616,8 +13616,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " Array<Left: double, Top: double, Width: double, Height: double> ",
-          "description": "Client rect\r\n"
+          "type": "Array<Left: double, Top: double, Width: double, Height: double>",
+          "description": "Client rect"
         },
         "deprecation": {
           "status": false,
@@ -13641,8 +13641,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " Variant<Array<Left: double, Top: double, Width: double, Height: double>> ",
-          "description": "Window rect\r\n"
+          "type": "Variant<Array<Left: double, Top: double, Width: double, Height: double>>",
+          "description": "Window rect"
         },
         "deprecation": {
           "status": false,
@@ -13673,8 +13673,8 @@
           }
         ],
         "returns": {
-          "type": " Variant<Array<Left: double, Top: double, Width: double, Height: double>> ",
-          "description": "Window rect\r\n"
+          "type": "Variant<Array<Left: double, Top: double, Width: double, Height: double>>",
+          "description": "Window rect"
         },
         "deprecation": {
           "status": false,
@@ -13705,8 +13705,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "X position of window\r\n"
+          "type": "Long",
+          "description": "X position of window"
         },
         "deprecation": {
           "status": false,
@@ -13737,8 +13737,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Y position of window\r\n"
+          "type": "Long",
+          "description": "Y position of window"
         },
         "deprecation": {
           "status": false,
@@ -13769,8 +13769,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Width of window\r\n"
+          "type": "Long",
+          "description": "Width of window"
         },
         "deprecation": {
           "status": false,
@@ -13801,8 +13801,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Height of window\r\n"
+          "type": "Long",
+          "description": "Height of window"
         },
         "deprecation": {
           "status": false,
@@ -13824,8 +13824,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "Process ID\r\n"
+          "type": "Long",
+          "description": "Process ID"
         },
         "deprecation": {
           "status": false,
@@ -13847,8 +13847,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "Process name\r\n"
+          "type": "String",
+          "description": "Process name"
         },
         "deprecation": {
           "status": false,
@@ -13870,8 +13870,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "Parent window\r\n"
+          "type": "stdWindow",
+          "description": "Parent window"
         },
         "deprecation": {
           "status": false,
@@ -13920,8 +13920,8 @@
         ],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "Icon handle\r\n"
+          "type": "LongPtr",
+          "description": "Icon handle"
         },
         "deprecation": {
           "status": false,
@@ -13943,8 +13943,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "Searches up the window tree to find the top level window which is a direct child of the desktop window.\r\n"
+          "type": "stdWindow",
+          "description": "Searches up the window tree to find the top level window which is a direct child of the desktop window."
         },
         "deprecation": {
           "status": false,
@@ -13966,8 +13966,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "Window style\r\n"
+          "type": "Long",
+          "description": "Window style"
         },
         "deprecation": {
           "status": false,
@@ -13989,8 +13989,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "semi-colon delimited list of style names e.g. \"WS_BORDER;WS_CAPTION\"\r\n"
+          "type": "String",
+          "description": "semi-colon delimited list of style names e.g. \"WS_BORDER;WS_CAPTION\""
         },
         "deprecation": {
           "status": false,
@@ -14012,8 +14012,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "Window extended style\r\n"
+          "type": "Long",
+          "description": "Window extended style"
         },
         "deprecation": {
           "status": false,
@@ -14035,8 +14035,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "semi-colon delimited list of styleex names e.g. \"WS_EX_APPWINDOW;WS_EX_TOPMOST\"\r\n"
+          "type": "String",
+          "description": "semi-colon delimited list of styleex names e.g. \"WS_EX_APPWINDOW;WS_EX_TOPMOST\""
         },
         "deprecation": {
           "status": false,
@@ -14060,8 +14060,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "This is a pointer to a location where extra information is stored. Or ClientCreateStruct (for MDI windows), or null if no extra data required.\r\n"
+          "type": "LongPtr",
+          "description": "This is a pointer to a location where extra information is stored. Or ClientCreateStruct (for MDI windows), or null if no extra data required."
         },
         "deprecation": {
           "status": false,
@@ -14085,8 +14085,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "Window's WndProc\r\n"
+          "type": "LongPtr",
+          "description": "Window's WndProc"
         },
         "deprecation": {
           "status": false,
@@ -14108,8 +14108,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "`true` if window is resizable, `false` otherwise\r\n"
+          "type": "Boolean",
+          "description": "`true` if window is resizable, `false` otherwise"
         },
         "deprecation": {
           "status": false,
@@ -14131,8 +14131,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "`true` if window caption is visible, `false` otherwise\r\n"
+          "type": "Boolean",
+          "description": "`true` if window caption is visible, `false` otherwise"
         },
         "deprecation": {
           "status": false,
@@ -14298,8 +14298,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "`true` if window is a child window, `false` otherwise\r\n"
+          "type": "Boolean",
+          "description": "`true` if window is a child window, `false` otherwise"
         },
         "deprecation": {
           "status": false,
@@ -14321,8 +14321,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "`true` if window is a popup window, `false` otherwise\r\n"
+          "type": "Boolean",
+          "description": "`true` if window is a popup window, `false` otherwise"
         },
         "deprecation": {
           "status": false,
@@ -14344,8 +14344,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "`true` if window is topmost, `false` otherwise\r\n"
+          "type": "Boolean",
+          "description": "`true` if window is topmost, `false` otherwise"
         },
         "deprecation": {
           "status": false,
@@ -14369,8 +14369,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "`true` if window is an app window, `false` otherwise\r\n"
+          "type": "Boolean",
+          "description": "`true` if window is an app window, `false` otherwise"
         },
         "deprecation": {
           "status": false,
@@ -14392,8 +14392,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "`true` if window is a tool window, `false` otherwise\r\n"
+          "type": "Boolean",
+          "description": "`true` if window is a tool window, `false` otherwise"
         },
         "deprecation": {
           "status": false,
@@ -14534,8 +14534,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "The transparent color for the window. If isLayeredWindow is false, or the window's LayeredWindowFlags does not have the ChromaKey flag set, this will return -1.\r\n"
+          "type": "Long",
+          "description": "The transparent color for the window. If isLayeredWindow is false, or the window's LayeredWindowFlags does not have the ChromaKey flag set, this will return -1."
         },
         "deprecation": {
           "status": false,
@@ -14584,8 +14584,8 @@
         ],
         "params": [],
         "returns": {
-          "type": " Object<Shell.IWebBrowser2|Nothing> ",
-          "description": "Shell Window COM object\r\n"
+          "type": "Object<Shell.IWebBrowser2|Nothing>",
+          "description": "Shell Window COM object"
         },
         "deprecation": {
           "status": false,
@@ -14709,8 +14709,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "The created window\r\n"
+          "type": "stdWindow",
+          "description": "The created window"
         },
         "deprecation": {
           "status": false,
@@ -14782,8 +14782,8 @@
           }
         ],
         "returns": {
-          "type": "           ",
-          "description": "The created highlighting box\r\n"
+          "type": "stdWindow",
+          "description": "The created highlighting box"
         },
         "deprecation": {
           "status": false,
@@ -14813,8 +14813,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Specificed window.\r\n"
+          "type": "stdWindow",
+          "description": "Specificed window."
         },
         "deprecation": {
           "status": false,
@@ -14846,8 +14846,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Window object representing the current running application\r\n"
+          "type": "stdWindow",
+          "description": "Window object representing the current running application"
         },
         "deprecation": {
           "status": false,
@@ -14868,8 +14868,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "Desktop window\r\n"
+          "type": "stdWindow",
+          "description": "Desktop window"
         },
         "deprecation": {
           "status": false,
@@ -14907,8 +14907,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Window intersecting point.\r\n"
+          "type": "stdWindow",
+          "description": "Window intersecting point."
         },
         "deprecation": {
           "status": false,
@@ -14941,8 +14941,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Window specified by the object.\r\n"
+          "type": "stdWindow",
+          "description": "Window specified by the object."
         },
         "deprecation": {
           "status": false,
@@ -14972,8 +14972,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Window specified by IAccessible object\r\n"
+          "type": "stdWindow",
+          "description": "Window specified by IAccessible object"
         },
         "deprecation": {
           "status": false,
@@ -14994,8 +14994,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " ",
-          "description": "Window object representing the ContextMenu\r\n"
+          "type": "stdWindow",
+          "description": "Window object representing the ContextMenu"
         },
         "deprecation": {
           "status": false,
@@ -15027,8 +15027,8 @@
           }
         ],
         "returns": {
-          "type": " ",
-          "description": "Collection of visible windows for the process\r\n"
+          "type": "Collection",
+          "description": "Collection of visible windows for the process"
         },
         "deprecation": {
           "status": false,
@@ -15049,8 +15049,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": " Collection<stdWindow> ",
-          "description": "Collection of shell windows\r\n"
+          "type": "Collection<stdWindow>",
+          "description": "Collection of shell windows"
         },
         "deprecation": {
           "status": false,
