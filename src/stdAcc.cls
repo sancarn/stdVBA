@@ -8,6 +8,49 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
+'@module
+'@description A class used to automate objects which implement `IAccessible`.
+'All windows implement IAccessible, and many of their controls do as well. This class can be 
+'used to obtain information about these controls, and to automate them.
+'@example ```vb
+'Public Property Get isMacroRecording() As Boolean
+'  static statusBarPropPage as stdAcc
+'  if statusBarPropPage is nothing then
+'    Dim app As stdAcc: Set app = stdAcc.CreateFromApplication()
+'    Dim statusBar As stdAcc: Set statusBar = app.FindFirst(stdLambda.Create("$1.Name = ""Status Bar"" and $1.Role = ""ROLE_WINDOW"""), EAccFindType.BreadthFirst)
+'    Set statusBarPropPage = statusBar.FindFirst(stdLambda.Create("$1.Name = ""Status Bar"" and $1.Role = ""ROLE_PROPERTYPAGE"""))
+'  end if
+'  isMacroRecording = statusBarPropPage.FindFirst(stdLambda.Create("$1.Name like ""Macro Recording*""")).name <> "Macro Recording Not Recording"
+'End Property
+'```
+'@example ```vb
+'Public Sub clickRibbonButton(ByVal tabName As String, ByVal groupName As String, ByVal buttonName As String)
+'  Static tabs As stdAcc, groups As stdAcc
+'  If tabs Is Nothing Then
+'    Dim iAcc As Object: Set ia = Application.CommandBars("Ribbon")
+'    Dim winRibbon As stdAcc: Set winRibbon = stdAcc.CreateFromIAccessible(ia)
+'    Dim propPageRibbon As stdAcc: Set propPageRibbon = winRibbon.FindFirst(stdLambda.Create("$1.Name = ""Ribbon"" and $1.Role = ""ROLE_PROPERTYPAGE"""))
+'    
+'    Set tabs = propPageRibbon.FindFirst(stdLambda.Create("$1.Name = ""Ribbon Tabs"" and $1.Role = ""ROLE_PAGETABLIST"""))
+'    Set groups = propPageRibbon.FindFirst(stdLambda.Create("$1.Name = ""Lower Ribbon"" and $1.Role = ""ROLE_PANE"""))
+'  End If
+'  
+'  'Click on the tab button
+'  Call tabs.FindFirst(stdLambda.Create("$2.Name = $1 and $2.Role = ""ROLE_PAGETAB""").Bind(tabName)).DoDefaultAction
+'  
+'  'Await for the group
+'  Set Group = groups.AwaitForElement(stdLambda.Create("$2.Name = $1 and $2.Role = ""ROLE_TOOLBAR""").Bind(groupName), timeout:=500)
+'  If Not Group Is Nothing Then
+'    'Click the button
+'    Call Group.FindFirst(stdLambda.Create("$2.Name = $1 and $2.Role = ""ROLE_PUSHBUTTON""").Bind(buttonName)).DoDefaultAction
+'  Else
+'    Err.Raise 1, "clickRibbonButton", ""
+'  End If
+'End Sub
+'```
+
+
+
 'Spec:
 'A class used to automate  objects which implement IAccessible
 '
