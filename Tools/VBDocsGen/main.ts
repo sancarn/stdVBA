@@ -11,7 +11,6 @@
 * TODO: Add public enums
 * TODO: Add public types?
 * TODO: Add public constants
-* TODO: Add `ByRef` and `ByVal` to param types, needs adding to IParam, already in `IDataParam` as `referenceType` 
 * TODO: Add line numbers for methods. This could be utilised to add links to source code.
 */
 
@@ -368,7 +367,8 @@ function parseComment(comment: string): ICommentStore {
   if (!comment) return [];
 
   //inject @description into 1st line of comment for easier parsing
-  comment = comment.replace(/^'/g, "'@description ");
+  if (!/@description/.test(comment))
+    comment = comment.replace(/^'/g, "'@description ");
   const tagLines = parseToTagLines(comment);
 
   //Extracts and groups comments under their flag/tag type e.g. "@example hello\r\n'world"
@@ -544,8 +544,8 @@ function parseModuleOrClass(
   const moduleName =
     moduleNameFinder.exec(content)?.groups?.name ?? fileName.split(".")[0];
   log(`Parsing module "${moduleName}"`);
-  const moduleDocsFinder = /'@module.*\r?\n('.*\r?\n)*/i;
-  const moduleDocsString = moduleDocsFinder.exec(content)?.groups?.[0];
+  const moduleDocsFinder = /^'@module\r?\n(?:'.*\r?\n?)*/im;
+  const moduleDocsString = moduleDocsFinder.exec(content)?.[0];
   const moduleDocs = parseComment(moduleDocsString);
   const moduleDocsByTag = groupBy(moduleDocs, (c) => c.tag);
   const moduleTODOs = Array.from(content.matchAll(/'TODO: (.*)/gi)).map(
@@ -742,8 +742,6 @@ function parseModuleOrClass(
   let mod: IModule = {
     name: moduleName,
     fileName,
-    methods,
-    properties,
     description:
       (moduleDocsByTag["description"]?.[0] as IDataDescription)?.data ?? "",
     remarks: moduleDocsByTag["remark"]?.map((c: IDataRemark) => c.data) ?? [],
@@ -754,6 +752,8 @@ function parseModuleOrClass(
     todos: moduleTODOs,
     requires:
       moduleDocsByTag["requires"]?.map((c: IDataRequires) => c.data) ?? [],
+    methods,
+    properties,
   };
 
   //If it's a class then add additional members

@@ -63,7 +63,8 @@ function parseToTagLines(comment) {
 }
 function parseComment(comment) {
   if (!comment) return [];
-  comment = comment.replace(/^'/g, "'@description ");
+  if (!/@description/.test(comment))
+    comment = comment.replace(/^'/g, "'@description ");
   const tagLines = parseToTagLines(comment);
   const regexTags = {
     description: /^\s*(?<description>[\s\S]+)/i,
@@ -192,8 +193,8 @@ function parseModuleOrClass(content, fileName) {
   const moduleNameFinder = /Attribute VB_Name = "(?<name>[^"]+)"/i;
   const moduleName = moduleNameFinder.exec(content)?.groups?.name ?? fileName.split(".")[0];
   log(`Parsing module "${moduleName}"`);
-  const moduleDocsFinder = /'@module.*\r?\n('.*\r?\n)*/i;
-  const moduleDocsString = moduleDocsFinder.exec(content)?.groups?.[0];
+  const moduleDocsFinder = /^'@module\r?\n(?:'.*\r?\n?)*/im;
+  const moduleDocsString = moduleDocsFinder.exec(content)?.[0];
   const moduleDocs = parseComment(moduleDocsString);
   const moduleDocsByTag = groupBy(moduleDocs, (c) => c.tag);
   const moduleTODOs = Array.from(content.matchAll(/'TODO: (.*)/gi)).map(
@@ -328,14 +329,14 @@ function parseModuleOrClass(content, fileName) {
   let mod = {
     name: moduleName,
     fileName,
-    methods,
-    properties,
     description: moduleDocsByTag["description"]?.[0]?.data ?? "",
     remarks: moduleDocsByTag["remark"]?.map((c) => c.data) ?? [],
     examples: moduleDocsByTag["example"]?.map((c) => c.data) ?? [],
     devNotes: moduleDocsByTag["devNote"]?.map((c) => c.data) ?? [],
     todos: moduleTODOs,
-    requires: moduleDocsByTag["requires"]?.map((c) => c.data) ?? []
+    requires: moduleDocsByTag["requires"]?.map((c) => c.data) ?? [],
+    methods,
+    properties
   };
   if (isClass) {
     return {

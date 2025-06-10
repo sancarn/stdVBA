@@ -2,6 +2,20 @@
   {
     "name": "stdAcc",
     "fileName": "stdAcc.cls",
+    "description": "A class used to automate objects which implement `IAccessible`.\r\nAll windows implement IAccessible, and many of their controls do as well. This class can be \r\nused to obtain information about these controls, and to automate them.",
+    "remarks": [],
+    "examples": [
+      "```vb\r\nPublic Property Get isMacroRecording() As Boolean\r\n  static statusBarPropPage as stdAcc\r\n  if statusBarPropPage is nothing then\r\n    Dim app As stdAcc: Set app = stdAcc.CreateFromApplication()\r\n    Dim statusBar As stdAcc: Set statusBar = app.FindFirst(stdLambda.Create(\"$1.Name = \"\"Status Bar\"\" and $1.Role = \"\"ROLE_WINDOW\"\"\"), EAccFindType.BreadthFirst)\r\n    Set statusBarPropPage = statusBar.FindFirst(stdLambda.Create(\"$1.Name = \"\"Status Bar\"\" and $1.Role = \"\"ROLE_PROPERTYPAGE\"\"\"))\r\n  end if\r\n  isMacroRecording = statusBarPropPage.FindFirst(stdLambda.Create(\"$1.Name like \"\"Macro Recording*\"\"\")).name <> \"Macro Recording Not Recording\"\r\nEnd Property\r\n```",
+      "```vb\r\nPublic Sub clickRibbonButton(ByVal tabName As String, ByVal groupName As String, ByVal buttonName As String)\r\n  Static tabs As stdAcc, groups As stdAcc\r\n  If tabs Is Nothing Then\r\n    Dim iAcc As Object: Set ia = Application.CommandBars(\"Ribbon\")\r\n    Dim winRibbon As stdAcc: Set winRibbon = stdAcc.CreateFromIAccessible(ia)\r\n    Dim propPageRibbon As stdAcc: Set propPageRibbon = winRibbon.FindFirst(stdLambda.Create(\"$1.Name = \"\"Ribbon\"\" and $1.Role = \"\"ROLE_PROPERTYPAGE\"\"\"))\r\n    \r\n    Set tabs = propPageRibbon.FindFirst(stdLambda.Create(\"$1.Name = \"\"Ribbon Tabs\"\" and $1.Role = \"\"ROLE_PAGETABLIST\"\"\"))\r\n    Set groups = propPageRibbon.FindFirst(stdLambda.Create(\"$1.Name = \"\"Lower Ribbon\"\" and $1.Role = \"\"ROLE_PANE\"\"\"))\r\n  End If\r\n  \r\n  'Click on the tab button\r\n  Call tabs.FindFirst(stdLambda.Create(\"$2.Name = $1 and $2.Role = \"\"ROLE_PAGETAB\"\"\").Bind(tabName)).DoDefaultAction\r\n  \r\n  'Await for the group\r\n  Set Group = groups.AwaitForElement(stdLambda.Create(\"$2.Name = $1 and $2.Role = \"\"ROLE_TOOLBAR\"\"\").Bind(groupName), timeout:=500)\r\n  If Not Group Is Nothing Then\r\n    'Click the button\r\n    Call Group.FindFirst(stdLambda.Create(\"$2.Name = $1 and $2.Role = \"\"ROLE_PUSHBUTTON\"\"\").Bind(buttonName)).DoDefaultAction\r\n  Else\r\n    Err.Raise 1, \"clickRibbonButton\", \"\"\r\n  End If\r\nEnd Sub\r\n```"
+    ],
+    "devNotes": [],
+    "todos": [
+      "VB6 complient, 32-Bit complient, 64-Bit complient",
+      "Error in hwnd - AccessibleObjectFromWindow returns an E_FAIL code. Potentially related to https://stackoverflow.com/a/8617584/6302131",
+      "Fallback identity",
+      "Is this needed?"
+    ],
+    "requires": [],
     "methods": [
       {
         "name": "GetDescendents",
@@ -857,17 +871,6 @@
         "isStatic": false
       }
     ],
-    "description": "",
-    "remarks": [],
-    "examples": [],
-    "devNotes": [],
-    "todos": [
-      "VB6 complient, 32-Bit complient, 64-Bit complient",
-      "Error in hwnd - AccessibleObjectFromWindow returns an E_FAIL code. Potentially related to https://stackoverflow.com/a/8617584/6302131",
-      "Fallback identity",
-      "Is this needed?"
-    ],
-    "requires": [],
     "constructors": [
       {
         "name": "CreateFromPoint",
@@ -1129,6 +1132,14 @@
   {
     "name": "stdArray",
     "fileName": "stdArray.cls",
+    "description": "",
+    "remarks": [],
+    "examples": [],
+    "devNotes": [],
+    "todos": [
+      "Need to find a better more low level approach to creating arrays from existing arrays/preventing redim for methods like this"
+    ],
+    "requires": [],
     "methods": [
       {
         "name": "protInit",
@@ -2340,14 +2351,6 @@
         "isStatic": false
       }
     ],
-    "description": "",
-    "remarks": [],
-    "examples": [],
-    "devNotes": [],
-    "todos": [
-      "Need to find a better more low level approach to creating arrays from existing arrays/preventing redim for methods like this"
-    ],
-    "requires": [],
     "constructors": [
       {
         "name": "Create",
@@ -2793,613 +2796,16 @@
     "implements": []
   },
   {
-    "name": "stdCOM",
-    "fileName": "stdCOM.cls",
-    "methods": [
-      {
-        "name": "unkQueryInterface",
-        "description": "Call `IUnknown::QueryInterface` on the object",
-        "remarks": [],
-        "examples": [
-          "```vb\r\n  'Get ITypeInfo\r\n  set typeInfo = com.unkQueryInterface(\"00020401-0000-0000-C000-000000000046\")\r\n```"
-        ],
-        "params": [
-          {
-            "name": "sIID",
-            "type": "String",
-            "description": "Interface Identifier as string",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          }
-        ],
-        "returns": {
-          "type": "stdCOM",
-          "description": "`stdCOM` object for interface"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [
-          {
-            "errNumber": null
-          },
-          {
-            "errNumber": null
-          },
-          {
-            "errNumber": null
-          }
-        ],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "unkAddRef",
-        "description": "Call `IUnknown::AddRef()`",
-        "remarks": [],
-        "examples": [],
-        "params": [],
-        "returns": null,
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "unkRelease",
-        "description": "Call IUnknown::Release()",
-        "remarks": [],
-        "examples": [],
-        "params": [],
-        "returns": null,
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "QueryKnownInterface",
-        "description": "Query the object for a known interface.",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "interface",
-            "type": "EKnownInterfaces",
-            "description": "Known interface to query for",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          }
-        ],
-        "returns": {
-          "type": "stdCOM",
-          "description": "interface queried."
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [
-          {
-            "errNumber": null
-          }
-        ],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "RegisterActiveObject",
-        "description": "Register the object held in stdCOM to the ROT as a CLSID or ProgID",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "sCLSID",
-            "type": "String",
-            "description": "CLSID if required. If this arg isn't provided, a ProgID must be provided.",
-            "optional": true,
-            "defaultValue": "\"\"",
-            "paramArray": false,
-            "referenceType": "ByVal"
-          },
-          {
-            "name": "ProgID",
-            "type": "String",
-            "description": "ProgID if required. If this arg isn't provided, a CLSID must be provided.",
-            "optional": true,
-            "defaultValue": "\"\"",
-            "paramArray": false,
-            "referenceType": "ByVal"
-          }
-        ],
-        "returns": null,
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "RevokeActiveObject",
-        "description": "Revoke the previously registered object",
-        "remarks": [],
-        "examples": [],
-        "params": [],
-        "returns": null,
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "CallVT",
-        "description": "Call a function in the VTable of the object at a specified offset",
-        "remarks": [],
-        "examples": [
-          "```vb\r\n  Dim pITypeInfo As IUnknown\r\n  Dim hResult As Long: hResult = com.CallVT(EIUnknown.QueryInterface, vbLong, VarPtr(tGUID.Data1), VarPtr(pITypeInfo))\r\n  If hResult <> S_OK Then Err.Raise hResult, \"InterfaceInfo\", \"stdCOM::InterfaceInfo\"\r\n```"
-        ],
-        "params": [
-          {
-            "name": "VTableOffset",
-            "type": "Long",
-            "description": "The offset of the method to call. IUnknown::QueryInterface=0; IUnknown::AddRef=1; IUnknown::Release=2; IDispatch::Invoke=6",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          },
-          {
-            "name": "ReturnType",
-            "type": "VbVarType",
-            "description": "Return value of function, typically Long (HResult) for COM Object calls",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          },
-          {
-            "name": "FunctionParameters",
-            "type": "Array<Variant>",
-            "description": "Arguments to send to function.",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByRef"
-          }
-        ],
-        "returns": {
-          "type": "Variant",
-          "description": "Return value of function"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [
-          {
-            "errNumber": null
-          }
-        ],
-        "requires": [],
-        "isStatic": false
-      }
-    ],
-    "properties": [
-      {
-        "name": "Object",
-        "access": "ReadOnly",
-        "description": "Obtain raw object from stdCOM wrapper",
-        "remarks": [],
-        "examples": [
-          "```vb\r\nstdCOM.Create(Application).Object.Name\r\n```",
-          "```vb\r\nstdCOM.CreateFromPtr(ObjPtr(Application)).Object.Name\r\n```"
-        ],
-        "params": [],
-        "returns": {
-          "type": "IUnknown",
-          "description": "Raw object"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "AsObject",
-        "access": "ReadOnly",
-        "description": "Obtain raw object from stdCOM wrapper",
-        "remarks": [],
-        "examples": [
-          "```vb\r\nstdCOM.Create(Application).Object.Name\r\n```",
-          "```vb\r\nstdCOM.CreateFromPtr(ObjPtr(Application)).Object.Name\r\n```"
-        ],
-        "params": [],
-        "returns": {
-          "type": "Object",
-          "description": "`IDispatch` for object"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [
-          {
-            "errNumber": null
-          }
-        ],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "Pointer",
-        "access": "ReadOnly",
-        "description": "Obtain pointer as LongPtr (VBA)/Long (VB6)",
-        "remarks": [],
-        "examples": [],
-        "params": [],
-        "returns": {
-          "type": "LongPtr",
-          "description": "Pointer to object"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "TypeInfo",
-        "access": "ReadOnly",
-        "description": "Obtain Type Information from object",
-        "remarks": [],
-        "examples": [
-          "```vb\r\nmyCom.TypeInfo.CallVT(EITypeInfo.GetTypeAttr, vbLong, VarPtr(lPtr))\r\n```"
-        ],
-        "params": [],
-        "returns": {
-          "type": "stdCOM<ITypeInfo>",
-          "description": "TypeInfo structure for this object"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "InterfaceInfo",
-        "access": "ReadOnly",
-        "description": "Obtain all properties and methods of an object via it's TypeInfo",
-        "remarks": [],
-        "examples": [],
-        "params": [],
-        "returns": {
-          "type": "Collection<Array<string, vbCallType, long, long>>",
-          "description": "Collection of arrays containing Method/Property name, CallType, Index in type info and DispID"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "Methods",
-        "access": "ReadOnly",
-        "description": "Obtain a collection of all method names on an object",
-        "remarks": [],
-        "examples": [],
-        "params": [],
-        "returns": {
-          "type": "Collection<string>",
-          "description": "Collection of method names"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "Properties",
-        "access": "ReadOnly",
-        "description": "Obtain a collection of all property names on an object",
-        "remarks": [],
-        "examples": [
-          "```vb\r\n  for each vProp in stdCOM.Create(Application).Properties\r\n    Debug.Print vProp\r\n  next\r\n```"
-        ],
-        "params": [
-          {
-            "name": "bIncludeReadWriteType",
-            "type": "Boolean",
-            "description": "Include GET/LET/SET/UNK prefixes representing call conv",
-            "optional": true,
-            "defaultValue": "False",
-            "paramArray": false,
-            "referenceType": "ByRef"
-          }
-        ],
-        "returns": {
-          "type": "Collection<string>",
-          "description": "Collection of property names"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      }
-    ],
+    "name": "stdCallback",
+    "fileName": "stdCallback.cls",
     "description": "",
     "remarks": [],
     "examples": [],
     "devNotes": [],
     "todos": [
-      "Analyse and add anything missing from:"
+      "Use fancy accessor mechanism https://codereview.stackexchange.com/questions/274532/low-level-vba-hacking-making-private-functions-public "
     ],
     "requires": [],
-    "constructors": [
-      {
-        "name": "Create",
-        "description": "Create from an object",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "obj",
-            "type": "IUnknown",
-            "description": "Object to create raw COM object from",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByRef"
-          }
-        ],
-        "returns": {
-          "type": "stdCOM",
-          "description": "A wrapper around a raw COM object"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "CreateFromPtr",
-        "description": "Create from a pointer",
-        "remarks": [
-          "Specifically this function reuires a `*Interface` pointer. E.G. `*IUnknown`/`*IDispatch`/`*ITypeInfo`. If your DLL function provides a `[out] **Interface` object the\r\ntypical method is to pass in a varptr to the dll function as follows `Call SomeDLLCall(VarPtr(myPointer)): ... later ...: stdCOM.CreateFromPtr(myPointer)`"
-        ],
-        "examples": [],
-        "params": [
-          {
-            "name": "ptr",
-            "type": "LongPtr",
-            "description": "Object pointer to wrap in a raw COM object",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          }
-        ],
-        "returns": {
-          "type": "stdCOM",
-          "description": "A wrapper around a raw COM object"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "CreateFromActiveObjects",
-        "description": "Create `stdCOM` objects from existing objects in the RunningObjectTable (ROT)",
-        "remarks": [
-          "This function is heavily inspired off code provided by `Jaafar Tribak`"
-        ],
-        "examples": [],
-        "params": [],
-        "returns": {
-          "type": "Collection",
-          "description": "A collection of `stdCOM` objects"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [
-          "stdCOM objects will auto-release when not needed"
-        ],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "CreateFromWinRTClassID",
-        "description": "Create `stdCOM` object from WinRT Activatable ClassID.",
-        "remarks": [],
-        "examples": [
-          "```vb\r\nstdCOM.CreateFromWinRTClassID(\"Windows.Storage.Pickers.FolderPicker\")\r\n```"
-        ],
-        "params": [
-          {
-            "name": "sActivatableClassId",
-            "type": "String",
-            "description": "An activatable WinRT class ID.",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          }
-        ],
-        "returns": {
-          "type": "stdCOM",
-          "description": "A COM wrapper for the object."
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "CreateFromClassAndIID",
-        "description": "Create `stdCOM` object from a CLSID and IID.",
-        "remarks": [],
-        "examples": [
-          "```vb\r\n  stdCOM.CreateFromClassAndIID(\"FF48DBA4-60EF-4201-AA87-54103EEF594E\",\"30CBE57D-D9D0-452A-AB13-7AC5AC4825EE\") 'IUIAutomation\r\n```"
-        ],
-        "params": [
-          {
-            "name": "sClassID",
-            "type": "String",
-            "description": "A CLSID as a string.",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          },
-          {
-            "name": "sIID",
-            "type": "String",
-            "description": "An IID as a string. Default is `IDispatch`.",
-            "optional": true,
-            "defaultValue": "\"00020400-0000-0000-C000-000000000046\"",
-            "paramArray": false,
-            "referenceType": "ByVal"
-          }
-        ],
-        "returns": {
-          "type": "stdCOM",
-          "description": "A COM wrapper for the object."
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      }
-    ],
-    "events": [],
-    "implements": []
-  },
-  {
-    "name": "stdCallback",
-    "fileName": "stdCallback.cls",
     "methods": [
       {
         "name": "Bind",
@@ -3531,14 +2937,6 @@
       }
     ],
     "properties": [],
-    "description": "",
-    "remarks": [],
-    "examples": [],
-    "devNotes": [],
-    "todos": [
-      "Use fancy accessor mechanism https://codereview.stackexchange.com/questions/274532/low-level-vba-hacking-making-private-functions-public "
-    ],
-    "requires": [],
     "constructors": [
       {
         "name": "Create",
@@ -3895,6 +3293,16 @@
   {
     "name": "stdClipboard",
     "fileName": "stdClipboard.cls",
+    "description": "",
+    "remarks": [],
+    "examples": [],
+    "devNotes": [],
+    "todos": [
+      "File is not fully complete, even though it has reached a stable state. Remaining tasks:",
+      "Elsewhere not here:",
+      "refactor away from using Excel specific functionality"
+    ],
+    "requires": [],
     "methods": [
       {
         "name": "Await",
@@ -4491,23 +3899,629 @@
         "isStatic": false
       }
     ],
+    "constructors": [],
+    "events": [],
+    "implements": []
+  },
+  {
+    "name": "stdCOM",
+    "fileName": "stdCOM.cls",
     "description": "",
     "remarks": [],
     "examples": [],
     "devNotes": [],
     "todos": [
-      "File is not fully complete, even though it has reached a stable state. Remaining tasks:",
-      "Elsewhere not here:",
-      "refactor away from using Excel specific functionality"
+      "Analyse and add anything missing from:"
     ],
     "requires": [],
-    "constructors": [],
+    "methods": [
+      {
+        "name": "unkQueryInterface",
+        "description": "Call `IUnknown::QueryInterface` on the object",
+        "remarks": [],
+        "examples": [
+          "```vb\r\n  'Get ITypeInfo\r\n  set typeInfo = com.unkQueryInterface(\"00020401-0000-0000-C000-000000000046\")\r\n```"
+        ],
+        "params": [
+          {
+            "name": "sIID",
+            "type": "String",
+            "description": "Interface Identifier as string",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "stdCOM",
+          "description": "`stdCOM` object for interface"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [
+          {
+            "errNumber": null
+          },
+          {
+            "errNumber": null
+          },
+          {
+            "errNumber": null
+          }
+        ],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "unkAddRef",
+        "description": "Call `IUnknown::AddRef()`",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "unkRelease",
+        "description": "Call IUnknown::Release()",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "QueryKnownInterface",
+        "description": "Query the object for a known interface.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "interface",
+            "type": "EKnownInterfaces",
+            "description": "Known interface to query for",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "stdCOM",
+          "description": "interface queried."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [
+          {
+            "errNumber": null
+          }
+        ],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "RegisterActiveObject",
+        "description": "Register the object held in stdCOM to the ROT as a CLSID or ProgID",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "sCLSID",
+            "type": "String",
+            "description": "CLSID if required. If this arg isn't provided, a ProgID must be provided.",
+            "optional": true,
+            "defaultValue": "\"\"",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "ProgID",
+            "type": "String",
+            "description": "ProgID if required. If this arg isn't provided, a CLSID must be provided.",
+            "optional": true,
+            "defaultValue": "\"\"",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "RevokeActiveObject",
+        "description": "Revoke the previously registered object",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "CallVT",
+        "description": "Call a function in the VTable of the object at a specified offset",
+        "remarks": [],
+        "examples": [
+          "```vb\r\n  Dim pITypeInfo As IUnknown\r\n  Dim hResult As Long: hResult = com.CallVT(EIUnknown.QueryInterface, vbLong, VarPtr(tGUID.Data1), VarPtr(pITypeInfo))\r\n  If hResult <> S_OK Then Err.Raise hResult, \"InterfaceInfo\", \"stdCOM::InterfaceInfo\"\r\n```"
+        ],
+        "params": [
+          {
+            "name": "VTableOffset",
+            "type": "Long",
+            "description": "The offset of the method to call. IUnknown::QueryInterface=0; IUnknown::AddRef=1; IUnknown::Release=2; IDispatch::Invoke=6",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "ReturnType",
+            "type": "VbVarType",
+            "description": "Return value of function, typically Long (HResult) for COM Object calls",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "FunctionParameters",
+            "type": "Array<Variant>",
+            "description": "Arguments to send to function.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByRef"
+          }
+        ],
+        "returns": {
+          "type": "Variant",
+          "description": "Return value of function"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [
+          {
+            "errNumber": null
+          }
+        ],
+        "requires": [],
+        "isStatic": false
+      }
+    ],
+    "properties": [
+      {
+        "name": "Object",
+        "access": "ReadOnly",
+        "description": "Obtain raw object from stdCOM wrapper",
+        "remarks": [],
+        "examples": [
+          "```vb\r\nstdCOM.Create(Application).Object.Name\r\n```",
+          "```vb\r\nstdCOM.CreateFromPtr(ObjPtr(Application)).Object.Name\r\n```"
+        ],
+        "params": [],
+        "returns": {
+          "type": "IUnknown",
+          "description": "Raw object"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "AsObject",
+        "access": "ReadOnly",
+        "description": "Obtain raw object from stdCOM wrapper",
+        "remarks": [],
+        "examples": [
+          "```vb\r\nstdCOM.Create(Application).Object.Name\r\n```",
+          "```vb\r\nstdCOM.CreateFromPtr(ObjPtr(Application)).Object.Name\r\n```"
+        ],
+        "params": [],
+        "returns": {
+          "type": "Object",
+          "description": "`IDispatch` for object"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [
+          {
+            "errNumber": null
+          }
+        ],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "Pointer",
+        "access": "ReadOnly",
+        "description": "Obtain pointer as LongPtr (VBA)/Long (VB6)",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "LongPtr",
+          "description": "Pointer to object"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "TypeInfo",
+        "access": "ReadOnly",
+        "description": "Obtain Type Information from object",
+        "remarks": [],
+        "examples": [
+          "```vb\r\nmyCom.TypeInfo.CallVT(EITypeInfo.GetTypeAttr, vbLong, VarPtr(lPtr))\r\n```"
+        ],
+        "params": [],
+        "returns": {
+          "type": "stdCOM<ITypeInfo>",
+          "description": "TypeInfo structure for this object"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "InterfaceInfo",
+        "access": "ReadOnly",
+        "description": "Obtain all properties and methods of an object via it's TypeInfo",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Collection<Array<string, vbCallType, long, long>>",
+          "description": "Collection of arrays containing Method/Property name, CallType, Index in type info and DispID"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "Methods",
+        "access": "ReadOnly",
+        "description": "Obtain a collection of all method names on an object",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Collection<string>",
+          "description": "Collection of method names"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "Properties",
+        "access": "ReadOnly",
+        "description": "Obtain a collection of all property names on an object",
+        "remarks": [],
+        "examples": [
+          "```vb\r\n  for each vProp in stdCOM.Create(Application).Properties\r\n    Debug.Print vProp\r\n  next\r\n```"
+        ],
+        "params": [
+          {
+            "name": "bIncludeReadWriteType",
+            "type": "Boolean",
+            "description": "Include GET/LET/SET/UNK prefixes representing call conv",
+            "optional": true,
+            "defaultValue": "False",
+            "paramArray": false,
+            "referenceType": "ByRef"
+          }
+        ],
+        "returns": {
+          "type": "Collection<string>",
+          "description": "Collection of property names"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      }
+    ],
+    "constructors": [
+      {
+        "name": "Create",
+        "description": "Create from an object",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "obj",
+            "type": "IUnknown",
+            "description": "Object to create raw COM object from",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByRef"
+          }
+        ],
+        "returns": {
+          "type": "stdCOM",
+          "description": "A wrapper around a raw COM object"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "CreateFromPtr",
+        "description": "Create from a pointer",
+        "remarks": [
+          "Specifically this function reuires a `*Interface` pointer. E.G. `*IUnknown`/`*IDispatch`/`*ITypeInfo`. If your DLL function provides a `[out] **Interface` object the\r\ntypical method is to pass in a varptr to the dll function as follows `Call SomeDLLCall(VarPtr(myPointer)): ... later ...: stdCOM.CreateFromPtr(myPointer)`"
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "ptr",
+            "type": "LongPtr",
+            "description": "Object pointer to wrap in a raw COM object",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "stdCOM",
+          "description": "A wrapper around a raw COM object"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "CreateFromActiveObjects",
+        "description": "Create `stdCOM` objects from existing objects in the RunningObjectTable (ROT)",
+        "remarks": [
+          "This function is heavily inspired off code provided by `Jaafar Tribak`"
+        ],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Collection",
+          "description": "A collection of `stdCOM` objects"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [
+          "stdCOM objects will auto-release when not needed"
+        ],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "CreateFromWinRTClassID",
+        "description": "Create `stdCOM` object from WinRT Activatable ClassID.",
+        "remarks": [],
+        "examples": [
+          "```vb\r\nstdCOM.CreateFromWinRTClassID(\"Windows.Storage.Pickers.FolderPicker\")\r\n```"
+        ],
+        "params": [
+          {
+            "name": "sActivatableClassId",
+            "type": "String",
+            "description": "An activatable WinRT class ID.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "stdCOM",
+          "description": "A COM wrapper for the object."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "CreateFromClassAndIID",
+        "description": "Create `stdCOM` object from a CLSID and IID.",
+        "remarks": [],
+        "examples": [
+          "```vb\r\n  stdCOM.CreateFromClassAndIID(\"FF48DBA4-60EF-4201-AA87-54103EEF594E\",\"30CBE57D-D9D0-452A-AB13-7AC5AC4825EE\") 'IUIAutomation\r\n```"
+        ],
+        "params": [
+          {
+            "name": "sClassID",
+            "type": "String",
+            "description": "A CLSID as a string.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "sIID",
+            "type": "String",
+            "description": "An IID as a string. Default is `IDispatch`.",
+            "optional": true,
+            "defaultValue": "\"00020400-0000-0000-C000-000000000046\"",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "stdCOM",
+          "description": "A COM wrapper for the object."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      }
+    ],
     "events": [],
     "implements": []
   },
   {
     "name": "stdEnumerator",
     "fileName": "stdEnumerator.cls",
+    "description": "",
+    "remarks": [],
+    "examples": [],
+    "devNotes": [],
+    "todos": [
+      "Implement the following methods:",
+      "Things we can't do (yet)",
+      "LongPtr?",
+      "Implement raw API for working with IEnumVARIANT:"
+    ],
+    "requires": [],
     "methods": [
       {
         "name": "enumNext",
@@ -5588,17 +5602,6 @@
         "isStatic": false
       }
     ],
-    "description": "",
-    "remarks": [],
-    "examples": [],
-    "devNotes": [],
-    "todos": [
-      "Implement the following methods:",
-      "Things we can't do (yet)",
-      "LongPtr?",
-      "Implement raw API for working with IEnumVARIANT:"
-    ],
-    "requires": [],
     "constructors": [
       {
         "name": "CreateFromCallable",
@@ -5966,6 +5969,16 @@
   {
     "name": "stdFiber",
     "fileName": "stdFiber.cls",
+    "description": "@module\r\n`stdFiber` allows production of partitioned asynchronous procedures which can be run within a fiber runtime.\r\n`stdFiber.Create()` is used to create our fiber procedures\r\n`stdFiber.runFibers()` is used to run our fiber procedures within a fiber runtime.\r\nFibers can be useful especially when dealing with asynchronous functions",
+    "remarks": [],
+    "examples": [
+      "**1. Simple fiber example**:\r\n```vb\r\nSub main()\r\n    Dim fibers as new Collection\r\n    For i = 1 to 100\r\n        fibers.add createFiber(\"http://example.com/\" & i)\r\n    next\r\n    \r\n    'Run requests concurrently across 10 fibers\r\n    set results = stdFiber.runFibers(fibers, numFibers:=10)\r\nEnd Sub\r\nFunction createFiber(ByVal url as string) as stdFiber\r\n    Dim fib as stdFiber: set fib = stdFiber.Create()\r\n    set fib.meta(\"status\") = getStatusUpdater()\r\n    fib.add stdCallback.CreateFromMethods(\"\", \"step1_GetRequest\").bind(url)\r\n    fib.add stdCallback.CreateFromMethods(\"\", \"step2_AwaitStatus\")\r\n    fib.add stdCallback.CreateFromMethods(\"\", \"step3_ReturnData\")\r\n    fib.addErrorHandler stdCallback.CreateFromMethods(\"\", \"stepX_OnError\")\r\n    set createFiber = fib\r\nEnd Function\r\nPublic Function step1_GetRequest(ByVal url as string, ByVal fib as stdFiber) as boolean\r\n    fib.meta(\"status\").value = \"step1\"\r\n    'Store information in bespoke fiber procedure metadata\r\n    set fib.meta(\"req\") = stdHTTP.Create(url, HTTPAsync)\r\n    step1_GetRequest = true\r\nEnd Function\r\nPublic Function step2_AwaitStatus(ByVal fib as stdFiber) as boolean\r\n    fib.meta(\"status\").value = \"step2\"\r\n    step1_GetRequest = fib.meta(\"req\").status <> 0\r\nEnd Function\r\nPublic Function step3_ReturnData(ByVal fib as stdFiber) as boolean\r\n    Call fib.resolve(fib.meta(\"req\").ResponseText)\r\n    fib.meta(\"status\").value = \"Complete\"\r\nEnd Function\r\nPublic Sub stepX_OnError(ByVal fib as stdFiber)\r\n    fib.meta(\"status\").value = fib.ErrorText\r\nEnd Sub"
+    ],
+    "devNotes": [],
+    "todos": [
+      "Consider sectioning off data between runtime data TFiberRuntime (procStartTime, meta, agent, ...) and TFiberBuildTime (name, procsCount, procs)"
+    ],
+    "requires": [],
     "methods": [
       {
         "name": "add",
@@ -6483,14 +6496,6 @@
         "isStatic": false
       }
     ],
-    "description": "",
-    "remarks": [],
-    "examples": [],
-    "devNotes": [],
-    "todos": [
-      "Consider sectioning off data between runtime data TFiberRuntime (procStartTime, meta, agent, ...) and TFiberBuildTime (name, procsCount, procs)"
-    ],
-    "requires": [],
     "constructors": [
       {
         "name": "Create",
@@ -6531,6 +6536,14 @@
   {
     "name": "stdHTTP",
     "fileName": "stdHTTP.cls",
+    "description": "",
+    "remarks": [],
+    "examples": [],
+    "devNotes": [],
+    "todos": [
+      "Check if user/pass credentials with auto-proxy will ever be needed"
+    ],
+    "requires": [],
     "methods": [
       {
         "name": "CreateHeaders",
@@ -7024,14 +7037,6 @@
         "isStatic": false
       }
     ],
-    "description": "",
-    "remarks": [],
-    "examples": [],
-    "devNotes": [],
-    "todos": [
-      "Check if user/pass credentials with auto-proxy will ever be needed"
-    ],
-    "requires": [],
     "constructors": [
       {
         "name": "Create",
@@ -7108,6 +7113,12 @@
   {
     "name": "stdHTTPAuthenticators",
     "fileName": "stdHTTPAuthenticators.bas",
+    "description": "",
+    "remarks": [],
+    "examples": [],
+    "devNotes": [],
+    "todos": [],
+    "requires": [],
     "methods": [
       {
         "name": "WindowsAuthenticator",
@@ -7443,17 +7454,17 @@
         "isStatic": false
       }
     ],
-    "properties": [],
+    "properties": []
+  },
+  {
+    "name": "stdICallable",
+    "fileName": "stdICallable.cls",
     "description": "",
     "remarks": [],
     "examples": [],
     "devNotes": [],
     "todos": [],
-    "requires": []
-  },
-  {
-    "name": "stdICallable",
-    "fileName": "stdICallable.cls",
+    "requires": [],
     "methods": [
       {
         "name": "Run",
@@ -7603,12 +7614,6 @@
       }
     ],
     "properties": [],
-    "description": "",
-    "remarks": [],
-    "examples": [],
-    "devNotes": [],
-    "todos": [],
-    "requires": [],
     "constructors": [],
     "events": [],
     "implements": []
@@ -7616,6 +7621,20 @@
   {
     "name": "stdImage",
     "fileName": "stdImage.cls",
+    "description": "",
+    "remarks": [],
+    "examples": [],
+    "devNotes": [],
+    "todos": [
+      "Create Stream, Write to stream, CreateBitmapFromStream",
+      "Parse Base64, CreateFromBinary",
+      "Case webp",
+      "AutoProxy?",
+      "Detect format",
+      "Implement a more efficient way to do this.",
+      "A less hacky method can be found here:  http://access.mvps.org/access/api/api0042.htm"
+    ],
+    "requires": [],
     "methods": [
       {
         "name": "CreateFromDataURL",
@@ -8021,20 +8040,6 @@
         "isStatic": false
       }
     ],
-    "description": "",
-    "remarks": [],
-    "examples": [],
-    "devNotes": [],
-    "todos": [
-      "Create Stream, Write to stream, CreateBitmapFromStream",
-      "Parse Base64, CreateFromBinary",
-      "Case webp",
-      "AutoProxy?",
-      "Detect format",
-      "Implement a more efficient way to do this.",
-      "A less hacky method can be found here:  http://access.mvps.org/access/api/api0042.htm"
-    ],
-    "requires": [],
     "constructors": [
       {
         "name": "CreateFromBinary",
@@ -8526,6 +8531,12 @@
   {
     "name": "stdJSON",
     "fileName": "stdJSON.cls",
+    "description": "",
+    "remarks": [],
+    "examples": [],
+    "devNotes": [],
+    "todos": [],
+    "requires": [],
     "methods": [
       {
         "name": "Add",
@@ -8931,12 +8942,6 @@
         "isStatic": false
       }
     ],
-    "description": "",
-    "remarks": [],
-    "examples": [],
-    "devNotes": [],
-    "todos": [],
-    "requires": [],
     "constructors": [
       {
         "name": "Create",
@@ -9144,6 +9149,31 @@
   {
     "name": "stdLambda",
     "fileName": "stdLambda.cls",
+    "description": "",
+    "remarks": [],
+    "examples": [],
+    "devNotes": [],
+    "todos": [
+      "Case \"callbyname\": evaluateFunc = CallByName(args(iArgStart))",
+      "Switch caching and use of dictionary would be good here",
+      "Better error handling",
+      "iAccess_General",
+      "iSet_General",
+      "Test other functions",
+      "iReturn_WithValue - this is a utility used for returning values from functions, need to think how to test it properly",
+      "iReturn_NoValue - as above.",
+      "iObject_MethodCall",
+      "iObject_MethodCall_WithArgs",
+      "iObject_FieldCall           as method",
+      "iObject_FieldCall_WithArgs  as method",
+      "iObject_FieldCall           as property",
+      "iObject_FieldCall_WithArgs  as property",
+      "iObject_PropLet",
+      "iObject_PropLet_WithArgs",
+      "iObject_PropSet",
+      "iObject_PropSet_WithArgs"
+    ],
+    "requires": [],
     "methods": [
       {
         "name": "protInit",
@@ -9397,31 +9427,6 @@
         "isStatic": false
       }
     ],
-    "description": "",
-    "remarks": [],
-    "examples": [],
-    "devNotes": [],
-    "todos": [
-      "Case \"callbyname\": evaluateFunc = CallByName(args(iArgStart))",
-      "Switch caching and use of dictionary would be good here",
-      "Better error handling",
-      "iAccess_General",
-      "iSet_General",
-      "Test other functions",
-      "iReturn_WithValue - this is a utility used for returning values from functions, need to think how to test it properly",
-      "iReturn_NoValue - as above.",
-      "iObject_MethodCall",
-      "iObject_MethodCall_WithArgs",
-      "iObject_FieldCall           as method",
-      "iObject_FieldCall_WithArgs  as method",
-      "iObject_FieldCall           as property",
-      "iObject_FieldCall_WithArgs  as property",
-      "iObject_PropLet",
-      "iObject_PropLet_WithArgs",
-      "iObject_PropSet",
-      "iObject_PropSet_WithArgs"
-    ],
-    "requires": [],
     "constructors": [
       {
         "name": "Create",
@@ -9534,6 +9539,15 @@
   {
     "name": "stdPerformance",
     "fileName": "stdPerformance.cls",
+    "description": "",
+    "remarks": [],
+    "examples": [],
+    "devNotes": [],
+    "todos": [
+      "Need to make this more application agnostic",
+      "Make this more application agnostic"
+    ],
+    "requires": [],
     "methods": [
       {
         "name": "protInit",
@@ -9700,15 +9714,6 @@
         "isStatic": false
       }
     ],
-    "description": "",
-    "remarks": [],
-    "examples": [],
-    "devNotes": [],
-    "todos": [
-      "Need to make this more application agnostic",
-      "Make this more application agnostic"
-    ],
-    "requires": [],
     "constructors": [
       {
         "name": "CreateMeasure",
@@ -9815,6 +9820,15 @@
   {
     "name": "stdProcess",
     "fileName": "stdProcess.cls",
+    "description": "",
+    "remarks": [],
+    "examples": [],
+    "devNotes": [],
+    "todos": [
+      "SessionID",
+      "ThreadID"
+    ],
+    "requires": [],
     "methods": [
       {
         "name": "forceQuit",
@@ -10166,15 +10180,6 @@
         "isStatic": false
       }
     ],
-    "description": "",
-    "remarks": [],
-    "examples": [],
-    "devNotes": [],
-    "todos": [
-      "SessionID",
-      "ThreadID"
-    ],
-    "requires": [],
     "constructors": [
       {
         "name": "Create",
@@ -10342,6 +10347,12 @@
   {
     "name": "stdQuadTree",
     "fileName": "stdQuadTree.cls",
+    "description": "",
+    "remarks": [],
+    "examples": [],
+    "devNotes": [],
+    "todos": [],
+    "requires": [],
     "methods": [
       {
         "name": "protInit",
@@ -10569,12 +10580,6 @@
       }
     ],
     "properties": [],
-    "description": "",
-    "remarks": [],
-    "examples": [],
-    "devNotes": [],
-    "todos": [],
-    "requires": [],
     "constructors": [
       {
         "name": "Create",
@@ -10730,6 +10735,12 @@
   {
     "name": "stdRefArray",
     "fileName": "stdRefArray.cls",
+    "description": "",
+    "remarks": [],
+    "examples": [],
+    "devNotes": [],
+    "todos": [],
+    "requires": [],
     "methods": [
       {
         "name": "Create",
@@ -10794,12 +10805,6 @@
       }
     ],
     "properties": [],
-    "description": "",
-    "remarks": [],
-    "examples": [],
-    "devNotes": [],
-    "todos": [],
-    "requires": [],
     "constructors": [],
     "events": [],
     "implements": []
@@ -10807,6 +10812,17 @@
   {
     "name": "stdReg",
     "fileName": "stdReg.cls",
+    "description": "",
+    "remarks": [],
+    "examples": [],
+    "devNotes": [],
+    "todos": [
+      "SWAP",
+      "Expand vars(?)",
+      "SWAP",
+      "TBC "
+    ],
+    "requires": [],
     "methods": [
       {
         "name": "SetValue",
@@ -11116,17 +11132,6 @@
         "isStatic": false
       }
     ],
-    "description": "",
-    "remarks": [],
-    "examples": [],
-    "devNotes": [],
-    "todos": [
-      "SWAP",
-      "Expand vars(?)",
-      "SWAP",
-      "TBC "
-    ],
-    "requires": [],
     "constructors": [
       {
         "name": "Create",
@@ -11285,6 +11290,14 @@
   {
     "name": "stdRegex",
     "fileName": "stdRegex.cls",
+    "description": "",
+    "remarks": [],
+    "examples": [],
+    "devNotes": [],
+    "todos": [
+      "Make this more efficient, ideally we'd only loop through the format once"
+    ],
+    "requires": [],
     "methods": [
       {
         "name": "Test",
@@ -11564,14 +11577,6 @@
         "isStatic": false
       }
     ],
-    "description": "",
-    "remarks": [],
-    "examples": [],
-    "devNotes": [],
-    "todos": [
-      "Make this more efficient, ideally we'd only loop through the format once"
-    ],
-    "requires": [],
     "constructors": [
       {
         "name": "Create",
@@ -11623,6 +11628,14 @@
   {
     "name": "stdSentry",
     "fileName": "stdSentry.cls",
+    "description": "",
+    "remarks": [],
+    "examples": [],
+    "devNotes": [],
+    "todos": [
+      ""
+    ],
+    "requires": [],
     "methods": [
       {
         "name": "protInitFactory",
@@ -11889,14 +11902,6 @@
       }
     ],
     "properties": [],
-    "description": "",
-    "remarks": [],
-    "examples": [],
-    "devNotes": [],
-    "todos": [
-      ""
-    ],
-    "requires": [],
     "constructors": [
       {
         "name": "Create",
@@ -12171,6 +12176,12 @@
   {
     "name": "stdTimer",
     "fileName": "stdTimer.cls",
+    "description": "",
+    "remarks": [],
+    "examples": [],
+    "devNotes": [],
+    "todos": [],
+    "requires": [],
     "methods": [
       {
         "name": "protInit",
@@ -12268,12 +12279,6 @@
       }
     ],
     "properties": [],
-    "description": "",
-    "remarks": [],
-    "examples": [],
-    "devNotes": [],
-    "todos": [],
-    "requires": [],
     "constructors": [
       {
         "name": "Create",
@@ -12333,6 +12338,17 @@
   {
     "name": "stdUIElement",
     "fileName": "stdUIElement.cls",
+    "description": "",
+    "remarks": [],
+    "examples": [],
+    "devNotes": [],
+    "todos": [
+      "Consider calculating and passing X and Y coords of mouse press event",
+      "SpinButton_DblClick using MouseDown",
+      "ScrollBar_DblClick using MouseDown",
+      "Image_DblClick using MouseDown"
+    ],
+    "requires": [],
     "methods": [],
     "properties": [
       {
@@ -12566,17 +12582,6 @@
         "isStatic": false
       }
     ],
-    "description": "",
-    "remarks": [],
-    "examples": [],
-    "devNotes": [],
-    "todos": [
-      "Consider calculating and passing X and Y coords of mouse press event",
-      "SpinButton_DblClick using MouseDown",
-      "ScrollBar_DblClick using MouseDown",
-      "Image_DblClick using MouseDown"
-    ],
-    "requires": [],
     "constructors": [
       {
         "name": "CreateFromControl",
@@ -12730,6 +12735,12 @@
   {
     "name": "stdWebSocket",
     "fileName": "stdWebSocket.cls",
+    "description": "",
+    "remarks": [],
+    "examples": [],
+    "devNotes": [],
+    "todos": [],
+    "requires": [],
     "methods": [
       {
         "name": "protInit",
@@ -12912,12 +12923,6 @@
         "isStatic": false
       }
     ],
-    "description": "",
-    "remarks": [],
-    "examples": [],
-    "devNotes": [],
-    "todos": [],
-    "requires": [],
     "constructors": [
       {
         "name": "Create",
@@ -13065,6 +13070,14 @@
   {
     "name": "stdWindow",
     "fileName": "stdWindow.cls",
+    "description": "",
+    "remarks": [],
+    "examples": [],
+    "devNotes": [],
+    "todos": [
+      "Use SendInput()"
+    ],
+    "requires": [],
     "methods": [
       {
         "name": "AsAcc",
@@ -15083,14 +15096,6 @@
         "isStatic": false
       }
     ],
-    "description": "",
-    "remarks": [],
-    "examples": [],
-    "devNotes": [],
-    "todos": [
-      "Use SendInput()"
-    ],
-    "requires": [],
     "constructors": [
       {
         "name": "Create",
