@@ -11,8 +11,8 @@
 * TODO: Add public enums
 * TODO: Add public types?
 * TODO: Add public constants
-* TODO: Add @throws    e.g. @throws 1, "ERROR: Only stdReg keys have subkeys"
-* TODO: Add @requires  e.g. @requires stdLambda
+* TODO: Add `ByRef` and `ByVal` to param types, needs adding to IParam, already in `IDataParam` as `referenceType` 
+* TODO: Add line numbers for methods. This could be utilised to add links to source code.
 */
 
 /**
@@ -200,6 +200,7 @@ type IParam = {
   optional: boolean;
   defaultValue: string | null;
   paramArray: boolean;
+  referenceType: "ByRef" | "ByVal";
 };
 type IReturn = {
   type: string;
@@ -623,6 +624,8 @@ function parseModuleOrClass(
         optional: param.data?.optional ?? false,
         defaultValue: param.data?.defaultValue ?? null,
         paramArray: param.data?.paramArray ?? false,
+        referenceType:
+          (param.data?.referenceType as "ByRef" | "ByVal" | null) ?? "ByRef",
       };
     });
 

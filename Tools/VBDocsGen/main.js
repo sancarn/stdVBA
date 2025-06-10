@@ -254,7 +254,8 @@ function parseModuleOrClass(content, fileName) {
         description: param.data?.description ?? "",
         optional: param.data?.optional ?? false,
         defaultValue: param.data?.defaultValue ?? null,
-        paramArray: param.data?.paramArray ?? false
+        paramArray: param.data?.paramArray ?? false,
+        referenceType: param.data?.referenceType ?? "ByRef"
       };
     });
     switch (sType) {
