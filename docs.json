@@ -39,7 +39,8 @@
             "description": "Callback returning `EAccFindResult` options:\r\n\r\n* `EAccFindResult.NoMatchFound`/`0`/`False`        - Not found, countinue walking\r\n* `EAccFindResult.MatchFound`/`1`/`-1`/`True`      - Found, return this element\r\n* `EAccFindResult.NoMatchCancelSearch`/`2`         - Not found, cancel search\r\n* `EAccFindResult.NoMatchSkipDescendents`/`3`      - Not found, don't search descendents\r\n* `EAccFindResult.MatchFoundSearchDescendents`/`4` - Same as `EAccFindResult.MatchFound` in this case.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "searchType",
@@ -47,7 +48,8 @@
             "description": "The type of search to perform, either Breadth First Search (BFS) or Depth First Search (DFS).\r\n To understand the difference between BFS and DFS take this tree:\r\n```\r\n     A\r\n    / \\\r\n   B   C\r\n  /   / \\\r\n D   E   F\r\n```\r\n\r\n* A BFS will walk this tree in the following order: A, B, C, D, E, F\r\n* A DFS will walk this tree in a different order:   A, C, F, E, B, D",
             "optional": true,
             "defaultValue": "EAccFindType.DepthFirst",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -80,7 +82,8 @@
             "description": "Callback returning `EAccFindResult` options:\r\n\r\n* `EAccFindResult.NoMatchFound`/`0`/`False`           - Not found, countinue walking.\r\n* `EAccFindResult.MatchFound`/`1`/`-1`/`True`         - Found, return this element, won't search descendents of elements found.\r\n* `EAccFindResult.NoMatchCancelSearch`/`2`            - Not found, cancel search.\r\n* `EAccFindResult.NoMatchSkipDescendents`/`3`         - Not found, don't search descendents.\r\n* `EAccFindResult.MatchFoundSearchDescendents`/`4`    - Found, return this element, but continue searching descendents.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "searchType",
@@ -88,7 +91,8 @@
             "description": "The type of search, either Breadth First Search (BFS) or Depth First Search (DFS).\r\n To understand the difference between BFS and DFS take this tree:\r\n```\r\n     A\r\n    / \\\r\n   B   C\r\n  /   / \\\r\n D   E   F\r\n```\r\n\r\n* A BFS will walk this tree in the following order: A, B, C, D, E, F.\r\n* A DFS will walk this tree in a different order:   A, C, F, E, B, D.",
             "optional": true,
             "defaultValue": "EAccFindType.DepthFirst",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -140,7 +144,8 @@
             "description": "Message to send",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "wParam",
@@ -148,7 +153,8 @@
             "description": "WParam to send",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "lParam",
@@ -156,7 +162,8 @@
             "description": "LParam to send",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -206,7 +213,8 @@
             "description": "File path to dump text to.",
             "optional": true,
             "defaultValue": "\"\"",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "bPrintToDebug",
@@ -214,7 +222,8 @@
             "description": "Whether to print output to debug window or not.",
             "optional": true,
             "defaultValue": "True",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "sPath",
@@ -222,7 +231,8 @@
             "description": "Prefix path (sometimes you might wnat to use Me.getPath(...))",
             "optional": true,
             "defaultValue": "\"P\"",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "fileNum",
@@ -230,7 +240,8 @@
             "description": "Filenum to output too, typically this will be left unprovided",
             "optional": true,
             "defaultValue": "0",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": null,
@@ -258,7 +269,8 @@
             "description": "Stop creating path at this element",
             "optional": true,
             "defaultValue": "Nothing",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "returns": {
@@ -313,7 +325,8 @@
             "description": "If this callback returns true, the function will immediately set the result of the function to the awaited element, otherwise will continue awaiting.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           },
           {
             "name": "error",
@@ -321,7 +334,8 @@
             "description": "If this callback returns true, the function will immediately set the result of the function to `nothing`, oterwise will continue awaiting. If none is provided no error is checked.",
             "optional": true,
             "defaultValue": "Nothing",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           },
           {
             "name": "timeout",
@@ -329,7 +343,8 @@
             "description": "Timeout in seconds. Default = NoTimeout. When timeout is reached the return value of the function is `nothing`",
             "optional": true,
             "defaultValue": "-1",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "returns": {
@@ -526,7 +541,8 @@
             "description": "x coord",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "y",
@@ -534,7 +550,8 @@
             "description": "y coord",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -796,7 +813,8 @@
             "description": "File to get help topic for",
             "optional": true,
             "defaultValue": "\"\"",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -863,7 +881,8 @@
             "description": "X Coordinate",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "y",
@@ -871,7 +890,8 @@
             "description": "Y Coordinate",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -902,7 +922,8 @@
             "description": "Window handle to wrap",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -933,7 +954,8 @@
             "description": "Application to create from. Defaults to `Application` if unspecified.",
             "optional": true,
             "defaultValue": "Nothing",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -986,7 +1008,8 @@
             "description": "Object implementing `IAccessible` interface.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -1041,7 +1064,8 @@
             "description": "Path to element, e.g. \"P.1.2.3\" or \"1.2.3\". If starting with \"P.\" or \".\", these are ignored as they are taken as the current element.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -1072,7 +1096,8 @@
             "description": "Parent object to proxy",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           },
           {
             "name": "index",
@@ -1080,7 +1105,8 @@
             "description": "Index of element in parent",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": null,
@@ -1116,7 +1142,8 @@
             "description": "The length of the initial private array created",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "iChunking",
@@ -1124,7 +1151,8 @@
             "description": "The number of items the private array is increased by when required.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": null,
@@ -1174,7 +1202,8 @@
             "description": "The length of the desired array",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": null,
@@ -1221,7 +1250,8 @@
             "description": "A mapping function which should map whatever the input is to whatever variant the array should be sorted on.",
             "optional": true,
             "defaultValue": "Nothing",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "cbComparrason",
@@ -1229,7 +1259,8 @@
             "description": "Comparrison function which consumes 2 variants and generates a boolean. See implementation of `Sort_QuickSort` for details.",
             "optional": true,
             "defaultValue": "Nothing",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "iAlgorithm",
@@ -1237,7 +1268,8 @@
             "description": "Currently only 1 algorithm: 0 - Quicksort",
             "optional": true,
             "defaultValue": "0",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "bSortInPlace",
@@ -1245,7 +1277,8 @@
             "description": "Sort the array in place. Sorting in-place is prefferred if possible as it is much more performant.",
             "optional": true,
             "defaultValue": "False",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -1276,7 +1309,8 @@
             "description": "The element to add to the end of the array.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -1329,7 +1363,8 @@
             "description": "Index of the element to remove",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -1382,7 +1417,8 @@
             "description": "Value to append to the start of the array",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "returns": {
@@ -1413,7 +1449,8 @@
             "description": "Start index of the slice",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "iEnd",
@@ -1421,7 +1458,8 @@
             "description": "End index of the slice",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -1454,7 +1492,8 @@
             "description": "the size of the new internal arrays to create",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -1485,7 +1524,8 @@
             "description": "Start index of the splice",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "iDeleteCount",
@@ -1493,7 +1533,8 @@
             "description": "Number of elements to delete",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "newElements",
@@ -1501,7 +1542,8 @@
             "description": "Elements to add to the array",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -1576,7 +1618,8 @@
             "description": "Array whose elements we wish to append to the end of this array",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -1607,7 +1650,8 @@
             "description": "Delimiter to insert between strings",
             "optional": true,
             "defaultValue": "\"",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -1638,7 +1682,8 @@
             "description": "The index at which the item's data should be set",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "item",
@@ -1646,7 +1691,8 @@
             "description": "Item to set at the index",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "returns": null,
@@ -1674,7 +1720,8 @@
             "description": "Element to find",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "start",
@@ -1682,7 +1729,8 @@
             "description": "Location to start search for element.",
             "optional": true,
             "defaultValue": "1",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -1713,7 +1761,8 @@
             "description": "Element to find",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -1744,7 +1793,8 @@
             "description": "Item to find",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "startFrom",
@@ -1752,7 +1802,8 @@
             "description": "Index to start search for item at. (Internally uses indexOf())",
             "optional": true,
             "defaultValue": "1",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -1785,7 +1836,8 @@
             "description": "Callback to run on each element",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -1818,7 +1870,8 @@
             "description": "Callback to run on each element",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -1851,7 +1904,8 @@
             "description": "Callback to run on each element",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": null,
@@ -1881,7 +1935,8 @@
             "description": "Callback to run on each element",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -1914,7 +1969,8 @@
             "description": "Callback to generate a key for each element",
             "optional": true,
             "defaultValue": "Nothing",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -1947,7 +2003,8 @@
             "description": "Reducer callback to run on each element",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "initialValue",
@@ -1955,7 +2012,8 @@
             "description": "Initial value to pass to the reducer callback",
             "optional": true,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -1986,7 +2044,8 @@
             "description": "Callback to run on each element. If the callback returns true, the element is included in the returned array.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -2017,7 +2076,8 @@
             "description": "Callback to run on each element. If the callback returns true, the element is included in the count.",
             "optional": true,
             "defaultValue": "Nothing",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -2048,7 +2108,8 @@
             "description": "Callback to run on each element. The return value of this callback is used as the key to group the elements by.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -2079,7 +2140,8 @@
             "description": "Callback to run on each element. The return value of this callback is used to determine the maximum value.",
             "optional": true,
             "defaultValue": "Nothing",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "startingValue",
@@ -2087,7 +2149,8 @@
             "description": "The starting value to compare against. If not provided, the first element of the array is used.",
             "optional": true,
             "defaultValue": "Empty",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -2118,7 +2181,8 @@
             "description": "Callback to run on each element. The return value of this callback is used to determine the minimum value.",
             "optional": true,
             "defaultValue": "Nothing",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "startingValue",
@@ -2126,7 +2190,8 @@
             "description": "The starting value to compare against. If not provided, the first element of the array is used.",
             "optional": true,
             "defaultValue": "Empty",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -2254,7 +2319,8 @@
             "description": "The location to get/set the item",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -2295,7 +2361,8 @@
             "description": "The items of the array",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "returns": {
@@ -2326,7 +2393,8 @@
             "description": "The length of the initial private array created",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "iChunking",
@@ -2334,7 +2402,8 @@
             "description": "The number of items the private array is increased by when required.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "params",
@@ -2342,7 +2411,8 @@
             "description": "The items of the array",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "returns": {
@@ -2373,7 +2443,8 @@
             "description": "Variant array to create a `stdArray` object from.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -2404,7 +2475,8 @@
             "description": "Collection to create a `stdArray` object from.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -2435,7 +2507,8 @@
             "description": "Haystack to split",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "sDelimiter",
@@ -2443,7 +2516,8 @@
             "description": "Delimiter",
             "optional": true,
             "defaultValue": "\"",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -2476,7 +2550,8 @@
             "description": "A reference to this array",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           },
           {
             "name": "arr2",
@@ -2484,7 +2559,8 @@
             "description": "The array which is being assigned to this array",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "devNotes": [],
@@ -2502,7 +2578,8 @@
             "description": "A reference to this array",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           },
           {
             "name": "arr2",
@@ -2510,7 +2587,8 @@
             "description": "The array which is being assigned to this array",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "devNotes": [],
@@ -2528,7 +2606,8 @@
             "description": "A the array to which the item is being added",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           },
           {
             "name": "iIndex",
@@ -2536,7 +2615,8 @@
             "description": "The index at which the item will be added",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "item",
@@ -2544,7 +2624,8 @@
             "description": "The item which will be added",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           },
           {
             "name": "cancel",
@@ -2552,7 +2633,8 @@
             "description": "Set to true to cancel the addition",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "devNotes": [],
@@ -2570,7 +2652,8 @@
             "description": "A the array to which the item has been added to.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           },
           {
             "name": "iIndex",
@@ -2578,7 +2661,8 @@
             "description": "The index at which the item was added",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "item",
@@ -2586,7 +2670,8 @@
             "description": "The item which was be added",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "devNotes": [],
@@ -2604,7 +2689,8 @@
             "description": "A the array from which the item is being removed",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           },
           {
             "name": "iIndex",
@@ -2612,7 +2698,8 @@
             "description": "The index at which the item will be removed",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "item",
@@ -2620,7 +2707,8 @@
             "description": "The item which will be removed",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           },
           {
             "name": "cancel",
@@ -2628,7 +2716,8 @@
             "description": "Set to true to cancel the removal",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "devNotes": [],
@@ -2646,7 +2735,8 @@
             "description": "A the array from which the item has been removed",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           },
           {
             "name": "iIndex",
@@ -2654,7 +2744,8 @@
             "description": "The index at which the item was removed",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "devNotes": [],
@@ -2672,7 +2763,8 @@
             "description": "A reference to the clone",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "devNotes": [],
@@ -2690,7 +2782,8 @@
             "description": "A reference to the array",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "devNotes": [],
@@ -2717,7 +2810,8 @@
             "description": "Interface Identifier as string",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -2796,7 +2890,8 @@
             "description": "Known interface to query for",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -2831,7 +2926,8 @@
             "description": "CLSID if required. If this arg isn't provided, a ProgID must be provided.",
             "optional": true,
             "defaultValue": "\"\"",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "ProgID",
@@ -2839,7 +2935,8 @@
             "description": "ProgID if required. If this arg isn't provided, a CLSID must be provided.",
             "optional": true,
             "defaultValue": "\"\"",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": null,
@@ -2888,7 +2985,8 @@
             "description": "The offset of the method to call. IUnknown::QueryInterface=0; IUnknown::AddRef=1; IUnknown::Release=2; IDispatch::Invoke=6",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "ReturnType",
@@ -2896,7 +2994,8 @@
             "description": "Return value of function, typically Long (HResult) for COM Object calls",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "FunctionParameters",
@@ -2904,7 +3003,8 @@
             "description": "Arguments to send to function.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "returns": {
@@ -3094,7 +3194,8 @@
             "description": "Include GET/LET/SET/UNK prefixes representing call conv",
             "optional": true,
             "defaultValue": "False",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "returns": {
@@ -3135,7 +3236,8 @@
             "description": "Object to create raw COM object from",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "returns": {
@@ -3168,7 +3270,8 @@
             "description": "Object pointer to wrap in a raw COM object",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -3227,7 +3330,8 @@
             "description": "An activatable WinRT class ID.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -3260,7 +3364,8 @@
             "description": "A CLSID as a string.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "sIID",
@@ -3268,7 +3373,8 @@
             "description": "An IID as a string. Default is `IDispatch`.",
             "optional": true,
             "defaultValue": "\"00020400-0000-0000-C000-000000000046\"",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -3307,7 +3413,8 @@
             "description": "The parameters to bind to the function",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "returns": {
@@ -3338,7 +3445,8 @@
             "description": "The parameters to bind to the function",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -3369,7 +3477,8 @@
             "description": "The parameters to run the function with",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "returns": {
@@ -3400,7 +3509,8 @@
             "description": "The parameters to run the function with",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -3442,7 +3552,8 @@
             "description": "The type of module to create the callback from. Can be either \"Module\" or \"Object\"",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           },
           {
             "name": "Parent",
@@ -3450,7 +3561,8 @@
             "description": "The parent object to create the callback from. If mType is \"Module\" then this should be a string, otherwise it should be an object.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           },
           {
             "name": "name",
@@ -3458,7 +3570,8 @@
             "description": "The name of the method to create the callback from.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           },
           {
             "name": "cType",
@@ -3466,7 +3579,8 @@
             "description": "The call type to use when calling the method. Defaults to VbCallType.VbMethod",
             "optional": true,
             "defaultValue": "VbCallType.VbMethod",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "returns": {
@@ -3497,7 +3611,8 @@
             "description": "The name of the module to create the callback from.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "sMethodName",
@@ -3505,7 +3620,8 @@
             "description": "The name of the method to create the callback from.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -3536,7 +3652,8 @@
             "description": "The path of the workbook to create the callback from.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "sModuleName",
@@ -3544,7 +3661,8 @@
             "description": "The name of the module to create the callback from.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "sMethodName",
@@ -3552,7 +3670,8 @@
             "description": "The name of the method to create the callback from.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -3583,7 +3702,8 @@
             "description": "The object to create the callback from.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           },
           {
             "name": "sMethodName",
@@ -3591,7 +3711,8 @@
             "description": "The name of the method to create the callback from.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -3622,7 +3743,8 @@
             "description": "The object to create the callback from.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           },
           {
             "name": "sPropName",
@@ -3630,7 +3752,8 @@
             "description": "The name of the property to create the callback from.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "cType",
@@ -3638,7 +3761,8 @@
             "description": "The call type to use when calling the method. Defaults to VbCallType.VbGet",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -3669,7 +3793,8 @@
             "description": "The address of the function to create the callback from.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "iRetType",
@@ -3677,7 +3802,8 @@
             "description": "The return type of the function to create the callback from.",
             "optional": true,
             "defaultValue": "0",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "vParamTypes",
@@ -3685,7 +3811,8 @@
             "description": "The parameter types of the function to create the callback from.",
             "optional": true,
             "defaultValue": "Null",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "returns": {
@@ -3718,7 +3845,8 @@
             "description": "The callback object that is about to be run",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           },
           {
             "name": "args",
@@ -3726,7 +3854,8 @@
             "description": "The arguments that will be passed to the callback. This can be modified by listeners.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "devNotes": [],
@@ -3744,7 +3873,8 @@
             "description": "The callback object that has just been run",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           },
           {
             "name": "result",
@@ -3752,7 +3882,8 @@
             "description": "The result of the callback. This can be modified by listeners.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "devNotes": [],
@@ -3817,7 +3948,8 @@
             "description": "The format to check support for.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -3850,7 +3982,8 @@
             "description": "The format to retrieve",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -3884,7 +4017,8 @@
             "description": "Name of format to obtain",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -3915,7 +4049,8 @@
             "description": "A set of files as an array",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": null,
@@ -3943,7 +4078,8 @@
             "description": "Files string delimited by vbNullChar and ending in 2x vbNullChar",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": null,
@@ -3993,7 +4129,8 @@
             "description": "Window to send paste event to",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": null,
@@ -4021,7 +4158,8 @@
             "description": "Window to send copy event to",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": null,
@@ -4049,7 +4187,8 @@
             "description": "The xlCopyPictureFormat to convert",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -4108,7 +4247,8 @@
             "description": "The format to get/set the value of",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -4238,7 +4378,8 @@
             "description": "xlPrint or xlScreen",
             "optional": true,
             "defaultValue": "xlScreen",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "iFormat",
@@ -4246,7 +4387,8 @@
             "description": "xlBitmap or xlPicture",
             "optional": true,
             "defaultValue": "xlBitmap",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "xlPic",
@@ -4254,7 +4396,8 @@
             "description": "The picture to copy",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -4286,7 +4429,8 @@
             "description": "xlPrint or xlScreen",
             "optional": true,
             "defaultValue": "xlScreen",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           },
           {
             "name": "iFormat",
@@ -4294,7 +4438,8 @@
             "description": "xlBitmap or xlPicture",
             "optional": true,
             "defaultValue": "XlCopyPictureFormat.xlBitmap",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           },
           {
             "name": "xlShp",
@@ -4302,7 +4447,8 @@
             "description": "The shape to turn into an image",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -4377,7 +4523,8 @@
             "description": "The new value retrieved.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "returns": {
@@ -4449,7 +4596,8 @@
             "description": "The vartype of the array generated",
             "optional": true,
             "defaultValue": "vbVarType.vbVariant",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -4524,7 +4672,8 @@
             "description": "Callback to call for each item",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -4555,7 +4704,8 @@
             "description": "Callback to map values to.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -4586,7 +4736,8 @@
             "description": "callback to test condition for",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -4617,7 +4768,8 @@
             "description": "If a callback provided, sorts items based on values returned by the callback. Otherwise sorts items based on values in enumerator",
             "optional": true,
             "defaultValue": "Nothing",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -4648,7 +4800,8 @@
             "description": "If a callback provided, filters out duplicate items based on values returned by the callback. Otherwise filters duplicate item based on their value.",
             "optional": true,
             "defaultValue": "Nothing",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -4701,7 +4854,8 @@
             "description": "Enumerator to concat with that of `me`.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -4732,7 +4886,8 @@
             "description": "Enumerator to concat with that of `me`.",
             "optional": true,
             "defaultValue": "\"",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -4763,7 +4918,8 @@
             "description": "Element to find.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -4794,7 +4950,8 @@
             "description": "Element to find",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -4825,7 +4982,8 @@
             "description": "Element to find",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -4856,7 +5014,8 @@
             "description": "condition to check.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -4887,7 +5046,8 @@
             "description": "condition to check.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -4918,7 +5078,8 @@
             "description": "condition to check.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -4949,7 +5110,8 @@
             "description": "condition to check.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -4980,7 +5142,8 @@
             "description": "reducer function to execute.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -5011,7 +5174,8 @@
             "description": "The callable to test for",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -5042,7 +5206,8 @@
             "description": "The callable which when run on an element returns the key to group by",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -5076,7 +5241,8 @@
             "description": "The callable which when run on an element returns the key to group by",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -5107,7 +5273,8 @@
             "description": "If callback given, callback to obtain max value of. Else max of the elements values are found.",
             "optional": true,
             "defaultValue": "Nothing",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -5138,7 +5305,8 @@
             "description": "If callback given, callback to obtain min value of. Else min of the elements values are found.",
             "optional": true,
             "defaultValue": "Nothing",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -5169,7 +5337,8 @@
             "description": "A callback returning an item to sum. If no callback supplied then the elements themselves will be summed",
             "optional": true,
             "defaultValue": "Nothing",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -5222,7 +5391,8 @@
             "description": "Times to execute the cb on the collection",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "cb",
@@ -5230,7 +5400,8 @@
             "description": "Callback to execute on each item",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -5261,7 +5432,8 @@
             "description": "Callback to check whether item matches condition",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "ifMissing",
@@ -5269,7 +5441,8 @@
             "description": "Value to return if missing",
             "optional": true,
             "defaultValue": "Null",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -5302,7 +5475,8 @@
             "description": "The number of elements to retrieve",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -5361,7 +5535,8 @@
             "description": "An index / key of an element to obtain.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "byIndex",
@@ -5369,7 +5544,8 @@
             "description": "If true, then index of item is used, instead of potentially key.",
             "optional": true,
             "defaultValue": "False",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -5436,7 +5612,8 @@
             "description": "Callback which returns either the next item.\r\n       If no next item, null should be returned.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "iMaxLength",
@@ -5444,7 +5621,8 @@
             "description": "Maximum length of enumerator. The enumerator will refuse to go beyond this number of items.\r\n       Used in order to prevent runaway processes.",
             "optional": true,
             "defaultValue": "1000000",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -5475,7 +5653,8 @@
             "description": "Callback which returns an array. The array should be of the form:\r\n[hasANextItem, NextIndex, ValueToReturn, KeyToReturn]. This allows `ValueToReturn` to be null unlike Non-verbose callable.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "iMaxLength",
@@ -5483,7 +5662,8 @@
             "description": "Maximum length of enumerator. The enumerator will refuse to go beyond this number of items. Used in order to prevent runaway processes.",
             "optional": true,
             "defaultValue": "1000000",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -5514,7 +5694,8 @@
             "description": "the Array to create the enumerator from.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "iMaxLength",
@@ -5522,7 +5703,8 @@
             "description": "Maximum length of enumerator. The enumerator will refuse to go beyond this number of items. Used in order to prevent runaway processes.",
             "optional": true,
             "defaultValue": "1000000",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -5553,7 +5735,8 @@
             "description": "the object to create the enumerator from. This object should support IEnumVARIANT",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "iMaxLength",
@@ -5561,7 +5744,8 @@
             "description": "Maximum length of enumerator. The enumerator will refuse to go beyond this number of items. Used in order to prevent runaway processes.",
             "optional": true,
             "defaultValue": "1000000",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -5592,7 +5776,8 @@
             "description": "Maximum length of enumerator. The enumerator will refuse to go beyond this number of items. Used in order to prevent runaway processes.",
             "optional": true,
             "defaultValue": "1000000",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -5623,7 +5808,8 @@
             "description": "ListObject to create enumerator from.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "iMaxLength",
@@ -5631,7 +5817,8 @@
             "description": "Maximum length of enumerator. The enumerator will refuse to go beyond this number of items. Used in order to prevent runaway processes.",
             "optional": true,
             "defaultValue": "1000000",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -5662,7 +5849,8 @@
             "description": "The parent / root node",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "getChildren",
@@ -5670,7 +5858,8 @@
             "description": "A callback which returns the children of each individual node.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -5703,7 +5892,8 @@
             "description": "The dictionary to create the enumerator from.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -5734,7 +5924,8 @@
             "description": "Enumerator type to create",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "iMaxLength",
@@ -5742,7 +5933,8 @@
             "description": "Maximum length of enumerator. The enumerator will refuse to go beyond this number of items. Used in order to prevent runaway processes.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "v",
@@ -5750,7 +5942,8 @@
             "description": "The data to create the enumerator from. This is either an array, a callable, or an IEnumVARIANT object.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "returns": null,
@@ -5786,7 +5979,8 @@
             "description": "Callback process / step, consumes the fiber parent, returns `true` if caller can proceed to next step. returns `false` otherwise.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "stepName",
@@ -5794,7 +5988,8 @@
             "description": "The name of the step. This can be used for resetting and error reporting purposes.",
             "optional": true,
             "defaultValue": "\"\"",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -5825,7 +6020,8 @@
             "description": "Callback to run when an error occurs in the fiber",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -5856,7 +6052,8 @@
             "description": "Callback to run when an error occurs in the fiber",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -5887,7 +6084,8 @@
             "description": "The result to return",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": null,
@@ -5915,7 +6113,8 @@
             "description": "Step name to jump to (if not specified, will reset to first step).",
             "optional": true,
             "defaultValue": "\"\"",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": null,
@@ -5943,7 +6142,8 @@
             "description": "Fiber procedures to execute over",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "numAgents",
@@ -5951,7 +6151,8 @@
             "description": "the number of fiber runtimes to create (or number of fiber procedures to run concurrently)",
             "optional": true,
             "defaultValue": "1",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "agentInitCB",
@@ -5959,7 +6160,8 @@
             "description": "Called when an agent has been initialised. This is called only once per agent object. The agent environment is received as the parameter.",
             "optional": true,
             "defaultValue": "Nothing",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "agentDestroyCB",
@@ -5967,7 +6169,8 @@
             "description": "Called when an agent is about to be destroyed. This is called only once per agent object. The agent environment is received as the parameter. Typically used to cleanup.",
             "optional": true,
             "defaultValue": "Nothing",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "runtimeUpdateCB",
@@ -5975,7 +6178,8 @@
             "description": "A callback to call every second to update on progress.",
             "optional": true,
             "defaultValue": "Nothing",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -6006,7 +6210,8 @@
             "description": "If an error is required, set this parameter to whatever the text should be.",
             "optional": true,
             "defaultValue": "\"\"",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": null,
@@ -6299,7 +6504,8 @@
             "description": "The name of the fiber",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -6338,7 +6544,8 @@
             "description": "Headers to load into the http request in the form key1, value1, key2, value2, ...",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "returns": {
@@ -6369,7 +6576,8 @@
             "description": "The body of the request",
             "optional": true,
             "defaultValue": "\"\"",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           },
           {
             "name": "Headers",
@@ -6377,7 +6585,8 @@
             "description": "The headers of the request",
             "optional": true,
             "defaultValue": "Nothing",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           },
           {
             "name": "Cookies",
@@ -6385,7 +6594,8 @@
             "description": "The cookies of the request",
             "optional": true,
             "defaultValue": "Nothing",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           },
           {
             "name": "ContentTypeDefault",
@@ -6393,7 +6603,8 @@
             "description": "The default content type of the request",
             "optional": true,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "Insecure",
@@ -6401,7 +6612,8 @@
             "description": "Whether to ignore SSL errors",
             "optional": true,
             "defaultValue": "False",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           },
           {
             "name": "EnableRedirects",
@@ -6409,7 +6621,8 @@
             "description": "Whether to follow redirects",
             "optional": true,
             "defaultValue": "True",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           },
           {
             "name": "TimeoutMS",
@@ -6417,7 +6630,8 @@
             "description": "The timeout of the request in milliseconds",
             "optional": true,
             "defaultValue": "5000",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -6448,7 +6662,8 @@
             "description": "",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "Server",
@@ -6456,7 +6671,8 @@
             "description": "the IP address (or hostname) of the proxy server",
             "optional": true,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "ByPass",
@@ -6464,7 +6680,8 @@
             "description": "A proxy bypass list is not always needed, but it's useful. It specifies URLs or IP ranges that should be accessed directly, bypassing the proxy. This is often used for local or intranet addresses.",
             "optional": true,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "User",
@@ -6472,7 +6689,8 @@
             "description": "Username for proxy server authentication",
             "optional": true,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "Pass",
@@ -6480,7 +6698,8 @@
             "description": "Password for proxy server authentication",
             "optional": true,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -6533,7 +6752,8 @@
             "description": "The string to encode",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -6564,7 +6784,8 @@
             "description": "The string to decode",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -6713,7 +6934,8 @@
             "description": "The name of the header to get",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -6823,7 +7045,8 @@
             "description": "The url to query",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "RequestMethod",
@@ -6831,7 +7054,8 @@
             "description": "Typically \"GET\", \"POST\", \"PUT\", \"DELETE\", but can be any string which the server responds to",
             "optional": true,
             "defaultValue": "\"GET\"",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "ThreadingStyle",
@@ -6839,7 +7063,8 @@
             "description": "The Threading approach. Either HTTPSync (Synchronous) or HTTPAsync (Asynchronous).",
             "optional": true,
             "defaultValue": "HTTPSync",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "options",
@@ -6847,7 +7072,8 @@
             "description": "Use `stdHTTP.CreateOptions()` to generate these.",
             "optional": true,
             "defaultValue": "Nothing",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "Authenticator",
@@ -6855,7 +7081,8 @@
             "description": "A callable object which will be called before the request is sent. This can be used to add authentication headers, etc.",
             "optional": true,
             "defaultValue": "Nothing",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -6896,7 +7123,8 @@
             "description": "The HTTP object from the stdHTTP.Create() call",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "RequestMethod",
@@ -6904,7 +7132,8 @@
             "description": "The HTTP method from the stdHTTP.Create() call",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "sURL",
@@ -6912,7 +7141,8 @@
             "description": "The URL from the stdHTTP.Create() call",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "ThreadingStyle",
@@ -6920,7 +7150,8 @@
             "description": "The threading style from the stdHTTP.Create() call",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "options",
@@ -6928,7 +7159,8 @@
             "description": "The options object from the stdHTTP.Create() call",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": null,
@@ -6960,7 +7192,8 @@
             "description": "The username supplied by the user during Bind()",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "Password",
@@ -6968,7 +7201,8 @@
             "description": "The password supplied by the user during Bind()",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "pHTTP",
@@ -6976,7 +7210,8 @@
             "description": "The HTTP object from the stdHTTP.Create() call",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "RequestMethod",
@@ -6984,7 +7219,8 @@
             "description": "The HTTP method from the stdHTTP.Create() call",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "sURL",
@@ -6992,7 +7228,8 @@
             "description": "The URL from the stdHTTP.Create() call",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "ThreadingStyle",
@@ -7000,7 +7237,8 @@
             "description": "The threading style from the stdHTTP.Create() call",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "options",
@@ -7008,7 +7246,8 @@
             "description": "The options object from the stdHTTP.Create() call",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": null,
@@ -7038,7 +7277,8 @@
             "description": "The name of the header to set supplied by the user during Bind()",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "Token",
@@ -7046,7 +7286,8 @@
             "description": "The token to set the header to supplied by the user during Bind()",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "pHTTP",
@@ -7054,7 +7295,8 @@
             "description": "The HTTP object from the stdHTTP.Create() call",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "RequestMethod",
@@ -7062,7 +7304,8 @@
             "description": "The HTTP method from the stdHTTP.Create() call",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "sURL",
@@ -7070,7 +7313,8 @@
             "description": "The URL from the stdHTTP.Create() call",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "ThreadingStyle",
@@ -7078,7 +7322,8 @@
             "description": "The threading style from the stdHTTP.Create() call",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "options",
@@ -7086,7 +7331,8 @@
             "description": "The options object from the stdHTTP.Create() call",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": null,
@@ -7116,7 +7362,8 @@
             "description": "The username supplied by the user during Bind()",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "Password",
@@ -7124,7 +7371,8 @@
             "description": "The password supplied by the user during Bind()",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "sDomain",
@@ -7132,7 +7380,8 @@
             "description": "The domain to authenticate against supplied by the user during Bind()",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "pHTTP",
@@ -7140,7 +7389,8 @@
             "description": "The HTTP object from the stdHTTP.Create() call",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "RequestMethod",
@@ -7148,7 +7398,8 @@
             "description": "The HTTP method from the stdHTTP.Create() call",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "sURL",
@@ -7156,7 +7407,8 @@
             "description": "The URL from the stdHTTP.Create() call",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "ThreadingStyle",
@@ -7164,7 +7416,8 @@
             "description": "The threading style from the stdHTTP.Create() call",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "options",
@@ -7172,7 +7425,8 @@
             "description": "The options object from the stdHTTP.Create() call",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": null,
@@ -7213,7 +7467,8 @@
             "description": "The parameters to run the function with",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "returns": {
@@ -7244,7 +7499,8 @@
             "description": "The parameters to run the function with",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -7275,7 +7531,8 @@
             "description": "The parameters to bind to the function",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "returns": {
@@ -7306,7 +7563,8 @@
             "description": "Message to send. Standard messages include \"obj\" returning the object, \"className\" returning the class name. Other messages are implementation specific.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "success",
@@ -7314,7 +7572,8 @@
             "description": "Whether the call was successful",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           },
           {
             "name": "params",
@@ -7322,7 +7581,8 @@
             "description": "Any variant, typically parameters as an array. Passed along with the message.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -7391,7 +7651,8 @@
             "description": "Handle to bitmap",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": null,
@@ -7419,7 +7680,8 @@
             "description": "The format the data should be in.",
             "optional": true,
             "defaultValue": "stdImgFormatDefault",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -7490,7 +7752,8 @@
             "description": "The format the data should be in.",
             "optional": true,
             "defaultValue": "stdImgFormatDefault",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -7521,7 +7784,8 @@
             "description": "Worksheet to add image to",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "Top",
@@ -7529,7 +7793,8 @@
             "description": "Top coord of the newly placed image",
             "optional": true,
             "defaultValue": "0",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "Left",
@@ -7537,7 +7802,8 @@
             "description": "Left coord of the newly placed image",
             "optional": true,
             "defaultValue": "0",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "compress",
@@ -7545,7 +7811,8 @@
             "description": "Whether to compress the image on import.",
             "optional": true,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -7578,7 +7845,8 @@
             "description": "The control to update the picture of",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": null,
@@ -7606,7 +7874,8 @@
             "description": "The format of the image",
             "optional": true,
             "defaultValue": "stdImgFormatDefault",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -7639,7 +7908,8 @@
             "description": "The shape to fill",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": null,
@@ -7780,7 +8050,8 @@
             "description": "Bytes of Bitmap/Jpeg/Png/... image",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "returns": {
@@ -7813,7 +8084,8 @@
             "description": "Path of file",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "format",
@@ -7821,7 +8093,8 @@
             "description": "The format of the image",
             "optional": true,
             "defaultValue": "stdImgFormatDefault",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -7856,7 +8129,8 @@
             "description": "Url of file",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "format",
@@ -7864,7 +8138,8 @@
             "description": "The format of the image",
             "optional": true,
             "defaultValue": "stdImgFormatDefault",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -7897,7 +8172,8 @@
             "description": "hBitmap (handle to Bitmap)",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -7954,7 +8230,8 @@
             "description": "Object to create picture from",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -7987,7 +8264,8 @@
             "description": "Object to create picture from",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -8020,7 +8298,8 @@
             "description": "Object to create picture from",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -8053,7 +8332,8 @@
             "description": "Object to create picture from",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -8086,7 +8366,8 @@
             "description": "Object to create picture from",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -8119,7 +8400,8 @@
             "description": "Object to create picture from",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -8174,7 +8456,8 @@
             "description": "Handle to window",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "bClientArea",
@@ -8182,7 +8465,8 @@
             "description": "If true, only the client area of the window is captured. If false, the entire window is captured.",
             "optional": true,
             "defaultValue": "False",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -8215,7 +8499,8 @@
             "description": "Handle to icon",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -8256,7 +8541,8 @@
             "description": "if This is an eJSONObject, the Key and Value to add. Else the value to add to the eJSONArray.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "returns": {
@@ -8289,7 +8575,8 @@
             "description": "If `this.iType == eJSONObject` then this is the key it should be assigned to. Else this param is unused.",
             "optional": true,
             "defaultValue": "\"\"",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "fromVar",
@@ -8297,7 +8584,8 @@
             "description": "If provided the object will be pre-filled with data",
             "optional": true,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -8328,7 +8616,8 @@
             "description": "If `this.iType == eJSONObject` then this is the key it should be assigned to. Else this param is unused.",
             "optional": true,
             "defaultValue": "\"\"",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -8383,7 +8672,8 @@
             "description": "If true, pretty print the JSON",
             "optional": true,
             "defaultValue": "False",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "prettyIndent",
@@ -8391,7 +8681,8 @@
             "description": "If pretty, the indent to use",
             "optional": true,
             "defaultValue": "2",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "depth",
@@ -8399,7 +8690,8 @@
             "description": "If pretty, the depth to start at",
             "optional": true,
             "defaultValue": "1",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "returns": {
@@ -8430,7 +8722,8 @@
             "description": "Path to file to dump JSON data to",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "prettyIndent",
@@ -8438,7 +8731,8 @@
             "description": "If pretty, the indent to use",
             "optional": true,
             "defaultValue": "0",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": null,
@@ -8583,7 +8877,8 @@
             "description": "Either a string key (if eJSONObject) or index as long (if eJSONArray)",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -8615,7 +8910,8 @@
             "description": "Either a string key (if eJSONObject) or index as long (if eJSONArray)",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -8654,7 +8950,8 @@
             "description": "The type of json object to create. Default is JSON object, i.e. {}.",
             "optional": true,
             "defaultValue": "eJSONObject",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -8688,7 +8985,8 @@
             "description": "string to create json from",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "AllowUnquotedKeys",
@@ -8696,7 +8994,8 @@
             "description": "Allow unquoted keys? E.G. \"{a:\"\"hello\"\"}\"",
             "optional": true,
             "defaultValue": "False",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "AllowSingleQuoteStrings",
@@ -8704,7 +9003,8 @@
             "description": "Allow single quoted strings? E.G. \"{'a':'hello'}\"",
             "optional": true,
             "defaultValue": "False",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "StoreLargeNumsAsString",
@@ -8712,7 +9012,8 @@
             "description": "Store Large numbers >16 chars as string instead of doubles. This may be useful if precision is important.",
             "optional": true,
             "defaultValue": "False",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -8743,7 +9044,8 @@
             "description": "Path to file containing json data",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -8774,7 +9076,8 @@
             "description": "Variant to convert to JSON, e.g. Collection, Dictionary or Array",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -8805,7 +9108,8 @@
             "description": "The type of JSON to create, this affects how `params` is interpreted",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "params",
@@ -8813,7 +9117,8 @@
             "description": "Either a set of `key`,`value` pairs, if creating an object, or a list of `value`s to add to an array.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "returns": {
@@ -8852,7 +9157,8 @@
             "description": "Type of lambda to initialise",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "params",
@@ -8860,7 +9166,8 @@
             "description": "Parameters to initialise the lambda with",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "returns": null,
@@ -8888,7 +9195,8 @@
             "description": "Array of parameters to run the lambda with",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "returns": {
@@ -8919,7 +9227,8 @@
             "description": "Array of parameters to run the lambda with",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -8950,7 +9259,8 @@
             "description": "Parameters to bind to the lambda.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "returns": {
@@ -8981,7 +9291,8 @@
             "description": "Array of parameters to bind",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -9012,7 +9323,8 @@
             "description": "New global name",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "variable",
@@ -9020,7 +9332,8 @@
             "description": "Data to store in global variable",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -9124,7 +9437,8 @@
             "description": "The equation to parse",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "bUsePerformanceCache",
@@ -9132,7 +9446,8 @@
             "description": "Whether to cache the parsed equation for performance",
             "optional": true,
             "defaultValue": "False",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "bSandboxExtras",
@@ -9140,7 +9455,8 @@
             "description": "Whether to allow extra functions to be called",
             "optional": true,
             "defaultValue": "False",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -9173,7 +9489,8 @@
             "description": "The equation to parse",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           },
           {
             "name": "bUsePerformanceCache",
@@ -9181,7 +9498,8 @@
             "description": "Whether to cache the parsed equation for performance",
             "optional": true,
             "defaultValue": "False",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "bSandboxExtras",
@@ -9189,7 +9507,8 @@
             "description": "Whether to allow extra functions to be called",
             "optional": true,
             "defaultValue": "False",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -9228,7 +9547,8 @@
             "description": "Type of performance object to initialise.\r\n\r\n* iMeasure - used for measuring performance\r\n* iOptimiser - used for optimising performance",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "params",
@@ -9236,7 +9556,8 @@
             "description": "Additional params supplied as array.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": null,
@@ -9266,7 +9587,8 @@
             "description": "Name of measurement to add to global cache",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "time",
@@ -9274,7 +9596,8 @@
             "description": "time to add to global cache",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "nCount",
@@ -9282,7 +9605,8 @@
             "description": "number of operations (divisor)",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": null,
@@ -9332,7 +9656,8 @@
             "description": "Name of measurement to get",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -9400,7 +9725,8 @@
             "description": "Name of method or block to measure",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "nCount",
@@ -9408,7 +9734,8 @@
             "description": "Number of times the block will be ran (used to calculate average time), default = 1.",
             "optional": true,
             "defaultValue": "1",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -9443,7 +9770,8 @@
             "description": "ScreenUpdating set value",
             "optional": true,
             "defaultValue": "False",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "EnableEvents",
@@ -9451,7 +9779,8 @@
             "description": "EnableEvents set value",
             "optional": true,
             "defaultValue": "False",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "Calculation",
@@ -9459,7 +9788,8 @@
             "description": "Calculation set value",
             "optional": true,
             "defaultValue": "-4135",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -9498,7 +9828,8 @@
             "description": "The exit code to use when terminating the process",
             "optional": true,
             "defaultValue": "0",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": null,
@@ -9857,7 +10188,8 @@
             "description": "The command to create the process",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "winStyle",
@@ -9865,7 +10197,8 @@
             "description": "The style to show the window",
             "optional": true,
             "defaultValue": "VbAppWinStyle.vbHide",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -9896,7 +10229,8 @@
             "description": "the process id",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -9927,7 +10261,8 @@
             "description": "The query to search processes for",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -9958,7 +10293,8 @@
             "description": "The query to search processes for",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -10019,7 +10355,8 @@
             "description": "Center X coord",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "cy",
@@ -10027,7 +10364,8 @@
             "description": "Center Y coord",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "halfDimension",
@@ -10035,7 +10373,8 @@
             "description": "radius of square",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "capacityBeforeSubdivision",
@@ -10043,7 +10382,8 @@
             "description": "The number of nodes a quadtree can hold before it subdivides. This can also be seen as the number of duplicate points allowed. If there are duplicates beyond this number you will get a stack overflow error.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           },
           {
             "name": "minimumHalfDimension",
@@ -10051,7 +10391,8 @@
             "description": "Minimum boundary size when points stop causing subdivisions. Helps handle duplicate points",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           },
           {
             "name": "parent",
@@ -10059,7 +10400,8 @@
             "description": "The parent of this quadtree element",
             "optional": true,
             "defaultValue": "Nothing",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": null,
@@ -10087,7 +10429,8 @@
             "description": "Y coord of point",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "meta",
@@ -10095,7 +10438,8 @@
             "description": "Metadata object i.e. holding additional geospatial information",
             "optional": true,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -10126,7 +10470,8 @@
             "description": "Center x coordinate",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "cy",
@@ -10134,7 +10479,8 @@
             "description": "Center y coordinate",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "radius",
@@ -10142,7 +10488,8 @@
             "description": "minimumDimension / radius of range to search",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -10173,7 +10520,8 @@
             "description": "Minimum x coord of rect",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "minY",
@@ -10181,7 +10529,8 @@
             "description": "Minimum y coord of rect",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "maxX",
@@ -10189,7 +10538,8 @@
             "description": "Maximum x coord of rect",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "maxY",
@@ -10197,7 +10547,8 @@
             "description": "Maximum y coord of rect",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -10239,7 +10590,8 @@
             "description": "The center x coord",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "cy",
@@ -10247,7 +10599,8 @@
             "description": "The center y coord",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "halfDimension",
@@ -10255,7 +10608,8 @@
             "description": "the \"radius\" of the cell",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "capacityBeforeSubdivision",
@@ -10263,7 +10617,8 @@
             "description": "The number of nodes a quadtree can hold before it subdivides. This can also be seen as the number of duplicate points allowed. If there are duplicates beyond this number you will get a stack overflow error.",
             "optional": true,
             "defaultValue": "4",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "minimumHalfDimension",
@@ -10271,7 +10626,8 @@
             "description": "Minimum boundary size when points stop causing subdivisions. Helps handle duplicate points",
             "optional": true,
             "defaultValue": "0.00001",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "returns": {
@@ -10302,7 +10658,8 @@
             "description": "Minimum x coord",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "minY",
@@ -10310,7 +10667,8 @@
             "description": "Minimum y coord",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "maxX",
@@ -10318,7 +10676,8 @@
             "description": "Maximum x coord",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "maxY",
@@ -10326,7 +10685,8 @@
             "description": "Maximum y coord",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "capacityBeforeSubdivision",
@@ -10334,7 +10694,8 @@
             "description": "The number of nodes a quadtree can hold before it subdivides. This can also be seen as the number of duplicate points allowed. If there are duplicates beyond this number you will get a stack overflow error.",
             "optional": true,
             "defaultValue": "4",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "minimumHalfDimension",
@@ -10342,7 +10703,8 @@
             "description": "Minimum boundary size when points stop causing subdivisions. Helps handle duplicate points",
             "optional": true,
             "defaultValue": "0.00001",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "returns": {
@@ -10381,7 +10743,8 @@
             "description": "Array to wrap",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "returns": {
@@ -10412,7 +10775,8 @@
             "description": "Array to wrap",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "returns": null,
@@ -10456,7 +10820,8 @@
             "description": "Value to set item to",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "iType",
@@ -10464,7 +10829,8 @@
             "description": "Type of value to set",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": null,
@@ -10774,7 +11140,8 @@
             "description": "Path to registry key or value",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "access",
@@ -10782,7 +11149,8 @@
             "description": "Access required to open key i.e. `PERM_READ`, `PERM_WRITE`, `PERM_ALL_ACCESS`",
             "optional": true,
             "defaultValue": "ERegistryAccess.PERM_READ",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "normalisePath",
@@ -10790,7 +11158,8 @@
             "description": "If `true`, then path will be normalised to use `\"\\\"` as path separator",
             "optional": true,
             "defaultValue": "True",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -10821,7 +11190,8 @@
             "description": "Path to registry key",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "access",
@@ -10829,7 +11199,8 @@
             "description": "Access required to open key i.e. `PERM_READ`, `PERM_WRITE`, `PERM_ALL_ACCESS`",
             "optional": true,
             "defaultValue": "ERegistryAccess.PERM_READ",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "normalisePath",
@@ -10837,7 +11208,8 @@
             "description": "If `true`, then path will be normalised to use `\"\\\"` as path separator",
             "optional": true,
             "defaultValue": "True",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -10868,7 +11240,8 @@
             "description": "Path to registry value",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "access",
@@ -10876,7 +11249,8 @@
             "description": "Access required to open key i.e. `PERM_READ`, `PERM_WRITE`, `PERM_ALL_ACCESS`",
             "optional": true,
             "defaultValue": "ERegistryAccess.PERM_READ",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "normalisePath",
@@ -10884,7 +11258,8 @@
             "description": "If `true`, then path will be normalised to use `\"\\\"` as path separator",
             "optional": true,
             "defaultValue": "True",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -10925,7 +11300,8 @@
             "description": "Text to search for regex in.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -10958,7 +11334,8 @@
             "description": "Text to search for regex in.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -10991,7 +11368,8 @@
             "description": "Text to search for regex in.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -11024,7 +11402,8 @@
             "description": "Text to search for regex in.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "sReplacer",
@@ -11032,7 +11411,8 @@
             "description": "Format of replacement text.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -11065,7 +11445,8 @@
             "description": "Text to search for regex in.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "sFormat",
@@ -11073,7 +11454,8 @@
             "description": "Format of output list.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -11104,7 +11486,8 @@
             "description": "Haystack to search",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "vFormats",
@@ -11112,7 +11495,8 @@
             "description": "Array of formats to print into seperate columns. E.G. `Array(\"$id-$date\",\"$detail\")`",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -11203,7 +11587,8 @@
             "description": "The pattern to match",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "flags",
@@ -11211,7 +11596,8 @@
             "description": "Optional flags to apply",
             "optional": true,
             "defaultValue": "\"\"",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -11250,7 +11636,8 @@
             "description": "Function to run when the sentry is created. Should return arguments to pass to OnDestroy. If OnInit returns Empty, no arguments are passed to OnDestroy.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "OnDestroy",
@@ -11258,7 +11645,8 @@
             "description": "Function to run when the sentry is destroyed. Should take the arguments returned by OnInit.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": null,
@@ -11286,7 +11674,8 @@
             "description": "Function to run when the sentry is destroyed.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "args",
@@ -11294,7 +11683,8 @@
             "description": "Arguments to pass to the OnDestroy function",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "passVars",
@@ -11302,7 +11692,8 @@
             "description": "If true, `args` will be passed to OnDestroy. If false, no arguments are passed to OnDestroy.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": null,
@@ -11330,7 +11721,8 @@
             "description": "Arguments to pass to the OnInit function",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "returns": {
@@ -11361,7 +11753,8 @@
             "description": "Arguments to pass to the OnInit function",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -11392,7 +11785,8 @@
             "description": "Arguments to bind to the sentry",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "returns": {
@@ -11423,7 +11817,8 @@
             "description": "Arguments to bind to the sentry",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -11454,7 +11849,8 @@
             "description": "Message to send. Standard messages include \"obj\" returning the object, \"className\" returning the class name. Other messages are implementation specific.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "success",
@@ -11462,7 +11858,8 @@
             "description": "Whether the call was successful",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           },
           {
             "name": "params",
@@ -11470,7 +11867,8 @@
             "description": "Any variant, typically parameters as an array. Passed along with the message.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -11512,7 +11910,8 @@
             "description": "Function to run when the sentry is created.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "OnDestroy",
@@ -11520,7 +11919,8 @@
             "description": "Function to run when the sentry is destroyed.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "passVars",
@@ -11528,7 +11928,8 @@
             "description": "If true, the result of OnInit is passed to OnDestroy. If false, no arguments are passed to OnDestroy.",
             "optional": true,
             "defaultValue": "true",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -11561,7 +11962,8 @@
             "description": "If not Empty, sets Application.EnableEvents to this value. If Empty, Application.EnableEvents remains unchanged.",
             "optional": true,
             "defaultValue": "vbUseDefault",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "ScreenUpdating",
@@ -11569,7 +11971,8 @@
             "description": "If not Empty, sets Application.ScreenUpdating to this value. If Empty, Application.ScreenUpdating remains unchanged.",
             "optional": true,
             "defaultValue": "vbUseDefault",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "Calculation",
@@ -11577,7 +11980,8 @@
             "description": "If not -1, sets Application.Calculation to this value. If -1, Application.Calculation remains unchanged.",
             "optional": true,
             "defaultValue": "-1",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -11612,7 +12016,8 @@
             "description": "Object to bind the property to",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "sPropertyName",
@@ -11620,7 +12025,8 @@
             "description": "Name of the property to bind",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "value",
@@ -11628,7 +12034,8 @@
             "description": "Value to set the property to",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -11663,7 +12070,8 @@
             "description": "Object to bind the method to",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -11698,7 +12106,8 @@
             "description": "Name of the stack to add",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -11733,7 +12142,8 @@
             "description": "AutomationSecurity setting desired",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -11774,7 +12184,8 @@
             "description": "Number of milliseconds to raise Tick Event between",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "callback",
@@ -11782,7 +12193,8 @@
             "description": "Optional Listener",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "returns": null,
@@ -11810,7 +12222,8 @@
             "description": "The workbook to inject code into",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "sModuleName",
@@ -11818,7 +12231,8 @@
             "description": "The module name to create",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "sCode",
@@ -11826,7 +12240,8 @@
             "description": "The code to insert into the module",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           },
           {
             "name": "iModuleType",
@@ -11834,7 +12249,8 @@
             "description": "The type of code module to create (Module=1, Class=2)",
             "optional": true,
             "defaultValue": "1",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": null,
@@ -11871,7 +12287,8 @@
             "description": "Number of milliseconds to raise Tick Event between",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "callback",
@@ -11879,7 +12296,8 @@
             "description": "Callback object. Must contain a Run() method.",
             "optional": true,
             "defaultValue": "Nothing",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -12172,7 +12590,8 @@
             "description": "The control to create the UI Element from",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "callback",
@@ -12180,7 +12599,8 @@
             "description": "The callback object to use for event handling",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "returns": {
@@ -12211,7 +12631,8 @@
             "description": "The controls collection to add the control to",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "iCtrlType",
@@ -12219,7 +12640,8 @@
             "description": "The type of control to create",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "sName",
@@ -12227,7 +12649,8 @@
             "description": "The name of the control",
             "optional": true,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "Caption",
@@ -12235,7 +12658,8 @@
             "description": "The caption of the control",
             "optional": true,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "callback",
@@ -12243,7 +12667,8 @@
             "description": "The callback object to use for event handling",
             "optional": true,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "fLeft",
@@ -12251,7 +12676,8 @@
             "description": "The left position of the control",
             "optional": true,
             "defaultValue": "0",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "fTop",
@@ -12259,7 +12685,8 @@
             "description": "The top position of the control",
             "optional": true,
             "defaultValue": "0",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "fWidth",
@@ -12267,7 +12694,8 @@
             "description": "The width of the control",
             "optional": true,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "fHeight",
@@ -12275,7 +12703,8 @@
             "description": "The height of the control",
             "optional": true,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -12316,7 +12745,8 @@
             "description": "The websocket url to track.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": null,
@@ -12344,7 +12774,8 @@
             "description": "The data to send",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": null,
@@ -12372,7 +12803,8 @@
             "description": "A numeric value indicating the status code explaining why the connection is being closed. If this parameter is not specified, a default value of 1005 is assumed. See the [list of status](https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent#status_codes) code of CloseEvent for permitted values.",
             "optional": true,
             "defaultValue": "1000",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "reason",
@@ -12380,7 +12812,8 @@
             "description": "A human-readable string explaining why the connection is closing.",
             "optional": true,
             "defaultValue": "\"\"",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": null,
@@ -12427,7 +12860,8 @@
             "description": "The name of the event (\"Open\", \"Close\", \"Error\" or \"Message\")",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "oEventData",
@@ -12435,7 +12869,8 @@
             "description": "Data to forward to event handler.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": null,
@@ -12498,7 +12933,8 @@
             "description": "The websocket url to track.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -12531,7 +12967,8 @@
             "description": "The name of the event.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "eventData",
@@ -12539,7 +12976,8 @@
             "description": "Data to forward to event handler.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "devNotes": [],
@@ -12557,7 +12995,8 @@
             "description": "Data to forward to event handler.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "devNotes": [],
@@ -12575,7 +13014,8 @@
             "description": "Data to forward to event handler.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "devNotes": [],
@@ -12593,7 +13033,8 @@
             "description": "Data to forward to event handler.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "devNotes": [],
@@ -12611,7 +13052,8 @@
             "description": "Data to forward to event handler.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "devNotes": [],
@@ -12709,7 +13151,8 @@
             "description": "Handle to window to set as owner",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": null,
@@ -12737,7 +13180,8 @@
             "description": "Type of hook to set",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "hook",
@@ -12745,7 +13189,8 @@
             "description": "Hook function e.g `AddressOf MyHookFunction`",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "hInstance",
@@ -12753,7 +13198,8 @@
             "description": "Instance handle of the hook function",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           },
           {
             "name": "dwThreadID",
@@ -12761,7 +13207,8 @@
             "description": "Thread ID of the hook function",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "returns": {
@@ -12794,7 +13241,8 @@
             "description": "Callback returning `EWndFindResult` options:\r\n\r\n * `EWndFindResult.NoMatchFound`/`0`/`False`        - Not found, countinue walking\r\n * `EWndFindResult.MatchFound`/`1`/`-1`/`True`      - Found, return this element\r\n * `EWndFindResult.NoMatchCancelSearch`/`2`         - Not found, cancel search\r\n * `EWndFindResult.NoMatchSkipDescendents`/`3`,     - Not found, don't search descendents\r\n * `EWndFindResult.MatchFoundSearchDescendents`/`4` - Same as `EWndFindResult.MatchFound` in this case.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "searchType",
@@ -12802,7 +13250,8 @@
             "description": "The type of search, 0 for Breadth First Search (BFS) and 1 for Depth First Search (DFS).\r\n To understand the difference between BFS and DFS take this tree:\r\n```\r\n        A\r\n       / \\\r\n      B   C\r\n     /   / \\\r\n    D   E   F\r\n```\r\n * A BFS will walk this tree in the following order: A, B, C, D, E, F\r\n * A DFS will walk this tree in a different order:   A, C, F, E, B, D",
             "optional": true,
             "defaultValue": "EWndFindType.BreadthFirst",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "iStaticDepthLimit",
@@ -12810,7 +13259,8 @@
             "description": "Static depth limit. E.G. if you want to search children only, set this value to 1",
             "optional": true,
             "defaultValue": "-1",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -12843,7 +13293,8 @@
             "description": "Callback returning `EWndFindResult` options:\r\n\r\n * `EWndFindResult.NoMatchFound`/`0`/`False`        - Not found, countinue walking\r\n * `EWndFindResult.MatchFound`/`1`/`-1`/`True`      - Found, return this element, won't search descendents of elements found\r\n * `EWndFindResult.NoMatchCancelSearch`/`2`         - Not found, cancel search\r\n * `EWndFindResult.NoMatchSkipDescendents`/`3`,     - Not found, don't search descendents\r\n * `EWndFindResult.MatchFoundSearchDescendents`/`4` - Found, return this element, but continue searching descendents",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "searchType",
@@ -12851,7 +13302,8 @@
             "description": "The type of search, 0 for Breadth First Search (BFS) and 1 for Depth First Search (DFS).\r\n To understand the difference between BFS and DFS take this tree:\r\n```\r\n        A\r\n       / \\\r\n      B   C\r\n     /   / \\\r\n    D   E   F\r\n```\r\n * A BFS will walk this tree in the following order: A, B, C, D, E, F\r\n * A DFS will walk this tree in a different order:   A, C, F, E, B, D",
             "optional": true,
             "defaultValue": "EWndFindType.BreadthFirst",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "iStaticDepthLimit",
@@ -12859,7 +13311,8 @@
             "description": "Static depth limit. E.G. if you want to search children only, set this value to 1",
             "optional": true,
             "defaultValue": "-1",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -13010,7 +13463,8 @@
             "description": "Message to send",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "wParam",
@@ -13018,7 +13472,8 @@
             "description": "wParam to send",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "lParam",
@@ -13026,7 +13481,8 @@
             "description": "lParam to send",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -13057,7 +13513,8 @@
             "description": "Message to post",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "wParam",
@@ -13065,7 +13522,8 @@
             "description": "wParam to post",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "lParam",
@@ -13073,7 +13531,8 @@
             "description": "lParam to post",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": null,
@@ -13101,7 +13560,8 @@
             "description": "X position to click",
             "optional": true,
             "defaultValue": "&H10000",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "y",
@@ -13109,7 +13569,8 @@
             "description": "Y position to click",
             "optional": true,
             "defaultValue": "&H10000",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "Button",
@@ -13117,7 +13578,8 @@
             "description": "Button of mouse to click",
             "optional": true,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "isDoubleClick",
@@ -13125,7 +13587,8 @@
             "description": "Whether to double click or not",
             "optional": true,
             "defaultValue": "False",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "wParam",
@@ -13133,7 +13596,8 @@
             "description": "wParam to send",
             "optional": true,
             "defaultValue": "0",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": null,
@@ -13163,7 +13627,8 @@
             "description": "Keys to send to the window",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "bRaw",
@@ -13171,7 +13636,8 @@
             "description": "Whether to ignore special chars or not e.g. `{Enter}`",
             "optional": true,
             "defaultValue": "False",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "keyDelay",
@@ -13179,7 +13645,8 @@
             "description": "Delay between each keystroke",
             "optional": true,
             "defaultValue": "0",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "bAutoRelease",
@@ -13187,7 +13654,8 @@
             "description": "Whether keys pressed down should be auto-released",
             "optional": true,
             "defaultValue": "True",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "returns": null,
@@ -13217,7 +13685,8 @@
             "description": "Keys to send to the window",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "keyDelay",
@@ -13225,7 +13694,8 @@
             "description": "Delay between each keystroke",
             "optional": true,
             "defaultValue": "10",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "bAutoRelease",
@@ -13233,7 +13703,8 @@
             "description": "Whether keys pressed down should be auto-released",
             "optional": true,
             "defaultValue": "True",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": null,
@@ -13265,7 +13736,8 @@
             "description": "Keys to send to the window",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "keyDelay",
@@ -13273,7 +13745,8 @@
             "description": "Delay between each keystroke",
             "optional": true,
             "defaultValue": "30",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "bAutoRelease",
@@ -13281,7 +13754,8 @@
             "description": "Whether keys pressed down should be auto-released",
             "optional": true,
             "defaultValue": "True",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": null,
@@ -13311,7 +13785,8 @@
             "description": "If this callback returns true, the function will immediately set the result of the function to the awaited window, otherwise will continue awaiting.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           },
           {
             "name": "error",
@@ -13319,7 +13794,8 @@
             "description": "If this callback returns true, the function will immediately set the result of the function to `nothing`, otherwise will continue awaiting. If none is provided no error is checked.",
             "optional": true,
             "defaultValue": "Nothing",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           },
           {
             "name": "timeout",
@@ -13327,7 +13803,8 @@
             "description": "Timeout in seconds. Defaults to -1 = NoTimeout. When timeout is reached the return value of the function is `nothing`",
             "optional": true,
             "defaultValue": "-1",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "returns": {
@@ -13360,7 +13837,8 @@
             "description": "Whether to attach or detach the thread",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": null,
@@ -13669,7 +14147,8 @@
             "description": "Type of rect to get/set. Can be `RectTypeClient` or `RectTypeWindow`",
             "optional": true,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByRef"
           }
         ],
         "returns": {
@@ -13701,7 +14180,8 @@
             "description": "Type of rect to get/set. Can be `RectTypeClient` or `RectTypeWindow`",
             "optional": true,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -13733,7 +14213,8 @@
             "description": "Type of rect to get/set. Can be `RectTypeClient` or `RectTypeWindow`",
             "optional": true,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -13765,7 +14246,8 @@
             "description": "Type of rect to get/set. Can be `RectTypeClient` or `RectTypeWindow`",
             "optional": true,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -13797,7 +14279,8 @@
             "description": "Type of rect to get/set. Can be `RectTypeClient` or `RectTypeWindow`",
             "optional": true,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -14625,7 +15108,8 @@
             "description": "The class name can be any name registered with RegisterClass or RegisterClassEx, provided that the module that registers the class is also the module that creates the window. The class name can also be any of the predefined system class names. For a list of system class names, see the Remarks section.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "x",
@@ -14633,7 +15117,8 @@
             "description": "The x coordinate of the window",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "y",
@@ -14641,7 +15126,8 @@
             "description": "The y coordinate of the window",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "width",
@@ -14649,7 +15135,8 @@
             "description": "The width of the window",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "height",
@@ -14657,7 +15144,8 @@
             "description": "The height of the window",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "sCaption",
@@ -14665,7 +15153,8 @@
             "description": "The name/caption of the window",
             "optional": true,
             "defaultValue": "vbNullString",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "dwStyle",
@@ -14673,7 +15162,8 @@
             "description": "The window style for the window",
             "optional": true,
             "defaultValue": "WS_POPUP",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "hWndParent",
@@ -14681,7 +15171,8 @@
             "description": "Parent window handle. Can be 0 for pop-up windows.",
             "optional": true,
             "defaultValue": "0",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "hMenu",
@@ -14689,7 +15180,8 @@
             "description": "Menu handle. Can be 0 for pop-up windows.",
             "optional": true,
             "defaultValue": "0",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "hInstance",
@@ -14697,7 +15189,8 @@
             "description": "Module Instance handle.",
             "optional": true,
             "defaultValue": "0",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "lpParam",
@@ -14705,7 +15198,8 @@
             "description": "Pointer to a location where extra information is stored. Or ClientCreateStruct (for MDI windows), or null if no extra data required",
             "optional": true,
             "defaultValue": "0",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -14738,7 +15232,8 @@
             "description": "The x coordinate of the window",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "y",
@@ -14746,7 +15241,8 @@
             "description": "The y coordinate of the window",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "width",
@@ -14754,7 +15250,8 @@
             "description": "The width of the window",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "height",
@@ -14762,7 +15259,8 @@
             "description": "The height of the window",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "BorderWidth",
@@ -14770,7 +15268,8 @@
             "description": "The width of the colored border",
             "optional": true,
             "defaultValue": "5",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "BorderColor",
@@ -14778,7 +15277,8 @@
             "description": "The color of the colored border",
             "optional": true,
             "defaultValue": "255",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -14809,7 +15309,8 @@
             "description": "Handle to window (hwnd) to create window object for",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -14842,7 +15343,8 @@
             "description": "Optional. Application object to create window from. If not specified, the current running application is used.",
             "optional": true,
             "defaultValue": "Nothing",
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -14895,7 +15397,8 @@
             "description": "X of Point to find window at.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           },
           {
             "name": "y",
@@ -14903,7 +15406,8 @@
             "description": "Y of Point to find window at.",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -14937,7 +15441,8 @@
             "description": "Object which implements GetWindow() method",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -14968,7 +15473,8 @@
             "description": "Object which implements IAccessible",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -15023,7 +15529,8 @@
             "description": "Process ID to find windows for",
             "optional": false,
             "defaultValue": null,
-            "paramArray": false
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
