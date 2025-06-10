@@ -372,10 +372,10 @@ function parseComment(comment: string): ICommentStore {
 
   //Extracts and groups comments under their flag/tag type e.g. "@example hello\r\n'world"
   const regexTags = {
-    description: /(?<description>.+\s*(?:.*\n?)*)/i,
+    description: /^\s*(?<description>[\s\S]+)/i,
     param:
-      /(?<name>\w+)\s*(?:as\s+(?<type>[^-]+))?(?:\s*-\s*(?<description>.+\s*(?:.*\n?)*))?/i, //regex needs work
-    returns: /(?<type>[^-\r\n]+)?(?:\s*-\s+(?<description>.+\s*(?:.*\n?)*))?/i,
+      /^\s*(?<name>\w+)\s*(?:as\s+(?<type>[^-]+))?(?:\s*-\s*(?<description>[\s\S]+))?$/i, //regex needs work
+    returns: /^\s*(?<type>[^-\r\n]+)?(?:\s*-\s*(?<description>[\s\S]+))?$/i,
     constructor: /(?:constructor)?/g, //overwrites native constructor
     throws: /(?<errNumber>\d+)\s*,\s*(?<errText>.+)/i,
   };
@@ -399,9 +399,9 @@ function parseComment(comment: string): ICommentStore {
           commentStore.push({
             tag,
             data: {
-              name: groups.name,
-              type: groups?.type,
-              description: groups?.description,
+              name: groups.name.trim(),
+              type: groups?.type?.trim(),
+              description: groups?.description.trim(),
             },
           });
         break;
@@ -409,8 +409,8 @@ function parseComment(comment: string): ICommentStore {
         commentStore.push({
           tag,
           data: {
-            type: groups?.type,
-            description: groups?.description,
+            type: groups?.type?.trim(),
+            description: groups?.description.trim(),
           },
         });
         break;
