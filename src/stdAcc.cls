@@ -442,7 +442,6 @@ ExitFunction:
 End Function
 
 'Initialises an stdAcc object as a `Proxy` object, who's methods are implemented on the parent instead of on the element itself
-'@constructor
 '@protected
 '@param oParent - Parent object to proxy
 '@param index - Index of element in parent
