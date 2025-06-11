@@ -7,6 +7,102 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+
+'@module
+'@description A class which implements an enumerator object. Use this class to
+'iterate over a collection of data.
+'@example ```vb
+''Find the longest worksheet name
+'Dim ws as stdEnumerator: set ws = stdEnumerator.CreateFromIEnumVariant(ThisWorkbook.Worksheets)
+'Dim sht as Worksheet: set sht = ws.Max(stdLambda.Create("len($1.Name)"))
+'Debug.Print sht.Name
+'```
+'@example Assuming we have a table named `People` with the following data:
+'
+' | Name  | Age | Gender |
+' |-------|-----|--------| 
+' | John  | 25  | Male   |
+' | Jane  | 30  | Female |
+' | Bob   | 35  | Male   |
+' | Alice | 40  | Female |
+'
+'The following code will print the names of all females:
+'```vb
+''Loop over a table and print names of females
+'Dim loPeople as ListObject: set loPeople = ThisWorkbook.Worksheets("People").ListObjects("People")
+'Dim tbl as stdEnumerator: set tbl = stdEnumerator.CreateFromListObject(loPeople)
+'Dim females as stdEnumerator: set females = tbl.Filter(stdLambda.Create("$1.Gender = ""Female"""))
+'Dim names as stdEnumerator: set names = females.Map(stdLambda.Create("$1.Name"))
+'Debug.Print names.Join(vbCrLf)
+'```
+'@example Get all worksheets of all open workbooks 
+'```vb
+'Dim allWorkbooks as stdEnumerator: set allWorkbooks = stdEnumerator.CreateFromIEnumVariant(Application.Workbooks)
+'Dim allWorksheets as stdEnumerator: set allWorksheets = allWorkbooks.Map(stdLambda.Create("$1.Worksheets"))
+'set allWorksheets = allWorksheets.Flatten
+'```
+'@example Create an archimedean spiral using the `CreateFromCallable` feature. 
+'```vb
+''Generates poiknts on an Archimedean spiral.
+''@param lastItem - The last point generated (or null for the first)
+''@param index - The current index of the point being generated
+''@returns Array<Long> - A point containing an X and Y coordinate on the spiral.
+'Public Function GetArchimedesSpiral(ByVal lastItem as variant, ByVal index as long) as variant
+'  const a as double = 0.1 'Controls the tightness of the spiral
+'  const b as double = 0.5 'Controls the spacing between the turns
+'
+'  'Calculate the angle (theta) for the current point.
+'  'We can make the angle increase linearly with the index for a smooth spiral.
+'  Dim theta as Double: theta = index * b
+'
+'  'Calculate the radius (r) using the Archimedean spiral equation: r = a * theta
+'  Dim r as double: r = a * theta
+'
+'  'Convert polar coordinates (r, theta) to Cartesian coordinates (x, y)
+'  Dim x as double: x = r * cos(theta)
+'  Dim y as double: y = r * sin(theta)
+'  
+'  GetArchimedesSpiral = Array(x, y)
+'End Function
+'Public Sub testSpiralPoints()
+'  Dim cbSpiral as stdCallback: Set cbSpiral = stdCallback.CreateFromModule("MyModule", "GetArchimedesSpiral")
+'  Dim spiral as stdEnumerator: Set spiral = stdEnumerator.CreateFromCallable(cbSpiral, 100)
+'  stop
+'End Function
+'```
+'@example Generate points on a 2D random walk, where each step is a random direction and distance from the last point.
+'```vb
+'Public Function GetRandomWalk(ByVal lastItem as variant, ByVal index as long) as variant
+'  Const Pi as Double = 3.14159
+'  Dim x as Double, y as Double, angle as double
+'  if index = 0 then
+'    x = 0
+'    y = 0
+'    angle = rnd() * 2 * Pi
+'  else
+'    x = lastItem(0)
+'    y = lastItem(1)
+'    angle = lastItem(2)
+'  end if
+'
+'  const maxDist as double = 5
+'  Dim maxAngle as double: maxAngle = Pi / 4
+'  Dim diff1 as Double: diff1 = (rnd()-0.5)*2*maxDist
+'  Dim diff2 as Double: diff2 = (rnd()-0.5)*2*maxAngle
+'  Dim nextAngle as double: nextAngle = angle + diff2
+'  x = x + diff1 * cos(nextAngle)
+'  y = y + diff1 * sin(nextAngle)
+'  angle = nextAngle
+'  GetRandomWalk = Array(x, y, angle)
+'End Function
+'Public Sub TestRandomWalk()
+'  Dim cbRandomWalk as stdCallback: Set cbRandomWalk = stdCallback.CreateFromModule("Main", "GetRandomWalk")
+'  Dim walk as stdEnumerator: Set walk = stdEnumerator.CreateFromCallable(cbRandomWalk, 100)
+'  stop
+'End Sub
+'```
+
+
 'Spec:
 'For some enumerable set ["foo","bar","baz","bazzer"] let stdEnumerator implement functions:
 '    * forEach
@@ -297,7 +393,6 @@ Public Function CreateFromDictionaryEx(ByVal dictionary As Object) As stdEnumera
 End Function
 
 'Initialse the stdEnumerator
-'@constructor
 '@protected
 '@param iEnumeratorType - Enumerator type to create
 '@param iMaxLength - Maximum length of enumerator. The enumerator will refuse to go beyond this number of items. Used in order to prevent runaway processes.
