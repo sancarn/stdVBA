@@ -48,6 +48,12 @@ Attribute VB_Exposed = False
 ''@param index - The current index of the point being generated
 ''@returns Array<Long> - A point containing an X and Y coordinate on the spiral.
 'Public Function GetArchimedesSpiral(ByVal lastItem as variant, ByVal index as long) as variant
+'  'Stop at 100 points
+'  if index > 100 then
+'    getArchimedesSpiral = null
+'    exit function
+'  end if
+' 
 '  const a as double = 0.1 'Controls the tightness of the spiral
 '  const b as double = 0.5 'Controls the spacing between the turns
 '
@@ -66,39 +72,48 @@ Attribute VB_Exposed = False
 'End Function
 'Public Sub testSpiralPoints()
 '  Dim cbSpiral as stdCallback: Set cbSpiral = stdCallback.CreateFromModule("MyModule", "GetArchimedesSpiral")
-'  Dim spiral as stdEnumerator: Set spiral = stdEnumerator.CreateFromCallable(cbSpiral, 100)
+'  Dim spiral as stdEnumerator: Set spiral = stdEnumerator.CreateFromCallable(cbSpiral)
+'  Dim arr: arr = spiral.AsArray
 '  stop
 'End Function
 '```
 '@example Generate points on a 2D random walk, where each step is a random direction and distance from the last point.
 '```vb
-'Public Function GetRandomWalk(ByVal lastItem as variant, ByVal index as long) as variant
-'  Const Pi as Double = 3.14159
-'  Dim x as Double, y as Double, angle as double
-'  if index = 0 then
+'Public Function GetRandomWalk(ByVal lastItem As Variant, ByVal index As Long) As Variant
+'  'Stop at index 100
+'  If index > 100 Then
+'    GetRandomWalk = Null
+'    Exit Function
+'  End If
+'  
+'  Const Pi As Double = 3.14159
+'  Dim x As Double, y As Double, angle As Double
+'  If index = 1 Then
 '    x = 0
 '    y = 0
-'    angle = rnd() * 2 * Pi
-'  else
+'    angle = Rnd() * 2 * Pi
+'  Else
 '    x = lastItem(0)
 '    y = lastItem(1)
 '    angle = lastItem(2)
-'  end if
+'  End If
 '
-'  const maxDist as double = 5
-'  Dim maxAngle as double: maxAngle = Pi / 4
-'  Dim diff1 as Double: diff1 = (rnd()-0.5)*2*maxDist
-'  Dim diff2 as Double: diff2 = (rnd()-0.5)*2*maxAngle
-'  Dim nextAngle as double: nextAngle = angle + diff2
-'  x = x + diff1 * cos(nextAngle)
-'  y = y + diff1 * sin(nextAngle)
+'  Const maxDist As Double = 5
+'  Dim maxAngle As Double: maxAngle = Pi / 2
+'  Dim diff1 As Double: diff1 = (Rnd() - 0.5) * 2 * maxDist
+'  Dim diff2 As Double: diff2 = (Rnd() - 0.5) * 2 * maxAngle
+'  Dim nextAngle As Double: nextAngle = angle + diff2
+'  x = x + diff1 * Cos(nextAngle)
+'  y = y + diff1 * Sin(nextAngle)
 '  angle = nextAngle
 '  GetRandomWalk = Array(x, y, angle)
 'End Function
+'
 'Public Sub TestRandomWalk()
-'  Dim cbRandomWalk as stdCallback: Set cbRandomWalk = stdCallback.CreateFromModule("Main", "GetRandomWalk")
-'  Dim walk as stdEnumerator: Set walk = stdEnumerator.CreateFromCallable(cbRandomWalk, 100)
-'  stop
+'  Dim cbRandomWalk As stdCallback: Set cbRandomWalk = stdCallback.CreateFromModule("Main", "GetRandomWalk")
+'  Dim walk As stdEnumerator: Set walk = stdEnumerator.CreateFromCallable(cbRandomWalk, 100)
+'  Dim arr: arr = walk.AsArray
+'  Stop
 'End Sub
 '```
 
