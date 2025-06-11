@@ -10,61 +10,85 @@ Attribute VB_Exposed = False
 
 Implements stdICallable
 
+'@module
+'@description A class which implements a callback object. Use this class to create a 
+'callback object which can be called at a later stage. These callbacks are used extensively
+'across the stdVBA library.
+'
+'Within a class we can create a simple callback object like so:
+'```vb
+'Dim cb as stdCallback: set cb = stdCallback.CreateFromObjectMethod(Me, "myFunction")
+'```
+'With an example function declaration as follows:
+'```vb
+'Public Function myFunction(ByVal x as long, ByVal y as long, ByVal z as long) as long
+'  myFunction = x + y + z
+'End Function
+'```
+'
+'> Note it's important to note that the function must be public.
+'
+'The callback can then be called as follows:
+'```vb
+'Debug.Print cb(1,2,3)   '=> 6
+'```
+'Or with an array of parameters:
+'```vb
+'Debug.Print cb.Run(Array(1,2,3))   '=> 6
+'```
+'You can also bind arguments to the callback. This is useful when you want to prepare a callback with some
+'arguments before final execution. For example:
+'```vb
+'Dim cb as stdCallback: set cb = stdCallback.CreateFromObjectMethod(Me, "myFunction").Bind(1,2,3)
+''...later...
+'Debug.Print cb() '=> 6
+'```
+'@example ```vb
+''A simple class based callback:
+'Public Function myFunction(ByVal x as long, ByVal y as long, ByVal z as long) as long
+'  myFunction = x + y + z
+'End Function
+'Public Sub mySub()
+'  Dim cb as stdCallback: set cb = stdCallback.CreateFromObjectMethod(Me, "myFunction")
+'  Debug.Print cb(1,2,3)   '=> 6
+'End Sub
+'```
+'@example ```vb
+''A simple module based callback. The module in this example is named "MyModule":
+'Public Function myFunction(ByVal x as long, ByVal y as long, ByVal z as long) as long
+'  myFunction = x + y + z
+'End Function
+'Public Sub mySub()
+'  Dim cb as stdCallback: set cb = stdCallback.CreateFromModule("MyModule", "myFunction")
+'  Debug.Print cb(1,2,3)   '=> 6
+'End Sub
+'```
+'@example ```vb
+''Create a callback from a module in another workbook:
+'Public Sub mySub()
+'  Dim cb as stdCallback: set cb = stdCallback.CreateFromWorkbookModule( _
+'    "C:\Temp\workbooks\MyWorkbook.xlsm", "MyModule", "myFunction")
+'  Debug.Print cb(1,2,3)   '=> 6
+'End Sub
+'```
+'@example ```vb
+''Create a callback from a pointer to a function in a public module.
+''Note: this is the only instance where the function can be private!
+'Private Function myFunction(ByVal x as long, ByVal y as long, ByVal z as long) as long
+'  myFunction = x + y + z
+'End Function
+'Public Sub mySub()
+'  Dim cb as stdCallback: set cb = stdCallback.CreateFromPointer(AddressOf myFunction, vbLong, Array(vbLong, vbLong, vbLong))
+'  Debug.Print cb(1,2,3)   '=> 6
+'End Sub
+'```
+
+
 'TODO:
 '* Full implementation of Pointer
 '* CallCallback module function calling - is there a better way than application.run?
 
-'OBJECT TESTING:
-'   Sub main()
-'     Dim cb As stdCallback
-'     Set cb = stdCallback.Create("Object", Me, "f")
-'
-'     Dim x As Variant
-'     Set x = cb()
-'     Debug.Print x.Count
-'
-'     '---------------------------------------
-'
-'     Dim cbv As stdCallback
-'     Set cbv = stdCallback.Create("Object", Me, "g")
-'
-'     Dim v As Variant
-'     v = cbv()
-'     Debug.Print v
-'   End Sub
-'
-'   Function f() As Variant
-'     Set f = New Collection
-'   End Function
-'   Function g() As Variant
-'     g = 101
-'   End Function
-'
-'MODULE TESTING:
-'   Sub main()
-'     Dim cb As stdCallback
-'     Set cb = stdCallback.Create("Module", "MyModuleName", "f")
-'
-'     Dim x As Variant
-'     Set x = cb()
-'     Debug.Print x.Count
-'
-'     '---------------------------------------
-'
-'     Dim cbv As stdCallback
-'     Set cbv = stdCallback.Create("Module", "MyModuleName", "g")
-'
-'     Dim v As Variant
-'     v = cbv()
-'     Debug.Print v
-'   End Sub
-'
-'   Function f() As Variant
-'     Set f = New Collection
-'   End Function
-'   Function g() As Variant
-'     g = 101
-'   End Function
+
 
 
 

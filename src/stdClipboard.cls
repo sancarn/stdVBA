@@ -8,6 +8,28 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
+'@module
+'@description A class which implements a clipboard object. Use this class to
+'read from and write data to the clipboard.
+'@example ```vb
+''Read from clipboard:
+''Note: Use `await` to ensure the clipboard is ready before reading.
+'Debug.Print stdClipboard.await.text
+'```
+'@example ```vb
+''Write text to clipboard:
+'stdClipboard.await.text = "Hello World"
+'```
+'@example ```vb
+''Write text to clipboard with a custom format:
+'CF_RTF = stdClipboard.registerFormat("Rich Text Format")
+'stdClipboard.value(CF_RTF) = "{\rtf1\ansi{\fonttbl\f0\fswiss Helvetica;}\f0\pard" & _
+'  "This is some {\b bold} text.\par" & _
+'"}"
+'```
+
+
+
 
 'CREDITS:
 '----------

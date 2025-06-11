@@ -7,6 +7,65 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+
+'@module
+'@description A class which implements a simple array list. Use this class to
+'accumulate data in a list, and then use the methods to manipulate the data.
+'@example ```vb
+''Create stdArray from array, map items and sort
+'Dim arr as stdArray.Create(1,2,3,4,5)
+'set arr = arr.map(stdLambda.Create("$1*-2")).join(",") '=> -2,-4,-6,-8,-10
+'Debug.Print arr.sort().join(";")                       '=> "-10;-8;-6;-4;-2"
+'```
+'@example ```vb
+''Create stdArray from array and filter items
+'Dim v: v = Array(1,2,3,4,5)
+'Dim arr as stdArray: set arr = stdArray.CreateFromArray(v)
+'set arr = arr.filter(stdLambda.Create("$1 mod 2 = 0"))  '=> [2,4]
+'Debug.Print arr.join("|")                               '=> "2|4"
+'```
+'@example ```vb
+''Create stdArray from collection
+'Dim c as Collection: set c = new Collection
+'c.add 1
+'c.add 2
+'c.add 3
+'Dim arr as stdArray: set arr = stdArray.CreateFromCollection(c)
+'Debug.Print arr.join("|")                               '=> "1|2|3"
+'```
+'@example ```vb
+''Basic array operations
+'Dim arr as stdArray: set arr = stdArray.Create(1,2,3)  ' arr = [1,2,3]
+'arr.Push 4                                             ' arr = [1,2,3,4]
+'arr.Push 5                                             ' arr = [1,2,3,4,5]
+'Debug.Print arr.Pop                                    '=> 5; arr = [1,2,3,4]
+'Debug.Print arr.Pop                                    '=> 4; arr = [1,2,3]
+'arr.Unshift 6                                          ' arr = [6,1,2,3]
+'Debug.Print arr.Shift                                  '=> 6; arr = [1,2,3]
+'```
+'@example ```vb
+''This class only allows odd numbers to be added to it's public array `arr`
+'Public WithEvents arr as stdArray
+'Private Sub Class_Initialize()
+'  'Create an empty array
+'  Set arr = stdArray.Create()
+'End Sub
+'Private Sub arr_BeforeAdd(ByRef arr As stdArray, ByVal iIndex As Long, ByRef item As Variant, ByRef cancel As Boolean)
+'  'Cancel all items being added which are even
+'  cancel = item mod 2 = 0
+'End Sub
+'Private Sub Test()
+'  Dim myTest as new MyClass
+'  myTest.arr.Push 1
+'  myTest.arr.Push 2
+'  myTest.arr.Push 3
+'  myTest.arr.Push 4
+'  myTest.arr.Push 5
+'  Debug.Print myTest.arr.join("|") '=> 1|3|5
+'End Sub
+'```
+
+
 '@TODO:
 '* Implement Exceptions throughout all Array functions.
 '* Fully implement Initialised check where necessary.
