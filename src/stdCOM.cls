@@ -8,9 +8,71 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
 
-'Dim x as stdCOM: set x = stdCOM.create(obj)
-'set int = x.QueryInterface("")
-'retVar = int.CallVt(EMyInterface.MyFunction, vbReturnVar, param1, param2, param3, param4, ...)
+'@module
+'@description A class which wraps a COM object. All objects in VBA are COM objects, and this class allows 
+'you to access low level COM functionality. As such this class is recommended only to advanced users.
+'@example ```vb
+''Print all methods of the Application object
+'Dim app ase stdCOM: set app = stdCOM.create(Application)
+'Dim member
+'For each member in app.Methods
+'  Debug.Print member("name")
+'next
+'```
+'@example ```vb
+''Bind all methods of a class to a stdLambda object as stdCallbacks
+'Public Function CreateBoundLambda(ByVal expression as string) as stdLambda
+'  'Create lambda from expression string
+'  set CreateBoundLambda = stdLambda.Create(expression)
+'
+'  'Loop over all methods and bind to lambda
+'  Dim refl as stdCOM: set refl = stdCOM.Create(Me)
+'  Dim method: For each method in refl.Methods
+'    Dim cb as stdCallback: set cb = stdCallback.CreateFromObjectMethod(Me, method("name"))
+'    Call CreateBoundLambda.BindGlobal(method("name"), cb)
+'  next
+'End Function
+'```
+'@example Setting the `track id` of a mp3 file:
+'```vb
+'Dim file as string: file = "C:\Users\sancarn\Music\HelloThere - Copy (2).mp3"
+'Dim mp3 As stdCOM: Set mp3 = stdCOM.CreatePropertyStoreFromFile(file)
+'Const PKEY_TrackFormatID As String = "{56A3372E-CE9C-11D2-9F0E-006097C686F6}"
+'Const PKEY_TrackPropID as Long = 7
+'Call mp3.PropertyStore_SetValue(PKEY_TrackFormatID, PKEY_TrackPropID, 1)
+'Call mp3.PropertyStore_Commit()
+'```
+'@example Show an indefinitely scrolling progress bar for an Application
+'```vb
+'Private Enum EITaskbarList3
+'    SetProgressValue = 9
+'    SetProgressState = 10
+'    SetOverlayIcon = 11
+'End Enum
+'Enum TBPF
+'    TBPF_NOPROGRESS = &H0      ' Stops displaying progress.
+'    TBPF_INDETERMINATE = &H1   ' Marquee-style progress.
+'    TBPF_NORMAL = &H2          ' Normal determinate progress.
+'    TBPF_ERROR = &H4           ' Red progress bar, indicating an error.
+'    TBPF_PAUSED = &H8          ' Yellow progress bar, indicating paused state.
+'End Enum
+'
+''Run this sub to make the excel task bar icon scroll indefinitely. Then click play again to stop it.
+'Sub Main()
+'  Const CLSID_TaskbarList As String = "{56FDF344-FD6D-11d0-958A-006097C9A090}"
+'  Const IID_ITaskbarList3 As String = "{ea1afb91-9e28-4b86-90e9-9e9f8a5eefaf}"
+'  Dim TaskbarList As stdCOM: Set TaskbarList = stdCOM.CreateFromClassAndIID(CLSID_TaskbarList, IID_ITaskbarList3)
+'  If Not TaskbarList Is Nothing Then
+'    Call TaskbarList.CallVT(EITaskbarList3.SetProgressState, vbLong, Application.hwnd, TBPF_INDETERMINATE)
+'    
+'    Stop
+'
+'    Call TaskbarList.CallVT(EITaskbarList3.SetProgressState, vbLong, Application.hwnd, TBPF_NOPROGRESS)
+'  End If
+'End Sub
+'```
+
+
 
 'TODO: Analyse and add anything missing from:
 ' * https://referencesource.microsoft.com/#system.data/fx/src/data/System/Data/OleDb/OLEDB_Util.cs,4254532afac0bd58,references
@@ -46,6 +108,10 @@ Attribute VB_Exposed = True
     Private Declare PtrSafe Function WindowsDeleteString Lib "Combase.dll" (ByVal sourceString As LongPtr) As Long
     Private Declare PtrSafe Function RoGetActivationFactory Lib "Combase.dll" (ByVal activatableClassId As LongPtr, ByRef riid As GUID, ByRef factory As Long) As Long
     Private Declare PtrSafe Function RoActivateInstance Lib "Combase.dll" (ByVal activatableClassId As LongPtr, ByRef instance As LongPtr) As Long
+
+    'PropertyStore
+    Private Declare PtrSafe Function SHGetPropertyStoreFromParsingName Lib "shell32" (ByVal pszPath As LongPtr, pbc As Any, ByVal Flags As Long, riid As GUID, ppv As Any) As Long
+
 #Else
     Private Enum LongPtr
       [_]
@@ -76,6 +142,9 @@ Attribute VB_Exposed = True
     Private Declare Function WindowsDeleteString Lib "Combase.dll" (ByVal sourceString As LongPtr) As Long
     Private Declare Function RoGetActivationFactory Lib "Combase.dll" (ByVal activatableClassId As LongPtr, ByRef riid As GUID, ByRef factory As Long) As Long
     Private Declare Function RoActivateInstance Lib "Combase.dll" (ByVal activatableClassId As LongPtr, ByRef instance As LongPtr) As Long
+
+    'PropertyStore
+    Private Declare Function SHGetPropertyStoreFromParsingName Lib "shell32" (ByVal pszPath As LongPtr, pbc As Any, ByVal Flags As Long, riid As GUID, ppv As Any) As Long
 #End If
 
 'GUID struct for QueryInterface
@@ -84,6 +153,12 @@ Private Type GUID
     Data2 As Integer
     Data3 As Integer
     Data4(0 To 7) As Byte
+End Type
+
+'Used for IPropertyStore
+Private Type PropertyKey
+  formatID As GUID
+  propID As Long
 End Type
 
 Private Type TTYPEDESC
@@ -427,6 +502,36 @@ Public Enum EIMoniker
   IsSystemMoniker
 End Enum
 
+'[IPropertyStore](https://github.com/maul-esel/COM-Classes/blob/master/PropertyStore/PropertyStore.ahk)
+'@devNote includes [IUnknown](https://en.wikipedia.org/wiki/IUnknown)
+Private Enum EIPropertyStore
+  QueryInterface
+  AddRef
+  Release
+  GetCount   'DllCall(NumGet(this.vt+03*A_PtrSize), "ptr", this.ptr, "uint*", count)
+  GetAt      'DllCall(NumGet(this.vt+04*A_PtrSize), "ptr", this.ptr, "uint", index, "ptr*", out)
+  GetValue   'DllCall(NumGet(this.vt+05*A_PtrSize), "ptr", this.ptr, "ptr", formatStruct, "ptr*", out)
+  SetValue   'DllCall(NumGet(this.vt+06*A_PtrSize), "ptr", this.ptr, "ptr", formatStruct, "ptr", value)
+  Commit     'DllCall(NumGet(this.vt+07*A_PtrSize), "ptr", this.ptr)
+End Enum
+
+Public Enum EPropertyStoreFlags
+  GPS_DEFAULT = 0
+  GPS_HANDLERPROPERTIESONLY = &H1
+  GPS_READWRITE = &H2
+  GPS_TEMPORARY = &H4
+  GPS_FASTPROPERTIESONLY = &H8
+  GPS_OPENSLOWITEM = &H10
+  GPS_DELAYCREATION = &H20
+  GPS_BESTEFFORT = &H40
+  GPS_NO_OPLOCK = &H80
+  GPS_PREFERQUERYPROPERTIES = &H100
+  GPS_EXTRINSICPROPERTIES = &H200
+  GPS_EXTRINSICPROPERTIESONLY = &H400
+  GPS_VOLATILEPROPERTIES = &H800
+  GPS_VOLATILEPROPERTIESONLY = &H1000
+  GPS_MASK_VALID = &H1fff
+End Enum
 
 Private Const S_OK          As Long = 0
 Private Const E_NOINTERFACE As Long = &H80004002
@@ -477,16 +582,17 @@ End Function
 'Create from a pointer
 '@constructor
 '@param ptr - Object pointer to wrap in a raw COM object
+'@param bAddRef - Whether to call `AddRef` on the object
 '@returns - A wrapper around a raw COM object
 '@remark Specifically this function reuires a `*Interface` pointer. E.G. `*IUnknown`/`*IDispatch`/`*ITypeInfo`. If your DLL function provides a `[out] **Interface` object the
 'typical method is to pass in a varptr to the dll function as follows `Call SomeDLLCall(VarPtr(myPointer)): ... later ...: stdCOM.CreateFromPtr(myPointer)`
 #If VBA7 Then
-  Public Function CreateFromPtr(ByVal ptr As LongPtr) As stdCOM
+  Public Function CreateFromPtr(ByVal ptr As LongPtr, Optional ByVal bAddRef As Boolean = True) As stdCOM
 #Else
-  Public Function CreateFromPtr(ByVal ptr As Long) As stdCOM
+  Public Function CreateFromPtr(ByVal ptr As Long, Optional ByVal bAddRef As Boolean = True) As stdCOM
 #End If
   Set CreateFromPtr = New stdCOM
-  Call CreateFromPtr.protInitFromPtr(ptr)
+  Call CreateFromPtr.protInitFromPtr(ptr, bAddRef)
 End Function
 
 'Create `stdCOM` objects from existing objects in the RunningObjectTable (ROT)
@@ -577,9 +683,9 @@ End Function
 '@param sIID - An IID as a string. Default is `IDispatch`.
 '@returns - A COM wrapper for the object.
 '@example ```vb
-'  stdCOM.CreateFromClassAndIID("FF48DBA4-60EF-4201-AA87-54103EEF594E","30CBE57D-D9D0-452A-AB13-7AC5AC4825EE") 'IUIAutomation
+'  stdCOM.CreateFromClassAndIID("{FF48DBA4-60EF-4201-AA87-54103EEF594E}","{30CBE57D-D9D0-452A-AB13-7AC5AC4825EE}") 'IUIAutomation
 '```
-Public Function CreateFromClassAndIID(ByVal sClassID As String, Optional ByVal sIID As String = "00020400-0000-0000-C000-000000000046") As stdCOM
+Public Function CreateFromClassAndIID(ByVal sClassID As String, Optional ByVal sIID As String = "{00020400-0000-0000-C000-000000000046}") As stdCOM
   Dim clsid As GUID: If IIDFromString(StrPtr(sClassID), clsid) <> S_OK Then Err.Raise 1, "stdCOM::CreateFromClassAndIID", "Cannot retrieve CLSID from String."
   Dim iid As GUID: If IIDFromString(StrPtr(sIID), iid) <> S_OK Then Err.Raise 1, "stdCOM::CreateFromClassAndIID", "Cannot retrieve IID from String."
   Const CLSCTX_INPROC_SERVER = &H1
@@ -590,6 +696,25 @@ Public Function CreateFromClassAndIID(ByVal sClassID As String, Optional ByVal s
   Set CreateFromClassAndIID = CreateFromPtr(pIUnknown)
 End Function
 
+'Create a `stdCOM` object from a property store path
+'@constructor
+'@TODO: Figure out why this function doesn't work... See: https://www.mrexcel.com/board/threads/editing-mp3-tags.1104401/page-2#post-6157709
+'@param sPath - Path to property store
+'@param flags - Flags to use when opening the property store
+'@returns - `stdCOM` object representing the property store
+'@example ```vb
+'Dim p as stdCOM: set p = stdCOM.CreatePropertyStoreFromFile("C:\my\files\song.mp3", EPropertyStoreFlags.GPS_READWRITE Or EPropertyStoreFlags.GPS_OPENSLOWITEM)
+'```
+Public Function CreatePropertyStoreFromFile(ByVal sPath As String, Optional flags As EPropertyStoreFlags = GPS_READWRITE Or GPS_OPENSLOWITEM) As stdCOM
+  Const IID_PropertyStore = "{886D8EEB-8CF2-4446-8D02-CDBA1DBDCF99}"
+  Dim clsid As GUID: If IIDFromString(StrPtr(IID_PropertyStore), clsid) <> S_OK Then Err.Raise 1, "stdCOM::CreateFromPropertyStore", "Cannot retrieve IID from String."
+  Dim pIUnknown As LongPtr
+  If SHGetPropertyStoreFromParsingName(StrPtr(sPath), ByVal NULL_PTR, flags, clsid, pIUnknown) = S_OK Then
+    Set CreatePropertyStoreFromFile = CreateFromPtr(pIUnknown, false)
+  Else
+    Err.Raise 1, "stdCOM::CreatePropertyStoreFromFile", "Cannot create object from path."
+  End If
+End Function
 
 '#################################
 '# INSTANCE METHODS / PROPERTIES #
@@ -852,6 +977,51 @@ Public Sub RevokeActiveObject()
     Call RevokeActiveObjectEx(Object, This.RegisteredOLEInstance)
 End Sub
 
+'Get the number of properties in the property store
+'@returns - The number of properties
+'@remark - `IPropertyStore` helper method.
+Public Function PropertyStore_GetCount() As Long
+  Call CallVt(EIPropertyStore.GetCount, vbLong, VarPtr(PropertyStore_GetCount))
+End Function
+
+'Get a property at a given index
+'@param index - The index of the property to get
+'@returns - The property at the given index. Use `CopyMemory` to copy the data.
+'@remark - `IPropertyStore` helper method.
+Public Function PropertyStore_GetAt(ByVal index As Long) As LongPtr
+  Call CallVt(EIPropertyStore.GetAt, vbLong, VarPtr(index), VarPtr(PropertyStore_GetAt))
+End Function
+
+'Get a property value
+'@param formatID - The format ID of the property to get
+'@param propID - The property ID of the property to get
+'@returns - The property value.
+'@remark - `IPropertyStore` helper method.
+Public Function PropertyStore_GetValue(ByVal formatID as string, ByVal propID as long) As Variant
+  Dim format as PropertyKey
+  Call IIDFromString(StrPtr(formatID), format.formatID)
+  format.propID = propID
+  Call CallVt(EIPropertyStore.GetValue, vbLong, VarPtr(format), VarPtr(PropertyStore_GetValue))
+End Function
+
+'Set a property value
+'@param formatID - The format ID of the property to get
+'@param propID - The property ID of the property to get
+'@param value - The value to set the property to
+'@remark - `IPropertyStore` helper method.
+Public Sub PropertyStore_SetValue(ByVal formatID as string, ByVal propID as long, ByVal value as variant)
+  Dim format as PropertyKey
+  Call IIDFromString(StrPtr(formatID), format.formatID)
+  format.propID = propID
+  Call CallVt(EIPropertyStore.SetValue, vbLong, VarPtr(format), VarPtr(value))
+End Sub
+
+'Commit the changes to the property store
+'@remark - `IPropertyStore` helper method.
+Public Sub PropertyStore_Commit()
+  Call CallVt(EIPropertyStore.Commit, vbLong)
+End Sub
+
 '############################
 '# RAW METHODS / PROPERTIES #
 '############################
@@ -918,9 +1088,10 @@ End Sub
 'Initialise from pointer to object
 '@protected
 '@param ptr - Pointer to object
-Friend Sub protInitFromPtr(ByVal ptr As LongPtr)
+'@param bAddRef - Whether to call `AddRef` on the object
+Friend Sub protInitFromPtr(ByVal ptr As LongPtr, Optional ByVal bAddRef As Boolean = True)
   This.ObjPtr = ptr
-  Call unkAddRef
+  if bAddRef then Call unkAddRef
 End Sub
 
 '

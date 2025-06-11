@@ -341,3 +341,5 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2025-06-06 `stdQuadTree` FIX - Typo in queryRangeBounds
 - 2025-06-06 `stdCallback` FIX - Missing constant declaration added for CC_STDCALL
 - 2025-06-06 `stdAcc` FEATURE - Changed to application independent.
+- 2025-06-11 `stdCOM` FEATURE - Added `CreatePropertyStoreFromFile` to create a `stdCOM` object from a file path with required access
+- 2025-06-11 `stdCOM` FEATURE - Added `PropertyStore_GetCount`, `PropertyStore_GetAt`, `PropertyStore_GetValue`, `PropertyStore_SetValue` and `PropertyStore_Commit` to work with `IPropertyStore`
