@@ -2804,9 +2804,14 @@
   {
     "name": "stdCOM",
     "fileName": "stdCOM.cls",
-    "description": "",
+    "description": "A class which wraps a COM object. All objects in VBA are COM objects, and this class allows \r\nyou to access low level COM functionality. As such this class is recommended only to advanced users.",
     "remarks": [],
-    "examples": [],
+    "examples": [
+      "```vb\r\n'Print all methods of the Application object\r\nDim app ase stdCOM: set app = stdCOM.create(Application)\r\nDim member\r\nFor each member in app.Methods\r\n  Debug.Print member(\"name\")\r\nnext\r\n```",
+      "```vb\r\n'Bind all methods of a class to a stdLambda object as stdCallbacks\r\nPublic Function CreateBoundLambda(ByVal expression as string) as stdLambda\r\n  'Create lambda from expression string\r\n  set CreateBoundLambda = stdLambda.Create(expression)\r\n\r\n  'Loop over all methods and bind to lambda\r\n  Dim refl as stdCOM: set refl = stdCOM.Create(Me)\r\n  Dim method: For each method in refl.Methods\r\n    Dim cb as stdCallback: set cb = stdCallback.CreateFromObjectMethod(Me, method(\"name\"))\r\n    Call CreateBoundLambda.BindGlobal(method(\"name\"), cb)\r\n  next\r\nEnd Function\r\n```",
+      "Setting the `track id` of a mp3 file:\r\n```vb\r\nDim file as string: file = \"C:\\Users\\sancarn\\Music\\HelloThere - Copy (2).mp3\"\r\nDim mp3 As stdCOM: Set mp3 = stdCOM.CreatePropertyStoreFromFile(file)\r\nConst PKEY_TrackFormatID As String = \"{56A3372E-CE9C-11D2-9F0E-006097C686F6}\"\r\nConst PKEY_TrackPropID as Long = 7\r\nCall mp3.PropertyStore_SetValue(PKEY_TrackFormatID, PKEY_TrackPropID, 1)\r\nCall mp3.PropertyStore_Commit()\r\n```",
+      "Show an indefinitely scrolling progress bar for an Application\r\n```vb\r\nPrivate Enum EITaskbarList3\r\n    SetProgressValue = 9\r\n    SetProgressState = 10\r\n    SetOverlayIcon = 11\r\nEnd Enum\r\nEnum TBPF\r\n    TBPF_NOPROGRESS = &H0      ' Stops displaying progress.\r\n    TBPF_INDETERMINATE = &H1   ' Marquee-style progress.\r\n    TBPF_NORMAL = &H2          ' Normal determinate progress.\r\n    TBPF_ERROR = &H4           ' Red progress bar, indicating an error.\r\n    TBPF_PAUSED = &H8          ' Yellow progress bar, indicating paused state.\r\nEnd Enum\r\n\r\n'Run this sub to make the excel task bar icon scroll indefinitely. Then click play again to stop it.\r\nSub Main()\r\n  Const CLSID_TaskbarList As String = \"{56FDF344-FD6D-11d0-958A-006097C9A090}\"\r\n  Const IID_ITaskbarList3 As String = \"{ea1afb91-9e28-4b86-90e9-9e9f8a5eefaf}\"\r\n  Dim TaskbarList As stdCOM: Set TaskbarList = stdCOM.CreateFromClassAndIID(CLSID_TaskbarList, IID_ITaskbarList3)\r\n  If Not TaskbarList Is Nothing Then\r\n    Call TaskbarList.CallVT(EITaskbarList3.SetProgressState, vbLong, Application.hwnd, TBPF_INDETERMINATE)\r\n    \r\n    Stop\r\n\r\n    Call TaskbarList.CallVT(EITaskbarList3.SetProgressState, vbLong, Application.hwnd, TBPF_NOPROGRESS)\r\n  End If\r\nEnd Sub\r\n```"
+    ],
     "devNotes": [],
     "todos": [
       "Analyse and add anything missing from:"
@@ -2973,6 +2978,177 @@
         "name": "RevokeActiveObject",
         "description": "Revoke the previously registered object",
         "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "PropertyStore_GetCount",
+        "description": "Get the number of properties in the property store",
+        "remarks": [
+          "- `IPropertyStore` helper method."
+        ],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Long",
+          "description": "The number of properties"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "PropertyStore_GetAt",
+        "description": "Get a property at a given index",
+        "remarks": [
+          "- `IPropertyStore` helper method."
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "index",
+            "type": "Long",
+            "description": "The index of the property to get",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "LongPtr",
+          "description": "The property at the given index. Use `CopyMemory` to copy the data."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "PropertyStore_GetValue",
+        "description": "Get a property value",
+        "remarks": [
+          "- `IPropertyStore` helper method."
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "formatID",
+            "type": "string",
+            "description": "The format ID of the property to get",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "propID",
+            "type": "long",
+            "description": "The property ID of the property to get",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "Variant",
+          "description": "The property value."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "PropertyStore_SetValue",
+        "description": "Set a property value",
+        "remarks": [
+          "- `IPropertyStore` helper method."
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "formatID",
+            "type": "string",
+            "description": "The format ID of the property to get",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "propID",
+            "type": "long",
+            "description": "The property ID of the property to get",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "value",
+            "type": "variant",
+            "description": "The value to set the property to",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "PropertyStore_Commit",
+        "description": "Commit the changes to the property store",
+        "remarks": [
+          "- `IPropertyStore` helper method."
+        ],
         "examples": [],
         "params": [],
         "returns": null,
@@ -3281,6 +3457,15 @@
             "defaultValue": null,
             "paramArray": false,
             "referenceType": "ByVal"
+          },
+          {
+            "name": "bAddRef",
+            "type": "Boolean",
+            "description": "Whether to call `AddRef` on the object",
+            "optional": true,
+            "defaultValue": "True",
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -3364,7 +3549,7 @@
         "description": "Create `stdCOM` object from a CLSID and IID.",
         "remarks": [],
         "examples": [
-          "```vb\r\n  stdCOM.CreateFromClassAndIID(\"FF48DBA4-60EF-4201-AA87-54103EEF594E\",\"30CBE57D-D9D0-452A-AB13-7AC5AC4825EE\") 'IUIAutomation\r\n```"
+          "```vb\r\n  stdCOM.CreateFromClassAndIID(\"{FF48DBA4-60EF-4201-AA87-54103EEF594E}\",\"{30CBE57D-D9D0-452A-AB13-7AC5AC4825EE}\") 'IUIAutomation\r\n```"
         ],
         "params": [
           {
@@ -3381,7 +3566,7 @@
             "type": "String",
             "description": "An IID as a string. Default is `IDispatch`.",
             "optional": true,
-            "defaultValue": "\"00020400-0000-0000-C000-000000000046\"",
+            "defaultValue": "\"{00020400-0000-0000-C000-000000000046}\"",
             "paramArray": false,
             "referenceType": "ByVal"
           }
@@ -3389,6 +3574,49 @@
         "returns": {
           "type": "stdCOM",
           "description": "A COM wrapper for the object."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "CreatePropertyStoreFromFile",
+        "description": "Create a `stdCOM` object from a property store path",
+        "remarks": [],
+        "examples": [
+          "```vb\r\nDim p as stdCOM: set p = stdCOM.CreatePropertyStoreFromFile(\"C:\\my\\files\\song.mp3\", EPropertyStoreFlags.GPS_READWRITE Or EPropertyStoreFlags.GPS_OPENSLOWITEM)\r\n```"
+        ],
+        "params": [
+          {
+            "name": "sPath",
+            "type": "String",
+            "description": "Path to property store",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "flags",
+            "type": "EPropertyStoreFlags",
+            "description": "Flags to use when opening the property store",
+            "optional": true,
+            "defaultValue": "GPS_READWRITE Or GPS_OPENSLOWITEM",
+            "paramArray": false,
+            "referenceType": "ByRef"
+          }
+        ],
+        "returns": {
+          "type": "stdCOM",
+          "description": "`stdCOM` object representing the property store"
         },
         "deprecation": {
           "status": false,
@@ -4526,9 +4754,15 @@
   {
     "name": "stdEnumerator",
     "fileName": "stdEnumerator.cls",
-    "description": "",
+    "description": "A class which implements an enumerator object. Use this class to\r\niterate over a collection of data.",
     "remarks": [],
-    "examples": [],
+    "examples": [
+      "```vb\r\n'Find the longest worksheet name\r\nDim ws as stdEnumerator: set ws = stdEnumerator.CreateFromIEnumVariant(ThisWorkbook.Worksheets)\r\nDim sht as Worksheet: set sht = ws.Max(stdLambda.Create(\"len($1.Name)\"))\r\nDebug.Print sht.Name\r\n```",
+      "Assuming we have a table named `People` with the following data:\r\n\r\n | Name  | Age | Gender |\r\n |-------|-----|--------| \r\n | John  | 25  | Male   |\r\n | Jane  | 30  | Female |\r\n | Bob   | 35  | Male   |\r\n | Alice | 40  | Female |\r\n\r\nThe following code will print the names of all females:\r\n```vb\r\n'Loop over a table and print names of females\r\nDim loPeople as ListObject: set loPeople = ThisWorkbook.Worksheets(\"People\").ListObjects(\"People\")\r\nDim tbl as stdEnumerator: set tbl = stdEnumerator.CreateFromListObject(loPeople)\r\nDim females as stdEnumerator: set females = tbl.Filter(stdLambda.Create(\"$1.Gender = \"\"Female\"\"\"))\r\nDim names as stdEnumerator: set names = females.Map(stdLambda.Create(\"$1.Name\"))\r\nDebug.Print names.Join(vbCrLf)\r\n```",
+      "Get all worksheets of all open workbooks \r\n```vb\r\nDim allWorkbooks as stdEnumerator: set allWorkbooks = stdEnumerator.CreateFromIEnumVariant(Application.Workbooks)\r\nDim allWorksheets as stdEnumerator: set allWorksheets = allWorkbooks.Map(stdLambda.Create(\"$1.Worksheets\"))\r\nset allWorksheets = allWorksheets.Flatten\r\n```",
+      "Create an archimedean spiral using the `CreateFromCallable` feature. \r\n```vb\r\n'Generates poiknts on an Archimedean spiral.\r\n'@param lastItem - The last point generated (or null for the first)\r\n'@param index - The current index of the point being generated\r\n'@returns Array<Long> - A point containing an X and Y coordinate on the spiral.\r\nPublic Function GetArchimedesSpiral(ByVal lastItem as variant, ByVal index as long) as variant\r\n  const a as double = 0.1 'Controls the tightness of the spiral\r\n  const b as double = 0.5 'Controls the spacing between the turns\r\n\r\n  'Calculate the angle (theta) for the current point.\r\n  'We can make the angle increase linearly with the index for a smooth spiral.\r\n  Dim theta as Double: theta = index * b\r\n\r\n  'Calculate the radius (r) using the Archimedean spiral equation: r = a * theta\r\n  Dim r as double: r = a * theta\r\n\r\n  'Convert polar coordinates (r, theta) to Cartesian coordinates (x, y)\r\n  Dim x as double: x = r * cos(theta)\r\n  Dim y as double: y = r * sin(theta)\r\n  \r\n  GetArchimedesSpiral = Array(x, y)\r\nEnd Function\r\nPublic Sub testSpiralPoints()\r\n  Dim cbSpiral as stdCallback: Set cbSpiral = stdCallback.CreateFromModule(\"MyModule\", \"GetArchimedesSpiral\")\r\n  Dim spiral as stdEnumerator: Set spiral = stdEnumerator.CreateFromCallable(cbSpiral, 100)\r\n  stop\r\nEnd Function\r\n```",
+      "Generate points on a 2D random walk, where each step is a random direction and distance from the last point.\r\n```vb\r\nPublic Function GetRandomWalk(ByVal lastItem as variant, ByVal index as long) as variant\r\n  Const Pi as Double = 3.14159\r\n  Dim x as Double, y as Double, angle as double\r\n  if index = 0 then\r\n    x = 0\r\n    y = 0\r\n    angle = rnd() * 2 * Pi\r\n  else\r\n    x = lastItem(0)\r\n    y = lastItem(1)\r\n    angle = lastItem(2)\r\n  end if\r\n\r\n  const maxDist as double = 5\r\n  Dim maxAngle as double: maxAngle = Pi / 4\r\n  Dim diff1 as Double: diff1 = (rnd()-0.5)*2*maxDist\r\n  Dim diff2 as Double: diff2 = (rnd()-0.5)*2*maxAngle\r\n  Dim nextAngle as double: nextAngle = angle + diff2\r\n  x = x + diff1 * cos(nextAngle)\r\n  y = y + diff1 * sin(nextAngle)\r\n  angle = nextAngle\r\n  GetRandomWalk = Array(x, y, angle)\r\nEnd Function\r\nPublic Sub TestRandomWalk()\r\n  Dim cbRandomWalk as stdCallback: Set cbRandomWalk = stdCallback.CreateFromModule(\"Main\", \"GetRandomWalk\")\r\n  Dim walk as stdEnumerator: Set walk = stdEnumerator.CreateFromCallable(cbRandomWalk, 100)\r\n  stop\r\nEnd Sub\r\n```"
+    ],
     "devNotes": [],
     "todos": [
       "Implement the following methods:",
@@ -4538,6 +4772,53 @@
     ],
     "requires": [],
     "methods": [
+      {
+        "name": "protInit",
+        "description": "Initialse the stdEnumerator",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "iEnumeratorType",
+            "type": "Long",
+            "description": "Enumerator type to create",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "iMaxLength",
+            "type": "Long",
+            "description": "Maximum length of enumerator. The enumerator will refuse to go beyond this number of items. Used in order to prevent runaway processes.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "v",
+            "type": "Variant",
+            "description": "The data to create the enumerator from. This is either an array, a callable, or an IEnumVARIANT object.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByRef"
+          }
+        ],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
       {
         "name": "enumNext",
         "description": "Get the next value in the dataset",
@@ -5926,53 +6207,6 @@
         "devNotes": [],
         "todos": [],
         "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "protInit",
-        "description": "Initialse the stdEnumerator",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "iEnumeratorType",
-            "type": "Long",
-            "description": "Enumerator type to create",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          },
-          {
-            "name": "iMaxLength",
-            "type": "Long",
-            "description": "Maximum length of enumerator. The enumerator will refuse to go beyond this number of items. Used in order to prevent runaway processes.",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          },
-          {
-            "name": "v",
-            "type": "Variant",
-            "description": "The data to create the enumerator from. This is either an array, a callable, or an IEnumVARIANT object.",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByRef"
-          }
-        ],
-        "returns": null,
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": true,
         "throws": [],
         "requires": [],
         "isStatic": false
