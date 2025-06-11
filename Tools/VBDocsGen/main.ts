@@ -12,6 +12,7 @@
 * TODO: Add public types?
 * TODO: Add public constants
 * TODO: Add line numbers for methods. This could be utilised to add links to source code.
+* TODO: Module level variables
 */
 
 /**
@@ -451,6 +452,9 @@ function parseComment(comment: string): ICommentStore {
       case "static":
         commentStore.push({ tag });
         break;
+      //@ts-ignore
+      case "module":
+        break;
       default:
         log(`Unknown tag "${tag}"`, "warn");
     }
@@ -561,7 +565,7 @@ function parseModuleOrClass(
 
   //Find documentation. This usually looks like a comment block, followed by a method/property/event declaration.
   const memberDocsFinder =
-    /(?<comments>(?:\'.*\r?\n)*)(?<!' *)Public (?:(?<type>Function|Sub|Event|Property) ?(?<access>Get|Let|Set)?) (?<name>\w+)\((?<params>[^)]*)\)(?: as (?<retType>\w+))?/gim;
+    /(?<comments>(?:\'.*\r?\n)*)(?<!' *)Public (?:(?<type>Function|Sub|Event|Property) ?(?<access>Get|Let|Set)?) (?<name>\w+)\((?<params>[^)]*)\)(?: as (?<retType>(?:\w+\.)?\w+))?/gim;
   const memberMatches = Array.from(content.matchAll(memberDocsFinder));
 
   //populate members

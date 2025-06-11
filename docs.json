@@ -18,6 +18,44 @@
     "requires": [],
     "methods": [
       {
+        "name": "protInitWithProxy",
+        "description": "Initialises an stdAcc object as a `Proxy` object, who's methods are implemented on the parent instead of on the element itself",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "oParent",
+            "type": "stdAcc",
+            "description": "Parent object to proxy",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByRef"
+          },
+          {
+            "name": "index",
+            "type": "Long",
+            "description": "Index of element in parent",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
         "name": "GetDescendents",
         "description": "Get all descendents of the stdAcc control",
         "remarks": [],
@@ -1086,44 +1124,6 @@
         "throws": [],
         "requires": [],
         "isStatic": false
-      },
-      {
-        "name": "protInitWithProxy",
-        "description": "Initialises an stdAcc object as a `Proxy` object, who's methods are implemented on the parent instead of on the element itself",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "oParent",
-            "type": "stdAcc",
-            "description": "Parent object to proxy",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByRef"
-          },
-          {
-            "name": "index",
-            "type": "Long",
-            "description": "Index of element in parent",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          }
-        ],
-        "returns": null,
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": true,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
       }
     ],
     "events": [],
@@ -1132,9 +1132,15 @@
   {
     "name": "stdArray",
     "fileName": "stdArray.cls",
-    "description": "",
+    "description": "A class which implements a simple array list. Use this class to\r\naccumulate data in a list, and then use the methods to manipulate the data.",
     "remarks": [],
-    "examples": [],
+    "examples": [
+      "```vb\r\n'Create stdArray from array, map items and sort\r\nDim arr as stdArray.Create(1,2,3,4,5)\r\nset arr = arr.map(stdLambda.Create(\"$1*-2\")).join(\",\") '=> -2,-4,-6,-8,-10\r\nDebug.Print arr.sort().join(\";\")                       '=> \"-10;-8;-6;-4;-2\"\r\n```",
+      "```vb\r\n'Create stdArray from array and filter items\r\nDim v: v = Array(1,2,3,4,5)\r\nDim arr as stdArray: set arr = stdArray.CreateFromArray(v)\r\nset arr = arr.filter(stdLambda.Create(\"$1 mod 2 = 0\"))  '=> [2,4]\r\nDebug.Print arr.join(\"|\")                               '=> \"2|4\"\r\n```",
+      "```vb\r\n'Create stdArray from collection\r\nDim c as Collection: set c = new Collection\r\nc.add 1\r\nc.add 2\r\nc.add 3\r\nDim arr as stdArray: set arr = stdArray.CreateFromCollection(c)\r\nDebug.Print arr.join(\"|\")                               '=> \"1|2|3\"\r\n```",
+      "```vb\r\n'Basic array operations\r\nDim arr as stdArray: set arr = stdArray.Create(1,2,3)  ' arr = [1,2,3]\r\narr.Push 4                                             ' arr = [1,2,3,4]\r\narr.Push 5                                             ' arr = [1,2,3,4,5]\r\nDebug.Print arr.Pop                                    '=> 5; arr = [1,2,3,4]\r\nDebug.Print arr.Pop                                    '=> 4; arr = [1,2,3]\r\narr.Unshift 6                                          ' arr = [6,1,2,3]\r\nDebug.Print arr.Shift                                  '=> 6; arr = [1,2,3]\r\n```",
+      "```vb\r\n'This class only allows odd numbers to be added to it's public array `arr`\r\nPublic WithEvents arr as stdArray\r\nPrivate Sub Class_Initialize()\r\n  'Create an empty array\r\n  Set arr = stdArray.Create()\r\nEnd Sub\r\nPrivate Sub arr_BeforeAdd(ByRef arr As stdArray, ByVal iIndex As Long, ByRef item As Variant, ByRef cancel As Boolean)\r\n  'Cancel all items being added which are even\r\n  cancel = item mod 2 = 0\r\nEnd Sub\r\nPrivate Sub Test()\r\n  Dim myTest as new MyClass\r\n  myTest.arr.Push 1\r\n  myTest.arr.Push 2\r\n  myTest.arr.Push 3\r\n  myTest.arr.Push 4\r\n  myTest.arr.Push 5\r\n  Debug.Print myTest.arr.join(\"|\") '=> 1|3|5\r\nEnd Sub\r\n```"
+    ],
     "devNotes": [],
     "todos": [
       "Need to find a better more low level approach to creating arrays from existing arrays/preventing redim for methods like this"
@@ -2798,9 +2804,14 @@
   {
     "name": "stdCallback",
     "fileName": "stdCallback.cls",
-    "description": "",
+    "description": "A class which implements a callback object. Use this class to create a \r\ncallback object which can be called at a later stage. These callbacks are used extensively\r\nacross the stdVBA library.\r\n\r\nWithin a class we can create a simple callback object like so:\r\n```vb\r\nDim cb as stdCallback: set cb = stdCallback.CreateFromObjectMethod(Me, \"myFunction\")\r\n```\r\nWith an example function declaration as follows:\r\n```vb\r\nPublic Function myFunction(ByVal x as long, ByVal y as long, ByVal z as long) as long\r\n  myFunction = x + y + z\r\nEnd Function\r\n```\r\n\r\n> Note it's important to note that the function must be public.\r\n\r\nThe callback can then be called as follows:\r\n```vb\r\nDebug.Print cb(1,2,3)   '=> 6\r\n```\r\nOr with an array of parameters:\r\n```vb\r\nDebug.Print cb.Run(Array(1,2,3))   '=> 6\r\n```\r\nYou can also bind arguments to the callback. This is useful when you want to prepare a callback with some\r\narguments before final execution. For example:\r\n```vb\r\nDim cb as stdCallback: set cb = stdCallback.CreateFromObjectMethod(Me, \"myFunction\").Bind(1,2,3)\r\n'...later...\r\nDebug.Print cb() '=> 6\r\n```",
     "remarks": [],
-    "examples": [],
+    "examples": [
+      "```vb\r\n'A simple class based callback:\r\nPublic Function myFunction(ByVal x as long, ByVal y as long, ByVal z as long) as long\r\n  myFunction = x + y + z\r\nEnd Function\r\nPublic Sub mySub()\r\n  Dim cb as stdCallback: set cb = stdCallback.CreateFromObjectMethod(Me, \"myFunction\")\r\n  Debug.Print cb(1,2,3)   '=> 6\r\nEnd Sub\r\n```",
+      "```vb\r\n'A simple module based callback. The module in this example is named \"MyModule\":\r\nPublic Function myFunction(ByVal x as long, ByVal y as long, ByVal z as long) as long\r\n  myFunction = x + y + z\r\nEnd Function\r\nPublic Sub mySub()\r\n  Dim cb as stdCallback: set cb = stdCallback.CreateFromModule(\"MyModule\", \"myFunction\")\r\n  Debug.Print cb(1,2,3)   '=> 6\r\nEnd Sub\r\n```",
+      "```vb\r\n'Create a callback from a module in another workbook:\r\nPublic Sub mySub()\r\n  Dim cb as stdCallback: set cb = stdCallback.CreateFromWorkbookModule( _\r\n    \"C:\\Temp\\workbooks\\MyWorkbook.xlsm\", \"MyModule\", \"myFunction\")\r\n  Debug.Print cb(1,2,3)   '=> 6\r\nEnd Sub\r\n```",
+      "```vb\r\n'Create a callback from a pointer to a function in a public module.\r\n'Note: this is the only instance where the function can be private!\r\nPrivate Function myFunction(ByVal x as long, ByVal y as long, ByVal z as long) as long\r\n  myFunction = x + y + z\r\nEnd Function\r\nPublic Sub mySub()\r\n  Dim cb as stdCallback: set cb = stdCallback.CreateFromPointer(AddressOf myFunction, vbLong, Array(vbLong, vbLong, vbLong))\r\n  Debug.Print cb(1,2,3)   '=> 6\r\nEnd Sub\r\n```"
+    ],
     "devNotes": [],
     "todos": [
       "Use fancy accessor mechanism https://codereview.stackexchange.com/questions/274532/low-level-vba-hacking-making-private-functions-public "
@@ -3293,9 +3304,13 @@
   {
     "name": "stdClipboard",
     "fileName": "stdClipboard.cls",
-    "description": "",
+    "description": "A class which implements a clipboard object. Use this class to\r\nread from and write data to the clipboard.",
     "remarks": [],
-    "examples": [],
+    "examples": [
+      "```vb\r\n'Read from clipboard:\r\n'Note: Use `await` to ensure the clipboard is ready before reading.\r\nDebug.Print stdClipboard.await.text\r\n```",
+      "```vb\r\n'Write text to clipboard:\r\nstdClipboard.await.text = \"Hello World\"\r\n```",
+      "```vb\r\n'Write text to clipboard with a custom format:\r\nCF_RTF = stdClipboard.registerFormat(\"Rich Text Format\")\r\nstdClipboard.value(CF_RTF) = \"{\\rtf1\\ansi{\\fonttbl\\f0\\fswiss Helvetica;}\\f0\\pard\" & _\r\n  \"This is some {\\b bold} text.\\par\" & _\r\n\"}\"\r\n```"
+    ],
     "devNotes": [],
     "todos": [
       "File is not fully complete, even though it has reached a stable state. Remaining tasks:",
@@ -3758,7 +3773,7 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": "stdole",
+          "type": "stdole.IPicture",
           "description": "The picture stored on the clipboard"
         },
         "deprecation": {
@@ -7951,7 +7966,7 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": "stdole",
+          "type": "stdole.StdPicture",
           "description": "Obtain the image as a stdole.StdPicture"
         },
         "deprecation": {

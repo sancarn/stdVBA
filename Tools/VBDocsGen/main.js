@@ -142,6 +142,9 @@ function parseComment(comment) {
       case "static":
         commentStore.push({ tag });
         break;
+      //@ts-ignore
+      case "module":
+        break;
       default:
         log(`Unknown tag "${tag}"`, "warn");
     }
@@ -206,7 +209,7 @@ function parseModuleOrClass(content, fileName) {
   const _implements = Array.from(content.matchAll(implementsFinder)).map(
     (m) => m.groups?.interface
   );
-  const memberDocsFinder = /(?<comments>(?:\'.*\r?\n)*)(?<!' *)Public (?:(?<type>Function|Sub|Event|Property) ?(?<access>Get|Let|Set)?) (?<name>\w+)\((?<params>[^)]*)\)(?: as (?<retType>\w+))?/gim;
+  const memberDocsFinder = /(?<comments>(?:\'.*\r?\n)*)(?<!' *)Public (?:(?<type>Function|Sub|Event|Property) ?(?<access>Get|Let|Set)?) (?<name>\w+)\((?<params>[^)]*)\)(?: as (?<retType>(?:\w+\.)?\w+))?/gim;
   const memberMatches = Array.from(content.matchAll(memberDocsFinder));
   let constructors = [];
   let events = [];
