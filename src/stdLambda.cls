@@ -8,6 +8,52 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
+'@module
+'@description A class which implements a syntax for creating lambda functions from string expressions
+'within VBA. Use this class to create sandboxed lambda functions, and call them with arguments.
+'
+'Below shows a trivial use case of `stdLambda` and `stdArray`. 
+'
+'```vb
+'Dim arr as stdArray: Set arr = stdArray.Create(1,2,3,4,5,6,7,8,9,10)
+''Filter to include only even numbers:
+'set arr = arr.filter(stdLambda.Create("$1 mod 2 = 0"))  '=> Array(2,4,6,8,10)
+''Take every element and multiply it by 10
+'set arr = arr.map(stdLambda.Create("$1*10"))            '=> Array(20,40,60,80,100)
+''And calculate the sum:
+'set arr = arr.reduce(stdLambda.Create("$1+$2"), 0)      '=> 300
+'```
+'
+'As you can see, within 3 lines of code (excluding the comments), we have achieved the equivalent of this code: 
+'
+'```vb
+'Dim element as variant, totalSum as Long
+'For each element in Array(1,2,3,4,5,6,7,8,9,10)
+'  if element mod 2 = 0 then
+'    totalSum = totalSum + element * 10
+'  end if
+'next
+'```
+'
+'This is a very powerful feature of the `stdLambda` class, and one of the main reasons why it was created.
+'It allows you to write code in a more natural way, and achieve the same result in a much shorter amount of
+'code and improving maintainability. 
+'
+'For a more detailed breakdown of syntax and use cases see the [stdLambda guide](https://github.com/sancarn/stdVBA/blob/master/docs/stdLambda.md)
+'@remark This module implements `stdICallable` meaning it can be utilised by many other stdVBA classes.
+'@example This example shows how to create a simple lambda function which returns the sum of two numbers.
+'```vb
+'Dim cbSum As stdLambda: Set cbSum = stdLambda.Create("$1+$2")
+'Debug.Print cbSum.Run(1, 2)   '=> 3
+'Debug.print cbSum.Run(3,-3)   '=> 0
+'```
+'@example Find a window by it's title.
+'```vb
+'Dim desktop as stdWindow: set desktop = stdWindow.CreateFromDesktop()
+'Dim win as stdWindow: set win = desktop.FindFirst(stdLambda.Create("$1.Caption = ""Title to find"""))
+'```
+
+
 'Ensure Option-Explicit is disabled!! 
 'For VB6 compatibility we rely on the auto-definition of Application and ThisWorkbook
 'Option Explicit
@@ -1772,7 +1818,7 @@ End Function
 'Class initialisation
 Private Sub Class_Initialize()
     'If this is stdLambda predeclared class, ensure that oFuncExt is defined.
-    If Me Is stdLambda Then Set oFunctExt = CreateObject("Scripting.Dictionary")
+    If Me Is stdLambda Then Set This.FunctionExtensions = CreateObject("Scripting.Dictionary")
 End Sub
 
 '------------

@@ -8,6 +8,45 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = false
 Attribute VB_Exposed = False
 
+'@module
+'@moduleType Interface
+'@description An interface which allows a class to be called as if it were a function.
+'@example Say we have a class which implements `stdICallable`:
+'```vb
+'class MyClass
+'  Implements stdICallable
+'  Public Function stdICallable_Run(ParamArray params() as variant) as variant
+'    Call stdICallable_RunEx(params)
+'  End Function
+'  Public Function stdICallable_RunEx(ByVal params as variant) as variant
+'    stdICallable_RunEx =  params(0) / 2 + 1
+'  End Function
+'  Public Function stdICallable_Bind(ParamArray params() as variant) as stdICallable
+'    Err.Raise 1, "", "Not implemented"
+'  End Function
+'  Public Function stdICallable_SendMessage(ByVal sMessage as string, ByRef success as boolean, ByVal params as variant) as variant
+'    Err.Raise 1, "", "Not implemented"
+'  End Function
+'End Class
+'```
+'This class simply returns the first parameter passed to it divided by 2 + 1.
+'
+'```vb
+'Dim c as MyClass: set c = new MyClass
+'Debug.Print c.Run(1) '=> 1.5
+'```
+'
+'We can use this class now in a `stdArray#map()` operation::
+'
+'```vb
+'stdArray.Create(1,2,3).Map(new MyClass).Join(",") '=> 1.5,2,2.5
+'```
+'
+'This brings a huge amount of extensibility and flexibility to the `stdArray` class 
+'and other classes which utilise the `stdICallable` interface.
+
+
+
 'Run the function with supplied parameters
 '@param params - The parameters to run the function with
 '@returns      - The result of the function

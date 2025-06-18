@@ -7,6 +7,75 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+
+'@module
+'@description A class used to make HTTP requests.
+'@example A simple synchronous HTTP request:
+'```vb
+'Dim req as stdHTTP: set req = stdHTTP.Create("http://www.google.com")
+'Dim resp as string: resp = req.ResponseText
+'```
+'@example A simple asynchronous HTTP request:
+'```vb
+'Dim req as stdHTTP: set req = stdHTTP.Create("http://www.google.com", ThreadingStyle:=HTTPAsync)
+'req.Await
+'Dim resp as string: resp = req.ResponseText
+'```
+'@example A simple HTTP request with a timeout:
+'```vb
+'Dim req as stdHTTP: set req = stdHTTP.Create("http://www.google.com", TimeoutMS:=1000)
+'Dim resp as string: resp = req.ResponseText
+'```
+
+'@example A simple HTTP request with authentication:
+'```vb
+'Sub main()
+'  Dim req as stdHTTP: set req = stdHTTP.Create( _
+'    "http://www.google.com", _
+'    Authenticator:=stdCallback.CreateFromModule("mMain", "HttpBasicAuthenticator") _
+'      .bind("username","password") _
+'  )
+'  Debug.Print req.ResponseText
+'End Sub
+'Public Sub HttpBasicAuthenticator(ByVal Username As String, ByVal Password As String, ByVal pHTTP As Object, ByVal RequestMethod As String, ByVal sURL As String, ByVal ThreadingStyle As Long, ByVal options As Object)
+'  Const SetCredentialsType_ForServer = 0
+'  pHTTP.SetCredentials Username, Password, SetCredentialsType_ForServer
+'End Sub
+'```
+'@example A simple POST request with a payload:
+'```vb
+'Dim req as stdHTTP: set req = stdHTTP.Create( _
+'  "http://www.google.com", _
+'  Options:=stdHTTP.CreateOptions( _
+'    Body:="My payload here", _
+'  ) _
+')  
+'Dim resp as string: resp = req.ResponseText
+'```
+'@example A simple HTTP request with a mapped response:
+'```vb
+'Dim req as stdHTTP: set req = stdHTTP.Create( "http://www.google.com", ThreadingStyle:=HTTPAsync)
+'set req.ResponseMapper = stdLambda.Create("stdJSON.CreateFromString($1.ResponseText)").bindGlobal("stdJSON", stdJSON)
+'
+'Dim resp as stdJSON: set resp = req.Await.ResponseMapped
+'```
+'@example A simple HTTP request with a proxy:
+'```vb
+'Dim req as stdHTTP: set req = stdHTTP.Create( _
+'  "http://www.google.com", _
+'  Options:=stdHTTP.CreateOptions( _
+'    Proxy:=stdHTTP.CreateProxy( _
+'      ProxyTypeAuto, _
+'      Server:="127.0.0.1", _
+'      ByPass:="localhost", _
+'      User:="user", _
+'      Pass:="pass" _
+'    ) _ 
+'  ) _
+')  
+'Dim resp as string: resp = req.ResponseText
+'```
+
 Public Enum EHTTPSynchronisity
   HTTPSync
   HTTPAsync

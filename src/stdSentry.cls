@@ -8,53 +8,77 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
-
+'@description
 'In numerous cases using excel we like to set standard options to optimise performance:
+'```vb
+'Dim bEnableEvents as Boolean: bEnableEvents = Application.EnableEvents
+'Dim bScreenUpdating as Boolean: bScreenUpdating = Application.ScreenUpdating
+'Application.EnableEvents = false
+'Application.ScreenUpdating = false
 '
-'    Dim bEnableEvents as Boolean: bEnableEvents = Application.EnableEvents
-'    Dim bScreenUpdating as Boolean: bScreenUpdating = Application.ScreenUpdating
-'    Application.EnableEvents = false
-'    Application.ScreenUpdating = false
-'    
-'      ... our code ...
-'    
-'    Application.EnableEvents = bEnableEvents
-'    Application.ScreenUpdating = bScreenUpdating
+'  ... our code ...
 '
+'Application.EnableEvents = bEnableEvents
+'Application.ScreenUpdating = bScreenUpdating
+'```
 'Similarly with std libraries, we have to add and pop from the stack:
-'
-'    stdError.addStack "myMethod"
-'      ... our code ...
-'    stdError.popStack
-'
+'```vb
+'stdError.addStack "myMethod"
+'  ... our code ...
+'stdError.popStack
+'```
 'stdPerformance today uses the sentry pattern:
-'
-'    With stdPerformance.CreateMeasure("Some measurement")
-'      ... our code ...
-'    End With
-'
+'```vb
+'With stdPerformance.CreateMeasure("Some measurement")
+'  ... our code ...
+'End With
+'```
 'Although the two patterns have the same size (3 lines), the sentry pattern is both more beautiful and more robust.
 'This class is an attempt to make the sentry pattern easier to implement in VBA.
-'
-'   Dim ensureScreenUpdating as stdSentry
-'   set ensureScreenUpdating = stdSentry.Create( _ 
-'     stdLambda.CreateMultiLine( _ 
-'       Array( _ 
-'         "let temp = Application.ScreenUpdating", _
-'         "let Application.ScreenUpdating = $1", _
-'         "Array(temp)", _
-'       ) _ 
-'     ), _
-'     stdLambda.Create("let Application.ScreenUpdating = $1") _ 
-'   )
-'   With ensureScreenUpdating(False)
-'     '... our code ...
-'   End With
-'------------------------
-'   set sentry = stdSentry.Create(
-'     stdCallback.CreateFromModule("", "RNOn"), _
-'     stdCallback.CreateFromModule("", "RNOff") _
-'   )
+'```vb
+'Dim ensureScreenUpdating as stdSentry
+'set ensureScreenUpdating = stdSentry.Create( _ 
+'  stdLambda.CreateMultiLine( _ 
+'    Array( _ 
+'      "let temp = Application.ScreenUpdating", _
+'      "let Application.ScreenUpdating = $1", _
+'      "Array(temp)", _
+'    ) _ 
+'  ), _
+'  stdLambda.Create("let Application.ScreenUpdating = $1") _ 
+')
+'With ensureScreenUpdating(False)
+'  '... our code ...
+'End With
+'```
+'@example A standard sentry for optimising performance of range operations:
+'```vb
+'With stdSentry.CreateOptimiser(ScreenUpdating:=False, Calculation:=xlCalculationManual)
+'  '... heavy range based operations ...
+'End With
+'```
+'@example A sentry for error stack management:
+'```vb
+'Sub MyMethod()
+'  With stdSentry.CreateErrorStack("MyMethod")
+'    '... our code ...
+'  End With
+'End Sub
+'```
+'@example A sentry for AutomationSecurity settings:
+'```vb
+'With stdSentry.CreateFromAutomationSecurity(msoAutomationSecurityForceDisable)
+'  Call ThisWorkbook.SaveAs("C:\temp\test.xlsx")
+'End With
+'```
+'@example A sentry for setting/resetting an object's properties: 
+'```vb
+'Debug.print Application.DisplayAlerts '=> (Whatever before)
+'With stdSentry.CreateFromObjectProperty(Application, "DisplayAlerts", False)
+'  Debug.Print Application.DisplayAlerts '=> False
+'End With
+'Debug.Print Application.DisplayAlerts '=> (Whatever before)
+
 
 Implements stdICallable
 Private Type TFactory

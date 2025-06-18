@@ -9,10 +9,20 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 
-'A strict quadtree
-'See also:
-'* Grid instead of quadtree https://softwareengineering.stackexchange.com/a/364179
-'* Loose quadtrees          https://stackoverflow.com/a/48384354/6302131
+'@module
+'@description A strict quadtree implementation in VBA. Use this class to store points in a 2D space
+'and query them efficiently.
+'@example A simple quadtree example:
+'```vb
+'Dim q As stdQuadTree: set q = stdQuadTree.Create(0, 0, 100)
+'Call q.insertPoint(1, 1, "Point 1")
+'Call q.insertPoint(2, 2, "Point 2")
+'Call q.insertPoint(3, 3, "Point 3")
+'Call q.insertPoint(4, 4, "Point 4")
+'Dim points As Collection: Set points = q.queryRangeBounds(0, 0, 8, 8)
+'```
+'@devNote [Grid instead of quadtree](https://softwareengineering.stackexchange.com/a/364179)
+'@devNote [Loose quadtrees](https://stackoverflow.com/a/48384354/6302131)
 
 
 

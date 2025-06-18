@@ -7,10 +7,17 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
-'Status WIP
-'High level wrapper around flood risk.
-'Ultimate goal is to make a class which calculates affordability, total project benefit, historic and overridden likelihood,
-'and ultimately port code out of HFRR core into a class wrapper.
+
+'@module
+'@description A class which wraps a VBA array by reference. Use this class to
+'efficiently pass large arrays around without copying them.
+'@example A simple example of passing an array by reference:
+'```vb
+'Dim arr as Variant: arr = Array(1,2,3,4,5,6,7,8,9,10)
+'Dim rarr as stdRefArray: set rarr = stdRefArray.Create(arr)
+'Debug.Print rarr.Data(1)  '=> 1
+'Debug.Print rarr.Data(2)  '=> 2
+'```
 
 #Const DEBUG_PERF = False
 

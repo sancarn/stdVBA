@@ -8,6 +8,28 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
+'@module
+'@description A class which implements a performance testing and optimisation library.
+'Use this class to measure performance and optimise your code.
+'@example Simple example of measuring performance:
+'```vb
+'Const C_MAX as Long = 1000
+'With stdPerformance.Measure("Some test expression", C_MAX)
+'  Dim v
+'  For i = 1 to C_MAX
+'    v = expressionToTest()
+'  next
+'End With
+'```
+'@example Simple example of optimising performance:
+'```vb
+'With stdPerformance.Optimise
+'  'some heavy code here
+'End With
+'```
+
+
+
 'Spec:
 'This class has been designed to meet your performance testing and optimisation needs. stdPerformance uses the `Sentry Object` design pattern
 'which allows for cleaner more maintainable code.
@@ -167,7 +189,7 @@ Public Sub protInit(ByVal objType As EPerfObjType, ByVal params As Variant)
   End Select
 End Sub
 
-'Measure
+'Create a measure object
 '@constructor
 '@param sProc   - Name of method or block to measure
 '@param nCount  - Number of times the block will be ran (used to calculate average time), default = 1.

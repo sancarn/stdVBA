@@ -9,7 +9,7 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 '@module
-'`stdFiber` allows production of partitioned asynchronous procedures which can be run within a fiber runtime.
+'@description `stdFiber` allows production of partitioned asynchronous procedures which can be run within a fiber runtime.
 '`stdFiber.Create()` is used to create our fiber procedures
 '`stdFiber.runFibers()` is used to run our fiber procedures within a fiber runtime.
 'Fibers can be useful especially when dealing with asynchronous functions
