@@ -8222,6 +8222,67 @@
         "throws": [],
         "requires": [],
         "isStatic": false
+      },
+      {
+        "name": "FindImage",
+        "description": "Searches for a template image within a larger image (i.e., this image)",
+        "remarks": [],
+        "examples": [
+          "Dim haystack As stdImage, needle As stdImage, result As Variant\r\n  Set haystack = stdImage.CreateFromFile(\"C:\\YourImageDir\\big.png\")\r\n  Set needle = stdImage.CreateFromFile(\"C:\\YourImageDir\\small.png\")\r\n  result = haystack.FindImage(needle, 10)\r\n  If Not IsEmpty(result) Then Debug.Print \"Found at:\", result(0), result(1)"
+        ],
+        "params": [
+          {
+            "name": "template",
+            "type": "stdImage",
+            "description": "The image to search for",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "tolerance",
+            "type": "Long",
+            "description": "A value of 0 means that the pixels must be an exact match; greater values signify slight (1-5), moderate (6 - 20) and signifanct (20+) variations (default 5)",
+            "optional": true,
+            "defaultValue": "5",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "TopToBottom",
+            "type": "Boolean",
+            "description": "If True, search from top-to-bottom; if False, search from bottom-to-top (default True)",
+            "optional": true,
+            "defaultValue": "True",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "LeftToRight",
+            "type": "Boolean",
+            "description": "If True, search from left-to-right; if False, search from right-to-left (default True)",
+            "optional": true,
+            "defaultValue": "True",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "Variant<Array<Long>|Empty>",
+          "description": "Array [x, y] of the top-left match (standard image coordinates), or Empty if not found"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "properties": [
