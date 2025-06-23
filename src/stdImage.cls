@@ -833,7 +833,7 @@ Public Sub ToClipboard()
       .Delete
     End With
   End Sub
-End Sub
+
 
 'Save a copy in a temporary file and return the path of this file
 '@param eFormat - The format the data should be in.
@@ -1046,6 +1046,7 @@ End If
 getAppHwnd = hWnd
 End Function
 
+
 'Searches for a template image within a larger image (i.e., this image)
 '@param template - The image to search for
 '@param tolerance - A value of 0 means that the pixels must be an exact match; greater values signify slight (1-5), moderate (6 - 20) and signifanct (20+) variations (default 5)
@@ -1058,55 +1059,49 @@ End Function
 '  Set needle = stdImage.CreateFromFile("C:\YourImageDir\small.png")
 '  result = haystack.FindImage(needle, 10)
 '  If Not IsEmpty(result) Then Debug.Print "Found at:", result(0), result(1)
-Public Function FindImage(ByVal template As stdImage, _
-                          Optional ByVal tolerance As Long = 5, _
-                          optional byval TopToBottom As Boolean = True, _
-                          Optional Byval LeftToRight As Boolean = True) As Variant
-
-    Dim haystackColors() As Long, templateColors() As Long
-    haystackColors = Me.Colors
-    templateColors = template.Colors
+Public Function FindImage(ByVal template As stdImage, Optional ByVal tolerance As Long = 5, Optional ByVal TopToBottom As Boolean = True, Optional ByVal LeftToRight As Boolean = True) As Variant
+  Dim haystackColors() As Long, templateColors() As Long
+  Dim hayW As Long, hayH As Long, tplW As Long, tplH As Long
+  Dim startX As Long, endX As Long, stepX As Long
+  Dim startY As Long, endY As Long, stepY As Long
+  
+  haystackColors = Me.Colors
+  templateColors = template.Colors
+  hayW = UBound(haystackColors, 1): hayH = UBound(haystackColors, 2)
+  tplW = UBound(templateColors, 1): tplH = UBound(templateColors, 2)
     
-    Dim hayW As Long, hayH As Long, tplW As Long, tplH As Long
-    hayW = UBound(haystackColors, 1): hayH = UBound(haystackColors, 2)
-    tplW = UBound(templateColors, 1): tplH = UBound(templateColors, 2)
-    
-    Dim startX As Long, endX As Long, stepX As Long
-    Dim startY As Long, endY As Long, stepY As Long
-    
-    If TopToBottom Then
-        startY = 0: endY = hayH - tplH: stepY = 1
-    Else
-        startY = hayH - tplH: endY = 0: stepY = -1
-    End If
-
-    If LeftToRight Then
-        startX = 0: endX = hayW - tplW: stepX = 1
-    Else
-        startX = hayW - tplW: endX = 0: stepX = -1
-    End If  
-
-    Dim x As Long, y As Long, i As Long, j As Long
-    Dim match As Boolean
-    For y = startY To endY Step stepY
-        For x = startX To endX Step stepX
-            match = True
-            For j = 1 To tplH
-                For i = 1 To tplW
-                    If Not ColorsMatch(haystackColors(x + i, y + j), templateColors(i, j), tolerance) Then
-                        match = False
-                        Exit For
-                    End If
-                Next i
-                If Not match Then Exit For
-            Next j
-            If match Then
-                FindImage = Array(x, hayH - y - tplH + 1)
-                Exit Function
-            End If
-        Next x
-    Next y
-    FindImage = Empty
+  If TopToBottom Then
+    startY = 0: endY = hayH - tplH: stepY = 1
+  Else
+    startY = hayH - tplH: endY = 0: stepY = -1
+  End If
+  
+  If LeftToRight Then
+    startX = 0: endX = hayW - tplW: stepX = 1
+  Else
+    startX = hayW - tplW: endX = 0: stepX = -1
+  End If
+  
+  Dim x As Long, y As Long, i As Long, j As Long, match As Boolean
+  For y = startY To endY Step stepY
+    For x = startX To endX Step stepX
+      match = True
+      For j = 1 To tplH
+        For i = 1 To tplW
+          If Not ColorsMatch(haystackColors(x + i, y + j), templateColors(i, j), tolerance) Then
+            match = False
+            Exit For
+          End If
+        Next
+        If Not match Then Exit For
+      Next
+      If match Then
+        FindImage = Array(x, hayH - y - tplH + 1)
+        Exit Function
+      End If
+    Next
+  Next
+  FindImage = Empty
 End Function
 
 'Compares two ARGB color values within a given tolerance per RGB channel
@@ -1115,8 +1110,8 @@ End Function
 '@param tolerance - Maximum allowed difference per channel (0-255).
 '@returns - True if the colors match within the given tolerance, otherwise False
 Private Function ColorsMatch(ByVal c1 As Long, ByVal c2 As Long, ByVal tolerance As Long) As Boolean
-    Dim r1 As Long, g1 As Long, b1 As Long, r2 As Long, g2 As Long, b2 As Long
-    r1 = (c1 And &HFF): g1 = (c1 \ &H100) And &HFF: b1 = (c1 \ &H10000) And &HFF
-    r2 = (c2 And &HFF): g2 = (c2 \ &H100) And &HFF: b2 = (c2 \ &H10000) And &HFF
-    ColorsMatch = Abs(r1 - r2) <= tolerance And Abs(g1 - g2) <= tolerance And Abs(b1 - b2) <= tolerance
+  Dim r1 As Long, g1 As Long, b1 As Long, r2 As Long, g2 As Long, b2 As Long
+  r1 = (c1 And &HFF): g1 = (c1 \ &H100) And &HFF: b1 = (c1 \ &H10000) And &HFF
+  r2 = (c2 And &HFF): g2 = (c2 \ &H100) And &HFF: b2 = (c2 \ &H10000) And &HFF
+  ColorsMatch = Abs(r1 - r2) <= tolerance And Abs(g1 - g2) <= tolerance And Abs(b1 - b2) <= tolerance
 End Function
