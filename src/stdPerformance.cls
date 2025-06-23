@@ -14,7 +14,7 @@ Attribute VB_Exposed = False
 '@example Simple example of measuring performance:
 '```vb
 'Const C_MAX as Long = 1000
-'With stdPerformance.Measure("Some test expression", C_MAX)
+'With stdPerformance.CreateMeasure("Some test expression", C_MAX)
 '  Dim v
 '  For i = 1 to C_MAX
 '    v = expressionToTest()
@@ -23,68 +23,11 @@ Attribute VB_Exposed = False
 '```
 '@example Simple example of optimising performance:
 '```vb
-'With stdPerformance.Optimise
+'With stdPerformance.CreateOptimiser()
 '  'some heavy code here
 'End With
 '```
 
-
-
-'Spec:
-'This class has been designed to meet your performance testing and optimisation needs. stdPerformance uses the `Sentry Object` design pattern
-'which allows for cleaner more maintainable code.
-'Functions implemented on the class
-'CONSTRUCTORS
-'    [X] Create   - With Cache
-'    [X] init       #PROTECTED
-'    [X] Measure  - Create a performance measuring Sentry Object
-'    [X] Optimise - Create a object which toggles runtime options for optimisation. Currently sets: `ScreenUpdating`, `EnableEvents` and `XLCalculation`.
-'                   This is intended to be application agnostic.
-'
-'STATIC PROPERTIES
-'    [X] Get MeasureKeys - Get an array of procs/blocks which have been measured
-'    [x] Get Measurement(sProcOrBlock) - Get the average time it took to execute a block.
-'    [ ] Get MeasuresStr
-'    [ ] Get MeasuresHtml
-'
-'STATIC methods
-'    [x] MeasuresClear() - Clear the performance stack.
-'
-'OUT-OF-SCOPE
-'    * Anything performance related which is specific, should realistically be honed to a specific class for that thing.
-'
-'EXAMPLES
-'# 1 - Usage of Optimser
-'
-'   'Disable numerous options for performance
-'   Debug.Print Application.ScreenUpdating, Application.EnableEvents, Application.Calculation         'false,false,-4105 
-'   With stdPerformance.Optimiser()
-'     Debug.Print Application.ScreenUpdating, Application.EnableEvents, Application.Calculation         'false,false,-4135
-'   End With
-'   Debug.Print Application.ScreenUpdating, Application.EnableEvents, Application.Calculation         'false,false,-4105 
-'   
-'   'Disable everything BUT Calculation
-'   Debug.Print Application.ScreenUpdating, Application.EnableEvents, Application.Calculation         'false,false,-4105 
-'   With stdPerformance.Optimiser(Calculation:=xlCalculation.xlCalculationAutomatic)
-'     Debug.Print Application.ScreenUpdating, Application.EnableEvents, Application.Calculation         'false,false,-4105
-'   End With
-'   Debug.Print Application.ScreenUpdating, Application.EnableEvents, Application.Calculation         'false,false,-4105 
-'
-'# 2 - measuring performance:
-'
-'   With stdPerformance.measure("#1 Select then set")
-'     For i = 1 to C_MAX
-'       cells(1,1).select
-'       selection.value = "hello"
-'     Next
-'   End With
-'   
-'   With stdPerformance.measure("#2 Set directly")
-'     For i = 1 to C_MAX
-'       cells(1,1).value = "hello"
-'     next
-'   End With
-'
 'Declares for performance counters
 #If Mac Then
    #If MAC_OFFICE_VERSION >= 15 Then
@@ -195,7 +138,7 @@ End Sub
 '@param nCount  - Number of times the block will be ran (used to calculate average time), default = 1.
 '@returns stdPerformance<iMeasure> - Object which upon termination, adds measurement of block to global cache
 '@example ```vb
-'With stdPerformance.Measure("Some test expression")
+'With stdPerformance.CreateMeasure("Some test expression")
 '  Dim v
 '  For i = 1 to 1000
 '    v = expressionToTest()
@@ -205,7 +148,7 @@ End Sub
 '@example
 '```vb
 'Const C_MAX as Long = 1000
-'With stdPerformance.Measure("Some test expression", C_MAX)
+'With stdPerformance.CreateMeasure("Some test expression", C_MAX)
 '  Dim v
 '  For i = 1 to C_MAX
 '    v = expressionToTest()
@@ -225,7 +168,7 @@ End Function
 '@remark Calculation is defined as long instead of xlCalculation so the function continues to work without compile error in Word, Powerpoint etc.
 '@example
 '```vb
-'With stdPerformance.Optimise
+'With stdPerformance.CreateOptimiser()
 '  'some heavy code here
 'End With
 '```
@@ -235,8 +178,21 @@ End Function
 
 
 'Obtain a measurement
+'@static
 '@param sKey - Name of measurement to get
 '@returns - Average measurement time
+'@example Get a measurement
+'```vb
+'Const C_MAX as Long = 1000
+'With stdPerformance.CreateMeasure("Some test expression", C_MAX)
+'  Dim v
+'  For i = 1 to C_MAX
+'    v = expressionToTest()
+'  next
+'End With
+'
+'Debug.Print "Average time for Some test expression: " & stdPerformance.Measurement("Some test expression") & " ms"
+'```
 Public Property Get Measurement(ByVal sKey As String) As Double
   If Me Is stdPerformance Then
     Dim v: v = getDictItem(sKey)
@@ -271,6 +227,7 @@ Public Sub AddMeasurement(ByVal sKey As String, ByVal time As Double, ByVal nCou
 End Sub
 
 'MeasuresClear - Clears all procedures/blocks and times that have been measured
+'@static
 Public Sub MeasuresClear()
   ReDim This.Singleton.FakeDict(0 To 0)
 End Sub
@@ -299,7 +256,6 @@ Public Property Get MeasuresKeys() As String()
 End Property
 
 'Used by static class only
-'@constructor
 Private Sub Class_Initialize()
   If Me Is stdPerformance Then
     ReDim This.Singleton.FakeDict(0 To 0)
@@ -339,7 +295,6 @@ End Sub
 'NOTE: These functions are completely unoptimised and are largely in use for the purpose of making this class multi-platform friendly.
 'These will be unlikely to be optimised given that this is largely a debugging library.
 
-'getDictIndex
 'Returns the index where a particular key is stored
 '@param key - Key to find in dictionary
 '@returns   - Index of key in dictionary
@@ -357,7 +312,6 @@ ErrorOccurred:
   getDictIndex = -1
 End Function
 
-'setDictItem
 'Set an item within a dictionary to a particular value
 '@param key - Key to find in dictionary
 '@param v   - Value to set dictionary too
@@ -381,7 +335,6 @@ Private Sub setDictItem(ByVal key As String, ByVal v As Variant, Optional ByVal 
   End If
 End Sub
 
-'getUB
 'gets the upper bound of an array, if the array is uninitialised return -1
 '@param items as Array<FakeDictItem> - Array of dict items.
 '@returns - Upper bound of array OR -1 if not initialised
@@ -393,7 +346,6 @@ ErrorOccurred:
     getUB = -1
 End Function
 
-'getDictIndex
 'Returns the item paired with some key
 '@param key - Key to find in dictionary
 '@returns - Item stored at key
