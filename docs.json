@@ -4760,8 +4760,8 @@
       "```vb\r\n'Find the longest worksheet name\r\nDim ws as stdEnumerator: set ws = stdEnumerator.CreateFromIEnumVariant(ThisWorkbook.Worksheets)\r\nDim sht as Worksheet: set sht = ws.Max(stdLambda.Create(\"len($1.Name)\"))\r\nDebug.Print sht.Name\r\n```",
       "Assuming we have a table named `People` with the following data:\r\n\r\n | Name  | Age | Gender |\r\n |-------|-----|--------| \r\n | John  | 25  | Male   |\r\n | Jane  | 30  | Female |\r\n | Bob   | 35  | Male   |\r\n | Alice | 40  | Female |\r\n\r\nThe following code will print the names of all females:\r\n```vb\r\n'Loop over a table and print names of females\r\nDim loPeople as ListObject: set loPeople = ThisWorkbook.Worksheets(\"People\").ListObjects(\"People\")\r\nDim tbl as stdEnumerator: set tbl = stdEnumerator.CreateFromListObject(loPeople)\r\nDim females as stdEnumerator: set females = tbl.Filter(stdLambda.Create(\"$1.Gender = \"\"Female\"\"\"))\r\nDim names as stdEnumerator: set names = females.Map(stdLambda.Create(\"$1.Name\"))\r\nDebug.Print names.Join(vbCrLf)\r\n```",
       "Get all worksheets of all open workbooks \r\n```vb\r\nDim allWorkbooks as stdEnumerator: set allWorkbooks = stdEnumerator.CreateFromIEnumVariant(Application.Workbooks)\r\nDim allWorksheets as stdEnumerator: set allWorksheets = allWorkbooks.Map(stdLambda.Create(\"$1.Worksheets\"))\r\nset allWorksheets = allWorksheets.Flatten\r\n```",
-      "Create an archimedean spiral using the `CreateFromCallable` feature. \r\n```vb\r\n'Generates poiknts on an Archimedean spiral.\r\n'@param lastItem - The last point generated (or null for the first)\r\n'@param index - The current index of the point being generated\r\n'@returns Array<Long> - A point containing an X and Y coordinate on the spiral.\r\nPublic Function GetArchimedesSpiral(ByVal lastItem as variant, ByVal index as long) as variant\r\n  const a as double = 0.1 'Controls the tightness of the spiral\r\n  const b as double = 0.5 'Controls the spacing between the turns\r\n\r\n  'Calculate the angle (theta) for the current point.\r\n  'We can make the angle increase linearly with the index for a smooth spiral.\r\n  Dim theta as Double: theta = index * b\r\n\r\n  'Calculate the radius (r) using the Archimedean spiral equation: r = a * theta\r\n  Dim r as double: r = a * theta\r\n\r\n  'Convert polar coordinates (r, theta) to Cartesian coordinates (x, y)\r\n  Dim x as double: x = r * cos(theta)\r\n  Dim y as double: y = r * sin(theta)\r\n  \r\n  GetArchimedesSpiral = Array(x, y)\r\nEnd Function\r\nPublic Sub testSpiralPoints()\r\n  Dim cbSpiral as stdCallback: Set cbSpiral = stdCallback.CreateFromModule(\"MyModule\", \"GetArchimedesSpiral\")\r\n  Dim spiral as stdEnumerator: Set spiral = stdEnumerator.CreateFromCallable(cbSpiral, 100)\r\n  stop\r\nEnd Function\r\n```",
-      "Generate points on a 2D random walk, where each step is a random direction and distance from the last point.\r\n```vb\r\nPublic Function GetRandomWalk(ByVal lastItem as variant, ByVal index as long) as variant\r\n  Const Pi as Double = 3.14159\r\n  Dim x as Double, y as Double, angle as double\r\n  if index = 0 then\r\n    x = 0\r\n    y = 0\r\n    angle = rnd() * 2 * Pi\r\n  else\r\n    x = lastItem(0)\r\n    y = lastItem(1)\r\n    angle = lastItem(2)\r\n  end if\r\n\r\n  const maxDist as double = 5\r\n  Dim maxAngle as double: maxAngle = Pi / 4\r\n  Dim diff1 as Double: diff1 = (rnd()-0.5)*2*maxDist\r\n  Dim diff2 as Double: diff2 = (rnd()-0.5)*2*maxAngle\r\n  Dim nextAngle as double: nextAngle = angle + diff2\r\n  x = x + diff1 * cos(nextAngle)\r\n  y = y + diff1 * sin(nextAngle)\r\n  angle = nextAngle\r\n  GetRandomWalk = Array(x, y, angle)\r\nEnd Function\r\nPublic Sub TestRandomWalk()\r\n  Dim cbRandomWalk as stdCallback: Set cbRandomWalk = stdCallback.CreateFromModule(\"Main\", \"GetRandomWalk\")\r\n  Dim walk as stdEnumerator: Set walk = stdEnumerator.CreateFromCallable(cbRandomWalk, 100)\r\n  stop\r\nEnd Sub\r\n```"
+      "Create an archimedean spiral using the `CreateFromCallable` feature. \r\n```vb\r\n'Generates poiknts on an Archimedean spiral.\r\n'@param lastItem - The last point generated (or null for the first)\r\n'@param index - The current index of the point being generated\r\n'@returns Array<Long> - A point containing an X and Y coordinate on the spiral.\r\nPublic Function GetArchimedesSpiral(ByVal lastItem as variant, ByVal index as long) as variant\r\n  'Stop at 100 points\r\n  if index > 100 then\r\n    getArchimedesSpiral = null\r\n    exit function\r\n  end if\r\n \r\n  const a as double = 0.1 'Controls the tightness of the spiral\r\n  const b as double = 0.5 'Controls the spacing between the turns\r\n\r\n  'Calculate the angle (theta) for the current point.\r\n  'We can make the angle increase linearly with the index for a smooth spiral.\r\n  Dim theta as Double: theta = index * b\r\n\r\n  'Calculate the radius (r) using the Archimedean spiral equation: r = a * theta\r\n  Dim r as double: r = a * theta\r\n\r\n  'Convert polar coordinates (r, theta) to Cartesian coordinates (x, y)\r\n  Dim x as double: x = r * cos(theta)\r\n  Dim y as double: y = r * sin(theta)\r\n  \r\n  GetArchimedesSpiral = Array(x, y)\r\nEnd Function\r\nPublic Sub testSpiralPoints()\r\n  Dim cbSpiral as stdCallback: Set cbSpiral = stdCallback.CreateFromModule(\"MyModule\", \"GetArchimedesSpiral\")\r\n  Dim spiral as stdEnumerator: Set spiral = stdEnumerator.CreateFromCallable(cbSpiral)\r\n  Dim arr: arr = spiral.AsArray\r\n  stop\r\nEnd Function\r\n```",
+      "Generate points on a 2D random walk, where each step is a random direction and distance from the last point.\r\n```vb\r\nPublic Function GetRandomWalk(ByVal lastItem As Variant, ByVal index As Long) As Variant\r\n  'Stop at index 100\r\n  If index > 100 Then\r\n    GetRandomWalk = Null\r\n    Exit Function\r\n  End If\r\n  \r\n  Const Pi As Double = 3.14159\r\n  Dim x As Double, y As Double, angle As Double\r\n  If index = 1 Then\r\n    x = 0\r\n    y = 0\r\n    angle = Rnd() * 2 * Pi\r\n  Else\r\n    x = lastItem(0)\r\n    y = lastItem(1)\r\n    angle = lastItem(2)\r\n  End If\r\n\r\n  Const maxDist As Double = 5\r\n  Dim maxAngle As Double: maxAngle = Pi / 2\r\n  Dim diff1 As Double: diff1 = (Rnd() - 0.5) * 2 * maxDist\r\n  Dim diff2 As Double: diff2 = (Rnd() - 0.5) * 2 * maxAngle\r\n  Dim nextAngle As Double: nextAngle = angle + diff2\r\n  x = x + diff1 * Cos(nextAngle)\r\n  y = y + diff1 * Sin(nextAngle)\r\n  angle = nextAngle\r\n  GetRandomWalk = Array(x, y, angle)\r\nEnd Function\r\n\r\nPublic Sub TestRandomWalk()\r\n  Dim cbRandomWalk As stdCallback: Set cbRandomWalk = stdCallback.CreateFromModule(\"Main\", \"GetRandomWalk\")\r\n  Dim walk As stdEnumerator: Set walk = stdEnumerator.CreateFromCallable(cbRandomWalk, 100)\r\n  Dim arr: arr = walk.AsArray\r\n  Stop\r\nEnd Sub\r\n```"
     ],
     "devNotes": [],
     "todos": [
@@ -6218,7 +6218,7 @@
   {
     "name": "stdFiber",
     "fileName": "stdFiber.cls",
-    "description": "@module\r\n`stdFiber` allows production of partitioned asynchronous procedures which can be run within a fiber runtime.\r\n`stdFiber.Create()` is used to create our fiber procedures\r\n`stdFiber.runFibers()` is used to run our fiber procedures within a fiber runtime.\r\nFibers can be useful especially when dealing with asynchronous functions",
+    "description": "`stdFiber` allows production of partitioned asynchronous procedures which can be run within a fiber runtime.\r\n`stdFiber.Create()` is used to create our fiber procedures\r\n`stdFiber.runFibers()` is used to run our fiber procedures within a fiber runtime.\r\nFibers can be useful especially when dealing with asynchronous functions",
     "remarks": [],
     "examples": [
       "**1. Simple fiber example**:\r\n```vb\r\nSub main()\r\n    Dim fibers as new Collection\r\n    For i = 1 to 100\r\n        fibers.add createFiber(\"http://example.com/\" & i)\r\n    next\r\n    \r\n    'Run requests concurrently across 10 fibers\r\n    set results = stdFiber.runFibers(fibers, numFibers:=10)\r\nEnd Sub\r\nFunction createFiber(ByVal url as string) as stdFiber\r\n    Dim fib as stdFiber: set fib = stdFiber.Create()\r\n    set fib.meta(\"status\") = getStatusUpdater()\r\n    fib.add stdCallback.CreateFromMethods(\"\", \"step1_GetRequest\").bind(url)\r\n    fib.add stdCallback.CreateFromMethods(\"\", \"step2_AwaitStatus\")\r\n    fib.add stdCallback.CreateFromMethods(\"\", \"step3_ReturnData\")\r\n    fib.addErrorHandler stdCallback.CreateFromMethods(\"\", \"stepX_OnError\")\r\n    set createFiber = fib\r\nEnd Function\r\nPublic Function step1_GetRequest(ByVal url as string, ByVal fib as stdFiber) as boolean\r\n    fib.meta(\"status\").value = \"step1\"\r\n    'Store information in bespoke fiber procedure metadata\r\n    set fib.meta(\"req\") = stdHTTP.Create(url, HTTPAsync)\r\n    step1_GetRequest = true\r\nEnd Function\r\nPublic Function step2_AwaitStatus(ByVal fib as stdFiber) as boolean\r\n    fib.meta(\"status\").value = \"step2\"\r\n    step1_GetRequest = fib.meta(\"req\").status <> 0\r\nEnd Function\r\nPublic Function step3_ReturnData(ByVal fib as stdFiber) as boolean\r\n    Call fib.resolve(fib.meta(\"req\").ResponseText)\r\n    fib.meta(\"status\").value = \"Complete\"\r\nEnd Function\r\nPublic Sub stepX_OnError(ByVal fib as stdFiber)\r\n    fib.meta(\"status\").value = fib.ErrorText\r\nEnd Sub"
@@ -6785,9 +6785,13 @@
   {
     "name": "stdHTTP",
     "fileName": "stdHTTP.cls",
-    "description": "",
+    "description": "A class used to make HTTP requests.",
     "remarks": [],
-    "examples": [],
+    "examples": [
+      "A simple synchronous HTTP request:\r\n```vb\r\nDim req as stdHTTP: set req = stdHTTP.Create(\"http://www.google.com\")\r\nDim resp as string: resp = req.ResponseText\r\n```",
+      "A simple asynchronous HTTP request:\r\n```vb\r\nDim req as stdHTTP: set req = stdHTTP.Create(\"http://www.google.com\", ThreadingStyle:=HTTPAsync)\r\nreq.Await\r\nDim resp as string: resp = req.ResponseText\r\n```",
+      "A simple HTTP request with a timeout:\r\n```vb\r\nDim req as stdHTTP: set req = stdHTTP.Create(\"http://www.google.com\", TimeoutMS:=1000)\r\nDim resp as string: resp = req.ResponseText\r\n```"
+    ],
     "devNotes": [],
     "todos": [
       "Check if user/pass credentials with auto-proxy will ever be needed"
@@ -7708,9 +7712,11 @@
   {
     "name": "stdICallable",
     "fileName": "stdICallable.cls",
-    "description": "",
+    "description": "An interface which allows a class to be called as if it were a function.",
     "remarks": [],
-    "examples": [],
+    "examples": [
+      "Say we have a class which implements `stdICallable`:\r\n```vb\r\nclass MyClass\r\n  Implements stdICallable\r\n  Public Function stdICallable_Run(ParamArray params() as variant) as variant\r\n    Call stdICallable_RunEx(params)\r\n  End Function\r\n  Public Function stdICallable_RunEx(ByVal params as variant) as variant\r\n    stdICallable_RunEx =  params(0) / 2 + 1\r\n  End Function\r\n  Public Function stdICallable_Bind(ParamArray params() as variant) as stdICallable\r\n    Err.Raise 1, \"\", \"Not implemented\"\r\n  End Function\r\n  Public Function stdICallable_SendMessage(ByVal sMessage as string, ByRef success as boolean, ByVal params as variant) as variant\r\n    Err.Raise 1, \"\", \"Not implemented\"\r\n  End Function\r\nEnd Class\r\n```\r\nThis class simply returns the first parameter passed to it divided by 2 + 1.\r\n\r\n```vb\r\nDim c as MyClass: set c = new MyClass\r\nDebug.Print c.Run(1) '=> 1.5\r\n```\r\n\r\nWe can use this class now in a `stdArray#map()` operation::\r\n\r\n```vb\r\nstdArray.Create(1,2,3).Map(new MyClass).Join(\",\") '=> 1.5,2,2.5\r\n```\r\n\r\nThis brings a huge amount of extensibility and flexibility to the `stdArray` class \r\nand other classes which utilise the `stdICallable` interface."
+    ],
     "devNotes": [],
     "todos": [],
     "requires": [],
@@ -7870,9 +7876,11 @@
   {
     "name": "stdImage",
     "fileName": "stdImage.cls",
-    "description": "",
+    "description": "A class which implements a wrapper around an image. Use this class to\r\nread image data to and from files, clipboard, sheets, UI controls, and more. Additionally\r\nthis class allows the manipulation of images in memory, and perform analytical operations on them.",
     "remarks": [],
-    "examples": [],
+    "examples": [
+      "Simple example of reading an image from a file and saving it to the clipboard:\r\n```vb\r\nDim img as stdImage: set img = stdImage.CreateFromFile(\"H:\\test1.bmp\")\r\nimg.ToClipboard()\r\n''"
+    ],
     "devNotes": [],
     "todos": [
       "Create Stream, Write to stream, CreateBitmapFromStream",
@@ -8780,9 +8788,13 @@
   {
     "name": "stdJSON",
     "fileName": "stdJSON.cls",
-    "description": "",
+    "description": "A class which implements a JSON object. Use this class to\r\ncreate JSON objects, manipulate them, and convert them to and from JSON strings.",
     "remarks": [],
-    "examples": [],
+    "examples": [
+      "Simple example of creating a JSON object and converting it to a string:\r\n```vb\r\nDim o as stdJSON: set o = stdJSON.Create()\r\no.Add \"a\", 1\r\no.Add \"b\", \"hello\"\r\no.AddArray(\"val\", Array(1,2,3))\r\no.add \"serialized\", stdJSON.CreateFromString(\"{\"\"a\"\":1,\"\"b\"\":\"\"hello\"\"}\")\r\nDebug.Print o.ToString()\r\n```\r\nThis will output:\r\n```json\r\n{\r\n  \"a\": 1,\r\n  \"b\": \"hello\",\r\n  \"val\": [\r\n    1,\r\n    \"hello\"\r\n  ],\r\n  \"serialized\": {\r\n    \"a\": 1,\r\n    \"b\": \"hello\"\r\n  }\r\n}\r\n```",
+      "Simple example of creating a JSON object from a file:\r\n```vb\r\nDim o as stdJSON: set o = stdJSON.CreateFromFile(\"H:\\test.json\")\r\nDebug.Print o.ToString()\r\n```",
+      "Using chaining to build a JSON object:\r\n```vb\r\n With stdJSON.Create()                '{          \r\n   With .addObject(\"key\")             '  \"key\": {\r\n     .add \"a\", 1                      '    \"a\": 1,\r\n     .add \"b\", \"hello\"                '    \"b\": \"hello\",\r\n     With .addArray(\"val\")            '    \"val\": [\r\n       With .addArray()               '      [\r\n         .add 1                       '        1,\r\n         .add \"hello\"                 '        \"hello\",\r\n         .add \"shit\"                  '        \"shit\"\r\n       End With                       '      ]\r\n     End With                         '    ]\r\n   End With                           '  }\r\n                                      '}\r\n   Dim s as string: s = .ToString()\r\nEnd With\r\n```"
+    ],
     "devNotes": [],
     "todos": [],
     "requires": [],
@@ -9398,9 +9410,14 @@
   {
     "name": "stdLambda",
     "fileName": "stdLambda.cls",
-    "description": "",
-    "remarks": [],
-    "examples": [],
+    "description": "A class which implements a syntax for creating lambda functions from string expressions\r\nwithin VBA. Use this class to create sandboxed lambda functions, and call them with arguments.\r\n\r\nBelow shows a trivial use case of `stdLambda` and `stdArray`. \r\n\r\n```vb\r\nDim arr as stdArray: Set arr = stdArray.Create(1,2,3,4,5,6,7,8,9,10)\r\n'Filter to include only even numbers:\r\nset arr = arr.filter(stdLambda.Create(\"$1 mod 2 = 0\"))  '=> Array(2,4,6,8,10)\r\n'Take every element and multiply it by 10\r\nset arr = arr.map(stdLambda.Create(\"$1*10\"))            '=> Array(20,40,60,80,100)\r\n'And calculate the sum:\r\nset arr = arr.reduce(stdLambda.Create(\"$1+$2\"), 0)      '=> 300\r\n```\r\n\r\nAs you can see, within 3 lines of code (excluding the comments), we have achieved the equivalent of this code: \r\n\r\n```vb\r\nDim element as variant, totalSum as Long\r\nFor each element in Array(1,2,3,4,5,6,7,8,9,10)\r\n  if element mod 2 = 0 then\r\n    totalSum = totalSum + element * 10\r\n  end if\r\nnext\r\n```\r\n\r\nThis is a very powerful feature of the `stdLambda` class, and one of the main reasons why it was created.\r\nIt allows you to write code in a more natural way, and achieve the same result in a much shorter amount of\r\ncode and improving maintainability. \r\n\r\nFor a more detailed breakdown of syntax and use cases see the [stdLambda guide](https://github.com/sancarn/stdVBA/blob/master/docs/stdLambda.md)",
+    "remarks": [
+      "This module implements `stdICallable` meaning it can be utilised by many other stdVBA classes."
+    ],
+    "examples": [
+      "This example shows how to create a simple lambda function which returns the sum of two numbers.\r\n```vb\r\nDim cbSum As stdLambda: Set cbSum = stdLambda.Create(\"$1+$2\")\r\nDebug.Print cbSum.Run(1, 2)   '=> 3\r\nDebug.print cbSum.Run(3,-3)   '=> 0\r\n```",
+      "Find a window by it's title.\r\n```vb\r\nDim desktop as stdWindow: set desktop = stdWindow.CreateFromDesktop()\r\nDim win as stdWindow: set win = desktop.FindFirst(stdLambda.Create(\"$1.Caption = \"\"Title to find\"\"\"))\r\n```"
+    ],
     "devNotes": [],
     "todos": [
       "Case \"callbyname\": evaluateFunc = CallByName(args(iArgStart))",
@@ -9788,9 +9805,12 @@
   {
     "name": "stdPerformance",
     "fileName": "stdPerformance.cls",
-    "description": "",
+    "description": "A class which implements a performance testing and optimisation library.\r\nUse this class to measure performance and optimise your code.",
     "remarks": [],
-    "examples": [],
+    "examples": [
+      "Simple example of measuring performance:\r\n```vb\r\nConst C_MAX as Long = 1000\r\nWith stdPerformance.Measure(\"Some test expression\", C_MAX)\r\n  Dim v\r\n  For i = 1 to C_MAX\r\n    v = expressionToTest()\r\n  next\r\nEnd With\r\n```",
+      "Simple example of optimising performance:\r\n```vb\r\nWith stdPerformance.Optimise\r\n  'some heavy code here\r\nEnd With\r\n```"
+    ],
     "devNotes": [],
     "todos": [
       "Need to make this more application agnostic",
@@ -9966,7 +9986,7 @@
     "constructors": [
       {
         "name": "CreateMeasure",
-        "description": "Measure",
+        "description": "Create a measure object",
         "remarks": [],
         "examples": [
           "```vb\r\nWith stdPerformance.Measure(\"Some test expression\")\r\n  Dim v\r\n  For i = 1 to 1000\r\n    v = expressionToTest()\r\n  next\r\nEnd With\r\n```",
@@ -10069,9 +10089,12 @@
   {
     "name": "stdProcess",
     "fileName": "stdProcess.cls",
-    "description": "",
+    "description": "A class which implements a wrapper around a process. Use this class to\r\nquery process information, manipulate them and to forcefully terminate a process.",
     "remarks": [],
-    "examples": [],
+    "examples": [
+      "Simple example of creating a process:\r\n```vb\r\nSub startNewExcel()\r\n  Dim p As stdProcess: Set p = stdProcess.Create(Application.path & \"\\EXCEL.EXE /x\", vbNormalFocus)\r\n  Debug.Print p.name\r\n  Debug.Print p.path\r\n  Debug.Print p.isRunning\r\n  Stop\r\n  p.forceQuit\r\n  p.waitTilClose\r\n  Debug.Print p.TimeQuit\r\nEnd Sub\r\n```",
+      "Find a process by it's name:\r\n```vb\r\nSub main()\r\n  Dim p as stdProcess: set p = stdProcess.CreateFromQuery(stdLambda.Create(\"$1.name = \"\"notepad.exe\"\"\"))\r\n  Debug.Print p.processId\r\nEnd Sub\r\n```"
+    ],
     "devNotes": [],
     "todos": [
       "SessionID",
@@ -10596,10 +10619,15 @@
   {
     "name": "stdQuadTree",
     "fileName": "stdQuadTree.cls",
-    "description": "",
+    "description": "A strict quadtree implementation in VBA. Use this class to store points in a 2D space\r\nand query them efficiently.",
     "remarks": [],
-    "examples": [],
-    "devNotes": [],
+    "examples": [
+      "A simple quadtree example:\r\n```vb\r\nDim q As stdQuadTree: set q = stdQuadTree.Create(0, 0, 100)\r\nCall q.insertPoint(1, 1, \"Point 1\")\r\nCall q.insertPoint(2, 2, \"Point 2\")\r\nCall q.insertPoint(3, 3, \"Point 3\")\r\nCall q.insertPoint(4, 4, \"Point 4\")\r\nDim points As Collection: Set points = q.queryRangeBounds(0, 0, 8, 8)\r\n```"
+    ],
+    "devNotes": [
+      "[Grid instead of quadtree](https://softwareengineering.stackexchange.com/a/364179)",
+      "[Loose quadtrees](https://stackoverflow.com/a/48384354/6302131)"
+    ],
     "todos": [],
     "requires": [],
     "methods": [
@@ -10984,9 +11012,11 @@
   {
     "name": "stdRefArray",
     "fileName": "stdRefArray.cls",
-    "description": "",
+    "description": "A class which wraps a VBA array by reference. Use this class to\r\nefficiently pass large arrays around without copying them.",
     "remarks": [],
-    "examples": [],
+    "examples": [
+      "A simple example of passing an array by reference:\r\n```vb\r\nDim arr as Variant: arr = Array(1,2,3,4,5,6,7,8,9,10)\r\nDim rarr as stdRefArray: set rarr = stdRefArray.Create(arr)\r\nDebug.Print rarr.Data(1)  '=> 1\r\nDebug.Print rarr.Data(2)  '=> 2\r\n```"
+    ],
     "devNotes": [],
     "todos": [],
     "requires": [],
@@ -11061,9 +11091,11 @@
   {
     "name": "stdReg",
     "fileName": "stdReg.cls",
-    "description": "",
+    "description": "A class which provides a simple interface to the Windows Registry.\r\nThe structure of a simple registry tree looks like the following:\r\n```\r\nstdReg<Key>\r\n|- Keys()\r\n|  |- stdReg<Key>\r\n|  |- |- Keys()\r\n|  |  |- Items()\r\n|  |  |  |- stdReg<Item>\r\n|  |  |  |- stdReg<Item>\r\n|  |  |  |- stdReg<Item>\r\n|  |  |  |- stdReg<Item>\r\n|  |- stdReg<Key>\r\n|  |- |- Keys()\r\n|  |  |- Items()\r\n|  |  |  |- stdReg<Item>\r\n|  |- stdReg<Key>\r\n|  |- |- Keys()\r\n|  |  |- Items()\r\n|  |  |  |- stdReg<Item>\r\n|  |  |  |- stdReg<Item>\r\n|- Items()\r\n|  |- stdReg<Item>\r\n|  |- stdReg<Item>\r\n|  |- stdReg<Item>\r\n|  |- stdReg<Item>\r\n```",
     "remarks": [],
-    "examples": [],
+    "examples": [
+      "Test for VBE Extensibility (VBE Object Model) access:\r\n```vb\r\nFunction isVBEOMAllowed() as Boolean\r\n  isVBEOMAllowed = stdReg.Create(\"HKEY_CURRENT_USER\\Software\\Microsoft\\Office\\\" & Application.Version & \"\\Excel\\Security\\AccessVBOM\").value = 1\r\nEnd Sub\r\n```"
+    ],
     "devNotes": [],
     "todos": [
       "SWAP",

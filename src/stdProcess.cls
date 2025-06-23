@@ -8,6 +8,30 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
+'@module
+'@description A class which implements a wrapper around a process. Use this class to
+'query process information, manipulate them and to forcefully terminate a process.
+'@example Simple example of creating a process:
+'```vb
+'Sub startNewExcel()
+'  Dim p As stdProcess: Set p = stdProcess.Create(Application.path & "\EXCEL.EXE /x", vbNormalFocus)
+'  Debug.Print p.name
+'  Debug.Print p.path
+'  Debug.Print p.isRunning
+'  Stop
+'  p.forceQuit
+'  p.waitTilClose
+'  Debug.Print p.TimeQuit
+'End Sub
+'```
+'@example Find a process by it's name:
+'```vb
+'Sub main()
+'  Dim p as stdProcess: set p = stdProcess.CreateFromQuery(stdLambda.Create("$1.name = ""notepad.exe"""))
+'  Debug.Print p.processId
+'End Sub
+'```
+
 #if VBA7 then
   Private Declare PtrSafe Function CreateToolhelp32Snapshot Lib "Kernel32.dll" ( _
     ByVal dwFlags As Integer, _

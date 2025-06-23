@@ -8,6 +8,16 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
+'@module
+'@description A class which implements a wrapper around an image. Use this class to
+'read image data to and from files, clipboard, sheets, UI controls, and more. Additionally
+'this class allows the manipulation of images in memory, and perform analytical operations on them.
+'@example Simple example of reading an image from a file and saving it to the clipboard:
+'```vb
+'Dim img as stdImage: set img = stdImage.CreateFromFile("H:\test1.bmp")
+'img.ToClipboard()
+'''
+
 
 'Developer notes:
 ' Useful links:

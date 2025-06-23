@@ -2370,7 +2370,7 @@ End Function
 Private Sub BindGlobals(ByRef query As stdICallable)
     Dim bSuccess As Boolean
     Dim keys: keys = This.Lookups.keys()
-    Dim key As String
+    Dim key As Variant
     For Each key In keys
       Call query.SendMessage("bindGlobal", bSuccess, Array(key, This.Lookups(key)("S2N")))
     Next

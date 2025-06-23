@@ -8,8 +8,40 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
-'Spec
-' Create JSON:
+'@module
+'@description A class which implements a JSON object. Use this class to
+'create JSON objects, manipulate them, and convert them to and from JSON strings.
+'@example Simple example of creating a JSON object and converting it to a string:
+'```vb
+'Dim o as stdJSON: set o = stdJSON.Create()
+'o.Add "a", 1
+'o.Add "b", "hello"
+'o.AddArray("val", Array(1,2,3))
+'o.add "serialized", stdJSON.CreateFromString("{""a"":1,""b"":""hello""}")
+'Debug.Print o.ToString()
+'```
+'This will output:
+'```json
+'{
+'  "a": 1,
+'  "b": "hello",
+'  "val": [
+'    1,
+'    "hello"
+'  ],
+'  "serialized": {
+'    "a": 1,
+'    "b": "hello"
+'  }
+'}
+'```
+'@example Simple example of creating a JSON object from a file:
+'```vb
+'Dim o as stdJSON: set o = stdJSON.CreateFromFile("H:\test.json")
+'Debug.Print o.ToString()
+'```
+'@example Using chaining to build a JSON object:
+'```vb
 ' With stdJSON.Create()                '{          
 '   With .addObject("key")             '  "key": {
 '     .add "a", 1                      '    "a": 1,
@@ -22,13 +54,13 @@ Attribute VB_Exposed = False
 '       End With                       '      ]
 '     End With                         '    ]
 '   End With                           '  }
-'   'Get json object ref               '}
-'   Dim o as stdJSON: set o = .obj
-'   'Get as dictionary of collections
-'   Dim o as object: set o = .toVBObject()
-'   'Get json string
-'   Dim s as string: s = .toString()
-' End With
+'                                      '}
+'   Dim s as string: s = .ToString()
+'End With
+'```
+
+
+
 
 #Const UseDictionaryLateBinding = True
 

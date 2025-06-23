@@ -7,6 +7,45 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
+
+'@module
+'@description A class which provides a simple interface to the Windows Registry.
+'The structure of a simple registry tree looks like the following:
+'```
+'stdReg<Key>
+'|- Keys()
+'|  |- stdReg<Key>
+'|  |- |- Keys()
+'|  |  |- Items()
+'|  |  |  |- stdReg<Item>
+'|  |  |  |- stdReg<Item>
+'|  |  |  |- stdReg<Item>
+'|  |  |  |- stdReg<Item>
+'|  |- stdReg<Key>
+'|  |- |- Keys()
+'|  |  |- Items()
+'|  |  |  |- stdReg<Item>
+'|  |- stdReg<Key>
+'|  |- |- Keys()
+'|  |  |- Items()
+'|  |  |  |- stdReg<Item>
+'|  |  |  |- stdReg<Item>
+'|- Items()
+'|  |- stdReg<Item>
+'|  |- stdReg<Item>
+'|  |- stdReg<Item>
+'|  |- stdReg<Item>
+'```
+'@TODO: Add support for `stdReg#addKey()` and `stdReg#addItem()`.
+'@example Test for VBE Extensibility (VBE Object Model) access:
+'```vb
+'Function isVBEOMAllowed() as Boolean
+'  isVBEOMAllowed = stdReg.Create("HKEY_CURRENT_USER\Software\Microsoft\Office\" & Application.Version & "\Excel\Security\AccessVBOM").value = 1
+'End Sub
+'```
+
+
+
 'Structure of a stdRegistry tree
 'stdReg<Key>
 '|- Keys
