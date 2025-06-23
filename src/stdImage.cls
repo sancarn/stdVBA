@@ -713,9 +713,6 @@ Public Property Get Colors() As Long()
 End Property
 
 
-
-
-
 'Obtain binary data of the image in any format required
 '@param eFormat - The format the data should be in.
 '@returns - Binary data of image, ready to load into a file
