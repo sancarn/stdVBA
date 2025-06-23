@@ -832,7 +832,8 @@ Public Sub ToClipboard()
       .CopyPicture
       .Delete
     End With
-  End Sub
+  End If
+End Sub
 
 
 'Save a copy in a temporary file and return the path of this file
