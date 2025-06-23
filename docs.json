@@ -9808,8 +9808,8 @@
     "description": "A class which implements a performance testing and optimisation library.\r\nUse this class to measure performance and optimise your code.",
     "remarks": [],
     "examples": [
-      "Simple example of measuring performance:\r\n```vb\r\nConst C_MAX as Long = 1000\r\nWith stdPerformance.Measure(\"Some test expression\", C_MAX)\r\n  Dim v\r\n  For i = 1 to C_MAX\r\n    v = expressionToTest()\r\n  next\r\nEnd With\r\n```",
-      "Simple example of optimising performance:\r\n```vb\r\nWith stdPerformance.Optimise\r\n  'some heavy code here\r\nEnd With\r\n```"
+      "Simple example of measuring performance:\r\n```vb\r\nConst C_MAX as Long = 1000\r\nWith stdPerformance.CreateMeasure(\"Some test expression\", C_MAX)\r\n  Dim v\r\n  For i = 1 to C_MAX\r\n    v = expressionToTest()\r\n  next\r\nEnd With\r\n```",
+      "Simple example of optimising performance:\r\n```vb\r\nWith stdPerformance.CreateOptimiser()\r\n  'some heavy code here\r\nEnd With\r\n```"
     ],
     "devNotes": [],
     "todos": [
@@ -9922,7 +9922,7 @@
         "isProtected": false,
         "throws": [],
         "requires": [],
-        "isStatic": false
+        "isStatic": true
       }
     ],
     "properties": [
@@ -9931,7 +9931,9 @@
         "access": "ReadOnly",
         "description": "Obtain a measurement",
         "remarks": [],
-        "examples": [],
+        "examples": [
+          "Get a measurement\r\n```vb\r\nConst C_MAX as Long = 1000\r\nWith stdPerformance.CreateMeasure(\"Some test expression\", C_MAX)\r\n  Dim v\r\n  For i = 1 to C_MAX\r\n    v = expressionToTest()\r\n  next\r\nEnd With\r\n\r\nDebug.Print \"Average time for Some test expression: \" & stdPerformance.Measurement(\"Some test expression\") & \" ms\"\r\n```"
+        ],
         "params": [
           {
             "name": "sKey",
@@ -9957,7 +9959,7 @@
         "isProtected": false,
         "throws": [],
         "requires": [],
-        "isStatic": false
+        "isStatic": true
       },
       {
         "name": "MeasuresKeys",
@@ -9989,8 +9991,8 @@
         "description": "Create a measure object",
         "remarks": [],
         "examples": [
-          "```vb\r\nWith stdPerformance.Measure(\"Some test expression\")\r\n  Dim v\r\n  For i = 1 to 1000\r\n    v = expressionToTest()\r\n  next\r\nEnd With\r\n```",
-          "```vb\r\nConst C_MAX as Long = 1000\r\nWith stdPerformance.Measure(\"Some test expression\", C_MAX)\r\n  Dim v\r\n  For i = 1 to C_MAX\r\n    v = expressionToTest()\r\n  next\r\nEnd With\r\n```"
+          "```vb\r\nWith stdPerformance.CreateMeasure(\"Some test expression\")\r\n  Dim v\r\n  For i = 1 to 1000\r\n    v = expressionToTest()\r\n  next\r\nEnd With\r\n```",
+          "```vb\r\nConst C_MAX as Long = 1000\r\nWith stdPerformance.CreateMeasure(\"Some test expression\", C_MAX)\r\n  Dim v\r\n  For i = 1 to C_MAX\r\n    v = expressionToTest()\r\n  next\r\nEnd With\r\n```"
         ],
         "params": [
           {
@@ -10035,7 +10037,7 @@
           "Calculation is defined as long instead of xlCalculation so the function continues to work without compile error in Word, Powerpoint etc."
         ],
         "examples": [
-          "```vb\r\nWith stdPerformance.Optimise\r\n  'some heavy code here\r\nEnd With\r\n```"
+          "```vb\r\nWith stdPerformance.CreateOptimiser()\r\n  'some heavy code here\r\nEnd With\r\n```"
         ],
         "params": [
           {
