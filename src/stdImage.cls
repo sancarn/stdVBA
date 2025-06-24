@@ -341,6 +341,7 @@ Private Type TThisCache
 End Type
 Private Type TThis
   HBITMAP As LongPtr
+  HBITMAPTYPE As BITMAP
   Cache As TThisCache
 End Type
 Private This As TThis
@@ -673,6 +674,7 @@ End Function
 '@protected
 '@param hBITMAP - Handle to bitmap
 Public Sub protInit(ByVal hBITMAP As LongPtr)
+  Call GetObjectAPI(hBITMAP, LenB(This.HBITMAPTYPE), This.HBITMAPTYPE)
   This.HBITMAP = hBITMAP
   This.Cache.HICON = 0
 End Sub
@@ -699,18 +701,23 @@ End Property
 'Obtain the colors of the image
 '@returns ARGB() - 2D array of colors. Colors ordered from (1,1) = bottom-left, (1,height) = top-left, across to (width, height) = top-right.
 Public Property Get Colors() As Long()
-  'Get the bitmap data
-  Dim hBitmap As LongPtr: hBitmap = This.HBITMAP
-  Dim bmp As BITMAP: Call GetObjectAPI(hBitmap, LenB(bmp), bmp)
-  Dim lWidth As Long: lWidth = bmp.bmWidth
-  Dim lHeight As Long: lHeight = bmp.bmHeight
-  
-  'Obtain colors
-  Dim ret() As Long
-  ReDim ret(1 To lWidth, 1 To lHeight)
-  Call CopyMemory(VarPtr(ret(1, 1)), bmp.bmBits, lWidth * lHeight * 4)
-  Colors = ret
+  With This.HBITMAPTYPE
+    'Obtain colors
+    Dim ret() As Long
+    ReDim ret(1 To .bmWidth, 1 To .bmHeight)
+    Call CopyMemory(VarPtr(ret(1, 1)), .bmBits, .bmWidth * .bmHeight * 4)
+    Colors = ret
+  End With
 End Property
+
+'Obtain the Image Data
+Public Property Get Typee()      As Long    : Typee      = This.HBITMAPTYPE.bmType       : End Property 'Type cannot be used As a name, thats why its named Typee
+Public Property Get Width()      As Long    : Width      = This.HBITMAPTYPE.bmWidth      : End Property
+Public Property Get Height()     As Long    : Height     = This.HBITMAPTYPE.bmHeight     : End Property
+Public Property Get WidthBytes() As Long    : WidthBytes = This.HBITMAPTYPE.bmWidthBytes : End Property
+Public Property Get Planes()     As Integer : Planes     = This.HBITMAPTYPE.bmPlanes     : End Property
+Public Property Get BitsPixel()  As Integer : BitsPixel  = This.HBITMAPTYPE.bmBitsPixel  : End Property
+Public Property Get Bits()       As LongPtr : Bits       = This.HBITMAPTYPE.bmBits       : End Property
 
 
 'Obtain binary data of the image in any format required
