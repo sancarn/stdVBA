@@ -81,7 +81,7 @@ function parseParameters(params: string, udtInfo: IUDTInfo[]): IParameter[] {
 
   return aParams.map((param) => {
     if (!param) return null;
-    const isUDTParamType = udtInfo.some(udt => udt.name.toLowerCase() === param.type.toLowerCase());
+    const isUDTParamType = udtInfo.some(udt => udt.name.toLowerCase() === param.type?.toLowerCase());
     return {
       name: param.name,
       type: param.type || "",

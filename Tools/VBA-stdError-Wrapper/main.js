@@ -29,7 +29,7 @@ function parseParameters(params, udtInfo) {
   if (!aParams || aParams.length === 0) return [];
   return aParams.map((param) => {
     if (!param) return null;
-    const isUDTParamType = udtInfo.some((udt) => udt.name.toLowerCase() === param.type.toLowerCase());
+    const isUDTParamType = udtInfo.some((udt) => udt.name.toLowerCase() === param.type?.toLowerCase());
     return {
       name: param.name,
       type: param.type || "",
