@@ -114,16 +114,17 @@ function main() {
     const moduleName =
       moduleNameFinder.exec(content)?.groups?.name ?? file.split(".")[0];
 
-    //Append the function to the end of the file
-    content += `\n\n
-Private Sub Err_Raise(ByVal number as Long, Optional ByVal source as string = "", Optional ByVal description as string = "")
-  Call stdError.Raise(description)
-End Sub
-`;
-
     //Replace all calls to `Err.Raise` to calls to `Err_Raise`
     content = content.replace(/Err\.Raise/g, "Err_Raise");
     content = content.replace(/On Error GoTo 0/g, "On Error GoTo stdErrorWrapper_ErrorOccurred");
+
+    //Get all UDTs defined in the file
+    const udtFinder = /(?<!').*\bType\s+(?<name>\w+)/gim;
+    const udtInfo: IUDTInfo[] = Array.from(content.matchAll(udtFinder)).map((match) => {
+      return {
+        name: match.groups?.name || ""
+      };
+    });
 
     //Loop through each public function
     const functionFinder = /(?<header>(?<!')(?:Public|Private|Friend) (?:(?<type>Function|Sub|Property) ?(?<access>Get|Let|Set)?) (?<name>\w+)\((?<params>(?:\(\)|[^)])*)\)(?: as (?<retType>(?:\w+\.)?\w+))?)(?<body>(?:.|\s)+?)\b(?<footer>End\s+(?:Function|Sub|Property))/gim
@@ -142,7 +143,6 @@ End Sub
       let callstackName = moduleName + "#" + name + ((!!access) ? "[" + access + "]" : "");
 
       //Parse the parameters
-      const udtInfo: IUDTInfo[] = [];
       const paramsInfo = parseParameters(params, udtInfo);
 
       //TODO: Handle UDTs
@@ -166,6 +166,13 @@ End Sub
 
       return `${header}\r\n${injectorHeader}\r\n${body}\r\n${injectorFooter}\r\n${footer}`;
     })
+
+    //Append the function to the end of the file
+    content += `\n\n
+Private Sub Err_Raise(ByVal number as Long, Optional ByVal source as string = "", Optional ByVal description as string = "")
+  Call stdError.Raise(description)
+End Sub
+`;
 
     //Save the file
     fs.writeFileSync(__dirname + "/../../src/" + file, content, "utf8");
