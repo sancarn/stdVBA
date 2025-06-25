@@ -345,3 +345,4 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2025-06-11 `stdCOM` FEATURE - Added `PropertyStore_GetCount`, `PropertyStore_GetAt`, `PropertyStore_GetValue`, `PropertyStore_SetValue` and `PropertyStore_Commit` to work with `IPropertyStore`
 - 2025-06-23 `stdImage` FEATURE - Added `FindImage` to allow for automation through image searching. Thanks @KallunWillock!
 - 2025-06-24 `stdImage` FEATURE - Added `Typee`, `Width`, `Height`, `WidthBytes`, `Planes`, `BitsPixel` and `Bits` properties from `HBITMAP`. Thanks @Almesi!
+- 2025-06-25 `stdAcc` FIX - Fixed issue with `BFS` option in `FindFirst` and `FindAll`. Ultimately if the control is not present in the Accessibility group currently stdAcc can return a "Subscript out of range" error. This fix ensures that instead they simply return `nothing` (or an empty collection)
