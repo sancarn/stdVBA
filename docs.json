@@ -12411,8 +12411,12 @@
       {
         "name": "Create",
         "description": "Create a sentry factory",
-        "remarks": [],
-        "examples": [],
+        "remarks": [
+          "- This creates a sentry factory, which can be used to create sentries. The factory is not a sentry itself, and will have to be called in order to create a sentry."
+        ],
+        "examples": [
+          "```vb\r\nDim factory as stdSentry: set factory = stdSentry.Create( _\r\n  stdCallback.CreateFromModuleMethod(\"ModuleName\", \"OnInit\"), _\r\n  stdCallback.CreateFromModuleMethod(\"ModuleName\", \"OnDestroy\") _\r\n)\r\nWith factory()\r\n  'whatever code you want here\r\nEnd With\r\n```"
+        ],
         "params": [
           {
             "name": "OnInit",
