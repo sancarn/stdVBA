@@ -59,11 +59,12 @@ Private Sub Err_Raise(ByVal number as Long, Optional ByVal source as string = ""
 End Sub
 `;
     content = content.replace(/Err\.Raise/g, "Err_Raise");
-    const functionFinder = /(?<header>(?<!')(?:Public|Private|Friend) (?:(?<type>Function|Sub|Property) ?(?<access>Get|Let|Set)?) (?<name>\w+)\((?<params>(?:\(\)|[^)])*)\)(?: as (?<retType>(?:\w+\.)?\w+))?)(?<body>(?:.|\s)+?)\b(?<footer>End\s+(?:Function|Sub|Property))/im;
+    content = content.replace(/On Error GoTo 0/g, "On Error GoTo stdErrorWrapper_ErrorOccurred");
+    const functionFinder = /(?<header>(?<!')(?:Public|Private|Friend) (?:(?<type>Function|Sub|Property) ?(?<access>Get|Let|Set)?) (?<name>\w+)\((?<params>(?:\(\)|[^)])*)\)(?: as (?<retType>(?:\w+\.)?\w+))?)(?<body>(?:.|\s)+?)\b(?<footer>End\s+(?:Function|Sub|Property))/gim;
     content = content.replace(functionFinder, (match, header, type, access, name, params, retType, body, footer, offset, haystack, groups) => {
       const conditionalCompilation = /(?<!')(?:Public|Private|Friend) (?:(?<type>Function|Sub|Property) ?(?<access>Get|Let|Set)?) (?<name>\w+)\((?<params>(?:\(\)|[^)])*)\)(?: as (?<retType>(?:\w+\.)?\w+))?(?:.|\s)+?#End If/gim;
-      if (conditionalCompilation.test(body)) {
-        const conditionalCompilationMatch = conditionalCompilation.exec(body);
+      const conditionalCompilationMatch = conditionalCompilation.exec(body);
+      if (!!conditionalCompilationMatch) {
         header = header + body.substring(0, conditionalCompilationMatch.index + conditionalCompilationMatch[0].length);
         body = body.substring(conditionalCompilationMatch.index + conditionalCompilationMatch[0].length);
       }
@@ -73,14 +74,15 @@ End Sub
       const paramsInfo = parseParameters(params, udtInfo);
       const paramsString = paramsInfo.filter((p) => !p.isUDTParamType && !p.isParamArray && !p.isArray).map((p) => `"${p.name}", ${p.name}`).join(", ");
       const injectorHeader = [
-        `With stdError.getSentry("${callstackName}", ${paramsString})`,
-        "On Error GoTo stdErrorWrapper_ErrorOccurred"
+        `  With stdError.getSentry("${callstackName}", ${paramsString})`,
+        "    On Error GoTo stdErrorWrapper_ErrorOccurred"
       ].join("\r\n");
       const injectorFooter = [
-        "stdErrorWrapper_ErrorOccurred:",
-        "  Call Err_Raise(Err.Number, Err.Source, Err.Description)",
-        "End With"
+        "  stdErrorWrapper_ErrorOccurred:",
+        "    Call Err_Raise(Err.Number, Err.Source, Err.Description)",
+        "  End With"
       ].join("\r\n");
+      body = body.split("\n").map((line) => "    " + line).join("\n");
       return `${header}\r
 ${injectorHeader}\r
 ${body}\r

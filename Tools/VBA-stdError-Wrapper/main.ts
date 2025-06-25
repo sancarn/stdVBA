@@ -95,18 +95,6 @@ function parseParameters(params: string, udtInfo: IUDTInfo[]): IParameter[] {
   }).filter(param => param !== null);
 } 
 
-
-
-
-
-
-
-
-
-
-
-
-
 import { throws } from "assert";
 import * as fs from "fs";
 function main() {
@@ -135,16 +123,17 @@ End Sub
 
     //Replace all calls to `Err.Raise` to calls to `Err_Raise`
     content = content.replace(/Err\.Raise/g, "Err_Raise");
+    content = content.replace(/On Error GoTo 0/g, "On Error GoTo stdErrorWrapper_ErrorOccurred");
 
     //Loop through each public function
-    const functionFinder = /(?<header>(?<!')(?:Public|Private|Friend) (?:(?<type>Function|Sub|Property) ?(?<access>Get|Let|Set)?) (?<name>\w+)\((?<params>(?:\(\)|[^)])*)\)(?: as (?<retType>(?:\w+\.)?\w+))?)(?<body>(?:.|\s)+?)\b(?<footer>End\s+(?:Function|Sub|Property))/im
+    const functionFinder = /(?<header>(?<!')(?:Public|Private|Friend) (?:(?<type>Function|Sub|Property) ?(?<access>Get|Let|Set)?) (?<name>\w+)\((?<params>(?:\(\)|[^)])*)\)(?: as (?<retType>(?:\w+\.)?\w+))?)(?<body>(?:.|\s)+?)\b(?<footer>End\s+(?:Function|Sub|Property))/gim
     content = content.replace(functionFinder, (match: string, header: string, type: string, access: string, name: string, params: string, retType: string, body: string, footer: string, offset: number, haystack: string, groups: any): string => {
       //Check if the body has another declare in it followed by a `#End If` declaration.
       const conditionalCompilation = /(?<!')(?:Public|Private|Friend) (?:(?<type>Function|Sub|Property) ?(?<access>Get|Let|Set)?) (?<name>\w+)\((?<params>(?:\(\)|[^)])*)\)(?: as (?<retType>(?:\w+\.)?\w+))?(?:.|\s)+?#End If/gim
       
       //Redefine body and header to include / exclude the conditional compilation directives as needed
-      if (conditionalCompilation.test(body)) {
-        const conditionalCompilationMatch = conditionalCompilation.exec(body);
+      const conditionalCompilationMatch = conditionalCompilation.exec(body);
+      if (!!conditionalCompilationMatch) {
         header = header + body.substring(0,conditionalCompilationMatch.index + conditionalCompilationMatch[0].length)
         body = body.substring(conditionalCompilationMatch.index + conditionalCompilationMatch[0].length)
       }
@@ -163,15 +152,18 @@ End Sub
       const paramsString = paramsInfo.filter(p => !p.isUDTParamType && !p.isParamArray && !p.isArray).map(p => `"${p.name}", ${p.name}`).join(", ");
 
       const injectorHeader = [
-        `With stdError.getSentry("${callstackName}", ${paramsString})`,
-        "On Error GoTo stdErrorWrapper_ErrorOccurred"
+        `  With stdError.getSentry("${callstackName}", ${paramsString})`,
+        "    On Error GoTo stdErrorWrapper_ErrorOccurred"
       ].join("\r\n");
 
       const injectorFooter = [
-        "stdErrorWrapper_ErrorOccurred:",
-        "  Call Err_Raise(Err.Number, Err.Source, Err.Description)",
-        "End With"
+        "  stdErrorWrapper_ErrorOccurred:",
+        "    Call Err_Raise(Err.Number, Err.Source, Err.Description)",
+        "  End With"
       ].join("\r\n");
+
+      //Indent all lines of body by 4 spaces
+      body = body.split("\n").map(line => "    " + line).join("\n");
 
       return `${header}\r\n${injectorHeader}\r\n${body}\r\n${injectorFooter}\r\n${footer}`;
     })
