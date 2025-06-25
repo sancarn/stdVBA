@@ -1,0 +1,25 @@
+on: 
+    workflow_dispatch:
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run stdError wrapping script
+        run: node ./Tools/VBA-stdError-Wrapper/main.js
+
+      - name: Commit and push changes to `stdError-Wrapped` branch
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+          git add -A
+          git commit -m "Wrapped latest changes in stdError sentries" || echo "No changes to master"
+          git push origin HEAD:stdError-Wrapped
