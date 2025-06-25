@@ -51,15 +51,14 @@ function main() {
     let content = fs.readFileSync(__dirname + "/../../src/" + file, "utf8");
     const moduleNameFinder = /Attribute VB_Name = "(?<name>[^"]+)"/i;
     const moduleName = moduleNameFinder.exec(content)?.groups?.name ?? file.split(".")[0];
-    content += `
-
-
-Private Sub Err_Raise(ByVal number as Long, Optional ByVal source as string = "", Optional ByVal description as string = "")
-  Call stdError.Raise(description)
-End Sub
-`;
     content = content.replace(/Err\.Raise/g, "Err_Raise");
     content = content.replace(/On Error GoTo 0/g, "On Error GoTo stdErrorWrapper_ErrorOccurred");
+    const udtFinder = /(?<!').*\bType\s+(?<name>\w+)/gim;
+    const udtInfo = Array.from(content.matchAll(udtFinder)).map((match) => {
+      return {
+        name: match.groups?.name || ""
+      };
+    });
     const functionFinder = /(?<header>(?<!')(?:Public|Private|Friend) (?:(?<type>Function|Sub|Property) ?(?<access>Get|Let|Set)?) (?<name>\w+)\((?<params>(?:\(\)|[^)])*)\)(?: as (?<retType>(?:\w+\.)?\w+))?)(?<body>(?:.|\s)+?)\b(?<footer>End\s+(?:Function|Sub|Property))/gim;
     content = content.replace(functionFinder, (match, header, type, access, name, params, retType, body, footer, offset, haystack, groups) => {
       const conditionalCompilation = /(?<!')(?:Public|Private|Friend) (?:(?<type>Function|Sub|Property) ?(?<access>Get|Let|Set)?) (?<name>\w+)\((?<params>(?:\(\)|[^)])*)\)(?: as (?<retType>(?:\w+\.)?\w+))?(?:.|\s)+?#End If/gim;
@@ -69,7 +68,6 @@ End Sub
         body = body.substring(conditionalCompilationMatch.index + conditionalCompilationMatch[0].length);
       }
       let callstackName = moduleName + "#" + name + (!!access ? "[" + access + "]" : "");
-      const udtInfo = [];
       const paramsInfo = parseParameters(params, udtInfo);
       const paramsString = paramsInfo.filter((p) => !p.isUDTParamType && !p.isParamArray && !p.isArray).map((p) => `"${p.name}", ${p.name}`).join(", ");
       const injectorHeader = [
@@ -88,6 +86,13 @@ ${body}\r
 ${injectorFooter}\r
 ${footer}`;
     });
+    content += `
+
+
+Private Sub Err_Raise(ByVal number as Long, Optional ByVal source as string = "", Optional ByVal description as string = "")
+  Call stdError.Raise(description)
+End Sub
+`;
     fs.writeFileSync(__dirname + "/../../src/" + file, content, "utf8");
   }
 }
