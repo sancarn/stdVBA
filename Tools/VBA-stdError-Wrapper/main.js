@@ -75,8 +75,9 @@ function main() {
         "    On Error GoTo stdErrorWrapper_ErrorOccurred"
       ].join("\r\n");
       const injectorFooter = [
-        "  stdErrorWrapper_ErrorOccurred:",
-        "    Call Err_Raise(Err.Number, Err.Source, Err.Description)",
+        "    Exit " + type,
+        "    stdErrorWrapper_ErrorOccurred:",
+        "      Call Err_Raise(Err.Number, Err.Source, Err.Description)",
         "  End With"
       ].join("\r\n");
       body = body.split("\n").map((line) => "    " + line).join("\n");
