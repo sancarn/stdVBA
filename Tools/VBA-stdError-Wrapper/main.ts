@@ -139,8 +139,7 @@ End Sub
       }
 
       //Get the callstack name
-      if(!access) access = " (" + access + ")"
-      let callstackName = moduleName + "#" + name + access;
+      let callstackName = moduleName + "#" + name + ((!!access) ? "[" + access + "]" : "");
 
       //Parse the parameters
       const udtInfo: IUDTInfo[] = [];
