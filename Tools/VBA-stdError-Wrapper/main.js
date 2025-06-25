@@ -68,8 +68,7 @@ End Sub
         header = header + body.substring(0, conditionalCompilationMatch.index + conditionalCompilationMatch[0].length);
         body = body.substring(conditionalCompilationMatch.index + conditionalCompilationMatch[0].length);
       }
-      if (!access) access = " (" + access + ")";
-      let callstackName = moduleName + "#" + name + access;
+      let callstackName = moduleName + "#" + name + (!!access ? "[" + access + "]" : "");
       const udtInfo = [];
       const paramsInfo = parseParameters(params, udtInfo);
       const paramsString = paramsInfo.filter((p) => !p.isUDTParamType && !p.isParamArray && !p.isArray).map((p) => `"${p.name}", ${p.name}`).join(", ");
