@@ -22,4 +22,4 @@ jobs:
           git config user.email "actions@github.com"
           git add -A
           git commit -m "Wrapped latest changes in stdError sentries" || echo "No changes to master"
-          git push origin HEAD:stdError-Wrapped
+          git push -f origin HEAD:stdError-Wrapped
