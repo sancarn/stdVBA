@@ -192,6 +192,9 @@ Private Function SerializeArgs(ByRef args As Variant) As String
     SerializeArgs = sArgs
 End Function
 
+'Serialize a value to a string representation.
+'@param value - The value to serialize.
+'@return - String representation of the value.
 Private Function Serialize(ByVal value As Variant) As String
     'Serialize the value to a string representation.
     select case VarType(value)
@@ -203,9 +206,19 @@ Private Function Serialize(ByVal value As Variant) As String
             Serialize = CStr(value)
         case vbDate
             Serialize = Format(value, "yyyy-mm-dd hh:nn:ss")
+        case vbNull
+            Serialize = "Null"
+        case vbEmpty
+            Serialize = "Empty"
         case vbObject
             'Serialize as #<Foo:0x00007ff9c18f7d10>
-            Serialize = "#<" & TypeName(value) & ":" & Hex(ObjPtr(value)) & ">""
+            If value Is Nothing Then
+                Serialize = "Nothing"
+            ElseIf TypeName(value) = "stdLambda" Then
+                Serialize = "#<stdLambda" & ":" & Hex(ObjPtr(value)) & " Equation='" &   value.Equation & "'>"
+            Else
+                Serialize = "#<" & TypeName(value) & ":" & Hex(ObjPtr(value)) & ">"
+            End If
         Case vbError
             Serialize = "#Error!"
         case Else

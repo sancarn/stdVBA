@@ -363,6 +363,12 @@ Public Property Get oFunctExt() As Object
   Set oFunctExt = This.FunctionExtensions
 End Property
 
+'Get the equation which was used to create the lambda
+'@returns - The equation used to create the lambda
+Public Property Get Equation() as String
+    Equation = This.Equation
+End Property
+
 'Implementation of stdICallable::Run
 '@param params as Array<Variant> - Parameters to run the lambda with
 '@returns - The result of the lambda

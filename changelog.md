@@ -346,3 +346,5 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2025-06-23 `stdImage` FEATURE - Added `FindImage` to allow for automation through image searching. Thanks @KallunWillock!
 - 2025-06-24 `stdImage` FEATURE - Added `Typee`, `Width`, `Height`, `WidthBytes`, `Planes`, `BitsPixel` and `Bits` properties from `HBITMAP`. Thanks @Almesi!
 - 2025-06-25 `stdAcc` FIX - Fixed issue with `BFS` option in `FindFirst` and `FindAll`. Ultimately if the control is not present in the Accessibility group currently stdAcc can return a "Subscript out of range" error. This fix ensures that instead they simply return `nothing` (or an empty collection)
+- 2025-06-26 `stdLambda` FEATURE - Added `Equation` property, which can be used to obtain the equation used to create the `stdLambda` object
+- 2025-06-26 `ALL` FEATURE - Added a new branch and a workflow to inject `stdError` stack tracing into all stdVBA class members.
