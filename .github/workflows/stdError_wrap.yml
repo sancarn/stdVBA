@@ -2,11 +2,18 @@ on:
     workflow_dispatch:
 
 jobs:
-  build-and-publish:
+  error-enwrap:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Necessary to fetch all history and allow branch switching
+
+      - name: Switch to stdError-Wrapped branch (create if doesn't exist)
+        run: |
+          git fetch origin stdError-Wrapped || true
+          git checkout -B stdError-Wrapped origin/stdError-Wrapped || git checkout -b stdError-Wrapped
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -21,5 +28,5 @@ jobs:
           git config user.name "GitHub Actions Bot"
           git config user.email "actions@github.com"
           git add -A
-          git commit -m "Wrapped latest changes in stdError sentries" || echo "No changes to master"
-          git push -f origin HEAD:stdError-Wrapped
+          git commit -m "Wrapped latest changes in stdError sentries" || echo "No changes to commit"
+          git push -f origin stdError-Wrapped
