@@ -9913,6 +9913,29 @@
         "throws": [],
         "requires": [],
         "isStatic": false
+      },
+      {
+        "name": "Equation",
+        "access": "ReadOnly",
+        "description": "Get the equation which was used to create the lambda",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "String",
+          "description": "The equation used to create the lambda"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "constructors": [
