@@ -23,8 +23,20 @@ jobs:
 
       - name: Commit + force-push to stdError-Wrapped
         run: |
+          set -euo pipefail
+          set -x
+
+          echo " == Configure git =="
           git config --global user.name  "GitHub Actions Bot"
           git config --global user.email "actions@github.com"
+          
+          echo "== Current status =="
+          git status -s
+
+          echo " == Add changes =="
           git add -A
           git commit -m "Wrapped latest changes in stdError sentries" || echo "No changes to commit"
-          git push --force origin HEAD:stdError-Wrapped   # <-- --force in the right place
+          git log -1 --oneline
+
+          echo "== Force-push =="
+          git push --verbose origin +HEAD:stdError-Wrapped
