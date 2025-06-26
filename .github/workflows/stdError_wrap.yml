@@ -1,32 +1,35 @@
-on: 
-    workflow_dispatch:
-
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   error-enwrap:
     runs-on: ubuntu-latest
     steps:
+      # 1 – Get the full history so we can push back
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # Necessary to fetch all history and allow branch switching
+          fetch-depth: 0        # important for pushes
 
-      - name: Switch to stdError-Wrapped branch (create if doesn't exist)
-        run: |
-          git fetch origin stdError-Wrapped || true
-          git checkout -B stdError-Wrapped origin/stdError-Wrapped || git checkout -b stdError-Wrapped
-
+      # 2 – Node 20
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
 
+      # 3 – Generate wrapped code
       - name: Run stdError wrapping script
         run: node ./Tools/VBA-stdError-Wrapper/main.js
 
-      - name: Commit and push changes to `stdError-Wrapped` branch
+      # 4 – Commit **everything** and force-push to stdError-Wrapped
+      - name: Commit and push to stdError-Wrapped
         run: |
-          git config user.name "GitHub Actions Bot"
-          git config user.email "actions@github.com"
+          git config --global user.name  "GitHub Actions Bot"
+          git config --global user.email "actions@github.com"
+
           git add -A
           git commit -m "Wrapped latest changes in stdError sentries" || echo "No changes to commit"
-          git push -f origin stdError-Wrapped
+
+          # force-update the remote branch with whatever HEAD is now
+          git push origin HEAD:refs/heads/stdError-Wrapped --force
