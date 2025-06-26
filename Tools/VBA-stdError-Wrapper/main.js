@@ -69,9 +69,10 @@ function main() {
       }
       let callstackName = moduleName + "#" + name + (!!access ? "[" + access + "]" : "");
       const paramsInfo = parseParameters(params, udtInfo);
-      const paramsString = paramsInfo.filter((p) => !p.isUDTParamType && !p.isParamArray && !p.isArray).map((p) => `"${p.name}", ${p.name}`).join(", ");
+      const finalParams = paramsInfo.filter((p) => !p.isUDTParamType && !p.isParamArray && !p.isArray).map((p) => `"${p.name}", ${p.name}`);
+      const paramsString = (finalParams.length > 0 ? ", " : "") + finalParams.join(", ");
       const injectorHeader = [
-        `  With stdError.getSentry("${callstackName}", ${paramsString})`,
+        `  With stdError.getSentry("${callstackName}"${paramsString})`,
         "    On Error GoTo stdErrorWrapper_ErrorOccurred"
       ].join("\r\n");
       const injectorFooter = [
