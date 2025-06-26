@@ -1,35 +1,30 @@
 on:
   workflow_dispatch:
+
 permissions:
-  contents: write
+  contents: write          # ← allow the token to push
+
 jobs:
   error-enwrap:
     runs-on: ubuntu-latest
     steps:
-      # 1 – Get the full history so we can push back
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0        # important for pushes
+          fetch-depth: 0     # full history → push works
 
-      # 2 – Node 20
-      - name: Setup Node.js
+      - name: Setup Node 20
         uses: actions/setup-node@v4
         with:
           node-version: "20"
 
-      # 3 – Generate wrapped code
-      - name: Run stdError wrapping script
+      - name: Run stdError wrapper
         run: node ./Tools/VBA-stdError-Wrapper/main.js
 
-      # 4 – Commit **everything** and force-push to stdError-Wrapped
-      - name: Commit and push to stdError-Wrapped
+      - name: Commit + force-push to stdError-Wrapped
         run: |
           git config --global user.name  "GitHub Actions Bot"
           git config --global user.email "actions@github.com"
-
           git add -A
           git commit -m "Wrapped latest changes in stdError sentries" || echo "No changes to commit"
-
-          # force-update the remote branch with whatever HEAD is now
-          git push origin HEAD:refs/heads/stdError-Wrapped --force
+          git push --force origin HEAD:stdError-Wrapped   # <-- --force in the right place
