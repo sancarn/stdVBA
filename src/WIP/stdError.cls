@@ -44,6 +44,9 @@ Public Sub Class_Terminate()
     Call stdError.PopStack
 End Sub
 
+Public Property Get RaiseClient() As Object
+  Set RaiseClient = This.RaiseClient
+End Property
 Public Property Set RaiseClient(ByVal v As Object)
   Set This.RaiseClient = v
 End Property
@@ -99,8 +102,9 @@ Public Function Raise(Optional ByVal sMessage As String = "", Optional ByVal Cri
         Raise = MsgBox(sFullMessage, Criticality, Title)
     Else
         On Error GoTo ErrorOccurred:
-            Raise = this.RaiseClient.Raise(sMessage, Criticality, Title, sStackTrace)
+            Raise = this.RaiseClient.Raise(sMessage, Criticality, Title, isCritical, sStackTrace)
         On Error GoTo 0
+        Exit Function
     End If
     
     'Stop process if critical
@@ -129,8 +133,8 @@ Public Function GetTrace() As String
         sStackTrace = "Trace:" & vbCrLf
         
         Dim i As Long
-        For i = 1 To this.stack.index - 1
-            sStackTrace = sStackTrace & Space((i - 1) * 3) & "|- " & this.stack.arr(i) & vbCrLf
+        For i = 0 To This.stack.index - 1
+            sStackTrace = sStackTrace & Space((i) * 3) & "|- " & This.stack.arr(i) & vbCrLf
         Next
     End If
 
