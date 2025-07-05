@@ -9,17 +9,9 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 
-Private Type TThisSingleton
+Private Type TThis
     stack as stdArray
     RaiseClient As Object 'Allow Raise through a custom userform. Userform should expose a Raise(sMessage, Criticality, Title, StackTrace) method.
-End Type
-Private Type TThisInstance
-    xx as string
-End Type
-
-Private Type TThis
-    Singleton As TThisSingleton
-    Instance As TThisInstance
 End Type
 Private This as TThis
 
