@@ -2097,8 +2097,7 @@ End Sub
 '@param {string} The error message to be thrown
 '@returns {void}
 Private Sub Throw(ByVal sMessage As String)
-    Err.Raise 1, "stdLambda", sMessage, vbCritical
-    End
+    Err.Raise 1, "stdLambda", sMessage
 End Sub
 
 
