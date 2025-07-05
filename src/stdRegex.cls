@@ -8,6 +8,19 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
+'@module
+'@description A class which implements a wrapper around the VBScript.RegExp object. Use this class to
+'create regex objects with additional features like named captures, and use them to analyse text.
+'@example A simple example of using the class:
+'```vb
+'Dim rx as stdRegex: set rx = stdRegex.Create("(?<Site>\d{5})-(\w{2}\d)")
+'Debug.Print rx.Test("12345-AA1")  '=> True
+'Debug.Print rx.Match("12345-AA1").Site  '=> 12345-AA1
+'Debug.Print rx.MatchAll("12345-AA1,12345-AB1,15233-AC3,63234-ZD2")  '=> 12345-AA1,12345-AB1,15233-AC3,63234-ZD2
+'Debug.Print rx.Replace("12345-AA1,12345-AB1,15233-AC3,63234-ZD2", "<Redacted>")  '=> "<Redacted>,<Redacted>,<Redacted>,<Redacted>"
+'Debug.Print rx.List("12345-AA1,12345-AB1,15233-AC3,63234-ZD2", "$site\r\n")  '=> "12345\r\n12345\r\n15233\r\n63234\r\n"  
+'```
+
 'Spec:
 'This class has been designed to extend the feature set provided by VBScript.Regexp (or to eventually replace it entirely)
 'Functions implemented on the class
