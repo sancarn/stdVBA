@@ -8,9 +8,13 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
-
+Private Type TStack
+  initialised as Boolean
+  index as Long
+  arr() as string
+End Type
 Private Type TThis
-    stack as stdArray
+    stack as TStack
     RaiseClient As Object 'Allow Raise through a custom userform. Userform should expose a Raise(sMessage, Criticality, Title, StackTrace) method.
 End Type
 Private This as TThis
@@ -40,16 +44,22 @@ Public Sub Class_Terminate()
     Call stdError.PopStack
 End Sub
 
-Public Property Get stack() As stdArray
-    'Return the stack object, creating it if it doesn't exist.
-    If this.stack Is Nothing Then
-        Set this.stack = stdArray.Create()
-    End If
-    Set stack = this.stack
+Public Property Set RaiseClient(ByVal v As Object)
+  Set This.RaiseClient = v
+End Property
+
+Public Property Get stack(ByRef index as Long) As string()
+    With this.stack
+      stack = .arr
+      index = .index
+    end with
 End Property
 
 Public Sub RefreshStack()
-    Set this.stack  = stdArray.Create()
+    With this.stack
+      Redim .arr(0 To 0)
+      .index = 0
+    end with
 End Sub
 
 'TODO: It'd be cool if we could look backwards at the stack in order to get the calling object name, instead of providing it in sMethodName.
@@ -59,17 +69,17 @@ Public Sub AddStack(ByVal sMethodName As String, Optional ByRef args As Variant 
         Dim iArgs As Long: iArgs = UBound(args) - LBound(args) + 1
         If iArgs > 0 Then sArgs = SerializeArgs(args)
     end if
-    If this.stack Is Nothing Then Set this.stack = stdArray.Create()
-    Call this.stack.Push(sMethodName & "(" & sArgs & ")")
+    if not this.stack.initialised then this.stack = TStack_Create()
+    Call TStack_Push(this.stack, sMethodName & "(" & sArgs & ")")
 End Sub
 
 Public Sub PopStack()
-    If this.stack Is Nothing Then
+    If not this.stack.initialised Then
         Call Raise( "stdError::StackPop() - No stack created", vbCritical)
-    ElseIf this.stack.Length = 0 Then
+    ElseIf this.stack.index = 0 Then
         Call Raise( "stdError::StackPop() - Stack empty", vbCritical)
     Else
-        this.stack.Pop
+        Call TStack_PopNoReturn(This.stack)
     End If
 End Sub
 
@@ -115,12 +125,12 @@ End Function
 Public Function GetTrace() As String
     'Build stack trace if available
     Dim sStackTrace As String
-    If Not this.stack Is Nothing Then
+    If this.stack.initialised Then 
         sStackTrace = "Trace:" & vbCrLf
         
         Dim i As Long
-        For i = 1 To this.stack.Length
-            sStackTrace = sStackTrace & Space((i - 1) * 3) & "|- " & this.stack.item(i) & vbCrLf
+        For i = 1 To this.stack.index - 1
+            sStackTrace = sStackTrace & Space((i - 1) * 3) & "|- " & this.stack.arr(i) & vbCrLf
         Next
     End If
 
@@ -140,7 +150,7 @@ Sub Test()
                 .AddStack "E"
                     Debug.Print .Raise("Some Error occurred")
                 
-                    Set RaiseClient = stdArray
+                    Set RaiseClient = tbc
                     Debug.Print .Raise("Some Other Error occurred")
                     .AddStack "F"
                         
@@ -204,31 +214,91 @@ End Function
 '@return - String representation of the value.
 Private Function Serialize(ByVal value As Variant) As String
     'Serialize the value to a string representation.
-    select case VarType(value)
-        case vbString
+    Select Case VarType(value)
+        Case vbString
             Serialize = """" & value & """"
-        case vbBoolean
+        Case vbBoolean
             Serialize = CStr(value)
-        case vbInteger, vbLong, vbSingle, vbDouble
+        Case vbInteger, vbLong, vbSingle, vbDouble
             Serialize = CStr(value)
-        case vbDate
+        Case vbDate
             Serialize = Format(value, "yyyy-mm-dd hh:nn:ss")
-        case vbNull
+        Case vbNull
             Serialize = "Null"
-        case vbEmpty
+        Case vbEmpty
             Serialize = "Empty"
-        case vbObject
+        Case vbObject
             'Serialize as #<Foo:0x00007ff9c18f7d10>
             If value Is Nothing Then
                 Serialize = "Nothing"
             ElseIf TypeName(value) = "stdLambda" Then
-                Serialize = "#<stdLambda" & ":" & Hex(ObjPtr(value)) & " Equation='" &   value.Equation & "'>"
+                Dim success As Boolean
+                Serialize = "#<stdLambda" & ":" & Hex(ObjPtr(value)) & " Equation='" & value.SendMessage("equation", success, Array()) & "'>"
             Else
                 Serialize = "#<" & TypeName(value) & ":" & Hex(ObjPtr(value)) & ">"
             End If
         Case vbError
             Serialize = "#Error!"
-        case Else
+        Case Else
             Serialize = "UnknownType"
-    end select
+    End Select
 End Function
+
+'Create a new stack structure
+'@returns - A new TStack structure
+Private Function TStack_Create() As TStack
+  With TStack_Create
+    .initialised = True
+    .index = 0
+    ReDim .arr(0 To 10)
+  End With
+End Function
+
+'Given a `stack` structure, append `item` to the stack.
+'@param stack - stack of elements
+'@param item - Item to insert into stack
+Private Sub TStack_Push(ByRef stack as TStack,ByRef item as string)
+  With stack
+    if not .initialised then
+      Err.Raise 1001, "stdError", "TStack_Push() - Stack not initialised"
+      Exit Sub
+    End if
+
+    Dim ub As Long: ub = UBound(.arr)
+    Dim size As Long: size = ub + 1
+    If .index > ub Then
+        ReDim Preserve .arr(0 To size * 2)
+    End If
+  
+    .arr(.index) = item
+    .index = .index + 1
+  End With
+End Sub
+
+
+'Given a `stack` structure, pop `item` from the stack.  
+'@param stack - stack of elements
+'@returns - The popped item
+Private Sub TStack_PopNoReturn(ByRef stack As TStack)
+  With stack
+    if not .initialised then
+      Err.Raise 1001, "stdError", "TStack_Pop() - Stack not initialised"
+      Exit Sub
+    End if
+
+    if .index < 0 then
+      Err.Raise 1002, "stdError", "TStack_Pop() - Stack empty"
+      Exit Sub
+    End if
+
+    'If the stack is too large, shrink it to half its size.
+    Dim size As Long: size = UBound(.arr) + 1
+    If .index < size / 3 Then
+        ReDim Preserve .arr(0 To CLng(size / 2))
+    End If
+
+    
+    .index = .index - 1
+    'TStack_Pop = .arr(.index)
+  End With
+End Sub
