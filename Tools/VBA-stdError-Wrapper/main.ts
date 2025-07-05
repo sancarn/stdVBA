@@ -142,7 +142,7 @@ function main() {
 
     //Loop through each public function
     const functionFinder =
-      /(?<header>(?<!')(?:Public|Private|Friend) (?:(?<type>Function|Sub|Property) ?(?<access>Get|Let|Set)?) (?<name>\w+)\((?<params>(?:\(\)|[^)])*)\)(?: as (?<retType>(?:\w+\.)?\w+(?:\(\))?))?)(?<body>(?:.|\s)+?)\b(?<footer>End\s+(?:Function|Sub|Property))/gim;
+      /^[ \t]*(?<header>(?:Public|Private|Friend) (?:(?<type>Function|Sub|Property) ?(?<access>Get|Let|Set)?) (?<name>\w+)\((?<params>(?:\(\)|[^)])*)\)(?: as (?<retType>(?:\w+\.)?\w+(?:\(\))?))?)(?<body>(?:.|\s)+?)\b(?<footer>End\s+(?:Function|Sub|Property))/gim;
     content = content.replace(
       functionFinder,
       (
