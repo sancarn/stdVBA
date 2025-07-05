@@ -24,7 +24,7 @@ Private This as TThis
 '    End With
 '  end sub
 Public Function getSentry(ByVal sSubName As String, ParamArray args() as variant) As Object 'stdSentry
-  Call addStack(sSubName, args)
+  Call stdError.addStack(sSubName, args)
 
   'A fresh instance acts as a stack popper.
   set getSentry = New stdError
@@ -36,7 +36,7 @@ Public Sub Class_Terminate()
     
     'On class termination, pop the stack.
     On Error Resume Next
-    Call PopStack
+    Call stdError.PopStack
 End Sub
 
 Public Property Get stack() As stdArray
