@@ -351,3 +351,4 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2025-07-05 `stdHTTP` FEATURE - Threading style `Sync` will now simply use Async mode but call `await` before returning, ensuring `DoEvents` is called regularly thus not affecting the user negatively.
 - 2025-07-05 `stdHTTP` FIX - Fixed timeout bug where `TimeoutMS` was not being respected due to issues in XMLHTTP object. Now we record and check for `TimeoutMS` in `await()` mitigating this.
 - 2025-07-05 `stdLambda` FEATURE - Added `SendMessage("equation")` to `stdLambda` which returns the equation used to create the lambda.
+- 2025-07-05 `stdAcc` FIX - `stdAcc#Children` now has an number of guards in place. Added a guard for isProxy. Additionally added a guard for  `accChildCount==0`. Finally added a guard for `accChildCount` errors. If any guard triggers, an empty collection is returned. 

@@ -695,12 +695,16 @@ Public Property Get children() As Collection
 
   'Guards
   If this.isProxy then Exit Property
-  If protAccessible.accChildCount = 0 Then Exit Property
+  
+  'On error assume no children
+  'note: sometimes will get "Method 'accChildCount' of object 'IAccessible' failed" error.
+  On Error GoTo ErrorHandler
+    If protAccessible.accChildCount = 0 Then Exit Property
 
-  'Get IAccessible children as Array of children  
-  Dim vChildren(): ReDim vChildren(1 To protAccessible.accChildCount)
-  Dim iChildrenObtained As Long
-  On Error GoTo ErrorHandler 'On error assume no children
+    'Get IAccessible children as Array of children  
+    Dim vChildren(): ReDim vChildren(1 To protAccessible.accChildCount)
+    Dim iChildrenObtained As Long
+  
     Call AccessibleChildren(protAccessible, 0, protAccessible.accChildCount, vChildren(1), iChildrenObtained)
   On Error GoTo 0
 
