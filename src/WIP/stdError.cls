@@ -9,9 +9,17 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 
-Private Type TThis
+Private Type TThisSingleton
     stack as stdArray
     RaiseClient As Object 'Allow Raise through a custom userform. Userform should expose a Raise(sMessage, Criticality, Title, StackTrace) method.
+End Type
+Private Type TThisInstance
+    xx as string
+End Type
+
+Private Type TThis
+    Singleton As TThisSingleton
+    Instance As TThisInstance
 End Type
 Private This as TThis
 
@@ -24,14 +32,20 @@ Private This as TThis
 '    End With
 '  end sub
 Public Function getSentry(ByVal sSubName As String, ParamArray args() as variant) As Object 'stdSentry
-  If TypeName(stdSentry) = "stdSentry" Then
-    Dim vArgs As Variant: vArgs = args
-    Set getSentry = stdSentry.Create( _
-        stdCallback.CreateFromObjectMethod(stdError, "addStack").Bind(sSubName, vArgs), _
-        stdCallback.CreateFromObjectMethod(stdError, "popStack") _
-    ).Run()
-  End If
+  Call addStack(sSubName, args)
+
+  'A fresh instance acts as a stack popper.
+  set getSentry = New stdError
 End Function
+
+Public Sub Class_Terminate()
+    'Only do this on fresh instances, not the singleton.
+    if Me is stdError then Exit Sub
+    
+    'On class termination, pop the stack.
+    On Error Resume Next
+    Call PopStack
+End Sub
 
 Public Property Get stack() As stdArray
     'Return the stack object, creating it if it doesn't exist.
