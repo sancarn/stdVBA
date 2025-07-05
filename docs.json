@@ -11818,9 +11818,11 @@
   {
     "name": "stdRegex",
     "fileName": "stdRegex.cls",
-    "description": "",
+    "description": "A class which implements a wrapper around the VBScript.RegExp object. Use this class to\r\ncreate regex objects with additional features like named captures, and use them to analyse text.",
     "remarks": [],
-    "examples": [],
+    "examples": [
+      "A simple example of using the class:\r\n```vb\r\nDim rx as stdRegex: set rx = stdRegex.Create(\"(?<Site>\\d{5})-(\\w{2}\\d)\")\r\nDebug.Print rx.Test(\"12345-AA1\")  '=> True\r\nDebug.Print rx.Match(\"12345-AA1\").Site  '=> 12345-AA1\r\nDebug.Print rx.MatchAll(\"12345-AA1,12345-AB1,15233-AC3,63234-ZD2\")  '=> 12345-AA1,12345-AB1,15233-AC3,63234-ZD2\r\nDebug.Print rx.Replace(\"12345-AA1,12345-AB1,15233-AC3,63234-ZD2\", \"<Redacted>\")  '=> \"<Redacted>,<Redacted>,<Redacted>,<Redacted>\"\r\nDebug.Print rx.List(\"12345-AA1,12345-AB1,15233-AC3,63234-ZD2\", \"$site\\r\\n\")  '=> \"12345\\r\\n12345\\r\\n15233\\r\\n63234\\r\\n\"  \r\n```"
+    ],
     "devNotes": [],
     "todos": [
       "Make this more efficient, ideally we'd only loop through the format once"
