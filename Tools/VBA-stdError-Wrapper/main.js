@@ -29,7 +29,9 @@ function parseParameters(params, udtInfo) {
   if (!aParams || aParams.length === 0) return [];
   return aParams.map((param) => {
     if (!param) return null;
-    const isUDTParamType = udtInfo.some((udt) => udt.name.toLowerCase() === param.type?.toLowerCase());
+    const isUDTParamType = udtInfo.some(
+      (udt) => udt.name.toLowerCase() === param.type?.toLowerCase()
+    );
     return {
       name: param.name,
       type: param.type || "",
@@ -52,42 +54,55 @@ function main() {
     const moduleNameFinder = /Attribute VB_Name = "(?<name>[^"]+)"/i;
     const moduleName = moduleNameFinder.exec(content)?.groups?.name ?? file.split(".")[0];
     content = content.replace(/Err\.Raise/g, "Err_Raise");
-    content = content.replace(/On Error GoTo 0/g, "On Error GoTo stdErrorWrapper_ErrorOccurred");
+    content = content.replace(
+      /On Error GoTo 0/g,
+      "On Error GoTo stdErrorWrapper_ErrorOccurred"
+    );
     const udtFinder = /(?<!').*\bType\s+(?<name>\w+)/gim;
-    const udtInfo = Array.from(content.matchAll(udtFinder)).map((match) => {
-      return {
-        name: match.groups?.name || ""
-      };
-    });
-    const functionFinder = /(?<header>(?<!')(?:Public|Private|Friend) (?:(?<type>Function|Sub|Property) ?(?<access>Get|Let|Set)?) (?<name>\w+)\((?<params>(?:\(\)|[^)])*)\)(?: as (?<retType>(?:\w+\.)?\w+))?)(?<body>(?:.|\s)+?)\b(?<footer>End\s+(?:Function|Sub|Property))/gim;
-    content = content.replace(functionFinder, (match, header, type, access, name, params, retType, body, footer, offset, haystack, groups) => {
-      const conditionalCompilation = /(?<!')(?:Public|Private|Friend) (?:(?<type>Function|Sub|Property) ?(?<access>Get|Let|Set)?) (?<name>\w+)\((?<params>(?:\(\)|[^)])*)\)(?: as (?<retType>(?:\w+\.)?\w+))?(?:.|\s)+?#End If/gim;
-      const conditionalCompilationMatch = conditionalCompilation.exec(body);
-      if (!!conditionalCompilationMatch) {
-        header = header + body.substring(0, conditionalCompilationMatch.index + conditionalCompilationMatch[0].length);
-        body = body.substring(conditionalCompilationMatch.index + conditionalCompilationMatch[0].length);
+    const udtInfo = Array.from(content.matchAll(udtFinder)).map(
+      (match) => {
+        return {
+          name: match.groups?.name || ""
+        };
       }
-      let callstackName = moduleName + "#" + name + (!!access ? "[" + access + "]" : "");
-      const paramsInfo = parseParameters(params, udtInfo);
-      const finalParams = paramsInfo.filter((p) => !p.isUDTParamType && !p.isParamArray && !p.isArray).map((p) => `"${p.name}", ${p.name}`);
-      const paramsString = (finalParams.length > 0 ? ", " : "") + finalParams.join(", ");
-      const injectorHeader = [
-        `  With stdError.getSentry("${callstackName}"${paramsString})`,
-        "    On Error GoTo stdErrorWrapper_ErrorOccurred"
-      ].join("\r\n");
-      const injectorFooter = [
-        "    Exit " + type,
-        "    stdErrorWrapper_ErrorOccurred:",
-        "      Call Err_Raise(Err.Number, Err.Source, Err.Description)",
-        "  End With"
-      ].join("\r\n");
-      body = body.split("\n").map((line) => "    " + line).join("\n");
-      return `${header}\r
+    );
+    const functionFinder = /(?<header>(?<!')(?:Public|Private|Friend) (?:(?<type>Function|Sub|Property) ?(?<access>Get|Let|Set)?) (?<name>\w+)\((?<params>(?:\(\)|[^)])*)\)(?: as (?<retType>(?:\w+\.)?\w+(?:\(\))?))?)(?<body>(?:.|\s)+?)\b(?<footer>End\s+(?:Function|Sub|Property))/gim;
+    content = content.replace(
+      functionFinder,
+      (match, header, type, access, name, params, retType, body, footer, offset, haystack, groups) => {
+        const conditionalCompilation = /(?<!')(?:Public|Private|Friend) (?:(?<type>Function|Sub|Property) ?(?<access>Get|Let|Set)?) (?<name>\w+)\((?<params>(?:\(\)|[^)])*)\)(?: as (?<retType>(?:\w+\.)?\w+))?(?:.|\s)+?#End If/gim;
+        const conditionalCompilationMatch = conditionalCompilation.exec(body);
+        if (!!conditionalCompilationMatch) {
+          header = header + body.substring(
+            0,
+            conditionalCompilationMatch.index + conditionalCompilationMatch[0].length
+          );
+          body = body.substring(
+            conditionalCompilationMatch.index + conditionalCompilationMatch[0].length
+          );
+        }
+        let callstackName = moduleName + "#" + name + (!!access ? "[" + access + "]" : "");
+        const paramsInfo = parseParameters(params, udtInfo);
+        const finalParams = paramsInfo.filter((p) => !p.isUDTParamType && !p.isParamArray && !p.isArray).map((p) => `"${p.name}", ${p.name}`);
+        const paramsString = (finalParams.length > 0 ? ", " : "") + finalParams.join(", ");
+        const injectorHeader = [
+          `  With stdError.getSentry("${callstackName}"${paramsString})`,
+          "    On Error GoTo stdErrorWrapper_ErrorOccurred"
+        ].join("\r\n");
+        const injectorFooter = [
+          "    Exit " + type,
+          "    stdErrorWrapper_ErrorOccurred:",
+          "      Call Err_Raise(Err.Number, Err.Source, Err.Description)",
+          "  End With"
+        ].join("\r\n");
+        body = body.split("\n").map((line) => "    " + line).join("\n");
+        return `${header}\r
 ${injectorHeader}\r
 ${body}\r
 ${injectorFooter}\r
 ${footer}`;
-    });
+      }
+    );
     content += `
 
 
