@@ -93,8 +93,6 @@ Attribute VB_Exposed = False
 '    [X] R   Help
 '    [X] R   HelpTopic
 '    [X] R   Text
-'PRIVATE INSTANCE METHODS
-'    getChildrenAsIAcc           TODO: Consider moving this to `Children`
 'GENERIC
 'TODO: VB6 complient, 32-Bit complient, 64-Bit complient
 
@@ -693,12 +691,30 @@ End Property
 'Return the children of the IAccessible object
 '@returns Collection<stdAcc> - Children of this element
 Public Property Get children() As Collection
-    On Error GoTo ErrorHandler
-        Set children = getChildrenAsIAcc()
-    On Error GoTo 0
-    Exit Property
+  set children = new Collection
+
+  'Guards
+  If this.isProxy then Exit Property
+  If protAccessible.accChildCount = 0 Then Exit Property
+
+  'Get IAccessible children as Array of children  
+  Dim vChildren(): ReDim vChildren(1 To protAccessible.accChildCount)
+  Dim iChildrenObtained As Long
+  On Error GoTo ErrorHandler 'On error assume no children
+    Call AccessibleChildren(protAccessible, 0, protAccessible.accChildCount, vChildren(1), iChildrenObtained)
+  On Error GoTo 0
+
+  'Loop over children and add them to the collection
+  Dim iChildId As Long
+  For iChildId = 1 To iChildrenObtained
+    'Check if child is an object, if it is set it, otherwise let it
+    If VarType(vChildren(iChildId)) = vbObject Then
+      Call children.Add(CreateFromIAccessible(vChildren(iChildId)))
+    Else
+      Call children.Add(CreateProxyChild(vChildren(iChildId)))
+    End If
+  Next
 ErrorHandler:
-    Set children = New Collection
 End Property
 
 'Return the hwnd of the IAccessible object
@@ -1280,28 +1296,6 @@ Private Sub BindGlobals(ByRef query As stdICallable)
     Call query.SendMessage("bindGlobal", bSuccess, Array("EAccStates", This.Singleton.Lookups("EAccStates")("S2N")))
     Call query.SendMessage("bindGlobal", bSuccess, Array("EAccFindResult", This.Singleton.Lookups("EAccFindResult")("S2N")))
 End Sub
-
-'Creates a collection of stdAcc objects representing the children of the element
-'@returns Collection<stdAcc> - The returned collection of children
-Private Function getChildrenAsIAcc() As Collection
-  'Get IAccessible children as Array of children
-  Dim vChildren()
-  ReDim vChildren(1 To protAccessible.accChildCount)
-  Dim iChildrenObtained As Long
-  Call AccessibleChildren(protAccessible, 0, protAccessible.accChildCount, vChildren(1), iChildrenObtained)
-  
-  Set getChildrenAsIAcc = New Collection
-  Dim child As Variant
-  Dim iChildId As Long
-  For iChildId = 1 To iChildrenObtained
-    'Check if child is an object, if it is set it, otherwise let it
-    If VarType(vChildren(iChildId)) = vbObject Then
-      getChildrenAsIAcc.Add CreateFromIAccessible(vChildren(iChildId))
-    Else
-      getChildrenAsIAcc.Add createProxyChild(vChildren(iChildId))
-    End If
-  Next
-End Function
 
 'Creates a proxy element under this element (this element is parent). Proxy elements get there information from the parent directly.
 '@param childID - Child ID to create proxy element on
