@@ -24,7 +24,8 @@ Private This as TThis
 '    End With
 '  end sub
 Public Function getSentry(ByVal sSubName As String, ParamArray args() as variant) As Object 'stdSentry
-  Call stdError.addStack(sSubName, args)
+  Dim v: v = args
+  Call stdError.addStack(sSubName, v)
 
   'A fresh instance acts as a stack popper.
   set getSentry = New stdError
