@@ -350,4 +350,4 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2025-06-26 `ALL` FEATURE - Added a new branch and a workflow to inject `stdError` stack tracing into all stdVBA class members.
 - 2025-07-05 `stdHTTP` FEATURE - Threading style `Sync` will now simply use Async mode but call `await` before returning, ensuring `DoEvents` is called regularly thus not affecting the user negatively.
 - 2025-07-05 `stdHTTP` FIX - Fixed timeout bug where `TimeoutMS` was not being respected due to issues in XMLHTTP object. Now we record and check for `TimeoutMS` in `await()` mitigating this.
-
+- 2025-07-05 `stdLambda` FEATURE - Added `SendMessage("equation")` to `stdLambda` which returns the equation used to create the lambda.

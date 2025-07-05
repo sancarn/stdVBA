@@ -405,7 +405,7 @@ Private Function stdICallable_Bind(ParamArray params() As Variant) As stdICallab
 End Function
 
 'Late-bound, no dependency, function calling
-'@param sMessage as "obj"|"className"|"bindGlobal" - Message to send. "obj" returns the object, "className" returns the class name, "bindGlobal" binds a global variable to the lambda.
+'@param sMessage as "obj"|"className"|"bindGlobal"|"equation" - Message to send. "obj" returns the object, "className" returns the class name, "bindGlobal" binds a global variable to the lambda, "equation" returns the equation used to create the lambda.
 '@param success  - Success of message. If message wasn't processed return false.
 '@param params   - Parameters to pass along with message
 '@returns - Anything returned by the function
@@ -420,6 +420,10 @@ Private Function stdICallable_SendMessage(ByVal sMessage As String, ByRef succes
         Case "bindGlobal"
             'Bind global based whether this is a bound lambda or not
             Call BindGlobal(params(0), params(1))
+            success = True
+        case "equation"
+            'Return the equation used to create the lambda
+            stdICallable_SendMessage = This.Equation
             success = True
         Case Else
             success = False
