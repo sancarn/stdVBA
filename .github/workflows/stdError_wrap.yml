@@ -1,0 +1,45 @@
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: write          # ← allow the token to push
+
+jobs:
+  error-enwrap:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0     # full history → push works
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run stdError wrapper
+        run: node ./Tools/VBA-stdError-Wrapper/main.js
+
+      - name: Commit + force-push to stdError-Wrapped
+        run: |
+          set -euo pipefail
+          set -x
+
+          echo " == Configure git =="
+          git config --global user.name  "GitHub Actions Bot"
+          git config --global user.email "actions@github.com"
+          
+          echo "== Current status =="
+          git status -s
+
+          echo " == Add changes =="
+          git add -A
+          git commit -m "Wrapped latest changes in stdError sentries" || echo "No changes to commit"
+          git log -1 --oneline
+
+          echo "== Force-push =="
+          git push --verbose origin +HEAD:stdError-Wrapped

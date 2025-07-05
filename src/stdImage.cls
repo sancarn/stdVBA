@@ -341,6 +341,7 @@ Private Type TThisCache
 End Type
 Private Type TThis
   HBITMAP As LongPtr
+  HBITMAPTYPE As BITMAP
   Cache As TThisCache
 End Type
 Private This As TThis
@@ -673,6 +674,7 @@ End Function
 '@protected
 '@param hBITMAP - Handle to bitmap
 Public Sub protInit(ByVal hBITMAP As LongPtr)
+  Call GetObjectAPI(hBITMAP, LenB(This.HBITMAPTYPE), This.HBITMAPTYPE)
   This.HBITMAP = hBITMAP
   This.Cache.HICON = 0
 End Sub
@@ -699,18 +701,23 @@ End Property
 'Obtain the colors of the image
 '@returns ARGB() - 2D array of colors. Colors ordered from (1,1) = bottom-left, (1,height) = top-left, across to (width, height) = top-right.
 Public Property Get Colors() As Long()
-  'Get the bitmap data
-  Dim hBitmap As LongPtr: hBitmap = This.HBITMAP
-  Dim bmp As BITMAP: Call GetObjectAPI(hBitmap, LenB(bmp), bmp)
-  Dim lWidth As Long: lWidth = bmp.bmWidth
-  Dim lHeight As Long: lHeight = bmp.bmHeight
-  
-  'Obtain colors
-  Dim ret() As Long
-  ReDim ret(1 To lWidth, 1 To lHeight)
-  Call CopyMemory(VarPtr(ret(1, 1)), bmp.bmBits, lWidth * lHeight * 4)
-  Colors = ret
+  With This.HBITMAPTYPE
+    'Obtain colors
+    Dim ret() As Long
+    ReDim ret(1 To .bmWidth, 1 To .bmHeight)
+    Call CopyMemory(VarPtr(ret(1, 1)), .bmBits, .bmWidth * .bmHeight * 4)
+    Colors = ret
+  End With
 End Property
+
+'Obtain the Image Data
+Public Property Get Typee()      As Long    : Typee      = This.HBITMAPTYPE.bmType       : End Property 'Type cannot be used As a name, thats why its named Typee
+Public Property Get Width()      As Long    : Width      = This.HBITMAPTYPE.bmWidth      : End Property
+Public Property Get Height()     As Long    : Height     = This.HBITMAPTYPE.bmHeight     : End Property
+Public Property Get WidthBytes() As Long    : WidthBytes = This.HBITMAPTYPE.bmWidthBytes : End Property
+Public Property Get Planes()     As Integer : Planes     = This.HBITMAPTYPE.bmPlanes     : End Property
+Public Property Get BitsPixel()  As Integer : BitsPixel  = This.HBITMAPTYPE.bmBitsPixel  : End Property
+Public Property Get Bits()       As LongPtr : Bits       = This.HBITMAPTYPE.bmBits       : End Property
 
 
 'Obtain binary data of the image in any format required
@@ -831,6 +838,7 @@ Public Sub ToClipboard()
     End With
   End If
 End Sub
+
 
 'Save a copy in a temporary file and return the path of this file
 '@param eFormat - The format the data should be in.
@@ -959,8 +967,6 @@ ReleaseHandles:
     Call DeleteObject(hDib)
 End Function
 
-
-
 'Returns a byte array stored at a pointer using RtlMoveMemory
 '@param pointer - The pointer to copy bytes at
 '@param size - The size of the buffer to copy
@@ -1043,4 +1049,74 @@ If hWnd = 0 Then
     End Select
 End If
 getAppHwnd = hWnd
+End Function
+
+
+'Searches for a template image within a larger image (i.e., this image)
+'@param template - The image to search for
+'@param tolerance - A value of 0 means that the pixels must be an exact match; greater values signify slight (1-5), moderate (6 - 20) and signifanct (20+) variations (default 5)
+'@param TopToBottom - If True, search from top-to-bottom; if False, search from bottom-to-top (default True)
+'@param LeftToRight - If True, search from left-to-right; if False, search from right-to-left (default True)
+'@returns Variant<Array<Long>|Empty> - Array [x, y] of the top-left match (standard image coordinates), or Empty if not found
+'@example
+'  Dim haystack As stdImage, needle As stdImage, result As Variant
+'  Set haystack = stdImage.CreateFromFile("C:\YourImageDir\big.png")
+'  Set needle = stdImage.CreateFromFile("C:\YourImageDir\small.png")
+'  result = haystack.FindImage(needle, 10)
+'  If Not IsEmpty(result) Then Debug.Print "Found at:", result(0), result(1)
+Public Function FindImage(ByVal template As stdImage, Optional ByVal tolerance As Long = 5, Optional ByVal TopToBottom As Boolean = True, Optional ByVal LeftToRight As Boolean = True) As Variant
+  Dim haystackColors() As Long, templateColors() As Long
+  Dim hayW As Long, hayH As Long, tplW As Long, tplH As Long
+  Dim startX As Long, endX As Long, stepX As Long
+  Dim startY As Long, endY As Long, stepY As Long
+  
+  haystackColors = Me.Colors
+  templateColors = template.Colors
+  hayW = UBound(haystackColors, 1): hayH = UBound(haystackColors, 2)
+  tplW = UBound(templateColors, 1): tplH = UBound(templateColors, 2)
+    
+  If TopToBottom Then
+    startY = 0: endY = hayH - tplH: stepY = 1
+  Else
+    startY = hayH - tplH: endY = 0: stepY = -1
+  End If
+  
+  If LeftToRight Then
+    startX = 0: endX = hayW - tplW: stepX = 1
+  Else
+    startX = hayW - tplW: endX = 0: stepX = -1
+  End If
+  
+  Dim x As Long, y As Long, i As Long, j As Long, match As Boolean
+  For y = startY To endY Step stepY
+    For x = startX To endX Step stepX
+      match = True
+      For j = 1 To tplH
+        For i = 1 To tplW
+          If Not ColorsMatch(haystackColors(x + i, y + j), templateColors(i, j), tolerance) Then
+            match = False
+            Exit For
+          End If
+        Next
+        If Not match Then Exit For
+      Next
+      If match Then
+        FindImage = Array(x, hayH - y - tplH + 1)
+        Exit Function
+      End If
+    Next
+  Next
+  FindImage = Empty
+End Function
+
+'Compares two ARGB color values within a given tolerance per RGB channel
+'@param c1 - First color value
+'@param c2 - Second color value
+'@param tolerance - Maximum allowed difference per channel (0-255).
+'@returns - True if the colors match within the given tolerance, otherwise False
+Private Function ColorsMatch(ByVal c1 As Long, ByVal c2 As Long, ByVal tolerance As Long) As Boolean
+  Dim r1 As Long, g1 As Long, b1 As Long, r2 As Long, g2 As Long, b2 As Long
+  r1 = (c1 And &HFF): g1 = (c1 \ &H100) And &HFF: b1 = (c1 \ &H10000) And &HFF
+  r2 = (c2 And &HFF): g2 = (c2 \ &H100) And &HFF: b2 = (c2 \ &H10000) And &HFF
+  ColorsMatch = Abs(r1 - r2) <= tolerance And Abs(g1 - g2) <= tolerance And Abs(b1 - b2) <= tolerance
 End Function

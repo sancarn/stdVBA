@@ -526,7 +526,7 @@ Public Function FindFirst(ByVal query As stdICallable, Optional ByVal searchType
     Call BindGlobals(query)
 
     'Loop over the stack/array
-    While length > 0 And index < length
+    Do While length > 0 And index < length
         Dim part As tFindNode
         Select Case searchType
             Case EAccFindType.DepthFirst
@@ -535,6 +535,7 @@ Public Function FindFirst(ByVal query As stdICallable, Optional ByVal searchType
             Case EAccFindType.BreadthFirst
                 'Breadth first search, get item directly out of array, no need to change array size
                 index = index + 1
+                if index >= length Then Exit Do
                 part = stack(index)
             Case Else
                 Err.Raise 1, "stdAcc#FindFirst", "Invalid search type given. Please use EAccFindType"
@@ -565,7 +566,7 @@ Public Function FindFirst(ByVal query As stdICallable, Optional ByVal searchType
         End With
         'Just make sure no freezing occurs
         DoEvents
-    Wend
+    Loop
     
     'Else set to nothing
     Set FindFirst = Nothing
@@ -615,7 +616,7 @@ Public Function FindAll(ByVal query As stdICallable, Optional ByVal searchType A
     Set FindAll = New Collection
 
     'Loop over the stack/array
-    While length > 0 And index < length
+    Do While length > 0 And index < length
         Dim part As tFindNode
         Select Case searchType
             Case EAccFindType.DepthFirst
@@ -624,6 +625,7 @@ Public Function FindAll(ByVal query As stdICallable, Optional ByVal searchType A
             Case EAccFindType.BreadthFirst
                 'Breadth first search, get item directly out of array, no need to change array size
                 index = index + 1
+                If index >= length Then Exit Do
                 part = stack(index)
             Case Else
                 Err.Raise 1, "stdAcc#FindAll", "Invalid search type given. Please use EAccFindType"
@@ -658,7 +660,7 @@ Public Function FindAll(ByVal query As stdICallable, Optional ByVal searchType A
         End With
         'Just make sure no freezing occurs
         DoEvents
-    Wend
+    Loop
 End Function
 
 'Return the parent of the IAccessible object

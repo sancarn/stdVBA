@@ -105,6 +105,16 @@ Private This as TThis
 '@param OnDestroy - Function to run when the sentry is destroyed.
 '@param passVars - If true, the result of OnInit is passed to OnDestroy. If false, no arguments are passed to OnDestroy.
 '@returns - The sentry factory
+'@remark - This creates a sentry factory, which can be used to create sentries. The factory is not a sentry itself, and will have to be called in order to create a sentry.
+'@example ```vb
+'Dim factory as stdSentry: set factory = stdSentry.Create( _
+'  stdCallback.CreateFromModuleMethod("ModuleName", "OnInit"), _
+'  stdCallback.CreateFromModuleMethod("ModuleName", "OnDestroy") _
+')
+'With factory()
+'  'whatever code you want here
+'End With
+'```
 Public Function Create(ByVal OnInit as stdICallable, ByVal OnDestroy as stdICallable, Optional ByVal passVars as boolean = true) as stdSentry
   set Create = new stdSentry
   Call Create.protInitFactory(OnInit, OnDestroy, passVars)
