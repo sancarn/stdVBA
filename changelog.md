@@ -343,3 +343,5 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2025-06-06 `stdAcc` FEATURE - Changed to application independent.
 - 2025-06-11 `stdCOM` FEATURE - Added `CreatePropertyStoreFromFile` to create a `stdCOM` object from a file path with required access
 - 2025-06-11 `stdCOM` FEATURE - Added `PropertyStore_GetCount`, `PropertyStore_GetAt`, `PropertyStore_GetValue`, `PropertyStore_SetValue` and `PropertyStore_Commit` to work with `IPropertyStore`
+- 2025-07-05 `stdHTTP` FEATURE - Threading style `Sync` will now simply use Async mode but call `await` before returning, ensuring `DoEvents` is called regularly thus not affecting the user negatively.
+- 2025-07-05 `stdHTTP` FIX - Fixed timeout bug where `TimeoutMS` was not being respected due to issues in XMLHTTP object. Now we record and check for `TimeoutMS` in `await()` mitigating this.

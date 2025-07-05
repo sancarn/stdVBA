@@ -272,6 +272,8 @@ End Type
 Private Type TThis
   HTTP As Object
   ResponseMapper As stdICallable
+  Created as Date
+  TimeoutMS as Long
 End Type
 Private This As TThis
 
@@ -389,6 +391,12 @@ End Function
 Public Function Await() As stdHTTP
   Set Await = Me
   While Not isFinished
+    if This.TimeoutMS > 0 Then
+      If DateDiff("s", This.Created, Now()) > This.TimeoutMS / 1000 Then
+        Err.Raise 10000, "stdHTTP", "Timeout"
+        Exit Function
+      End If
+    End If
     VBA.DoEvents
   Wend
 End Function
@@ -487,7 +495,7 @@ End Property
 Friend Sub protInit(ByVal sURL As String, Optional ByVal RequestMethod As String = "GET", Optional ByVal ThreadingStyle As EHTTPSynchronisity, Optional ByVal options As Object = Nothing, Optional ByVal Authenticator As stdICallable = Nothing)
   If options Is Nothing Then Set options = CreateOptions()
   Set This.HTTP = CreateObject("WinHttp.WinHttpRequest.5.1")
-  This.HTTP.Open RequestMethod, sURL, ThreadingStyle = HTTPAsync
+  This.HTTP.Open RequestMethod, sURL, True
   This.HTTP.SetTimeouts options("TimeoutMS") / 4, options("TimeoutMS") / 4, options("TimeoutMS") / 4, options("TimeoutMS") / 4
   
   'Set proxy info
@@ -528,7 +536,12 @@ Friend Sub protInit(ByVal sURL As String, Optional ByVal RequestMethod As String
   If Not Authenticator Is Nothing Then Call Authenticator.Run(This.HTTP, RequestMethod, sURL, ThreadingStyle, options)
   
   'Execute request
+  This.Created = Now()
+  This.TimeoutMS = options("TimeoutMS")
   This.HTTP.Send options("Body")
+
+  'Await for the request to finish if synchronous
+  if ThreadingStyle = HTTPSync Then Call Await
 End Sub
 
 'Get the HSesssion
