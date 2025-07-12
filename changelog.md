@@ -352,3 +352,8 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2025-07-05 `stdHTTP` FIX - Fixed timeout bug where `TimeoutMS` was not being respected due to issues in XMLHTTP object. Now we record and check for `TimeoutMS` in `await()` mitigating this.
 - 2025-07-05 `stdLambda` FEATURE - Added `SendMessage("equation")` to `stdLambda` which returns the equation used to create the lambda.
 - 2025-07-05 `stdAcc` FIX - `stdAcc#Children` now has an number of guards in place. Added a guard for isProxy. Additionally added a guard for  `accChildCount==0`. Finally added a guard for `accChildCount` errors. If any guard triggers, an empty collection is returned. 
+- 2025-07-12 `stdImage` FIX - Fixed `CreateFromWindow()` this sometimes wasn't working on some windows including the Excel Application window. The method still doesn't work for all windows unfortunately - e.g. chrome windows, but a workaround has been included in the module examples document.
+- 2025-07-12 `stdImage` FEATURE - Added `Crop()` function which creates a cropped image from another image.
+- 2025-07-12 `stdImage` FEATURE - Added `CreateFromDataURL` and `CreateFromBinary`
+- 2025-07-12 `stdImage` BREAKING - Renamed `FindImage` to `FindFirst`. This is to standardise it compared to `stdAcc`, `stdWindow` and `stdProcess`.
+- 2025-07-12 `stdImage` FEATURE - Added a `FindAll()` function which returns a collection of all found images.
