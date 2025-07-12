@@ -287,8 +287,16 @@ Private This As TThis
 '@param Authenticator as stdICallable<(HTTP: Object, RequestMethod: String, URL: String, ThreadingStyle: Long, options: Object)=>Void> - A callable object which will be called before the request is sent. This can be used to add authentication headers, etc.
 '@returns - A http request object
 Public Function Create(ByVal sURL As String, Optional ByVal RequestMethod As String = "GET", Optional ByVal ThreadingStyle As EHTTPSynchronisity = HTTPSync, Optional ByVal options As Object = Nothing, Optional ByVal Authenticator As stdICallable = Nothing) As stdHTTP
-  Set Create = New stdHTTP
-  Call Create.protInit(sURL, RequestMethod, ThreadingStyle, options, Authenticator)
+  With stdError.getSentry("stdHTTP#Create", "sURL", sURL, "RequestMethod", RequestMethod, "ThreadingStyle", ThreadingStyle, "options", options, "Authenticator", Authenticator)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Set Create = New stdHTTP
+      Call Create.protInit(sURL, RequestMethod, ThreadingStyle, options, Authenticator)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Create HTTP request headers
@@ -296,16 +304,24 @@ End Function
 '@param v - Headers to load into the http request in the form key1, value1, key2, value2, ...
 '@returns Object<Dictionary> - A dictionary of headers
 Public Function CreateHeaders(ParamArray v()) As Object
-  Dim oRet As Object
-  Set oRet = CreateObject("Scripting.Dictionary")
-  oRet.CompareMode = vbTextCompare
-  
-  Dim i As Long
-  For i = 0 To UBound(v) Step 2
-    oRet(v(i)) = v(i + 1)
-  Next
-  
-  Set CreateHeaders = oRet
+  With stdError.getSentry("stdHTTP#CreateHeaders")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim oRet As Object
+      Set oRet = CreateObject("Scripting.Dictionary")
+      oRet.CompareMode = vbTextCompare
+      
+      Dim i As Long
+      For i = 0 To UBound(v) Step 2
+        oRet(v(i)) = v(i + 1)
+      Next
+      
+      Set CreateHeaders = oRet
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Create HTTP request options
@@ -320,38 +336,46 @@ End Function
 '@param AutoProxy - Whether to use the system proxy settings
 '@returns Object<Dictionary> - A dictionary of options
 Public Function CreateOptions(Optional Body As String = "", Optional Headers As Object = Nothing, Optional Cookies As Object = Nothing, Optional ByVal ContentTypeDefault As EHTTPContentType, Optional Insecure As Boolean = False, Optional EnableRedirects As Boolean = True, Optional ByVal TimeoutMS As Long = 5000, Optional ByVal Proxy As Object = Nothing)
-  Dim oRet As Object
-  Set oRet = CreateObject("Scripting.Dictionary")
-  oRet.CompareMode = vbTextCompare
-  
-  If Headers Is Nothing Then Set Headers = CreateHeaders()
-  If Not Headers.Exists("Content-Type") Then
-    Dim sContentType As String
-    If (ContentTypeDefault And ContentType_HTML) = ContentType_HTML Then sContentType = sContentType & "; text/html"
-    If (ContentTypeDefault And ContentType_Plain) = ContentType_Plain Then sContentType = sContentType & "; text/plain"
-    If (ContentTypeDefault And ContentType_JSON) = ContentType_JSON Then sContentType = sContentType & "; application/json"
-    If (ContentTypeDefault And ContentType_XML) = ContentType_XML Then sContentType = sContentType & "; application/xml; text/xml"
-    If (ContentTypeDefault And ContentType_CSV) = ContentType_CSV Then sContentType = sContentType & "; text/csv"
-    If (ContentTypeDefault And ContentType_ZIP) = ContentType_ZIP Then sContentType = sContentType & "; application/zip"
-    If (ContentTypeDefault And ContentType_Binary) = ContentType_Binary Then sContentType = sContentType & "; application/octet-stream"
-    If sContentType <> "" Then Headers("Content-Type") = Mid(sContentType, 3)
-  End If
-  Set oRet("Headers") = Headers
-  
-  If Cookies Is Nothing Then Set Cookies = CreateHeaders()
-  Set oRet("Cookies") = Cookies
-  
-  If Proxy Is Nothing Then
-    Set oRet("Proxy") = CreateProxy(ProxyTypeAuto)
-  Else
-    Set oRet("Proxy") = Proxy
-  End If
-
-  oRet("TimeoutMS") = TimeoutMS
-  oRet("Insecure") = Insecure
-  oRet("EnableRedirects") = EnableRedirects
-  oRet("Body") = Body
-  Set CreateOptions = oRet
+  With stdError.getSentry("stdHTTP#CreateOptions", "Body", Body, "Headers", Headers, "Cookies", Cookies, "ContentTypeDefault", ContentTypeDefault, "Insecure", Insecure, "EnableRedirects", EnableRedirects, "TimeoutMS", TimeoutMS, "Proxy", Proxy)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim oRet As Object
+      Set oRet = CreateObject("Scripting.Dictionary")
+      oRet.CompareMode = vbTextCompare
+      
+      If Headers Is Nothing Then Set Headers = CreateHeaders()
+      If Not Headers.Exists("Content-Type") Then
+        Dim sContentType As String
+        If (ContentTypeDefault And ContentType_HTML) = ContentType_HTML Then sContentType = sContentType & "; text/html"
+        If (ContentTypeDefault And ContentType_Plain) = ContentType_Plain Then sContentType = sContentType & "; text/plain"
+        If (ContentTypeDefault And ContentType_JSON) = ContentType_JSON Then sContentType = sContentType & "; application/json"
+        If (ContentTypeDefault And ContentType_XML) = ContentType_XML Then sContentType = sContentType & "; application/xml; text/xml"
+        If (ContentTypeDefault And ContentType_CSV) = ContentType_CSV Then sContentType = sContentType & "; text/csv"
+        If (ContentTypeDefault And ContentType_ZIP) = ContentType_ZIP Then sContentType = sContentType & "; application/zip"
+        If (ContentTypeDefault And ContentType_Binary) = ContentType_Binary Then sContentType = sContentType & "; application/octet-stream"
+        If sContentType <> "" Then Headers("Content-Type") = Mid(sContentType, 3)
+      End If
+      Set oRet("Headers") = Headers
+      
+      If Cookies Is Nothing Then Set Cookies = CreateHeaders()
+      Set oRet("Cookies") = Cookies
+      
+      If Proxy Is Nothing Then
+        Set oRet("Proxy") = CreateProxy(ProxyTypeAuto)
+      Else
+        Set oRet("Proxy") = Proxy
+      End If
+    
+      oRet("TimeoutMS") = TimeoutMS
+      oRet("Insecure") = Insecure
+      oRet("EnableRedirects") = EnableRedirects
+      oRet("Body") = Body
+      Set CreateOptions = oRet
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Obtain proxy information
@@ -363,126 +387,222 @@ End Function
 '@param pass - Password for proxy server authentication
 '@returns - Proxy information object
 Public Function CreateProxy(ByVal proxyType As EHTTPProxyType, Optional ByVal Server As String, Optional ByVal ByPass As String, Optional ByVal User As String, Optional ByVal Pass As String)
-  Dim oRet As Object
-  Set oRet = CreateObject("Scripting.Dictionary")
-  oRet.CompareMode = vbTextCompare
-  
-  Select Case proxyType
-    Case ProxyTypeAuto
-      'Loads the system proxy settings for a given URL at runtime
-      oRet("hasAutoProxy") = True
-    Case ProxyTypeManual
-      oRet("hasAutoProxy") = False
-      oRet("hasProxy") = True
-      oRet("server") = Server
-      oRet("bypass") = ByPass
-      oRet("user") = User
-      oRet("pass") = Pass
-    Case ProxyTypeNone
-      oRet("hasAutoProxy") = False
-      oRet("hasProxy") = False
-  End Select
-
-  Set CreateProxy = oRet
+  With stdError.getSentry("stdHTTP#CreateProxy", "proxyType", proxyType, "Server", Server, "ByPass", ByPass, "User", User, "Pass", Pass)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim oRet As Object
+      Set oRet = CreateObject("Scripting.Dictionary")
+      oRet.CompareMode = vbTextCompare
+      
+      Select Case proxyType
+        Case ProxyTypeAuto
+          'Loads the system proxy settings for a given URL at runtime
+          oRet("hasAutoProxy") = True
+        Case ProxyTypeManual
+          oRet("hasAutoProxy") = False
+          oRet("hasProxy") = True
+          oRet("server") = Server
+          oRet("bypass") = ByPass
+          oRet("user") = User
+          oRet("pass") = Pass
+        Case ProxyTypeNone
+          oRet("hasAutoProxy") = False
+          oRet("hasProxy") = False
+      End Select
+    
+      Set CreateProxy = oRet
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Await for the request to finish. This is only necessary for asynchronous requests.
 '@returns - The request/response object
 Public Function Await() As stdHTTP
-  Set Await = Me
-  While Not isFinished
-    if This.TimeoutMS > 0 Then
-      If DateDiff("s", This.Created, Now()) > This.TimeoutMS / 1000 Then
-        Err.Raise 10000, "stdHTTP", "Timeout"
-        Exit Function
-      End If
-    End If
-    VBA.DoEvents
-  Wend
+  With stdError.getSentry("stdHTTP#Await")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Set Await = Me
+      While Not isFinished
+        if This.TimeoutMS > 0 Then
+          If DateDiff("s", This.Created, Now()) > This.TimeoutMS / 1000 Then
+            Err_Raise 10000, "stdHTTP", "Timeout"
+            Exit Function
+          End If
+        End If
+        VBA.DoEvents
+      Wend
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Get whether the request has finished. This is only necessary for asynchronous requests.
 '@returns - `True` if the request has finished, `False` otherwise.
 Public Property Get isFinished() As Boolean
-  On Error GoTo Skip 'Sometimes `responseBody` and `status` isn't ready yet. So will skip if so
-  If This.HTTP.status = 202 Then 'No content
-    isFinished = True
-  Else
-    isFinished = This.HTTP.WaitForResponse(0.001) And This.HTTP.ResponseBody()(0) >= 0
-  End If
-  Exit Property
-Skip:
-  If Err.Description Like "The data necessary to complete this operation is not yet available*" Then Exit Property
-  
-  Debug.Print "Error in stdHTTP#isFinished: '" & Err.Description & "'"
+  With stdError.getSentry("stdHTTP#isFinished[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      On Error GoTo Skip 'Sometimes `responseBody` and `status` isn't ready yet. So will skip if so
+      If This.HTTP.status = 202 Then 'No content
+        isFinished = True
+      Else
+        isFinished = This.HTTP.WaitForResponse(0.001) And This.HTTP.ResponseBody()(0) >= 0
+      End If
+      Exit Property
+    Skip:
+      If Err.Description Like "The data necessary to complete this operation is not yet available*" Then Exit Property
+      
+      Debug.Print "Error in stdHTTP#isFinished: '" & Err.Description & "'"
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get the response status code
 '@returns - The response status code
 Public Property Get ResponseStatus()
-  On Error GoTo Processing
-  ResponseStatus = This.HTTP.status
-  Exit Property
-Processing:
-  ResponseStatus = 0
+  With stdError.getSentry("stdHTTP#ResponseStatus[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      On Error GoTo Processing
+      ResponseStatus = This.HTTP.status
+      Exit Property
+    Processing:
+      ResponseStatus = 0
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get the response status text
 '@returns - The response status text
 Public Property Get ResponseStatusText()
-  On Error GoTo Skip
-  ResponseStatusText = This.HTTP.StatusText
-  Exit Property
-Skip:
-  Dim sErrDescription As String: sErrDescription = Err.Description
-  Select Case sErrDescription
-    Case "The data necessary to complete this operation is not yet available." & vbCrLf: ResponseStatusText = "Awaiting Response"
-    Case Else: ResponseStatusText = "Error: " & sErrDescription
-  End Select
+  With stdError.getSentry("stdHTTP#ResponseStatusText[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      On Error GoTo Skip
+      ResponseStatusText = This.HTTP.StatusText
+      Exit Property
+    Skip:
+      Dim sErrDescription As String: sErrDescription = Err.Description
+      Select Case sErrDescription
+        Case "The data necessary to complete this operation is not yet available." & vbCrLf: ResponseStatusText = "Awaiting Response"
+        Case Else: ResponseStatusText = "Error: " & sErrDescription
+      End Select
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get the response text
 '@returns - The response text
 Public Property Get ResponseText()
-  ResponseText = This.HTTP.ResponseText
+  With stdError.getSentry("stdHTTP#ResponseText[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      ResponseText = This.HTTP.ResponseText
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get the response body
 '@returns - The response body
 Public Property Get ResponseBody()
-  ResponseBody = This.HTTP.ResponseBody
+  With stdError.getSentry("stdHTTP#ResponseBody[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      ResponseBody = This.HTTP.ResponseBody
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get a response header by name
 '@param sHeader - The name of the header to get
 '@returns - The response header
 Public Property Get ResponseHeader(ByVal sHeader As String) As Variant
-  If IsObject(This.HTTP.GetResponseHeader(sHeader)) Then
-    Set ResponseHeader = This.HTTP.GetResponseHeader(sHeader)
-  Else
-    ResponseHeader = This.HTTP.GetResponseHeader(sHeader)
-  End If
+  With stdError.getSentry("stdHTTP#ResponseHeader[Get]", "sHeader", sHeader)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If IsObject(This.HTTP.GetResponseHeader(sHeader)) Then
+        Set ResponseHeader = This.HTTP.GetResponseHeader(sHeader)
+      Else
+        ResponseHeader = This.HTTP.GetResponseHeader(sHeader)
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get all response headers
 '@returns - All response headers
 Public Property Get ResponseHeaders() As Object
-  Set ResponseHeaders = This.HTTP.GetAllResponseHeaders
+  With stdError.getSentry("stdHTTP#ResponseHeaders[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Set ResponseHeaders = This.HTTP.GetAllResponseHeaders
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get the mapped response
 Public Property Get ResponseMapped() As Variant
-  If This.ResponseMapper Is Nothing Then Err.Raise 1, "", "No response mapper provided"
-  Dim oMe As Object: Set oMe = Me
-  Call CopyVariant(ResponseMapped, This.ResponseMapper.Run(oMe))
+  With stdError.getSentry("stdHTTP#ResponseMapped[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If This.ResponseMapper Is Nothing Then Err_Raise 1, "", "No response mapper provided"
+      Dim oMe As Object: Set oMe = Me
+      Call CopyVariant(ResponseMapped, This.ResponseMapper.Run(oMe))
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get/Set the response mapper. This callback will run when ResponeMapped() is called. This would usually be used to convert the response to a JSON/XML VBA object.
 Public Property Get ResponseMapper() As stdICallable
-  Set ResponseMapper = This.ResponseMapper
+  With stdError.getSentry("stdHTTP#ResponseMapper[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Set ResponseMapper = This.ResponseMapper
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 Public Property Set ResponseMapper(ByVal v As stdICallable)
-  Set This.ResponseMapper = v
+  With stdError.getSentry("stdHTTP#ResponseMapper[Set]", "v", v)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Set This.ResponseMapper = v
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Initialize the request
@@ -493,55 +613,63 @@ End Property
 '@param Options as Object<Dictionary> - Use `stdHTTP.CreateOptions()` to generate these.
 '@param Authenticator as stdICallable<(HTTP: Object, RequestMethod: String, URL: String, ThreadingStyle: Long, options: Object)=>Void> - A callable object which will be called before the request is sent. This can be used to add authentication headers, etc.
 Friend Sub protInit(ByVal sURL As String, Optional ByVal RequestMethod As String = "GET", Optional ByVal ThreadingStyle As EHTTPSynchronisity, Optional ByVal options As Object = Nothing, Optional ByVal Authenticator As stdICallable = Nothing)
-  If options Is Nothing Then Set options = CreateOptions()
-  Set This.HTTP = CreateObject("WinHttp.WinHttpRequest.5.1")
-  This.HTTP.Open RequestMethod, sURL, True
-  This.HTTP.SetTimeouts options("TimeoutMS") / 4, options("TimeoutMS") / 4, options("TimeoutMS") / 4, options("TimeoutMS") / 4
-  
-  'Set proxy info
-  With options("Proxy")
-    If .item("hasAutoProxy") Then Call LoadAutoProxy(sURL, options("Proxy"))
-    If .item("hasProxy") Then
-      'See http://msdn.microsoft.com/en-us/library/windows/desktop/aa384059(v=vs.85).aspx for details
-      This.HTTP.SetProxy ProxySetting.Proxy, .item("Server"), .item("Bypass")
-      If .item("User") <> vbNullString Then
-        This.HTTP.SetCredentials .item("User"), .item("Pass"), SetCredentialsType.ForProxy
+  With stdError.getSentry("stdHTTP#protInit", "sURL", sURL, "RequestMethod", RequestMethod, "ThreadingStyle", ThreadingStyle, "options", options, "Authenticator", Authenticator)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If options Is Nothing Then Set options = CreateOptions()
+      Set This.HTTP = CreateObject("WinHttp.WinHttpRequest.5.1")
+      This.HTTP.Open RequestMethod, sURL, True
+      This.HTTP.SetTimeouts options("TimeoutMS") / 4, options("TimeoutMS") / 4, options("TimeoutMS") / 4, options("TimeoutMS") / 4
+      
+      'Set proxy info
+      With options("Proxy")
+        If .item("hasAutoProxy") Then Call LoadAutoProxy(sURL, options("Proxy"))
+        If .item("hasProxy") Then
+          'See http://msdn.microsoft.com/en-us/library/windows/desktop/aa384059(v=vs.85).aspx for details
+          This.HTTP.SetProxy ProxySetting.Proxy, .item("Server"), .item("Bypass")
+          If .item("User") <> vbNullString Then
+            This.HTTP.SetCredentials .item("User"), .item("Pass"), SetCredentialsType.ForProxy
+          End If
+        Else
+          'Use Proxycfg.exe
+          This.HTTP.SetProxy ProxySetting.PreConfig
+        End If
+      End With
+    
+      If options("Insecure") Then
+        This.HTTP.Option(WinHttpRequestOption.EnableCertificateRevocationCheck) = False
+        This.HTTP.Option(WinHttpRequestOption.SslErrorIgnoreFlags) = 13056
+        This.HTTP.Option(WinHttpRequestOption.EnableHttpsToHttpRedirects) = True
+      Else
+        This.HTTP.Option(WinHttpRequestOption.EnableCertificateRevocationCheck) = True
+        This.HTTP.Option(WinHttpRequestOption.SslErrorIgnoreFlags) = 0
+        This.HTTP.Option(WinHttpRequestOption.EnableHttpsToHttpRedirects) = False
       End If
-    Else
-      'Use Proxycfg.exe
-      This.HTTP.SetProxy ProxySetting.PreConfig
-    End If
+      This.HTTP.Option(WinHttpRequestOption.EnableRedirects) = options("EnableRedirects")
+      
+      Dim vKey
+      For Each vKey In options("Headers").keys()
+        This.HTTP.SetRequestHeader vKey, options("Headers")(vKey)
+      Next
+      For Each vKey In options("Cookies").keys()
+        This.HTTP.SetRequestHeader "Cookie", vKey & "=" & options("Cookies")(vKey)
+      Next
+      
+      'Allow authenticators
+      If Not Authenticator Is Nothing Then Call Authenticator.Run(This.HTTP, RequestMethod, sURL, ThreadingStyle, options)
+      
+      'Execute request
+      This.Created = Now()
+      This.TimeoutMS = options("TimeoutMS")
+      This.HTTP.Send options("Body")
+    
+      'Await for the request to finish if synchronous
+      if ThreadingStyle = HTTPSync Then Call Await
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
   End With
-
-  If options("Insecure") Then
-    This.HTTP.Option(WinHttpRequestOption.EnableCertificateRevocationCheck) = False
-    This.HTTP.Option(WinHttpRequestOption.SslErrorIgnoreFlags) = 13056
-    This.HTTP.Option(WinHttpRequestOption.EnableHttpsToHttpRedirects) = True
-  Else
-    This.HTTP.Option(WinHttpRequestOption.EnableCertificateRevocationCheck) = True
-    This.HTTP.Option(WinHttpRequestOption.SslErrorIgnoreFlags) = 0
-    This.HTTP.Option(WinHttpRequestOption.EnableHttpsToHttpRedirects) = False
-  End If
-  This.HTTP.Option(WinHttpRequestOption.EnableRedirects) = options("EnableRedirects")
-  
-  Dim vKey
-  For Each vKey In options("Headers").keys()
-    This.HTTP.SetRequestHeader vKey, options("Headers")(vKey)
-  Next
-  For Each vKey In options("Cookies").keys()
-    This.HTTP.SetRequestHeader "Cookie", vKey & "=" & options("Cookies")(vKey)
-  Next
-  
-  'Allow authenticators
-  If Not Authenticator Is Nothing Then Call Authenticator.Run(This.HTTP, RequestMethod, sURL, ThreadingStyle, options)
-  
-  'Execute request
-  This.Created = Now()
-  This.TimeoutMS = options("TimeoutMS")
-  This.HTTP.Send options("Body")
-
-  'Await for the request to finish if synchronous
-  if ThreadingStyle = HTTPSync Then Call Await
 End Sub
 
 'Get the HSesssion
@@ -552,54 +680,78 @@ Friend Property Get protHSession() As LongPtr
 #Else
 Friend Property Get protHSession() As Long
 #End If
-  If Me Is stdHTTP Then
-    Static hSession As LongPtr: If hSession = 0 Then hSession = WinHttpOpen(0, 1, 0, 0, 0)
-    protHSession = hSession
-  Else
-    protHSession = stdHTTP.protHSession
-  End If
+  With stdError.getSentry("stdHTTP#protHSession[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Me Is stdHTTP Then
+        Static hSession As LongPtr: If hSession = 0 Then hSession = WinHttpOpen(0, 1, 0, 0, 0)
+        protHSession = hSession
+      Else
+        protHSession = stdHTTP.protHSession
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Encode a string for use in a URL
 '@param strInput - The string to encode
 '@returns - The encoded string
 Public Function URIEncode(ByVal strInput As String) As String
-  Dim bytInput() As Byte
-  Dim strOutput As String
-  Dim i As Long
-
-  bytInput = StrConv(strInput, vbFromUnicode)
-
-  strOutput = ""
-  For i = 0 To UBound(bytInput)
-    If (bytInput(i) >= 48 And bytInput(i) <= 57) Or _
-       (bytInput(i) >= 65 And bytInput(i) <= 90) Or _
-       (bytInput(i) >= 97 And bytInput(i) <= 122) Then
-      strOutput = strOutput & Chr(bytInput(i))
-    Else
-      strOutput = strOutput & "%" & Right("0" & Hex(bytInput(i)), 2)
-    End If
-  Next i
-
-  URIEncode = strOutput
+  With stdError.getSentry("stdHTTP#URIEncode", "strInput", strInput)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim bytInput() As Byte
+      Dim strOutput As String
+      Dim i As Long
+    
+      bytInput = StrConv(strInput, vbFromUnicode)
+    
+      strOutput = ""
+      For i = 0 To UBound(bytInput)
+        If (bytInput(i) >= 48 And bytInput(i) <= 57) Or _
+           (bytInput(i) >= 65 And bytInput(i) <= 90) Or _
+           (bytInput(i) >= 97 And bytInput(i) <= 122) Then
+          strOutput = strOutput & Chr(bytInput(i))
+        Else
+          strOutput = strOutput & "%" & Right("0" & Hex(bytInput(i)), 2)
+        End If
+      Next i
+    
+      URIEncode = strOutput
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Decode a string from a URL
 '@param strInput - The string to decode
 '@returns - The decoded string
 Public Function URIDecode(ByVal strInput As String) As String
-    Dim strOutput As String: strOutput = ""
-    Dim intPos As Long: intPos = 1
-    Do Until intPos > Len(strInput)
-        If Mid$(strInput, intPos, 1) = "%" Then
-            strOutput = strOutput & Chr(CLng("&H" & Mid$(strInput, intPos + 1, 2)))
-            intPos = intPos + 3
-        Else
-            strOutput = strOutput & Mid$(strInput, intPos, 1)
-            intPos = intPos + 1
-        End If
-    Loop
-    URIDecode = strOutput
+  With stdError.getSentry("stdHTTP#URIDecode", "strInput", strInput)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim strOutput As String: strOutput = ""
+        Dim intPos As Long: intPos = 1
+        Do Until intPos > Len(strInput)
+            If Mid$(strInput, intPos, 1) = "%" Then
+                strOutput = strOutput & Chr(CLng("&H" & Mid$(strInput, intPos + 1, 2)))
+                intPos = intPos + 3
+            Else
+                strOutput = strOutput & Mid$(strInput, intPos, 1)
+                intPos = intPos + 1
+            End If
+        Loop
+        URIDecode = strOutput
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 
@@ -624,136 +776,152 @@ End Function
 '@param sURL - The url to query
 '@param oProxy - The proxy object to load the settings into
 Private Sub LoadAutoProxy(ByVal sURL As String, ByVal oProxy As Object)
-  Dim info As ProxyInfoEx: info = GetProxyCurrentUser(sURL)
-  If Not info.Error.isSet Then
-    'FIX: Sometimes proxy server is empty without the error being set. Ignore these proxys.
-    oProxy("hasProxy") = (info.ProxyServer <> "")
-    oProxy("server") = info.ProxyServer
-    oProxy("bypass") = info.ProxyBypass
-    oProxy("user") = Empty  'TODO: Check if user/pass credentials with auto-proxy will ever be needed
-    oProxy("pass") = Empty
-  Else
-    If info.Error.isRecoverable Then
-      'Assume no proxy
-      oProxy("hasProxy") = False
-    Else
-      Err.Raise info.Error.Num, "stdHTTP", info.Error.Msg
-    End If
-  End If
+  With stdError.getSentry("stdHTTP#LoadAutoProxy", "sURL", sURL, "oProxy", oProxy)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim info As ProxyInfoEx: info = GetProxyCurrentUser(sURL)
+      If Not info.Error.isSet Then
+        'FIX: Sometimes proxy server is empty without the error being set. Ignore these proxys.
+        oProxy("hasProxy") = (info.ProxyServer <> "")
+        oProxy("server") = info.ProxyServer
+        oProxy("bypass") = info.ProxyBypass
+        oProxy("user") = Empty  'TODO: Check if user/pass credentials with auto-proxy will ever be needed
+        oProxy("pass") = Empty
+      Else
+        If info.Error.isRecoverable Then
+          'Assume no proxy
+          oProxy("hasProxy") = False
+        Else
+          Err_Raise info.Error.Num, "stdHTTP", info.Error.Msg
+        End If
+      End If
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Get the system proxy settings for a given URL
 '@param sURL - The url to query
 '@returns - The proxy information struct
 Private Function GetProxyCurrentUser(ByVal sURL As String) As ProxyInfoEx
-  ' Constants for dwFlags of AUTOPROXY_OPTIONS
-  Const AUTO_DETECT = 1
-  Const CONFIG_URL = 2
-  
-  ' Constants for dwAutoDetectFlags
-  Const DETECT_TYPE_DHCP = 1
-  Const DETECT_TYPE_DNS = 2
-  
-  Dim AutoProxyOptions As AUTOPROXY_OPTIONS
-  AutoProxyOptions.fAutoLogonIfChallenged = 1
-  
-  ' WinHttpGetProxyForUrl returns unexpected errors if Url is empty
-  If sURL = "" Then sURL = " "
-  
-  On Error GoTo Cleanup
-  
-  'Check IE's proxy configuration
-  Dim IEProxyConfig As IE_PROXY_CONFIG, doAutoProxy As Boolean
-  If WinHttpGetIEProxyConfigForCurrentUser(IEProxyConfig) > 0 Then
-    'If IE is configured to auto-detect, then we will too.
-    If IEProxyConfig.fAutoDetect <> 0 Then
-      With AutoProxyOptions
-        .dwFlags = AUTO_DETECT
-        .dwAutoDetectFlags = DETECT_TYPE_DHCP Or DETECT_TYPE_DNS
+  With stdError.getSentry("stdHTTP#GetProxyCurrentUser", "sURL", sURL)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      ' Constants for dwFlags of AUTOPROXY_OPTIONS
+      Const AUTO_DETECT = 1
+      Const CONFIG_URL = 2
+      
+      ' Constants for dwAutoDetectFlags
+      Const DETECT_TYPE_DHCP = 1
+      Const DETECT_TYPE_DNS = 2
+      
+      Dim AutoProxyOptions As AUTOPROXY_OPTIONS
+      AutoProxyOptions.fAutoLogonIfChallenged = 1
+      
+      ' WinHttpGetProxyForUrl returns unexpected errors if Url is empty
+      If sURL = "" Then sURL = " "
+      
+      On Error GoTo Cleanup
+      
+      'Check IE's proxy configuration
+      Dim IEProxyConfig As IE_PROXY_CONFIG, doAutoProxy As Boolean
+      If WinHttpGetIEProxyConfigForCurrentUser(IEProxyConfig) > 0 Then
+        'If IE is configured to auto-detect, then we will too.
+        If IEProxyConfig.fAutoDetect <> 0 Then
+          With AutoProxyOptions
+            .dwFlags = AUTO_DETECT
+            .dwAutoDetectFlags = DETECT_TYPE_DHCP Or DETECT_TYPE_DNS
+          End With
+          doAutoProxy = True
+        End If
+        
+        'If IE is configured to use an auto-config script, then we will use it too
+        If (IEProxyConfig.lpszAutoConfigUrl <> 0) Then
+          With AutoProxyOptions
+            .dwFlags = .dwFlags Or CONFIG_URL
+            .lpszAutoConfigUrl = IEProxyConfig.lpszAutoConfigUrl
+          End With
+          doAutoProxy = True
+        End If
+      Else
+        ' If the IE proxy config is not available, then we will try auto-detection
+        With AutoProxyOptions
+          .dwFlags = AUTO_DETECT
+          .dwAutoDetectFlags = DETECT_TYPE_DHCP Or DETECT_TYPE_DNS
+        End With
+        doAutoProxy = True
+      End If
+      
+      If doAutoProxy Then
+        On Error GoTo TryIEFallback
+        
+        ' Get proxy information
+        Dim ProxyInfo As PROXY_INFO
+        If WinHttpGetProxyForUrl(protHSession, StrPtr(sURL), AutoProxyOptions, ProxyInfo) > 0 Then
+          Dim ProxyStringPtr As LongPtr
+          ProxyStringPtr = ProxyInfo.lpszProxy
+        Else
+          Dim ProxyErrorNum As WINHTTP_ERROR, ProxyErrorMsg As String
+          ProxyErrorNum = Err.LastDllError
+          GetProxyCurrentUser.Error.isSet = True
+          GetProxyCurrentUser.Error.Num = ProxyErrorNum
+          Select Case ProxyErrorNum
+            Case ERROR_WINHTTP_INVALID_PARAMETER, ERROR_WINHTTP_AUTO_PROXY_SERVICE_ERROR, ERROR_WINHTTP_AUTODETECTION_FAILED, ERROR_WINHTTP_BAD_AUTO_PROXY_SCRIPT, _
+                 ERROR_WINHTTP_LOGIN_FAILURE, ERROR_WINHTTP_OPERATION_CANCELLED, ERROR_WINHTTP_TIMEOUT, ERROR_WINHTTP_UNABLE_TO_DOWNLOAD_SCRIPT, ERROR_WINHTTP_UNRECOGNIZED_SCHEME
+              GetProxyCurrentUser.Error.isRecoverable = True
+          End Select
+          Select Case ProxyErrorNum
+            Case ERROR_WINHTTP_AUTODETECTION_FAILED
+              GetProxyCurrentUser.Error.Msg = "WPAD detection failed"
+            Case ERROR_WINHTTP_UNABLE_TO_DOWNLOAD_SCRIPT
+              GetProxyCurrentUser.Error.Msg = "Unable to download proxy auto-config script"
+            Case ERROR_WINHTTP_BAD_AUTO_PROXY_SCRIPT
+              GetProxyCurrentUser.Error.Msg = "Error in proxy auto-config script"
+            Case ERROR_WINHTTP_AUTO_PROXY_SERVICE_ERROR
+              GetProxyCurrentUser.Error.Msg = "No proxy can be located for the specified URL"
+            Case ERROR_WINHTTP_INVALID_URL, ERROR_WINHTTP_UNRECOGNIZED_SCHEME
+              GetProxyCurrentUser.Error.Msg = "Specified URL is not valid"
+            Case Else
+              GetProxyCurrentUser.Error.Msg = "Unknown error while detecting proxy"
+          End Select
+        End If
+      End If
+      
+    TryIEFallback:
+      On Error GoTo Cleanup
+      
+      'If we don't have a proxy server from WinHTTPGetProxyForUrl then pick one up from the IE proxy config (if given)
+      If ProxyStringPtr = 0 Then ProxyStringPtr = IEProxyConfig.lpszProxy
+      
+      Dim ptr As LongPtr
+      
+      'If theres a proxy string, convert it to a VBA string
+      If ProxyStringPtr <> 0 Then
+        ptr = SysAllocString(ProxyStringPtr)
+        Call CopyMemory(VarPtr(GetProxyCurrentUser.ProxyServer), VarPtr(ptr), PTR_SIZE)
+        Call SysFreeString(ptr)
+      End If
+      
+      'Pick up any bypass string from IEProxyConfig
+      If IEProxyConfig.lpszProxyBypass <> 0 Then
+        ptr = SysAllocString(IEProxyConfig.lpszProxyBypass)
+        Call CopyMemory(VarPtr(GetProxyCurrentUser.ProxyBypass), VarPtr(ptr), PTR_SIZE)
+        Call SysFreeString(ptr)
+      End If
+        
+    Cleanup:
+      'Cleanup proxy config
+      With IEProxyConfig
+        If .lpszAutoConfigUrl <> 0 Then Call GlobalFree(.lpszAutoConfigUrl)
+        If .lpszProxy <> 0 Then Call GlobalFree(.lpszProxy)
+        If .lpszProxyBypass <> 0 Then Call GlobalFree(.lpszProxyBypass)
       End With
-      doAutoProxy = True
-    End If
     
-    'If IE is configured to use an auto-config script, then we will use it too
-    If (IEProxyConfig.lpszAutoConfigUrl <> 0) Then
-      With AutoProxyOptions
-        .dwFlags = .dwFlags Or CONFIG_URL
-        .lpszAutoConfigUrl = IEProxyConfig.lpszAutoConfigUrl
-      End With
-      doAutoProxy = True
-    End If
-  Else
-    ' If the IE proxy config is not available, then we will try auto-detection
-    With AutoProxyOptions
-      .dwFlags = AUTO_DETECT
-      .dwAutoDetectFlags = DETECT_TYPE_DHCP Or DETECT_TYPE_DNS
-    End With
-    doAutoProxy = True
-  End If
-  
-  If doAutoProxy Then
-    On Error GoTo TryIEFallback
-    
-    ' Get proxy information
-    Dim ProxyInfo As PROXY_INFO
-    If WinHttpGetProxyForUrl(protHSession, StrPtr(sURL), AutoProxyOptions, ProxyInfo) > 0 Then
-      Dim ProxyStringPtr As LongPtr
-      ProxyStringPtr = ProxyInfo.lpszProxy
-    Else
-      Dim ProxyErrorNum As WINHTTP_ERROR, ProxyErrorMsg As String
-      ProxyErrorNum = Err.LastDllError
-      GetProxyCurrentUser.Error.isSet = True
-      GetProxyCurrentUser.Error.Num = ProxyErrorNum
-      Select Case ProxyErrorNum
-        Case ERROR_WINHTTP_INVALID_PARAMETER, ERROR_WINHTTP_AUTO_PROXY_SERVICE_ERROR, ERROR_WINHTTP_AUTODETECTION_FAILED, ERROR_WINHTTP_BAD_AUTO_PROXY_SCRIPT, _
-             ERROR_WINHTTP_LOGIN_FAILURE, ERROR_WINHTTP_OPERATION_CANCELLED, ERROR_WINHTTP_TIMEOUT, ERROR_WINHTTP_UNABLE_TO_DOWNLOAD_SCRIPT, ERROR_WINHTTP_UNRECOGNIZED_SCHEME
-          GetProxyCurrentUser.Error.isRecoverable = True
-      End Select
-      Select Case ProxyErrorNum
-        Case ERROR_WINHTTP_AUTODETECTION_FAILED
-          GetProxyCurrentUser.Error.Msg = "WPAD detection failed"
-        Case ERROR_WINHTTP_UNABLE_TO_DOWNLOAD_SCRIPT
-          GetProxyCurrentUser.Error.Msg = "Unable to download proxy auto-config script"
-        Case ERROR_WINHTTP_BAD_AUTO_PROXY_SCRIPT
-          GetProxyCurrentUser.Error.Msg = "Error in proxy auto-config script"
-        Case ERROR_WINHTTP_AUTO_PROXY_SERVICE_ERROR
-          GetProxyCurrentUser.Error.Msg = "No proxy can be located for the specified URL"
-        Case ERROR_WINHTTP_INVALID_URL, ERROR_WINHTTP_UNRECOGNIZED_SCHEME
-          GetProxyCurrentUser.Error.Msg = "Specified URL is not valid"
-        Case Else
-          GetProxyCurrentUser.Error.Msg = "Unknown error while detecting proxy"
-      End Select
-    End If
-  End If
-  
-TryIEFallback:
-  On Error GoTo Cleanup
-  
-  'If we don't have a proxy server from WinHTTPGetProxyForUrl then pick one up from the IE proxy config (if given)
-  If ProxyStringPtr = 0 Then ProxyStringPtr = IEProxyConfig.lpszProxy
-  
-  Dim ptr As LongPtr
-  
-  'If theres a proxy string, convert it to a VBA string
-  If ProxyStringPtr <> 0 Then
-    ptr = SysAllocString(ProxyStringPtr)
-    Call CopyMemory(VarPtr(GetProxyCurrentUser.ProxyServer), VarPtr(ptr), PTR_SIZE)
-    Call SysFreeString(ptr)
-  End If
-  
-  'Pick up any bypass string from IEProxyConfig
-  If IEProxyConfig.lpszProxyBypass <> 0 Then
-    ptr = SysAllocString(IEProxyConfig.lpszProxyBypass)
-    Call CopyMemory(VarPtr(GetProxyCurrentUser.ProxyBypass), VarPtr(ptr), PTR_SIZE)
-    Call SysFreeString(ptr)
-  End If
-    
-Cleanup:
-  'Cleanup proxy config
-  With IEProxyConfig
-    If .lpszAutoConfigUrl <> 0 Then Call GlobalFree(.lpszAutoConfigUrl)
-    If .lpszProxy <> 0 Then Call GlobalFree(.lpszProxy)
-    If .lpszProxyBypass <> 0 Then Call GlobalFree(.lpszProxyBypass)
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
   End With
 End Function
 
@@ -761,9 +929,22 @@ End Function
 '@param dest - Destination to copy variant to
 '@param src - Source to copy variant from
 Private Sub CopyVariant(ByRef dest As Variant, ByVal src As Variant)
-  If IsObject(src) Then
-    Set dest = src
-  Else
-    Let dest = src
-  End If
+  With stdError.getSentry("stdHTTP#CopyVariant", "dest", dest, "src", src)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If IsObject(src) Then
+        Set dest = src
+      Else
+        Let dest = src
+      End If
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
+End Sub
+
+
+Private Sub Err_Raise(ByVal number as Long, Optional ByVal source as string = "", Optional ByVal description as string = "")
+  Call stdError.Raise(description)
 End Sub

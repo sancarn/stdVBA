@@ -595,11 +595,19 @@ Public Function Create(ByVal sClassName As String, ByVal x As Long, ByVal y As L
 #Else
 Public Function Create(ByVal sClassName As String, ByVal x As Long, ByVal y As Long, ByVal width As Long, ByVal height As Long, Optional ByVal sCaption As String = vbNullString, Optional ByVal dwStyle As Long = WS_POPUP, Optional ByVal dwStyleEx As Long = 0, Optional ByVal hWndParent As Long = 0, Optional ByVal hMenu As Long = 0, Optional ByVal hInstance As Long = 0, Optional ByVal lpParam As Long = 0) As stdWindow
 #End If
-  Dim hwnd As LongPtr: hwnd = CreateWindowEx(dwStyleEx, sClassName, sCaption, dwStyle, x, y, width, height, hWndParent, hMenu, hInstance, lpParam)
-  If hwnd = 0 Then Err.Raise 1, "Create", "Failed to create window."
-  
-  Set Create = New stdWindow
-  Call Create.protInit(hwnd, True)
+  With stdError.getSentry("stdWindow#Create", "sClassName", sClassName, "x", x, "y", y, "width", width, "height", height, "sCaption", sCaption, "dwStyle", dwStyle, "dwStyleEx", dwStyleEx, "hWndParent", hWndParent, "hMenu", hMenu, "hInstance", hInstance, "lpParam", lpParam)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim hwnd As LongPtr: hwnd = CreateWindowEx(dwStyleEx, sClassName, sCaption, dwStyle, x, y, width, height, hWndParent, hMenu, hInstance, lpParam)
+      If hwnd = 0 Then Err_Raise 1, "Create", "Failed to create window."
+      
+      Set Create = New stdWindow
+      Call Create.protInit(hwnd, True)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Create a static popup window and return a window object
@@ -613,27 +621,43 @@ End Function
 '@returns           - The created highlighting box
 '@remark See [Creating a transparent window](https://stackoverflow.com/questions/3970066/creating-a-transparent-window-in-c-win32)
 Public Function CreateHighlightRect(ByVal x As Long, ByVal y As Long, ByVal width As Long, ByVal height As Long, Optional ByVal BorderWidth As Long = 5, Optional ByVal BorderColor As Long = 255) As stdWindow
-  Set CreateHighlightRect = Create("STATIC", x, y, width, height)
-  CreateHighlightRect.TransparentColor = RGB(255, 255, 255)
-  CreateHighlightRect.isClickThroughEnabled = True
-  CreateHighlightRect.Visible = True
-  Call UpdateWindow(CreateHighlightRect.handle)
-  
-  'Create highlighted border
-  Dim hDC As LongPtr: hDC = CreateHighlightRect.hDCClient
-  Dim hPen As LongPtr: hPen = CreatePen(0, BorderWidth, BorderColor)
-  SelectObject hDC, hPen
-  Rectangle hDC, 0, 0, width, height
-  SelectObject hDC, 0
-  DeleteObject hPen
-  Call ReleaseDC(CreateHighlightRect.handle, hDC)
+  With stdError.getSentry("stdWindow#CreateHighlightRect", "x", x, "y", y, "width", width, "height", height, "BorderWidth", BorderWidth, "BorderColor", BorderColor)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Set CreateHighlightRect = Create("STATIC", x, y, width, height)
+      CreateHighlightRect.TransparentColor = RGB(255, 255, 255)
+      CreateHighlightRect.isClickThroughEnabled = True
+      CreateHighlightRect.Visible = True
+      Call UpdateWindow(CreateHighlightRect.handle)
+      
+      'Create highlighted border
+      Dim hDC As LongPtr: hDC = CreateHighlightRect.hDCClient
+      Dim hPen As LongPtr: hPen = CreatePen(0, BorderWidth, BorderColor)
+      SelectObject hDC, hPen
+      Rectangle hDC, 0, 0, width, height
+      SelectObject hDC, 0
+      DeleteObject hPen
+      Call ReleaseDC(CreateHighlightRect.handle, hDC)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Whenever object is destroyed, destroy window if it was created by VBA
 Private Sub Class_Terminate()
-  If This.isCreatedByVBA Then
-    If This.Handle <> 0 Then Call DestroyWindow(This.Handle)
-  End If
+  With stdError.getSentry("stdWindow#Class_Terminate")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If This.isCreatedByVBA Then
+        If This.Handle <> 0 Then Call DestroyWindow(This.Handle)
+      End If
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Create a window object from an existing window handle
@@ -645,8 +669,16 @@ Public Function CreateFromHwnd(ByVal hwnd As LongPtr) As stdWindow
 #Else
 Public Function CreateFromHwnd(ByVal hwnd As Long) As stdWindow
 #End If
-  Set CreateFromHwnd = New stdWindow
-  Call CreateFromHwnd.protInit(hwnd)
+  With stdError.getSentry("stdWindow#CreateFromHwnd", "hwnd", hwnd)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Set CreateFromHwnd = New stdWindow
+      Call CreateFromHwnd.protInit(hwnd)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Creates an `stdWindow` object from the current running application (e.g. Excel / Word / Powerpoint).
@@ -656,30 +688,46 @@ End Function
 '@remark - This function is only implemented for Excel, Word and PowerPoint. For other applications, find the window with `stdWindow.CreateFromDesktop()` and then use `desktop.children` to find the required window object.
 'Alternatively you might be able to use CommandBars("Status Bar") for other applications, similar to that of PowerPoint, but this is untested.
 Public Function CreateFromApplication(Optional ByVal oApp As Object = Nothing) As stdWindow
-  If oApp Is Nothing Then Set oApp = Application
-  Select Case oApp.Name
-    Case "Microsoft Excel"
-      Set CreateFromApplication = CreateFromHwnd(oApp.hwnd)
-    Case "Microsoft Word"
-      Set CreateFromApplication = CreateFromHwnd(oApp.ActiveWindow.Hwnd)
-    Case "Microsoft PowerPoint"
-      Set CreateFromApplication = CreateFromIAccessible(oApp.CommandBars("Status Bar")).AncestralRoot
-    Case "Microsoft Access"
-      Set CreateFromApplication = CreateFromHwnd(oApp.hWndAccessApp)
-    Case "Outlook"
-      Set CreateFromApplication = CreateFromIAccessible(oApp.ActiveWindow.CommandBars("Status Bar")).AncestralRoot
-    Case "Microsoft Publisher"
-      Set CreateFromApplication = CreateFromIAccessible(oApp.CommandBars("Status Bar")).AncestralRoot
-    Case Else
-      Err.Raise 1, "stdAcc::CreateFromApplication()", "No implementation for getting application window of " & Application.Name
-  End Select
+  With stdError.getSentry("stdWindow#CreateFromApplication", "oApp", oApp)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If oApp Is Nothing Then Set oApp = Application
+      Select Case oApp.Name
+        Case "Microsoft Excel"
+          Set CreateFromApplication = CreateFromHwnd(oApp.hwnd)
+        Case "Microsoft Word"
+          Set CreateFromApplication = CreateFromHwnd(oApp.ActiveWindow.Hwnd)
+        Case "Microsoft PowerPoint"
+          Set CreateFromApplication = CreateFromIAccessible(oApp.CommandBars("Status Bar")).AncestralRoot
+        Case "Microsoft Access"
+          Set CreateFromApplication = CreateFromHwnd(oApp.hWndAccessApp)
+        Case "Outlook"
+          Set CreateFromApplication = CreateFromIAccessible(oApp.ActiveWindow.CommandBars("Status Bar")).AncestralRoot
+        Case "Microsoft Publisher"
+          Set CreateFromApplication = CreateFromIAccessible(oApp.CommandBars("Status Bar")).AncestralRoot
+        Case Else
+          Err_Raise 1, "stdAcc::CreateFromApplication()", "No implementation for getting application window of " & Application.Name
+      End Select
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Create a window from the desktop window
 '@constructor
 '@returns - Desktop window
 Public Function CreateFromDesktop() As stdWindow
-  Set CreateFromDesktop = CreateFromHwnd(GetDesktopWindow())
+  With stdError.getSentry("stdWindow#CreateFromDesktop")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Set CreateFromDesktop = CreateFromHwnd(GetDesktopWindow())
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 
@@ -689,8 +737,16 @@ End Function
 '@param y - Y of Point to find window at.
 '@returns - Window intersecting point.
 Public Function CreateFromPoint(ByVal x As Long, ByVal y As Long) As stdWindow
-  Set CreateFromPoint = New stdWindow
-  Call CreateFromPoint.protInit(WindowFromPoint(x, y))
+  With stdError.getSentry("stdWindow#CreateFromPoint", "x", x, "y", y)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Set CreateFromPoint = New stdWindow
+      Call CreateFromPoint.protInit(WindowFromPoint(x, y))
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 ''Create from Shell event
@@ -705,17 +761,25 @@ End Function
 '@remark - Uses IUserWindow::GetWindow() to get the window handle. This is implemented by `IOleWindow`, `IInternetSecurityMgrSite` and `IShellView`.
 '@remark - A `UserForm` is an example of an object which implements `IOleWindow`.
 Public Function CreateFromIUnknown(ByVal obj As IUnknown) As stdWindow
-  Dim hwnd As LongPtr
-  Dim hResult As Long
-  hResult = IUnknown_GetWindow(obj, VarPtr(hwnd))
-  If hResult = 0 Then
-    Set CreateFromIUnknown = New stdWindow
-    Call CreateFromIUnknown.protInit(hwnd)
-  ElseIf hResult = -2147467262 Then
-    Err.Raise 1, "CreateFromIUnknown", "This object does not implement IOleWindow, IInternetSecurityMgrSite or IShellView, and thus cannot retrieve the window assosciated with the object."
-  Else
-    Err.Raise 1, "CreateFromIUnknown", "An unknown error has occurred.", hResult
-  End If
+  With stdError.getSentry("stdWindow#CreateFromIUnknown", "obj", obj)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim hwnd As LongPtr
+      Dim hResult As Long
+      hResult = IUnknown_GetWindow(obj, VarPtr(hwnd))
+      If hResult = 0 Then
+        Set CreateFromIUnknown = New stdWindow
+        Call CreateFromIUnknown.protInit(hwnd)
+      ElseIf hResult = -2147467262 Then
+        Err_Raise 1, "CreateFromIUnknown", "This object does not implement IOleWindow, IInternetSecurityMgrSite or IShellView, and thus cannot retrieve the window assosciated with the object."
+      Else
+        Err_Raise 1, "CreateFromIUnknown", "An unknown error has occurred.", hResult
+      End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Create a window object from an IAccessible object
@@ -723,25 +787,41 @@ End Function
 '@param pAcc as IAccessible - Object which implements IAccessible
 '@returns - Window specified by IAccessible object
 Public Function CreateFromIAccessible(ByVal pAcc As IUnknown) As stdWindow
-  Dim hwnd As LongPtr
-  If WindowFromAccessibleObject(pAcc, hwnd) = 0 Then
-    Set CreateFromIAccessible = CreateFromHwnd(hwnd)
-  Else
-    Err.Raise 1, "CreateFromIAccessible", "Could not find window from IAccessible."
-  End If
+  With stdError.getSentry("stdWindow#CreateFromIAccessible", "pAcc", pAcc)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim hwnd As LongPtr
+      If WindowFromAccessibleObject(pAcc, hwnd) = 0 Then
+        Set CreateFromIAccessible = CreateFromHwnd(hwnd)
+      Else
+        Err_Raise 1, "CreateFromIAccessible", "Could not find window from IAccessible."
+      End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Create a window object from the context menu. There should only ever be 1 context menu on the system at one time.
 '@constructor
 '@returns - Window object representing the ContextMenu
 Public Function CreateFromContextMenu() As stdWindow
-  Dim hwnd As LongPtr
-  hwnd = FindWindowExA(Null, Null, MakeIntAtom(&H8000&), vbNullString)
-  If hwnd <> 0 Then
-    Set CreateFromContextMenu = CreateFromHwnd(hwnd)
-  Else
-    Set CreateFromContextMenu = Nothing
-  End If
+  With stdError.getSentry("stdWindow#CreateFromContextMenu")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim hwnd As LongPtr
+      hwnd = FindWindowExA(Null, Null, MakeIntAtom(&H8000&), vbNullString)
+      If hwnd <> 0 Then
+        Set CreateFromContextMenu = CreateFromHwnd(hwnd)
+      Else
+        Set CreateFromContextMenu = Nothing
+      End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Create window objects for all desktop windows which have a specified process ID
@@ -750,28 +830,44 @@ End Function
 '@returns - Collection of visible windows for the process
 '@remark - Functionally equivalent of `stdWindow.CreateFromDesktop().FindAll(stdLambda.Create("$2.exists and $2.visible and $2.ProcessID = $1").bind(processID), iStaticDepthLimit:=1)`
 Public Function CreateManyFromProcessId(ByVal processID As Long) As Collection
-  Dim ret As Collection: Set ret = New Collection
-  Dim win As stdWindow
-  For Each win In stdWindow.CreateFromDesktop().children
-    If win.Exists And win.Visible Then
-      If win.ProcessID = processID Then
-        ret.Add win
-      End If
-    End If
-  Next
-  Set CreateManyFromProcessId = ret
+  With stdError.getSentry("stdWindow#CreateManyFromProcessId", "processID", processID)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim ret As Collection: Set ret = New Collection
+      Dim win As stdWindow
+      For Each win In stdWindow.CreateFromDesktop().children
+        If win.Exists And win.Visible Then
+          If win.ProcessID = processID Then
+            ret.Add win
+          End If
+        End If
+      Next
+      Set CreateManyFromProcessId = ret
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Create window objects for all shell windows
 '@constructor
 '@returns Collection<stdWindow> - Collection of shell windows
 Public Function CreateManyFromShellWindows() As Collection
-  Set CreateManyFromShellWindows = New Collection
-  Dim shell: Set shell = CreateObject("Shell.Application")
-  Dim win As Object
-  For Each win In shell.windows
-    CreateManyFromShellWindows.Add CreateFromHwnd(win.hwnd)
-  Next
+  With stdError.getSentry("stdWindow#CreateManyFromShellWindows")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Set CreateManyFromShellWindows = New Collection
+      Dim shell: Set shell = CreateObject("Shell.Application")
+      Dim win As Object
+      For Each win In shell.windows
+        CreateManyFromShellWindows.Add CreateFromHwnd(win.hwnd)
+      Next
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Converts a stdWindow object to a stdAcc object
@@ -783,18 +879,34 @@ Public Function AsAcc() as stdAcc
 #Else
 Public Function AsAcc() As Object
 #End If
-  If IsObject(stdAcc) Then
-    Set AsAcc = stdAcc.CreateFromHwnd(This.Handle)
-  Else
-    Err.Raise 1, "", "This function requires stdAcc dependency."
-  End If
+  With stdError.getSentry("stdWindow#AsAcc")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If IsObject(stdAcc) Then
+        Set AsAcc = stdAcc.CreateFromHwnd(This.Handle)
+      Else
+        Err_Raise 1, "", "This function requires stdAcc dependency."
+      End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Converts a stdWindow object to a IAccessible object
 '@returns Object<IAccessible> - IAccessible object representing the window
 Public Function AsIAccessible() As Object
-  Dim Guid As tGUID: Guid = convertGUID("618736E0-3C3D-11CF-810C-00AA00389B71")
-  Call AccessibleObjectFromWindow(This.Handle, 0, Guid, AsIAccessible)
+  With stdError.getSentry("stdWindow#AsIAccessible")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim Guid As tGUID: Guid = convertGUID("618736E0-3C3D-11CF-810C-00AA00389B71")
+      Call AccessibleObjectFromWindow(This.Handle, 0, Guid, AsIAccessible)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Converts a stdWindow object to a IAccessible object
@@ -803,9 +915,17 @@ End Function
 'stdWindow.CreateFromHwnd(...).FindFirst(stdLambda.Create("$1.Class = ""EXCEL7""")).AsNativeObject.Application)
 '```
 Public Function AsNativeObject() As Object
-  Const OBJID_NATIVEOM = &HFFFFFFF0
-  Dim Guid As tGUID: Guid = convertGUID("00020400-0000-0000-C000-000000000046")
-  Call AccessibleObjectFromWindow(This.Handle, OBJID_NATIVEOM, Guid, AsNativeObject)
+  With stdError.getSentry("stdWindow#AsNativeObject")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Const OBJID_NATIVEOM = &HFFFFFFF0
+      Dim Guid As tGUID: Guid = convertGUID("00020400-0000-0000-C000-000000000046")
+      Call AccessibleObjectFromWindow(This.Handle, OBJID_NATIVEOM, Guid, AsNativeObject)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Notes:
@@ -825,14 +945,30 @@ Friend Sub protInit(ByVal hwnd As LongPtr, Optional ByVal isCreatedByVBA As Bool
 #Else
 Friend Sub protInit(ByVal hwnd As Long, Optional ByVal isCreatedByVBA as Boolean = false)
 #End If
-  This.Handle = hwnd
-  This.Initialized = True
-  This.isCreatedByVBA = isCreatedByVBA
+  With stdError.getSentry("stdWindow#protInit", "hwnd", hwnd, "isCreatedByVBA", isCreatedByVBA)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      This.Handle = hwnd
+      This.Initialized = True
+      This.isCreatedByVBA = isCreatedByVBA
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Whenever we initialise ensure to get lookups from `stdWindow`
 Private Sub Class_Initialize()
-    Set This.Lookups = stdWindow.protGetLookups()
+  With stdError.getSentry("stdWindow#Class_Initialize")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Set This.Lookups = stdWindow.protGetLookups()
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 
@@ -847,7 +983,15 @@ Public Property Get handle() As LongPtr
 #Else
 Public Property Get handle() As Long
 #End If
-  handle = This.Handle
+  With stdError.getSentry("stdWindow#handle[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      handle = This.Handle
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get the handle to the display context for the window
@@ -857,7 +1001,15 @@ Public Property Get hDC() As LongPtr
 #Else
 Public Property Get hDC() As Long
 #End If
-  hDC = GetWindowDC(This.Handle)
+  With stdError.getSentry("stdWindow#hDC[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      hDC = GetWindowDC(This.Handle)
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get the handle to the display context for the window client
@@ -867,365 +1019,605 @@ Public Property Get hDCClient() As LongPtr
 #Else
 Public Property Get hDCClient() As Long
 #End If
-  hDCClient = GetDC(This.Handle)
+  With stdError.getSentry("stdWindow#hDCClient[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      hDCClient = GetDC(This.Handle)
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Detect if the window exists
 '@returns - `true` if window exists, `false` otherwise
 Public Property Get Exists() As Boolean
-  Exists = IsWindow(This.Handle)
+  With stdError.getSentry("stdWindow#Exists[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Exists = IsWindow(This.Handle)
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Detect if the window is hanging/frozen
 '@returns - `true` if window is hanging/frozen, `false` otherwise
 Public Property Get IsFrozen() As Boolean
-  If Exists Then
-    IsFrozen = IsHungAppWindow(This.Handle)
-  Else
-    Err.Raise 1, "IsFrozen", "Window does not exist."
-  End If
+  With stdError.getSentry("stdWindow#IsFrozen[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Exists Then
+        IsFrozen = IsHungAppWindow(This.Handle)
+      Else
+        Err_Raise 1, "IsFrozen", "Window does not exist."
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get/Set the window caption
 '@returns - Window caption
 Public Property Get Caption() As String
-  If Exists Then
-    Dim sCharBuffer As String, iNumChars As Long
-    sCharBuffer = Space(256)
-    iNumChars = GetWindowText(This.Handle, sCharBuffer, 256)
-    Caption = Mid(sCharBuffer, 1, iNumChars)
-  Else
-    Err.Raise 1, "Caption", "Window does not exist."
-  End If
+  With stdError.getSentry("stdWindow#Caption[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Exists Then
+        Dim sCharBuffer As String, iNumChars As Long
+        sCharBuffer = Space(256)
+        iNumChars = GetWindowText(This.Handle, sCharBuffer, 256)
+        Caption = Mid(sCharBuffer, 1, iNumChars)
+      Else
+        Err_Raise 1, "Caption", "Window does not exist."
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 Public Property Let Caption(ByVal s As String)
-  If Exists Then
-    If Not CBool(SetWindowText(This.Handle, s)) Then
-      Err.Raise 1, "Caption [Let]", "Window text could not be set."
-    End If
-  Else
-    Err.Raise 1, "Caption [Let]", "Window does not exist."
-  End If
+  With stdError.getSentry("stdWindow#Caption[Let]", "s", s)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Exists Then
+        If Not CBool(SetWindowText(This.Handle, s)) Then
+          Err_Raise 1, "Caption [Let]", "Window text could not be set."
+        End If
+      Else
+        Err_Raise 1, "Caption [Let]", "Window does not exist."
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get the window class
 '@returns - Window's win32 class
 Public Property Get Class() As String
-  If Exists Then
-    Dim sCharBuffer As String, iNumChars As Long
-    sCharBuffer = Space(256)
-    iNumChars = GetClassName(This.Handle, sCharBuffer, 256)
-    Class = Mid(sCharBuffer, 1, iNumChars)
-  Else
-    Err.Raise 1, "Class", "Window does not exist."
-  End If
+  With stdError.getSentry("stdWindow#Class[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Exists Then
+        Dim sCharBuffer As String, iNumChars As Long
+        sCharBuffer = Space(256)
+        iNumChars = GetClassName(This.Handle, sCharBuffer, 256)
+        Class = Mid(sCharBuffer, 1, iNumChars)
+      Else
+        Err_Raise 1, "Class", "Window does not exist."
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get/Let visibility of window
 '@returns - `true` if window is visible, `false` otherwise
 Public Property Get Visible() As Boolean
-  If Exists Then
-    Visible = IsWindowVisible(This.Handle)
-  Else
-    Err.Raise 1, "Visible", "Window does not exist."
-  End If
+  With stdError.getSentry("stdWindow#Visible[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Exists Then
+        Visible = IsWindowVisible(This.Handle)
+      Else
+        Err_Raise 1, "Visible", "Window does not exist."
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 Public Property Let Visible(ByVal x As Boolean)
-  If Exists Then
-    If x Then
-      Call ShowWindow(This.Handle, EWndShowStyle.SW_SHOWNOACTIVATE)
-    Else
-      Call ShowWindow(This.Handle, EWndShowStyle.SW_HIDE)
-    End If
-  Else
-    Err.Raise 1, "Visible", "Window does not exist."
-  End If
+  With stdError.getSentry("stdWindow#Visible[Let]", "x", x)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Exists Then
+        If x Then
+          Call ShowWindow(This.Handle, EWndShowStyle.SW_SHOWNOACTIVATE)
+        Else
+          Call ShowWindow(This.Handle, EWndShowStyle.SW_HIDE)
+        End If
+      Else
+        Err_Raise 1, "Visible", "Window does not exist."
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get/Let windowState of window
 '@returns - Window state
 Public Property Get State() As EWndState
-  If Exists Then
-    If IsZoomed(This.Handle) Then
-      State = EWndState.Maximised
-    ElseIf IsIconic(This.Handle) Then
-      State = EWndState.Minimised
-    Else
-      State = EWndState.Normal
-    End If
-  Else
-    Err.Raise 1, "State", "Window does not exist."
-  End If
+  With stdError.getSentry("stdWindow#State[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Exists Then
+        If IsZoomed(This.Handle) Then
+          State = EWndState.Maximised
+        ElseIf IsIconic(This.Handle) Then
+          State = EWndState.Minimised
+        Else
+          State = EWndState.Normal
+        End If
+      Else
+        Err_Raise 1, "State", "Window does not exist."
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 Public Property Let State(ByVal x As EWndState)
-  If Exists Then
-    If Visible Then
-      Select Case x
-        Case EWndState.Normal
-          Call ShowWindow(This.Handle, EWndShowStyle.SW_RESTORE)
-        Case EWndState.Maximised
-          Call ShowWindow(This.Handle, EWndShowStyle.SW_MAXIMIZE)
-        Case EWndState.Minimised
-          Call ShowWindow(This.Handle, EWndShowStyle.SW_FORCEMINIMIZE)
-      End Select
-    Else
-      Err.Raise 1, "State", "Cannot set window state of a hidden window."
-    End If
-  Else
-    Err.Raise 1, "State", "Window does not exist."
-  End If
+  With stdError.getSentry("stdWindow#State[Let]", "x", x)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Exists Then
+        If Visible Then
+          Select Case x
+            Case EWndState.Normal
+              Call ShowWindow(This.Handle, EWndShowStyle.SW_RESTORE)
+            Case EWndState.Maximised
+              Call ShowWindow(This.Handle, EWndShowStyle.SW_MAXIMIZE)
+            Case EWndState.Minimised
+              Call ShowWindow(This.Handle, EWndShowStyle.SW_FORCEMINIMIZE)
+          End Select
+        Else
+          Err_Raise 1, "State", "Cannot set window state of a hidden window."
+        End If
+      Else
+        Err_Raise 1, "State", "Window does not exist."
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get the child windows of this window
 '@returns Collection<stdWindow> - Collection of child windows
 Public Property Get children() As Collection
-  If Exists Then
-    'Define collection to return
-    Dim ret As Collection
-    Set ret = New Collection
-
-    'Attempt to get a child window
-    Dim childHandle As LongPtr
+  With stdError.getSentry("stdWindow#children[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    childHandle = GetWindow(This.Handle, GW_CHILD)
-
-    'If a child window exists, find all children
-    If childHandle <> 0 Then
-      'Quickly add all hwnds to an array
-      'This is a fast operation, object creation is anticipated to be a slower operation, thus is left till afterwards
-      Dim childHandles() As LongPtr
-
-      Dim i As Long: i = -1
-      Do While (childHandle <> 0)
-          i = i + 1
-          ReDim Preserve childHandles(i)
-          childHandles(i) = childHandle
-          childHandle = GetWindow(childHandle, GW_HWNDNEXT)
-      Loop
-      
-      'Create stdWindow objects from hwnds array and add them to collection.
-      For i = LBound(childHandles) To UBound(childHandles)
-        Call ret.Add(stdWindow.CreateFromHwnd(childHandles(i)))
-      Next
-    End If
-
-    'Return child objects
-    Set children = ret
-  Else
-    Err.Raise 1, "Children", "Window does not exist."
-  End If
+      If Exists Then
+        'Define collection to return
+        Dim ret As Collection
+        Set ret = New Collection
+    
+        'Attempt to get a child window
+        Dim childHandle As LongPtr
+        
+        childHandle = GetWindow(This.Handle, GW_CHILD)
+    
+        'If a child window exists, find all children
+        If childHandle <> 0 Then
+          'Quickly add all hwnds to an array
+          'This is a fast operation, object creation is anticipated to be a slower operation, thus is left till afterwards
+          Dim childHandles() As LongPtr
+    
+          Dim i As Long: i = -1
+          Do While (childHandle <> 0)
+              i = i + 1
+              ReDim Preserve childHandles(i)
+              childHandles(i) = childHandle
+              childHandle = GetWindow(childHandle, GW_HWNDNEXT)
+          Loop
+          
+          'Create stdWindow objects from hwnds array and add them to collection.
+          For i = LBound(childHandles) To UBound(childHandles)
+            Call ret.Add(stdWindow.CreateFromHwnd(childHandles(i)))
+          Next
+        End If
+    
+        'Return child objects
+        Set children = ret
+      Else
+        Err_Raise 1, "Children", "Window does not exist."
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get the Client rect - I.E. Position and Size of Window's Client area
 '@returns Array<Left: double, Top: double, Width: double, Height: double> - Client rect
 Public Property Get RectClient() As Double()
-  If Exists Then
-    Dim rect As apiRect
-    If Not GetClientRect(This.Handle, rect) Then
-      Dim fRet(0 To 3) As Double
-      With rect
-        fRet(0) = .left
-        fRet(1) = .top
-        fRet(2) = .right - .left
-        fRet(3) = .bottom - .top
-        RectClient = fRet
-      End With
-    Else
-      Err.Raise 1, "RectClient", "Cannot get client rect.", Err.LastDllError
-    End If
-  Else
-    Err.Raise 1, "RectClient", "Window does not exist."
-  End If
+  With stdError.getSentry("stdWindow#RectClient[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Exists Then
+        Dim rect As apiRect
+        If Not GetClientRect(This.Handle, rect) Then
+          Dim fRet(0 To 3) As Double
+          With rect
+            fRet(0) = .left
+            fRet(1) = .top
+            fRet(2) = .right - .left
+            fRet(3) = .bottom - .top
+            RectClient = fRet
+          End With
+        Else
+          Err_Raise 1, "RectClient", "Cannot get client rect.", Err.LastDllError
+        End If
+      Else
+        Err_Raise 1, "RectClient", "Window does not exist."
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get/Set the Window rect - I.E. Position and Size of window
 '@returns Variant<Array<Left: double, Top: double, Width: double, Height: double>> - Window rect
 '@remark - Type is wrapped in Variant, because VBA does not support byval Double array parameters. This is a workaround.
 Public Property Get RectWindow() As Variant
-  If Exists Then
-    Dim rect As apiRect
-    If Not GetWindowRect(This.Handle, rect) Then
-      Dim fRet As Variant
-      ReDim fRet(0 To 3)
-      With rect
-        fRet(0) = .left
-        fRet(1) = .top
-        fRet(2) = .right - .left
-        fRet(3) = .bottom - .top
-        RectWindow = fRet
-      End With
-    Else
-      Err.Raise 1, "RectWindow", "Cannot get window rect.", Err.LastDllError
-    End If
-  Else
-    Err.Raise 1, "RectWindow", "Window does not exist."
-  End If
+  With stdError.getSentry("stdWindow#RectWindow[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Exists Then
+        Dim rect As apiRect
+        If Not GetWindowRect(This.Handle, rect) Then
+          Dim fRet As Variant
+          ReDim fRet(0 To 3)
+          With rect
+            fRet(0) = .left
+            fRet(1) = .top
+            fRet(2) = .right - .left
+            fRet(3) = .bottom - .top
+            RectWindow = fRet
+          End With
+        Else
+          Err_Raise 1, "RectWindow", "Cannot get window rect.", Err.LastDllError
+        End If
+      Else
+        Err_Raise 1, "RectWindow", "Window does not exist."
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 Public Property Let RectWindow(ByVal rect As Variant)
-  If IsArray(rect) Then
-    If Exists Then
-      Call MoveWindow(This.Handle, rect(0), rect(1), rect(2), rect(3), True)
-    Else
-      Err.Raise 1, "RectWindow [Let]", "Window does not exist."
-    End If
-  Else
-    Err.Raise 1, "RectWindow [Let]", "Value must be an array of 4 doubles - left, top, width, height."
-  End If
+  With stdError.getSentry("stdWindow#RectWindow[Let]", "rect", rect)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If IsArray(rect) Then
+        If Exists Then
+          Call MoveWindow(This.Handle, rect(0), rect(1), rect(2), rect(3), True)
+        Else
+          Err_Raise 1, "RectWindow [Let]", "Window does not exist."
+        End If
+      Else
+        Err_Raise 1, "RectWindow [Let]", "Value must be an array of 4 doubles - left, top, width, height."
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get/Set the Window rect with passed param
 '@param iClWnd - Type of rect to get/set. Can be `RectTypeClient` or `RectTypeWindow`
 '@returns Variant<Array<Left: double, Top: double, Width: double, Height: double>> - Window rect
 Public Property Get RectByType(Optional iClWnd As EWndRectType) As Variant
-  Select Case iClWnd
-    Case EWndRectType.RectTypeClient
-      RectByType = RectClient
-    Case EWndRectType.RectTypeWindow
-      RectByType = RectWindow
-  End Select
+  With stdError.getSentry("stdWindow#RectByType[Get]", "iClWnd", iClWnd)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Select Case iClWnd
+        Case EWndRectType.RectTypeClient
+          RectByType = RectClient
+        Case EWndRectType.RectTypeWindow
+          RectByType = RectWindow
+      End Select
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 Public Property Let RectByType(Optional iClWnd As EWndRectType, ByVal rect As Variant)
-  Select Case iClWnd
-    Case EWndRectType.RectTypeClient
-      Err.Raise 1, "RectByType [Let]", "Cannot set client rect"
-    Case EWndRectType.RectTypeWindow
-      RectWindow = rect
-  End Select
+  With stdError.getSentry("stdWindow#RectByType[Let]", "iClWnd", iClWnd, "rect", rect)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Select Case iClWnd
+        Case EWndRectType.RectTypeClient
+          Err_Raise 1, "RectByType [Let]", "Cannot set client rect"
+        Case EWndRectType.RectTypeWindow
+          RectWindow = rect
+      End Select
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get/Set the X position of this window
 '@param iClWnd - Type of rect to get/set. Can be `RectTypeClient` or `RectTypeWindow`
 '@returns - X position of window
 Public Property Get x(Optional ByVal iClWnd As EWndRectType) As Long
-  If Exists Then
-    x = RectByType(iClWnd)(0)
-  Else
-    Err.Raise 1, "stdWindow#x", "Window does not exist."
-  End If
+  With stdError.getSentry("stdWindow#x[Get]", "iClWnd", iClWnd)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Exists Then
+        x = RectByType(iClWnd)(0)
+      Else
+        Err_Raise 1, "stdWindow#x", "Window does not exist."
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 Public Property Let x(Optional ByVal iClWnd As EWndRectType, ByVal vX As Long)
-  If Exists Then
-    Dim rect As Variant: rect = RectByType(iClWnd)
-    Call MoveWindow(This.Handle, vX, rect(1), rect(2), rect(3), True)
-  Else
-    Err.Raise 1, "stdWindow#x [Let]", "Window does not exist."
-  End If
+  With stdError.getSentry("stdWindow#x[Let]", "iClWnd", iClWnd, "vX", vX)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Exists Then
+        Dim rect As Variant: rect = RectByType(iClWnd)
+        Call MoveWindow(This.Handle, vX, rect(1), rect(2), rect(3), True)
+      Else
+        Err_Raise 1, "stdWindow#x [Let]", "Window does not exist."
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get/Set the Y position of this window
 '@param iClWnd - Type of rect to get/set. Can be `RectTypeClient` or `RectTypeWindow`
 '@returns - Y position of window
 Public Property Get y(Optional ByVal iClWnd As EWndRectType) As Long
-  If Exists Then
-    y = RectByType(iClWnd)(1)
-  Else
-    Err.Raise 1, "stdWindow#y", "Window does not exist."
-  End If
+  With stdError.getSentry("stdWindow#y[Get]", "iClWnd", iClWnd)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Exists Then
+        y = RectByType(iClWnd)(1)
+      Else
+        Err_Raise 1, "stdWindow#y", "Window does not exist."
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 Public Property Let y(Optional ByVal iClWnd As EWndRectType, ByVal vY As Long)
-  If Exists Then
-    Dim rect As Variant: rect = RectByType(iClWnd)
-    Call MoveWindow(This.Handle, rect(0), vY, rect(2), rect(3), True)
-  Else
-    Err.Raise 1, "stdWindow#y [Let]", "Window does not exist."
-  End If
+  With stdError.getSentry("stdWindow#y[Let]", "iClWnd", iClWnd, "vY", vY)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Exists Then
+        Dim rect As Variant: rect = RectByType(iClWnd)
+        Call MoveWindow(This.Handle, rect(0), vY, rect(2), rect(3), True)
+      Else
+        Err_Raise 1, "stdWindow#y [Let]", "Window does not exist."
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get/Set the width of this window
 '@param iClWnd - Type of rect to get/set. Can be `RectTypeClient` or `RectTypeWindow`
 '@returns - Width of window
 Public Property Get width(Optional ByVal iClWnd As EWndRectType) As Long
-  If Exists Then
-    width = RectByType(iClWnd)(2)
-  Else
-    Err.Raise 1, "stdWindow#width", "Window does not exist."
-  End If
+  With stdError.getSentry("stdWindow#width[Get]", "iClWnd", iClWnd)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Exists Then
+        width = RectByType(iClWnd)(2)
+      Else
+        Err_Raise 1, "stdWindow#width", "Window does not exist."
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 Public Property Let width(Optional ByVal iClWnd As EWndRectType, ByVal vW As Long)
-  If Exists Then
-    Dim rect As Variant:: rect = RectByType(iClWnd)
-    Call MoveWindow(This.Handle, rect(0), rect(1), vW, rect(3), True)
-  Else
-    Err.Raise 1, "stdWindow#width [Let]", "Window does not exist."
-  End If
+  With stdError.getSentry("stdWindow#width[Let]", "iClWnd", iClWnd, "vW", vW)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Exists Then
+        Dim rect As Variant:: rect = RectByType(iClWnd)
+        Call MoveWindow(This.Handle, rect(0), rect(1), vW, rect(3), True)
+      Else
+        Err_Raise 1, "stdWindow#width [Let]", "Window does not exist."
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get/Set the height of this window
 '@param iClWnd - Type of rect to get/set. Can be `RectTypeClient` or `RectTypeWindow`
 '@returns - Height of window
 Public Property Get height(Optional ByVal iClWnd As EWndRectType) As Long
-  If Exists Then
-    height = RectByType(iClWnd)(3)
-  Else
-    Err.Raise 1, "stdWindow#height", "Window does not exist."
-  End If
+  With stdError.getSentry("stdWindow#height[Get]", "iClWnd", iClWnd)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Exists Then
+        height = RectByType(iClWnd)(3)
+      Else
+        Err_Raise 1, "stdWindow#height", "Window does not exist."
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 Public Property Let height(Optional ByVal iClWnd As EWndRectType, ByVal vH As Long)
-  If Exists Then
-    Dim rect As Variant:: rect = RectByType(iClWnd)
-    Call MoveWindow(This.Handle, rect(0), rect(1), rect(2), vH, True)
-  Else
-    Err.Raise 1, "stdWindow#height [Let]", "Window does not exist."
-  End If
+  With stdError.getSentry("stdWindow#height[Let]", "iClWnd", iClWnd, "vH", vH)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Exists Then
+        Dim rect As Variant:: rect = RectByType(iClWnd)
+        Call MoveWindow(This.Handle, rect(0), rect(1), rect(2), vH, True)
+      Else
+        Err_Raise 1, "stdWindow#height [Let]", "Window does not exist."
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get the ID of the process running this window
 '@returns - Process ID
 Public Property Get ProcessID() As Long
-  If Exists Then
-    Call GetWindowThreadProcessId(This.Handle, ProcessID)
-  Else
-    Err.Raise 1, "ProcessID", "Window does not exist."
-  End If
+  With stdError.getSentry("stdWindow#ProcessID[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Exists Then
+        Call GetWindowThreadProcessId(This.Handle, ProcessID)
+      Else
+        Err_Raise 1, "ProcessID", "Window does not exist."
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get the name of the process running this window
 '@returns - Process name
 Public Property Get ProcessName() As String
-  If Exists Then
-    Dim sCharBuffer As String, iNumChars As Long
-    sCharBuffer = Space(256)
-    iNumChars = GetWindowModuleFileName(This.Handle, sCharBuffer, 256)
-    ProcessName = Mid(sCharBuffer, 1, iNumChars)
-  Else
-    Err.Raise 1, "ProcessName", "Window does not exist."
-  End If
+  With stdError.getSentry("stdWindow#ProcessName[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Exists Then
+        Dim sCharBuffer As String, iNumChars As Long
+        sCharBuffer = Space(256)
+        iNumChars = GetWindowModuleFileName(This.Handle, sCharBuffer, 256)
+        ProcessName = Mid(sCharBuffer, 1, iNumChars)
+      Else
+        Err_Raise 1, "ProcessName", "Window does not exist."
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get/Set the window's parent window:
 '@returns - Parent window
 Public Property Get parent() As stdWindow
-  Dim pHwnd As LongPtr: pHwnd = GetParent(This.Handle)
-  If pHwnd <> 0 Then
-    Set parent = stdWindow.CreateFromHwnd(GetParent(This.Handle))
-  ElseIf Class <> "#32769" Then
-    Set parent = stdWindow.CreateFromDesktop()
-  End If
+  With stdError.getSentry("stdWindow#parent[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim pHwnd As LongPtr: pHwnd = GetParent(This.Handle)
+      If pHwnd <> 0 Then
+        Set parent = stdWindow.CreateFromHwnd(GetParent(This.Handle))
+      ElseIf Class <> "#32769" Then
+        Set parent = stdWindow.CreateFromDesktop()
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 Public Property Set parent(ByVal win As stdWindow)
-  If Not Exists Then
-    Err.Raise 1, "Parent [Set]", "Window does not exist."
-  ElseIf Not win.Exists Then
-    Err.Raise 1, "Parent [Set]", "New parent window no longer exists."
-  Else
-    Dim hOldParent As LongPtr: hOldParent = SetParent(This.Handle, win.handle)
-  End If
+  With stdError.getSentry("stdWindow#parent[Set]", "win", win)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Not Exists Then
+        Err_Raise 1, "Parent [Set]", "Window does not exist."
+      ElseIf Not win.Exists Then
+        Err_Raise 1, "Parent [Set]", "New parent window no longer exists."
+      Else
+        Dim hOldParent As LongPtr: hOldParent = SetParent(This.Handle, win.handle)
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get/Set the owner of the window.
 '@remark - The owner is not the same as the parent. See: Raymond Chen's article: https://devblogs.microsoft.com/oldnewthing/20100315-00/?p=14613
 Public Property Get owner() As stdWindow
-  Dim tOwner As LongPtr: tOwner = GetWindowLongPtrA(This.Handle, apiWindowLongType.GWL_HWNDPARENT)
-  Set owner = stdWindow.CreateFromHwnd(tOwner)
+  With stdError.getSentry("stdWindow#owner[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim tOwner As LongPtr: tOwner = GetWindowLongPtrA(This.Handle, apiWindowLongType.GWL_HWNDPARENT)
+      Set owner = stdWindow.CreateFromHwnd(tOwner)
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 Public Property Set owner(ByVal win As stdWindow)
-  If Not Exists Then
-    Err.Raise 1, "Owner [Set]", "Window does not exist."
-  ElseIf Not win.Exists Then
-    Err.Raise 1, "Owner [Set]", "New owner window no longer exists."
-  Else
-    Call SetWindowLongPtrA(This.Handle, apiWindowLongType.GWL_HWNDPARENT, win.handle)
-  End If
+  With stdError.getSentry("stdWindow#owner[Set]", "win", win)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Not Exists Then
+        Err_Raise 1, "Owner [Set]", "Window does not exist."
+      ElseIf Not win.Exists Then
+        Err_Raise 1, "Owner [Set]", "New owner window no longer exists."
+      Else
+        Call SetWindowLongPtrA(This.Handle, apiWindowLongType.GWL_HWNDPARENT, win.handle)
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Set the owner HWND of the window. Useful if you want to set the owner to 0 (no owner).
@@ -1233,7 +1625,15 @@ End Property
 '@remark - The owner is not the same as the parent. See: Raymond Chen's article: https://devblogs.microsoft.com/oldnewthing/20100315-00/?p=14613.
 'Calling `stdWindow.CreateFromIUnknown(Me).setOwnerHandle(0)` is especially useful, as it raises the Excel Userform to a top level window.
 Public Sub setOwnerHandle(ByVal hwnd As LongPtr)
-  Call SetWindowLongPtrA(This.Handle, apiWindowLongType.GWL_HWNDPARENT, hwnd)
+  With stdError.getSentry("stdWindow#setOwnerHandle", "hwnd", hwnd)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Call SetWindowLongPtrA(This.Handle, apiWindowLongType.GWL_HWNDPARENT, hwnd)
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Get/Set a handle to the icon of the window
@@ -1243,107 +1643,179 @@ End Sub
 'stdWindow.CreateFromHwnd(hwnd).hIcon = stdImage.CreateFromFile(myFile).hicon 'Future
 '```
 Public Property Get HICON() As LongPtr
-  If Exists Then
-    HICON = SendMessage(apiWindowMessage.WM_GETICON, apiWindowIconType.ICON_SMALL2, 0)
-    If HICON = NULL_PTR Then HICON = GetClassLongPtrA(This.Handle, apiClassLongType.GCL_HICONSM)
-    If HICON = NULL_PTR Then Err.Raise 1, "HICON", "No icon found."
-  Else
-    Err.Raise 1, "HICON", "Window does not exist."
-  End If
+  With stdError.getSentry("stdWindow#HICON[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Exists Then
+        HICON = SendMessage(apiWindowMessage.WM_GETICON, apiWindowIconType.ICON_SMALL2, 0)
+        If HICON = NULL_PTR Then HICON = GetClassLongPtrA(This.Handle, apiClassLongType.GCL_HICONSM)
+        If HICON = NULL_PTR Then Err_Raise 1, "HICON", "No icon found."
+      Else
+        Err_Raise 1, "HICON", "Window does not exist."
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 Public Property Let HICON(ByVal v As LongPtr)
-  If Exists Then
-    Call SendMessage(apiWindowMessage.WM_SETICON, apiWindowIconType.ICON_BIG, CLng(v))
-    Call SendMessage(apiWindowMessage.WM_SETICON, apiWindowIconType.ICON_SMALL, CLng(v))
-  Else
-    Err.Raise 1, "HICON [Let]", "Window does not exist."
-  End If
+  With stdError.getSentry("stdWindow#HICON[Let]", "v", v)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Exists Then
+        Call SendMessage(apiWindowMessage.WM_SETICON, apiWindowIconType.ICON_BIG, CLng(v))
+        Call SendMessage(apiWindowMessage.WM_SETICON, apiWindowIconType.ICON_SMALL, CLng(v))
+      Else
+        Err_Raise 1, "HICON [Let]", "Window does not exist."
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get the root window of this Window/ChildWindow
 '@returns - Searches up the window tree to find the top level window which is a direct child of the desktop window.
 Public Property Get AncestralRoot() As stdWindow
-  If Exists Then
-    Set AncestralRoot = stdWindow.CreateFromHwnd(GetAncestor(This.Handle, apiWindowAncestorType.GA_ROOT))
-  Else
-    Err.Raise 1, "AncestralRoot", "Window does not exist."
-  End If
+  With stdError.getSentry("stdWindow#AncestralRoot[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Exists Then
+        Set AncestralRoot = stdWindow.CreateFromHwnd(GetAncestor(This.Handle, apiWindowAncestorType.GA_ROOT))
+      Else
+        Err_Raise 1, "AncestralRoot", "Window does not exist."
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get/Set the style of the window
 '@returns - Window style
 Public Property Get Style() As Long
-  If Exists Then
-    Style = GetWindowLongA(This.Handle, apiWindowLongType.GWL_STYLE)
-  Else
-    Err.Raise 1, "Style", "Window does not exist."
-  End If
+  With stdError.getSentry("stdWindow#Style[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Exists Then
+        Style = GetWindowLongA(This.Handle, apiWindowLongType.GWL_STYLE)
+      Else
+        Err_Raise 1, "Style", "Window does not exist."
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 Public Property Let Style(ByVal newStyle As Long)
-  If Exists Then
-    'Clear Error. See return value at https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowlonga
-    Err.Clear
-
-    'Set window long
-    Dim hResult As Long: hResult = SetWindowLongA(This.Handle, apiWindowLongType.GWL_STYLE, newStyle)
-
-    'Check for errors
-    If hResult = 0 And Err.LastDllError <> 0 Then Err.Raise 1, "Style [Let]", "Unexpected error in SetWindowLongA", Err.LastDllError
-  Else
-    Err.Raise 1, "Style [Let]", "Window does not exist."
-  End If
+  With stdError.getSentry("stdWindow#Style[Let]", "newStyle", newStyle)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Exists Then
+        'Clear Error. See return value at https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowlonga
+        Err.Clear
+    
+        'Set window long
+        Dim hResult As Long: hResult = SetWindowLongA(This.Handle, apiWindowLongType.GWL_STYLE, newStyle)
+    
+        'Check for errors
+        If hResult = 0 And Err.LastDllError <> 0 Then Err_Raise 1, "Style [Let]", "Unexpected error in SetWindowLongA", Err.LastDllError
+      Else
+        Err_Raise 1, "Style [Let]", "Window does not exist."
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Obtain a semi-colon delimited list of styles
 '@returns - semi-colon delimited list of style names e.g. "WS_BORDER;WS_CAPTION"
 Public Property Get StyleTexts() As String
-  Dim iStyle As Long: iStyle = Style
-  Static vKeys   As Variant: If IsEmpty(vKeys) Then vKeys = This.Lookups("EWndStyles").keys()
-  Static vStyles As Variant: If IsEmpty(vStyles) Then vStyles = This.Lookups("EWndStyles").items()
-  
-  Dim s As String
-  Dim i As Long: For i = 0 To UBound(vKeys)
-    If iStyle And vStyles(i) Then s = s & vKeys(i) & ";"
-  Next
-  StyleTexts = s
+  With stdError.getSentry("stdWindow#StyleTexts[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim iStyle As Long: iStyle = Style
+      Static vKeys   As Variant: If IsEmpty(vKeys) Then vKeys = This.Lookups("EWndStyles").keys()
+      Static vStyles As Variant: If IsEmpty(vStyles) Then vStyles = This.Lookups("EWndStyles").items()
+      
+      Dim s As String
+      Dim i As Long: For i = 0 To UBound(vKeys)
+        If iStyle And vStyles(i) Then s = s & vKeys(i) & ";"
+      Next
+      StyleTexts = s
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get/Set the extended style of the window
 '@returns - Window extended style
 Public Property Get StyleEx() As Long
-  If Exists Then
-    StyleEx = GetWindowLongA(This.Handle, apiWindowLongType.GWL_EXSTYLE)
-  Else
-    Err.Raise 1, "StyleEx", "Window does not exist."
-  End If
+  With stdError.getSentry("stdWindow#StyleEx[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Exists Then
+        StyleEx = GetWindowLongA(This.Handle, apiWindowLongType.GWL_EXSTYLE)
+      Else
+        Err_Raise 1, "StyleEx", "Window does not exist."
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 Public Property Let StyleEx(ByVal newStyle As Long)
-  If Exists Then
-    'Clear Error. See return value at https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowlonga
-    Err.Clear
-
-    'Set window long
-    Dim hResult As Long: hResult = SetWindowLongA(This.Handle, apiWindowLongType.GWL_EXSTYLE, newStyle)
-
-    'Check for errors
-    If hResult = 0 And Err.LastDllError <> 0 Then Err.Raise 1, "StyleEx [Let]", "Unexpected error in SetWindowLongA", Err.LastDllError
-  Else
-    Err.Raise 1, "StyleEx [Let]", "Window does not exist."
-  End If
+  With stdError.getSentry("stdWindow#StyleEx[Let]", "newStyle", newStyle)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Exists Then
+        'Clear Error. See return value at https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowlonga
+        Err.Clear
+    
+        'Set window long
+        Dim hResult As Long: hResult = SetWindowLongA(This.Handle, apiWindowLongType.GWL_EXSTYLE, newStyle)
+    
+        'Check for errors
+        If hResult = 0 And Err.LastDllError <> 0 Then Err_Raise 1, "StyleEx [Let]", "Unexpected error in SetWindowLongA", Err.LastDllError
+      Else
+        Err_Raise 1, "StyleEx [Let]", "Window does not exist."
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Obtain a semi-colon delimited list of styles
 '@returns - semi-colon delimited list of styleex names e.g. "WS_EX_APPWINDOW;WS_EX_TOPMOST"
 Public Property Get StyleExTexts() As String
-  Dim iStyleEx As Long: iStyleEx = StyleEx
-  Static vKeys   As Variant: If IsEmpty(vKeys) Then vKeys = This.Lookups("EWndExStyles").keys()
-  Static vStyles As Variant: If IsEmpty(vStyles) Then vStyles = This.Lookups("EWndExStyles").items()
-  
-  Dim s As String
-  Dim i As Long: For i = 0 To UBound(vKeys)
-    If iStyleEx And vStyles(i) Then s = s & vKeys(i) & ";"
-  Next
-  StyleExTexts = s
+  With stdError.getSentry("stdWindow#StyleExTexts[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim iStyleEx As Long: iStyleEx = StyleEx
+      Static vKeys   As Variant: If IsEmpty(vKeys) Then vKeys = This.Lookups("EWndExStyles").keys()
+      Static vStyles As Variant: If IsEmpty(vStyles) Then vStyles = This.Lookups("EWndExStyles").items()
+      
+      Dim s As String
+      Dim i As Long: For i = 0 To UBound(vKeys)
+        If iStyleEx And vStyles(i) Then s = s & vKeys(i) & ";"
+      Next
+      StyleExTexts = s
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get/Set a pointer to userdata/metadata
@@ -1351,66 +1823,98 @@ End Property
 '@remark - This can be set to a VBA object pointer. However, this is not recommended as VBA will still garbage collect the object unless the ref counter is incremented, and if it is the ref counter won't decrement upon window destroy.
 'i.e. You have to manually manage the lifecycle of this object.
 #If VBA7 Then
-  Public Property Get UserData() As LongPtr
+Public Property Get UserData() As LongPtr
 #Else
   Public Property Get UserData() As Long
 #End If
-  If Exists Then
-    UserData = GetWindowLongPtrA(This.Handle, apiWindowLongType.GWL_USERDATA)
-  Else
-    Err.Raise 1, "UserData", "Window does not exist."
-  End If
+  With stdError.getSentry("stdWindow#UserData[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Exists Then
+        UserData = GetWindowLongPtrA(This.Handle, apiWindowLongType.GWL_USERDATA)
+      Else
+        Err_Raise 1, "UserData", "Window does not exist."
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 #If VBA7 Then
-  Public Property Let UserData(ByVal newUserData As LongPtr)
+Public Property Let UserData(ByVal newUserData As LongPtr)
 #Else
   Public Property Let UserData(ByVal newUserData As Long)
 #End If
-  If Exists Then
-    'Clear Error. See return value at https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowlonga
-    Err.Clear
-
-    'Set window long
-    Dim hResult As LongPtr: hResult = SetWindowLongPtrA(This.Handle, apiWindowLongType.GWL_USERDATA, newUserData)
-
-    'Check for errors
-    If hResult = 0 And Err.LastDllError <> 0 Then Err.Raise 1, "UserData [Let]", "Unexpected error in SetWindowLongA", Err.LastDllError
-  Else
-    Err.Raise 1, "UserData [Let]", "Window does not exist."
-  End If
+  With stdError.getSentry("stdWindow#UserData[Let]", "newUserData", newUserData)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Exists Then
+        'Clear Error. See return value at https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowlonga
+        Err.Clear
+    
+        'Set window long
+        Dim hResult As LongPtr: hResult = SetWindowLongPtrA(This.Handle, apiWindowLongType.GWL_USERDATA, newUserData)
+    
+        'Check for errors
+        If hResult = 0 And Err.LastDllError <> 0 Then Err_Raise 1, "UserData [Let]", "Unexpected error in SetWindowLongA", Err.LastDllError
+      Else
+        Err_Raise 1, "UserData [Let]", "Window does not exist."
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get/Set the WndProc of the window
 '@returns - Window's WndProc
 '@remark - This is a pointer to the window's WndProc function. This can be set to a VBA module function pointer if the Window is owned by Excel.
 #If VBA7 Then
-  Public Property Get WndProc() As LongPtr
+Public Property Get WndProc() As LongPtr
 #Else
   Public Property Get WndProc() As Long
 #End If
-  If Exists Then
-    WndProc = GetWindowLongPtrA(This.Handle, apiWindowLongType.GWL_WNDPROC)
-  Else
-    Err.Raise 1, "WndProc", "Window does not exist."
-  End If
+  With stdError.getSentry("stdWindow#WndProc[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Exists Then
+        WndProc = GetWindowLongPtrA(This.Handle, apiWindowLongType.GWL_WNDPROC)
+      Else
+        Err_Raise 1, "WndProc", "Window does not exist."
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 #If VBA7 Then
-  Public Property Let WndProc(ByVal newWndProc As LongPtr)
+Public Property Let WndProc(ByVal newWndProc As LongPtr)
 #Else
   Public Property Let WndProc(ByVal newWndProc As Long)
 #End If
-  If Exists Then
-    'Clear Error. See return value at https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowlonga
-    Err.Clear
-
-    'Set window long
-    Dim hResult As LongPtr: hResult = SetWindowLongPtrA(This.Handle, apiWindowLongType.GWL_WNDPROC, newWndProc)
-
-    'Check for errors
-    If hResult = 0 And Err.LastDllError <> 0 Then Err.Raise 1, "WndProc [Let]", "Unexpected error in SetWindowLongA", Err.LastDllError
-  Else
-    Err.Raise 1, "WndProc [Let]", "Window does not exist."
-  End If
+  With stdError.getSentry("stdWindow#WndProc[Let]", "newWndProc", newWndProc)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Exists Then
+        'Clear Error. See return value at https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowlonga
+        Err.Clear
+    
+        'Set window long
+        Dim hResult As LongPtr: hResult = SetWindowLongPtrA(This.Handle, apiWindowLongType.GWL_WNDPROC, newWndProc)
+    
+        'Check for errors
+        If hResult = 0 And Err.LastDllError <> 0 Then Err_Raise 1, "WndProc [Let]", "Unexpected error in SetWindowLongA", Err.LastDllError
+      Else
+        Err_Raise 1, "WndProc [Let]", "Window does not exist."
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
   
@@ -1420,46 +1924,126 @@ End Property
 'Get/Set ability to resize
 '@returns - `true` if window is resizable, `false` otherwise
 Public Property Get isResizable() As Boolean
-  'THICK FRAME style is used to determine if a window is resizable
-  isResizable = bitFlagCheck(Style, EWndStyles.WS_THICKFRAME)
+  With stdError.getSentry("stdWindow#isResizable[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      'THICK FRAME style is used to determine if a window is resizable
+      isResizable = bitFlagCheck(Style, EWndStyles.WS_THICKFRAME)
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 Public Property Let isResizable(ByVal v As Boolean)
-  Style = bitFlagSet(Style, EWndStyles.WS_THICKFRAME, v)
+  With stdError.getSentry("stdWindow#isResizable[Let]", "v", v)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Style = bitFlagSet(Style, EWndStyles.WS_THICKFRAME, v)
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get/Set caption visibility
 '@returns - `true` if window caption is visible, `false` otherwise
 Public Property Get isCaptionVisible() As Boolean
-  isCaptionVisible = bitFlagCheck(Style, EWndStyles.WS_CAPTION)
+  With stdError.getSentry("stdWindow#isCaptionVisible[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      isCaptionVisible = bitFlagCheck(Style, EWndStyles.WS_CAPTION)
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 Public Property Let isCaptionVisible(ByVal v As Boolean)
-  Style = bitFlagSet(Style, EWndStyles.WS_CAPTION, v)
-  Call Redraw
+  With stdError.getSentry("stdWindow#isCaptionVisible[Let]", "v", v)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Style = bitFlagSet(Style, EWndStyles.WS_CAPTION, v)
+      Call Redraw
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get/Set border visibility
 Public Property Get isBorderVisible() As Boolean
-  isBorderVisible = bitFlagCheck(Style, EWndStyles.WS_BORDER)
+  With stdError.getSentry("stdWindow#isBorderVisible[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      isBorderVisible = bitFlagCheck(Style, EWndStyles.WS_BORDER)
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 Public Property Let isBorderVisible(ByVal v As Boolean)
-  Style = bitFlagSet(Style, EWndStyles.WS_BORDER, v)
-  Call Redraw
+  With stdError.getSentry("stdWindow#isBorderVisible[Let]", "v", v)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Style = bitFlagSet(Style, EWndStyles.WS_BORDER, v)
+      Call Redraw
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get/Set maximise button visibility
 Public Property Get isMaximiseButtonVisible() As Boolean
-  isMaximiseButtonVisible = bitFlagCheck(Style, EWndStyles.WS_MAXIMIZEBOX)
+  With stdError.getSentry("stdWindow#isMaximiseButtonVisible[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      isMaximiseButtonVisible = bitFlagCheck(Style, EWndStyles.WS_MAXIMIZEBOX)
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 Public Property Let isMaximiseButtonVisible(ByVal v As Boolean)
-  Style = bitFlagSet(Style, EWndStyles.WS_MAXIMIZEBOX, v)
+  With stdError.getSentry("stdWindow#isMaximiseButtonVisible[Let]", "v", v)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Style = bitFlagSet(Style, EWndStyles.WS_MAXIMIZEBOX, v)
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get/Set minimise button visibility
 Public Property Get isMinimiseButtonVisible() As Boolean
-  isMinimiseButtonVisible = bitFlagCheck(Style, EWndStyles.WS_MINIMIZEBOX)
+  With stdError.getSentry("stdWindow#isMinimiseButtonVisible[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      isMinimiseButtonVisible = bitFlagCheck(Style, EWndStyles.WS_MINIMIZEBOX)
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 Public Property Let isMinimiseButtonVisible(ByVal v As Boolean)
-  Style = bitFlagSet(Style, EWndStyles.WS_MINIMIZEBOX, v)
+  With stdError.getSentry("stdWindow#isMinimiseButtonVisible[Let]", "v", v)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Style = bitFlagSet(Style, EWndStyles.WS_MINIMIZEBOX, v)
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get/Set system menu visibility
@@ -1467,59 +2051,155 @@ End Property
 '          It contains options such as "Restore", "Move", "Size", "Minimize", "Maximize", "Close".
 '          Toggling the visibility will also toggle the visibility of the close button, as this is part of the system menu.
 Public Property Get isSystemMenuVisible() As Boolean
-  isSystemMenuVisible = bitFlagCheck(Style, EWndStyles.WS_SYSMENU)
+  With stdError.getSentry("stdWindow#isSystemMenuVisible[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      isSystemMenuVisible = bitFlagCheck(Style, EWndStyles.WS_SYSMENU)
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 Public Property Let isSystemMenuVisible(ByVal v As Boolean)
-  Style = bitFlagSet(Style, EWndStyles.WS_SYSMENU, v)
+  With stdError.getSentry("stdWindow#isSystemMenuVisible[Let]", "v", v)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Style = bitFlagSet(Style, EWndStyles.WS_SYSMENU, v)
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get/Set vertical scrollbar visibility
 '@remark - Scrollbar visibility doesn't do anything on VBA userform windows.
 Public Property Get isVerticalScrollbarVisible() As Boolean
-  isVerticalScrollbarVisible = bitFlagCheck(Style, EWndStyles.WS_VSCROLL)
+  With stdError.getSentry("stdWindow#isVerticalScrollbarVisible[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      isVerticalScrollbarVisible = bitFlagCheck(Style, EWndStyles.WS_VSCROLL)
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 Public Property Let isVerticalScrollbarVisible(ByVal v As Boolean)
-  Style = bitFlagSet(Style, EWndStyles.WS_VSCROLL, v)
+  With stdError.getSentry("stdWindow#isVerticalScrollbarVisible[Let]", "v", v)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Style = bitFlagSet(Style, EWndStyles.WS_VSCROLL, v)
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get/Set horizontal scrollbar visibility
 '@remark - Scrollbar visibility doesn't do anything on VBA userform windows.
 Public Property Get isHorizontalScrollbarVisible() As Boolean
-  isHorizontalScrollbarVisible = bitFlagCheck(Style, EWndStyles.WS_HSCROLL)
+  With stdError.getSentry("stdWindow#isHorizontalScrollbarVisible[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      isHorizontalScrollbarVisible = bitFlagCheck(Style, EWndStyles.WS_HSCROLL)
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 Public Property Let isHorizontalScrollbarVisible(ByVal v As Boolean)
-  Style = bitFlagSet(Style, EWndStyles.WS_HSCROLL, v)
+  With stdError.getSentry("stdWindow#isHorizontalScrollbarVisible[Let]", "v", v)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Style = bitFlagSet(Style, EWndStyles.WS_HSCROLL, v)
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get/Set whether the window is a child window
 '@returns - `true` if window is a child window, `false` otherwise
 Public Property Get isChildWindow() As Boolean
-  isChildWindow = bitFlagCheck(Style, EWndStyles.WS_CHILD)
+  With stdError.getSentry("stdWindow#isChildWindow[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      isChildWindow = bitFlagCheck(Style, EWndStyles.WS_CHILD)
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 Public Property Let isChildWindow(ByVal v As Boolean)
-  Style = bitFlagSet(Style, EWndStyles.WS_CHILD, v)
+  With stdError.getSentry("stdWindow#isChildWindow[Let]", "v", v)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Style = bitFlagSet(Style, EWndStyles.WS_CHILD, v)
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get/Set whether the window is a popup window
 '@returns - `true` if window is a popup window, `false` otherwise
 Public Property Get isPopupWindow() As Boolean
-  isPopupWindow = bitFlagCheck(Style, EWndStyles.WS_POPUP)
+  With stdError.getSentry("stdWindow#isPopupWindow[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      isPopupWindow = bitFlagCheck(Style, EWndStyles.WS_POPUP)
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 Public Property Let isPopupWindow(ByVal v As Boolean)
-  Style = bitFlagSet(Style, EWndStyles.WS_POPUP, v)
+  With stdError.getSentry("stdWindow#isPopupWindow[Let]", "v", v)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Style = bitFlagSet(Style, EWndStyles.WS_POPUP, v)
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get/Set topmost / Always on top
 '@returns - `true` if window is topmost, `false` otherwise
 Public Property Get isAlwaysOnTop() As Boolean
-  isAlwaysOnTop = bitFlagCheck(StyleEx, EWndExStyles.WS_EX_TOPMOST)
+  With stdError.getSentry("stdWindow#isAlwaysOnTop[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      isAlwaysOnTop = bitFlagCheck(StyleEx, EWndExStyles.WS_EX_TOPMOST)
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 Public Property Let isAlwaysOnTop(ByVal v As Boolean)
-  Const HWND_TOPMOST = -1
-  Const HWND_NOTOPMOST = -2
-  Const SWP_NOSIZE = &H1
-  Const SWP_NOMOVE = &H2
-  Call SetWindowPos(This.Handle, IIf(v, HWND_TOPMOST, HWND_NOTOPMOST), 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE)
+  With stdError.getSentry("stdWindow#isAlwaysOnTop[Let]", "v", v)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Const HWND_TOPMOST = -1
+      Const HWND_NOTOPMOST = -2
+      Const SWP_NOSIZE = &H1
+      Const SWP_NOMOVE = &H2
+      Call SetWindowPos(This.Handle, IIf(v, HWND_TOPMOST, HWND_NOTOPMOST), 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE)
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get/Set whether the window is an app window
@@ -1527,105 +2207,249 @@ End Property
 '@remark - An app window is a window that is intended to be used as a main window for an application.
 'Typically an app window will have an icon in the taskbar, and will be shown in the Alt+Tab menu.
 Public Property Get isAppWindow() As Boolean
-  isAppWindow = bitFlagCheck(StyleEx, EWndExStyles.WS_EX_APPWINDOW)
+  With stdError.getSentry("stdWindow#isAppWindow[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      isAppWindow = bitFlagCheck(StyleEx, EWndExStyles.WS_EX_APPWINDOW)
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 Public Property Let isAppWindow(ByVal v As Boolean)
-  StyleEx = bitFlagSet(StyleEx, EWndExStyles.WS_EX_APPWINDOW, v)
+  With stdError.getSentry("stdWindow#isAppWindow[Let]", "v", v)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      StyleEx = bitFlagSet(StyleEx, EWndExStyles.WS_EX_APPWINDOW, v)
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get/Set whether the window is a tool window
 '@returns - `true` if window is a tool window, `false` otherwise
 Public Property Get isToolWindow() As Boolean
-  isToolWindow = bitFlagCheck(StyleEx, EWndExStyles.WS_EX_TOOLWINDOW)
+  With stdError.getSentry("stdWindow#isToolWindow[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      isToolWindow = bitFlagCheck(StyleEx, EWndExStyles.WS_EX_TOOLWINDOW)
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 Public Property Let isToolWindow(ByVal v As Boolean)
-  StyleEx = bitFlagSet(StyleEx, EWndExStyles.WS_EX_TOOLWINDOW, v)
+  With stdError.getSentry("stdWindow#isToolWindow[Let]", "v", v)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      StyleEx = bitFlagSet(StyleEx, EWndExStyles.WS_EX_TOOLWINDOW, v)
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get/Set whether clicks are passed through the window. I.E. Clicks will be passed to the window behind this one.
 '@remark - This is useful in combination with layered windows to create click-through windows.
 Public Property Get isClickThroughEnabled() As Boolean
-  isClickThroughEnabled = bitFlagCheck(StyleEx, EWndExStyles.WS_EX_TRANSPARENT)
+  With stdError.getSentry("stdWindow#isClickThroughEnabled[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      isClickThroughEnabled = bitFlagCheck(StyleEx, EWndExStyles.WS_EX_TRANSPARENT)
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 Public Property Let isClickThroughEnabled(ByVal v As Boolean)
-  StyleEx = bitFlagSet(StyleEx, EWndExStyles.WS_EX_TRANSPARENT, v)
+  With stdError.getSentry("stdWindow#isClickThroughEnabled[Let]", "v", v)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      StyleEx = bitFlagSet(StyleEx, EWndExStyles.WS_EX_TRANSPARENT, v)
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get/Set whether the border has a sunken edge
 Public Property Get isBorderEdgeSunken() As Boolean
-  isBorderEdgeSunken = bitFlagCheck(StyleEx, EWndExStyles.WS_EX_CLIENTEDGE)
+  With stdError.getSentry("stdWindow#isBorderEdgeSunken[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      isBorderEdgeSunken = bitFlagCheck(StyleEx, EWndExStyles.WS_EX_CLIENTEDGE)
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 Public Property Let isBorderEdgeSunken(ByVal v As Boolean)
-  StyleEx = bitFlagSet(StyleEx, EWndExStyles.WS_EX_CLIENTEDGE, v)
+  With stdError.getSentry("stdWindow#isBorderEdgeSunken[Let]", "v", v)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      StyleEx = bitFlagSet(StyleEx, EWndExStyles.WS_EX_CLIENTEDGE, v)
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get/Set whether the window is double bordered
 Public Property Get isBorderDoubled() As Boolean
-  isBorderDoubled = bitFlagCheck(StyleEx, EWndExStyles.WS_EX_DLGMODALFRAME)
+  With stdError.getSentry("stdWindow#isBorderDoubled[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      isBorderDoubled = bitFlagCheck(StyleEx, EWndExStyles.WS_EX_DLGMODALFRAME)
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 Public Property Let isBorderDoubled(ByVal v As Boolean)
-  StyleEx = bitFlagSet(StyleEx, EWndExStyles.WS_EX_DLGMODALFRAME, v)
+  With stdError.getSentry("stdWindow#isBorderDoubled[Let]", "v", v)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      StyleEx = bitFlagSet(StyleEx, EWndExStyles.WS_EX_DLGMODALFRAME, v)
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get/Set whether the window is a layered window
 Public Property Get isLayeredWindow() As Boolean
-  isLayeredWindow = bitFlagCheck(StyleEx, EWndExStyles.WS_EX_LAYERED)
+  With stdError.getSentry("stdWindow#isLayeredWindow[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      isLayeredWindow = bitFlagCheck(StyleEx, EWndExStyles.WS_EX_LAYERED)
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 Public Property Let isLayeredWindow(ByVal v As Boolean)
-  StyleEx = bitFlagSet(StyleEx, EWndExStyles.WS_EX_LAYERED, v)
+  With stdError.getSentry("stdWindow#isLayeredWindow[Let]", "v", v)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      StyleEx = bitFlagSet(StyleEx, EWndExStyles.WS_EX_LAYERED, v)
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get/Set the existing layered window flags
 Public Property Get LayeredWindowFlags() As LayeredWindowFlag
-  If isLayeredWindow Then
-    Call GetLayeredWindowAttributes(This.Handle, 0, 0, LayeredWindowFlags)
-  Else
-    Err.Raise 1, "LayeredWindowFlags", "Window is not a layered window."
-  End If
+  With stdError.getSentry("stdWindow#LayeredWindowFlags[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If isLayeredWindow Then
+        Call GetLayeredWindowAttributes(This.Handle, 0, 0, LayeredWindowFlags)
+      Else
+        Err_Raise 1, "LayeredWindowFlags", "Window is not a layered window."
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 Public Property Let LayeredWindowFlags(ByVal v As LayeredWindowFlag)
-  If isLayeredWindow Then
-    Call SetLayeredWindowAttributes(This.Handle, 0, 0, v)
-  Else
-    Err.Raise 1, "LayeredWindowFlags [Let]", "Window is not a layered window."
-  End If
+  With stdError.getSentry("stdWindow#LayeredWindowFlags[Let]", "v", v)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If isLayeredWindow Then
+        Call SetLayeredWindowAttributes(This.Handle, 0, 0, v)
+      Else
+        Err_Raise 1, "LayeredWindowFlags [Let]", "Window is not a layered window."
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get/Set the transparent color for a window.  for a layered window
 '@returns - The transparent color for the window. If isLayeredWindow is false, or the window's LayeredWindowFlags does not have the ChromaKey flag set, this will return -1.
 '@remark - Setting this value will also set the window to be a layered window if it is not already.
 Public Property Get TransparentColor() As Long
-  If isLayeredWindow Then
-    If bitFlagCheck(LayeredWindowFlags, LayeredWindowFlag.lwfChromaKey) Then
-      Call GetLayeredWindowAttributes(This.Handle, TransparentColor, 0, 0)
-    Else
-      TransparentColor = -1
-    End If
-  Else
-    TransparentColor = -1
-  End If
+  With stdError.getSentry("stdWindow#TransparentColor[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If isLayeredWindow Then
+        If bitFlagCheck(LayeredWindowFlags, LayeredWindowFlag.lwfChromaKey) Then
+          Call GetLayeredWindowAttributes(This.Handle, TransparentColor, 0, 0)
+        Else
+          TransparentColor = -1
+        End If
+      Else
+        TransparentColor = -1
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 Public Property Let TransparentColor(ByVal v As Long)
-  isLayeredWindow = True
-  This.LayeredWindowInfo.crKey = v
-  Dim newFlags As Long: newFlags = bitFlagSet(LayeredWindowFlags, LayeredWindowFlag.lwfChromaKey, True)
-  Call SetLayeredWindowAttributes(This.Handle, This.LayeredWindowInfo.crKey, This.LayeredWindowInfo.bAlpha, newFlags)
+  With stdError.getSentry("stdWindow#TransparentColor[Let]", "v", v)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      isLayeredWindow = True
+      This.LayeredWindowInfo.crKey = v
+      Dim newFlags As Long: newFlags = bitFlagSet(LayeredWindowFlags, LayeredWindowFlag.lwfChromaKey, True)
+      Call SetLayeredWindowAttributes(This.Handle, This.LayeredWindowInfo.crKey, This.LayeredWindowInfo.bAlpha, newFlags)
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get/Set the opacity of a layered window
 '@remark - Setting this value will also set the window to be a layered window if it is not already.
 Public Property Get Opacity() As Byte
-  If isLayeredWindow Then
-    Call GetLayeredWindowAttributes(This.Handle, 0, lwfOpacity, 0)
-  Else
-    Err.Raise 1, "Opacity", "Window is not a layered window."
-  End If
+  With stdError.getSentry("stdWindow#Opacity[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If isLayeredWindow Then
+        Call GetLayeredWindowAttributes(This.Handle, 0, lwfOpacity, 0)
+      Else
+        Err_Raise 1, "Opacity", "Window is not a layered window."
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 Public Property Let Opacity(ByVal v As Byte)
-  isLayeredWindow = True
-  This.LayeredWindowInfo.bAlpha = v
-  Dim newFlags As Long: newFlags = bitFlagSet(LayeredWindowFlags, LayeredWindowFlag.lwfOpacity, True)
-  Call SetLayeredWindowAttributes(This.Handle, This.LayeredWindowInfo.crKey, This.LayeredWindowInfo.bAlpha, newFlags)
+  With stdError.getSentry("stdWindow#Opacity[Let]", "v", v)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      isLayeredWindow = True
+      This.LayeredWindowInfo.bAlpha = v
+      Dim newFlags As Long: newFlags = bitFlagSet(LayeredWindowFlags, LayeredWindowFlag.lwfOpacity, True)
+      Call SetLayeredWindowAttributes(This.Handle, This.LayeredWindowInfo.crKey, This.LayeredWindowInfo.bAlpha, newFlags)
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Gets the Shell Window COM object for this window if it exists
@@ -1635,13 +2459,21 @@ End Property
 '```
 '@TODO: is there a better way?
 Public Property Get ShellWindow() As Object
-  If Class = "CabinetWClass" Then
-    With stdWindow.protGetShellWindowCache(This.Handle)
-      If .exists(CStr(This.Handle)) Then
-        Set ShellWindow = .item(CStr(This.Handle))
+  With stdError.getSentry("stdWindow#ShellWindow[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Class = "CabinetWClass" Then
+        With stdWindow.protGetShellWindowCache(This.Handle)
+          If .exists(CStr(This.Handle)) Then
+            Set ShellWindow = .item(CStr(This.Handle))
+          End If
+        End With
       End If
-    End With
-  End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 '================================================================================================
@@ -1660,8 +2492,16 @@ Public Function SetHook(ByVal idHook As apiWindowHookType, ByVal hook As LongPtr
 #Else
 Public Function SetHook(ByVal idHook As apiWindowHookType, ByVal hook As Long, hInstance As Long, dwThreadID As Long) As Long
 #End If
-  'TODO:
-  Err.Raise 1, "SetHook", "Error: Not implemented."
+  With stdError.getSentry("stdWindow#SetHook", "idHook", idHook, "hook", hook, "hInstance", hInstance, "dwThreadID", dwThreadID)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      'TODO:
+      Err_Raise 1, "SetHook", "Error: Not implemented."
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Search the Window tree for elements which match a certain criteria. Return the first element found.
@@ -1693,65 +2533,73 @@ End Function
 ' el.FindFirst(stdLambda.Create("$1.name = ""hello"" AND $2 > 4"))
 ' ```
 Public Function FindFirst(ByVal query As stdICallable, Optional ByVal searchType As EWndFindType = EWndFindType.BreadthFirst, Optional ByVal iStaticDepthLimit As Long = -1) As stdWindow
-    Dim stack() As tFindNode
-    ReDim stack(0 To 0)
-    stack(0).initialised = True
-    stack(0).depth = 0
-    Set stack(0).element = Me
+  With stdError.getSentry("stdWindow#FindFirst", "query", query, "searchType", searchType, "iStaticDepthLimit", iStaticDepthLimit)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    Dim Length As Long: Length = 1
-    Dim index As Long: index = -1
-
-    'Bind globals to query
-    Call BindGlobals(query)
-
-    'Loop over the stack/array
-    While Length > 0 And index < Length
-        Dim part As tFindNode
-        Select Case searchType
-            Case EWndFindType.DepthFirst
-                'Depth first search, so pop the item out of the stack
-                part = stackPopV(stack, Length)
-            Case EWndFindType.BreadthFirst
-                'Breadth first search, get item directly out of array, no need to change array size
-                index = index + 1
-                part = stack(index)
-            Case Else
-                Err.Raise 1, "stdWindow#FindFirst", "Invalid search type given. Please use EWndFindType"
-        End Select
+        Dim stack() As tFindNode
+        ReDim stack(0 To 0)
+        stack(0).initialised = True
+        stack(0).depth = 0
+        Set stack(0).element = Me
         
-        With part
-            If Not .initialised Then Exit Function
-            
-            'Run query and test options
-            Select Case query.Run(.element, .depth)
-                Case EWndFindResult.NoMatchFound
-                    'Check static depth limit
-                    If .depth + 1 <= iStaticDepthLimit Or iStaticDepthLimit = -1 Then
-                        'Nothing found, search descendents
-                        Dim child As stdWindow
-                        For Each child In part.element.children
-                            Call stackPushV(stack, Length, CreateFindNode(.depth + 1, child))
-                        Next
-                    End If
-                Case EWndFindResult.matchFound, True, EWndFindResult.MatchFoundSearchDescendents
-                    'Found, return element
-                    Set FindFirst = .element
-                    Exit Function
-                Case EWndFindResult.NoMatchCancelSearch
-                    'Nothing found, cancel function
-                    Set FindFirst = Nothing
-                    Exit Function
-                Case EWndFindResult.NoMatchSkipDescendents
-                '    Nothing found, don't search descendents
-            End Select
-        End With
-        'Just make sure no freezing occurs
-        DoEvents
-    Wend
+        Dim Length As Long: Length = 1
+        Dim index As Long: index = -1
     
-    'Else set to nothing
-    Set FindFirst = Nothing
+        'Bind globals to query
+        Call BindGlobals(query)
+    
+        'Loop over the stack/array
+        While Length > 0 And index < Length
+            Dim part As tFindNode
+            Select Case searchType
+                Case EWndFindType.DepthFirst
+                    'Depth first search, so pop the item out of the stack
+                    part = stackPopV(stack, Length)
+                Case EWndFindType.BreadthFirst
+                    'Breadth first search, get item directly out of array, no need to change array size
+                    index = index + 1
+                    part = stack(index)
+                Case Else
+                    Err_Raise 1, "stdWindow#FindFirst", "Invalid search type given. Please use EWndFindType"
+            End Select
+            
+            With part
+                If Not .initialised Then Exit Function
+                
+                'Run query and test options
+                Select Case query.Run(.element, .depth)
+                    Case EWndFindResult.NoMatchFound
+                        'Check static depth limit
+                        If .depth + 1 <= iStaticDepthLimit Or iStaticDepthLimit = -1 Then
+                            'Nothing found, search descendents
+                            Dim child As stdWindow
+                            For Each child In part.element.children
+                                Call stackPushV(stack, Length, CreateFindNode(.depth + 1, child))
+                            Next
+                        End If
+                    Case EWndFindResult.matchFound, True, EWndFindResult.MatchFoundSearchDescendents
+                        'Found, return element
+                        Set FindFirst = .element
+                        Exit Function
+                    Case EWndFindResult.NoMatchCancelSearch
+                        'Nothing found, cancel function
+                        Set FindFirst = Nothing
+                        Exit Function
+                    Case EWndFindResult.NoMatchSkipDescendents
+                    '    Nothing found, don't search descendents
+                End Select
+            End With
+            'Just make sure no freezing occurs
+            DoEvents
+        Wend
+        
+        'Else set to nothing
+        Set FindFirst = Nothing
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Search the Window tree for elements which match a certain criteria. Return all elements found.
@@ -1783,83 +2631,99 @@ End Function
 ' el.FindAll(stdLambda.Create("if $2 < 4 then 4 else if $2 = 4 then 1 else 3"))
 ' ```
 Public Function FindAll(ByVal query As stdICallable, Optional ByVal searchType As EWndFindType = EWndFindType.BreadthFirst, Optional ByVal iStaticDepthLimit As Long = -1) As Collection
-    Dim stack() As tFindNode
-    ReDim stack(0 To 0)
-    stack(0).initialised = True
-    stack(0).depth = 0
-    Set stack(0).element = Me
+  With stdError.getSentry("stdWindow#FindAll", "query", query, "searchType", searchType, "iStaticDepthLimit", iStaticDepthLimit)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    Dim Length As Long: Length = 1
-    Dim index As Long: index = -1
-    
-    'Bind globals to query
-    Call BindGlobals(query)
-
-    'Initialise collection
-    Set FindAll = New Collection
-
-    'Loop over the stack/array
-    While Length > 0 And index < Length
-        Dim part As tFindNode
-        Select Case searchType
-            Case EWndFindType.DepthFirst
-                'Depth first search, so pop the item out of the stack
-                part = stackPopV(stack, Length)
-            Case EWndFindType.BreadthFirst
-                'Breadth first search, get item directly out of array, no need to change array size
-                index = index + 1
-                part = stack(index)
-            Case Else
-                Err.Raise 1, "stdWindow#FindAll", "Invalid search type given. Please use EWndFindType"
-        End Select
+        Dim stack() As tFindNode
+        ReDim stack(0 To 0)
+        stack(0).initialised = True
+        stack(0).depth = 0
+        Set stack(0).element = Me
         
-        With part
-            'When hitting the edge of the stack quit
-            If Not .initialised Then Exit Function
-
-            'Run query and test options
-            Dim child As stdWindow
-            Select Case query.Run(.element, .depth)
-                Case EWndFindResult.NoMatchFound
-                    'Check static depth limit
-                    If .depth + 1 <= iStaticDepthLimit Or iStaticDepthLimit = -1 Then
-                        'Nothing found, search descendents
-                        For Each child In .element.children
-                            Call stackPushV(stack, Length, CreateFindNode(.depth + 1, child))
-                        Next
-                    End If
-                Case EWndFindResult.matchFound, True
-                    'Found, add element
-                    Call FindAll.Add(.element)
-                Case EWndFindResult.NoMatchCancelSearch
-                    'Nothing found, cancel function
-                    Exit Function
-                Case EWndFindResult.NoMatchSkipDescendents
-                    'Nothing found, don't search descendents
-                Case EWndFindResult.MatchFoundSearchDescendents
-                  'Check static depth limit
-                  If .depth + 1 <= iStaticDepthLimit Or iStaticDepthLimit = -1 Then
-                      Call FindAll.Add(.element)
-                      For Each child In .element.children
-                          Call stackPushV(stack, Length, CreateFindNode(.depth + 1, child))
-                      Next
-                  End If
+        Dim Length As Long: Length = 1
+        Dim index As Long: index = -1
+        
+        'Bind globals to query
+        Call BindGlobals(query)
+    
+        'Initialise collection
+        Set FindAll = New Collection
+    
+        'Loop over the stack/array
+        While Length > 0 And index < Length
+            Dim part As tFindNode
+            Select Case searchType
+                Case EWndFindType.DepthFirst
+                    'Depth first search, so pop the item out of the stack
+                    part = stackPopV(stack, Length)
+                Case EWndFindType.BreadthFirst
+                    'Breadth first search, get item directly out of array, no need to change array size
+                    index = index + 1
+                    part = stack(index)
+                Case Else
+                    Err_Raise 1, "stdWindow#FindAll", "Invalid search type given. Please use EWndFindType"
             End Select
-        End With
-        'Just make sure no freezing occurs
-        DoEvents
-    Wend
+            
+            With part
+                'When hitting the edge of the stack quit
+                If Not .initialised Then Exit Function
+    
+                'Run query and test options
+                Dim child As stdWindow
+                Select Case query.Run(.element, .depth)
+                    Case EWndFindResult.NoMatchFound
+                        'Check static depth limit
+                        If .depth + 1 <= iStaticDepthLimit Or iStaticDepthLimit = -1 Then
+                            'Nothing found, search descendents
+                            For Each child In .element.children
+                                Call stackPushV(stack, Length, CreateFindNode(.depth + 1, child))
+                            Next
+                        End If
+                    Case EWndFindResult.matchFound, True
+                        'Found, add element
+                        Call FindAll.Add(.element)
+                    Case EWndFindResult.NoMatchCancelSearch
+                        'Nothing found, cancel function
+                        Exit Function
+                    Case EWndFindResult.NoMatchSkipDescendents
+                        'Nothing found, don't search descendents
+                    Case EWndFindResult.MatchFoundSearchDescendents
+                      'Check static depth limit
+                      If .depth + 1 <= iStaticDepthLimit Or iStaticDepthLimit = -1 Then
+                          Call FindAll.Add(.element)
+                          For Each child In .element.children
+                              Call stackPushV(stack, Length, CreateFindNode(.depth + 1, child))
+                          Next
+                      End If
+                End Select
+            End With
+            'Just make sure no freezing occurs
+            DoEvents
+        Wend
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Obtain all text from a window
 '@returns - All captions from a window concatenated together (DFS-ordering)
 Public Function getAllText() As String
-  Dim s As String: s = Me.Caption
-  Dim wnd As stdWindow
-  For Each wnd In Me.GetDescendents()
-    If wnd.Visible Then s = s & vbCrLf & wnd.Caption
-  Next
-  getAllText = s
+  With stdError.getSentry("stdWindow#getAllText")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim s As String: s = Me.Caption
+      Dim wnd As stdWindow
+      For Each wnd In Me.GetDescendents()
+        If wnd.Visible Then s = s & vbCrLf & wnd.Caption
+      Next
+      getAllText = s
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 
@@ -1869,61 +2733,101 @@ End Function
 
 'Close the window
 Public Sub Quit()
-  If Exists Then
-    Call PostMessage(&H10&, 0, 0)
-  Else
-    Err.Raise 1, "Close", "Window does not exist."
-  End If
+  With stdError.getSentry("stdWindow#Quit")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Exists Then
+        Call PostMessage(&H10&, 0, 0)
+      Else
+        Err_Raise 1, "Close", "Window does not exist."
+      End If
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Forcefully close the window
 Public Sub ForceQuit()
-  If Exists Then
-    If DestroyWindow(This.Handle) = 0 Then
-      Err.Raise Err.LastDllError, "Close", "Failed to close window"
-    End If
-  Else
-    Err.Raise 1, "Close", "Window does not exist."
-  End If
+  With stdError.getSentry("stdWindow#ForceQuit")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Exists Then
+        If DestroyWindow(This.Handle) = 0 Then
+          Err_Raise Err.LastDllError, "Close", "Failed to close window"
+        End If
+      Else
+        Err_Raise 1, "Close", "Window does not exist."
+      End If
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Activate the window
 Public Sub Activate()
-  If Exists Then
-    Call setThreadInput(True)
-      Call SetForegroundWindow(This.Handle)
-    Call setThreadInput(False)
-  Else
-    Err.Raise 1, "Minimize", "Window does not exist."
-  End If
+  With stdError.getSentry("stdWindow#Activate")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Exists Then
+        Call setThreadInput(True)
+          Call SetForegroundWindow(This.Handle)
+        Call setThreadInput(False)
+      Else
+        Err_Raise 1, "Minimize", "Window does not exist."
+      End If
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Get all descendents of the stdWindow
 '@returns Collection<stdWindow> - Collection of descendents
 Public Function GetDescendents() As Collection
-  'Create collection which will be returned
-  Dim c As Collection
-  Set c = New Collection
-  
-  Dim child As stdWindow, desc As stdWindow
-  For Each child In children
-    'Add children to collection
-    c.Add child
+  With stdError.getSentry("stdWindow#GetDescendents")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    'Add all descendents to collection
-    For Each desc In child.GetDescendents
-        c.Add desc
-    Next
-  Next
-  
-  'Return descendents
-  Set GetDescendents = c
+      'Create collection which will be returned
+      Dim c As Collection
+      Set c = New Collection
+      
+      Dim child As stdWindow, desc As stdWindow
+      For Each child In children
+        'Add children to collection
+        c.Add child
+        
+        'Add all descendents to collection
+        For Each desc In child.GetDescendents
+            c.Add desc
+        Next
+      Next
+      
+      'Return descendents
+      Set GetDescendents = c
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Redraw the window
 Public Sub Redraw()
-  Const RDW_INVALIDATE = &H1
-  Call RedrawWindow(This.Handle, 0&, 0&, RDW_INVALIDATE)
+  With stdError.getSentry("stdWindow#Redraw")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Const RDW_INVALIDATE = &H1
+      Call RedrawWindow(This.Handle, 0&, 0&, RDW_INVALIDATE)
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Sends a message to the window
@@ -1932,11 +2836,19 @@ End Sub
 '@param lParam - lParam to send
 '@returns - Result of SendMessage
 Public Function SendMessage(ByVal wMsg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
-  If Exists Then
-    SendMessage = SendMessageA(This.Handle, wMsg, wParam, lParam)
-  Else
-    Err.Raise 1, "SendMessage", "Window does not exist."
-  End If
+  With stdError.getSentry("stdWindow#SendMessage", "wMsg", wMsg, "wParam", wParam, "lParam", lParam)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Exists Then
+        SendMessage = SendMessageA(This.Handle, wMsg, wParam, lParam)
+      Else
+        Err_Raise 1, "SendMessage", "Window does not exist."
+      End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Posts a message to the window
@@ -1944,17 +2856,25 @@ End Function
 '@param wParam - wParam to post
 '@param lParam - lParam to post
 Public Sub PostMessage(ByVal wMsg As Long, ByVal wParam As Long, ByVal lParam As Long)
-  If Exists Then
-    'If desktop then broadcasts
-    Dim hwnd As LongPtr: hwnd = This.Handle
-    If This.Handle = GetDesktopWindow Then hwnd = &HFFFF
+  With stdError.getSentry("stdWindow#PostMessage", "wMsg", wMsg, "wParam", wParam, "lParam", lParam)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    If PostMessageA(hwnd, wMsg, wParam, lParam) = 0 Then
-      Err.Raise 1, "PostMessage", "An unexpected error occurred while posting the message.", Err.LastDllError
-    End If
-  Else
-    Err.Raise 1, "PostMessage", "Window does not exist."
-  End If
+      If Exists Then
+        'If desktop then broadcasts
+        Dim hwnd As LongPtr: hwnd = This.Handle
+        If This.Handle = GetDesktopWindow Then hwnd = &HFFFF
+        
+        If PostMessageA(hwnd, wMsg, wParam, lParam) = 0 Then
+          Err_Raise 1, "PostMessage", "An unexpected error occurred while posting the message.", Err.LastDllError
+        End If
+      Else
+        Err_Raise 1, "PostMessage", "Window does not exist."
+      End If
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Sends a message to the window and waits for a response within a timeout period
@@ -1965,11 +2885,19 @@ End Sub
 '@returns - Result of SendMessageTimeout
 '@TODO: Complete this function
 Private Function SendMessageTimeout(ByVal wMsg As Long, ByVal wParam As Long, ByVal lParam As Long, ByVal TimeoutMilliseconds As Long) As Long
-  If Exists Then
-    Err.Raise 1, "SendMessageTimeout", "Error: Not implemented."
-  Else
-    Err.Raise 1, "SendMessageTimeout", "Window does not exist."
-  End If
+  With stdError.getSentry("stdWindow#SendMessageTimeout", "wMsg", wMsg, "wParam", wParam, "lParam", lParam, "TimeoutMilliseconds", TimeoutMilliseconds)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Exists Then
+        Err_Raise 1, "SendMessageTimeout", "Error: Not implemented."
+      Else
+        Err_Raise 1, "SendMessageTimeout", "Window does not exist."
+      End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Clicks the window
@@ -1978,22 +2906,30 @@ End Function
 '@param Button - Button of mouse to click
 '@TODO: Complete this function
 Private Sub ClickInput(Optional ByVal x As Long = &HFFFF, Optional ByVal y As Long = &HFFFF, Optional ByVal Button As EWndMouseButton)
-  'If x or y are missing, then interpret them as center of window
-  If x = &HFFFF Or y = &HFFFF Then
-    Dim r() As Long: r = RectWindow
-    If x = &HFFFF Then x = CLng((r(2) - r(0)) / 2)
-    If y = &HFFFF Then y = CLng((r(3) - r(1)) / 2)
-  End If
-
-  Select Case Button
-    Case LButton
-    Case RButton
-    Case MButton
-
-  End Select
-
-  'TODO: Use SendInput()
-  Err.Raise 1, "ClickInput", "Error: Not implemented."
+  With stdError.getSentry("stdWindow#ClickInput", "x", x, "y", y, "Button", Button)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      'If x or y are missing, then interpret them as center of window
+      If x = &HFFFF Or y = &HFFFF Then
+        Dim r() As Long: r = RectWindow
+        If x = &HFFFF Then x = CLng((r(2) - r(0)) / 2)
+        If y = &HFFFF Then y = CLng((r(3) - r(1)) / 2)
+      End If
+    
+      Select Case Button
+        Case LButton
+        Case RButton
+        Case MButton
+    
+      End Select
+    
+      'TODO: Use SendInput()
+      Err_Raise 1, "ClickInput", "Error: Not implemented."
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Clicks the window using `keybd_event`
@@ -2002,7 +2938,15 @@ End Sub
 '@param Button - Button of mouse to click
 '@TODO: Complete this function
 Private Sub ClickEvent(Optional ByVal x As Long = &HFFFF, Optional ByVal y As Long = &HFFFF, Optional ByVal Button As EWndMouseButton)
-
+  With stdError.getSentry("stdWindow#ClickEvent", "x", x, "y", y, "Button", Button)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+    
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Clicks the window using PostMessage
@@ -2012,48 +2956,56 @@ End Sub
 '@param isDoubleClick - Whether to double click or not
 '@param wParam - wParam to send
 Public Sub ClickMessage(Optional ByVal x As Long = &H10000, Optional ByVal y As Long = &H10000, Optional ByVal Button As EWndMouseButton, Optional ByVal isDoubleClick As Boolean = False, Optional ByVal wParam As Long = 0)
-  'If x or y are missing, then interpret them as center of window
-  If x = &HFFFF Or y = &HFFFF Then
-    Dim r() As Long: r = RectWindow
-    If x > &HFFFF Then x = CLng((r(2) - r(0)) / 2)
-    If y > &HFFFF Then y = CLng((r(3) - r(1)) / 2)
-  End If
-
-  Const WM_LBUTTONDOWN = &H201
-  Const WM_LBUTTONUP = &H202
-  Const WM_LBUTTONDBLCLK = &H203
-  Const WM_RBUTTONDOWN = &H204
-  Const WM_RBUTTONUP = &H205
-  Const WM_RBUTTONDBLCLK = &H206
-  Const WM_MBUTTONDOWN = &H207
-  Const WM_MBUTTONUP = &H208
-  Const WM_MBUTTONDBLCLK = &H209
-
-  Dim lParam As Long: lParam = MakeDWord(x, y)
-
-  Select Case Button
-    Case LButton
-      If isDoubleClick Then
-        Call PostMessage(WM_LBUTTONDBLCLK, wParam, lParam)
-      Else
-        Call PostMessage(WM_LBUTTONDOWN, wParam, lParam)
-        Call PostMessage(WM_LBUTTONUP, wParam, lParam)
+  With stdError.getSentry("stdWindow#ClickMessage", "x", x, "y", y, "Button", Button, "isDoubleClick", isDoubleClick, "wParam", wParam)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      'If x or y are missing, then interpret them as center of window
+      If x = &HFFFF Or y = &HFFFF Then
+        Dim r() As Long: r = RectWindow
+        If x > &HFFFF Then x = CLng((r(2) - r(0)) / 2)
+        If y > &HFFFF Then y = CLng((r(3) - r(1)) / 2)
       End If
-    Case RButton
-      If isDoubleClick Then
-        Call PostMessage(WM_RBUTTONDBLCLK, wParam, lParam)
-      Else
-        Call PostMessage(WM_RBUTTONDOWN, wParam, lParam)
-        Call PostMessage(WM_RBUTTONUP, wParam, lParam)
-      End If
-    Case MButton
-      If isDoubleClick Then
-        Call PostMessage(WM_MBUTTONDBLCLK, wParam, lParam)
-      Else
-        Call PostMessage(WM_MBUTTONDOWN, wParam, lParam)
-        Call PostMessage(WM_MBUTTONUP, wParam, lParam)
-      End If
-  End Select
+    
+      Const WM_LBUTTONDOWN = &H201
+      Const WM_LBUTTONUP = &H202
+      Const WM_LBUTTONDBLCLK = &H203
+      Const WM_RBUTTONDOWN = &H204
+      Const WM_RBUTTONUP = &H205
+      Const WM_RBUTTONDBLCLK = &H206
+      Const WM_MBUTTONDOWN = &H207
+      Const WM_MBUTTONUP = &H208
+      Const WM_MBUTTONDBLCLK = &H209
+    
+      Dim lParam As Long: lParam = MakeDWord(x, y)
+    
+      Select Case Button
+        Case LButton
+          If isDoubleClick Then
+            Call PostMessage(WM_LBUTTONDBLCLK, wParam, lParam)
+          Else
+            Call PostMessage(WM_LBUTTONDOWN, wParam, lParam)
+            Call PostMessage(WM_LBUTTONUP, wParam, lParam)
+          End If
+        Case RButton
+          If isDoubleClick Then
+            Call PostMessage(WM_RBUTTONDBLCLK, wParam, lParam)
+          Else
+            Call PostMessage(WM_RBUTTONDOWN, wParam, lParam)
+            Call PostMessage(WM_RBUTTONUP, wParam, lParam)
+          End If
+        Case MButton
+          If isDoubleClick Then
+            Call PostMessage(WM_MBUTTONDBLCLK, wParam, lParam)
+          Else
+            Call PostMessage(WM_MBUTTONDOWN, wParam, lParam)
+            Call PostMessage(WM_MBUTTONUP, wParam, lParam)
+          End If
+      End Select
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Uses `SendInput` to send keystrokes to a window.
@@ -2065,45 +3017,53 @@ End Sub
 'Call stdWindow.CreateFromHwnd(Application.VBE.mainwindow.hwnd).SendKeysInput("^a")
 '```
 Public Sub SendKeysInput(ByVal sKeys As String, Optional ByVal bRaw As Boolean = False, Optional ByVal keyDelay As Long = 0, Optional bAutoRelease As Boolean = True)
-  Const INPUT_KEYBOARD As Long = 1
-  Const KEYEVENTF_KEYUP = &H2
-  Dim keys() As KeyToken: keys = TokeniseKeys(sKeys, bAutoRelease)
-  If Exists Then
-    Call Activate
+  With stdError.getSentry("stdWindow#SendKeysInput", "sKeys", sKeys, "bRaw", bRaw, "keyDelay", keyDelay, "bAutoRelease", bAutoRelease)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    'Loop over all keys
-    Dim iKey As Long
-    For iKey = 1 To UBound(keys)
-        Dim key As KeyToken: key = keys(iKey)
+      Const INPUT_KEYBOARD As Long = 1
+      Const KEYEVENTF_KEYUP = &H2
+      Dim keys() As KeyToken: keys = TokeniseKeys(sKeys, bAutoRelease)
+      If Exists Then
+        Call Activate
         
-        'Create generic key signal
-        Dim inputKey As KeyboardInput
-        inputKey.InputType = INPUT_KEYBOARD
-        inputKey.ki.wVk = key.wVirtualKey
-        inputKey.ki.wScan = key.wScanCode
-        inputKey.ki.time = 0
-        
-        'Key down input
-        If key.iKeyState = tap Or key.iKeyState = down Then
-          inputKey.ki.dwFlags = 0
-          If SendInput(1, inputKey, LenB(inputKey)) = 0 Then
-              Err.Raise Err.LastDllError, "SendKeysInput", "Input might be blocked by another thread (DLL Error: " & Err.LastDllError & ")"
-          End If
-          Call Sleep(keyDelay)
-        End If
-        
-        'Key up input
-        If key.iKeyState = tap Or key.iKeyState = up Then
-          inputKey.ki.dwFlags = KEYEVENTF_KEYUP
-          If SendInput(1, inputKey, LenB(inputKey)) = 0 Then
-              Err.Raise Err.LastDllError, "SendKeysInput", "Input might be blocked by another thread (DLL Error: " & Err.LastDllError & ")"
-          End If
-          Call Sleep(keyDelay)
-        End If
-    Next
-  Else
-    Err.Raise 1, "SendKeysInput", "Window does not exist."
-  End If
+        'Loop over all keys
+        Dim iKey As Long
+        For iKey = 1 To UBound(keys)
+            Dim key As KeyToken: key = keys(iKey)
+            
+            'Create generic key signal
+            Dim inputKey As KeyboardInput
+            inputKey.InputType = INPUT_KEYBOARD
+            inputKey.ki.wVk = key.wVirtualKey
+            inputKey.ki.wScan = key.wScanCode
+            inputKey.ki.time = 0
+            
+            'Key down input
+            If key.iKeyState = tap Or key.iKeyState = down Then
+              inputKey.ki.dwFlags = 0
+              If SendInput(1, inputKey, LenB(inputKey)) = 0 Then
+                  Err_Raise Err.LastDllError, "SendKeysInput", "Input might be blocked by another thread (DLL Error: " & Err.LastDllError & ")"
+              End If
+              Call Sleep(keyDelay)
+            End If
+            
+            'Key up input
+            If key.iKeyState = tap Or key.iKeyState = up Then
+              inputKey.ki.dwFlags = KEYEVENTF_KEYUP
+              If SendInput(1, inputKey, LenB(inputKey)) = 0 Then
+                  Err_Raise Err.LastDllError, "SendKeysInput", "Input might be blocked by another thread (DLL Error: " & Err.LastDllError & ")"
+              End If
+              Call Sleep(keyDelay)
+            End If
+        Next
+      Else
+        Err_Raise 1, "SendKeysInput", "Window does not exist."
+      End If
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Uses `kybd_event` to send keystrokes to a window.
@@ -2114,42 +3074,50 @@ End Sub
 'notepadWindow.sendKeysEvent("^a")
 '```
 Public Sub SendKeysEvent(ByVal sKeys As String, Optional ByVal keyDelay As Long = 10, Optional ByVal bAutoRelease As Boolean = True)
-  Const KEYEVENTF_KEYUP = &H2
-  Const WM_KEYDOWN = &H100
-  Const WM_KEYUP = &H101
-        
-  Dim keys() As KeyToken: keys = TokeniseKeys(sKeys, bAutoRelease)
-  If Exists Then
-    Call setThreadInput(True)
-      'Activate window
-      Call Activate()
-      Call Sleep(keyDelay)
-      
-      'Use keybd event
-      Dim iKey As Long
-      For iKey = 1 To UBound(keys)
-        Dim key As KeyToken: key = keys(iKey)
-        
-        'Loop as many times as required times
-        Dim n As Long
-        For n = 1 To key.iTimes
-          'Key down event
-          If key.iKeyState = tap Or key.iKeyState = down Then
-            Call keybd_event(key.wVirtualKey, key.wScanCode, 0, 0)
-            Call Sleep(keyDelay)
-          End If
+  With stdError.getSentry("stdWindow#SendKeysEvent", "sKeys", sKeys, "keyDelay", keyDelay, "bAutoRelease", bAutoRelease)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Const KEYEVENTF_KEYUP = &H2
+      Const WM_KEYDOWN = &H100
+      Const WM_KEYUP = &H101
+            
+      Dim keys() As KeyToken: keys = TokeniseKeys(sKeys, bAutoRelease)
+      If Exists Then
+        Call setThreadInput(True)
+          'Activate window
+          Call Activate()
+          Call Sleep(keyDelay)
           
-          'Key up event
-          If key.iKeyState = tap Or key.iKeyState = up Then
-            Call keybd_event(key.wVirtualKey, key.wScanCode, KEYEVENTF_KEYUP, 0)
-            Call Sleep(keyDelay)
-          End If
-        Next
-      Next
-    Call setThreadInput(False)
-  Else
-    Err.Raise 1, "SendKeysEvent", "Window does not exist."
-  End If
+          'Use keybd event
+          Dim iKey As Long
+          For iKey = 1 To UBound(keys)
+            Dim key As KeyToken: key = keys(iKey)
+            
+            'Loop as many times as required times
+            Dim n As Long
+            For n = 1 To key.iTimes
+              'Key down event
+              If key.iKeyState = tap Or key.iKeyState = down Then
+                Call keybd_event(key.wVirtualKey, key.wScanCode, 0, 0)
+                Call Sleep(keyDelay)
+              End If
+              
+              'Key up event
+              If key.iKeyState = tap Or key.iKeyState = up Then
+                Call keybd_event(key.wVirtualKey, key.wScanCode, KEYEVENTF_KEYUP, 0)
+                Call Sleep(keyDelay)
+              End If
+            Next
+          Next
+        Call setThreadInput(False)
+      Else
+        Err_Raise 1, "SendKeysEvent", "Window does not exist."
+      End If
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Uses `PostMessage` to send keystrokes to a window.
@@ -2161,38 +3129,46 @@ End Sub
 'notepadWindow.sendKeysMessage("^a")
 '```
 Public Sub SendKeysMessage(ByVal sKeys As String, Optional ByVal keyDelay As Long = 30, Optional ByVal bAutoRelease As Boolean = True)
-  Const WM_KEYDOWN = &H100
-  Const WM_KEYUP = &H101
-        
-  Dim keys() As KeyToken: keys = TokeniseKeys(sKeys, bAutoRelease)
-  If Exists Then
-    Call setThreadInput(True)
-      Dim iKey As Long
-      For iKey = 1 To UBound(keys)
-        Dim key As KeyToken: key = keys(iKey)
-        
-        'Loop as many times as required times
-        Dim n As Long
-        For n = 1 To key.iTimes
-          'Key down event
-          If key.iKeyState = tap Or key.iKeyState = down Then
-            'Assume LParam = 0. This is rarely the case but it's not usually required anyway
-            Call PostMessageA(This.Handle, WM_KEYDOWN, key.wVirtualKey, 0&)
-            Call Sleep(keyDelay)
-          End If
-          
-          'Key up event
-          If key.iKeyState = tap Or key.iKeyState = up Then
-            'Assume LParam = 0. This is rarely the case but it's not usually required anyway
-            Call PostMessageA(This.Handle, WM_KEYUP, key.wVirtualKey, 0&)
-            Call Sleep(keyDelay)
-          End If
-        Next
-      Next
-    Call setThreadInput(False)
-  Else
-    Err.Raise 1, "SendKeysMessage", "Window does not exist."
-  End If
+  With stdError.getSentry("stdWindow#SendKeysMessage", "sKeys", sKeys, "keyDelay", keyDelay, "bAutoRelease", bAutoRelease)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Const WM_KEYDOWN = &H100
+      Const WM_KEYUP = &H101
+            
+      Dim keys() As KeyToken: keys = TokeniseKeys(sKeys, bAutoRelease)
+      If Exists Then
+        Call setThreadInput(True)
+          Dim iKey As Long
+          For iKey = 1 To UBound(keys)
+            Dim key As KeyToken: key = keys(iKey)
+            
+            'Loop as many times as required times
+            Dim n As Long
+            For n = 1 To key.iTimes
+              'Key down event
+              If key.iKeyState = tap Or key.iKeyState = down Then
+                'Assume LParam = 0. This is rarely the case but it's not usually required anyway
+                Call PostMessageA(This.Handle, WM_KEYDOWN, key.wVirtualKey, 0&)
+                Call Sleep(keyDelay)
+              End If
+              
+              'Key up event
+              If key.iKeyState = tap Or key.iKeyState = up Then
+                'Assume LParam = 0. This is rarely the case but it's not usually required anyway
+                Call PostMessageA(This.Handle, WM_KEYUP, key.wVirtualKey, 0&)
+                Call Sleep(keyDelay)
+              End If
+            Next
+          Next
+        Call setThreadInput(False)
+      Else
+        Err_Raise 1, "SendKeysMessage", "Window does not exist."
+      End If
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Await for the existence of an window which meets a specified condition.
@@ -2202,17 +3178,25 @@ End Sub
 '@returns - Window awaited for
 '@remark calls `Me.FindFirst(awaitFor)` to wait for element chosen.
 Public Function AwaitForWindow(awaitFor As stdICallable, Optional error As stdICallable = Nothing, Optional timeout As Long = -1) As stdWindow
-  Dim bCond As Boolean: bCond = True
-  Dim el As Object: Set el = Nothing
-  Dim oldTime As Date: oldTime = Now()
-  While bCond
-      Set el = FindFirst(awaitFor)
-      If Not el Is Nothing Then bCond = False
-      If Not error Is Nothing Then If error.Run(Me) Then bCond = False
-      If timeout <> -1 And Second(Now() - oldTime) > timeout Then bCond = False
-      DoEvents
-  Wend
-  Set AwaitForWindow = el
+  With stdError.getSentry("stdWindow#AwaitForWindow", "awaitFor", awaitFor, "error", error, "timeout", timeout)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim bCond As Boolean: bCond = True
+      Dim el As Object: Set el = Nothing
+      Dim oldTime As Date: oldTime = Now()
+      While bCond
+          Set el = FindFirst(awaitFor)
+          If Not el Is Nothing Then bCond = False
+          If Not error Is Nothing Then If error.Run(Me) Then bCond = False
+          If timeout <> -1 And Second(Now() - oldTime) > timeout Then bCond = False
+          DoEvents
+      Wend
+      Set AwaitForWindow = el
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 '================================================================================================
@@ -2224,22 +3208,30 @@ End Function
 '@param hwnd - Handle of the window to test for in the cache. If this window is not in the cache, the cache will be updated.
 '@returns - Shell window cache
 #If VBA7 Then
-  Friend Function protGetShellWindowCache(ByVal hwnd As LongPtr) As Object
+Friend Function protGetShellWindowCache(ByVal hwnd As LongPtr) As Object
 #Else
   Friend Function protGetShellWindowCache(ByVal hwnd as Long) as object
 #End If
-  Static cache As Object: If cache Is Nothing Then Set cache = CreateObject("Scripting.Dictionary")
-  If Not cache.Exists(CStr(hwnd)) Then
-    Static shell As Object: If shell Is Nothing Then Set shell = CreateObject("Shell.Application")
-
-    Dim win
-    For Each win In shell.windows
-      If Not cache.Exists(CStr(win.hwnd)) Then
-        cache.Add CStr(win.hwnd), win
+  With stdError.getSentry("stdWindow#protGetShellWindowCache", "hwnd", hwnd)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Static cache As Object: If cache Is Nothing Then Set cache = CreateObject("Scripting.Dictionary")
+      If Not cache.Exists(CStr(hwnd)) Then
+        Static shell As Object: If shell Is Nothing Then Set shell = CreateObject("Shell.Application")
+    
+        Dim win
+        For Each win In shell.windows
+          If Not cache.Exists(CStr(win.hwnd)) Then
+            cache.Add CStr(win.hwnd), win
+          End If
+        Next
       End If
-    Next
-  End If
-  Set protGetShellWindowCache = cache
+      Set protGetShellWindowCache = cache
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Obtain the next window given a stack
@@ -2249,85 +3241,101 @@ End Function
 '@param Prev - Previous window
 '@returns - Next window
 Friend Function protGetNextDescendent(ByVal stack As Collection, ByVal DFS As Boolean, ByVal Prev As stdWindow) As stdWindow
-  If stack.Count > 0 Then
-    'Get the next window, use popCol if we want to do Depth First Search, else use shiftCol
-    Dim oNext As stdWindow
-    If DFS Then
-      Set oNext = PopCol(stack)
-    Else
-      Set oNext = ShiftCol(stack)
-    End If
-
-    'Add all children to stack
-    Dim windows As Collection: Set windows = oNext.children
-    Dim child As stdWindow
-    For Each child In windows
-      stack.Add child
-    Next
-
-    'Return oNext
-    Set protGetNextDescendent = oNext
-  Else
-    protGetNextDescendent = Null
-  End If
+  With stdError.getSentry("stdWindow#protGetNextDescendent", "stack", stack, "DFS", DFS, "Prev", Prev)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If stack.Count > 0 Then
+        'Get the next window, use popCol if we want to do Depth First Search, else use shiftCol
+        Dim oNext As stdWindow
+        If DFS Then
+          Set oNext = PopCol(stack)
+        Else
+          Set oNext = ShiftCol(stack)
+        End If
+    
+        'Add all children to stack
+        Dim windows As Collection: Set windows = oNext.children
+        Dim child As stdWindow
+        For Each child In windows
+          stack.Add child
+        Next
+    
+        'Return oNext
+        Set protGetNextDescendent = oNext
+      Else
+        protGetNextDescendent = Null
+      End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Returns the lookups object
 '@protected
 '@returns Object<Dictionary<Dictionary<Dictionary<string|long>>>> - Lookups object
 Friend Function protGetLookups() As Object
-    If This.Lookups Is Nothing Then
-        'Notes:
-        'EWndShowStyle is not needed, use isVisible, isMinimized and isMaximised
-
-        Set This.Lookups = CreateObject("Scripting.Dictionary")
-        Set This.Lookups("EWndStyles") = CreateLookupDict(Array( _
-          "WS_BORDER", &H800000, "WS_CAPTION", &HC00000, _
-          "WS_CHILD", &H40000000, "WS_CHILDWINDOW", &H40000000, _
-          "WS_CLIPCHILDREN", &H2000000, "WS_CLIPSIBLINGS", &H4000000, _
-          "WS_DISABLED", &H8000000, "WS_DLGFRAME", &H400000, _
-          "WS_GROUP", &H20000, "WS_HSCROLL", &H100000, _
-          "WS_ICONIC", &H20000000, "WS_MAXIMIZE", &H1000000, _
-          "WS_MAXIMIZEBOX", &H10000, "WS_MINIMIZE", &H20000000, _
-          "WS_MINIMIZEBOX", &H20000, "WS_OVERLAPPED", &H0, _
-          "WS_POPUP", &H80000000, "WS_SIZEBOX", &H40000, _
-          "WS_SYSMENU", &H80000, "WS_TABSTOP", &H10000, _
-          "WS_THICKFRAME", &H40000, "WS_TILED", &H0, _
-          "WS_VISIBLE", &H10000000, "WS_VSCROLL", &H200000, _
-          "WS_OVERLAPPEDWINDOW", WS_OVERLAPPED Or WS_CAPTION Or WS_SYSMENU Or WS_THICKFRAME Or WS_MINIMIZEBOX Or WS_MAXIMIZEBOX, _
-          "WS_POPUPWINDOW", WS_POPUP Or WS_BORDER Or WS_SYSMENU _
-        ))
-        Set This.Lookups("EWndExStyles") = CreateLookupDict(Array( _
-          "WS_EX_ACCEPTFILES", &H10, "WS_EX_APPWINDOW", &H40000, _
-          "WS_EX_CLIENTEDGE", &H200, "WS_EX_COMPOSITED", &H2000000, _
-          "WS_EX_CONTEXTHELP", &H400, "WS_EX_CONTROLPARENT", &H10000, _
-          "WS_EX_DLGMODALFRAME", &H1, "WS_EX_LAYERED", &H80000, _
-          "WS_EX_LAYOUTRTL", &H400000, "WS_EX_LEFT", &H0, _
-          "WS_EX_LEFTSCROLLBAR", &H4000, "WS_EX_LTRREADING", &H0, _
-          "WS_EX_MDICHILD", &H40, "WS_EX_NOACTIVATE", &H8000000, _
-          "WS_EX_NOINHERITLAYOUT", &H100000, "WS_EX_NOPARENTNOTIFY", &H4, _
-          "WS_EX_NOREDIRECTIONBITMAP", &H200000, "WS_EX_RIGHT", &H1000, _
-          "WS_EX_RIGHTSCROLLBAR", &H0, "WS_EX_RTLREADING", &H2000, _
-          "WS_EX_STATICEDGE", &H20000, "WS_EX_TOOLWINDOW", &H80, _
-          "WS_EX_TOPMOST", &H8, "WS_EX_TRANSPARENT", &H20, _
-          "WS_EX_WINDOWEDGE", &H100, _
-          "WS_EX_OVERLAPPEDWINDOW", WS_EX_WINDOWEDGE Or WS_EX_CLIENTEDGE, _
-          "WS_EX_PALETTEWINDOW", WS_EX_WINDOWEDGE Or WS_EX_TOOLWINDOW Or WS_EX_TOPMOST _
-        ))
-        Set This.Lookups("EWndFindResult") = CreateLookupDict(Array( _
-          "MatchFound", EWndFindResult.matchFound, _
-          "MatchFoundSearchDescendents", EWndFindResult.MatchFoundSearchDescendents, _
-          "NoMatchFound", EWndFindResult.NoMatchFound, _
-          "NoMatchCancelSearch", EWndFindResult.NoMatchCancelSearch, _
-          "NoMatchSkipDescendents", EWndFindResult.NoMatchSkipDescendents _
-        ))
-        Set This.Lookups("EWndState") = CreateLookupDict(Array( _
-          "Normal", EWndState.Normal, _
-          "Maximised", EWndState.Maximised, _
-          "Minimised", EWndState.Minimised _
-        ))
-    End If
-    Set protGetLookups = This.Lookups
+  With stdError.getSentry("stdWindow#protGetLookups")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        If This.Lookups Is Nothing Then
+            'Notes:
+            'EWndShowStyle is not needed, use isVisible, isMinimized and isMaximised
+    
+            Set This.Lookups = CreateObject("Scripting.Dictionary")
+            Set This.Lookups("EWndStyles") = CreateLookupDict(Array( _
+              "WS_BORDER", &H800000, "WS_CAPTION", &HC00000, _
+              "WS_CHILD", &H40000000, "WS_CHILDWINDOW", &H40000000, _
+              "WS_CLIPCHILDREN", &H2000000, "WS_CLIPSIBLINGS", &H4000000, _
+              "WS_DISABLED", &H8000000, "WS_DLGFRAME", &H400000, _
+              "WS_GROUP", &H20000, "WS_HSCROLL", &H100000, _
+              "WS_ICONIC", &H20000000, "WS_MAXIMIZE", &H1000000, _
+              "WS_MAXIMIZEBOX", &H10000, "WS_MINIMIZE", &H20000000, _
+              "WS_MINIMIZEBOX", &H20000, "WS_OVERLAPPED", &H0, _
+              "WS_POPUP", &H80000000, "WS_SIZEBOX", &H40000, _
+              "WS_SYSMENU", &H80000, "WS_TABSTOP", &H10000, _
+              "WS_THICKFRAME", &H40000, "WS_TILED", &H0, _
+              "WS_VISIBLE", &H10000000, "WS_VSCROLL", &H200000, _
+              "WS_OVERLAPPEDWINDOW", WS_OVERLAPPED Or WS_CAPTION Or WS_SYSMENU Or WS_THICKFRAME Or WS_MINIMIZEBOX Or WS_MAXIMIZEBOX, _
+              "WS_POPUPWINDOW", WS_POPUP Or WS_BORDER Or WS_SYSMENU _
+            ))
+            Set This.Lookups("EWndExStyles") = CreateLookupDict(Array( _
+              "WS_EX_ACCEPTFILES", &H10, "WS_EX_APPWINDOW", &H40000, _
+              "WS_EX_CLIENTEDGE", &H200, "WS_EX_COMPOSITED", &H2000000, _
+              "WS_EX_CONTEXTHELP", &H400, "WS_EX_CONTROLPARENT", &H10000, _
+              "WS_EX_DLGMODALFRAME", &H1, "WS_EX_LAYERED", &H80000, _
+              "WS_EX_LAYOUTRTL", &H400000, "WS_EX_LEFT", &H0, _
+              "WS_EX_LEFTSCROLLBAR", &H4000, "WS_EX_LTRREADING", &H0, _
+              "WS_EX_MDICHILD", &H40, "WS_EX_NOACTIVATE", &H8000000, _
+              "WS_EX_NOINHERITLAYOUT", &H100000, "WS_EX_NOPARENTNOTIFY", &H4, _
+              "WS_EX_NOREDIRECTIONBITMAP", &H200000, "WS_EX_RIGHT", &H1000, _
+              "WS_EX_RIGHTSCROLLBAR", &H0, "WS_EX_RTLREADING", &H2000, _
+              "WS_EX_STATICEDGE", &H20000, "WS_EX_TOOLWINDOW", &H80, _
+              "WS_EX_TOPMOST", &H8, "WS_EX_TRANSPARENT", &H20, _
+              "WS_EX_WINDOWEDGE", &H100, _
+              "WS_EX_OVERLAPPEDWINDOW", WS_EX_WINDOWEDGE Or WS_EX_CLIENTEDGE, _
+              "WS_EX_PALETTEWINDOW", WS_EX_WINDOWEDGE Or WS_EX_TOOLWINDOW Or WS_EX_TOPMOST _
+            ))
+            Set This.Lookups("EWndFindResult") = CreateLookupDict(Array( _
+              "MatchFound", EWndFindResult.matchFound, _
+              "MatchFoundSearchDescendents", EWndFindResult.MatchFoundSearchDescendents, _
+              "NoMatchFound", EWndFindResult.NoMatchFound, _
+              "NoMatchCancelSearch", EWndFindResult.NoMatchCancelSearch, _
+              "NoMatchSkipDescendents", EWndFindResult.NoMatchSkipDescendents _
+            ))
+            Set This.Lookups("EWndState") = CreateLookupDict(Array( _
+              "Normal", EWndState.Normal, _
+              "Maximised", EWndState.Maximised, _
+              "Minimised", EWndState.Minimised _
+            ))
+        End If
+        Set protGetLookups = This.Lookups
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 
@@ -2338,16 +3346,32 @@ End Function
 '@param col as Collection<stdWindow> - Collection to pop value out of
 '@returns - Window popped out of collection
 Private Function PopCol(ByRef col As Collection) As stdWindow
-  Set PopCol = col(col.Count)
-  Call col.Remove(col.Count)
+  With stdError.getSentry("stdWindow#PopCol", "col", col)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Set PopCol = col(col.Count)
+      Call col.Remove(col.Count)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Shift a value out of a collection
 '@param col as Collection<stdWindow> - Collection to shift value out of
 '@returns - Window shifted out of collection
 Private Function ShiftCol(ByRef col As Collection) As stdWindow
-  Set ShiftCol = col(1)
-  Call col.Remove(1)
+  With stdError.getSentry("stdWindow#ShiftCol", "col", col)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Set ShiftCol = col(1)
+      Call col.Remove(1)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Obtain a DWord from the high and low parts
@@ -2355,11 +3379,19 @@ End Function
 '@param wLo - Low word
 '@returns - Long dword returned as the combination of high and low word
 Private Function MakeDWord(ByVal wHi As Integer, ByVal wLo As Integer) As Long
-  If wHi And &H8000& Then
-    MakeDWord = (((wHi And &H7FFF&) * (&HFFFF& + 1)) Or (wLo And &HFFFF&)) Or &H80000000
-  Else
-    MakeDWord = (wHi * &HFFFF) + wLo
-  End If
+  With stdError.getSentry("stdWindow#MakeDWord", "wHi", wHi, "wLo", wLo)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If wHi And &H8000& Then
+        MakeDWord = (((wHi And &H7FFF&) * (&HFFFF& + 1)) Or (wLo And &HFFFF&)) Or &H80000000
+      Else
+        MakeDWord = (wHi * &HFFFF) + wLo
+      End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 '****************************************
@@ -2368,12 +3400,20 @@ End Function
 'Binds Enumerators to FindFirst
 '@param query as stdICallable - A callable with which standard globals will be bound to
 Private Sub BindGlobals(ByRef query As stdICallable)
-    Dim bSuccess As Boolean
-    Dim keys: keys = This.Lookups.keys()
-    Dim key As Variant
-    For Each key In keys
-      Call query.SendMessage("bindGlobal", bSuccess, Array(key, This.Lookups(key)("S2N")))
-    Next
+  With stdError.getSentry("stdWindow#BindGlobals", "query", query)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim bSuccess As Boolean
+        Dim keys: keys = This.Lookups.keys()
+        Dim key As Variant
+        For Each key In keys
+          Call query.SendMessage("bindGlobal", bSuccess, Array(key, This.Lookups(key)("S2N")))
+        Next
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Constructor for a tFindNode type
@@ -2381,9 +3421,17 @@ End Sub
 '@param element - window or element to store
 '@returns {tFindNode} FindNode struct
 Private Function CreateFindNode(ByVal depth As Long, ByVal element As stdWindow) As tFindNode
-    CreateFindNode.initialised = True
-    CreateFindNode.depth = depth
-    Set CreateFindNode.element = element
+  With stdError.getSentry("stdWindow#CreateFindNode", "depth", depth, "element", element)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        CreateFindNode.initialised = True
+        CreateFindNode.depth = depth
+        Set CreateFindNode.element = element
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Given an array `stack`, and length `index`, append `item` onto the stack
@@ -2391,15 +3439,23 @@ End Function
 '@param index - current index in stack
 '@param item - Item to insert into stack
 Private Sub stackPushV(ByRef stack() As tFindNode, ByRef index As Long, ByRef Item As tFindNode)
-    Dim ub As Long: ub = UBound(stack)
-    Dim size As Long: size = ub + 1
-    If index > ub Then
-        ReDim Preserve stack(0 To size * 2)
-    End If
-    stack(index).initialised = Item.initialised
-    stack(index).depth = Item.depth
-    Set stack(index).element = Item.element
-    index = index + 1
+  With stdError.getSentry("stdWindow#stackPushV", "index", index)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim ub As Long: ub = UBound(stack)
+        Dim size As Long: size = ub + 1
+        If index > ub Then
+            ReDim Preserve stack(0 To size * 2)
+        End If
+        stack(index).initialised = Item.initialised
+        stack(index).depth = Item.depth
+        Set stack(index).element = Item.element
+        index = index + 1
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Given an array `stack`, and `index`=>`n`, pop the nth item off the stack. Used in DFS
@@ -2407,56 +3463,80 @@ End Sub
 '@param index - current index in stack
 '@returns - FindNode found at index
 Private Function stackPopV(ByRef stack() As tFindNode, ByRef index As Variant) As tFindNode
-    Dim size As Long: size = UBound(stack) + 1
-    If index < size / 3 Then
-        ReDim Preserve stack(0 To CLng(size / 2))
-    End If
-    index = index - 1
+  With stdError.getSentry("stdWindow#stackPopV", "index", index)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    stackPopV.initialised = stack(index).initialised
-    stackPopV.depth = stack(index).depth
-    Set stackPopV.element = stack(index).element
-    stack(index).initialised = False
-    stack(index).depth = 0
-    Set stack(index).element = Nothing
+        Dim size As Long: size = UBound(stack) + 1
+        If index < size / 3 Then
+            ReDim Preserve stack(0 To CLng(size / 2))
+        End If
+        index = index - 1
+        
+        stackPopV.initialised = stack(index).initialised
+        stackPopV.depth = stack(index).depth
+        Set stackPopV.element = stack(index).element
+        stack(index).initialised = False
+        stack(index).depth = 0
+        Set stack(index).element = Nothing
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'From an array of Key-Value pairs, create a dictionary of Key-->Value and Value-->Key lookups
 '@param arr as Array<Variant> - 1D array of Key,Value pairs
 '@returns Object<Dictionary<S2N: Dictionary<string,variant>, N2S: Dictionary<variant,string>>> - Created dictionary
 Private Function CreateLookupDict(arr As Variant) As Object
-    Dim oRet As Object
-    Set oRet = CreateObject("Scripting.Dictionary")
-    oRet.CompareMode = 1
-    Dim i As Long
-
-    'Create string --> number dictionary
-    Set oRet("S2N") = CreateObject("Scripting.Dictionary")
-    oRet("S2N").CompareMode = 1
-    For i = LBound(arr) To UBound(arr) Step 2
-        Call oRet("S2N").Add(arr(i), arr(i + 1))
-    Next
-
-    'Create number --> string dictionary
-    Set oRet("N2S") = CreateObject("Scripting.Dictionary")
-    oRet("N2S").CompareMode = 1
-    For i = LBound(arr) To UBound(arr) Step 2
-      If IsObject(arr(i)) Then
-        Set oRet("N2S")(arr(i + 1)) = arr(i)
-      Else
-        Let oRet("N2S")(arr(i + 1)) = arr(i)
-      End If
-    Next
-
-    'Return dictionary
-    Set CreateLookupDict = oRet
+  With stdError.getSentry("stdWindow#CreateLookupDict", "arr", arr)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim oRet As Object
+        Set oRet = CreateObject("Scripting.Dictionary")
+        oRet.CompareMode = 1
+        Dim i As Long
+    
+        'Create string --> number dictionary
+        Set oRet("S2N") = CreateObject("Scripting.Dictionary")
+        oRet("S2N").CompareMode = 1
+        For i = LBound(arr) To UBound(arr) Step 2
+            Call oRet("S2N").Add(arr(i), arr(i + 1))
+        Next
+    
+        'Create number --> string dictionary
+        Set oRet("N2S") = CreateObject("Scripting.Dictionary")
+        oRet("N2S").CompareMode = 1
+        For i = LBound(arr) To UBound(arr) Step 2
+          If IsObject(arr(i)) Then
+            Set oRet("N2S")(arr(i + 1)) = arr(i)
+          Else
+            Let oRet("N2S")(arr(i + 1)) = arr(i)
+          End If
+        Next
+    
+        'Return dictionary
+        Set CreateLookupDict = oRet
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Create an atom class string representing an atom.
 '@param iAtom - Atom to convert to a string
 '@returns - Classname representing atom
 Private Function MakeIntAtom(ByVal iAtom As Long) As String
-  MakeIntAtom = "#" & iAtom
+  With stdError.getSentry("stdWindow#MakeIntAtom", "iAtom", iAtom)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      MakeIntAtom = "#" & iAtom
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Sets the thread input state of the window.
@@ -2464,17 +3544,25 @@ End Function
 '@param bAttach - Whether to attach or detach the thread
 '@remark This is used to synchronise the thread of the window with the thread of VBA. Important for `SendInput`, Hook procedures as well as usage in drag/drop and DDE.
 Public Sub setThreadInput(ByVal bAttach As Boolean)
-    Dim dwExcelTID As Long: dwExcelTID = GetCurrentThreadId()
-    Dim dwThisTID As Long: dwThisTID = GetWindowThreadProcessId(This.Handle, 0)
+  With stdError.getSentry("stdWindow#setThreadInput", "bAttach", bAttach)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    'Synchonise Excel's thread with this window's thread
-    If Exists Then
-      If dwExcelTID <> dwThisTID Then
-        If AttachThreadInput(dwExcelTID, dwThisTID, IIf(bAttach, 1, 0)) = 0 Then
-            Err.Raise Err.LastDllError
+        Dim dwExcelTID As Long: dwExcelTID = GetCurrentThreadId()
+        Dim dwThisTID As Long: dwThisTID = GetWindowThreadProcessId(This.Handle, 0)
+        
+        'Synchonise Excel's thread with this window's thread
+        If Exists Then
+          If dwExcelTID <> dwThisTID Then
+            If AttachThreadInput(dwExcelTID, dwThisTID, IIf(bAttach, 1, 0)) = 0 Then
+                Err_Raise Err.LastDllError
+            End If
+          End If
         End If
-      End If
-    End If
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Parses a set of keys and converts them into a KeyToken array
@@ -2484,332 +3572,348 @@ End Sub
 'stdWindow.TokeniseKeys("^a{home up 3}{LControl up}")
 '```
 Private Function TokeniseKeys(ByVal sKeys As String, Optional ByVal bAutoRelease As Boolean = True) As KeyToken()
-  Const MAPVK_VK_TO_VSC As Long = 0
-  Dim iKeyCount As Long: iKeyCount = 0
-  Dim ks() As KeyToken
-  Dim sKeyExpr As String: sKeyExpr = sKeys
-  Dim bModifiers(1 To 4) As Boolean
-  Const MODIFIER_CONTROL = 1
-  Const MODIFIER_ALT = 2
-  Const MODIFIER_WIN = 3
-  Const MODIFIER_SHIFT = 4
-  
-  'Simple keyboard expression parser
-  While sKeyExpr <> ""
-    'Catch infinite loop
-    Dim sPrevExpr As String
-    If sPrevExpr = sKeyExpr Then Err.Raise 1, "TokeniseKeys", "Expression same as previous, catching infinite loop."
-    sPrevExpr = sKeyExpr
+  With stdError.getSentry("stdWindow#TokeniseKeys", "sKeys", sKeys, "bAutoRelease", bAutoRelease)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    'Parse token
-    Dim sChar As String: sChar = Mid(sKeyExpr, 1, 1)
-    Dim iVKey As EVirtualKey, iTimes As Long, iState As KeyState, iNextChar As Long, bIsUppercase As Boolean
-    Select Case sChar
-      Case "^"
-        iVKey = VK_LCONTROL
-        iTimes = 1
-        iState = down
-        iNextChar = 2
-        bModifiers(MODIFIER_CONTROL) = True
-        bIsUppercase = False
-      Case "+"
-        iVKey = VK_LSHIFT
-        iTimes = 1
-        iState = down
-        iNextChar = 2
-        bModifiers(MODIFIER_SHIFT) = True
-        bIsUppercase = False
-      Case "#"
-        iVKey = VK_LWIN
-        iTimes = 1
-        iState = down
-        iNextChar = 2
-        bModifiers(MODIFIER_WIN) = True
-        bIsUppercase = False
-      Case "%", "!"
-        iVKey = VK_LALT
-        iTimes = 1
-        iState = down
-        iNextChar = 2
-        bModifiers(MODIFIER_ALT) = True
-        bIsUppercase = False
-      Case " "
-        iVKey = VK_SPACE
-        iTimes = 1
-        iState = tap
-        iNextChar = 2
-        bIsUppercase = False
-      Case "\"
-        iVKey = VKeyFromString(Mid(sKeyExpr, 2, 1))
-        iTimes = 1
-        iState = tap
-        iNextChar = 3
-        bIsUppercase = False
+      Const MAPVK_VK_TO_VSC As Long = 0
+      Dim iKeyCount As Long: iKeyCount = 0
+      Dim ks() As KeyToken
+      Dim sKeyExpr As String: sKeyExpr = sKeys
+      Dim bModifiers(1 To 4) As Boolean
+      Const MODIFIER_CONTROL = 1
+      Const MODIFIER_ALT = 2
+      Const MODIFIER_WIN = 3
+      Const MODIFIER_SHIFT = 4
+      
+      'Simple keyboard expression parser
+      While sKeyExpr <> ""
+        'Catch infinite loop
+        Dim sPrevExpr As String
+        If sPrevExpr = sKeyExpr Then Err_Raise 1, "TokeniseKeys", "Expression same as previous, catching infinite loop."
+        sPrevExpr = sKeyExpr
         
-      Case "{"
-        'Obtain expression to turn to key code
-        Dim iExpressionEnd As Long: iExpressionEnd = InStr(1, sKeyExpr, "}")
-        Dim sExpression As String: sExpression = Mid(sKeyExpr, 2, iExpressionEnd - 2)
-        While InStr(1, sExpression, "  ") > 0: sExpression = Replace(sExpression, "  ", " "): Wend
-        Dim vExpression: vExpression = Split(sExpression, " ")
-        Dim iExpressionLen As Long: iExpressionLen = UBound(vExpression) - LBound(vExpression) + 1
+        'Parse token
+        Dim sChar As String: sChar = Mid(sKeyExpr, 1, 1)
+        Dim iVKey As EVirtualKey, iTimes As Long, iState As KeyState, iNextChar As Long, bIsUppercase As Boolean
+        Select Case sChar
+          Case "^"
+            iVKey = VK_LCONTROL
+            iTimes = 1
+            iState = down
+            iNextChar = 2
+            bModifiers(MODIFIER_CONTROL) = True
+            bIsUppercase = False
+          Case "+"
+            iVKey = VK_LSHIFT
+            iTimes = 1
+            iState = down
+            iNextChar = 2
+            bModifiers(MODIFIER_SHIFT) = True
+            bIsUppercase = False
+          Case "#"
+            iVKey = VK_LWIN
+            iTimes = 1
+            iState = down
+            iNextChar = 2
+            bModifiers(MODIFIER_WIN) = True
+            bIsUppercase = False
+          Case "%", "!"
+            iVKey = VK_LALT
+            iTimes = 1
+            iState = down
+            iNextChar = 2
+            bModifiers(MODIFIER_ALT) = True
+            bIsUppercase = False
+          Case " "
+            iVKey = VK_SPACE
+            iTimes = 1
+            iState = tap
+            iNextChar = 2
+            bIsUppercase = False
+          Case "\"
+            iVKey = VKeyFromString(Mid(sKeyExpr, 2, 1))
+            iTimes = 1
+            iState = tap
+            iNextChar = 3
+            bIsUppercase = False
+            
+          Case "{"
+            'Obtain expression to turn to key code
+            Dim iExpressionEnd As Long: iExpressionEnd = InStr(1, sKeyExpr, "}")
+            Dim sExpression As String: sExpression = Mid(sKeyExpr, 2, iExpressionEnd - 2)
+            While InStr(1, sExpression, "  ") > 0: sExpression = Replace(sExpression, "  ", " "): Wend
+            Dim vExpression: vExpression = Split(sExpression, " ")
+            Dim iExpressionLen As Long: iExpressionLen = UBound(vExpression) - LBound(vExpression) + 1
+            
+            '1st arg is always the vkey
+            Dim sSpecialKey As String: sSpecialKey = vExpression(0)
+            iVKey = VKeyFromString(sSpecialKey)
+            iState = tap 'Default
+            iTimes = 1   'Default
+            
+            'Override defaults based on other arguments parsed
+            'Arguments can either be UP, DOWN, TAP (key state), or a number (times key is pressed)
+            Dim iArg As Long
+            For iArg = 1 To UBound(vExpression)
+              Dim vArg As Variant
+              vArg = UCase(vExpression(iArg))
+              Select Case vArg
+                Case "UP"
+                  iState = up
+                Case "DOWN"
+                  iState = down
+                Case "TAP"
+                  iState = tap
+                Case Else
+                If IsNumeric(vArg) Then
+                  iTimes = CLng(vArg)
+                Else
+                  Err_Raise 1, "TokeniseKeys", "No arg of type """ & vArg & """ allowed."
+                End If
+              End Select
+            Next
+            
+            iNextChar = iExpressionEnd + 1
+            bIsUppercase = False
+          Case Else
+            iVKey = VKeyFromString(sChar)
+            iTimes = 1
+            iState = tap
+            iNextChar = 2
+            'Note: if only havine one of the checks, characters like `5` are signalled as upper case when they aren't.
+            bIsUppercase = sChar = UCase(sChar) And sChar <> LCase(sChar)
+        End Select
         
-        '1st arg is always the vkey
-        Dim sSpecialKey As String: sSpecialKey = vExpression(0)
-        iVKey = VKeyFromString(sSpecialKey)
-        iState = tap 'Default
-        iTimes = 1   'Default
+        'Include shift keys for upper case letters
+        If bIsUppercase Then
+            ReDim Preserve ks(1 To iKeyCount + 3)
+            
+            With ks(iKeyCount + 1)
+                .wVirtualKey = VK_LSHIFT
+                .wScanCode = MapVirtualKeyA(VK_LSHIFT, MAPVK_VK_TO_VSC)
+                .iKeyState = down
+                .iTimes = 1
+            End With
+            With ks(iKeyCount + 2)
+              .wVirtualKey = iVKey
+              .wScanCode = MapVirtualKeyA(iVKey, MAPVK_VK_TO_VSC)
+              .iKeyState = iState
+              .iTimes = iTimes
+            End With
+            With ks(iKeyCount + 3)
+                .wVirtualKey = VK_LSHIFT
+                .wScanCode = MapVirtualKeyA(VK_LSHIFT, MAPVK_VK_TO_VSC)
+                .iKeyState = up
+                .iTimes = 1
+            End With
+            
+            iKeyCount = iKeyCount + 3
+        Else
+            'Add key directly
+            iKeyCount = iKeyCount + 1
+            ReDim Preserve ks(1 To iKeyCount)
+            With ks(iKeyCount)
+              .wVirtualKey = iVKey
+              .wScanCode = MapVirtualKeyA(iVKey, MAPVK_VK_TO_VSC)
+              .iKeyState = iState
+              .iTimes = iTimes
+            End With
+        End If
         
-        'Override defaults based on other arguments parsed
-        'Arguments can either be UP, DOWN, TAP (key state), or a number (times key is pressed)
-        Dim iArg As Long
-        For iArg = 1 To UBound(vExpression)
-          Dim vArg As Variant
-          vArg = UCase(vExpression(iArg))
-          Select Case vArg
-            Case "UP"
-              iState = up
-            Case "DOWN"
-              iState = down
-            Case "TAP"
-              iState = tap
-            Case Else
-            If IsNumeric(vArg) Then
-              iTimes = CLng(vArg)
-            Else
-              Err.Raise 1, "TokeniseKeys", "No arg of type """ & vArg & """ allowed."
+        'Trim expression
+        sKeyExpr = Mid(sKeyExpr, iNextChar)
+      Wend
+      
+      'Make sure all key down events are released
+      If bAutoRelease Then
+        Dim iStartKeyCount As Long: iStartKeyCount = iKeyCount
+        Dim iModifier As Long, jModifier As Long
+        For iModifier = 1 To iStartKeyCount
+          If ks(iModifier).iKeyState = down Then
+            'Check whether the key is down
+            Dim isDown As Boolean: isDown = True
+            For jModifier = iKeyCount To iModifier Step -1
+              If ks(jModifier).wVirtualKey = ks(iModifier).wVirtualKey Then
+                isDown = ks(jModifier).iKeyState = down
+                Exit For
+              End If
+            Next
+            
+            'If the key is down, then add an additional key onto the end of the array releasing it
+            If isDown Then
+              iKeyCount = iKeyCount + 1
+              ReDim Preserve ks(1 To iKeyCount)
+              ks(iKeyCount).wVirtualKey = ks(iModifier).wVirtualKey
+              ks(iKeyCount).wScanCode = ks(iModifier).wScanCode
+              ks(iKeyCount).iTimes = 1
+              ks(iKeyCount).iKeyState = up
             End If
-          End Select
-        Next
-        
-        iNextChar = iExpressionEnd + 1
-        bIsUppercase = False
-      Case Else
-        iVKey = VKeyFromString(sChar)
-        iTimes = 1
-        iState = tap
-        iNextChar = 2
-        'Note: if only havine one of the checks, characters like `5` are signalled as upper case when they aren't.
-        bIsUppercase = sChar = UCase(sChar) And sChar <> LCase(sChar)
-    End Select
-    
-    'Include shift keys for upper case letters
-    If bIsUppercase Then
-        ReDim Preserve ks(1 To iKeyCount + 3)
-        
-        With ks(iKeyCount + 1)
-            .wVirtualKey = VK_LSHIFT
-            .wScanCode = MapVirtualKeyA(VK_LSHIFT, MAPVK_VK_TO_VSC)
-            .iKeyState = down
-            .iTimes = 1
-        End With
-        With ks(iKeyCount + 2)
-          .wVirtualKey = iVKey
-          .wScanCode = MapVirtualKeyA(iVKey, MAPVK_VK_TO_VSC)
-          .iKeyState = iState
-          .iTimes = iTimes
-        End With
-        With ks(iKeyCount + 3)
-            .wVirtualKey = VK_LSHIFT
-            .wScanCode = MapVirtualKeyA(VK_LSHIFT, MAPVK_VK_TO_VSC)
-            .iKeyState = up
-            .iTimes = 1
-        End With
-        
-        iKeyCount = iKeyCount + 3
-    Else
-        'Add key directly
-        iKeyCount = iKeyCount + 1
-        ReDim Preserve ks(1 To iKeyCount)
-        With ks(iKeyCount)
-          .wVirtualKey = iVKey
-          .wScanCode = MapVirtualKeyA(iVKey, MAPVK_VK_TO_VSC)
-          .iKeyState = iState
-          .iTimes = iTimes
-        End With
-    End If
-    
-    'Trim expression
-    sKeyExpr = Mid(sKeyExpr, iNextChar)
-  Wend
-  
-  'Make sure all key down events are released
-  If bAutoRelease Then
-    Dim iStartKeyCount As Long: iStartKeyCount = iKeyCount
-    Dim iModifier As Long, jModifier As Long
-    For iModifier = 1 To iStartKeyCount
-      If ks(iModifier).iKeyState = down Then
-        'Check whether the key is down
-        Dim isDown As Boolean: isDown = True
-        For jModifier = iKeyCount To iModifier Step -1
-          If ks(jModifier).wVirtualKey = ks(iModifier).wVirtualKey Then
-            isDown = ks(jModifier).iKeyState = down
-            Exit For
           End If
         Next
-        
-        'If the key is down, then add an additional key onto the end of the array releasing it
-        If isDown Then
-          iKeyCount = iKeyCount + 1
-          ReDim Preserve ks(1 To iKeyCount)
-          ks(iKeyCount).wVirtualKey = ks(iModifier).wVirtualKey
-          ks(iKeyCount).wScanCode = ks(iModifier).wScanCode
-          ks(iKeyCount).iTimes = 1
-          ks(iKeyCount).iKeyState = up
-        End If
       End If
-    Next
-  End If
-  
-  'return token list
-  TokeniseKeys = ks
+      
+      'return token list
+      TokeniseKeys = ks
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Obtain VKey code from string
 '@param s - KeyName as string
 '@returns - VKey code
 Private Function VKeyFromString(ByRef s As String) As EVirtualKey
-  Select Case UCase(s)
-    Case "LBUTTON": VKeyFromString = EVirtualKey.VK_LBUTTON
-    Case "RBUTTON": VKeyFromString = EVirtualKey.VK_RBUTTON
-    Case "CANCEL": VKeyFromString = EVirtualKey.VK_CANCEL
-    Case "MBUTTON": VKeyFromString = EVirtualKey.VK_MBUTTON
-    Case "XBUTTON1": VKeyFromString = EVirtualKey.VK_XBUTTON1
-    Case "XBUTTON2": VKeyFromString = EVirtualKey.VK_XBUTTON2
-    Case "BACK": VKeyFromString = EVirtualKey.VK_BACK
-    Case "TAB": VKeyFromString = EVirtualKey.VK_TAB
-    Case "CLEAR": VKeyFromString = EVirtualKey.VK_CLEAR
-    Case "RETURN": VKeyFromString = EVirtualKey.VK_RETURN
-    Case "ENTER": VKeyFromString = EVirtualKey.VK_RETURN
-    Case "SHIFT": VKeyFromString = EVirtualKey.VK_SHIFT
-    Case "CONTROL": VKeyFromString = EVirtualKey.VK_CONTROL
-    Case "ALT": VKeyFromString = EVirtualKey.VK_ALT
-    Case "PAUSE": VKeyFromString = EVirtualKey.VK_PAUSE
-    Case "CAPITAL": VKeyFromString = EVirtualKey.VK_CAPITAL
-    Case "KANA": VKeyFromString = EVirtualKey.VK_KANA
-    Case "HANGUEL": VKeyFromString = EVirtualKey.VK_HANGUEL
-    Case "HANGUL": VKeyFromString = EVirtualKey.VK_HANGUL
-    Case "IME_ON": VKeyFromString = EVirtualKey.VK_IME_ON
-    Case "JUNJA": VKeyFromString = EVirtualKey.VK_JUNJA
-    Case "FINAL": VKeyFromString = EVirtualKey.VK_FINAL
-    Case "HANJA": VKeyFromString = EVirtualKey.VK_HANJA
-    Case "KANJI": VKeyFromString = EVirtualKey.VK_KANJI
-    Case "IME_OFF": VKeyFromString = EVirtualKey.VK_IME_OFF
-    Case "ESCAPE": VKeyFromString = EVirtualKey.VK_ESCAPE
-    Case "CONVERT": VKeyFromString = EVirtualKey.VK_CONVERT
-    Case "NONCONVERT": VKeyFromString = EVirtualKey.VK_NONCONVERT
-    Case "ACCEPT": VKeyFromString = EVirtualKey.VK_ACCEPT
-    Case "MODECHANGE": VKeyFromString = EVirtualKey.VK_MODECHANGE
-    Case "SPACE": VKeyFromString = EVirtualKey.VK_SPACE
-    Case "PGUP", "PAGEUP", "PRIOR": VKeyFromString = EVirtualKey.VK_PRIOR
-    Case "PGDN", "PAGEDOWN", "NEXT": VKeyFromString = EVirtualKey.VK_NEXT
-    Case "END": VKeyFromString = EVirtualKey.VK_END
-    Case "HOME": VKeyFromString = EVirtualKey.VK_HOME
-    Case "LEFT": VKeyFromString = EVirtualKey.VK_LEFT
-    Case "UP": VKeyFromString = EVirtualKey.VK_UP
-    Case "RIGHT": VKeyFromString = EVirtualKey.VK_RIGHT
-    Case "DOWN": VKeyFromString = EVirtualKey.VK_DOWN
-    Case "SELECT": VKeyFromString = EVirtualKey.VK_SELECT
-    Case "PRINT": VKeyFromString = EVirtualKey.VK_PRINT
-    Case "EXECUTE": VKeyFromString = EVirtualKey.VK_EXECUTE
-    Case "SNAPSHOT": VKeyFromString = EVirtualKey.VK_SNAPSHOT
-    Case "INSERT": VKeyFromString = EVirtualKey.VK_INSERT
-    Case "DELETE": VKeyFromString = EVirtualKey.VK_DELETE
-    Case "HELP": VKeyFromString = EVirtualKey.VK_HELP
-    Case "0": VKeyFromString = EVirtualKey.VK_0
-    Case "1": VKeyFromString = EVirtualKey.VK_1
-    Case "2": VKeyFromString = EVirtualKey.VK_2
-    Case "3": VKeyFromString = EVirtualKey.VK_3
-    Case "4": VKeyFromString = EVirtualKey.VK_4
-    Case "5": VKeyFromString = EVirtualKey.VK_5
-    Case "6": VKeyFromString = EVirtualKey.VK_6
-    Case "7": VKeyFromString = EVirtualKey.VK_7
-    Case "8": VKeyFromString = EVirtualKey.VK_8
-    Case "9": VKeyFromString = EVirtualKey.VK_9
-    Case "A": VKeyFromString = EVirtualKey.VK_A
-    Case "B": VKeyFromString = EVirtualKey.VK_B
-    Case "C": VKeyFromString = EVirtualKey.VK_C
-    Case "D": VKeyFromString = EVirtualKey.VK_D
-    Case "E": VKeyFromString = EVirtualKey.VK_E
-    Case "F": VKeyFromString = EVirtualKey.VK_F
-    Case "G": VKeyFromString = EVirtualKey.VK_G
-    Case "H": VKeyFromString = EVirtualKey.VK_H
-    Case "I": VKeyFromString = EVirtualKey.VK_I
-    Case "J": VKeyFromString = EVirtualKey.VK_J
-    Case "K": VKeyFromString = EVirtualKey.VK_K
-    Case "L": VKeyFromString = EVirtualKey.VK_L
-    Case "M": VKeyFromString = EVirtualKey.VK_M
-    Case "N": VKeyFromString = EVirtualKey.VK_N
-    Case "O": VKeyFromString = EVirtualKey.VK_O
-    Case "P": VKeyFromString = EVirtualKey.VK_P
-    Case "Q": VKeyFromString = EVirtualKey.VK_Q
-    Case "R": VKeyFromString = EVirtualKey.VK_R
-    Case "S": VKeyFromString = EVirtualKey.VK_S
-    Case "T": VKeyFromString = EVirtualKey.VK_T
-    Case "U": VKeyFromString = EVirtualKey.VK_U
-    Case "V": VKeyFromString = EVirtualKey.VK_V
-    Case "W": VKeyFromString = EVirtualKey.VK_W
-    Case "X": VKeyFromString = EVirtualKey.VK_X
-    Case "Y": VKeyFromString = EVirtualKey.VK_Y
-    Case "Z": VKeyFromString = EVirtualKey.VK_Z
-    Case "LWIN": VKeyFromString = EVirtualKey.VK_LWIN
-    Case "RWIN": VKeyFromString = EVirtualKey.VK_RWIN
-    Case "APPS": VKeyFromString = EVirtualKey.VK_APPS
-    Case "SLEEP": VKeyFromString = EVirtualKey.VK_SLEEP
-    Case "NUMPAD0": VKeyFromString = EVirtualKey.VK_NUMPAD0
-    Case "NUMPAD1": VKeyFromString = EVirtualKey.VK_NUMPAD1
-    Case "NUMPAD2": VKeyFromString = EVirtualKey.VK_NUMPAD2
-    Case "NUMPAD3": VKeyFromString = EVirtualKey.VK_NUMPAD3
-    Case "NUMPAD4": VKeyFromString = EVirtualKey.VK_NUMPAD4
-    Case "NUMPAD5": VKeyFromString = EVirtualKey.VK_NUMPAD5
-    Case "NUMPAD6": VKeyFromString = EVirtualKey.VK_NUMPAD6
-    Case "NUMPAD7": VKeyFromString = EVirtualKey.VK_NUMPAD7
-    Case "NUMPAD8": VKeyFromString = EVirtualKey.VK_NUMPAD8
-    Case "NUMPAD9": VKeyFromString = EVirtualKey.VK_NUMPAD9
-    Case "MULTIPLY": VKeyFromString = EVirtualKey.VK_MULTIPLY
-    Case "ADD": VKeyFromString = EVirtualKey.VK_ADD
-    Case "SEPARATOR": VKeyFromString = EVirtualKey.VK_SEPARATOR
-    Case "SUBTRACT": VKeyFromString = EVirtualKey.VK_SUBTRACT
-    Case "DECIMAL": VKeyFromString = EVirtualKey.VK_DECIMAL
-    Case "DIVIDE": VKeyFromString = EVirtualKey.VK_DIVIDE
-    Case "F1": VKeyFromString = EVirtualKey.VK_F1
-    Case "F2": VKeyFromString = EVirtualKey.VK_F2
-    Case "F3": VKeyFromString = EVirtualKey.VK_F3
-    Case "F4": VKeyFromString = EVirtualKey.VK_F4
-    Case "F5": VKeyFromString = EVirtualKey.VK_F5
-    Case "F6": VKeyFromString = EVirtualKey.VK_F6
-    Case "F7": VKeyFromString = EVirtualKey.VK_F7
-    Case "F8": VKeyFromString = EVirtualKey.VK_F8
-    Case "F9": VKeyFromString = EVirtualKey.VK_F9
-    Case "F10": VKeyFromString = EVirtualKey.VK_F10
-    Case "F11": VKeyFromString = EVirtualKey.VK_F11
-    Case "F12": VKeyFromString = EVirtualKey.VK_F12
-    Case "F13": VKeyFromString = EVirtualKey.VK_F13
-    Case "F14": VKeyFromString = EVirtualKey.VK_F14
-    Case "F15": VKeyFromString = EVirtualKey.VK_F15
-    Case "F16": VKeyFromString = EVirtualKey.VK_F16
-    Case "F17": VKeyFromString = EVirtualKey.VK_F17
-    Case "F18": VKeyFromString = EVirtualKey.VK_F18
-    Case "F19": VKeyFromString = EVirtualKey.VK_F19
-    Case "F20": VKeyFromString = EVirtualKey.VK_F20
-    Case "F21": VKeyFromString = EVirtualKey.VK_F21
-    Case "F22": VKeyFromString = EVirtualKey.VK_F22
-    Case "F23": VKeyFromString = EVirtualKey.VK_F23
-    Case "F24": VKeyFromString = EVirtualKey.VK_F24
-    Case "NUMLOCK": VKeyFromString = EVirtualKey.VK_NUMLOCK
-    Case "SCROLL": VKeyFromString = EVirtualKey.VK_SCROLL
-    Case "LSHIFT": VKeyFromString = EVirtualKey.VK_LSHIFT
-    Case "RSHIFT": VKeyFromString = EVirtualKey.VK_RSHIFT
-    Case "LCONTROL": VKeyFromString = EVirtualKey.VK_LCONTROL
-    Case "RCONTROL": VKeyFromString = EVirtualKey.VK_RCONTROL
-    Case "LALT": VKeyFromString = EVirtualKey.VK_LALT
-    Case "RALT": VKeyFromString = EVirtualKey.VK_RALT
-    Case "/": VKeyFromString = EVirtualKey.VK_OEM_2
-    Case ";": VKeyFromString = EVirtualKey.VK_OEM_1
-    Case ",": VKeyFromString = EVirtualKey.VK_OEM_COMMA
-    Case Else
-      Err.Raise 1, "VKeyFromString()", "No key """ & s & """"
-  End Select
+  With stdError.getSentry("stdWindow#VKeyFromString", "s", s)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Select Case UCase(s)
+        Case "LBUTTON": VKeyFromString = EVirtualKey.VK_LBUTTON
+        Case "RBUTTON": VKeyFromString = EVirtualKey.VK_RBUTTON
+        Case "CANCEL": VKeyFromString = EVirtualKey.VK_CANCEL
+        Case "MBUTTON": VKeyFromString = EVirtualKey.VK_MBUTTON
+        Case "XBUTTON1": VKeyFromString = EVirtualKey.VK_XBUTTON1
+        Case "XBUTTON2": VKeyFromString = EVirtualKey.VK_XBUTTON2
+        Case "BACK": VKeyFromString = EVirtualKey.VK_BACK
+        Case "TAB": VKeyFromString = EVirtualKey.VK_TAB
+        Case "CLEAR": VKeyFromString = EVirtualKey.VK_CLEAR
+        Case "RETURN": VKeyFromString = EVirtualKey.VK_RETURN
+        Case "ENTER": VKeyFromString = EVirtualKey.VK_RETURN
+        Case "SHIFT": VKeyFromString = EVirtualKey.VK_SHIFT
+        Case "CONTROL": VKeyFromString = EVirtualKey.VK_CONTROL
+        Case "ALT": VKeyFromString = EVirtualKey.VK_ALT
+        Case "PAUSE": VKeyFromString = EVirtualKey.VK_PAUSE
+        Case "CAPITAL": VKeyFromString = EVirtualKey.VK_CAPITAL
+        Case "KANA": VKeyFromString = EVirtualKey.VK_KANA
+        Case "HANGUEL": VKeyFromString = EVirtualKey.VK_HANGUEL
+        Case "HANGUL": VKeyFromString = EVirtualKey.VK_HANGUL
+        Case "IME_ON": VKeyFromString = EVirtualKey.VK_IME_ON
+        Case "JUNJA": VKeyFromString = EVirtualKey.VK_JUNJA
+        Case "FINAL": VKeyFromString = EVirtualKey.VK_FINAL
+        Case "HANJA": VKeyFromString = EVirtualKey.VK_HANJA
+        Case "KANJI": VKeyFromString = EVirtualKey.VK_KANJI
+        Case "IME_OFF": VKeyFromString = EVirtualKey.VK_IME_OFF
+        Case "ESCAPE": VKeyFromString = EVirtualKey.VK_ESCAPE
+        Case "CONVERT": VKeyFromString = EVirtualKey.VK_CONVERT
+        Case "NONCONVERT": VKeyFromString = EVirtualKey.VK_NONCONVERT
+        Case "ACCEPT": VKeyFromString = EVirtualKey.VK_ACCEPT
+        Case "MODECHANGE": VKeyFromString = EVirtualKey.VK_MODECHANGE
+        Case "SPACE": VKeyFromString = EVirtualKey.VK_SPACE
+        Case "PGUP", "PAGEUP", "PRIOR": VKeyFromString = EVirtualKey.VK_PRIOR
+        Case "PGDN", "PAGEDOWN", "NEXT": VKeyFromString = EVirtualKey.VK_NEXT
+        Case "END": VKeyFromString = EVirtualKey.VK_END
+        Case "HOME": VKeyFromString = EVirtualKey.VK_HOME
+        Case "LEFT": VKeyFromString = EVirtualKey.VK_LEFT
+        Case "UP": VKeyFromString = EVirtualKey.VK_UP
+        Case "RIGHT": VKeyFromString = EVirtualKey.VK_RIGHT
+        Case "DOWN": VKeyFromString = EVirtualKey.VK_DOWN
+        Case "SELECT": VKeyFromString = EVirtualKey.VK_SELECT
+        Case "PRINT": VKeyFromString = EVirtualKey.VK_PRINT
+        Case "EXECUTE": VKeyFromString = EVirtualKey.VK_EXECUTE
+        Case "SNAPSHOT": VKeyFromString = EVirtualKey.VK_SNAPSHOT
+        Case "INSERT": VKeyFromString = EVirtualKey.VK_INSERT
+        Case "DELETE": VKeyFromString = EVirtualKey.VK_DELETE
+        Case "HELP": VKeyFromString = EVirtualKey.VK_HELP
+        Case "0": VKeyFromString = EVirtualKey.VK_0
+        Case "1": VKeyFromString = EVirtualKey.VK_1
+        Case "2": VKeyFromString = EVirtualKey.VK_2
+        Case "3": VKeyFromString = EVirtualKey.VK_3
+        Case "4": VKeyFromString = EVirtualKey.VK_4
+        Case "5": VKeyFromString = EVirtualKey.VK_5
+        Case "6": VKeyFromString = EVirtualKey.VK_6
+        Case "7": VKeyFromString = EVirtualKey.VK_7
+        Case "8": VKeyFromString = EVirtualKey.VK_8
+        Case "9": VKeyFromString = EVirtualKey.VK_9
+        Case "A": VKeyFromString = EVirtualKey.VK_A
+        Case "B": VKeyFromString = EVirtualKey.VK_B
+        Case "C": VKeyFromString = EVirtualKey.VK_C
+        Case "D": VKeyFromString = EVirtualKey.VK_D
+        Case "E": VKeyFromString = EVirtualKey.VK_E
+        Case "F": VKeyFromString = EVirtualKey.VK_F
+        Case "G": VKeyFromString = EVirtualKey.VK_G
+        Case "H": VKeyFromString = EVirtualKey.VK_H
+        Case "I": VKeyFromString = EVirtualKey.VK_I
+        Case "J": VKeyFromString = EVirtualKey.VK_J
+        Case "K": VKeyFromString = EVirtualKey.VK_K
+        Case "L": VKeyFromString = EVirtualKey.VK_L
+        Case "M": VKeyFromString = EVirtualKey.VK_M
+        Case "N": VKeyFromString = EVirtualKey.VK_N
+        Case "O": VKeyFromString = EVirtualKey.VK_O
+        Case "P": VKeyFromString = EVirtualKey.VK_P
+        Case "Q": VKeyFromString = EVirtualKey.VK_Q
+        Case "R": VKeyFromString = EVirtualKey.VK_R
+        Case "S": VKeyFromString = EVirtualKey.VK_S
+        Case "T": VKeyFromString = EVirtualKey.VK_T
+        Case "U": VKeyFromString = EVirtualKey.VK_U
+        Case "V": VKeyFromString = EVirtualKey.VK_V
+        Case "W": VKeyFromString = EVirtualKey.VK_W
+        Case "X": VKeyFromString = EVirtualKey.VK_X
+        Case "Y": VKeyFromString = EVirtualKey.VK_Y
+        Case "Z": VKeyFromString = EVirtualKey.VK_Z
+        Case "LWIN": VKeyFromString = EVirtualKey.VK_LWIN
+        Case "RWIN": VKeyFromString = EVirtualKey.VK_RWIN
+        Case "APPS": VKeyFromString = EVirtualKey.VK_APPS
+        Case "SLEEP": VKeyFromString = EVirtualKey.VK_SLEEP
+        Case "NUMPAD0": VKeyFromString = EVirtualKey.VK_NUMPAD0
+        Case "NUMPAD1": VKeyFromString = EVirtualKey.VK_NUMPAD1
+        Case "NUMPAD2": VKeyFromString = EVirtualKey.VK_NUMPAD2
+        Case "NUMPAD3": VKeyFromString = EVirtualKey.VK_NUMPAD3
+        Case "NUMPAD4": VKeyFromString = EVirtualKey.VK_NUMPAD4
+        Case "NUMPAD5": VKeyFromString = EVirtualKey.VK_NUMPAD5
+        Case "NUMPAD6": VKeyFromString = EVirtualKey.VK_NUMPAD6
+        Case "NUMPAD7": VKeyFromString = EVirtualKey.VK_NUMPAD7
+        Case "NUMPAD8": VKeyFromString = EVirtualKey.VK_NUMPAD8
+        Case "NUMPAD9": VKeyFromString = EVirtualKey.VK_NUMPAD9
+        Case "MULTIPLY": VKeyFromString = EVirtualKey.VK_MULTIPLY
+        Case "ADD": VKeyFromString = EVirtualKey.VK_ADD
+        Case "SEPARATOR": VKeyFromString = EVirtualKey.VK_SEPARATOR
+        Case "SUBTRACT": VKeyFromString = EVirtualKey.VK_SUBTRACT
+        Case "DECIMAL": VKeyFromString = EVirtualKey.VK_DECIMAL
+        Case "DIVIDE": VKeyFromString = EVirtualKey.VK_DIVIDE
+        Case "F1": VKeyFromString = EVirtualKey.VK_F1
+        Case "F2": VKeyFromString = EVirtualKey.VK_F2
+        Case "F3": VKeyFromString = EVirtualKey.VK_F3
+        Case "F4": VKeyFromString = EVirtualKey.VK_F4
+        Case "F5": VKeyFromString = EVirtualKey.VK_F5
+        Case "F6": VKeyFromString = EVirtualKey.VK_F6
+        Case "F7": VKeyFromString = EVirtualKey.VK_F7
+        Case "F8": VKeyFromString = EVirtualKey.VK_F8
+        Case "F9": VKeyFromString = EVirtualKey.VK_F9
+        Case "F10": VKeyFromString = EVirtualKey.VK_F10
+        Case "F11": VKeyFromString = EVirtualKey.VK_F11
+        Case "F12": VKeyFromString = EVirtualKey.VK_F12
+        Case "F13": VKeyFromString = EVirtualKey.VK_F13
+        Case "F14": VKeyFromString = EVirtualKey.VK_F14
+        Case "F15": VKeyFromString = EVirtualKey.VK_F15
+        Case "F16": VKeyFromString = EVirtualKey.VK_F16
+        Case "F17": VKeyFromString = EVirtualKey.VK_F17
+        Case "F18": VKeyFromString = EVirtualKey.VK_F18
+        Case "F19": VKeyFromString = EVirtualKey.VK_F19
+        Case "F20": VKeyFromString = EVirtualKey.VK_F20
+        Case "F21": VKeyFromString = EVirtualKey.VK_F21
+        Case "F22": VKeyFromString = EVirtualKey.VK_F22
+        Case "F23": VKeyFromString = EVirtualKey.VK_F23
+        Case "F24": VKeyFromString = EVirtualKey.VK_F24
+        Case "NUMLOCK": VKeyFromString = EVirtualKey.VK_NUMLOCK
+        Case "SCROLL": VKeyFromString = EVirtualKey.VK_SCROLL
+        Case "LSHIFT": VKeyFromString = EVirtualKey.VK_LSHIFT
+        Case "RSHIFT": VKeyFromString = EVirtualKey.VK_RSHIFT
+        Case "LCONTROL": VKeyFromString = EVirtualKey.VK_LCONTROL
+        Case "RCONTROL": VKeyFromString = EVirtualKey.VK_RCONTROL
+        Case "LALT": VKeyFromString = EVirtualKey.VK_LALT
+        Case "RALT": VKeyFromString = EVirtualKey.VK_RALT
+        Case "/": VKeyFromString = EVirtualKey.VK_OEM_2
+        Case ";": VKeyFromString = EVirtualKey.VK_OEM_1
+        Case ",": VKeyFromString = EVirtualKey.VK_OEM_COMMA
+        Case Else
+          Err_Raise 1, "VKeyFromString()", "No key """ & s & """"
+      End Select
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Create an lParam key from params
@@ -2819,7 +3923,15 @@ End Function
 '@param bDown - Whether the key is down
 '@returns - key as an lParam
 Private Function createKeyLParam(ByVal repeatCount As Long, ByVal scanCode As Long, ByVal extended As Boolean, ByVal bDown As Boolean) As Long
-  createKeyLParam = repeatCount Or lshift(scanCode, 16) Or lshift(extended, 24) Or lshift(IIf(bDown, 0, 1), 29) Or lshift(IIf(bDown, 0, 1), 30) Or lshift(IIf(bDown, 0, 1), 31)
+  With stdError.getSentry("stdWindow#createKeyLParam", "repeatCount", repeatCount, "scanCode", scanCode, "extended", extended, "bDown", bDown)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      createKeyLParam = repeatCount Or lshift(scanCode, 16) Or lshift(extended, 24) Or lshift(IIf(bDown, 0, 1), 29) Or lshift(IIf(bDown, 0, 1), 30) Or lshift(IIf(bDown, 0, 1), 31)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Left shift a value by n times
@@ -2827,7 +3939,15 @@ End Function
 '@param nTimes - Number of times to shift
 '@returns - Shifted value
 Private Function lshift(ByVal val As Long, ByVal nTimes As Integer) As Long
-  lshift = val * 2 ^ nTimes
+  With stdError.getSentry("stdWindow#lshift", "val", val, "nTimes", nTimes)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      lshift = val * 2 ^ nTimes
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Check whether a bit flag is set in a bit field
@@ -2835,7 +3955,15 @@ End Function
 '@param flag - The flag to check for
 '@returns - True if flag is present, false otherwise.
 Private Function bitFlagCheck(ByVal field As Long, ByVal flag As Long) As Boolean
-  bitFlagCheck = (field And flag) = flag
+  With stdError.getSentry("stdWindow#bitFlagCheck", "field", field, "flag", flag)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      bitFlagCheck = (field And flag) = flag
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Set a bit flag in a bit field.
@@ -2844,48 +3972,64 @@ End Function
 '@param toSet - True to ensure the flag is set. False to ensure the flag is not set.
 '@returns - field with added / ensured bit flag.
 Private Function bitFlagSet(ByVal field As Long, ByVal flag As Long, ByVal toSet As Boolean) As Long
-  If toSet Then
-    bitFlagSet = field Or flag
-  Else
-    bitFlagSet = field And (Not flag)
-  End If
+  With stdError.getSentry("stdWindow#bitFlagSet", "field", field, "flag", flag, "toSet", toSet)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If toSet Then
+        bitFlagSet = field Or flag
+      Else
+        bitFlagSet = field And (Not flag)
+      End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Create a GUID struct from input string
 '@param guid - GUID string to convert
 '@returns - guid struct for use in API calls
 Private Function convertGUID(Guid As String) As tGUID
-    'Lookups defined by:
-    ' Define the GUID for the IAccessible object
-    ' {618736E0-3C3D-11CF-810C-00AA00389B71}
-    ' With tg
-    '    .lData1 = &H618736E0
-    '    .nData2 = &H3C3D
-    '    .nData3 = &H11CF
-    '    .abytData4(0) = &H81
-    '    .abytData4(1) = &HC
-    '    .abytData4(2) = &H0
-    '    .abytData4(3) = &HAA
-    '    .abytData4(4) = &H0
-    '    .abytData4(5) = &H38
-    '    .abytData4(6) = &H9B
-    '    .abytData4(7) = &H71
-    ' End With
+  With stdError.getSentry("stdWindow#convertGUID", "Guid", Guid)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    Dim vArr: vArr = Split(Guid, "-")
+        'Lookups defined by:
+        ' Define the GUID for the IAccessible object
+        ' {618736E0-3C3D-11CF-810C-00AA00389B71}
+        ' With tg
+        '    .lData1 = &H618736E0
+        '    .nData2 = &H3C3D
+        '    .nData3 = &H11CF
+        '    .abytData4(0) = &H81
+        '    .abytData4(1) = &HC
+        '    .abytData4(2) = &H0
+        '    .abytData4(3) = &HAA
+        '    .abytData4(4) = &H0
+        '    .abytData4(5) = &H38
+        '    .abytData4(6) = &H9B
+        '    .abytData4(7) = &H71
+        ' End With
+        
+        Dim vArr: vArr = Split(Guid, "-")
+        
+        'Generate GUID structure from string of hex
+        convertGUID.lData1 = CLng("&H" & vArr(0))             '618736E0
+        convertGUID.nData2 = CInt("&H" & vArr(1))             '3C3D
+        convertGUID.nData3 = CInt("&H" & vArr(2))             '11CF
+        convertGUID.abytData4(0) = CInt("&H" & Mid(vArr(3), 1, 2))  '81
+        convertGUID.abytData4(1) = CInt("&H" & Mid(vArr(3), 3, 2))  '0C
+        convertGUID.abytData4(2) = CInt("&H" & Mid(vArr(4), 1, 2))  '00
+        convertGUID.abytData4(3) = CInt("&H" & Mid(vArr(4), 3, 2))  'AA
+        convertGUID.abytData4(4) = CInt("&H" & Mid(vArr(4), 5, 2))  '00
+        convertGUID.abytData4(5) = CInt("&H" & Mid(vArr(4), 7, 2))  '38
+        convertGUID.abytData4(6) = CInt("&H" & Mid(vArr(4), 9, 2))  '9B
+        convertGUID.abytData4(7) = CInt("&H" & Mid(vArr(4), 11, 2)) '71
     
-    'Generate GUID structure from string of hex
-    convertGUID.lData1 = CLng("&H" & vArr(0))             '618736E0
-    convertGUID.nData2 = CInt("&H" & vArr(1))             '3C3D
-    convertGUID.nData3 = CInt("&H" & vArr(2))             '11CF
-    convertGUID.abytData4(0) = CInt("&H" & Mid(vArr(3), 1, 2))  '81
-    convertGUID.abytData4(1) = CInt("&H" & Mid(vArr(3), 3, 2))  '0C
-    convertGUID.abytData4(2) = CInt("&H" & Mid(vArr(4), 1, 2))  '00
-    convertGUID.abytData4(3) = CInt("&H" & Mid(vArr(4), 3, 2))  'AA
-    convertGUID.abytData4(4) = CInt("&H" & Mid(vArr(4), 5, 2))  '00
-    convertGUID.abytData4(5) = CInt("&H" & Mid(vArr(4), 7, 2))  '38
-    convertGUID.abytData4(6) = CInt("&H" & Mid(vArr(4), 9, 2))  '9B
-    convertGUID.abytData4(7) = CInt("&H" & Mid(vArr(4), 11, 2)) '71
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Public Sub Requires()
@@ -2893,3 +4037,9 @@ End Function
 '
 'End Sub
 
+
+
+
+Private Sub Err_Raise(ByVal number as Long, Optional ByVal source as string = "", Optional ByVal description as string = "")
+  Call stdError.Raise(description)
+End Sub
