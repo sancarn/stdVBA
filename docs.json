@@ -7879,12 +7879,12 @@
     "description": "A class which implements a wrapper around an image. Use this class to\r\nread image data to and from files, clipboard, sheets, UI controls, and more. Additionally\r\nthis class allows the manipulation of images in memory, and perform analytical operations on them.",
     "remarks": [],
     "examples": [
-      "Simple example of reading an image from a file and saving it to the clipboard:\r\n```vb\r\nDim img as stdImage: set img = stdImage.CreateFromFile(\"H:\\test1.bmp\")\r\nimg.ToClipboard()\r\n''"
+      "Simple example of reading an image from a file and saving it to the clipboard:\r\n```vb\r\nDim img as stdImage: set img = stdImage.CreateFromFile(\"H:\\test1.bmp\")\r\nimg.ToClipboard()\r\n''",
+      "Example of how to get screenshots of chromium windows. Unfortunately `stdImage.CreateFromWindow()` does not work on these types of window.\r\nSo instead you have to take the screenshot from the desktop, and then crop the image to size using the window dimensions.\r\n```vb\r\nSub tChrome()\r\n  Dim win As stdWindow, i As Long\r\n  For Each win In stdWindow.CreateFromDesktop().Children\r\n    If win.Exists Then\r\n      If win.Visible Then\r\n        If win.Class Like \"Chrome_WidgetWin*\" Then\r\n          i = i + 1\r\n          Call getChromiumScreenshot(win).ToFile(\"C:\\Temp\\chrome\\\" & i & \".png\")\r\n        End If\r\n      End If\r\n    End If\r\n  Next\r\n  stdWindow.CreateFromApplication().Activate\r\nEnd Sub\r\nPrivate Function getChromiumScreenshot(ByVal win As stdWindow) As stdImage\r\n  win.State = Maximised\r\n  Call win.Activate\r\n  Application.Wait Now() + TimeValue(\"00:00:01\")\r\n  Dim region: region = win.RectWindow()\r\n  Set getChromiumScreenshot = stdImage.CreateFromScreen().Crop(region(0), region(1), region(2), region(3))\r\nEnd Function\r\n```",
+      "Finding the \"Record a macro\" button in the status window of Excel\r\n```vb\r\nDim excel As stdImage: Set excel = stdImage.CreateFromWindow(Application.hwnd)\r\nDim button As stdImage: Set button = stdImage.CreateFromDataURL(\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAANCAIAAAAWvsgoAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAACUSURBVChTlZBRDcAgDEQnZgYwgAAUYAADyEAGLrCBA0Twv0dKWCDLxu7jcr2WK3Cc22ijdQN99BHGGGst3OvfqaIEMcZSSghBa00Jo3Hw11Rcljrncs6UMBoHf0qlQQY9GUopyQEc/DWVjbSBUooWLCX+ncp7RcDkIQRo8f+nDnzcdcB7//YDLWoGLhls5DCMxqm1XpNsMy38F0JSAAAAAElFTkSuQmCC\")\r\nDim pos: pos = excel.FindFirst(button)\r\nDebug.Print pos(0), pos(1)\r\n```"
     ],
     "devNotes": [],
     "todos": [
-      "Create Stream, Write to stream, CreateBitmapFromStream",
-      "Parse Base64, CreateFromBinary",
       "Case webp",
       "AutoProxy?",
       "Detect format",
@@ -7894,11 +7894,39 @@
     "requires": [],
     "methods": [
       {
-        "name": "CreateFromDataURL",
-        "description": "@constructor",
+        "name": "Crop",
+        "description": "@param x - The x coord to start the crop at",
         "remarks": [],
         "examples": [],
-        "params": [],
+        "params": [
+          {
+            "name": "y",
+            "type": "Long",
+            "description": "The y coord to start the crop at",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "width",
+            "type": "Long",
+            "description": "The width of the new cropped image",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "height",
+            "type": "Long",
+            "description": "The height of the new cropped image",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
         "returns": {
           "type": "stdImage",
           "description": ""
@@ -7922,7 +7950,7 @@
         "examples": [],
         "params": [
           {
-            "name": "hBITMAP",
+            "name": "hBitmap",
             "type": "LongPtr",
             "description": "Handle to bitmap",
             "optional": false,
@@ -8224,7 +8252,7 @@
         "isStatic": false
       },
       {
-        "name": "FindImage",
+        "name": "FindFirst",
         "description": "Searches for a template image within a larger image (i.e., this image)",
         "remarks": [],
         "examples": [
@@ -8283,11 +8311,72 @@
         "throws": [],
         "requires": [],
         "isStatic": false
+      },
+      {
+        "name": "FindAll",
+        "description": "Searches for a template image within a larger image (i.e., this image)",
+        "remarks": [],
+        "examples": [
+          "Dim haystack as stdImage: set haystack = stdImage.CreateFromWindow(Application.hWnd)\r\n  Dim needle as stdImage: set needle = stdImage.CreateFrom"
+        ],
+        "params": [
+          {
+            "name": "template",
+            "type": "stdImage",
+            "description": "The image to search for",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "tolerance",
+            "type": "Long",
+            "description": "A value of 0 means that the pixels must be an exact match; greater values signify slight (1-5), moderate (6 - 20) and signifanct (20+) variations (default 5)",
+            "optional": true,
+            "defaultValue": "5",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "TopToBottom",
+            "type": "Boolean",
+            "description": "If True, search from top-to-bottom; if False, search from bottom-to-top (default True)",
+            "optional": true,
+            "defaultValue": "True",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "LeftToRight",
+            "type": "Boolean",
+            "description": "If True, search from left-to-right; if False, search from right-to-left (default True)",
+            "optional": true,
+            "defaultValue": "True",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "Collection<Array<Long>>",
+          "description": "Collection of arrays [x, y] of the top-left matches (standard image coordinates), or empty collection if not found"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "properties": [
       {
-        "name": "HBitmap",
+        "name": "hBitmap",
         "access": "ReadOnly",
         "description": "Obtain a HBitmap",
         "remarks": [
@@ -8365,7 +8454,7 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": "Void",
+          "type": "Long",
           "description": ""
         },
         "deprecation": {
@@ -8381,14 +8470,14 @@
         "isStatic": false
       },
       {
-        "name": "Width",
+        "name": "width",
         "access": "ReadOnly",
         "description": "Type cannot be used As a name, thats why its named Typee",
         "remarks": [],
         "examples": [],
         "params": [],
         "returns": {
-          "type": "Void",
+          "type": "Long",
           "description": ""
         },
         "deprecation": {
@@ -8404,14 +8493,14 @@
         "isStatic": false
       },
       {
-        "name": "Height",
+        "name": "height",
         "access": "ReadOnly",
         "description": "",
         "remarks": [],
         "examples": [],
         "params": [],
         "returns": {
-          "type": "Void",
+          "type": "Long",
           "description": ""
         },
         "deprecation": {
@@ -8457,7 +8546,7 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": "Void",
+          "type": "Integer",
           "description": ""
         },
         "deprecation": {
@@ -8480,7 +8569,7 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": "Void",
+          "type": "Integer",
           "description": ""
         },
         "deprecation": {
@@ -8503,7 +8592,7 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": "Void",
+          "type": "LongPtr",
           "description": ""
         },
         "deprecation": {
@@ -8541,6 +8630,40 @@
         "returns": {
           "type": "Byte",
           "description": "Picture object representing data"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "CreateFromDataURL",
+        "description": "Creates a stdImage object from a Data URL string",
+        "remarks": [],
+        "examples": [
+          "```vb\r\n  Dim dataUrl as String\r\n  dataUrl = \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==\"\r\n  stdImage.CreateFromDataURL(dataUrl).ToFile \"C:\\Temp\\FromDataUrl.png\"\r\n```"
+        ],
+        "params": [
+          {
+            "name": "sDataURL",
+            "type": "String",
+            "description": "The Data URL string (e.g., \"data:image/png;base64,iVBORw0KGgo...\")",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "stdImage",
+          "description": "A new stdImage object."
         },
         "deprecation": {
           "status": false,
@@ -8906,7 +9029,7 @@
       },
       {
         "name": "CreateFromScreen",
-        "description": "Creates a stdImage object from the desktop window (screenshot)",
+        "description": "Creates a stdImage object from the screen/desktop window (screenshot)",
         "remarks": [],
         "examples": [
           "```vb\r\nstdImage.CreateFromScreen().ToFile(\"H:\\test.png\")\r\n```"
@@ -8931,7 +9054,9 @@
       {
         "name": "CreateFromWindow",
         "description": "Creates a stdImage object from a window",
-        "remarks": [],
+        "remarks": [
+          "- This method still doesn't always work on all windows. Unfortunately for instance chrome windows render with `DirectX` or `OpenGL`, whos buffers cannot be accessed\r\nnatively with GDI. An alternative is provided in the examples section of this module."
+        ],
         "examples": [],
         "params": [
           {
@@ -8949,6 +9074,15 @@
             "description": "If true, only the client area of the window is captured. If false, the entire window is captured.",
             "optional": true,
             "defaultValue": "False",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "region",
+            "type": "Variant",
+            "description": "If empty, the region is obtained from the window dimensions. Else the region should be an array of longs Array(Left, Top, Right, Bottom)",
+            "optional": true,
+            "defaultValue": "Empty",
             "paramArray": false,
             "referenceType": "ByVal"
           }
@@ -8978,7 +9112,7 @@
         ],
         "params": [
           {
-            "name": "hIcon",
+            "name": "HICON",
             "type": "LongPtr",
             "description": "Handle to icon",
             "optional": false,
