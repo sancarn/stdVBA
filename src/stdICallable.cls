@@ -22,10 +22,10 @@ Attribute VB_Exposed = False
 '    stdICallable_RunEx =  params(0) / 2 + 1
 '  End Function
 '  Public Function stdICallable_Bind(ParamArray params() as variant) as stdICallable
-'    Err.Raise 1, "", "Not implemented"
+'    Err_Raise 1, "", "Not implemented"
 '  End Function
 '  Public Function stdICallable_SendMessage(ByVal sMessage as string, ByRef success as boolean, ByVal params as variant) as variant
-'    Err.Raise 1, "", "Not implemented"
+'    Err_Raise 1, "", "Not implemented"
 '  End Function
 'End Class
 '```
@@ -50,17 +50,41 @@ Attribute VB_Exposed = False
 'Run the function with supplied parameters
 '@param params - The parameters to run the function with
 '@returns      - The result of the function
-Public Function Run(ParamArray params() as variant) as variant: End Function
+Public Function Run(ParamArray params() as variant) as variant
+  With stdError.getSentry("stdICallable#Run")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    : 
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
+End Function
 
 'Run the function with a array of parameters
 '@param params as Variant<Array<Variant>> - The parameters to run the function with
 '@returns                                 - The result of the function
-Public Function RunEx(ByVal params as variant) as variant: End Function
+Public Function RunEx(ByVal params as variant) as variant
+  With stdError.getSentry("stdICallable#RunEx", "params", params)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    : 
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
+End Function
 
 'Bind a set of parameters to the function call
 '@param params - The parameters to bind to the function
 '@returns      - A new function with the parameters bound
-Public Function Bind(ParamArray params() as variant) as stdICallable: End Function
+Public Function Bind(ParamArray params() as variant) as stdICallable
+  With stdError.getSentry("stdICallable#Bind")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    : 
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
+End Function
 
 'Making late-bound calls to `stdICallable` members. Each object which implements `stdICallable`
 'will support a different set of latebound calls.
@@ -69,7 +93,15 @@ Public Function Bind(ParamArray params() as variant) as stdICallable: End Functi
 '@param success  - Whether the call was successful
 '@param params   - Any variant, typically parameters as an array. Passed along with the message.
 '@returns - Any return value.
-Public Function SendMessage(ByVal sMessage as string, ByRef success as boolean, ByVal params as variant) as Variant: End Function
+Public Function SendMessage(ByVal sMessage as string, ByRef success as boolean, ByVal params as variant) as Variant
+  With stdError.getSentry("stdICallable#SendMessage", "sMessage", sMessage, "success", success, "params", params)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    : 
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
+End Function
 
 'Ideally we would want to get a pointer to the function... However, getting a pointer to an object method is
 'going to be defficult, partly due to the first parameter sent to the function is `Me`! We'll likely have to
@@ -86,3 +118,9 @@ Public Function SendMessage(ByVal sMessage as string, ByRef success as boolean, 
 'Public Function Bind(ByVal v as variant) as stdICallable: End Function
 
 
+
+
+
+Private Sub Err_Raise(ByVal number as Long, Optional ByVal source as string = "", Optional ByVal description as string = "")
+  Call stdError.Raise(description)
+End Sub
