@@ -12290,6 +12290,45 @@
     "implements": []
   },
   {
+    "name": "stdRibbon",
+    "fileName": "stdRibbon.cls",
+    "description": "",
+    "remarks": [],
+    "examples": [],
+    "devNotes": [],
+    "todos": [],
+    "requires": [],
+    "methods": [],
+    "properties": [
+      {
+        "name": "State",
+        "access": "ReadWrite",
+        "description": "Get/Set the ribbon's state. The ribbon itself comes with the following options:\r\n* &Full-screen mode\r\n* Show &tabs only\r\n* &Always show Ribbon\r\nThe ribbon can also be in a state where it isn't visible at all\r\nAnd a state where the application is in full screen mode, thus hiding the ribbon\r\nThis Get/Set property helps cleanly reset the state to a necessary one",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "ERibbonState",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      }
+    ],
+    "constructors": [],
+    "events": [],
+    "implements": []
+  },
+  {
     "name": "stdSentry",
     "fileName": "stdSentry.cls",
     "description": "",
