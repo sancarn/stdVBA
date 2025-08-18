@@ -357,3 +357,5 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2025-07-12 `stdImage` FEATURE - Added `CreateFromDataURL` and `CreateFromBinary`
 - 2025-07-12 `stdImage` BREAKING - Renamed `FindImage` to `FindFirst`. This is to standardise it compared to `stdAcc`, `stdWindow` and `stdProcess`.
 - 2025-07-12 `stdImage` FEATURE - Added a `FindAll()` function which returns a collection of all found images.
+- 2025-08-08 `stdRibbon` FEATURE - Added `stdRibbon` which allows for the ribbon to be hidden or shown.
+- 2025-08-18 `stdRibbon` FEATURE - `stdRibbon` now supports Word. Additionally state detection is more robust.
