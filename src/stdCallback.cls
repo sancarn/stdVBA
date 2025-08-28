@@ -115,6 +115,11 @@ Implements stdICallable
   Private Declare Function rtcCallByName Lib "msvbvm60" (ByRef vRet As Variant, ByVal cObj As Object, ByVal sMethod As LongPtr, ByVal eCallType As VbCallType, ByRef pArgs() As Variant, ByVal lcid As Long) As Long
 #End If
 
+#If Mac Then
+  Const vbLongLong As Long = 8
+#End If
+
+
 #If Win64 Then
   Private Const vbLongPtr = vbLongLong
 #Else
