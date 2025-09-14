@@ -9,13 +9,16 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 Public Enum ERibbonState
+  RibbonNullState
   RibbonFullScreenMode
   RibbonShowTabsOnly
   RibbonAlwaysShowRibbon
   RibbonNotVisible
+  RibbonProtectedViewMode
   ExcelApplicationDisplayFullScreenMode
   WordViewFullScreenMode
   WordViewReadMode
+  
 End Enum
 
 'Get/Set the ribbon's state. The ribbon itself comes with the following options:
@@ -26,21 +29,27 @@ End Enum
 'And a state where the application is in full screen mode, thus hiding the ribbon
 'This Get/Set property helps cleanly reset the state to a necessary one
 Public Property Get State() As ERibbonState
+  Dim appProtectedView as Boolean: appProtectedView = Not Application.ActiveProtectedViewWindow Is Nothing
   Dim oApp as Object: Set oApp = Application 'Latebound to avoid compile errors
 
   Dim xlDisplayFullScreen as Boolean
   Dim wdReadMode as Boolean
   Dim wdViewFullScreen as Boolean
+  Dim wdProtectedViewMode as Boolean
   select case Application.Name
     case "Microsoft Excel"
       xlDisplayFullScreen = oApp.DisplayFullScreen
     case "Microsoft Word"
-      wdViewFullScreen = oApp.ActiveWindow.View.FullScreen
-      wdReadMode = oApp.ActiveWindow.View.ReadingLayout
+      If Not appProtectedView Then 
+        wdViewFullScreen = oApp.ActiveWindow.View.FullScreen
+        wdReadMode = oApp.ActiveWindow.View.ReadingLayout
+      end if
   end select
 
   'In this mode state is reversable
   select case true
+    case appProtectedView
+      State = RibbonProtectedViewMode
     case xlDisplayFullScreen
       State = ExcelApplicationDisplayFullScreenMode
     case wdViewFullScreen
@@ -65,6 +74,8 @@ Public Property Let State(v As ERibbonState)
   Select Case State
     Case RibbonAlwaysShowRibbon
       'Do nothing
+    case RibbonProtectedViewMode
+      Call Application.ActiveProtectedViewWindow.Edit
     case WordViewFullScreenMode
       if Application.Name <> "Microsoft Word" then Err.Raise 1, "stdRibbon#State[Let]", "WordViewFullScreenMode found in non Word Application. This should never happen."
       oApp.ActiveWindow.View.FullScreen = False
@@ -89,6 +100,8 @@ Public Property Let State(v As ERibbonState)
   Select Case v
     Case RibbonAlwaysShowRibbon
       Exit Property
+    Case RibbonProtectedViewMode
+      Err.Raise 1, "stdRibbon#State[Let]", "WordProtectedViewMode can only be entered by opening a document in Protected View"
     case WordViewFullScreenMode
       if Application.Name <> "Microsoft Word" then Err.Raise 1, "stdRibbon#State[Let]", "WordViewReadMode is only supported in Word"
       oApp.ActiveWindow.View.FullScreen = true
