@@ -10,14 +10,10 @@ Attribute VB_Exposed = False
 
 'Issues:
 ' CORE BEHAVIOUR
-' - [ ] Missing Properties: `Attributes`, `DateModified`, `DateAccessed`, `DateCreated`, `IsReadOnly`, `IsHidden`,
 ' - [ ] On windows, migrate to Win32 API rather than native calls.
-
 'I/O ENCODING
-' - [ ] Append, Overwrite, Clear etc. shouldn't use `Print` as this appends a newline. Use `Write` instead. Perhaps add a AppendLine method.
 ' - [ ] ReadText uses Input$ (locale/ANSI), no UTF-8/UTF-16 handling.
 ' - [ ] No binary read/write methods; no large-file chunking helpers.
-' - [ ] CreateFile always appends newline when sContents provided.
 'GENERAL
 ' - [ ] Support for mobile devices (MTP?) Unsure how possible this is... `EShellFileTypeMobileDevice`
 ' - [ ] Support alternate data streams.`EShellFileTypeAlternateDataStream`
@@ -278,6 +274,94 @@ End Property
 Public Property Get Extension() as string
     If This.kind <> EShellFileTypeFile Then Exit Property
     Extension = Mid(This.path, InStrRev(This.path, ".") + 1)
+End Property
+
+'Returns the date/time the item was last modified
+'@returns - Date the item was last modified
+Public Property Get DateModified() as Date
+    If This.kind = EShellFileTypeRoot Then Exit Property
+    On Error GoTo EH
+    If Exists Then
+        Select Case This.kind
+            Case EShellFileTypeFile
+                DateModified = ToFSO().DateLastModified
+            Case EShellFileTypeFolder
+                DateModified = ToFSO().DateLastModified
+        End Select
+    End If
+    Exit Property
+EH:
+End Property
+
+'Returns the date/time the item was last accessed
+'@returns - Date the item was last accessed
+Public Property Get DateAccessed() as Date
+    If This.kind = EShellFileTypeRoot Then Exit Property
+    On Error GoTo EH
+    If Exists Then
+        Select Case This.kind
+            Case EShellFileTypeFile
+                DateAccessed = ToFSO().DateLastAccessed
+            Case EShellFileTypeFolder
+                DateAccessed = ToFSO().DateLastAccessed
+        End Select
+    End If
+    Exit Property
+EH:
+End Property
+
+'Returns the date/time the item was created
+'@returns - Date the item was created
+Public Property Get DateCreated() as Date
+    If This.kind = EShellFileTypeRoot Then Exit Property
+    On Error GoTo EH
+    If Exists Then
+        Select Case This.kind
+            Case EShellFileTypeFile
+                DateCreated = ToFSO().DateCreated
+            Case EShellFileTypeFolder
+                DateCreated = ToFSO().DateCreated
+        End Select
+    End If
+    Exit Property
+EH:
+End Property
+
+'Indicates whether the item has the read-only attribute
+'@returns - True if read-only, False otherwise
+Public Property Get IsReadOnly() as boolean
+    IsReadOnly = GenericAttribute(vbReadOnly)
+End Property
+Public Property Let IsReadOnly(b as boolean)
+    GenericAttribute(vbReadOnly) = b
+End Property
+
+'Indicates whether the item has the hidden attribute
+'@returns - True if hidden, False otherwise
+Public Property Get IsHidden() as boolean
+    IsHidden = GenericAttribute(vbHidden)
+EH:
+End Property
+Public Property Let IsHidden(b as boolean)
+    GenericAttribute(vbHidden) = b
+End Property
+
+'Indicates whether the item has the system attribute
+'@returns - True if system, False otherwise
+Public Property Get IsSystemFile() as boolean
+    IsSystemFile = GenericAttribute(vbSystem)
+End Property
+Public Property Let IsSystemFile(b as boolean)
+    GenericAttribute(vbSystem) = b
+End Property
+
+'Indicates whether the item has the archive attribute / if it's ready for archiving
+'@returns - True if archive, False otherwise
+Public Property Get IsArchive() as boolean
+    IsArchive = GenericAttribute(vbArchive)
+End Property
+Public Property Let IsArchive(b as boolean)
+    GenericAttribute(vbArchive) = b
 End Property
 
 ' Returns True if path exists. If true, clears virtual and updates kind if unknown
@@ -895,3 +979,28 @@ Private Function getGUID() As String
     getGUID = Replace(getGUID, "x", Hex$(Int(Rnd() * 16)), 1, 1)
   Next
 End Function
+
+'Indicates whether the item has the read-only attribute
+'@returns - True if read-only, False otherwise
+Private Property Get GenericAttribute(Byval iAttr as vbFileiAbute) as boolean
+    If This.kind = EShellFileTypeRoot Then Exit Property
+    On Error GoTo EH
+    If Exists Then
+        Dim attr As VbFileAttribute: attr = VBA.GetAttr(This.path)
+        GenericAttribute = (attr And iAttr) = iAttr
+    End If
+EH:
+End Property
+Private Property Let GenericAttribute(Byval iAttr as vbFileAttribute, b as boolean)
+    If This.kind = EShellFileTypeRoot Then Exit Property
+    On Error GoTo EH
+    If Exists Then
+        Dim attr As VbFileAttribute: attr = VBA.GetAttr(This.path)
+        if b then
+            attr = attr Or iAttr
+        else
+            attr = attr And Not iAttr
+        end if
+    End If
+EH:
+End Property
