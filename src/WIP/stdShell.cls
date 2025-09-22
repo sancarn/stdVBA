@@ -9,15 +9,14 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 'Issues:
-' CORE BEHAVIOUR
+' WIN32 MIGRATION
 ' - [ ] On windows, migrate to Win32 API rather than native calls.
-'I/O ENCODING
+' - [ ] File hashing should use Win32 API rather than .NET COM classes. Performance much better with Win32 API.
 ' - [ ] ReadText uses Input$ (locale/ANSI), no UTF-8/UTF-16 handling.
+'FILE ENUMERATION
 ' - [ ] No binary read/write methods; no large-file chunking helpers.
 'GENERAL
-' - [ ] Support for mobile devices (MTP?) Unsure how possible this is... `EShellFileTypeMobileDevice`
 ' - [ ] Support alternate data streams.`EShellFileTypeAlternateDataStream`
-' - [ ] File hashing should use Win32 API rather than .NET COM classes. Performance much better with Win32 API.
 ' - [ ] Path normalisation `\` and `/` should be interchangeable.
 ' - [ ] Better error handling generally, with descriptive errors.
 
