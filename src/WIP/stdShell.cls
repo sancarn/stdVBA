@@ -195,55 +195,57 @@ Public Function ToLegalItem(optional ByVal replacement as string = "_") As stdSh
     Call ToLegalItem.protInit(original, This.kind, privGetSystemType(newPath) = EShellFileTypeUnknown)
 End Function
 
-'Convert the shell item to a FileSystemObject
-'@returns - FileSystemObject
-'@example ```vb
-'stdShell.Create("C:\my\files\song.mp3").ToFSO()
-'```
-Public Function ToFSO() as Object
-    select case This.kind
-        case EShellFileTypeFile
-            Set ToFSO = CreateObject("Scripting.FileSystemObject").GetFile(This.path)
-        case EShellFileTypeFolder
-            Set ToFSO = CreateObject("Scripting.FileSystemObject").GetFolder(This.path)
-        case else
-            Err.Raise 1, "", "Cannot convert this item to a FileSystemObject"
-    end select
-End Function
+#if not Mac then
+    'Convert the shell item to a FileSystemObject
+    '@returns - FileSystemObject
+    '@example ```vb
+    'stdShell.Create("C:\my\files\song.mp3").ToFSO()
+    '```
+    Public Function ToFSO() as Object
+        select case This.kind
+            case EShellFileTypeFile
+                Set ToFSO = CreateObject("Scripting.FileSystemObject").GetFile(This.path)
+            case EShellFileTypeFolder
+                Set ToFSO = CreateObject("Scripting.FileSystemObject").GetFolder(This.path)
+            case else
+                Err.Raise 1, "", "Cannot convert this item to a FileSystemObject"
+        end select
+    End Function
 
-'Convert the shell item to an IStream
-'@returns - IStream
-'@example ```vb
-'stdShell.Create("C:\my\files\song.mp3").ToIStream()
-'```
-Public Function ToIStream() as Object
-    Set ToIStream = CreateObject("ADODB.Stream")
-    With ToIStream
-        .Type = 1 'adTypeBinary
-        .Mode = 3 'adModeReadWrite
-        .Open
-        .LoadFromFile This.path
-        .Position = 0
-    End With
-End Function
+    'Convert the shell item to an IStream
+    '@returns - IStream
+    '@example ```vb
+    'stdShell.Create("C:\my\files\song.mp3").ToIStream()
+    '```
+    Public Function ToIStream() as Object
+        Set ToIStream = CreateObject("ADODB.Stream")
+        With ToIStream
+            .Type = 1 'adTypeBinary
+            .Mode = 3 'adModeReadWrite
+            .Open
+            .LoadFromFile This.path
+            .Position = 0
+        End With
+    End Function
 
-'Create a shortcut to the shell item
-'@param path - Path to save the shortcut to
-'@returns - Success flag
-'@example ```vb
-'stdShell.Create("C:\my\files\song.mp3").SaveAsShortcut("C:\my\files\song.lnk")
-'```
-Public Function SaveAsShortcut(ByVal path as string) as Boolean
-    On Error GoTo EH
-    Dim shortcut As Object: Set shortcut = CreateObject("WScript.Shell").CreateShortcut(path)
-    shortcut.TargetPath = This.path
-    shortcut.Save
+    'Create a shortcut to the shell item
+    '@param path - Path to save the shortcut to
+    '@returns - Success flag
+    '@example ```vb
+    'stdShell.Create("C:\my\files\song.mp3").SaveAsShortcut("C:\my\files\song.lnk")
+    '```
+    Public Function SaveAsShortcut(ByVal path as string) as Boolean
+        On Error GoTo EH
+        Dim shortcut As Object: Set shortcut = CreateObject("WScript.Shell").CreateShortcut(path)
+        shortcut.TargetPath = This.path
+        shortcut.Save
 
-    SaveAsShortcut = True
-    Exit Function
-EH:
-    SaveAsShortcut = False
-End Function
+        SaveAsShortcut = True
+        Exit Function
+    EH:
+        SaveAsShortcut = False
+    End Function
+#end if
 
 'Returns the full path of the shell item
 '@returns - Full path of the shell item
