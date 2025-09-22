@@ -261,7 +261,7 @@ End Property
 '@example ```vb
 'stdShell.Create("C:\my\files\song.mp3").Name
 '```
-Public Property Get Name(Obtional ByVal includingExtension as boolean = false) as string
+Public Property Get Name(Optional ByVal includingExtension as boolean = false) as string
     If This.kind = EShellFileTypeRoot Then Exit Property
     Name = Mid(This.path, InStrRev(This.path, "\") + 1)
     if not includingExtension then Name = Left(Name, InStrRev(Name, ".") - 1)
@@ -796,14 +796,15 @@ Public Function Delete() As Boolean
     On Error GoTo EH
         If Exists Then
             select case This.kind
-                case EShellFileTypeRoot Then Exit Function
-                case EShellFileTypeFolder Then
+                case EShellFileTypeRoot
+                    Exit Function
+                case EShellFileTypeFolder
                     Dim child as stdShell
                     For each child in Children
                         child.Delete
                     next
                     RmDir This.path
-                case EShellFileTypeFile Then
+                case EShellFileTypeFile
                     Kill This.path
                 case else
                     Err.Raise 1, "", "Cannot delete this item as it is not a file"
@@ -827,9 +828,11 @@ Public Function CopyTo(ByVal path As String) As Boolean
         If Exists Then
             select case This.kind
                 case EShellFileTypeFile
-                    Call CopyFile(This.path, path)
+                    Call FileCopy(This.path, path)
                 case EShellFileTypeFolder
-                    Call CopyFolder(This.path, path)
+                    With CreateObject("Scripting.FileSystemObject")
+                        Call .CopyFolder(This.path, path)
+                    End With
                 case else
                     Err.Raise 1, "", "Cannot copy this item as it is not a file or folder"
             end select
@@ -892,7 +895,7 @@ End Function
 Public Function Rename(ByVal newName As String) As Boolean
     On Error GoTo EH
         If Exists Then
-            Call MoveTo(Parent.Path & "\" & newName & Extension)
+            Call MoveTo(Parent.FullPath & "\" & newName & Extension)
             Rename = True
         End If
         Exit Function
@@ -983,7 +986,7 @@ End Function
 
 'Indicates whether the item has the read-only attribute
 '@returns - True if read-only, False otherwise
-Private Property Get GenericAttribute(Byval iAttr as vbFileiAbute) as boolean
+Private Property Get GenericAttribute(Byval iAttr as vbFileAttribute) as boolean
     If This.kind = EShellFileTypeRoot Then Exit Property
     On Error GoTo EH
     If Exists Then
