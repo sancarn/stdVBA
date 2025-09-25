@@ -658,7 +658,7 @@ Public Function Overwrite(ByVal data As Variant) As Boolean
     On Error GoTo EH
         If This.kind = EShellFileTypeFile Then
             Dim ff As Long: ff = FreeFile
-            Open This.path For Output As #ff
+            Open This.path For Binary As #ff
                 Put #ff, , data
             Close #ff
         Else

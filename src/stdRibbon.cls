@@ -67,13 +67,15 @@ Public Property Get State() As ERibbonState
   End Select
 End Property
 Public Property Let State(v As ERibbonState)
-  If State = v Then Exit Property
+  Dim iCurrentState as ERibbonState: iCurrentState = State
+  If iCurrentState = v Then Exit Property
   Dim oApp as Object: Set oApp = Application 'Latebound to avoid compile errors
 
   'Reset the state to `RibbonAlwaysShowRibbon`
-  Select Case State
+  Select Case iCurrentState
     Case RibbonAlwaysShowRibbon
       'Do nothing
+    'Else progress toward `RibbonAlwaysShowRibbon`
     case RibbonProtectedViewMode
       Call Application.ActiveProtectedViewWindow.Edit
     case WordViewFullScreenMode
@@ -94,7 +96,12 @@ Public Property Let State(v As ERibbonState)
       Call Application.CommandBars.ExecuteMso("MinimizeRibbon")
   End Select
   DoEvents
-  If State <> RibbonAlwaysShowRibbon Then State = RibbonAlwaysShowRibbon
+  
+  'Check if state has changed and if not error.
+  If State = iCurrentState then Err.Raise 1, "stdRibbon#State[Let]", "Ribbon state has not changed away from " & v
+  
+  'Recursively change state to `RibbonAlwaysShowRibbon`
+  If iCurrentState <> RibbonAlwaysShowRibbon Then State = RibbonAlwaysShowRibbon
   
   'Change state from `RibbonAlwaysShowRibbon` to `v`
   Select Case v
