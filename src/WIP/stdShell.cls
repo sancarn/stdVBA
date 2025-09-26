@@ -35,7 +35,7 @@ Public Enum stdShellHashType
     EShellHashTypeSHA256
 End Enum
 
-Private Enum stdShellExtendedProps
+Public Enum stdShellExtendedProps
     [_stdShellExtendedPropsStart] = 0
     GeneralAcquisitionID = [_stdShellExtendedPropsStart]
     GeneralApplicationDefinedProperties
