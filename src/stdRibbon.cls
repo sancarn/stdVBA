@@ -75,6 +75,7 @@ Public Property Let State(v As ERibbonState)
   Select Case iCurrentState
     Case RibbonAlwaysShowRibbon
       'Do nothing
+    
     'Else progress toward `RibbonAlwaysShowRibbon`
     case RibbonProtectedViewMode
       Call Application.ActiveProtectedViewWindow.Edit
