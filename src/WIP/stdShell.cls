@@ -29,6 +29,7 @@ Public Enum stdShellKind
     EShellFileTypeFile
     EShellFileTypeFolder
 End Enum
+
 Public Enum stdShellHashType
     EShellHashTypeMD5
     EShellHashTypeSHA1
@@ -37,161 +38,161 @@ End Enum
 
 Public Enum stdShellExtendedProps
     [_stdShellExtendedPropsStart] = 0
-    GeneralAcquisitionID = [_stdShellExtendedPropsStart]
-    GeneralApplicationDefinedProperties
-    GeneralApplicationName
-    GeneralAppZoneIdentifier
-    GeneralAuthor
-    GeneralCachedFileUpdaterContentIdForConflictResolution
-    GeneralCachedFileUpdaterContentIdForStream
-    GeneralCapacity
-    GeneralCategory
-    GeneralComment
-    GeneralCompany
-    GeneralComputerName
-    GeneralContainedItems
-    GeneralContentStatus
-    GeneralContentType
-    GeneralCopyright
-    GeneralCreatorAppId
-    GeneralCreatorOpenWithUIOptions
-    GeneralDataObjectFormat
-    GeneralDateAccessed
-    GeneralDateAcquired
-    GeneralDateArchived
-    GeneralDateCompleted
-    GeneralDateCreated
-    GeneralDateImported
-    GeneralDateModified
-    GeneralDefaultSaveLocationDisplay
-    GeneralDueDate
-    GeneralEndDate
-    GeneralExpandoProperties
-    GeneralFileAllocationSize
-    GeneralFileAttributes
-    GeneralFileCount
-    GeneralFileDescription
-    GeneralFileExtension
-    GeneralFileFRN
-    GeneralFilename
-    GeneralFileOfflineAvailabilityStatus
-    GeneralFileOwner
-    GeneralFilePlaceholderStatus
-    GeneralFileVersion
-    GeneralFindData
-    GeneralFlagColor
-    GeneralFlagColorText
-    GeneralFlagStatus
-    GeneralFlagStatusText
-    GeneralFolderKind
-    GeneralFolderNameDisplay
-    GeneralFreeSpace
-    GeneralFullText
-    GeneralHighKeywords
-    GeneralImageParsingName
-    GeneralImportance
-    GeneralImportanceText
-    GeneralIsAttachment
-    GeneralIsDefaultNonOwnerSaveLocation
-    GeneralIsDefaultSaveLocation
-    GeneralIsDeleted
-    GeneralIsEncrypted
-    GeneralIsFlagged
-    GeneralIsFlaggedComplete
-    GeneralIsIncomplete
-    GeneralIsLocationSupported
-    GeneralIsPinnedToNameSpaceTree
-    GeneralIsRead
-    GeneralIsSearchOnlyItem
-    GeneralIsSendToTarget
-    GeneralIsShared
-    GeneralItemAuthors
-    GeneralItemClassType
-    GeneralItemDate
-    GeneralItemFolderNameDisplay
-    GeneralItemFolderPathDisplay
-    GeneralItemFolderPathDisplayNarrow
-    GeneralItemName
-    GeneralItemNameDisplay
-    GeneralItemNameDisplayWithoutExtension
-    GeneralItemNamePrefix
-    GeneralItemNameSortOverride
-    GeneralItemParticipants
-    GeneralItemPathDisplay
-    GeneralItemPathDisplayNarrow
-    GeneralItemSubType
-    GeneralItemType
-    GeneralItemTypeText
-    GeneralItemUrl
-    GeneralKEYWORDS
-    GeneralKind
-    GeneralKindText
-    Generallanguage
-    GeneralLastSyncError
-    GeneralLastWriterPackageFamilyName
-    GeneralLowKeywords
-    GeneralMediumKeywords
-    GeneralMileageInformation
-    GeneralMIMEType
+    SystemAcquisitionID = [_stdShellExtendedPropsStart]
+    SystemApplicationDefinedProperties
+    SystemApplicationName
+    SystemAppZoneIdentifier
+    SystemAuthor
+    SystemCachedFileUpdaterContentIdForConflictResolution
+    SystemCachedFileUpdaterContentIdForStream
+    SystemCapacity
+    SystemCategory
+    SystemComment
+    SystemCompany
+    SystemComputerName
+    SystemContainedItems
+    SystemContentStatus
+    SystemContentType
+    SystemCopyright
+    SystemCreatorAppId
+    SystemCreatorOpenWithUIOptions
+    SystemDataObjectFormat
+    SystemDateAccessed
+    SystemDateAcquired
+    SystemDateArchived
+    SystemDateCompleted
+    SystemDateCreated
+    SystemDateImported
+    SystemDateModified
+    SystemDefaultSaveLocationDisplay
+    SystemDueDate
+    SystemEndDate
+    SystemExpandoProperties
+    SystemFileAllocationSize
+    SystemFileAttributes
+    SystemFileCount
+    SystemFileDescription
+    SystemFileExtension
+    SystemFileFRN
+    SystemFilename
+    SystemFileOfflineAvailabilityStatus
+    SystemFileOwner
+    SystemFilePlaceholderStatus
+    SystemFileVersion
+    SystemFindData
+    SystemFlagColor
+    SystemFlagColorText
+    SystemFlagStatus
+    SystemFlagStatusText
+    SystemFolderKind
+    SystemFolderNameDisplay
+    SystemFreeSpace
+    SystemFullText
+    SystemHighKeywords
+    SystemImageParsingName
+    SystemImportance
+    SystemImportanceText
+    SystemIsAttachment
+    SystemIsDefaultNonOwnerSaveLocation
+    SystemIsDefaultSaveLocation
+    SystemIsDeleted
+    SystemIsEncrypted
+    SystemIsFlagged
+    SystemIsFlaggedComplete
+    SystemIsIncomplete
+    SystemIsLocationSupported
+    SystemIsPinnedToNameSpaceTree
+    SystemIsRead
+    SystemIsSearchOnlyItem
+    SystemIsSendToTarget
+    SystemIsShared
+    SystemItemAuthors
+    SystemItemClassType
+    SystemItemDate
+    SystemItemFolderNameDisplay
+    SystemItemFolderPathDisplay
+    SystemItemFolderPathDisplayNarrow
+    SystemItemName
+    SystemItemNameDisplay
+    SystemItemNameDisplayWithoutExtension
+    SystemItemNamePrefix
+    SystemItemNameSortOverride
+    SystemItemParticipants
+    SystemItemPathDisplay
+    SystemItemPathDisplayNarrow
+    SystemItemSubType
+    SystemItemType
+    SystemItemTypeText
+    SystemItemUrl
+    SystemKEYWORDS
+    SystemKind
+    SystemKindText
+    Systemlanguage
+    SystemLastSyncError
+    SystemLastWriterPackageFamilyName
+    SystemLowKeywords
+    SystemMediumKeywords
+    SystemMileageInformation
+    SystemMIMEType
     [_Null]
-    GeneralOfflineAvailability
-    GeneralOfflineStatus
-    GeneralOriginalFileName
-    GeneralOwnerSID
-    GeneralParentalRating
-    GeneralParentalRatingReason
-    GeneralParentalRatingsOrganization
-    GeneralParsingBindContext
-    GeneralParsingName
-    GeneralParsingPath
-    GeneralPerceivedType
-    GeneralPercentFull
-    GeneralPriority
-    GeneralPriorityText
-    GeneralProject
-    GeneralProviderItemID
-    GeneralRating
-    GeneralRatingText
-    GeneralRemoteConflictingFile
-    GeneralSensitivity
-    GeneralSensitivityText
-    GeneralSFGAOFlags
-    GeneralSharedWith
-    GeneralShareUserRating
-    GeneralSharingStatus
-    Generalshell
-    GeneralSimpleRating
-    GeneralSize
-    GeneralSoftwareUsed
-    GeneralSourceItem
-    GeneralSourcePackageFamilyName
-    GeneralStartDate
-    GeneralStatus
-    GeneralStorageProviderCallerVersionInformation
-    GeneralStorageProviderError
-    GeneralStorageProviderFileChecksum
-    GeneralStorageProviderFileIdentifier
-    GeneralStorageProviderFileRemoteUri
-    GeneralStorageProviderFileVersion
-    GeneralStorageProviderFileVersionWaterline
-    GeneralStorageProviderId
-    GeneralStorageProviderShareStatuses
-    GeneralStorageProviderSharingStatus
-    GeneralStorageProviderStatus
-    GeneralSubject
-    GeneralSyncTransferStatus
-    GeneralThumbnail
-    GeneralThumbnailCacheId
-    GeneralThumbnailStream
-    GeneralTitle
-    GeneralTitleSortOverride
-    GeneralTotalFileSize
-    GeneralTrademarks
-    GeneralTransferOrder
-    GeneralTransferPosition
-    GeneralTransferSize
-    GeneralVolumeId
-    GeneralZoneIdentifier
+    SystemOfflineAvailability
+    SystemOfflineStatus
+    SystemOriginalFileName
+    SystemOwnerSID
+    SystemParentalRating
+    SystemParentalRatingReason
+    SystemParentalRatingsOrganization
+    SystemParsingBindContext
+    SystemParsingName
+    SystemParsingPath
+    SystemPerceivedType
+    SystemPercentFull
+    SystemPriority
+    SystemPriorityText
+    SystemProject
+    SystemProviderItemID
+    SystemRating
+    SystemRatingText
+    SystemRemoteConflictingFile
+    SystemSensitivity
+    SystemSensitivityText
+    SystemSFGAOFlags
+    SystemSharedWith
+    SystemShareUserRating
+    SystemSharingStatus
+    Systemshell
+    SystemSimpleRating
+    SystemSize
+    SystemSoftwareUsed
+    SystemSourceItem
+    SystemSourcePackageFamilyName
+    SystemStartDate
+    SystemStatus
+    SystemStorageProviderCallerVersionInformation
+    SystemStorageProviderError
+    SystemStorageProviderFileChecksum
+    SystemStorageProviderFileIdentifier
+    SystemStorageProviderFileRemoteUri
+    SystemStorageProviderFileVersion
+    SystemStorageProviderFileVersionWaterline
+    SystemStorageProviderId
+    SystemStorageProviderShareStatuses
+    SystemStorageProviderSharingStatus
+    SystemStorageProviderStatus
+    SystemSubject
+    SystemSyncTransferStatus
+    SystemThumbnail
+    SystemThumbnailCacheId
+    SystemThumbnailStream
+    SystemTitle
+    SystemTitleSortOverride
+    SystemTotalFileSize
+    SystemTrademarks
+    SystemTransferOrder
+    SystemTransferPosition
+    SystemTransferSize
+    SystemVolumeId
+    SystemZoneIdentifier
     DocumentByteCount
     DocumentCharacterCount
     DocumentClientID
@@ -1423,64 +1424,72 @@ Public Function protEnumToPropName(ByVal prop as stdShellExtendedProps) As Strin
     static map as variant
     if isEmpty(map) Then
         Dim s as string
-        'General
-        s = s & "AcquisitionID,ApplicationDefinedProperties,ApplicationName,AppZoneIdentifier,Author,CachedFileUpdaterContentIdForConflictResolution"
-        s = s & ",CachedFileUpdaterContentIdForStream,Capacity,Category,Comment,Company,ComputerName,ContainedItems,ContentStatus,ContentType,Copyright"
-        s = s & ",CreatorAppId,CreatorOpenWithUIOptions,DataObjectFormat,DateAccessed,DateAcquired,DateArchived,DateCompleted,DateCreated,DateImported"
-        s = s & ",DateModified,DefaultSaveLocationDisplay,DueDate,EndDate,ExpandoProperties,FileAllocationSize,FileAttributes,FileCount,FileDescription"
-        s = s & ",FileExtension,FileFRN,FileName,FileOfflineAvailabilityStatus,FileOwner,FilePlaceholderStatus,FileVersion,FindData,FlagColor,FlagColorText"
-        s = s & ",FlagStatus,FlagStatusText,FolderKind,FolderNameDisplay,FreeSpace,FullText,HighKeywords,ImageParsingName,Importance,ImportanceText,IsAttachment"
-        s = s & ",IsDefaultNonOwnerSaveLocation,IsDefaultSaveLocation,IsDeleted,IsEncrypted,IsFlagged,IsFlaggedComplete,IsIncomplete,IsLocationSupported"
-        s = s & ",IsPinnedToNameSpaceTree,IsRead,IsSearchOnlyItem,IsSendToTarget,IsShared,ItemAuthors,ItemClassType,ItemDate,ItemFolderNameDisplay"
-        s = s & ",ItemFolderPathDisplay,ItemFolderPathDisplayNarrow,ItemName,ItemNameDisplay,ItemNameDisplayWithoutExtension,ItemNamePrefix"
-        s = s & ",ItemNameSortOverride,ItemParticipants,ItemPathDisplay,ItemPathDisplayNarrow,ItemSubType,ItemType,ItemTypeText,ItemUrl,Keywords,Kind,KindText"
-        s = s & ",Language,LastSyncError,LastWriterPackageFamilyName,LowKeywords,MediumKeywords,MileageInformation,MIMEType,Null,OfflineAvailability,OfflineStatus"
-        s = s & ",OriginalFileName,OwnerSID,ParentalRating,ParentalRatingReason,ParentalRatingsOrganization,ParsingBindContext,ParsingName,ParsingPath,PerceivedType"
-        s = s & ",PercentFull,Priority,PriorityText,Project,ProviderItemID,Rating,RatingText,RemoteConflictingFile,Sensitivity,SensitivityText,SFGAOFlags,SharedWith"
-        s = s & ",ShareUserRating,SharingStatus,Shell,SimpleRating,Size,SoftwareUsed,SourceItem,SourcePackageFamilyName,StartDate,Status"
-        s = s & ",StorageProviderCallerVersionInformation,StorageProviderError,StorageProviderFileChecksum,StorageProviderFileIdentifier,StorageProviderFileRemoteUri"
-        s = s & ",StorageProviderFileVersion,StorageProviderFileVersionWaterline,StorageProviderId,StorageProviderShareStatuses,StorageProviderSharingStatus"
-        s = s & ",StorageProviderStatus,Subject,SyncTransferStatus,Thumbnail,ThumbnailCacheId,ThumbnailStream,Title,TitleSortOverride,TotalFileSize,Trademarks"
-        s = s & ",TransferOrder,TransferPosition,TransferSize,VolumeId,ZoneIdentifier"
+        'System/Generic
+        s = s & "$AcquisitionID,$ApplicationDefinedProperties,$ApplicationName,$AppZoneIdentifier,$Author,$CachedFileUpdaterContentIdForConflictResolution"
+        s = s & ",$CachedFileUpdaterContentIdForStream,$Capacity,$Category,$Comment,$Company,$ComputerName,$ContainedItems,$ContentStatus,$ContentType,$Copyright"
+        s = s & ",$CreatorAppId,$CreatorOpenWithUIOptions,$DataObjectFormat,$DateAccessed,$DateAcquired,$DateArchived,$DateCompleted,$DateCreated,$DateImported"
+        s = s & ",$DateModified,$DefaultSaveLocationDisplay,$DueDate,$EndDate,$ExpandoProperties,$FileAllocationSize,$FileAttributes,$FileCount,$FileDescription"
+        s = s & ",$FileExtension,$FileFRN,$FileName,$FileOfflineAvailabilityStatus,$FileOwner,$FilePlaceholderStatus,$FileVersion,$FindData,$FlagColor,$FlagColorText"
+        s = s & ",$FlagStatus,$FlagStatusText,$FolderKind,$FolderNameDisplay,$FreeSpace,$FullText,$HighKeywords,$ImageParsingName,$Importance,$ImportanceText,$IsAttachment"
+        s = s & ",$IsDefaultNonOwnerSaveLocation,$IsDefaultSaveLocation,$IsDeleted,$IsEncrypted,$IsFlagged,$IsFlaggedComplete,$IsIncomplete,$IsLocationSupported"
+        s = s & ",$IsPinnedToNameSpaceTree,$IsRead,$IsSearchOnlyItem,$IsSendToTarget,$IsShared,$ItemAuthors,$ItemClassType,$ItemDate,$ItemFolderNameDisplay"
+        s = s & ",$ItemFolderPathDisplay,$ItemFolderPathDisplayNarrow,$ItemName,$ItemNameDisplay,$ItemNameDisplayWithoutExtension,$ItemNamePrefix"
+        s = s & ",$ItemNameSortOverride,$ItemParticipants,$ItemPathDisplay,$ItemPathDisplayNarrow,$ItemSubType,$ItemType,$ItemTypeText,$ItemUrl,$Keywords,$Kind,$KindText"
+        s = s & ",$Language,$LastSyncError,$LastWriterPackageFamilyName,$LowKeywords,$MediumKeywords,$MileageInformation,$MIMEType,$Null,$OfflineAvailability,$OfflineStatus"
+        s = s & ",$OriginalFileName,$OwnerSID,$ParentalRating,$ParentalRatingReason,$ParentalRatingsOrganization,$ParsingBindContext,$ParsingName,$ParsingPath,$PerceivedType"
+        s = s & ",$PercentFull,$Priority,$PriorityText,$Project,$ProviderItemID,$Rating,$RatingText,$RemoteConflictingFile,$Sensitivity,$SensitivityText,$SFGAOFlags,$SharedWith"
+        s = s & ",$ShareUserRating,$SharingStatus,$Shell,$SimpleRating,$Size,$SoftwareUsed,$SourceItem,$SourcePackageFamilyName,$StartDate,$Status"
+        s = s & ",$StorageProviderCallerVersionInformation,$StorageProviderError,$StorageProviderFileChecksum,$StorageProviderFileIdentifier,$StorageProviderFileRemoteUri"
+        s = s & ",$StorageProviderFileVersion,$StorageProviderFileVersionWaterline,$StorageProviderId,$StorageProviderShareStatuses,$StorageProviderSharingStatus"
+        s = s & ",$StorageProviderStatus,$Subject,$SyncTransferStatus,$Thumbnail,$ThumbnailCacheId,$ThumbnailStream,$Title,$TitleSortOverride,$TotalFileSize,$Trademarks"
+        s = s & ",$TransferOrder,$TransferPosition,$TransferSize,$VolumeId,$ZoneIdentifier"
+        s = replace(s, "$", "System.")
         
         'Document
-        s = s & ",ByteCount,CharacterCount,ClientID,Contributor,DateCreated,DatePrinted,DateSaved,Division,DocumentID,HiddenSlideCount,LastAuthor,LineCount,Manager"
-        s = s & ",MultimediaClipCount,NoteCount,PageCount,ParagraphCount,PresentationFormat,RevisionNumber,Security,SlideCount,Template,TotalEditingTime,Version,WordCount"
-        
+        s = s & ",$ByteCount,$CharacterCount,$ClientID,$Contributor,$DateCreated,$DatePrinted,$DateSaved,$Division,$DocumentID,$HiddenSlideCount,$LastAuthor,$LineCount,$Manager"
+        s = s & ",$MultimediaClipCount,$NoteCount,$PageCount,$ParagraphCount,$PresentationFormat,$RevisionNumber,$Security,$SlideCount,$Template,$TotalEditingTime,$Version,$WordCount"
+        s = replace(s, "$", "System.Document.")
+
         'Video
-        s = s & ",Compression,Director,EncodingBitrate,FourCC,FrameHeight,FrameRate,FrameWidth,HorizontalAspectRatio,IsSpherical,IsStereo,Orientation,SampleSize"
-        s = s & ",StreamName,StreamNumber,TotalBitrate,TranscodedForSync,VerticalAspectRatio"
+        s = s & ",$Compression,$Director,$EncodingBitrate,$FourCC,$FrameHeight,$FrameRate,$FrameWidth,$HorizontalAspectRatio,$IsSpherical,$IsStereo,$Orientation,$SampleSize"
+        s = s & ",$StreamName,$StreamNumber,$TotalBitrate,$TranscodedForSync,$VerticalAspectRatio"
+        s = replace(s, "$", "System.Video.")
 
         'Photo
-        s = s & ",Aperture,ApertureDenominator,ApertureNumerator,Brightness,BrightnessDenominator,BrightnessNumerator,CameraManufacturer,CameraModel"
-        s = s & ",CameraSerialNumber,Contrast,ContrastText,DateTaken,DigitalZoom,DigitalZoomDenominator,DigitalZoomNumerator,Event,EXIFVersion,ExposureBias"
-        s = s & ",ExposureBiasDenominator,ExposureBiasNumerator,ExposureIndex,ExposureIndexDenominator,ExposureIndexNumerator,ExposureProgram,ExposureProgramText"
-        s = s & ",ExposureTime,ExposureTimeDenominator,ExposureTimeNumerator,Flash,FlashEnergy,FlashEnergyDenominator,FlashEnergyNumerator,FlashManufacturer"
-        s = s & ",FlashModel,FlashText,FNumber,FNumberDenominator,FNumberNumerator,FocalLength,FocalLengthDenominator,FocalLengthInFilm,FocalLengthNumerator"
-        s = s & ",FocalPlaneXResolution,FocalPlaneXResolutionDenominator,FocalPlaneXResolutionNumerator,FocalPlaneYResolution,FocalPlaneYResolutionDenominator"
-        s = s & ",FocalPlaneYResolutionNumerator,GainControl,GainControlDenominator,GainControlNumerator,GainControlText,ISOSpeed,LensManufacturer,LensModel"
-        s = s & ",LightSource,MakerNote,MakerNoteOffset,MaxAperture,MaxApertureDenominator,MaxApertureNumerator,MeteringMode,MeteringModeText,Orientation"
-        s = s & ",OrientationText,PeopleNames,PhotometricInterpretation,PhotometricInterpretationText,ProgramMode,ProgramModeText,RelatedSoundFile,Saturation"
-        s = s & ",SaturationText,Sharpness,SharpnessText,ShutterSpeed,ShutterSpeedDenominator,ShutterSpeedNumerator,SubjectDistance,SubjectDistanceDenominator"
-        s = s & ",SubjectDistanceNumerator,TagViewAggregate,TranscodedForSync,WhiteBalance,WhiteBalanceText"
+        s = s & ",$Aperture,$ApertureDenominator,$ApertureNumerator,$Brightness,$BrightnessDenominator,$BrightnessNumerator,$CameraManufacturer,$CameraModel"
+        s = s & ",$CameraSerialNumber,$Contrast,$ContrastText,$DateTaken,$DigitalZoom,$DigitalZoomDenominator,$DigitalZoomNumerator,$Event,$EXIFVersion,$ExposureBias"
+        s = s & ",$ExposureBiasDenominator,$ExposureBiasNumerator,$ExposureIndex,$ExposureIndexDenominator,$ExposureIndexNumerator,$ExposureProgram,$ExposureProgramText"
+        s = s & ",$ExposureTime,$ExposureTimeDenominator,$ExposureTimeNumerator,$Flash,$FlashEnergy,$FlashEnergyDenominator,$FlashEnergyNumerator,$FlashManufacturer"
+        s = s & ",$FlashModel,$FlashText,$FNumber,$FNumberDenominator,$FNumberNumerator,$FocalLength,$FocalLengthDenominator,$FocalLengthInFilm,$FocalLengthNumerator"
+        s = s & ",$FocalPlaneXResolution,$FocalPlaneXResolutionDenominator,$FocalPlaneXResolutionNumerator,$FocalPlaneYResolution,$FocalPlaneYResolutionDenominator"
+        s = s & ",$FocalPlaneYResolutionNumerator,$GainControl,$GainControlDenominator,$GainControlNumerator,$GainControlText,$ISOSpeed,$LensManufacturer,$LensModel"
+        s = s & ",$LightSource,$MakerNote,$MakerNoteOffset,$MaxAperture,$MaxApertureDenominator,$MaxApertureNumerator,$MeteringMode,$MeteringModeText,$Orientation"
+        s = s & ",$OrientationText,$PeopleNames,$PhotometricInterpretation,$PhotometricInterpretationText,$ProgramMode,$ProgramModeText,$RelatedSoundFile,$Saturation"
+        s = s & ",$SaturationText,$Sharpness,$SharpnessText,$ShutterSpeed,$ShutterSpeedDenominator,$ShutterSpeedNumerator,$SubjectDistance,$SubjectDistanceDenominator"
+        s = s & ",$SubjectDistanceNumerator,$TagViewAggregate,$TranscodedForSync,$WhiteBalance,$WhiteBalanceText"
+        s = replace(s, "$", "System.Photo.")
 
         'Music
-        s = s & ",AlbumArtist,AlbumArtistSortOverride,AlbumID,AlbumTitle,AlbumTitleSortOverride,Artist,ArtistSortOverride,BeatsPerMinute,Composer,ComposerSortOverride"
-        s = s & ",Conductor,ContentGroupDescription,DiscNumber,DisplayArtist,Genre,InitialKey,IsCompilation,Lyrics,Mood,PartOfSet,Period,SynchronizedLyrics,TrackNumber"
+        s = s & ",$AlbumArtist,$AlbumArtistSortOverride,$AlbumID,$AlbumTitle,$AlbumTitleSortOverride,$Artist,$ArtistSortOverride,$BeatsPerMinute,$Composer,$ComposerSortOverride"
+        s = s & ",$Conductor,$ContentGroupDescription,$DiscNumber,$DisplayArtist,$Genre,$InitialKey,$IsCompilation,$Lyrics,$Mood,$PartOfSet,$Period,$SynchronizedLyrics,$TrackNumber"
+        s = replace(s, "$", "System.Music.")
 
         'EMail/Message
-        s = s & ",AttachmentContents,AttachmentNames,BccAddress,BccName,CcAddress,CcName,ConversationID,ConversationIndex,DateReceived,DateSent,Flags,FromAddress"
-        s = s & ",FromName,HasAttachments,IsFwdOrReply,MessageClass,Participants,ProofInProgress,SenderAddress,SenderName,Store,ToAddress,ToDoFlags,ToDoTitle,ToName"
+        s = s & ",$AttachmentContents,$AttachmentNames,$BccAddress,$BccName,$CcAddress,$CcName,$ConversationID,$ConversationIndex,$DateReceived,$DateSent,$Flags,$FromAddress"
+        s = s & ",$FromName,$HasAttachments,$IsFwdOrReply,$MessageClass,$Participants,$ProofInProgress,$SenderAddress,$SenderName,$Store,$ToAddress,$ToDoFlags,$ToDoTitle,$ToName"
+        s = replace(s, "$", "System.Message.")
 
         'Media
-        s = s & ",AuthorUrl,AverageLevel,ClassPrimaryID,ClassSecondaryID,CollectionGroupID,CollectionID,ContentDistributor,ContentID,CreatorApplication"
-        s = s & ",CreatorApplicationVersion,DateEncoded,DateReleased,DlnaProfileID,Duration,DVDID,EncodedBy,EncodingSettings,EpisodeNumber,FrameCount,MCDI"
-        s = s & ",MetadataContentProvider,Producer,PromotionUrl,ProtectionType,ProviderRating,ProviderStyle,Publisher,SeasonNumber,SeriesName,SubscriptionContentId"
-        s = s & ",SubTitle,ThumbnailLargePath,ThumbnailLargeUri,ThumbnailSmallPath,ThumbnailSmallUri,UniqueFileIdentifier,UserNoAutoInfo,UserWebUrl,Writer,Year"
+        s = s & ",$AuthorUrl,$AverageLevel,$ClassPrimaryID,$ClassSecondaryID,$CollectionGroupID,$CollectionID,$ContentDistributor,$ContentID,$CreatorApplication"
+        s = s & ",$CreatorApplicationVersion,$DateEncoded,$DateReleased,$DlnaProfileID,$Duration,$DVDID,$EncodedBy,$EncodingSettings,$EpisodeNumber,$FrameCount,$MCDI"
+        s = s & ",$MetadataContentProvider,$Producer,$PromotionUrl,$ProtectionType,$ProviderRating,$ProviderStyle,$Publisher,$SeasonNumber,$SeriesName,$SubscriptionContentId"
+        s = s & ",$SubTitle,$ThumbnailLargePath,$ThumbnailLargeUri,$ThumbnailSmallPath,$ThumbnailSmallUri,$UniqueFileIdentifier,$UserNoAutoInfo,$UserWebUrl,$Writer,$Year"
+        s = replace(s, "$", "System.Media.")
 
         'Image
-        s = s & ",BitDepth,ColorSpace,CompressedBitsPerPixel,CompressedBitsPerPixelDenominator,CompressedBitsPerPixelNumerator,Compression,CompressionText,Dimensions"
-        s = s & ",HorizontalResolution,HorizontalSize,ImageID,ResolutionUnit,VerticalResolution,VerticalSize"
+        s = s & ",$BitDepth,$ColorSpace,$CompressedBitsPerPixel,$CompressedBitsPerPixelDenominator,$CompressedBitsPerPixelNumerator,$Compression,$CompressionText,$Dimensions"
+        s = s & ",$HorizontalResolution,$HorizontalSize,$ImageID,$ResolutionUnit,$VerticalResolution,$VerticalSize"
+        s = replace(s, "$", "System.Image.")
         
         map = split(s, ",")
     end if
