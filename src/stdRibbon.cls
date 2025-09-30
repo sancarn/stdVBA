@@ -8,6 +8,8 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
+#Const isWindows = Mac = 0
+
 Public Enum ERibbonState
   RibbonNullState
   RibbonFullScreenMode
@@ -32,19 +34,43 @@ Public Property Get State() As ERibbonState
   Dim appProtectedView as Boolean: appProtectedView = Not Application.ActiveProtectedViewWindow Is Nothing
   Dim oApp as Object: Set oApp = Application 'Latebound to avoid compile errors
 
+
   Dim xlDisplayFullScreen as Boolean
   Dim wdReadMode as Boolean
   Dim wdViewFullScreen as Boolean
   Dim wdProtectedViewMode as Boolean
+  Dim genRibbonNotVisible as Boolean
+  Dim genRibbonHidden as Boolean
+  Dim genRibbonMinimized as Boolean
+
+  
   select case Application.Name
     case "Microsoft Excel"
-      xlDisplayFullScreen = oApp.DisplayFullScreen
+      #If isWindows then
+        xlDisplayFullScreen = oApp.DisplayFullScreen
+        genRibbonNotVisible = Not Application.CommandBars("Ribbon").Visible
+        genRibbonHidden = Application.CommandBars.GetPressedMso("HideRibbon")
+        genRibbonMinimized = Application.CommandBars.GetPressedMso("MinimizeRibbon")
+      #Else
+        'None of these are supported on Mac
+        'Note: Application.DisplayFullScreen is supported on Mac, but doesn't hide the ribbon!
+      #End If
     case "Microsoft Word"
-      If Not appProtectedView Then 
-        wdViewFullScreen = oApp.ActiveWindow.View.FullScreen
-        wdReadMode = oApp.ActiveWindow.View.ReadingLayout
-      end if
+      #If isWindows then
+        If Not appProtectedView Then 
+          wdViewFullScreen = oApp.ActiveWindow.View.FullScreen
+          wdReadMode = oApp.ActiveWindow.View.ReadingLayout
+        end if
+        genRibbonNotVisible = Not Application.CommandBars("Ribbon").Visible
+        genRibbonHidden = Application.CommandBars.GetPressedMso("HideRibbon")
+        genRibbonMinimized = Application.CommandBars.GetPressedMso("MinimizeRibbon")
+      #Else
+        'Only Ribbon Minimized is supported on Mac
+        genRibbonMinimized = Application.CommandBars.GetPressedMso("MinimizeRibbon")
+      #End If
   end select
+    
+  
 
   'In this mode state is reversable
   select case true
@@ -56,11 +82,11 @@ Public Property Get State() As ERibbonState
       State = WordViewFullScreenMode
     case wdReadMode
       State = WordViewReadMode
-    case Not Application.CommandBars("Ribbon").Visible
+    case genRibbonNotVisible
       State = RibbonNotVisible
-    case Application.CommandBars.GetPressedMso("MinimizeRibbon") 
+    case genRibbonMinimized
       State = RibbonShowTabsOnly
-    Case Application.CommandBars.GetPressedMso("HideRibbon")
+    Case genRibbonHidden
       State = RibbonFullScreenMode
     Case Else  
       State = RibbonAlwaysShowRibbon
@@ -94,12 +120,23 @@ Public Property Let State(v As ERibbonState)
     Case RibbonFullScreenMode
       Call Application.CommandBars.ExecuteMso("HideRibbon")
     Case RibbonShowTabsOnly
-      Call Application.CommandBars.ExecuteMso("MinimizeRibbon")
+      #If isWindows then
+        Call Application.CommandBars.ExecuteMso("MinimizeRibbon")
+      #Else
+        'On Mac, it seems MinimizeRibbon is asynchronous, so we need to wait for it to finish
+        Dim macMinimizeRibbon as Boolean
+        macMinimizeRibbon = Application.CommandBars.GetPressedMso("MinimizeRibbon")
+        Call Application.CommandBars.ExecuteMso("MinimizeRibbon")
+        Do While macMinimizeRibbon = Application.CommandBars.GetPressedMso("MinimizeRibbon")
+          'For some god forsaken reason, DoEvents does not work here... Need to use macscript delays.
+          Call MacScript("delay 0")
+        Loop
+      #End If
   End Select
   DoEvents
   
   'Check if state has changed and if not error.
-  If State = iCurrentState then Err.Raise 1, "stdRibbon#State[Let]", "Ribbon state has not changed away from " & v
+  If (State = iCurrentState) And (iCurrentState <> RibbonAlwaysShowRibbon) then Err.Raise 1, "stdRibbon#State[Let]", "Ribbon state has not changed away from " & v
   
   'Recursively change state to `RibbonAlwaysShowRibbon`
   If iCurrentState <> RibbonAlwaysShowRibbon Then State = RibbonAlwaysShowRibbon
@@ -125,6 +162,16 @@ Public Property Let State(v As ERibbonState)
     Case RibbonFullScreenMode
       Call Application.CommandBars.ExecuteMso("HideRibbon")
     Case RibbonShowTabsOnly
-      Call Application.CommandBars.ExecuteMso("MinimizeRibbon")
+      #If isWindows then
+        Call Application.CommandBars.ExecuteMso("MinimizeRibbon")
+      #Else
+        'On Mac, it seems MinimizeRibbon is asynchronous, so we need to wait for it to finish
+        macMinimizeRibbon = Application.CommandBars.GetPressedMso("MinimizeRibbon")
+        Call Application.CommandBars.ExecuteMso("MinimizeRibbon")
+        Do While macMinimizeRibbon = Application.CommandBars.GetPressedMso("MinimizeRibbon")
+          'For some god forsaken reason, DoEvents does not work here... Need to use macscript delays.
+          Call MacScript("delay 0")
+        Loop
+      #End If
   End Select
 End Property
