@@ -360,4 +360,5 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2025-08-08 `stdRibbon` FEATURE - Added `stdRibbon` which allows for the ribbon to be hidden or shown.
 - 2025-08-18 `stdRibbon` FEATURE - `stdRibbon` now supports Word. Additionally state detection is more robust.
 - 2025-09-25 `stdRibbon` FIX - Fix infinite recursion issue, now we error when state hasn't changed.
-- 2025-09-30 `stdRibbon` FIX - Mac compatibility layer for stdRibbon. Also fixed a bug related to the above change.
+- 2025-09-30 `stdRibbon` FIX - Mac compatibility layer for stdRibbon. Also fixed a bug related to the above change.3
+- 2025-10-01 `stdCallback` FIX - Added `macCallByName` for Mac compatibility.

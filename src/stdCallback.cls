@@ -103,16 +103,19 @@ Implements stdICallable
 'Const DISPID_COLLECT     = -8
 
 'Direct call convention of VBA.CallByName
-#If VBA7 Then
-  'VBE7 is interchangable with msvbvm60.dll    however VBE7.dll appears to always be present where as msvbvm60 is only occasionally present.
-  Private Declare PtrSafe Function DispCallFunc Lib "oleAut32.dll" (ByVal pvInstance As LongPtr, ByVal offsetinVft As LongPtr, ByVal CallConv As Long, ByVal retTYP As Integer, ByVal paCNT As Long, ByVal paTypes As LongPtr, ByVal paValues As LongPtr, ByRef retVAR As Variant) As Long
-  Private Declare PtrSafe Function rtcCallByName Lib "VBE7.dll" (ByRef vRet As Variant, ByVal cObj As Object, ByVal sMethod As LongPtr, ByVal eCallType As VbCallType, ByRef pArgs() As Variant, ByVal lcid As Long) As Long
+#If Mac Then
 #Else
-  Private Enum LongPtr
-    [_]
-  End Enum
-  Private Declare Function DispCallFunc Lib "oleAut32.dll" (ByVal pvInstance As Long, ByVal offsetinVft As Long, ByVal CallConv As Long, ByVal retTYP As Integer, ByVal paCNT As Long, ByVal paTypes As LongPtr, ByVal paValues As LongPtr, ByRef retVAR as variant) As Long
-  Private Declare Function rtcCallByName Lib "msvbvm60" (ByRef vRet As Variant, ByVal cObj As Object, ByVal sMethod As LongPtr, ByVal eCallType As VbCallType, ByRef pArgs() As Variant, ByVal lcid As Long) As Long
+  #If VBA7 Then
+    'VBE7 is interchangable with msvbvm60.dll    however VBE7.dll appears to always be present where as msvbvm60 is only occasionally present.
+    Private Declare PtrSafe Function DispCallFunc Lib "oleAut32.dll" (ByVal pvInstance As LongPtr, ByVal offsetinVft As LongPtr, ByVal CallConv As Long, ByVal retTYP As Integer, ByVal paCNT As Long, ByVal paTypes As LongPtr, ByVal paValues As LongPtr, ByRef retVAR As Variant) As Long
+    Private Declare PtrSafe Function rtcCallByName Lib "VBE7.dll" (ByRef vRet As Variant, ByVal cObj As Object, ByVal sMethod As LongPtr, ByVal eCallType As VbCallType, ByRef pArgs() As Variant, ByVal lcid As Long) As Long
+  #Else
+    Private Enum LongPtr
+      [_]
+    End Enum
+    Private Declare Function DispCallFunc Lib "oleAut32.dll" (ByVal pvInstance As Long, ByVal offsetinVft As Long, ByVal CallConv As Long, ByVal retTYP As Integer, ByVal paCNT As Long, ByVal paTypes As LongPtr, ByVal paValues As LongPtr, ByRef retVAR as variant) As Long
+    Private Declare Function rtcCallByName Lib "msvbvm60" (ByRef vRet As Variant, ByVal cObj As Object, ByVal sMethod As LongPtr, ByVal eCallType As VbCallType, ByRef pArgs() As Variant, ByVal lcid As Long) As Long
+  #End If
 #End If
 
 #If Mac Then
@@ -427,9 +430,14 @@ Public Function RunEx(ByVal vArr As Variant) As Variant
           vArgs = vArr
             
           'Call rtcCallByName
+          Dim hResult As Long
           On Error GoTo ErrorInRTCCallByName
-          Dim hr As Long: hr = rtcCallByName(vRet, This.Callback.oObject, StrPtr(This.Callback.sMethodName), This.Callback.iCallType, vArgs, &H409)
-          On Error GoTo 0
+          #If Mac Then
+            Call macCallByName(vRet, This.Callback.oObject, This.Callback.sMethodName, This.Callback.iCallType, vArgs)
+          #Else
+            hResult = rtcCallByName(vRet, This.Callback.oObject, StrPtr(This.Callback.sMethodName), This.Callback.iCallType, vArgs, &H409)
+          #End If
+          On Error GoTo stdErrorWrapper_ErrorOccurred
         Else
           CriticalRaise "Error in rtcCallByName. Arguments supplied to RunEx needs to be an array."
         End If
@@ -481,12 +489,16 @@ Public Function RunEx(ByVal vArr As Variant) As Variant
           
           'Call function
           Const CC_STDCALL = 5
-          Dim hResult As Long
-          hResult = DispCallFunc(0, .iMethodAddress, CC_STDCALL, .iReturnType, iParamCount, VarPtr(vType(0)), VarPtr(vPtr(0)), vRet)
+          Dim hResult2 As Long
+          #If Mac Then
+            Call Err.Raise(1, "stdCallback", "Calling functions by pointer is not supported on Mac")
+          #Else
+            hResult2 = DispCallFunc(0, .iMethodAddress, CC_STDCALL, .iReturnType, iParamCount, VarPtr(vType(0)), VarPtr(vPtr(0)), vRet)
+          #End If
         End With
         
-        If hResult < 0 Then
-            Err.Raise hResult, "DispCallFunc", "Error when calling function pointer?"
+        If hResult2 < 0 Then
+            Err.Raise hResult2, "DispCallFunc", "Error when calling function pointer?"
         End If
 
       Case Else
@@ -505,6 +517,48 @@ Public Function RunEx(ByVal vArr As Variant) As Variant
 ErrorInRTCCallByName:
   CriticalRaise Err.Description & " (" & Err.Number & ")"
 End Function
+
+#If Mac Then
+  'Call a method on an object using the mac version of CallByName
+  '@param o - The object to call the method on
+  '@param p - The name of the method to call
+  '@param v - The call type to use
+  Private Sub macCallByName(ByRef vRet As Variant, ByVal o As Object, ByVal p As String, ByVal v As VbCallType, ByRef args() As Variant)
+      Select Case UBound(args) - LBound(args) + 1
+        Case 0: Call CopyVariant(vRet, CallByName(o, p, v))
+        Case 1: Call CopyVariant(vRet, CallByName(o, p, v, args(0)))
+        Case 2: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1)))
+        Case 3: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2)))
+        Case 4: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3)))
+        Case 5: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4)))
+        Case 6: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5)))
+        Case 7: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6)))
+        Case 8: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7)))
+        Case 9: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8)))
+        Case 10: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9)))
+        Case 11: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10)))
+        Case 12: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11)))
+        Case 13: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12)))
+        Case 14: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13)))
+        Case 15: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14)))
+        Case 16: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15)))
+        Case 17: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15), args(16)))
+        Case 18: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15), args(16), args(17)))
+        Case 19: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15), args(16), args(17), args(18)))
+        Case 20: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15), args(16), args(17), args(18), args(19)))
+        Case 21: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15), args(16), args(17), args(18), args(19), args(20)))
+        Case 22: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15), args(16), args(17), args(18), args(19), args(20), args(21)))
+        Case 23: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15), args(16), args(17), args(18), args(19), args(20), args(21), args(22)))
+        Case 24: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15), args(16), args(17), args(18), args(19), args(20), args(21), args(22), args(23)))
+        Case 25: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15), args(16), args(17), args(18), args(19), args(20), args(21), args(22), args(23), args(24)))
+        Case 26: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15), args(16), args(17), args(18), args(19), args(20), args(21), args(22), args(23), args(24), args(25)))
+        Case 27: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15), args(16), args(17), args(18), args(19), args(20), args(21), args(22), args(23), args(24), args(25), args(26)))
+        Case 28: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15), args(16), args(17), args(18), args(19), args(20), args(21), args(22), args(23), args(24), args(25), args(26), args(27)))
+        Case 29: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15), args(16), args(17), args(18), args(19), args(20), args(21), args(22), args(23), args(24), args(25), args(26), args(27), args(28)))
+        Case Else: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15), args(16), args(17), args(18), args(19), args(20), args(21), args(22), args(23), args(24), args(25), args(26), args(27), args(28), args(29)))
+      End Select
+  End Sub
+#End If
 
 Private Function Serialize(data As Variant) As String
   Select Case TypeName(data)
