@@ -362,3 +362,4 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2025-09-25 `stdRibbon` FIX - Fix infinite recursion issue, now we error when state hasn't changed.
 - 2025-09-30 `stdRibbon` FIX - Mac compatibility layer for stdRibbon. Also fixed a bug related to the above change.3
 - 2025-10-01 `stdCallback` FIX - Added `macCallByName` for Mac compatibility.
+- 2025-10-14 `stdCallback` FIX - Optimisation for `RunEx` function

@@ -394,11 +394,14 @@ Public Function RunEx(ByVal vArr As Variant) As Variant
         'Preserve array but make it 29 args long
         ReDim Preserve vArr(0 To 29)
         
+        'Get missing value
+        static vMissing As Variant: if IsEmpty(vMissing) then vMissing = GetMissing()
+
         'Loop over args and bind missing to args not present in initial array
         Dim i As Integer
         For i = 0 To 29
           If i > currentLength - 1 Then
-            vArr(i) = GetMissing
+            vArr(i) = vMissing
           End If
         Next
         
