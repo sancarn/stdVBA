@@ -16,13 +16,17 @@ End Sub
 'Call all scheduled callbacks
 '@protected
 Public Sub protCallScheduledCallbacks()
+  Dim vCurTime: vCurTime = Now()
+
   Dim i As Long
   For i = scheduledCallbacks.Count To 1 Step -1
     Dim cb As stdICallable: Set cb = scheduledCallbacks(i)(0)
     Dim onTime As Date: onTime = scheduledCallbacks(i)(1)
-    If onTime < Now() Then
+    If DateDiff("s", onTime, vCurTime) >= 0 Then
       Call scheduledCallbacks.Remove(i)
-      Call cb.Run()
+      'Allow the callback to reschedule itself if needed
+      Dim iSeconds As Long: iSeconds = cb.Run()
+      If iSeconds > 0 Then Call ScheduleCallback(cb, iSeconds)
     End If
   Next
 End Sub
