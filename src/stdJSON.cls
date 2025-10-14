@@ -588,7 +588,11 @@ Private Function simpleStringify(ByVal value As Variant) As String
     Case vbDouble, vbSingle
       'Handle different locales where "." is not the decimal separator
       Dim intPart As Long: intPart = Fix(value)
-      simpleStringify = intPart & "." & Mid(CStr(value - intPart), 3)
+      If value - intPart = 0 Then
+        simpleStringify = value
+      Else
+        simpleStringify = intPart & "." & Mid(CStr(value - intPart), IIf(value < 0, 4, 3))
+      End If
     Case Else
       If IsArray(value) Then
         simpleStringify = stdJSON.CreateFromVariant(value).ToString()
