@@ -10,9 +10,9 @@ Attribute VB_Exposed = False
 
 'Issues:
 ' WIN32 MIGRATION
-' - [ ] On windows, migrate to Win32 API rather than native calls.
-' - [ ] File hashing should use Win32 API rather than .NET COM classes. Performance much better with Win32 API.
-' - [ ] ReadText uses Input$ (locale/ANSI), no UTF-8/UTF-16 handling.
+' - [x] On windows, migrate to Win32 API rather than native calls.
+' - [x] File hashing uses Win32 CryptoAPI for significantly better performance than .NET COM classes.
+' - [ ] ReadText uses ANSI encoding, no UTF-8/UTF-16 handling.
 'FILE ENUMERATION
 ' - [ ] No binary read/write methods; no large-file chunking helpers.
 'GENERAL
@@ -34,6 +34,8 @@ Public Enum stdShellHashType
     EShellHashTypeMD5
     EShellHashTypeSHA1
     EShellHashTypeSHA256
+    EShellHashTypeSHA384
+    EShellHashTypeSHA512
 End Enum
 
 Public Enum stdShellExtendedProps
@@ -427,7 +429,7 @@ Public Enum stdShellExtendedProps
 End Enum
 
 'source: https://github.com/KallunWillock/vbaWIA/blob/main/Properties/modWIA_EXIFMetadata.bas
-Enum EShellExifProperties
+Enum stdShellExifProperties
     EXIFImageDateTimeOriginal = 36867
     EXIFImageTitle = 40091
     EXIFImageComments = 40092
@@ -537,7 +539,7 @@ Enum EShellExifProperties
     EXIFGamma = 771                                       ' Gamma value attached to the image. The gamma value is stored as a rational number (pair of: long) with a numerator of 100000. For example, a gamma value of 2.2 is stored as the pair (100000, 45455).
     EXIFICCProfileDescriptor = 800                        ' Null-terminated character string that identifies an ICC profile.
     EXIFSRGBRenderingIntent = 20481                       ' Saturation intent, which is suitable for charts and graphs, preserves saturation at the expense of hue and lightness.
-    EXIFImageTitle = 20482                                ' Null-terminated character string that specifies the title of the image.
+    EXIFImageTitle2 = 20482                               ' Null-terminated character string that specifies the title of the image.
     EXIFResolutionXUnit = 20483                           ' Units in which to display horizontal resolution.
     EXIFResolutionYUnit = 20484                           ' Units in which to display vertical resolution.
     EXIFResolutionXLengthUnit = 20485                     ' Units in which to display the image width.
@@ -852,6 +854,204 @@ Private Type TThis
     shellExtensions as Collection
 End Type
 Private This As TThis
+
+'====================
+' Win32 API Declarations
+'====================
+#If Win64 Then
+    Private Const vbLongPtr = vbLongLong
+#Else
+    Private Const vbLongPtr = vbLong
+#End If
+
+#If VBA7 Then
+    'File operations
+    Private Declare PtrSafe Function apiCreateFile Lib "kernel32" Alias "CreateFileA" (ByVal lpFileName As String, ByVal dwDesiredAccess As Long, ByVal dwShareMode As Long, ByVal lpSecurityAttributes As LongPtr, ByVal dwCreationDisposition As Long, ByVal dwFlagsAndAttributes As Long, ByVal hTemplateFile As LongPtr) As LongPtr
+    Private Declare PtrSafe Function CloseHandle Lib "kernel32" (ByVal hObject As LongPtr) As Long
+    Private Declare PtrSafe Function ReadFile Lib "kernel32" (ByVal hFile As LongPtr, ByRef lpBuffer As Any, ByVal nNumberOfBytesToRead As Long, ByRef lpNumberOfBytesRead As Long, ByVal lpOverlapped As LongPtr) As Long
+    Private Declare PtrSafe Function WriteFile Lib "kernel32" (ByVal hFile As LongPtr, ByRef lpBuffer As Any, ByVal nNumberOfBytesToWrite As Long, ByRef lpNumberOfBytesWritten As Long, ByVal lpOverlapped As LongPtr) As Long
+    Private Declare PtrSafe Function SetFilePointer Lib "kernel32" (ByVal hFile As LongPtr, ByVal lDistanceToMove As Long, ByRef lpDistanceToMoveHigh As Long, ByVal dwMoveMethod As Long) As Long
+    Private Declare PtrSafe Function GetFileSizeEx Lib "kernel32" (ByVal hFile As LongPtr, ByRef lpFileSize As Currency) As Long
+    Private Declare PtrSafe Function GetFileSize Lib "kernel32" (ByVal hFile As LongPtr, ByRef lpFileSizeHigh As Long) As Long
+    
+    'File attributes
+    Private Declare PtrSafe Function GetFileAttributes Lib "kernel32" Alias "GetFileAttributesA" (ByVal lpFileName As String) As Long
+    Private Declare PtrSafe Function SetFileAttributes Lib "kernel32" Alias "SetFileAttributesA" (ByVal lpFileName As String, ByVal dwFileAttributes As Long) As Long
+    Private Declare PtrSafe Function GetFileAttributesEx Lib "kernel32" Alias "GetFileAttributesExA" (ByVal lpFileName As String, ByVal fInfoLevelId As Long, ByRef lpFileInformation As Any) As Long
+    
+    'Directory operations
+    Private Declare PtrSafe Function CreateDirectory Lib "kernel32" Alias "CreateDirectoryA" (ByVal lpPathName As String, ByVal lpSecurityAttributes As LongPtr) As Long
+    Private Declare PtrSafe Function RemoveDirectory Lib "kernel32" Alias "RemoveDirectoryA" (ByVal lpPathName As String) As Long
+    
+    'File operations
+    Private Declare PtrSafe Function DeleteFile Lib "kernel32" Alias "DeleteFileA" (ByVal lpFileName As String) As Long
+    Private Declare PtrSafe Function CopyFile Lib "kernel32" Alias "CopyFileA" (ByVal lpExistingFileName As String, ByVal lpNewFileName As String, ByVal bFailIfExists As Long) As Long
+    Private Declare PtrSafe Function MoveFile Lib "kernel32" Alias "MoveFileA" (ByVal lpExistingFileName As String, ByVal lpNewFileName As String) As Long
+    
+    'File enumeration
+    Private Declare PtrSafe Function FindFirstFile Lib "kernel32" Alias "FindFirstFileA" (ByVal lpFileName As String, ByRef lpFindFileData As WIN32_FIND_DATA) As LongPtr
+    Private Declare PtrSafe Function FindNextFile Lib "kernel32" Alias "FindNextFileA" (ByVal hFindFile As LongPtr, ByRef lpFindFileData As WIN32_FIND_DATA) As Long
+    Private Declare PtrSafe Function FindClose Lib "kernel32" (ByVal hFindFile As LongPtr) As Long
+    
+    'File time operations
+    Private Declare PtrSafe Function SetFileTime Lib "kernel32" (ByVal hFile As LongPtr, ByRef lpCreationTime As Any, ByRef lpLastAccessTime As Any, ByRef lpLastWriteTime As Any) As Long
+    Private Declare PtrSafe Function FileTimeToSystemTime Lib "kernel32" (ByRef lpFileTime As FILETIME, ByRef lpSystemTime As SYSTEMTIME) As Long
+    Private Declare PtrSafe Function SystemTimeToVariantTime Lib "oleaut32" (ByRef lpSystemTime As SYSTEMTIME, ByRef pvtime As Date) As Long
+    
+    'Error handling
+    Private Declare PtrSafe Function GetLastError Lib "kernel32" () As Long
+    
+    'Drive enumeration
+    Private Declare PtrSafe Function GetLogicalDriveStrings Lib "kernel32" Alias "GetLogicalDriveStringsA" (ByVal nBufferLength As Long, ByVal lpBuffer As String) As Long
+    
+    'CryptoAPI for hashing
+    Private Declare PtrSafe Function CryptAcquireContext Lib "advapi32" Alias "CryptAcquireContextA" (ByRef phProv As LongPtr, ByVal pszContainer As String, ByVal pszProvider As String, ByVal dwProvType As Long, ByVal dwFlags As Long) As Long
+    Private Declare PtrSafe Function CryptCreateHash Lib "advapi32" (ByVal hProv As LongPtr, ByVal algid As Long, ByVal hKey As LongPtr, ByVal dwFlags As Long, ByRef phHash As LongPtr) As Long
+    Private Declare PtrSafe Function CryptHashData Lib "advapi32" (ByVal hHash As LongPtr, ByRef pbData As Any, ByVal dwDataLen As Long, ByVal dwFlags As Long) As Long
+    Private Declare PtrSafe Function CryptGetHashParam Lib "advapi32" (ByVal hHash As LongPtr, ByVal dwParam As Long, ByRef pbData As Any, ByRef pdwDataLen As Long, ByVal dwFlags As Long) As Long
+    Private Declare PtrSafe Function CryptDestroyHash Lib "advapi32" (ByVal hHash As LongPtr) As Long
+    Private Declare PtrSafe Function CryptReleaseContext Lib "advapi32" (ByVal hProv As LongPtr, ByVal dwFlags As Long) As Long
+#Else
+    Private Enum LongPtr
+        [_]
+    End Enum
+    
+    'File operations
+    Private Declare Function apiCreateFile Lib "kernel32" Alias "CreateFileA" (ByVal lpFileName As String, ByVal dwDesiredAccess As Long, ByVal dwShareMode As Long, ByVal lpSecurityAttributes As LongPtr, ByVal dwCreationDisposition As Long, ByVal dwFlagsAndAttributes As Long, ByVal hTemplateFile As LongPtr) As LongPtr
+    Private Declare Function CloseHandle Lib "kernel32" (ByVal hObject As LongPtr) As Long
+    Private Declare Function ReadFile Lib "kernel32" (ByVal hFile As LongPtr, ByRef lpBuffer As Any, ByVal nNumberOfBytesToRead As Long, ByRef lpNumberOfBytesRead As Long, ByVal lpOverlapped As LongPtr) As Long
+    Private Declare Function WriteFile Lib "kernel32" (ByVal hFile As LongPtr, ByRef lpBuffer As Any, ByVal nNumberOfBytesToWrite As Long, ByRef lpNumberOfBytesWritten As Long, ByVal lpOverlapped As LongPtr) As Long
+    Private Declare Function SetFilePointer Lib "kernel32" (ByVal hFile As LongPtr, ByVal lDistanceToMove As Long, ByRef lpDistanceToMoveHigh As Long, ByVal dwMoveMethod As Long) As Long
+    Private Declare Function GetFileSizeEx Lib "kernel32" (ByVal hFile As LongPtr, ByRef lpFileSize As Currency) As Long
+    Private Declare Function GetFileSize Lib "kernel32" (ByVal hFile As LongPtr, ByRef lpFileSizeHigh As Long) As Long
+    
+    'File attributes
+    Private Declare Function GetFileAttributes Lib "kernel32" Alias "GetFileAttributesA" (ByVal lpFileName As String) As Long
+    Private Declare Function SetFileAttributes Lib "kernel32" Alias "SetFileAttributesA" (ByVal lpFileName As String, ByVal dwFileAttributes As Long) As Long
+    Private Declare Function GetFileAttributesEx Lib "kernel32" Alias "GetFileAttributesExA" (ByVal lpFileName As String, ByVal fInfoLevelId As Long, ByRef lpFileInformation As Any) As Long
+    
+    'Directory operations
+    Private Declare Function CreateDirectory Lib "kernel32" Alias "CreateDirectoryA" (ByVal lpPathName As String, ByVal lpSecurityAttributes As LongPtr) As Long
+    Private Declare Function RemoveDirectory Lib "kernel32" Alias "RemoveDirectoryA" (ByVal lpPathName As String) As Long
+    
+    'File operations
+    Private Declare Function DeleteFile Lib "kernel32" Alias "DeleteFileA" (ByVal lpFileName As String) As Long
+    Private Declare Function CopyFile Lib "kernel32" Alias "CopyFileA" (ByVal lpExistingFileName As String, ByVal lpNewFileName As String, ByVal bFailIfExists As Long) As Long
+    Private Declare Function MoveFile Lib "kernel32" Alias "MoveFileA" (ByVal lpExistingFileName As String, ByVal lpNewFileName As String) As Long
+    
+    'File enumeration
+    Private Declare Function FindFirstFile Lib "kernel32" Alias "FindFirstFileA" (ByVal lpFileName As String, ByRef lpFindFileData As WIN32_FIND_DATA) As LongPtr
+    Private Declare Function FindNextFile Lib "kernel32" Alias "FindNextFileA" (ByVal hFindFile As LongPtr, ByRef lpFindFileData As WIN32_FIND_DATA) As Long
+    Private Declare Function FindClose Lib "kernel32" (ByVal hFindFile As LongPtr) As Long
+    
+    'File time operations
+    Private Declare Function SetFileTime Lib "kernel32" (ByVal hFile As LongPtr, ByRef lpCreationTime As Any, ByRef lpLastAccessTime As Any, ByRef lpLastWriteTime As Any) As Long
+    Private Declare Function FileTimeToSystemTime Lib "kernel32" (ByRef lpFileTime As FILETIME, ByRef lpSystemTime As SYSTEMTIME) As Long
+    Private Declare Function SystemTimeToVariantTime Lib "oleaut32" (ByRef lpSystemTime As SYSTEMTIME, ByRef pvtime As Date) As Long
+    
+    'Error handling
+    Private Declare Function GetLastError Lib "kernel32" () As Long
+    
+    'Drive enumeration
+    Private Declare Function GetLogicalDriveStrings Lib "kernel32" Alias "GetLogicalDriveStringsA" (ByVal nBufferLength As Long, ByVal lpBuffer As String) As Long
+    
+    'CryptoAPI for hashing
+    Private Declare Function CryptAcquireContext Lib "advapi32" Alias "CryptAcquireContextA" (ByRef phProv As LongPtr, ByVal pszContainer As String, ByVal pszProvider As String, ByVal dwProvType As Long, ByVal dwFlags As Long) As Long
+    Private Declare Function CryptCreateHash Lib "advapi32" (ByVal hProv As LongPtr, ByVal algid As Long, ByVal hKey As LongPtr, ByVal dwFlags As Long, ByRef phHash As LongPtr) As Long
+    Private Declare Function CryptHashData Lib "advapi32" (ByVal hHash As LongPtr, ByRef pbData As Any, ByVal dwDataLen As Long, ByVal dwFlags As Long) As Long
+    Private Declare Function CryptGetHashParam Lib "advapi32" (ByVal hHash As LongPtr, ByVal dwParam As Long, ByRef pbData As Any, ByRef pdwDataLen As Long, ByVal dwFlags As Long) As Long
+    Private Declare Function CryptDestroyHash Lib "advapi32" (ByVal hHash As LongPtr) As Long
+    Private Declare Function CryptReleaseContext Lib "advapi32" (ByVal hProv As LongPtr, ByVal dwFlags As Long) As Long
+#End If
+
+'Win32 Constants
+Private Const INVALID_HANDLE_VALUE As Long = -1
+Private Const FILE_ATTRIBUTE_DIRECTORY As Long = &H10
+Private Const FILE_ATTRIBUTE_NORMAL As Long = &H80
+Private Const FILE_ATTRIBUTE_READONLY As Long = &H1
+Private Const FILE_ATTRIBUTE_HIDDEN As Long = &H2
+Private Const FILE_ATTRIBUTE_SYSTEM As Long = &H4
+Private Const FILE_ATTRIBUTE_ARCHIVE As Long = &H20
+Private Const FILE_ATTRIBUTE_VOLUME As Long = &H8
+
+Private Const GENERIC_READ As Long = &H80000000
+Private Const GENERIC_WRITE As Long = &H40000000
+Private Const FILE_SHARE_READ As Long = &H1
+Private Const FILE_SHARE_WRITE As Long = &H2
+Private Const FILE_SHARE_DELETE As Long = &H4
+Private Const OPEN_EXISTING As Long = 3
+Private Const CREATE_ALWAYS As Long = 2
+Private Const CREATE_NEW As Long = 1
+Private Const OPEN_ALWAYS As Long = 4
+Private Const TRUNCATE_EXISTING As Long = 5
+Private Const FILE_END As Long = 2
+Private Const FILE_BEGIN As Long = 0
+
+Private Const GetFileExInfoStandard As Long = 0
+
+'CryptoAPI Constants
+Private Const PROV_RSA_FULL As Long = 1
+Private Const PROV_RSA_AES As Long = 24
+Private Const CRYPT_VERIFYCONTEXT As Long = &HF0000000
+Private Const MS_DEFAULT_PROVIDER As String = "Microsoft Base Cryptographic Provider v1.0"
+Private Const MS_ENHANCED_PROVIDER As String = "Microsoft Enhanced Cryptographic Provider v1.0"
+
+'Hash Algorithm Constants
+Private Const ALG_TYPE_ANY As Long = 0
+Private Const ALG_CLASS_HASH As Long = 32768
+Private Const ALG_SID_MD5 As Long = 3
+Private Const ALG_SID_SHA1 As Long = 4
+Private Const ALG_SID_SHA_256 As Long = 12
+Private Const ALG_SID_SHA_384 As Long = 13
+Private Const ALG_SID_SHA_512 As Long = 14
+Private Const CALG_MD5 As Long = ALG_CLASS_HASH Or ALG_TYPE_ANY Or ALG_SID_MD5
+Private Const CALG_SHA1 As Long = ALG_CLASS_HASH Or ALG_TYPE_ANY Or ALG_SID_SHA1
+Private Const CALG_SHA_256 As Long = ALG_CLASS_HASH Or ALG_TYPE_ANY Or ALG_SID_SHA_256
+Private Const CALG_SHA_384 As Long = ALG_CLASS_HASH Or ALG_TYPE_ANY Or ALG_SID_SHA_384
+Private Const CALG_SHA_512 As Long = ALG_CLASS_HASH Or ALG_TYPE_ANY Or ALG_SID_SHA_512
+
+'Hash Parameter Constants
+Private Const HP_HASHVAL As Long = 2
+Private Const HP_HASHSIZE As Long = 4
+
+'Win32 Types
+Private Type FILETIME
+    dwLowDateTime As Long
+    dwHighDateTime As Long
+End Type
+
+Private Type SYSTEMTIME
+    wYear As Integer
+    wMonth As Integer
+    wDayOfWeek As Integer
+    wDay As Integer
+    wHour As Integer
+    wMinute As Integer
+    wSecond As Integer
+    wMilliseconds As Integer
+End Type
+
+Private Type WIN32_FIND_DATA
+    dwFileAttributes As Long
+    ftCreationTime As FILETIME
+    ftLastAccessTime As FILETIME
+    ftLastWriteTime As FILETIME
+    nFileSizeHigh As Long
+    nFileSizeLow As Long
+    dwReserved0 As Long
+    dwReserved1 As Long
+    cFileName As String * 260
+    cAlternateFileName As String * 14
+End Type
+
+Private Type WIN32_FILE_ATTRIBUTE_DATA
+    dwFileAttributes As Long
+    ftCreationTime As FILETIME
+    ftLastAccessTime As FILETIME
+    ftLastWriteTime As FILETIME
+    nFileSizeHigh As Long
+    nFileSizeLow As Long
+End Type
 
 'Expose type via property for external reads
 Public Property Get FileType() As stdShellKind
@@ -1190,7 +1390,7 @@ End Property
 'Obtain the value of a property from the extended properties
 '@param iProp - The property to obtain
 '@return Variant<Variant|Array<Variant>> - The value of the property
-Public Property Get PropertyFromEnum(ByVal iProp as EShellProperties) as Variant
+Public Property Get PropertyFromEnum(ByVal iProp as stdShellExtendedProps) as Variant
   PropertyFromEnum = PropertyFromString(stdShell.protEnumToPropName(iProp))
 End Property
 
@@ -1199,7 +1399,7 @@ End Property
 '@return - The value of the property
 '@remark - It's advisable to copy the file before using the `Let` property
 '@source https://github.com/KallunWillock/vbaWIA/blob/main/Properties/modWIA_EXIFMetadata.bas
-Public Property Get ExifProperty(ByVal iProp as EShellExifProperties) as String
+Public Property Get ExifProperty(ByVal iProp as stdShellExifProperties) as String
   Dim Image: Set Image = CreateObject("WIA.ImageFile")
   Call Image.LoadFile(This.path)
   set property = Image.Properties.Item(iProp) 'TODO: test, might need to search for propertyID
@@ -1209,7 +1409,7 @@ Public Property Get ExifProperty(ByVal iProp as EShellExifProperties) as String
     ExifProperty = Replace(StrConv(ImageProperty.Value.BinaryData, vbUnicode), Chr(0), "")
   End If
 End Property
-Public Property Let ExifProperty(ByVal iProp as EShellExifProperties, ByVal v as String)
+Public Property Let ExifProperty(ByVal iProp as stdShellExifProperties, ByVal v as String)
     Dim Image: Set Image = CreateObject("WIA.ImageFile")
     Call Image.LoadFile(This.path)
     set property = Image.Properties.Item(iProp) 'TODO: test, might need to search for propertyID
@@ -1292,11 +1492,14 @@ Public Function Ensure(Optional ByVal createParents As Boolean = True) As Boolea
                 End If
             End If
             On Error GoTo EH
-            Dim ff As Long: ff = FreeFile
-            Open s For Output As #ff: Close #ff
-            This.isVirtual = False
-            Ensure = True
-            Exit Function
+            Dim hFile As LongPtr
+            hFile = apiCreateFile(s, GENERIC_WRITE, FILE_SHARE_READ Or FILE_SHARE_WRITE, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0)
+            If hFile <> INVALID_HANDLE_VALUE Then
+                Call CloseHandle(hFile)
+                This.isVirtual = False
+                Ensure = True
+                Exit Function
+            End If
         Case EShellFileTypeFolder
             On Error GoTo EH
             If createParents Then
@@ -1306,10 +1509,11 @@ Public Function Ensure(Optional ByVal createParents As Boolean = True) As Boolea
                     If Not pp.Ensure(True) Then Exit Function
                 End If
             End If
-            MkDir s
-            This.isVirtual = False
-            Ensure = True
-            Exit Function
+            If CreateDirectory(s, 0) <> 0 Then
+                This.isVirtual = False
+                Ensure = True
+                Exit Function
+            End If
         Case Else
             Ensure = False
             Exit Function
@@ -1324,17 +1528,14 @@ Public Function Touch() As Boolean
     If This.kind <> EShellFileTypeFile Then Exit Function
     Dim s As String: s = This.path
     On Error GoTo EH
+    Dim hFile As LongPtr
     If Not Exists() Then
-        Dim ff As Long: ff = FreeFile
-        Open s For Output As #ff: Close #ff
-        This.isVirtual = False
-        Touch = True
-        Exit Function
+        hFile = apiCreateFile(s, GENERIC_WRITE, FILE_SHARE_READ Or FILE_SHARE_WRITE, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0)
+    Else
+        hFile = apiCreateFile(s, GENERIC_WRITE, FILE_SHARE_READ Or FILE_SHARE_WRITE, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0)
     End If
-    'TODO: Refactor to use native methods
-    Dim fso As Object: Set fso = CreateObject("Scripting.FileSystemObject")
-    If fso.FileExists(s) Then
-        fso.GetFile(s).DateLastModified = Now
+    If hFile <> INVALID_HANDLE_VALUE Then
+        Call CloseHandle(hFile)
         This.isVirtual = False
         Touch = True
         Exit Function
@@ -1363,7 +1564,15 @@ End Property
 Public Property Get Size() As Long
   Select Case This.kind
     Case EShellFileTypeFile
-      Size = FileLen(This.path)
+      Dim hFile As LongPtr
+      hFile = apiCreateFile(This.path, GENERIC_READ, FILE_SHARE_READ Or FILE_SHARE_WRITE, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0)
+      If hFile <> INVALID_HANDLE_VALUE Then
+        Dim fileSize As Currency
+        If GetFileSizeEx(hFile, fileSize) <> 0 Then
+          Size = CLng(NaiveCurrencyToLongPtr(fileSize))
+        End If
+        Call CloseHandle(hFile)
+      End If
     Case Else
       Err.Raise 1, "", "Not implemented, use `GetSize` function instead."
   End Select
@@ -1378,7 +1587,7 @@ End Property
 Public Function GetSize() As Long
     Select Case This.kind
         Case EShellFileTypeFile
-            GetSize = FileLen(This.path)
+            GetSize = Size
         Case else
             if not This.isVirtual Then
                 Dim child as stdShell
@@ -1398,23 +1607,39 @@ Public Property Get ChildrenRaw() As Collection
         case EShellFileTypeFile
             'No children, Do nothing
         case EShellFileTypeFolder
-            'Get child paths
-            Dim tpath As String
-            tpath = VBA.Dir(This.path & IIf(Right(This.path, 1) = "\", "*", "\*"), vbNormal Or vbDirectory Or vbHidden Or vbSystem)
-            While tpath <> ""
-                If tpath <> "." And tpath <> ".." Then Call ChildrenRaw.Add(stdShell.Create(This.path & "\" & tpath))
-                tpath = VBA.Dir()
-            Wend
+            'Get child paths using Win32 API
+            Dim searchPath As String
+            searchPath = This.path & IIf(Right(This.path, 1) = "\", "*", "\*")
+            Dim findData As WIN32_FIND_DATA
+            Dim hFind As LongPtr
+            hFind = FindFirstFile(searchPath, findData)
+            If hFind <> INVALID_HANDLE_VALUE Then
+                Do
+                    Dim fileName As String
+                    fileName = Left(findData.cFileName, InStr(findData.cFileName, vbNullChar) - 1)
+                    If fileName <> "." And fileName <> ".." Then
+                        Call ChildrenRaw.Add(stdShell.Create(This.path & "\" & fileName))
+                    End If
+                Loop While FindNextFile(hFind, findData) <> 0
+                Call FindClose(hFind)
+            End If
             DoEvents
         case EShellFileTypeRoot
-            'Use FSO for now... TODO: Use win32 API instead.
-            Dim fso As Object: Set fso = CreateObject("Scripting.FileSystemObject")
-            Dim drive As Object
-            For each drive in fso.Drives
-                if drive.DriveLetter <> "" then
-                    ChildrenRaw.Add stdShell.Create(drive.DriveLetter & ":\")
-                end if
-            Next
+            'Use Win32 API to enumerate drives
+            Dim driveBuffer As String
+            driveBuffer = Space(1024)
+            Dim result As Long
+            result = GetLogicalDriveStrings(Len(driveBuffer), driveBuffer)
+            If result > 0 Then
+                Dim drives() As String
+                drives = Split(Left(driveBuffer, result), vbNullChar)
+                Dim i As Long
+                For i = 0 To UBound(drives) - 1
+                    If drives(i) <> "" Then
+                        ChildrenRaw.Add stdShell.Create(drives(i))
+                    End If
+                Next
+            End If
     end select
 End Property
 
@@ -1474,23 +1699,43 @@ End Property
 '@returns {Byte()} - Bytes read from file
 Public Function Read() As Byte()
     If This.kind = EShellFileTypeFile Then
-        Dim ff As Long: ff = FreeFile
-        Open This.path For Input As #ff
-            Read = Input(LOF(ff), #ff)
-        Close #ff
+        Dim hFile As LongPtr
+        hFile = apiCreateFile(This.path, GENERIC_READ, FILE_SHARE_READ Or FILE_SHARE_WRITE, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0)
+        If hFile <> INVALID_HANDLE_VALUE Then
+            Dim fileSize As Currency
+            If GetFileSizeEx(hFile, fileSize) <> 0 Then
+                Dim size As Long: size = Clng(NaiveCurrencyToLongPtr(fileSize))
+                If size > 0 Then
+                    ReDim Read(size - 1) As Byte
+                    Dim bytesRead As Long
+                    If ReadFile(hFile, ByVal ByteArrPtr(Read), size, bytesRead, 0) <> 0 Then
+                        If bytesRead < size Then ReDim Preserve Read(bytesRead - 1) As Byte
+                    Else
+                        ReDim Read(0) As Byte
+                    End If
+                Else
+                    ReDim Read(0) As Byte
+                End If
+            End If
+            Call CloseHandle(hFile)
+        Else
+            Err.Raise 1, "", "Cannot read this item as it is not a file"
+        End If
     Else
         Err.Raise 1, "", "Cannot read this item as it is not a file"
     End If
 End Function
 
 'Attempts to read data from a file
-'@returns {Byte()} - Bytes read from file
+'@returns {String} - Text read from file
 Public Function ReadText() As String
     If This.kind = EShellFileTypeFile Then
-        Dim ff As Long: ff = FreeFile
-        Open This.path For Input As #ff
-            ReadText = Input$(LOF(ff), #ff)
-        Close #ff
+        Dim bytes() As Byte
+        bytes = Read()
+        ' Convert bytes to string (ANSI encoding)
+        If UBound(bytes) >= 0 Then
+            ReadText = StrConv(bytes, vbUnicode)
+        End If
     Else
         Err.Raise 1, "", "Cannot read this item as it is not a file"
     End If
@@ -1502,15 +1747,24 @@ End Function
 Public Function Append(ByVal data As Variant) As Boolean
     On Error GoTo EH
         If This.kind = EShellFileTypeFile Then
-            Dim ff As Long: ff = FreeFile
-            Open This.path For Append As #ff
-                Seek #ff, LOF(ff) + 1
-                Put #ff, , CStr(data)
-            Close #ff
+            Dim hFile As LongPtr
+            hFile = apiCreateFile(This.path, GENERIC_WRITE, FILE_SHARE_READ Or FILE_SHARE_WRITE, 0, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0)
+            If hFile <> INVALID_HANDLE_VALUE Then
+                'Move to end of file
+                Call SetFilePointer(hFile, 0, 0, FILE_END)
+                Dim dataStr As String: dataStr = CStr(data)
+                Dim dataBytes() As Byte: dataBytes = StrConv(dataStr, vbFromUnicode)
+                Dim bytesWritten As Long
+                If WriteFile(hFile, dataBytes(0), UBound(dataBytes) + 1, bytesWritten, 0) <> 0 Then
+                    Call CloseHandle(hFile)
+                    Append = True
+                    Exit Function
+                End If
+                Call CloseHandle(hFile)
+            End If
         Else
             Err.Raise 1, "", "Cannot append data to this item as it is not a file"
         End If
-        Exit Function
 EH:
     Append = False
 End Function
@@ -1520,7 +1774,7 @@ End Function
 '@returns {Boolean} - Success flag
 Public Function AppendLine(ByVal line As string) As Boolean
     If This.kind = EShellFileTypeFile Then
-        AppendLine = Append(data & vbCrLf)
+        AppendLine = Append(line & vbCrLf)
     Else
         Err.Raise 1, "", "Cannot append line to this item as it is not a file"
     End If
@@ -1532,14 +1786,28 @@ End Function
 Public Function Overwrite(ByVal data As Variant) As Boolean
     On Error GoTo EH
         If This.kind = EShellFileTypeFile Then
-            Dim ff As Long: ff = FreeFile
-            Open This.path For Binary As #ff
-                Put #ff, , data
-            Close #ff
+            Dim hFile As LongPtr
+            hFile = apiCreateFile(This.path, GENERIC_WRITE, FILE_SHARE_READ Or FILE_SHARE_WRITE, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0)
+            If hFile <> INVALID_HANDLE_VALUE Then
+                Dim dataBytes() As Byte
+                If VarType(data) = vbString Then
+                    dataBytes = StrConv(CStr(data), vbFromUnicode)
+                ElseIf VarType(data) = (vbArray + vbByte) Then
+                    dataBytes = data
+                Else
+                    dataBytes = StrConv(CStr(data), vbFromUnicode)
+                End If
+                Dim bytesWritten As Long
+                If WriteFile(hFile, dataBytes(0), UBound(dataBytes) + 1, bytesWritten, 0) <> 0 Then
+                    Call CloseHandle(hFile)
+                    Overwrite = True
+                    Exit Function
+                End If
+                Call CloseHandle(hFile)
+            End If
         Else
             Err.Raise 1, "", "Cannot write data to this item as it is not a file"
         End If
-        Exit Function
 EH:
     Overwrite = False
 End Function
@@ -1549,59 +1817,119 @@ End Function
 Public Function Clear() As Boolean
     On Error GoTo EH
         If This.kind = EShellFileTypeFile Then
-            Dim ff As Long: ff = FreeFile
-            Open This.path For Output As #ff
-            Close #ff
+            Dim hFile As LongPtr
+            hFile = apiCreateFile(This.path, GENERIC_WRITE, FILE_SHARE_READ Or FILE_SHARE_WRITE, 0, TRUNCATE_EXISTING, FILE_ATTRIBUTE_NORMAL, 0)
+            If hFile <> INVALID_HANDLE_VALUE Then
+                Call CloseHandle(hFile)
+                Clear = True
+                Exit Function
+            End If
         Else
             Err.Raise 1, "", "Cannot clear data from this item as it is not a file"
         End If
-        Exit Function
 EH:
     Clear = False
 End Function
 
-'Obtain a hash value for file contents
+'Obtain a hash value for file contents using Win32 CryptoAPI
 '@param {stdShellHashType} The type of hash to create
 '@returns Hex string representing hash.
 '@remark {1} MD5 and SHA1 kept for legacy support.
+'@remark Uses Win32 CryptoAPI for significantly better performance than .NET COM classes.
 Public Function Hash(ByVal iHashType As stdShellHashType) As String
-    'Obtain hash encoder
-    Dim hashEncoder As Object, iHashLength As Long
+    'Determine algorithm ID, hash length, provider type, and provider name
+    Dim algId As Long, iHashLength As Long, provType As Long, providerName As String
     Select Case iHashType
-        Case HashTypeMD5
-            Set hashEncoder = CreateObject("System.Security.Cryptography.MD5CryptoServiceProvider")
+        Case EShellHashTypeMD5
+            algId = CALG_MD5
             iHashLength = 16
-        Case HashTypeSHA1
-            Set hashEncoder = CreateObject("System.Security.Cryptography.SHA1CryptoServiceProvider")
+            provType = PROV_RSA_FULL
+            providerName = vbNullString 'Let Windows choose the default provider
+        Case EShellHashTypeSHA1
+            algId = CALG_SHA1
             iHashLength = 20
-        Case HashTypeSHA256
-            Set hashEncoder = CreateObject("System.Security.Cryptography.SHA256Managed")
+            provType = PROV_RSA_FULL
+            providerName = vbNullString 'Let Windows choose the default provider
+        Case EShellHashTypeSHA256
+            algId = CALG_SHA_256
             iHashLength = 32
+            provType = PROV_RSA_AES 'SHA-256 requires AES provider
+            providerName = vbNullString 'Let Windows choose the appropriate AES provider
+        Case EShellHashTypeSHA384
+            algId = CALG_SHA_384
+            iHashLength = 48
+            provType = PROV_RSA_AES 'SHA-384 requires AES provider
+            providerName = vbNullString 'Let Windows choose the appropriate AES provider
+        Case EShellHashTypeSHA512
+            algId = CALG_SHA_512
+            iHashLength = 64
+            provType = PROV_RSA_AES 'SHA-512 requires AES provider
+            providerName = vbNullString 'Let Windows choose the appropriate AES provider
+        Case Else
+            Err.Raise 1, "", "Unsupported hash type"
     End Select
     
-    Dim blockSize As Long: blockSize = 2 ^ 16
-    Dim ff As Long: ff = FreeFile
+    'Acquire cryptographic context
+    Dim hProv As LongPtr
+    If CryptAcquireContext(hProv, vbNullString, providerName, provType, CRYPT_VERIFYCONTEXT) = 0 Then
+        Err.Raise 1, "", "Failed to acquire cryptographic context. Error: " & GetLastError()
+    End If
     
-    'Progressively build hash 1024 bytes at a time
-    Open This.path For Binary Access Read As #ff
-        If LOF(ff) < blockSize Then blockSize = ((LOF(ff) + 1024) \ 1024) * 1024
-        Dim buffer() As Byte: ReDim buffer(blockSize - 1)
-        
-        Dim i As Long
-        For i = 1 To LOF(ff) \ blockSize
-            Get ff, , buffer
-            hashEncoder.TransformBlock buffer, 0, blockSize, buffer, 0
-        Next
-        Get ff, , buffer
-        hashEncoder.TransformFinalBlock buffer, 0, LOF(ff) Mod blockSize
-        buffer = hashEncoder.Hash
-        hashEncoder.Clear
-    Close #ff
+    'Create hash object
+    Dim hHash As LongPtr
+    If CryptCreateHash(hProv, algId, 0, 0, hHash) = 0 Then
+        Call CryptReleaseContext(hProv, 0)
+        Err.Raise 1, "", "Failed to create hash object. Error: " & GetLastError()
+    End If
+    
+    'Open file and hash data in chunks
+    Dim hFile As LongPtr
+    hFile = apiCreateFile(This.path, GENERIC_READ, FILE_SHARE_READ Or FILE_SHARE_WRITE, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0)
+    
+    If hFile <> INVALID_HANDLE_VALUE Then
+        Dim fileSize As Currency
+        If GetFileSizeEx(hFile, fileSize) <> 0 Then
+            Dim totalSize As Long: totalSize = Clng(NaiveCurrencyToLongPtr(fileSize))
+            Dim blockSize As Long: blockSize = 65536 '64KB chunks for optimal performance
+            Dim buffer() As Byte: ReDim buffer(blockSize - 1)
+            
+            Dim bytesRead As Long
+            Do
+                If ReadFile(hFile, buffer(0), blockSize, bytesRead, 0) <> 0 And bytesRead > 0 Then
+                    If CryptHashData(hHash, buffer(0), bytesRead, 0) = 0 Then
+                        Call CloseHandle(hFile)
+                        Call CryptDestroyHash(hHash)
+                        Call CryptReleaseContext(hProv, 0)
+                        Err.Raise 1, "", "Failed to hash data. Error: " & GetLastError()
+                    End If
+                End If
+            Loop While bytesRead = blockSize
+        End If
+        Call CloseHandle(hFile)
+    Else
+        Call CryptDestroyHash(hHash)
+        Call CryptReleaseContext(hProv, 0)
+        Err.Raise 1, "", "Cannot read this item as it is not a file"
+    End If
+    
+    'Get hash value
+    Dim hashSize As Long: hashSize = iHashLength
+    Dim hashBytes() As Byte: ReDim hashBytes(hashSize - 1)
+    If CryptGetHashParam(hHash, HP_HASHVAL, hashBytes(0), hashSize, 0) = 0 Then
+        Call CryptDestroyHash(hHash)
+        Call CryptReleaseContext(hProv, 0)
+        Err.Raise 1, "", "Failed to get hash value. Error: " & GetLastError()
+    End If
+    
+    'Cleanup
+    Call CryptDestroyHash(hHash)
+    Call CryptReleaseContext(hProv, 0)
     
     'Output hash as hex string
     Hash = ""
-    For i = 0 To (iHashLength - 1)
-        Hash = Hash & IIf(buffer(i) < 16, "0", "") & Hex(buffer(i))
+    Dim j As Long
+    For j = 0 To (iHashLength - 1)
+        Hash = Hash & IIf(hashBytes(j) < 16, "0", "") & Hex(hashBytes(j))
     Next
 End Function
 
@@ -1675,9 +2003,15 @@ Public Function Delete() As Boolean
                     For each child in Children
                         child.Delete
                     next
-                    RmDir This.path
+                    If RemoveDirectory(This.path) = 0 Then
+                        Delete = False
+                        Exit Function
+                    End If
                 case EShellFileTypeFile
-                    Kill This.path
+                    If DeleteFile(This.path) = 0 Then
+                        Delete = False
+                        Exit Function
+                    End If
                 case else
                     Err.Raise 1, "", "Cannot delete this item as it is not a file"
             end select
@@ -1700,11 +2034,26 @@ Public Function CopyTo(ByVal path As String) As Boolean
         If Exists Then
             select case This.kind
                 case EShellFileTypeFile
-                    Call FileCopy(This.path, path)
+                    If CopyFile(This.path, path, 0) = 0 Then
+                        CopyTo = False
+                        Exit Function
+                    End If
                 case EShellFileTypeFolder
-                    With CreateObject("Scripting.FileSystemObject")
-                        Call .CopyFolder(This.path, path)
-                    End With
+                    'For folders, recursively copy using Win32 API
+                    Dim destShell As stdShell: Set destShell = stdShell.CreateFolder(path)
+                    If Not destShell.Ensure(True) Then
+                        CopyTo = False
+                        Exit Function
+                    End If
+                    Dim child As stdShell
+                    For Each child In Me.ChildrenRaw
+                        Dim childDestPath As String
+                        childDestPath = path & "\" & child.Name(True)
+                        If Not child.CopyTo(childDestPath) Then
+                            CopyTo = False
+                            Exit Function
+                        End If
+                    Next
                 case else
                     Err.Raise 1, "", "Cannot copy this item as it is not a file or folder"
             end select
@@ -1725,7 +2074,6 @@ Public Function CopyToFolder(ByVal folderPath As String) As Boolean
     if right(folderPath, 1) <> "\" then folderPath = folderPath & "\"
     Call CopyTo(folderPath & Name(true))
 End Function
-
 
 'Moves the file/folder to a new path
 '@param path - Path to move the file/folder to
@@ -1774,6 +2122,8 @@ Public Function Rename(ByVal newName As String) As Boolean
 EH:
     Rename = False
 End Function
+
+'TODO: Async CopyTo, MoveTo, Delete
 
 '====================
 ' Private helpers
@@ -1829,13 +2179,13 @@ End Function
 '@returns - System type of the given path
 Private Function privGetSystemType(ByVal path As String) As stdShellKind
     On Error GoTo EH
-    If VBA.LenB(VBA.Dir(path, vbDirectory Or vbNormal Or vbHidden Or vbSystem)) = 0 Then
+    Dim attr As Long: attr = GetFileAttributes(path)
+    If attr = -1 Then 'INVALID_FILE_ATTRIBUTES
         privGetSystemType = EShellFileTypeUnknown
         Exit Function
     End If
-    Dim attr As VbFileAttribute: attr = VBA.GetAttr(path)
-    If (attr And VbFileAttribute.vbDirectory) = VbFileAttribute.vbDirectory Or _
-       (attr And VbFileAttribute.vbVolume) = VbFileAttribute.vbVolume Then
+    If (attr And FILE_ATTRIBUTE_DIRECTORY) = FILE_ATTRIBUTE_DIRECTORY Or _
+       (attr And FILE_ATTRIBUTE_VOLUME) = FILE_ATTRIBUTE_VOLUME Then
         privGetSystemType = EShellFileTypeFolder
     Else
         privGetSystemType = EShellFileTypeFile
@@ -1862,8 +2212,17 @@ Private Property Get GenericAttribute(Byval iAttr as vbFileAttribute) as boolean
     If This.kind = EShellFileTypeRoot Then Exit Property
     On Error GoTo EH
     If Exists Then
-        Dim attr As VbFileAttribute: attr = VBA.GetAttr(This.path)
-        GenericAttribute = (attr And iAttr) = iAttr
+        Dim attr As Long: attr = GetFileAttributes(This.path)
+        If attr = -1 Then Exit Property 'INVALID_FILE_ATTRIBUTES
+        Dim win32Attr As Long
+        Select Case iAttr
+            Case vbReadOnly: win32Attr = FILE_ATTRIBUTE_READONLY
+            Case vbHidden: win32Attr = FILE_ATTRIBUTE_HIDDEN
+            Case vbSystem: win32Attr = FILE_ATTRIBUTE_SYSTEM
+            Case vbArchive: win32Attr = FILE_ATTRIBUTE_ARCHIVE
+            Case Else: Exit Property
+        End Select
+        GenericAttribute = (attr And win32Attr) = win32Attr
     End If
 EH:
 End Property
@@ -1871,12 +2230,22 @@ Private Property Let GenericAttribute(Byval iAttr as vbFileAttribute, b as boole
     If This.kind = EShellFileTypeRoot Then Exit Property
     On Error GoTo EH
     If Exists Then
-        Dim attr As VbFileAttribute: attr = VBA.GetAttr(This.path)
-        if b then
-            attr = attr Or iAttr
-        else
-            attr = attr And Not iAttr
-        end if
+        Dim attr As Long: attr = GetFileAttributes(This.path)
+        If attr = -1 Then Exit Property 'INVALID_FILE_ATTRIBUTES
+        Dim win32Attr As Long
+        Select Case iAttr
+            Case vbReadOnly: win32Attr = FILE_ATTRIBUTE_READONLY
+            Case vbHidden: win32Attr = FILE_ATTRIBUTE_HIDDEN
+            Case vbSystem: win32Attr = FILE_ATTRIBUTE_SYSTEM
+            Case vbArchive: win32Attr = FILE_ATTRIBUTE_ARCHIVE
+            Case Else: Exit Property
+        End Select
+        If b Then
+            attr = attr Or win32Attr
+        Else
+            attr = attr And Not win32Attr
+        End If
+        Call SetFileAttributes(This.path, attr)
     End If
 EH:
 End Property
@@ -1959,4 +2328,20 @@ Public Function protEnumToPropName(ByVal prop as stdShellExtendedProps) As Strin
         map = split(s, ",")
     end if
     protEnumToPropName = map(prop)
-Exit Function
+End Function
+
+'Converts a currency to a long pointer
+'@param currency - The currency to convert
+'@returns - The long pointer
+'@devRemark This is a naive conversion and may not be accurate
+Private Function NaiveCurrencyToLongPtr(ByRef curr As Currency) As LongPtr
+    NaiveCurrencyToLongPtr = curr * 10000#
+End Function
+
+'Obtains a pointer to the first element of a byte array
+'@param arr() - The byte array to get the pointer of
+'@returns - Pointer to the first element of the byte array
+'@remark - Used in `Read` because "Read" is a keyword in VBA.
+Private Function ByteArrPtr(arr() As Byte) As LongPtr
+    ByteArrPtr = VarPtr(arr(0))
+End Function
