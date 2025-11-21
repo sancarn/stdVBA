@@ -146,20 +146,28 @@ Public Event AfterCreate(ByRef arr As stdArray)
 '@param params - The items of the array
 '@returns stdArray<variant> - A `stdArray` from the parameters.
 Public Function Create(ParamArray params() As Variant) As stdArray
-    Set Create = New stdArray
+  With stdError.getSentry("stdArray#Create")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    Dim i As Long
-    Dim lb As Long: lb = LBound(params)
-    Dim ub As Long: ub = UBound(params)
+        Set Create = New stdArray
+        
+        Dim i As Long
+        Dim lb As Long: lb = LBound(params)
+        Dim ub As Long: ub = UBound(params)
+        
+        Call Create.protInit(ub - lb + 1, 10)
+        
+        For i = lb To ub
+            Call Create.Push(params(i))
+        Next
     
-    Call Create.protInit(ub - lb + 1, 10)
+        'Raise AfterCreate event
+        RaiseEvent AfterCreate(Create)
     
-    For i = lb To ub
-        Call Create.Push(params(i))
-    Next
-
-    'Raise AfterCreate event
-    RaiseEvent AfterCreate(Create)
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Create a `stdArray` object from params
@@ -169,19 +177,27 @@ End Function
 '@param params - The items of the array
 '@returns stdArray<variant> - A `stdArray` from the parameters.
 Public Function CreateWithOptions(ByVal iInitialLength As Long, ByVal iChunking As Long, ParamArray params() As Variant) As stdArray
-    Set CreateWithOptions = New stdArray
+  With stdError.getSentry("stdArray#CreateWithOptions", "iInitialLength", iInitialLength, "iChunking", iChunking)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    Dim i As Long
-    Dim lb As Long: lb = LBound(params)
-    Dim ub As Long: ub = UBound(params)
+        Set CreateWithOptions = New stdArray
+        
+        Dim i As Long
+        Dim lb As Long: lb = LBound(params)
+        Dim ub As Long: ub = UBound(params)
+        
+        Call CreateWithOptions.protInit(iInitialLength, iChunking)
+        For i = lb To ub
+            Call CreateWithOptions.Push(params(i))
+        Next
     
-    Call CreateWithOptions.protInit(iInitialLength, iChunking)
-    For i = lb To ub
-        Call CreateWithOptions.Push(params(i))
-    Next
-
-    'Raise AfterCreate event
-    RaiseEvent AfterCreate(Create)
+        'Raise AfterCreate event
+        RaiseEvent AfterCreate(Create)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Create a `stdArray` object from a VBA array
@@ -189,19 +205,27 @@ End Function
 '@param arr - Variant array to create a `stdArray` object from.
 '@returns stdArray<variant> - Returns `stdArray` of variants. 
 Public Function CreateFromArray(ByVal arr As Variant) As stdArray
-    Set CreateFromArray = New stdArray
+  With stdError.getSentry("stdArray#CreateFromArray", "arr", arr)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    Dim i As Long
-    Dim lb As Long: lb = LBound(arr)
-    Dim ub As Long: ub = UBound(arr)
-    Call CreateFromArray.protInit(ub - lb + 1, 10)
+        Set CreateFromArray = New stdArray
+        
+        Dim i As Long
+        Dim lb As Long: lb = LBound(arr)
+        Dim ub As Long: ub = UBound(arr)
+        Call CreateFromArray.protInit(ub - lb + 1, 10)
+        
+        For i = lb To ub
+            Call CreateFromArray.Push(arr(i))
+        Next
     
-    For i = lb To ub
-        Call CreateFromArray.Push(arr(i))
-    Next
-
-    'Raise AfterCreate event
-    RaiseEvent AfterCreate(Create)
+        'Raise AfterCreate event
+        RaiseEvent AfterCreate(Create)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Create a `stdArray` object from a collection
@@ -209,13 +233,21 @@ End Function
 '@param col - Collection to create a `stdArray` object from.
 '@returns stdArray<variant> - Returns `stdArray` of variants.
 Public Function CreateFromCollection(ByVal col As Collection) As stdArray
-  Set CreateFromCollection = CreateWithOptions(col.Count, 10)
-  Dim item: For Each item In col
-    Call CreateFromCollection.Push(item)
-  Next
-
-  'Raise AfterCreate event
-  RaiseEvent AfterCreate(Create)
+  With stdError.getSentry("stdArray#CreateFromCollection", "col", col)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Set CreateFromCollection = CreateWithOptions(col.Count, 10)
+      Dim item: For Each item In col
+        Call CreateFromCollection.Push(item)
+      Next
+    
+      'Raise AfterCreate event
+      RaiseEvent AfterCreate(Create)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Create an array by splitting a string
@@ -224,7 +256,15 @@ End Function
 '@param sDelimiter - Delimiter
 '@returns stdArray<String> - A list of strings
 Public Function CreateFromString(ByVal sHaystack As String, Optional ByVal sDelimiter As String = ",") As stdArray
-  Set CreateFromString = CreateFromArray(Split(sHaystack, sDelimiter))
+  With stdError.getSentry("stdArray#CreateFromString", "sHaystack", sHaystack, "sDelimiter", sDelimiter)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Set CreateFromString = CreateFromArray(Split(sHaystack, sDelimiter))
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Initialise array
@@ -232,23 +272,39 @@ End Function
 '@param iInitialLength - The length of the initial private array created
 '@param iChunking      - The number of items the private array is increased by when required.
 Public Sub protInit(ByVal iInitialLength As Long, ByVal iChunking As Long)
-  If iChunking > iInitialLength Then iInitialLength = iChunking
-  If Not This.Initialised Then
-    This.ProxyLength = iInitialLength
-    ReDim This.BaseArray(1 To iInitialLength) As Variant
-    This.Chunking = iChunking
-    This.Initialised = True
-  End If
+  With stdError.getSentry("stdArray#protInit", "iInitialLength", iInitialLength, "iChunking", iChunking)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If iChunking > iInitialLength Then iInitialLength = iChunking
+      If Not This.Initialised Then
+        This.ProxyLength = iInitialLength
+        ReDim This.BaseArray(1 To iInitialLength) As Variant
+        This.Chunking = iChunking
+        This.Initialised = True
+      End If
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Obtain a collection from the data contained within the array. Primarily used for NewEnum() method.
 '@returns Collection - Collection from Array
 Public Function AsCollection() As Collection
-  Set AsCollection = New Collection
-  Dim i As Long
-  For i = 1 To Length()
-    AsCollection.Add This.BaseArray(i)
-  Next
+  With stdError.getSentry("stdArray#AsCollection")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Set AsCollection = New Collection
+      Dim i As Long
+      For i = 1 To Length()
+        AsCollection.Add This.BaseArray(i)
+      Next
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'For-each compatibility
@@ -259,39 +315,79 @@ End Function
 '```
 '@TODO: Use custom `IEnumVARIANT` instead of casting to `Collection`
 Public Property Get NewEnum() As IUnknown
-Attribute NewEnum.VB_UserMemId = -4
-    Static oEnumCol As Collection: If oEnumCol Is Nothing Then Set oEnumCol = AsCollection()
-    Set NewEnum = oEnumCol.[_NewEnum]
+  With stdError.getSentry("stdArray#NewEnum[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+    Attribute NewEnum.VB_UserMemId = -4
+        Static oEnumCol As Collection: If oEnumCol Is Nothing Then Set oEnumCol = AsCollection()
+        Set NewEnum = oEnumCol.[_NewEnum]
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Obtain the length of the array
 '@returns Long - Length of the array
 Public Property Get Length() As Long
-    Length = This.Length
+  With stdError.getSentry("stdArray#Length[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Length = This.Length
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Obtain the length of the private array which stores the data of this array class
 '@protected
 '@returns Long - Length of the private array
 Public Property Get zProxyLength() As Long
-    zProxyLength = This.ProxyLength
+  With stdError.getSentry("stdArray#zProxyLength[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        zProxyLength = This.ProxyLength
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Resize the array to a length
 '@param iLength - The length of the desired array
 Public Sub Resize(ByVal iLength As Long)
-  This.Length = iLength
+  With stdError.getSentry("stdArray#Resize", "iLength", iLength)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      This.Length = iLength
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Rechunk the private array to the length / number of items.
 '@protected
 Public Sub Rechunk()
-  Dim fNumChunks As Double, iNumChunks As Long
-  fNumChunks = This.Length / This.Chunking
-  iNumChunks = CLng(fNumChunks)
-  If fNumChunks > iNumChunks Then iNumChunks = iNumChunks + 1
-  
-  ReDim Preserve This.BaseArray(1 To iNumChunks * This.Chunking) As Variant
+  With stdError.getSentry("stdArray#Rechunk")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim fNumChunks As Double, iNumChunks As Long
+      fNumChunks = This.Length / This.Chunking
+      iNumChunks = CLng(fNumChunks)
+      If fNumChunks > iNumChunks Then iNumChunks = iNumChunks + 1
+      
+      ReDim Preserve This.BaseArray(1 To iNumChunks * This.Chunking) As Variant
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 
@@ -302,45 +398,53 @@ End Sub
 '@param bSortInPlace                                              - Sort the array in place. Sorting in-place is prefferred if possible as it is much more performant.
 '@returns stdArray                                                - A sorted array
 Public Function Sort(Optional ByVal cbSortBy As stdICallable = Nothing, Optional ByVal cbComparrason As stdICallable = Nothing, Optional ByVal iAlgorithm As Long = 0, Optional ByVal bSortInPlace As Boolean = False) As stdArray
-  If Not bSortInPlace Then
-    Set Sort = Clone().Sort(cbSortBy, cbComparrason, iAlgorithm, True)
-  Else
-    If Length() = 0 Then
-      Set Sort = Me
-      Exit Function
-    End If
-
-    Dim arr() As SortStruct
-    ReDim arr(1 To Length()) As SortStruct
+  With stdError.getSentry("stdArray#Sort", "cbSortBy", cbSortBy, "cbComparrason", cbComparrason, "iAlgorithm", iAlgorithm, "bSortInPlace", bSortInPlace)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    Dim i As Long
-    
-    'Copy array to sort structures
-    For i = 1 To Length()
-      Call CopyVariant(arr(i).Value, This.BaseArray(i))
-      If cbSortBy Is Nothing Then
-        Call CopyVariant(arr(i).SortValue, This.BaseArray(i))
+      If Not bSortInPlace Then
+        Set Sort = Clone().Sort(cbSortBy, cbComparrason, iAlgorithm, True)
       Else
-        Call CopyVariant(arr(i).SortValue, cbSortBy.Run(This.BaseArray(i)))
+        If Length() = 0 Then
+          Set Sort = Me
+          Exit Function
+        End If
+    
+        Dim arr() As SortStruct
+        ReDim arr(1 To Length()) As SortStruct
+        
+        Dim i As Long
+        
+        'Copy array to sort structures
+        For i = 1 To Length()
+          Call CopyVariant(arr(i).Value, This.BaseArray(i))
+          If cbSortBy Is Nothing Then
+            Call CopyVariant(arr(i).SortValue, This.BaseArray(i))
+          Else
+            Call CopyVariant(arr(i).SortValue, cbSortBy.Run(This.BaseArray(i)))
+          End If
+        Next
+        
+        'Call sort algorithm
+        Select Case iAlgorithm
+          Case 0 'QuickSort
+            Call Sort_QuickSort(arr, cbComparrason)
+          Case Else
+            stdError.Raise "Invalid sorting algorithm specified"
+        End Select
+        
+        'Copy sort structures to array
+        For i = 1 To Length()
+          Call CopyVariant(This.BaseArray(i), arr(i).Value)
+        Next
+        
+        'Return array
+        Set Sort = Me
       End If
-    Next
     
-    'Call sort algorithm
-    Select Case iAlgorithm
-      Case 0 'QuickSort
-        Call Sort_QuickSort(arr, cbComparrason)
-      Case Else
-        stdError.Raise "Invalid sorting algorithm specified"
-    End Select
-    
-    'Copy sort structures to array
-    For i = 1 To Length()
-      Call CopyVariant(This.BaseArray(i), arr(i).Value)
-    Next
-    
-    'Return array
-    Set Sort = Me
-  End If
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'QuickSort3
@@ -352,73 +456,97 @@ End Function
 '@remark Omit plngLeft & plngRight; they are used internally during recursion
 '@dev https://www.vbforums.com/showthread.php?473677-VB6-Sorting-algorithms-%28sort-array-sorting-arrays%29
 Private Sub Sort_QuickSort(ByRef pvarArray() As SortStruct, Optional cbComparrison As stdICallable = Nothing, Optional ByVal plngLeft As Long, Optional ByVal plngRight As Long)
-  Dim lngFirst As Long
-  Dim lngLast As Long
-  Dim varMid As SortStruct
-  Dim varSwap As SortStruct
-  
-  If plngRight = 0 Then
-    plngLeft = 1
-    plngRight = Length()
-  End If
-  lngFirst = plngLeft
-  lngLast = plngRight
-  varMid = pvarArray((plngLeft + plngRight) \ 2)
-  Do
-    If cbComparrison Is Nothing Then
-      Do While pvarArray(lngFirst).SortValue < varMid.SortValue And lngFirst < plngRight
-        lngFirst = lngFirst + 1
-      Loop
-      Do While varMid.SortValue < pvarArray(lngLast).SortValue And lngLast > plngLeft
-        lngLast = lngLast - 1
-      Loop
-    Else
-      Do While cbComparrison.Run(pvarArray(lngFirst).SortValue, varMid.SortValue) And lngFirst < plngRight
-        lngFirst = lngFirst + 1
-      Loop
-      Do While cbComparrison.Run(varMid.SortValue, pvarArray(lngLast).SortValue) And lngLast > plngLeft
-        lngLast = lngLast - 1
-      Loop
-    End If
+  With stdError.getSentry("stdArray#Sort_QuickSort", "cbComparrison", cbComparrison, "plngLeft", plngLeft, "plngRight", plngRight)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    If lngFirst <= lngLast Then
-      varSwap = pvarArray(lngFirst)
-      pvarArray(lngFirst) = pvarArray(lngLast)
-      pvarArray(lngLast) = varSwap
-      lngFirst = lngFirst + 1
-      lngLast = lngLast - 1
-    End If
-  Loop Until lngFirst > lngLast
-  If plngLeft < lngLast Then Sort_QuickSort pvarArray, cbComparrison, plngLeft, lngLast
-  If lngFirst < plngRight Then Sort_QuickSort pvarArray, cbComparrison, lngFirst, plngRight
+      Dim lngFirst As Long
+      Dim lngLast As Long
+      Dim varMid As SortStruct
+      Dim varSwap As SortStruct
+      
+      If plngRight = 0 Then
+        plngLeft = 1
+        plngRight = Length()
+      End If
+      lngFirst = plngLeft
+      lngLast = plngRight
+      varMid = pvarArray((plngLeft + plngRight) \ 2)
+      Do
+        If cbComparrison Is Nothing Then
+          Do While pvarArray(lngFirst).SortValue < varMid.SortValue And lngFirst < plngRight
+            lngFirst = lngFirst + 1
+          Loop
+          Do While varMid.SortValue < pvarArray(lngLast).SortValue And lngLast > plngLeft
+            lngLast = lngLast - 1
+          Loop
+        Else
+          Do While cbComparrison.Run(pvarArray(lngFirst).SortValue, varMid.SortValue) And lngFirst < plngRight
+            lngFirst = lngFirst + 1
+          Loop
+          Do While cbComparrison.Run(varMid.SortValue, pvarArray(lngLast).SortValue) And lngLast > plngLeft
+            lngLast = lngLast - 1
+          Loop
+        End If
+        
+        If lngFirst <= lngLast Then
+          varSwap = pvarArray(lngFirst)
+          pvarArray(lngFirst) = pvarArray(lngLast)
+          pvarArray(lngLast) = varSwap
+          lngFirst = lngFirst + 1
+          lngLast = lngLast - 1
+        End If
+      Loop Until lngFirst > lngLast
+      If plngLeft < lngLast Then Sort_QuickSort pvarArray, cbComparrison, plngLeft, lngLast
+      If lngFirst < plngRight Then Sort_QuickSort pvarArray, cbComparrison, lngFirst, plngRight
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Obtain the array as a regular VBA array
 '@returns Variant - A VBA array
 Public Property Get arr() As Variant
-  If This.Length = 0 Then
-    arr = Array()
-  Else
-    Dim vRet() As Variant
-    ReDim vRet(1 To This.Length) As Variant
-    Dim i As Long
-    For i = 1 To This.Length
-      Call CopyVariant(vRet(i), This.BaseArray(i))
-    Next
-    arr = vRet
-  End If
+  With stdError.getSentry("stdArray#arr[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If This.Length = 0 Then
+        arr = Array()
+      Else
+        Dim vRet() As Variant
+        ReDim vRet(1 To This.Length) As Variant
+        Dim i As Long
+        For i = 1 To This.Length
+          Call CopyVariant(vRet(i), This.BaseArray(i))
+        Next
+        arr = vRet
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 Public Property Let arr(v As Variant)
-  RaiseEvent BeforeArrLet(Me, v)
-  Dim lb As Long: lb = LBound(v)
-  Dim ub As Long: ub = UBound(v)
-  Dim cnt As Long: cnt = ub - lb + 1
-  ReDim This.BaseArray(1 To (Int(cnt / This.Chunking) + 1) * This.Chunking) As Variant
-  Dim i As Long
-  For i = lb To ub
-    Call Push(This.BaseArray(i))
-  Next
-  RaiseEvent AfterArrLet(Me, v)
+  With stdError.getSentry("stdArray#arr[Let]", "v", v)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      RaiseEvent BeforeArrLet(Me, v)
+      Dim lb As Long: lb = LBound(v)
+      Dim ub As Long: ub = UBound(v)
+      Dim cnt As Long: cnt = ub - lb + 1
+      ReDim This.BaseArray(1 To (Int(cnt / This.Chunking) + 1) * This.Chunking) As Variant
+      Dim i As Long
+      For i = lb To ub
+        Call Push(This.BaseArray(i))
+      Next
+      RaiseEvent AfterArrLet(Me, v)
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Add an element to the end of the array
@@ -426,135 +554,175 @@ End Property
 '@returns - A reference to the array to allow chaining.
 '@TODO: Add multiple elements with push
 Public Function Push(ByVal el As Variant) As stdArray
-  If This.Initialised Then
-    'Before Add event
-    Dim bCancel As Boolean
-    RaiseEvent BeforeAdd(Me, This.Length + 1, el, bCancel)
-    If bCancel Then Exit Function
-
-    If This.Length = This.ProxyLength Then
-        This.ProxyLength = This.ProxyLength + This.Chunking
-        ReDim Preserve This.BaseArray(1 To This.ProxyLength) As Variant
-    End If
+  With stdError.getSentry("stdArray#Push", "el", el)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    This.Length = This.Length + 1
-    CopyVariant This.BaseArray(This.Length), el
-
-    'After add event
-    RaiseEvent AfterAdd(Me, This.Length, This.BaseArray(This.Length))
-
-    Set Push = Me
-  Else
-    'Error
-  End If
+      If This.Initialised Then
+        'Before Add event
+        Dim bCancel As Boolean
+        RaiseEvent BeforeAdd(Me, This.Length + 1, el, bCancel)
+        If bCancel Then Exit Function
+    
+        If This.Length = This.ProxyLength Then
+            This.ProxyLength = This.ProxyLength + This.Chunking
+            ReDim Preserve This.BaseArray(1 To This.ProxyLength) As Variant
+        End If
+        
+        This.Length = This.Length + 1
+        CopyVariant This.BaseArray(This.Length), el
+    
+        'After add event
+        RaiseEvent AfterAdd(Me, This.Length, This.BaseArray(This.Length))
+    
+        Set Push = Me
+      Else
+        'Error
+      End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Remove an element from the end of the array
 '@returns - The element removed from the array
 Public Function Pop() As Variant
-  If This.Initialised Then
-    If This.Length > 0 Then
-      'Raise BeforeRemove event and optionally cancel
-      Dim bCancel As Boolean
-      RaiseEvent BeforeRemove(Me, This.Length, This.BaseArray(This.Length), bCancel)
-      If bCancel Then Exit Function
-
-      CopyVariant Pop, This.BaseArray(This.Length)
-      This.Length = This.Length - 1
-
-      'Raise AfterRemove event
-      RaiseEvent AfterRemove(Me, This.Length)
-    Else
-        Pop = Empty
-    End If
-  Else
-    'Error
-  End If
+  With stdError.getSentry("stdArray#Pop")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If This.Initialised Then
+        If This.Length > 0 Then
+          'Raise BeforeRemove event and optionally cancel
+          Dim bCancel As Boolean
+          RaiseEvent BeforeRemove(Me, This.Length, This.BaseArray(This.Length), bCancel)
+          If bCancel Then Exit Function
+    
+          CopyVariant Pop, This.BaseArray(This.Length)
+          This.Length = This.Length - 1
+    
+          'Raise AfterRemove event
+          RaiseEvent AfterRemove(Me, This.Length)
+        Else
+            Pop = Empty
+        End If
+      Else
+        'Error
+      End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Remove the ith element from the array
 '@param index - Index of the element to remove
 '@returns - The element removed
 Public Function Remove(ByVal index As Long) As Variant
-  'Ensure initialised
-  If This.Initialised Then
-    'Ensure length > 0
-    If This.Length > 0 Then
-      'Ensure index < length
-      If index <= This.Length Then
-        'Raise BeforeRemove event and optionally cancel
-        Dim bCancel As Boolean
-        RaiseEvent BeforeRemove(Me, index, This.BaseArray(index), bCancel)
-        If bCancel Then Exit Function
-
-        'Copy party we are removing to return variable
-        CopyVariant Remove, This.BaseArray(index)
-        
-        'Loop through array from removal, set i-1th element to ith element
-        Dim i As Long
-        For i = index + 1 To This.Length
-            This.BaseArray(i - 1) = This.BaseArray(i)
-        Next
-
-        'Set last element length and subtract total length by 1
-        This.BaseArray(This.Length) = Empty
-        This.Length = This.Length - 1
-
-        'Raise after remove event
-        RaiseEvent AfterRemove(Me, index)
+  With stdError.getSentry("stdArray#Remove", "index", index)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      'Ensure initialised
+      If This.Initialised Then
+        'Ensure length > 0
+        If This.Length > 0 Then
+          'Ensure index < length
+          If index <= This.Length Then
+            'Raise BeforeRemove event and optionally cancel
+            Dim bCancel As Boolean
+            RaiseEvent BeforeRemove(Me, index, This.BaseArray(index), bCancel)
+            If bCancel Then Exit Function
+    
+            'Copy party we are removing to return variable
+            CopyVariant Remove, This.BaseArray(index)
+            
+            'Loop through array from removal, set i-1th element to ith element
+            Dim i As Long
+            For i = index + 1 To This.Length
+                This.BaseArray(i - 1) = This.BaseArray(i)
+            Next
+    
+            'Set last element length and subtract total length by 1
+            This.BaseArray(This.Length) = Empty
+            This.Length = This.Length - 1
+    
+            'Raise after remove event
+            RaiseEvent AfterRemove(Me, index)
+          Else
+            'Error
+          End If
+        Else
+          'Error
+        End If
       Else
-        'Error
+          'Error
       End If
-    Else
-      'Error
-    End If
-  Else
-      'Error
-  End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Remove and return the first element from the array
 '@returns - Element removed
 Public Function Shift() As Variant
-  'Would be good to use CopyMemory here
-  
-  CopyVariant Shift, This.BaseArray(1)
-  Dim i As Long
-  For i = 1 To This.Length - 1
-    Call CopyVariant(This.BaseArray(i), This.BaseArray(i + 1))
-  Next
-  This.Length = This.Length - 1
+  With stdError.getSentry("stdArray#Shift")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      'Would be good to use CopyMemory here
+      
+      CopyVariant Shift, This.BaseArray(1)
+      Dim i As Long
+      For i = 1 To This.Length - 1
+        Call CopyVariant(This.BaseArray(i), This.BaseArray(i + 1))
+      Next
+      This.Length = This.Length - 1
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Add an element to the start of the array
 '@param val - Value to append to the start of the array
 '@returns - A reference to the array to allow chaining.
 Public Function Unshift(val As Variant) As stdArray
-  'Would be good to use CopyMemory here
-  
-  'Before Add event
-  Dim bCancel As Boolean
-  RaiseEvent BeforeAdd(Me, 1, val, bCancel)
-  If bCancel Then Exit Function
-
-  'Ensure array is big enough and increase Length
-  If This.Length = This.ProxyLength Then
-    This.ProxyLength = This.ProxyLength + This.Chunking
-    ReDim Preserve This.BaseArray(1 To This.ProxyLength) As Variant
-  End If
-  This.Length = This.Length + 1
-  
-  'Unshift
-  Dim i As Long
-  For i = This.Length - 1 To 1 Step -1
-    This.BaseArray(i + 1) = This.BaseArray(i)
-  Next
-  This.BaseArray(1) = val
-  
-  'After Add event
-  RaiseEvent AfterAdd(Me, 1, val)
-
-  Set Unshift = Me
+  With stdError.getSentry("stdArray#Unshift", "val", val)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      'Would be good to use CopyMemory here
+      
+      'Before Add event
+      Dim bCancel As Boolean
+      RaiseEvent BeforeAdd(Me, 1, val, bCancel)
+      If bCancel Then Exit Function
+    
+      'Ensure array is big enough and increase Length
+      If This.Length = This.ProxyLength Then
+        This.ProxyLength = This.ProxyLength + This.Chunking
+        ReDim Preserve This.BaseArray(1 To This.ProxyLength) As Variant
+      End If
+      This.Length = This.Length + 1
+      
+      'Unshift
+      Dim i As Long
+      For i = This.Length - 1 To 1 Step -1
+        This.BaseArray(i + 1) = This.BaseArray(i)
+      Next
+      This.BaseArray(1) = val
+      
+      'After Add event
+      RaiseEvent AfterAdd(Me, 1, val)
+    
+      Set Unshift = Me
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Obtain a slice of the array
@@ -562,28 +730,36 @@ End Function
 '@param iEnd   - End index of the slice
 '@returns - A slice of the array
 Public Function Slice(ByVal iStart As Long, ByVal iEnd As Long) As stdArray
-  If This.Initialised Then
-    If iStart <= This.Length Then
-      If iEnd > This.Length Then iEnd = This.Length
-      If iStart <= iEnd Then
-        Dim ret As stdArray
-        Set ret = stdArray.CreateWithOptions(iEnd - iStart + 1, This.Chunking)
-        
-        Dim i As Long
-        For i = iStart To iEnd
-          Call ret.Push(This.BaseArray(i))
-        Next
-        
-        Set Slice = ret
+  With stdError.getSentry("stdArray#Slice", "iStart", iStart, "iEnd", iEnd)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If This.Initialised Then
+        If iStart <= This.Length Then
+          If iEnd > This.Length Then iEnd = This.Length
+          If iStart <= iEnd Then
+            Dim ret As stdArray
+            Set ret = stdArray.CreateWithOptions(iEnd - iStart + 1, This.Chunking)
+            
+            Dim i As Long
+            For i = iStart To iEnd
+              Call ret.Push(This.BaseArray(i))
+            Next
+            
+            Set Slice = ret
+          Else
+            'Error
+          End If
+        Else
+          'Error
+        End If
       Else
         'Error
       End If
-    Else
-      'Error
-    End If
-  Else
-    'Error
-  End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Split an array into chunks of a specified size
@@ -594,12 +770,20 @@ End Function
 '  '=> [[1,2,3],[4,5,6],[7]]
 '```
 Public Function SplitToChunks(ByVal Size As Long) As stdArray
-  Dim iNumArrays As Long: iNumArrays = Ceil(This.Length / Size)
-  Set SplitToChunks = stdArray.CreateWithOptions(iNumArrays, 10)
-  Dim i As Long
-  For i = 0 To iNumArrays - 1
-    Call SplitToChunks.Push(Slice(i * Size + 1, i * Size + Size))
-  Next
+  With stdError.getSentry("stdArray#SplitToChunks", "Size", Size)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim iNumArrays As Long: iNumArrays = Ceil(This.Length / Size)
+      Set SplitToChunks = stdArray.CreateWithOptions(iNumArrays, 10)
+      Dim i As Long
+      For i = 0 To iNumArrays - 1
+        Call SplitToChunks.Push(Slice(i * Size + 1, i * Size + Size))
+      Next
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Splice the array
@@ -608,141 +792,213 @@ End Function
 '@param newElements - Elements to add to the array
 '@returns - An array containing the deleted elements
 Public Function Splice(ByVal iStart As Long, ByVal iDeleteCount As Long, ByVal newElements As stdArray) As stdArray
-  If This.Initialised Then
-    If iStart <= This.Length Then
-      If iStart + iDeleteCount <= This.Length Then
-        Dim ret As stdArray
-        Set ret = stdArray.CreateWithOptions(iDeleteCount, This.Chunking)
-        
-        Dim i As Long
-        For i = 1 To iDeleteCount
-          Call ret.Push(This.BaseArray(iStart + i - 1))
-        Next
-        
-        Dim iNewLength As Long
-        iNewLength = This.Length - iDeleteCount + newElements.Length
-        If iNewLength > This.ProxyLength Then
-          This.ProxyLength = iNewLength + This.Chunking
-          ReDim Preserve This.BaseArray(1 To This.ProxyLength) As Variant
+  With stdError.getSentry("stdArray#Splice", "iStart", iStart, "iDeleteCount", iDeleteCount, "newElements", newElements)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If This.Initialised Then
+        If iStart <= This.Length Then
+          If iStart + iDeleteCount <= This.Length Then
+            Dim ret As stdArray
+            Set ret = stdArray.CreateWithOptions(iDeleteCount, This.Chunking)
+            
+            Dim i As Long
+            For i = 1 To iDeleteCount
+              Call ret.Push(This.BaseArray(iStart + i - 1))
+            Next
+            
+            Dim iNewLength As Long
+            iNewLength = This.Length - iDeleteCount + newElements.Length
+            If iNewLength > This.ProxyLength Then
+              This.ProxyLength = iNewLength + This.Chunking
+              ReDim Preserve This.BaseArray(1 To This.ProxyLength) As Variant
+            End If
+            
+            For i = This.Length To iStart + iDeleteCount Step -1
+              This.BaseArray(i + newElements.Length - iDeleteCount) = This.BaseArray(i)
+            Next
+            
+            For i = 1 To This.Length
+              This.BaseArray(iStart + i - 1) = newElements(i)
+            Next
+            
+            This.Length = iNewLength
+            
+            Set Splice = ret
+          Else
+            'Error
+          End If
+        Else
+          'Error
         End If
-        
-        For i = This.Length To iStart + iDeleteCount Step -1
-          This.BaseArray(i + newElements.Length - iDeleteCount) = This.BaseArray(i)
-        Next
-        
-        For i = 1 To This.Length
-          This.BaseArray(iStart + i - 1) = newElements(i)
-        Next
-        
-        This.Length = iNewLength
-        
-        Set Splice = ret
       Else
         'Error
       End If
-    Else
-      'Error
-    End If
-  Else
-    'Error
-  End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Creates a new instance of the same array
 '@returns - A new instance of the same array
 Public Function Clone() As stdArray
-  If This.Initialised Then
+  With stdError.getSentry("stdArray#Clone")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
       If This.Initialised Then
-        'Similar to CreateFromArray() but passing length through also:
-        Set Clone = New stdArray
-        
-        Call Clone.protInit(This.Length, 10)
-        
-        Dim i As Long
-        For i = 1 To This.Length
-            Call Clone.Push(This.BaseArray(i))
-        Next
+          If This.Initialised Then
+            'Similar to CreateFromArray() but passing length through also:
+            Set Clone = New stdArray
+            
+            Call Clone.protInit(This.Length, 10)
+            
+            Dim i As Long
+            For i = 1 To This.Length
+                Call Clone.Push(This.BaseArray(i))
+            Next
+          Else
+            'Error
+          End If
+    
+          RaiseEvent AfterClone(Clone)
       Else
         'Error
       End If
-
-      RaiseEvent AfterClone(Clone)
-  Else
-    'Error
-  End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Returns a new array with all elements in reverse order
 '@returns - A new array with all elements in reverse order
 Public Function Reverse() As stdArray
-  'TODO: Need to find a better more low level approach to creating arrays from existing arrays/preventing redim for methods like this
-  Dim ret As stdArray
-  Set ret = stdArray.Create()
-  Dim i As Long
-  For i = This.Length To 1 Step -1
-    Call ret.Push(This.BaseArray(i))
-  Next
-  Set Reverse = ret
+  With stdError.getSentry("stdArray#Reverse")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      'TODO: Need to find a better more low level approach to creating arrays from existing arrays/preventing redim for methods like this
+      Dim ret As stdArray
+      Set ret = stdArray.Create()
+      Dim i As Long
+      For i = This.Length To 1 Step -1
+        Call ret.Push(This.BaseArray(i))
+      Next
+      Set Reverse = ret
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Concatenate an existing array of elements onto the end of this array
 '@param arr - Array whose elements we wish to append to the end of this array
 '@returns - New composite array.
 Public Function Concat(ByVal arr As stdArray) As stdArray
-  Dim x As stdArray
-  Set x = Clone()
-  
-  If Not arr Is Nothing Then
-    Dim i As Long
-    For i = 1 To arr.Length
-      Call x.Push(arr.item(i))
-    Next
-  End If
-  
-  Set Concat = x
+  With stdError.getSentry("stdArray#Concat", "arr", arr)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim x As stdArray
+      Set x = Clone()
+      
+      If Not arr Is Nothing Then
+        Dim i As Long
+        For i = 1 To arr.Length
+          Call x.Push(arr.item(i))
+        Next
+      End If
+      
+      Set Concat = x
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Join each of the elements of this array together as a string
 '@param delimiter - Delimiter to insert between strings
 '@returns - A string containing all elements of the array joined together with the delimiter
 Public Function Join(Optional ByVal delimiter As String = ",") As String
-  If This.Initialised Then
-    If This.Length > 0 Then
-      Dim sOutput As String
-      sOutput = This.BaseArray(1)
-      
-      Dim i As Long
-      For i = 2 To This.Length
-        sOutput = sOutput & delimiter & This.BaseArray(i)
-      Next
-      Join = sOutput
-    Else
-      Join = ""
-    End If
-  Else
-    'Error
-  End If
+  With stdError.getSentry("stdArray#Join", "delimiter", delimiter)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If This.Initialised Then
+        If This.Length > 0 Then
+          Dim sOutput As String
+          sOutput = This.BaseArray(1)
+          
+          Dim i As Long
+          For i = 2 To This.Length
+            sOutput = sOutput & delimiter & This.BaseArray(i)
+          Next
+          Join = sOutput
+        Else
+          Join = ""
+        End If
+      Else
+        'Error
+      End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Get/Let/Set item
 '@param i - The location to get/set the item
 '@returns - The item at the location
 Public Property Get item(ByVal i As Long) As Variant
-Attribute item.VB_UserMemId = 0
-  CopyVariant item, This.BaseArray(i)
+  With stdError.getSentry("stdArray#item[Get]", "i", i)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+    Attribute item.VB_UserMemId = 0
+      CopyVariant item, This.BaseArray(i)
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 Public Property Set item(ByVal i As Long, ByVal item As Object)
-  Set This.BaseArray(i) = item
+  With stdError.getSentry("stdArray#item[Set]", "i", i, "item", item)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Set This.BaseArray(i) = item
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 Public Property Let item(ByVal i As Long, ByVal item As Variant)
-  This.BaseArray(i) = item
+  With stdError.getSentry("stdArray#item[Let]", "i", i, "item", item)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      This.BaseArray(i) = item
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Copy a variant into the array's ith element. This saves from having to test the item and call the correct `set` keyword
 '@param i    - The index at which the item's data should be set
 '@param item - Item to set at the index
 Public Sub PutItem(ByVal i As Long, ByRef item As Variant)
-  CopyVariant This.BaseArray(i), item
+  With stdError.getSentry("stdArray#PutItem", "i", i, "item", item)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      CopyVariant This.BaseArray(i), item
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Obtain the index of an element
@@ -750,72 +1006,88 @@ End Sub
 '@param start - Location to start search for element.
 '@returns - Index of element
 Public Function indexOf(ByVal el As Variant, Optional ByVal start As Long = 1) As Long
-  Dim elIsObj As Boolean, i As Long, item As Variant, itemIsObj As Boolean
-  
-  'Is element an object?
-  elIsObj = IsObject(el)
-  
-  'Loop over contents starting from start
-  For i = start To This.Length
-    'Get item data
-    CopyVariant item, This.BaseArray(i)
+  With stdError.getSentry("stdArray#indexOf", "el", el, "start", start)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    'Is item an object?
-    itemIsObj = IsObject(item)
+      Dim elIsObj As Boolean, i As Long, item As Variant, itemIsObj As Boolean
+      
+      'Is element an object?
+      elIsObj = IsObject(el)
+      
+      'Loop over contents starting from start
+      For i = start To This.Length
+        'Get item data
+        CopyVariant item, This.BaseArray(i)
+        
+        'Is item an object?
+        itemIsObj = IsObject(item)
+        
+        'If both item and el are objects     (must be the same type in order to be the same data)
+        If itemIsObj And elIsObj Then
+          If item Is el Then 'check items equal
+            indexOf = i 'return item index
+            Exit Function
+          End If
+        'If both item and el are not objects (must be the same type in order to be the same data)
+        ElseIf Not itemIsObj And Not elIsObj Then
+          If item = el Then 'check items equal
+            indexOf = i 'return item index
+            Exit Function
+          End If
+        End If
+      Next
     
-    'If both item and el are objects     (must be the same type in order to be the same data)
-    If itemIsObj And elIsObj Then
-      If item Is el Then 'check items equal
-        indexOf = i 'return item index
-        Exit Function
-      End If
-    'If both item and el are not objects (must be the same type in order to be the same data)
-    ElseIf Not itemIsObj And Not elIsObj Then
-      If item = el Then 'check items equal
-        indexOf = i 'return item index
-        Exit Function
-      End If
-    End If
-  Next
-
-  'Return -1 i.e. no match found
-  indexOf = -1
+      'Return -1 i.e. no match found
+      indexOf = -1
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Obtain the last index of an element
 '@param el - Element to find
 '@returns - Last index of element
 Public Function lastIndexOf(ByVal el As Variant) As Long
-  Dim elIsObj As Boolean, i As Long, item As Variant, itemIsObj As Boolean
-  
-  'Is element an object?
-  elIsObj = IsObject(el)
-  
-  'Loop over contents starting from start
-  For i = This.Length To 1 Step -1
-    'Get item data
-    CopyVariant item, This.BaseArray(i)
+  With stdError.getSentry("stdArray#lastIndexOf", "el", el)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    'Is item an object?
-    itemIsObj = IsObject(item)
+      Dim elIsObj As Boolean, i As Long, item As Variant, itemIsObj As Boolean
+      
+      'Is element an object?
+      elIsObj = IsObject(el)
+      
+      'Loop over contents starting from start
+      For i = This.Length To 1 Step -1
+        'Get item data
+        CopyVariant item, This.BaseArray(i)
+        
+        'Is item an object?
+        itemIsObj = IsObject(item)
+        
+        'If both item and el are objects     (must be the same type in order to be the same data)
+        If itemIsObj And elIsObj Then
+          If item Is el Then 'check items equal
+            lastIndexOf = i 'return item index
+            Exit Function
+          End If
+        'If both item and el are not objects (must be the same type in order to be the same data)
+        ElseIf Not itemIsObj And Not elIsObj Then
+          If item = el Then 'check items equal
+            lastIndexOf = i 'return item index
+            Exit Function
+          End If
+        End If
+      Next
     
-    'If both item and el are objects     (must be the same type in order to be the same data)
-    If itemIsObj And elIsObj Then
-      If item Is el Then 'check items equal
-        lastIndexOf = i 'return item index
-        Exit Function
-      End If
-    'If both item and el are not objects (must be the same type in order to be the same data)
-    ElseIf Not itemIsObj And Not elIsObj Then
-      If item = el Then 'check items equal
-        lastIndexOf = i 'return item index
-        Exit Function
-      End If
-    End If
-  Next
-
-  'Return -1 i.e. no match found
-  lastIndexOf = -1
+      'Return -1 i.e. no match found
+      lastIndexOf = -1
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Returns true if the array contains an item
@@ -823,7 +1095,15 @@ End Function
 '@param startFrom - Index to start search for item at. (Internally uses indexOf())
 '@returns - True if the array contains the item
 Public Function includes(ByVal el As Variant, Optional ByVal startFrom As Long = 1) As Boolean
-  includes = indexOf(el, startFrom) >= startFrom
+  With stdError.getSentry("stdArray#includes", "el", el, "startFrom", startFrom)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      includes = indexOf(el, startFrom) >= startFrom
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 '**************************************************
@@ -837,22 +1117,30 @@ End Function
 'if incidents.IsEvery(cbValid) then ...
 '```
 Public Function IsEvery(ByVal cb As stdICallable) As Boolean
-  If This.Initialised Then
-    Dim i As Long
-    For i = 1 To This.Length
-      Dim bFlag As Boolean
-      bFlag = cb.Run(This.BaseArray(i))
-      
-      If Not bFlag Then
-        IsEvery = False
-        Exit Function
-      End If
-    Next
+  With stdError.getSentry("stdArray#IsEvery", "cb", cb)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    IsEvery = True
-  Else
-    'Error
-  End If
+      If This.Initialised Then
+        Dim i As Long
+        For i = 1 To This.Length
+          Dim bFlag As Boolean
+          bFlag = cb.Run(This.BaseArray(i))
+          
+          If Not bFlag Then
+            IsEvery = False
+            Exit Function
+          End If
+        Next
+        
+        IsEvery = True
+      Else
+        'Error
+      End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Check if any elements in the array pass a test
@@ -862,21 +1150,29 @@ End Function
 'if incidents.IsSome(cbValid) then ...
 '```
 Public Function IsSome(ByVal cb As stdICallable) As Boolean
-  If This.Initialised Then
-    Dim i As Long
-    For i = 1 To This.Length
-      Dim bFlag As Boolean
-      bFlag = cb.Run(This.BaseArray(i))
-      
-      If bFlag Then
-        IsSome = True
-        Exit Function
+  With stdError.getSentry("stdArray#IsSome", "cb", cb)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If This.Initialised Then
+        Dim i As Long
+        For i = 1 To This.Length
+          Dim bFlag As Boolean
+          bFlag = cb.Run(This.BaseArray(i))
+          
+          If bFlag Then
+            IsSome = True
+            Exit Function
+          End If
+        Next
+        IsSome = False
+      Else
+        'Error
       End If
-    Next
-    IsSome = False
-  Else
-    'Error
-  End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Call a callback on each element of the array
@@ -885,14 +1181,22 @@ End Function
 'incidents.ForEach(cbPrint)
 '```
 Public Sub ForEach(ByVal cb As stdICallable)
-  If This.Initialised Then
-    Dim i As Long
-    For i = 1 To This.Length
-      Call cb.Run(This.BaseArray(i))
-    Next
-  Else
-    'Error
-  End If
+  With stdError.getSentry("stdArray#ForEach", "cb", cb)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If This.Initialised Then
+        Dim i As Long
+        For i = 1 To This.Length
+          Call cb.Run(This.BaseArray(i))
+        Next
+      Else
+        'Error
+      End If
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Call a callback on each element of the array and return a new array with the results
@@ -902,24 +1206,32 @@ End Sub
 'incidents.Map(cbGetId)
 '```
 Public Function Map(ByVal cb As stdICallable) As stdArray
-  If This.Initialised Then
-    Dim pMap As stdArray
-    Set pMap = Clone()
+  With stdError.getSentry("stdArray#Map", "cb", cb)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    Dim i As Long
-    For i = 1 To This.Length
-      'BUGFIX: Sometimes required, not sure when
-      Dim v As Variant
-      CopyVariant v, item(i)
-      
-      'Call callback
-      Call pMap.PutItem(i, cb.Run(v))
-    Next
+      If This.Initialised Then
+        Dim pMap As stdArray
+        Set pMap = Clone()
+        
+        Dim i As Long
+        For i = 1 To This.Length
+          'BUGFIX: Sometimes required, not sure when
+          Dim v As Variant
+          CopyVariant v, item(i)
+          
+          'Call callback
+          Call pMap.PutItem(i, cb.Run(v))
+        Next
+        
+        Set Map = pMap
+      Else
+        'Error
+      End If
     
-    Set Map = pMap
-  Else
-    'Error
-  End If
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Remove all non-unqiue elements from the array. Given some callback to generate a key for each element, this method will remove all elements which have the same key.
@@ -930,28 +1242,36 @@ End Function
 '```
 '@TODO: Needs optimisation. Currently very sub-optimal
 Public Function Unique(Optional ByVal cb As stdICallable = Nothing) As stdArray
-  Dim ret As stdArray: Set ret = stdArray.CreateWithOptions(This.Length, This.Chunking)
-  Dim retL As stdArray: Set retL = CreateWithOptions(This.Length, This.Chunking)
-  
-  'Collect keys
-  Dim vKeys As stdArray
-  If cb Is Nothing Then
-    Set vKeys = Clone()
-  Else
-    Set vKeys = Map(cb)
-  End If
-  
-  'Unique by key
-  Dim i As Long
-  For i = 1 To This.Length
-    If Not retL.includes(vKeys.item(i)) Then
-      Call retL.Push(vKeys.item(i))
-      Call ret.Push(This.BaseArray(i))
-    End If
-  Next
-
-  'Return data
-  Set Unique = ret
+  With stdError.getSentry("stdArray#Unique", "cb", cb)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim ret As stdArray: Set ret = stdArray.CreateWithOptions(This.Length, This.Chunking)
+      Dim retL As stdArray: Set retL = CreateWithOptions(This.Length, This.Chunking)
+      
+      'Collect keys
+      Dim vKeys As stdArray
+      If cb Is Nothing Then
+        Set vKeys = Clone()
+      Else
+        Set vKeys = Map(cb)
+      End If
+      
+      'Unique by key
+      Dim i As Long
+      For i = 1 To This.Length
+        If Not retL.includes(vKeys.item(i)) Then
+          Call retL.Push(vKeys.item(i))
+          Call ret.Push(This.BaseArray(i))
+        End If
+      Next
+    
+      'Return data
+      Set Unique = ret
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Executes a user-supplied "reducer" callback function on each element of the array, in order, passing in the return
@@ -964,104 +1284,136 @@ End Function
 'values.Reduce(cbSum, 0)
 '```
 Public Function Reduce(ByVal cb As stdICallable, Optional ByVal initialValue As Variant) As Variant
-  Dim iStart As Long
-  If This.Initialised Then
-    If This.Length > 0 Then
-      If IsMissing(initialValue) Then
-        Call CopyVariant(Reduce, This.BaseArray(1))
-        iStart = 2
-      Else
-        Call CopyVariant(Reduce, initialValue)
-        iStart = 1
-      End If
-    Else
-      If IsMissing(initialValue) Then
-        Reduce = Empty
-      Else
-        Call CopyVariant(Reduce, initialValue)
-      End If
-      Exit Function
-    End If
+  With stdError.getSentry("stdArray#Reduce", "cb", cb, "initialValue", initialValue)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    Dim i As Long
-    For i = iStart To This.Length
-      'BUGFIX: Sometimes required, not sure when
-      Dim el As Variant
-      CopyVariant el, This.BaseArray(i)
-
-      'Reduce
-      CopyVariant Reduce, cb.Run(Reduce, el)
-    Next
-  Else
-    'Error
-  End If
+      Dim iStart As Long
+      If This.Initialised Then
+        If This.Length > 0 Then
+          If IsMissing(initialValue) Then
+            Call CopyVariant(Reduce, This.BaseArray(1))
+            iStart = 2
+          Else
+            Call CopyVariant(Reduce, initialValue)
+            iStart = 1
+          End If
+        Else
+          If IsMissing(initialValue) Then
+            Reduce = Empty
+          Else
+            Call CopyVariant(Reduce, initialValue)
+          End If
+          Exit Function
+        End If
+        
+        Dim i As Long
+        For i = iStart To This.Length
+          'BUGFIX: Sometimes required, not sure when
+          Dim el As Variant
+          CopyVariant el, This.BaseArray(i)
+    
+          'Reduce
+          CopyVariant Reduce, cb.Run(Reduce, el)
+        Next
+      Else
+        'Error
+      End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Filter the array based on a condition
 '@param cb as stdICallable<(element: Variant)=>Boolean> - Callback to run on each element. If the callback returns true, the element is included in the returned array.
 '@returns - A new array containing only the elements which passed the filter
 Public Function Filter(ByVal cb As stdICallable) As stdArray
-  Dim ret As stdArray
-  Set ret = stdArray.CreateWithOptions(This.Length, This.Chunking)
-  Set Filter = ret
-
-  'If initialised...
-  If This.Initialised Then
-    Dim i As Long, v As Variant
-    'Loop over array
-    For i = 1 To This.Length
-      'If callback succeeds, push retvar
-      If cb.Run(This.BaseArray(i)) Then
-          Call ret.Push(This.BaseArray(i))
+  With stdError.getSentry("stdArray#Filter", "cb", cb)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim ret As stdArray
+      Set ret = stdArray.CreateWithOptions(This.Length, This.Chunking)
+      Set Filter = ret
+    
+      'If initialised...
+      If This.Initialised Then
+        Dim i As Long, v As Variant
+        'Loop over array
+        For i = 1 To This.Length
+          'If callback succeeds, push retvar
+          If cb.Run(This.BaseArray(i)) Then
+              Call ret.Push(This.BaseArray(i))
+          End If
+        Next i
+      Else
+        'error
       End If
-    Next i
-  Else
-    'error
-  End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Count the number of elements in the array. If a callback is provided, the number of elements which pass the callback is returned.
 '@param cb as stdICallable<(element: Variant)=>Boolean> - Callback to run on each element. If the callback returns true, the element is included in the count.
 '@returns - The number of elements in the array. If a callback is provided, the number of elements which pass the callback is returned.
 Public Function Count(Optional ByVal cb As stdICallable = Nothing) As Long
-  If cb Is Nothing Then
-    Count = Length
-  Else
-    Dim i As Long, lCount As Long
-    lCount = 0
-    For i = 1 To This.Length
-      If cb.Run(This.BaseArray(i)) Then
-        lCount = lCount + 1
+  With stdError.getSentry("stdArray#Count", "cb", cb)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If cb Is Nothing Then
+        Count = Length
+      Else
+        Dim i As Long, lCount As Long
+        lCount = 0
+        For i = 1 To This.Length
+          If cb.Run(This.BaseArray(i)) Then
+            lCount = lCount + 1
+          End If
+        Next i
+        Count = lCount
       End If
-    Next i
-    Count = lCount
-  End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Group the elements of the array by some key generated by a callback
 '@param cb as stdICallable<(element: Variant)=>Variant> - Callback to run on each element. The return value of this callback is used as the key to group the elements by.
 '@returns Object<Dictionary<Variant, stdArray<Variant>>> - The keys of the dictionary are the keys generated by the callback. The values of the dictionary are arrays containing the elements which were grouped by the key.
 Public Function GroupBy(ByVal cb As stdICallable) As Object
-  'Array to store result in
-  Dim result As Object
-  Set result = CreateObject("Scripting.Dictionary")
-
-  'Loop over items
-  Dim i As Long
-  For i = 1 To This.Length
-    'Get grouping key
-    Dim key As Variant
-    key = cb.Run(This.BaseArray(i))
-
-    'If key is not set then set it
-    If Not result.exists(key) Then Set result(key) = stdArray.Create()
-
-    'Push item to key
-    result(key).Push This.BaseArray(i)
-  Next
-
-  'Return result
-  Set GroupBy = result
+  With stdError.getSentry("stdArray#GroupBy", "cb", cb)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      'Array to store result in
+      Dim result As Object
+      Set result = CreateObject("Scripting.Dictionary")
+    
+      'Loop over items
+      Dim i As Long
+      For i = 1 To This.Length
+        'Get grouping key
+        Dim key As Variant
+        key = cb.Run(This.BaseArray(i))
+    
+        'If key is not set then set it
+        If Not result.exists(key) Then Set result(key) = stdArray.Create()
+    
+        'Push item to key
+        result(key).Push This.BaseArray(i)
+      Next
+    
+      'Return result
+      Set GroupBy = result
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Obtain the maximum value in the array
@@ -1069,31 +1421,39 @@ End Function
 '@param startingValue - The starting value to compare against. If not provided, the first element of the array is used.
 '@returns - The maximum value in the array
 Public Function Max(Optional ByVal cb As stdICallable = Nothing, Optional ByVal startingValue As Variant = Empty) As Variant
-  Dim vRet, vMaxValue, v
-  vMaxValue = startingValue: vRet = startingValue
-  Dim i As Long
-  For i = 1 To This.Length
-    Call CopyVariant(v, This.BaseArray(i))
+  With stdError.getSentry("stdArray#Max", "cb", cb, "startingValue", startingValue)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    'Get value to test
-    Dim vtValue As Variant
-    If cb Is Nothing Then
-      Call CopyVariant(vtValue, v)
-    Else
-      Call CopyVariant(vtValue, cb.Run(v))
-    End If
-
-    'Compare values and return 
-    If IsEmpty(vRet) Then
-      Call CopyVariant(vRet, v)
-      Call CopyVariant(vMaxValue, vtValue)
-    ElseIf vMaxValue < vtValue Then
-      Call CopyVariant(vRet, v)
-      Call CopyVariant(vMaxValue, vtValue)
-    End If
-  Next
-
-  Call CopyVariant(Max, vRet)
+      Dim vRet, vMaxValue, v
+      vMaxValue = startingValue: vRet = startingValue
+      Dim i As Long
+      For i = 1 To This.Length
+        Call CopyVariant(v, This.BaseArray(i))
+        
+        'Get value to test
+        Dim vtValue As Variant
+        If cb Is Nothing Then
+          Call CopyVariant(vtValue, v)
+        Else
+          Call CopyVariant(vtValue, cb.Run(v))
+        End If
+    
+        'Compare values and return 
+        If IsEmpty(vRet) Then
+          Call CopyVariant(vRet, v)
+          Call CopyVariant(vMaxValue, vtValue)
+        ElseIf vMaxValue < vtValue Then
+          Call CopyVariant(vRet, v)
+          Call CopyVariant(vMaxValue, vtValue)
+        End If
+      Next
+    
+      Call CopyVariant(Max, vRet)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Obtain the minimum value in the array
@@ -1101,31 +1461,39 @@ End Function
 '@param startingValue - The starting value to compare against. If not provided, the first element of the array is used.
 '@returns - The minimum value in the array
 Public Function Min(Optional ByVal cb As stdICallable = Nothing, Optional ByVal startingValue As Variant = Empty) As Variant
-  Dim vRet, vMinValue, v
-  vMinValue = startingValue: vRet = startingValue
-  Dim i as long
-  For i = 1 To This.Length
-    Call CopyVariant(v, This.BaseArray(i))
+  With stdError.getSentry("stdArray#Min", "cb", cb, "startingValue", startingValue)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    'Get value to test
-    Dim vtValue As Variant
-    If cb Is Nothing Then
-      Call CopyVariant(vtValue, v)
-    Else
-      Call CopyVariant(vtValue, cb.Run(v))
-    End If
-
-    'Compare values and return 
-    If IsEmpty(vRet) Then
-      Call CopyVariant(vRet, v)
-      Call CopyVariant(vMinValue, vtValue)
-    ElseIf vMinValue > vtValue Then
-      Call CopyVariant(vRet, v)
-      Call CopyVariant(vMinValue, vtValue)
-    End If
-  Next
-
-  Call CopyVariant(Min, vRet)
+      Dim vRet, vMinValue, v
+      vMinValue = startingValue: vRet = startingValue
+      Dim i as long
+      For i = 1 To This.Length
+        Call CopyVariant(v, This.BaseArray(i))
+        
+        'Get value to test
+        Dim vtValue As Variant
+        If cb Is Nothing Then
+          Call CopyVariant(vtValue, v)
+        Else
+          Call CopyVariant(vtValue, cb.Run(v))
+        End If
+    
+        'Compare values and return 
+        If IsEmpty(vRet) Then
+          Call CopyVariant(vRet, v)
+          Call CopyVariant(vMinValue, vtValue)
+        ElseIf vMinValue > vtValue Then
+          Call CopyVariant(vRet, v)
+          Call CopyVariant(vMinValue, vtValue)
+        End If
+      Next
+    
+      Call CopyVariant(Min, vRet)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Copies one variant to a destination
@@ -1133,16 +1501,38 @@ End Function
 '@param {Variant} value Source to copy variant from.
 '@perf This appears to be a faster variant of "oleaut32.dll\VariantCopy" + it's multi-platform
 Private Sub CopyVariant(ByRef dest As Variant, ByVal value As Variant)
-  If IsObject(value) Then
-    Set dest = value
-  Else
-    dest = value
-  End If
+  With stdError.getSentry("stdArray#CopyVariant", "dest", dest, "value", value)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If IsObject(value) Then
+        Set dest = value
+      Else
+        dest = value
+      End If
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Obtain the ceiling() of a value
 '@param value - the value to get the ceiling of
 '@returns - The ceiling value
 Private Function Ceil(ByVal value As Double) As Long
-  Ceil = -Int(-value)
+  With stdError.getSentry("stdArray#Ceil", "value", value)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Ceil = -Int(-value)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
+
+
+
+Private Sub Err_Raise(ByVal number as Long, Optional ByVal source as string = "", Optional ByVal description as string = "")
+  Call stdError.Raise(description)
+End Sub

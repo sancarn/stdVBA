@@ -183,18 +183,26 @@ Public Event AfterRun(ByRef callback As stdCallback, ByRef result As Variant)
 '@param cType                            - The call type to use when calling the method. Defaults to VbCallType.VbMethod
 '@returns                                - A 1st class callback function object
 Public Function Create(mType As String, Parent As Variant, name As String, Optional cType As Integer = VbCallType.VbMethod) As stdCallback
-Attribute Create.VB_Description = "Creates an instance of this class."
-  Dim iType As ParentType
-  If mType = "Module" Then
-    iType = ParentType.Module
-  ElseIf mType = "Object" Then
-    iType = ParentType.object
-  Else
-    CriticalRaise "Incorrect module type supplied"
-  End If
-  
-  Set Create = New stdCallback
-  Call Create.protInit(iType, Parent, name, cType)
+  With stdError.getSentry("stdCallback#Create", "Parent", Parent, "cType", cType)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+    Attribute Create.VB_Description = "Creates an instance of this class."
+      Dim iType As ParentType
+      If mType = "Module" Then
+        iType = ParentType.Module
+      ElseIf mType = "Object" Then
+        iType = ParentType.object
+      Else
+        CriticalRaise "Incorrect module type supplied"
+      End If
+      
+      Set Create = New stdCallback
+      Call Create.protInit(iType, Parent, name, cType)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Create callback from Module function directly
@@ -203,9 +211,17 @@ End Function
 '@param sMethodName - The name of the method to create the callback from.
 '@returns           - A 1st class callback function object
 Public Function CreateFromModule(ByVal sParentName As String, ByVal sMethodName As String) As stdCallback
-Attribute CreateFromModule.VB_Description = "Create callback from module method."
-  Set CreateFromModule = New stdCallback
-  Call CreateFromModule.protInit(ParentType.Module, sParentName, sMethodName)
+  With stdError.getSentry("stdCallback#CreateFromModule")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+    Attribute CreateFromModule.VB_Description = "Create callback from module method."
+      Set CreateFromModule = New stdCallback
+      Call CreateFromModule.protInit(ParentType.Module, sParentName, sMethodName)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Create callback from Workbook module function directly
@@ -215,9 +231,17 @@ End Function
 '@param sMethodName   - The name of the method to create the callback from.
 '@returns             - A 1st class callback function object
 Public Function CreateFromWorkbookModule(ByVal sWorkbookPath As String, ByVal sModuleName As String, ByVal sMethodName As String) As stdCallback
-Attribute CreateFromWorkbookModule.VB_Description = "Create callback from extenrnal workbook module method."
-  Set CreateFromWorkbookModule = New stdCallback
-  Call CreateFromWorkbookModule.protInit(ParentType.Module, "'" & sWorkbookPath & "'!" & sModuleName, sMethodName)
+  With stdError.getSentry("stdCallback#CreateFromWorkbookModule")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+    Attribute CreateFromWorkbookModule.VB_Description = "Create callback from extenrnal workbook module method."
+      Set CreateFromWorkbookModule = New stdCallback
+      Call CreateFromWorkbookModule.protInit(ParentType.Module, "'" & sWorkbookPath & "'!" & sModuleName, sMethodName)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Create callback from object and method name
@@ -226,9 +250,17 @@ End Function
 '@param sMethodName - The name of the method to create the callback from.
 '@returns           - A 1st class callback function object
 Public Function CreateFromObjectMethod(ByRef object As Object, ByVal sMethodName As String) As stdCallback
-Attribute CreateFromObjectMethod.VB_Description = "Create callback from object method."
-  Set CreateFromObjectMethod = New stdCallback
-  Call CreateFromObjectMethod.protInit(ParentType.object, object, sMethodName, VbCallType.vbMethod)
+  With stdError.getSentry("stdCallback#CreateFromObjectMethod", "object", object)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+    Attribute CreateFromObjectMethod.VB_Description = "Create callback from object method."
+      Set CreateFromObjectMethod = New stdCallback
+      Call CreateFromObjectMethod.protInit(ParentType.object, object, sMethodName, VbCallType.vbMethod)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Create callback from object and property name
@@ -238,9 +270,17 @@ End Function
 '@param cType       - The call type to use when calling the method. Defaults to VbCallType.VbGet
 '@returns           - A 1st class callback function object
 Public Function CreateFromObjectProperty(ByRef object As Object, ByVal sPropName As String, ByVal cType As VbCallType) As stdCallback
-Attribute CreateFromObjectProperty.VB_Description = "Create callback from object property."
-  Set CreateFromObjectProperty = New stdCallback
-  Call CreateFromObjectProperty.protInit(ParentType.object, object, sPropName, cType)
+  With stdError.getSentry("stdCallback#CreateFromObjectProperty", "object", object, "cType", cType)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+    Attribute CreateFromObjectProperty.VB_Description = "Create callback from object property."
+      Set CreateFromObjectProperty = New stdCallback
+      Call CreateFromObjectProperty.protInit(ParentType.object, object, sPropName, cType)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Create callback from function pointer
@@ -250,12 +290,20 @@ End Function
 '@param vParamTypes as Array<VbVarType>   - The parameter types of the function to create the callback from.
 '@returns                                 - A 1st class callback function object
 #If VBA7 Then
-  Public Function CreateFromPointer(ByVal MethodPointer As LongPtr, Optional ByVal iRetType As VbVarType = 0, Optional vParamTypes = Null) As stdCallback
+Public Function CreateFromPointer(ByVal MethodPointer As LongPtr, Optional ByVal iRetType As VbVarType = 0, Optional vParamTypes = Null) As stdCallback
 #Else
   Public Function CreateFromPointer(ByVal MethodPointer As Long, Optional ByVal iRetType As VbVarType = 0, Optional vParamTypes = Null) As stdCallback
 #End If
-  Set CreateFromPointer = New stdCallback
-  Call CreateFromPointer.protInit(ParentType.Pointer, MethodPointer, iRetType, vParamTypes)
+  With stdError.getSentry("stdCallback#CreateFromPointer", "MethodPointer", MethodPointer, "iRetType", iRetType, "vParamTypes", vParamTypes)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Set CreateFromPointer = New stdCallback
+      Call CreateFromPointer.protInit(ParentType.Pointer, MethodPointer, iRetType, vParamTypes)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Initialise the callback object
@@ -263,84 +311,132 @@ End Function
 '@param iParentType - The type of parent to create the callback from. Can be either ParentType.Module or ParentType.object
 '@param params      - The parameters to initialise the callback with. This should not be called directly unless building a ctor routine e.g. Create().
 Friend Sub protInit(iParentType As Long, ParamArray params() As Variant)
-Attribute protInit.VB_Description = "Initialises this object. This should not be called directly unless building a ctor routine e.g. Create()."
-  If Not This.Initialised Then
-    Select Case iParentType
-      Case ParentType.Module
-        This.Callback.iType = iParentType
-        This.Callback.sModuleName = params(0)
-        This.Callback.sMethodName = params(1)
-      Case ParentType.object
-        This.Callback.iType = iParentType
-        Set This.Callback.oObject = params(0)
-        This.Callback.sMethodName = params(1)
-        This.Callback.iCallType = params(2)
-      Case ParentType.Bound
-        This.Callback.iType = iParentType
-        Set This.Callback.oObject = params(0)
-        If IsArray(params(1)) Then
-          This.Callback.vBoundArgs = params(1)
-        Else
-          This.Callback.vBoundArgs = Array()
-        End If
-      Case ParentType.Pointer
-        This.Callback.iType = iParentType
-        With This.Callback.CBByPointer
-          .iMethodAddress = params(0)
-          .iReturnType = params(1)
-          .bPredictTypes = IsNull(params(2))
-          If Not .bPredictTypes Then
-            ReDim .iParamTypes(0 To UBound(params(2)))
-            Dim i As Long
-            For i = 0 To UBound(params(2))
-              .iParamTypes(i) = params(2)(i)
-            Next
-          End If
-        End With
-      Case Else
-        CriticalRaise "Invalid module type submitted"
-    End Select
-  Else
-    CriticalRaise "Class is already initialised"
-  End If
-  This.Initialised = True
+  With stdError.getSentry("stdCallback#protInit", "iParentType", iParentType)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+    Attribute protInit.VB_Description = "Initialises this object. This should not be called directly unless building a ctor routine e.g. Create()."
+      If Not This.Initialised Then
+        Select Case iParentType
+          Case ParentType.Module
+            This.Callback.iType = iParentType
+            This.Callback.sModuleName = params(0)
+            This.Callback.sMethodName = params(1)
+          Case ParentType.object
+            This.Callback.iType = iParentType
+            Set This.Callback.oObject = params(0)
+            This.Callback.sMethodName = params(1)
+            This.Callback.iCallType = params(2)
+          Case ParentType.Bound
+            This.Callback.iType = iParentType
+            Set This.Callback.oObject = params(0)
+            If IsArray(params(1)) Then
+              This.Callback.vBoundArgs = params(1)
+            Else
+              This.Callback.vBoundArgs = Array()
+            End If
+          Case ParentType.Pointer
+            This.Callback.iType = iParentType
+            With This.Callback.CBByPointer
+              .iMethodAddress = params(0)
+              .iReturnType = params(1)
+              .bPredictTypes = IsNull(params(2))
+              If Not .bPredictTypes Then
+                ReDim .iParamTypes(0 To UBound(params(2)))
+                Dim i As Long
+                For i = 0 To UBound(params(2))
+                  .iParamTypes(i) = params(2)(i)
+                Next
+              End If
+            End With
+          Case Else
+            CriticalRaise "Invalid module type submitted"
+        End Select
+      Else
+        CriticalRaise "Class is already initialised"
+      End If
+      This.Initialised = True
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Run the function
 '@param params - The parameters to run the function with
 '@returns      - The result of the function
 Private Function stdICallable_Run(ParamArray params() As Variant) As Variant
-  Call CopyVariant(stdICallable_Run, RunEx(params))
+  With stdError.getSentry("stdCallback#stdICallable_Run")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Call CopyVariant(stdICallable_Run, RunEx(params))
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Run the function with a array of parameters
 '@param params as Variant<Array<Variant>> - The parameters to run the function with
 '@returns                                 - The result of the function
 Private Function stdICallable_RunEx(ByVal params As Variant) As Variant
-  Call CopyVariant(stdICallable_RunEx, RunEx(params))
+  With stdError.getSentry("stdCallback#stdICallable_RunEx", "params", params)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Call CopyVariant(stdICallable_RunEx, RunEx(params))
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Bind a parameter to the function
 '@param params - The parameters to bind to the function
 '@returns      - A new callback with the parameters bound
 Private Function stdICallable_Bind(ParamArray params() As Variant) As stdICallable
-  Set stdICallable_Bind = BindEx(params)
+  With stdError.getSentry("stdCallback#stdICallable_Bind")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Set stdICallable_Bind = BindEx(params)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Bind a parameter to the function. Bound parameters are bound to the left of the passed parameters.
 '@param params as Array<Variant> - The parameters to bind to the function
 '@returns                        - A new callback with the parameters bound
 Public Function Bind(ParamArray params() As Variant) As stdCallback
-  Set Bind = BindEx(params)
+  With stdError.getSentry("stdCallback#Bind")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Set Bind = BindEx(params)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Bind a parameter to the function. Bound parameters are bound to the left of the passed parameters.
 '@param params as Variant<Array<Variant>> - The parameters to bind to the function
 '@returns                        - A new callback with the parameters bound
 Public Function BindEx(ByVal params As Variant) As stdCallback
-  Set BindEx = New stdCallback
-  Dim callable As stdICallable: Set callable = Me
-  Call BindEx.protInit(ParentType.Bound, callable, params)
+  With stdError.getSentry("stdCallback#BindEx", "params", params)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Set BindEx = New stdCallback
+      Dim callable As stdICallable: Set callable = Me
+      Call BindEx.protInit(ParentType.Bound, callable, params)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Get information about the callback
@@ -349,176 +445,200 @@ End Function
 '@param params as Variant             - The parameters to send to the callback
 '@returns                             - The result of the message
 Private Function stdICallable_SendMessage(ByVal sMessage As String, ByRef success As Boolean, ByVal params As Variant) As Variant
-    Select Case sMessage
-        Case "obj"
-            Set stdICallable_SendMessage = Me
-            success = True
-        Case "className"
-            stdICallable_SendMessage = "stdCallback"
-            success = True
-        Case Else
-            success = False
-    End Select
+  With stdError.getSentry("stdCallback#stdICallable_SendMessage", "success", success, "params", params)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Select Case sMessage
+            Case "obj"
+                Set stdICallable_SendMessage = Me
+                success = True
+            Case "className"
+                stdICallable_SendMessage = "stdCallback"
+                success = True
+            Case Else
+                success = False
+        End Select
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Run the function
 '@param params - The parameters to run the function with
 '@returns      - The result of the function
 Public Function Run(ParamArray params() As Variant)
-Attribute Run.VB_Description = "Runs the specified callback."
-Attribute Run.VB_UserMemId = 0
-  Call CopyVariant(Run, RunEx(params))
+  With stdError.getSentry("stdCallback#Run")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+    Attribute Run.VB_Description = "Runs the specified callback."
+    Attribute Run.VB_UserMemId = 0
+      Call CopyVariant(Run, RunEx(params))
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Run the function with a array of parameters
 '@param vArr as Variant<Array<Variant>> - The parameters to run the function with
 '@returns                                 - The result of the function
 Public Function RunEx(ByVal vArr As Variant) As Variant
-  If This.Initialised And This.Callback.iType Then
-    If This.Callback.iType = ParentType.Bound Then
-      vArr = ConcatArrays(This.Callback.vBoundArgs, vArr)
-    End If
-
-    'Raise event for listeners
-    RaiseEvent BeforeRun(Me, vArr)
+  With stdError.getSentry("stdCallback#RunEx", "vArr", vArr)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    'Select procedure based on parent type, as each requires different call conventions
-    Dim vRet As Variant
-    Select Case This.Callback.iType
-      Case ParentType.Module
-        'TODO: Use fancy accessor mechanism https://codereview.stackexchange.com/questions/274532/low-level-vba-hacking-making-private-functions-public 
-        'Get currentLength
-        Dim currentLength As Integer
-        currentLength = UBound(vArr) - LBound(vArr) + 1
-        
-        'Preserve array but make it 29 args long
-        ReDim Preserve vArr(0 To 29)
-        
-        'Get missing value
-        static vMissing As Variant: if IsEmpty(vMissing) then vMissing = GetMissing()
-
-        'Loop over args and bind missing to args not present in initial array
-        Dim i As Integer
-        For i = 0 To 29
-          If i > currentLength - 1 Then
-            vArr(i) = vMissing
-          End If
-        Next
-        
-        'Copy results of Application.Run into vRet
-        CopyVariant vRet, Application.Run( _
-            This.Callback.sModuleName & "." & This.Callback.sMethodName, _
-            vArr(0), vArr(1), _
-            vArr(2), vArr(3), _
-            vArr(4), vArr(5), _
-            vArr(6), vArr(7), _
-            vArr(8), vArr(9), _
-            vArr(10), vArr(11), _
-            vArr(12), vArr(13), _
-            vArr(14), vArr(15), _
-            vArr(16), vArr(17), _
-            vArr(18), vArr(19), _
-            vArr(20), vArr(21), _
-            vArr(22), vArr(23), _
-            vArr(24), vArr(25), _
-            vArr(26), vArr(27), _
-            vArr(28), vArr(29))
-      Case ParentType.object
-        'Call function directly
-        'Use rtcCallByName to avoid type errors from argument array
-        'Src: http://www.vbforums.com/showthread.php?866039-RESOLVED-Store-CallByName-Arguments-list
-        
-        If IsArray(vArr) Then
-          Dim vArgs() As Variant
-          vArgs = vArr
-            
-          'Call rtcCallByName
-          Dim hResult As Long
-          On Error GoTo ErrorInRTCCallByName
-          #If Mac Then
-            Call macCallByName(vRet, This.Callback.oObject, This.Callback.sMethodName, This.Callback.iCallType, vArgs)
-          #Else
-            hResult = rtcCallByName(vRet, This.Callback.oObject, StrPtr(This.Callback.sMethodName), This.Callback.iCallType, vArgs, &H409)
-          #End If
-          On Error GoTo stdErrorWrapper_ErrorOccurred
-        Else
-          CriticalRaise "Error in rtcCallByName. Arguments supplied to RunEx needs to be an array."
+      If This.Initialised And This.Callback.iType Then
+        If This.Callback.iType = ParentType.Bound Then
+          vArr = ConcatArrays(This.Callback.vBoundArgs, vArr)
         End If
-      Case ParentType.Bound
-        Dim callable As stdICallable
-        Set callable = This.Callback.oObject
-        Call CopyVariant(vRet, callable.RunEx(vArr))
-      Case ParentType.Pointer
-        'Create array of types and pointers to vars, for function call
-        Dim vPtr() As LongPtr
-        Dim vType() As Integer
+    
+        'Raise event for listeners
+        RaiseEvent BeforeRun(Me, vArr)
         
-        'Create array from params
-        Dim vParam() As Variant: vParam = vArr
-        Dim iParamCount As Long: iParamCount = UBound(vParam) - LBound(vParam) + 1
-        
-        'Initialise vType based on whether it should be predicted or not
-        Dim lIdx As Long
-        With This.Callback.CBByPointer
-          If .bPredictTypes Then
-            If iParamCount = 0 Then
-              ReDim vType(0 To 0)
-            Else
-              ReDim vType(0 To iParamCount - 1)
-              For lIdx = 0 To iParamCount - 1
-                vType(lIdx) = VarType(vParam(lIdx))
-              Next
-            End If
-          Else
-            If (UBound(.iParamTypes) - LBound(.iParamTypes) + 1) <> iParamCount Then
-              Err.Raise 1, "", "Contradicting number of variables passed into callback compared to initialisation"
-            End If
+        'Select procedure based on parent type, as each requires different call conventions
+        Dim vRet As Variant
+        Select Case This.Callback.iType
+          Case ParentType.Module
+            'TODO: Use fancy accessor mechanism https://codereview.stackexchange.com/questions/274532/low-level-vba-hacking-making-private-functions-public 
+            'Get currentLength
+            Dim currentLength As Integer
+            currentLength = UBound(vArr) - LBound(vArr) + 1
             
-            ReDim vType(0 To iParamCount - 1)
-            For lIdx = 0 To iParamCount - 1
-              vType(lIdx) = .iParamTypes(lIdx)
+            'Preserve array but make it 29 args long
+            ReDim Preserve vArr(0 To 29)
+            
+            'Get missing value
+            static vMissing As Variant: if IsEmpty(vMissing) then vMissing = GetMissing()
+    
+            'Loop over args and bind missing to args not present in initial array
+            Dim i As Integer
+            For i = 0 To 29
+              If i > currentLength - 1 Then
+                vArr(i) = vMissing
+              End If
             Next
-          End If
+            
+            'Copy results of Application.Run into vRet
+            CopyVariant vRet, Application.Run( _
+                This.Callback.sModuleName & "." & This.Callback.sMethodName, _
+                vArr(0), vArr(1), _
+                vArr(2), vArr(3), _
+                vArr(4), vArr(5), _
+                vArr(6), vArr(7), _
+                vArr(8), vArr(9), _
+                vArr(10), vArr(11), _
+                vArr(12), vArr(13), _
+                vArr(14), vArr(15), _
+                vArr(16), vArr(17), _
+                vArr(18), vArr(19), _
+                vArr(20), vArr(21), _
+                vArr(22), vArr(23), _
+                vArr(24), vArr(25), _
+                vArr(26), vArr(27), _
+                vArr(28), vArr(29))
+          Case ParentType.object
+            'Call function directly
+            'Use rtcCallByName to avoid type errors from argument array
+            'Src: http://www.vbforums.com/showthread.php?866039-RESOLVED-Store-CallByName-Arguments-list
+            
+            If IsArray(vArr) Then
+              Dim vArgs() As Variant
+              vArgs = vArr
                 
-          'Populate array of pointers to params, and array of types for DispCallFunc
-          If iParamCount = 0 Then
-            ReDim vPtr(0 To 0)
-          Else
-            ReDim vPtr(0 To iParamCount - 1)
-            For lIdx = 0 To iParamCount - 1
-              vPtr(lIdx) = VarPtr(vParam(lIdx))
-            Next
-          End If
+              'Call rtcCallByName
+              Dim hResult As Long
+              On Error GoTo ErrorInRTCCallByName
+              #If Mac Then
+                Call macCallByName(vRet, This.Callback.oObject, This.Callback.sMethodName, This.Callback.iCallType, vArgs)
+              #Else
+                hResult = rtcCallByName(vRet, This.Callback.oObject, StrPtr(This.Callback.sMethodName), This.Callback.iCallType, vArgs, &H409)
+              #End If
+              On Error GoTo stdErrorWrapper_ErrorOccurred
+            Else
+              CriticalRaise "Error in rtcCallByName. Arguments supplied to RunEx needs to be an array."
+            End If
+          Case ParentType.Bound
+            Dim callable As stdICallable
+            Set callable = This.Callback.oObject
+            Call CopyVariant(vRet, callable.RunEx(vArr))
+          Case ParentType.Pointer
+            'Create array of types and pointers to vars, for function call
+            Dim vPtr() As LongPtr
+            Dim vType() As Integer
+            
+            'Create array from params
+            Dim vParam() As Variant: vParam = vArr
+            Dim iParamCount As Long: iParamCount = UBound(vParam) - LBound(vParam) + 1
+            
+            'Initialise vType based on whether it should be predicted or not
+            Dim lIdx As Long
+            With This.Callback.CBByPointer
+              If .bPredictTypes Then
+                If iParamCount = 0 Then
+                  ReDim vType(0 To 0)
+                Else
+                  ReDim vType(0 To iParamCount - 1)
+                  For lIdx = 0 To iParamCount - 1
+                    vType(lIdx) = VarType(vParam(lIdx))
+                  Next
+                End If
+              Else
+                If (UBound(.iParamTypes) - LBound(.iParamTypes) + 1) <> iParamCount Then
+                  Err_Raise 1, "", "Contradicting number of variables passed into callback compared to initialisation"
+                End If
+                
+                ReDim vType(0 To iParamCount - 1)
+                For lIdx = 0 To iParamCount - 1
+                  vType(lIdx) = .iParamTypes(lIdx)
+                Next
+              End If
+                    
+              'Populate array of pointers to params, and array of types for DispCallFunc
+              If iParamCount = 0 Then
+                ReDim vPtr(0 To 0)
+              Else
+                ReDim vPtr(0 To iParamCount - 1)
+                For lIdx = 0 To iParamCount - 1
+                  vPtr(lIdx) = VarPtr(vParam(lIdx))
+                Next
+              End If
+              
+              'Call function
+              Const CC_STDCALL = 4
+              Dim hResult2 As Long
+              #If Mac Then
+                Call Err_Raise(1, "stdCallback", "Calling functions by pointer is not supported on Mac")
+              #Else
+                hResult2 = DispCallFunc(0, .iMethodAddress, CC_STDCALL, .iReturnType, iParamCount, VarPtr(vType(0)), VarPtr(vPtr(0)), vRet)
+              #End If
+            End With
+            
+            If hResult2 < 0 Then
+                Err_Raise hResult2, "DispCallFunc", "Error when calling function pointer?"
+            End If
+    
+          Case Else
+            CriticalRaise "Cannot call callback. Invalid parent type assigned (" & This.Callback.iType & ")."
+          End Select
+    
+          'Allow events to modify result prior to submitting to return
+          RaiseEvent AfterRun(Me, vRet)
           
-          'Call function
-          Const CC_STDCALL = 4
-          Dim hResult2 As Long
-          #If Mac Then
-            Call Err.Raise(1, "stdCallback", "Calling functions by pointer is not supported on Mac")
-          #Else
-            hResult2 = DispCallFunc(0, .iMethodAddress, CC_STDCALL, .iReturnType, iParamCount, VarPtr(vType(0)), VarPtr(vPtr(0)), vRet)
-          #End If
-        End With
-        
-        If hResult2 < 0 Then
-            Err.Raise hResult2, "DispCallFunc", "Error when calling function pointer?"
-        End If
-
-      Case Else
-        CriticalRaise "Cannot call callback. Invalid parent type assigned (" & This.Callback.iType & ")."
-      End Select
-
-      'Allow events to modify result prior to submitting to return
-      RaiseEvent AfterRun(Me, vRet)
-      
-      'Return result
-      CopyVariant RunEx, vRet
-  Else
-    CriticalRaise "No callback specified. Please initialise with a Create function."
-  End If
-  Exit Function
-ErrorInRTCCallByName:
-  CriticalRaise Err.Description & " (" & Err.Number & ")"
+          'Return result
+          CopyVariant RunEx, vRet
+      Else
+        CriticalRaise "No callback specified. Please initialise with a Create function."
+      End If
+      Exit Function
+    ErrorInRTCCallByName:
+      CriticalRaise Err.Description & " (" & Err.Number & ")"
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 #If Mac Then
@@ -526,72 +646,104 @@ End Function
   '@param o - The object to call the method on
   '@param p - The name of the method to call
   '@param v - The call type to use
-  Private Sub macCallByName(ByRef vRet As Variant, ByVal o As Object, ByVal p As String, ByVal v As VbCallType, ByRef args() As Variant)
-      Select Case UBound(args) - LBound(args) + 1
-        Case 0: Call CopyVariant(vRet, CallByName(o, p, v))
-        Case 1: Call CopyVariant(vRet, CallByName(o, p, v, args(0)))
-        Case 2: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1)))
-        Case 3: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2)))
-        Case 4: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3)))
-        Case 5: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4)))
-        Case 6: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5)))
-        Case 7: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6)))
-        Case 8: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7)))
-        Case 9: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8)))
-        Case 10: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9)))
-        Case 11: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10)))
-        Case 12: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11)))
-        Case 13: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12)))
-        Case 14: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13)))
-        Case 15: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14)))
-        Case 16: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15)))
-        Case 17: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15), args(16)))
-        Case 18: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15), args(16), args(17)))
-        Case 19: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15), args(16), args(17), args(18)))
-        Case 20: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15), args(16), args(17), args(18), args(19)))
-        Case 21: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15), args(16), args(17), args(18), args(19), args(20)))
-        Case 22: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15), args(16), args(17), args(18), args(19), args(20), args(21)))
-        Case 23: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15), args(16), args(17), args(18), args(19), args(20), args(21), args(22)))
-        Case 24: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15), args(16), args(17), args(18), args(19), args(20), args(21), args(22), args(23)))
-        Case 25: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15), args(16), args(17), args(18), args(19), args(20), args(21), args(22), args(23), args(24)))
-        Case 26: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15), args(16), args(17), args(18), args(19), args(20), args(21), args(22), args(23), args(24), args(25)))
-        Case 27: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15), args(16), args(17), args(18), args(19), args(20), args(21), args(22), args(23), args(24), args(25), args(26)))
-        Case 28: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15), args(16), args(17), args(18), args(19), args(20), args(21), args(22), args(23), args(24), args(25), args(26), args(27)))
-        Case 29: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15), args(16), args(17), args(18), args(19), args(20), args(21), args(22), args(23), args(24), args(25), args(26), args(27), args(28)))
-        Case Else: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15), args(16), args(17), args(18), args(19), args(20), args(21), args(22), args(23), args(24), args(25), args(26), args(27), args(28), args(29)))
-      End Select
-  End Sub
+Private Sub macCallByName(ByRef vRet As Variant, ByVal o As Object, ByVal p As String, ByVal v As VbCallType, ByRef args() As Variant)
+  With stdError.getSentry("stdCallback#macCallByName", "vRet", vRet, "o", o, "v", v)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+          Select Case UBound(args) - LBound(args) + 1
+            Case 0: Call CopyVariant(vRet, CallByName(o, p, v))
+            Case 1: Call CopyVariant(vRet, CallByName(o, p, v, args(0)))
+            Case 2: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1)))
+            Case 3: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2)))
+            Case 4: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3)))
+            Case 5: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4)))
+            Case 6: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5)))
+            Case 7: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6)))
+            Case 8: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7)))
+            Case 9: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8)))
+            Case 10: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9)))
+            Case 11: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10)))
+            Case 12: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11)))
+            Case 13: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12)))
+            Case 14: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13)))
+            Case 15: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14)))
+            Case 16: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15)))
+            Case 17: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15), args(16)))
+            Case 18: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15), args(16), args(17)))
+            Case 19: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15), args(16), args(17), args(18)))
+            Case 20: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15), args(16), args(17), args(18), args(19)))
+            Case 21: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15), args(16), args(17), args(18), args(19), args(20)))
+            Case 22: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15), args(16), args(17), args(18), args(19), args(20), args(21)))
+            Case 23: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15), args(16), args(17), args(18), args(19), args(20), args(21), args(22)))
+            Case 24: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15), args(16), args(17), args(18), args(19), args(20), args(21), args(22), args(23)))
+            Case 25: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15), args(16), args(17), args(18), args(19), args(20), args(21), args(22), args(23), args(24)))
+            Case 26: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15), args(16), args(17), args(18), args(19), args(20), args(21), args(22), args(23), args(24), args(25)))
+            Case 27: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15), args(16), args(17), args(18), args(19), args(20), args(21), args(22), args(23), args(24), args(25), args(26)))
+            Case 28: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15), args(16), args(17), args(18), args(19), args(20), args(21), args(22), args(23), args(24), args(25), args(26), args(27)))
+            Case 29: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15), args(16), args(17), args(18), args(19), args(20), args(21), args(22), args(23), args(24), args(25), args(26), args(27), args(28)))
+            Case Else: Call CopyVariant(vRet, CallByName(o, p, v, args(0), args(1), args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9), args(10), args(11), args(12), args(13), args(14), args(15), args(16), args(17), args(18), args(19), args(20), args(21), args(22), args(23), args(24), args(25), args(26), args(27), args(28), args(29)))
+          End Select
+      
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
+End Sub
 #End If
 
 Private Function Serialize(data As Variant) As String
-  Select Case TypeName(data)
-    Case "Integer", "Double", "Float", "Date"
-      Serialize = CDbl(data)
-    Case "String"
-      Serialize = """" & data & """"
-    Case Else
-      If VarType(data) = vbObject Then
-        'allows for stuff like --> CreateEvaluator("@(@(@($1,""Workbooks""),""Item"",1),""Name"")")(Application)
-        'Assuming @() calls
-        Serialize = ObjPtr(data)
-      Else
-        Serialize = data
-      End If
-  End Select
+  With stdError.getSentry("stdCallback#Serialize", "data", data)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Select Case TypeName(data)
+        Case "Integer", "Double", "Float", "Date"
+          Serialize = CDbl(data)
+        Case "String"
+          Serialize = """" & data & """"
+        Case Else
+          If VarType(data) = vbObject Then
+            'allows for stuff like --> CreateEvaluator("@(@(@($1,""Workbooks""),""Item"",1),""Name"")")(Application)
+            'Assuming @() calls
+            Serialize = ObjPtr(data)
+          Else
+            Serialize = data
+          End If
+      End Select
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 Private Sub CriticalRaise(ByVal sMessage As String)
-  'If stdError exists
-    If VarType(stdError) Then
-      Call stdError.Raise(sMessage)
-    Else
-      Call Err.Raise(1, "stdCallback", sMessage)
-    End If
-    End
+  With stdError.getSentry("stdCallback#CriticalRaise")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      'If stdError exists
+        If VarType(stdError) Then
+          Call stdError.Raise(sMessage)
+        Else
+          Call Err_Raise(1, "stdCallback", sMessage)
+        End If
+        End
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Function GetMissing(Optional arg As Variant) As Variant
-  GetMissing = arg
+  With stdError.getSentry("stdCallback#GetMissing", "arg", arg)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      GetMissing = arg
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 
@@ -600,11 +752,19 @@ End Function
 '@param value - Source to copy variant from.
 '@perf This appears to be a faster variant of "oleaut32.dll\VariantCopy" + it's multi-platform
 Private Sub CopyVariant(ByRef dest As Variant, ByVal value As Variant)
-  If IsObject(value) Then
-    Set dest = value
-  Else
-    dest = value
-  End If
+  With stdError.getSentry("stdCallback#CopyVariant", "dest", dest, "value", value)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If IsObject(value) Then
+        Set dest = value
+      Else
+        dest = value
+      End If
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 
@@ -614,27 +774,41 @@ End Sub
 '@returns                 - The concatenated array
 '@complexity O(1)
 Private Function ConcatArrays(ByVal Arr1 As Variant, ByVal Arr2 As Variant) As Variant
-    Dim ub1 As Long: ub1 = UBound(Arr1)
-    Dim lb1 As Long: lb1 = LBound(Arr1)
-    Dim ub2 As Long: ub2 = UBound(Arr2)
-    Dim lb2 As Long: lb2 = LBound(Arr2)
-    Dim iub As Long: iub = ub1 + ub2 - lb2 + 1
+  With stdError.getSentry("stdCallback#ConcatArrays", "Arr1", Arr1, "Arr2", Arr2)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    If iub > -1 Then
-        Dim v() As Variant
-        ReDim v(lb1 To iub)
+        Dim ub1 As Long: ub1 = UBound(Arr1)
+        Dim lb1 As Long: lb1 = LBound(Arr1)
+        Dim ub2 As Long: ub2 = UBound(Arr2)
+        Dim lb2 As Long: lb2 = LBound(Arr2)
+        Dim iub As Long: iub = ub1 + ub2 - lb2 + 1
         
-        
-        Dim i As Long
-        For i = LBound(v) To UBound(v)
-            If i <= ub1 Then
-                Call CopyVariant(v(i), Arr1(i))
-            Else
-                Call CopyVariant(v(i), Arr2(i - ub1 - 1 + lb2))
-            End If
-        Next
-        ConcatArrays = v
-    Else
-        ConcatArrays = Array()
-    End If
+        If iub > -1 Then
+            Dim v() As Variant
+            ReDim v(lb1 To iub)
+            
+            
+            Dim i As Long
+            For i = LBound(v) To UBound(v)
+                If i <= ub1 Then
+                    Call CopyVariant(v(i), Arr1(i))
+                Else
+                    Call CopyVariant(v(i), Arr2(i - ub1 - 1 + lb2))
+                End If
+            Next
+            ConcatArrays = v
+        Else
+            ConcatArrays = Array()
+        End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
+
+
+
+Private Sub Err_Raise(ByVal number as Long, Optional ByVal source as string = "", Optional ByVal description as string = "")
+  Call stdError.Raise(description)
+End Sub
