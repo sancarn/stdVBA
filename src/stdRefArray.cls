@@ -48,6 +48,14 @@ Private Const VT_BYREF As Long = &H4000
 'The data within the array
 Public Data As Variant
 
+Property Get GetData() as Variant
+Attribute GetData.VB_UserMemId = 0
+  #If Win64 Then
+    Call CopyMemory(GetData, data, 24)
+  #Else
+    Call CopyMemory(GetData, data, 16)
+  #End If
+End Property
 
 '@constructor
 '@param Data - Array to wrap
