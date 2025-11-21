@@ -9,10 +9,6 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 'Issues:
-' WIN32 MIGRATION
-' - [x] On windows, migrate to Win32 API rather than native calls.
-' - [x] File hashing uses Win32 CryptoAPI for significantly better performance than .NET COM classes.
-' - [ ] ReadText uses ANSI encoding, no UTF-8/UTF-16 handling.
 'FILE ENUMERATION
 ' - [ ] No binary read/write methods; no large-file chunking helpers.
 'GENERAL
@@ -2021,6 +2017,64 @@ Public Function Delete() As Boolean
         Exit Function
 EH:
     Delete = False
+End Function
+
+'Starts a non-blocking copy operation and returns immediately
+'@param path - Path to copy the file/folder to
+'@returns - Boolean indicating if the copy was started successfully
+'@remark This function returns immediately after starting the copy. The OS handles the copy operation in the background.
+'@example ```vb
+'Call stdShell.Create("C:\my\files\song.mp3").CopyToAsync("C:\my\files\song2.mp3")
+''... do other work while copy happens in background ...
+'```
+Public Function CopyToAsync(ByVal path As String) As Boolean
+    On Error GoTo EH
+    If Not Exists Then
+        CopyToAsync = False
+        Exit Function
+    End If
+    
+    'Use shell command to copy - this is truly non-blocking
+    #If Mac Then
+        CopyToAsync = false
+    #Else
+        'On Windows, use xcopy or robocopy for truly async copy
+        Dim cmd As String
+        If This.kind = EShellFileTypeFolder Then
+            cmd = "xcopy /E /I /Y """ & This.path & """ """ & path & """"
+        Else
+            cmd = "copy /Y """ & This.path & """ """ & path & """"
+        End If
+        Call Shell(Environ("COMSPEC") & "/c " & cmd, vbHidden)
+        CopyToAsync = True
+    #End If
+    Exit Function
+EH:
+    CopyToAsync = False
+End Function
+
+'Checks if the copy operation is complete
+'@param path - Path to check if the copy operation is complete
+'@returns - True if the copy operation is complete, false otherwise
+'@example ```vb
+'Dim file as stdShell: set file = stdShell.Create("C:\my\files\song.mp3")
+'Dim copyTo as string: copyTo = "C:\my\files\song2.mp3"
+'Call file.CopyToAsync(copyTo)
+'While not file.CopyToAsyncHasCompleted(copyTo)
+'  DoEvents
+'Wend
+'```
+Public Function CopyToAsyncHasCompleted(ByVal path as String) As Boolean
+    On Error GoTo EH
+    CopyToAsyncHasCompleted = false
+    static cacheSize as Long: if cacheSize = 0 then cacheSize = size
+    static cacheHash as string: if cacheHash = "" then cacheHash = hash
+    Dim dest as stdShell: set dest = stdShell.Create(path)
+    if not dest.exists then Exit Function
+    if dest.size <> cacheSize then Exit Function
+    if dest.hash <> cacheHash then Exit Function
+    CopyToAsyncHasCompleted = true        
+EH:
 End Function
 
 'Copies the file/folder to a new path
