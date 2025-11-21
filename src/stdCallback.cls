@@ -476,7 +476,7 @@ Public Function RunEx(ByVal vArr As Variant) As Variant
             
             ReDim vType(0 To iParamCount - 1)
             For lIdx = 0 To iParamCount - 1
-              vType(lIdx) = .iParamTypes(i)
+              vType(lIdx) = .iParamTypes(lIdx)
             Next
           End If
                 
@@ -491,7 +491,7 @@ Public Function RunEx(ByVal vArr As Variant) As Variant
           End If
           
           'Call function
-          Const CC_STDCALL = 5
+          Const CC_STDCALL = 4
           Dim hResult2 As Long
           #If Mac Then
             Call Err.Raise(1, "stdCallback", "Calling functions by pointer is not supported on Mac")

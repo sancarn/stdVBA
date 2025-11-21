@@ -364,3 +364,4 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2025-10-01 `stdCallback` FIX - Added `macCallByName` for Mac compatibility.
 - 2025-10-14 `stdCallback` FIX - Optimisation for `RunEx` function
 - 2025-10-14 `stdJSON` FIX - Fix for negative number serialization.
+- 2025-11-21 `stdCallback` FIX - Fixing typos. See #146.
