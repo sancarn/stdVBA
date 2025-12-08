@@ -199,6 +199,7 @@ Private Type TThis
 End Type
 Private This As TThis
 
+Private InLoop As Boolean
 
 
 
@@ -470,6 +471,22 @@ Private Function getTokenDefinitions() As TokenDefinition()
     i = i + 1: arr(i) = getTokenDefinition("then", "then", isKeyword:=True)
     i = i + 1: arr(i) = getTokenDefinition("else", "else", isKeyword:=True)
     i = i + 1: arr(i) = getTokenDefinition("end", "end", isKeyword:=True)
+
+    'Do Loop
+    i = i + 1: arr(i) = getTokenDefinition("do", "do", isKeyword:=True)
+    i = i + 1: arr(i) = getTokenDefinition("until", "until", isKeyword:=True)
+    i = i + 1: arr(i) = getTokenDefinition("while", "while", isKeyword:=True)
+    i = i + 1: arr(i) = getTokenDefinition("loop", "loop", isKeyword:=True)
+
+    'For Loop
+    i = i + 1: arr(i) = getTokenDefinition("for", "for", isKeyword:=True)
+    i = i + 1: arr(i) = getTokenDefinition("to", "to", isKeyword:=True)
+    i = i + 1: arr(i) = getTokenDefinition("step", "step", isKeyword:=True)
+    i = i + 1: arr(i) = getTokenDefinition("next", "next", isKeyword:=True)
+
+    'Exit keyword
+    i = i + 1: arr(i) = getTokenDefinition("exit", "exit", isKeyword:=True)
+
     ' Brackets
     i = i + 1: arr(i) = getTokenDefinition("lBracket", "\(")
     i = i + 1: arr(i) = getTokenDefinition("rBracket", "\)")
@@ -582,7 +599,9 @@ End Sub
 '11. Arithmetic (^)
 '12. Arithmetic (Unary +, -) (for RHS of power operator) e.g. 2^-1
 '13. Flow (if then else)
-'14. Value (numbers, $vars, strings, booleans, brackets)
+'14. Do (Do Loop)
+'15. For(For Loop)
+'16. Value (numbers, $vars, strings, booleans, brackets)
 '@remark - The order of priority is opposite to the order of evaluation. I.E. Comparrison is evaluated before Logical AND allowing 
 'expressions such as `1<2 and 2<3` to be evaluated correctly without requiring bracketing. It's important to note however that all
 'comparrisons have the same priority. This means that `1<2<3` will be evaluated as `(1<2)<3` which is not the same as `1<(2<3)`.
@@ -799,7 +818,9 @@ Private Sub parseFlowPriority1()
         This.stackSize = size
         
         If optConsume("end") Then
-            Call addOperation(iPush, 0, 1) 'Expressions should always return a value
+            If InLoop = False Then
+                Call addOperation(iPush, 0, 1) 'Expressions should always return a value
+            End If
             This.operations(skipElseJumpIndex).value = This.iOperationIndex
         Else
             Call consume("else")
@@ -808,6 +829,129 @@ Private Sub parseFlowPriority1()
         
             Call optConsume("end")
         End If
+    Else
+        Call parseFlowPriority2
+    End If
+End Sub
+
+'Parse loops (do ... {until|while} ... loop{until|while})
+Private Sub parseFlowPriority2()
+    If optConsume("do") Then
+        Dim LoopEntered As Boolean
+        If InLoop = False Then LoopEntered = True
+        InLoop = True
+        ' Do Until|While {Expr}
+        Dim RepeatLoop As Integer: RepeatLoop = This.iOperationIndex
+        Dim SkipLoop   As Integer: SkipLoop   = -1
+        If optConsume("until") Then
+            Call parseExpression
+            SkipLoop = addOperation(iJump_IfTrue, , -1)
+        ElseIf optConsume("while") Then
+            Call parseExpression
+            SkipLoop = addOperation(iJump_IfFalse, , -1)
+        Else
+            ' Infinite loop
+        End If
+
+        Call parseBlock("loop")
+        Call consume("loop")
+
+        ' xxx
+        ' Loop Until|While {expr}
+        If optConsume("until") Then
+            Call parseExpression
+            SkipLoop = addOperation(iJump_IfTrue, , -1)
+        ElseIf optConsume("while") Then
+            Call parseExpression
+            SkipLoop = addOperation(iJump_IfFalse, , -1)
+        Else
+            ' Loop Ends
+        End If
+
+
+        ' Loop back to start
+        Call addOperation(iJump_Unconditional, RepeatLoop)
+        If SkipLoop > -1 Then This.operations(SkipLoop).value = This.iOperationIndex
+        If LoopEntered Then InLoop = False
+    Else
+        Call parseFlowPriority3
+    End If
+End Sub
+
+'Parse for loops (for ... {let} var = lbound to ubound ... {step operator increment} ... next)
+Private Sub parseFlowPriority3()
+    If optConsume("for") Then
+        Dim LoopEntered As Boolean
+        If InLoop = False Then LoopEntered = True
+        InLoop = True
+        ' 1. let index = LowerBound
+
+        Dim varName As String: varName = consume("var")
+        Call consume("equal")
+        Call parseExpression
+        Dim IncrementIndex As Long: IncrementIndex = findVariable(varName)
+        If IncrementIndex >= 0 Then
+            ' If the variable already existed, move the data to that pos on the stack
+            Call addOperation(iSet_General, IncrementIndex, -1)
+        Else
+            ' If the variable didn't exist yet, treat this stack pos as its source
+            Call This.scopes(This.scopeCount).Add(varName, This.stackSize)
+            IncrementIndex = This.stackSize - 1
+            If IncrementIndex = 0 Then IncrementIndex = 1 ' Avoid referencing the current operation. | Used when the last added variable was declared in for loop
+        End If
+
+        ' Index > UpperBound
+        ' Jump if Condition true
+        Call addOperation(iAccess_General, IncrementIndex, 1)
+        Dim RepeatLoop As Long: RepeatLoop = This.iOperationIndex - 1 ' beginning of loop (condition)
+        If peek("to") Then
+            This.iTokenIndex = This.iTokenIndex + 1
+        Else
+            Call parseBlock("to")
+            Call consume("to")
+        End If
+        Call parseStatement
+        Dim ConditionIndex As Long: ConditionIndex = addOperation(iComparison_GreaterThan, , -1)
+        Dim SkipLoop As Integer: SkipLoop = addOperation(iJump_IfTrue, , -1)   ' Skip loop
+
+        ' Setup increment Values
+        Dim Increment As Long, Operator As IInstruction, Condition As IInstruction
+        If optConsume("step") Then
+            If peek("literalNumber") Then
+                Operator = iArithmetic_Add
+                Condition = iComparison_GreaterThan
+            Else
+                Select Case True
+                    Case optConsume("add"): Operator = iArithmetic_Add: Condition = iComparison_GreaterThan
+                    Case optConsume("subtract"): Operator = iArithmetic_Subtract: Condition = iComparison_LessThan
+                    Case optConsume("multiply"): Operator = iArithmetic_Multiply: Condition = iComparison_GreaterThan
+                    Case optConsume("divide"): Operator = iArithmetic_Divide: Condition = iComparison_LessThan
+                    Case optConsume("power"): Operator = iArithmetic_Power: Condition = iComparison_GreaterThan
+                End Select
+            End If
+            Increment = CLng(consume("literalNumber")) ' TODO add more functionality than just numbers
+        Else
+            Increment = 1
+            Operator = iArithmetic_Add
+            Condition = iComparison_GreaterThan
+        End If
+
+        This.operations(ConditionIndex).instruction = Condition ' Changes compare-operator of condition according to "step"
+
+        ' Get rest of loop
+        ' Setup index-incrementation: let index = index Operator Increment
+        ' Setup loop-repeat
+        Call parseBlock("next")
+        Call consume("next")
+
+        Call addOperation(iAccess_General, IncrementIndex, 1)
+        Call addOperation(iPush, Increment, 1)
+        Call addOperation(Operator, , -1)
+        Call addOperation(iSet_General, IncrementIndex, -1)
+        Call addOperation(iJump_Unconditional, RepeatLoop, 0)
+
+        This.operations(SkipLoop).value = This.iOperationIndex
+        If LoopEntered Then InLoop = False
     Else
         Call parseValuePriority1
     End If
@@ -992,8 +1136,12 @@ Private Sub parseAssignment()
     Dim offset As Long: offset = findVariable(varName)
     If offset >= 0 Then
         ' If the variable already existed, move the data to that pos on the stack
-        Call addOperation(iSet_General, offset, -1)
-        Call addOperation(iAccess_General, offset, 1) ' To keep a return value
+        If InLoop Then
+            Call addOperation(iSet_General, offset, -1)
+        Else
+            Call addOperation(iSet_General, offset, -1)
+            Call addOperation(iAccess_General, offset, 1) ' To keep a return value
+        End If
     Else
         ' If the variable didn't exist yet, treat this stack pos as its source
         Call This.scopes(This.scopeCount).add(varName, This.stackSize)
