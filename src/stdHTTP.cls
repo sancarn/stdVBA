@@ -95,6 +95,27 @@ Public Enum EHTTPProxyType
   ProxyTypeNone
 End Enum
 
+Public Enum stdHTTPOptions
+  stdHTTPOptionBody = 0
+  stdHTTPOptionHeaders
+  stdHTTPOptionCookies
+  stdHTTPOptionProxy
+  stdHTTPOptionTimeoutMS
+  stdHTTPOptionInsecure
+  stdHTTPOptionEnableRedirects
+  [_stdHTTPOptionLast] = stdHTTPOptionEnableRedirects
+End Enum
+
+Public Enum stdHTTPProxy
+  stdHTTPProxyHasAutoProxy = 0
+  stdHTTPProxyHasProxy
+  stdHTTPProxyServer
+  stdHTTPProxyBypass
+  stdHTTPProxyUser
+  stdHTTPProxyPass
+  [_stdHTTPProxyLast] = stdHTTPProxyPass
+End Enum
+
 
 #If Win64 Then
   Private Const PTR_SIZE = 8
@@ -192,69 +213,62 @@ Private Enum WinHttpRequestOption
 End Enum
 
 #If Mac Then
-#ElseIf VBA7 Then
-  Private Declare PtrSafe Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (ByVal lpDest As LongPtr, ByVal lpSource As LongPtr, ByVal iCount As Long)
-  Private Declare PtrSafe Function SysAllocString Lib "oleaut32" (ByVal pwsz As LongPtr) As LongPtr
-  Private Declare PtrSafe Sub SysFreeString Lib "oleaut32" (ByVal pwsz As LongPtr)
-  Private Declare PtrSafe Function GlobalFree Lib "kernel32" (ByVal p As LongPtr) As LongPtr
-  Private Declare PtrSafe Function WinHttpGetIEProxyConfigForCurrentUser Lib "WinHTTP.dll" (ByRef proxyConfig As IE_PROXY_CONFIG) As Long
-  Private Declare PtrSafe Function WinHttpGetProxyForUrl Lib "WinHTTP.dll" (ByVal hSession As LongPtr, ByVal pszUrl As LongPtr, ByRef pAutoProxyOptions As AUTOPROXY_OPTIONS, ByRef pProxyInfo As PROXY_INFO) As Long
-  Private Declare PtrSafe Function WinHttpOpen Lib "WinHTTP.dll" (ByVal pszUserAgent As LongPtr, ByVal dwAccessType As Long, ByVal pszProxyName As LongPtr, ByVal pszProxyBypass As LongPtr, ByVal dwFlags As Long) As LongPtr
-  Private Declare PtrSafe Function WinHttpCloseHandle Lib "WinHTTP.dll" (ByVal hInternet As LongPtr) As Long
-  
-  Private Type IE_PROXY_CONFIG
-      fAutoDetect As Long
-      lpszAutoConfigUrl As LongPtr
-      lpszProxy As LongPtr
-      lpszProxyBypass As LongPtr
-  End Type
-  Private Type AUTOPROXY_OPTIONS
-      dwFlags As Long
-      dwAutoDetectFlags As Long
-      lpszAutoConfigUrl As LongPtr
-      lpvReserved As LongPtr
-      dwReserved As Long
-      fAutoLogonIfChallenged As Long
-  End Type
-  Private Type PROXY_INFO
-      dwAccessType As Long
-      lpszProxy As LongPtr
-      lpszProxyBypass As LongPtr
-  End Type
-
+  #If VBA7 Then
+    Private Declare PtrSafe Function web_popen Lib "/usr/lib/libc.dylib" Alias "popen" (ByVal web_Command As String, ByVal web_Mode As String) As LongPtr
+    Private Declare PtrSafe Function web_pclose Lib "/usr/lib/libc.dylib" Alias "pclose" (ByVal web_File As LongPtr) As LongPtr
+    Private Declare PtrSafe Function web_fread Lib "/usr/lib/libc.dylib" Alias "fread" (ByVal web_OutStr As String, ByVal web_Size As LongPtr, ByVal web_Items As LongPtr, ByVal web_Stream As LongPtr) As LongPtr
+    Private Declare PtrSafe Function web_feof Lib "/usr/lib/libc.dylib" Alias "feof" (ByVal web_File As LongPtr) As LongPtr
+  #Else
+    Private Declare Function web_popen Lib "libc.dylib" Alias "popen" (ByVal web_Command As String, ByVal web_Mode As String) As Long
+    Private Declare Function web_pclose Lib "libc.dylib" Alias "pclose" (ByVal web_File As Long) As Long
+    Private Declare Function web_fread Lib "libc.dylib" Alias "fread" (ByVal web_OutStr As String, ByVal web_Size As Long, ByVal web_Items As Long, ByVal web_Stream As Long) As Long
+    Private Declare Function web_feof Lib "libc.dylib" Alias "feof" (ByVal web_File As Long) As Long
+  #End If
 #Else
+  #If VBA7 Then
+    Private Declare PtrSafe Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (ByVal lpDest As LongPtr, ByVal lpSource As LongPtr, ByVal iCount As Long)
+    Private Declare PtrSafe Function SysAllocString Lib "oleaut32" (ByVal pwsz As LongPtr) As LongPtr
+    Private Declare PtrSafe Sub SysFreeString Lib "oleaut32" (ByVal pwsz As LongPtr)
+    Private Declare PtrSafe Function GlobalFree Lib "kernel32" (ByVal p As LongPtr) As LongPtr
+    Private Declare PtrSafe Function WinHttpGetIEProxyConfigForCurrentUser Lib "WinHTTP.dll" (ByRef proxyConfig As IE_PROXY_CONFIG) As Long
+    Private Declare PtrSafe Function WinHttpGetProxyForUrl Lib "WinHTTP.dll" (ByVal hSession As LongPtr, ByVal pszUrl As LongPtr, ByRef pAutoProxyOptions As AUTOPROXY_OPTIONS, ByRef pProxyInfo As PROXY_INFO) As Long
+    Private Declare PtrSafe Function WinHttpOpen Lib "WinHTTP.dll" (ByVal pszUserAgent As LongPtr, ByVal dwAccessType As Long, ByVal pszProxyName As LongPtr, ByVal pszProxyBypass As LongPtr, ByVal dwFlags As Long) As LongPtr
+    Private Declare PtrSafe Function WinHttpCloseHandle Lib "WinHTTP.dll" (ByVal hInternet As LongPtr) As Long
+  #Else
 
-  Private Enum LongPtr
-    [_]
-  End Enum
-  Private Declare Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (ByVal lpDest As LongPtr, ByVal lpSource As LongPtr, ByVal iCount As Long)
-  Private Declare Function SysAllocString Lib "oleaut32" (ByVal pwsz As LongPtr) As LongPtr
-  Private Declare Sub SysFreeString Lib "oleaut32" (ByVal pwsz As LongPtr)
-  Private Declare Function GlobalFree Lib "kernel32" (ByVal p As LongPtr) As LongPtr
-  Private Declare Function WinHttpGetIEProxyConfigForCurrentUser Lib "WinHTTP.dll" (ByRef proxyConfig As IE_PROXY_CONFIG) As Long
-  Private Declare Function WinHttpGetProxyForUrl Lib "WinHTTP.dll" (ByVal hSession As LongPtr, ByVal pszUrl As LongPtr, ByRef pAutoProxyOptions As AUTOPROXY_OPTIONS, ByRef pProxyInfo As PROXY_INFO) As Long
-  Private Declare Function WinHttpOpen Lib "WinHTTP.dll" (ByVal pszUserAgent As LongPtr, ByVal dwAccessType As Long, ByVal pszProxyName As LongPtr, ByVal pszProxyBypass As LongPtr, ByVal dwFlags As Long) As LongPtr
-  Private Declare Function WinHttpCloseHandle Lib "WinHTTP.dll" (ByVal hInternet As LongPtr) As Long
-  Private Type IE_PROXY_CONFIG
-      fAutoDetect As Long
-      lpszAutoConfigUrl As LongPtr
-      lpszProxy As LongPtr
-      lpszProxyBypass As LongPtr
-  End Type
-  Private Type AUTOPROXY_OPTIONS
-      dwFlags As Long
-      dwAutoDetectFlags As Long
-      lpszAutoConfigUrl As LongPtr
-      lpvReserved As LongPtr
-      dwReserved As Long
-      fAutoLogonIfChallenged As Long
-  End Type
-  Private Type PROXY_INFO
-      dwAccessType As Long
-      lpszProxy As LongPtr
-      lpszProxyBypass As LongPtr
-  End Type
+    Private Enum LongPtr
+      [_]
+    End Enum
+    Private Declare Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (ByVal lpDest As LongPtr, ByVal lpSource As LongPtr, ByVal iCount As Long)
+    Private Declare Function SysAllocString Lib "oleaut32" (ByVal pwsz As LongPtr) As LongPtr
+    Private Declare Sub SysFreeString Lib "oleaut32" (ByVal pwsz As LongPtr)
+    Private Declare Function GlobalFree Lib "kernel32" (ByVal p As LongPtr) As LongPtr
+    Private Declare Function WinHttpGetIEProxyConfigForCurrentUser Lib "WinHTTP.dll" (ByRef proxyConfig As IE_PROXY_CONFIG) As Long
+    Private Declare Function WinHttpGetProxyForUrl Lib "WinHTTP.dll" (ByVal hSession As LongPtr, ByVal pszUrl As LongPtr, ByRef pAutoProxyOptions As AUTOPROXY_OPTIONS, ByRef pProxyInfo As PROXY_INFO) As Long
+    Private Declare Function WinHttpOpen Lib "WinHTTP.dll" (ByVal pszUserAgent As LongPtr, ByVal dwAccessType As Long, ByVal pszProxyName As LongPtr, ByVal pszProxyBypass As LongPtr, ByVal dwFlags As Long) As LongPtr
+    Private Declare Function WinHttpCloseHandle Lib "WinHTTP.dll" (ByVal hInternet As LongPtr) As Long
+  #End If
 #End If
+
+Private Type IE_PROXY_CONFIG
+  fAutoDetect As Long
+  lpszAutoConfigUrl As LongPtr
+  lpszProxy As LongPtr
+  lpszProxyBypass As LongPtr
+End Type
+Private Type AUTOPROXY_OPTIONS
+  dwFlags As Long
+  dwAutoDetectFlags As Long
+  lpszAutoConfigUrl As LongPtr
+  lpvReserved As LongPtr
+  dwReserved As Long
+  fAutoLogonIfChallenged As Long
+End Type
+Private Type PROXY_INFO
+  dwAccessType As Long
+  lpszProxy As LongPtr
+  lpszProxyBypass As LongPtr
+End Type
 
 Private Type ErrorInfo
   isSet As Boolean
@@ -269,11 +283,37 @@ Private Type ProxyInfoEx
   Error As ErrorInfo
 End Type
 
+#If Mac Then
+  Private Type HeaderPair
+    Key As String
+    Value As String
+  End Type
+
+  Private Type TResponse
+    Status As Long
+    StatusText As String
+    Text As String
+    Body() As Byte
+    Headers() As HeaderPair
+    HeadersCount As Long
+    isComplete As Boolean
+  End Type
+#End If
+
 Private Type TThis
   HTTP As Object
   ResponseMapper As stdICallable
   Created as Date
   TimeoutMS as Long
+  #If Mac Then
+    #If VBA7 Then
+      CurlProcess As LongPtr
+    #Else
+      CurlProcess As Long
+    #End If
+    Response As TResponse
+    curlCommand As String
+  #End If
 End Type
 Private This As TThis
 
@@ -283,10 +323,10 @@ Private This As TThis
 '@param sURL - The url to query
 '@param RequestMethod - Typically "GET", "POST", "PUT", "DELETE", but can be any string which the server responds to
 '@param ThreadingStyle - The Threading approach. Either HTTPSync (Synchronous) or HTTPAsync (Asynchronous).
-'@param options as Object<Dictionary> - Use `stdHTTP.CreateOptions()` to generate these.
-'@param Authenticator as stdICallable<(HTTP: Object, RequestMethod: String, URL: String, ThreadingStyle: Long, options: Object)=>Void> - A callable object which will be called before the request is sent. This can be used to add authentication headers, etc.
+'@param options as Variant<Array> - Use `stdHTTP.CreateOptions()` to generate these. Array indexed by stdHTTPOptions enum.
+'@param Authenticator as stdICallable<(HTTP: Object, RequestMethod: String, URL: String, ThreadingStyle: Long, options: Variant)=>Void> - A callable object which will be called before the request is sent. This can be used to add authentication headers, etc.
 '@returns - A http request object
-Public Function Create(ByVal sURL As String, Optional ByVal RequestMethod As String = "GET", Optional ByVal ThreadingStyle As EHTTPSynchronisity = HTTPSync, Optional ByVal options As Object = Nothing, Optional ByVal Authenticator As stdICallable = Nothing) As stdHTTP
+Public Function Create(ByVal sURL As String, Optional ByVal RequestMethod As String = "GET", Optional ByVal ThreadingStyle As EHTTPSynchronisity = HTTPSync, Optional ByVal options As Variant = Nothing, Optional ByVal Authenticator As stdICallable = Nothing) As stdHTTP
   Set Create = New stdHTTP
   Call Create.protInit(sURL, RequestMethod, ThreadingStyle, options, Authenticator)
 End Function
@@ -294,38 +334,28 @@ End Function
 'Create HTTP request headers
 '@static
 '@param v - Headers to load into the http request in the form key1, value1, key2, value2, ...
-'@returns Object<Dictionary> - A dictionary of headers
-Public Function CreateHeaders(ParamArray v()) As Object
-  Dim oRet As Object
-  Set oRet = CreateObject("Scripting.Dictionary")
-  oRet.CompareMode = vbTextCompare
-  
-  Dim i As Long
-  For i = 0 To UBound(v) Step 2
-    oRet(v(i)) = v(i + 1)
-  Next
-  
-  Set CreateHeaders = oRet
+'@returns Array - An array of headers in the form Array(key1, value1, key2, value2, ...)
+Public Function CreateHeaders(ParamArray v()) As Variant
+  CreateHeaders = v
 End Function
 
 'Create HTTP request options
 '@static
 '@param Body - The body of the request
-'@param Headers as Object<Dictionary> - The headers of the request
-'@param Cookies as Object<Dictionary> - The cookies of the request
+'@param Headers as Variant<Array> - The headers of the request (array format: key1, value1, key2, value2, ...)
+'@param Cookies as Variant<Array> - The cookies of the request (array format: key1, value1, key2, value2, ...)
 '@param ContentTypeDefault - The default content type of the request
 '@param Insecure - Whether to ignore SSL errors
 '@param EnableRedirects - Whether to follow redirects
 '@param TimeoutMS - The timeout of the request in milliseconds
-'@param AutoProxy - Whether to use the system proxy settings
-'@returns Object<Dictionary> - A dictionary of options
-Public Function CreateOptions(Optional Body As String = "", Optional Headers As Object = Nothing, Optional Cookies As Object = Nothing, Optional ByVal ContentTypeDefault As EHTTPContentType, Optional Insecure As Boolean = False, Optional EnableRedirects As Boolean = True, Optional ByVal TimeoutMS As Long = 5000, Optional ByVal Proxy As Object = Nothing)
-  Dim oRet As Object
-  Set oRet = CreateObject("Scripting.Dictionary")
-  oRet.CompareMode = vbTextCompare
+'@param Proxy as Variant<Array> - Proxy configuration array (use `stdHTTP.CreateProxy()` to generate)
+'@returns Variant<Array> - A fixed-width array indexed by stdHTTPOptions enum
+Public Function CreateOptions(Optional Body As String = "", Optional Headers As Variant = Empty, Optional Cookies As Variant = Empty, Optional ByVal ContentTypeDefault As EHTTPContentType, Optional Insecure As Boolean = False, Optional EnableRedirects As Boolean = True, Optional ByVal TimeoutMS As Long = 5000, Optional ByVal Proxy As Variant = Empty)
+  Dim options() As Variant
+  ReDim options(0 To [_stdHTTPOptionLast])
   
-  If Headers Is Nothing Then Set Headers = CreateHeaders()
-  If Not Headers.Exists("Content-Type") Then
+  If IsEmpty(Headers) Then Headers = CreateHeaders()
+  If Not HeaderArrayExists(Headers, "Content-Type") Then
     Dim sContentType As String
     If (ContentTypeDefault And ContentType_HTML) = ContentType_HTML Then sContentType = sContentType & "; text/html"
     If (ContentTypeDefault And ContentType_Plain) = ContentType_Plain Then sContentType = sContentType & "; text/plain"
@@ -334,56 +364,46 @@ Public Function CreateOptions(Optional Body As String = "", Optional Headers As 
     If (ContentTypeDefault And ContentType_CSV) = ContentType_CSV Then sContentType = sContentType & "; text/csv"
     If (ContentTypeDefault And ContentType_ZIP) = ContentType_ZIP Then sContentType = sContentType & "; application/zip"
     If (ContentTypeDefault And ContentType_Binary) = ContentType_Binary Then sContentType = sContentType & "; application/octet-stream"
-    If sContentType <> "" Then Headers("Content-Type") = Mid(sContentType, 3)
+    If sContentType <> "" Then Call HeaderArraySet(Headers, "Content-Type", Mid(sContentType, 3))
   End If
-  Set oRet("Headers") = Headers
   
-  If Cookies Is Nothing Then Set Cookies = CreateHeaders()
-  Set oRet("Cookies") = Cookies
+  If IsEmpty(Cookies) Then Cookies = CreateHeaders()
   
-  If Proxy Is Nothing Then
-    Set oRet("Proxy") = CreateProxy(ProxyTypeAuto)
-  Else
-    Set oRet("Proxy") = Proxy
-  End If
-
-  oRet("TimeoutMS") = TimeoutMS
-  oRet("Insecure") = Insecure
-  oRet("EnableRedirects") = EnableRedirects
-  oRet("Body") = Body
-  Set CreateOptions = oRet
+  If IsEmpty(Proxy) Then Proxy = CreateProxy(ProxyTypeAuto)
+  
+  'Set options using enum indices
+  options(stdHTTPOptionBody) = Body
+  options(stdHTTPOptionHeaders) = Headers
+  options(stdHTTPOptionCookies) = Cookies
+  options(stdHTTPOptionProxy) = Proxy
+  options(stdHTTPOptionTimeoutMS) = TimeoutMS
+  options(stdHTTPOptionInsecure) = Insecure
+  options(stdHTTPOptionEnableRedirects) = EnableRedirects
+  
+  CreateOptions = options
 End Function
 
 'Obtain proxy information
 '@static
-'@param proxyType - 
+'@param proxyType - The type of proxy configuration
 '@param server - the IP address (or hostname) of the proxy server
 '@param bypass - A proxy bypass list is not always needed, but it's useful. It specifies URLs or IP ranges that should be accessed directly, bypassing the proxy. This is often used for local or intranet addresses.
 '@param user - Username for proxy server authentication
 '@param pass - Password for proxy server authentication
-'@returns - Proxy information object
+'@returns Variant<Array> - A fixed-width array indexed by stdHTTPProxy enum
 Public Function CreateProxy(ByVal proxyType As EHTTPProxyType, Optional ByVal Server As String, Optional ByVal ByPass As String, Optional ByVal User As String, Optional ByVal Pass As String)
-  Dim oRet As Object
-  Set oRet = CreateObject("Scripting.Dictionary")
-  oRet.CompareMode = vbTextCompare
+  Dim proxy() As Variant
+  ReDim proxy(0 To [_stdHTTPProxyLast])
   
   Select Case proxyType
     Case ProxyTypeAuto
       'Loads the system proxy settings for a given URL at runtime
-      oRet("hasAutoProxy") = True
+      CreateProxy = Array(True, False, "", "", "", "")
     Case ProxyTypeManual
-      oRet("hasAutoProxy") = False
-      oRet("hasProxy") = True
-      oRet("server") = Server
-      oRet("bypass") = ByPass
-      oRet("user") = User
-      oRet("pass") = Pass
+      CreateProxy = Array(False, True, Server, ByPass, User, Pass)
     Case ProxyTypeNone
-      oRet("hasAutoProxy") = False
-      oRet("hasProxy") = False
+      CreateProxy = Array(False, False, "", "", "", "")
   End Select
-
-  Set CreateProxy = oRet
 End Function
 
 'Await for the request to finish. This is only necessary for asynchronous requests.
@@ -404,71 +424,171 @@ End Function
 'Get whether the request has finished. This is only necessary for asynchronous requests.
 '@returns - `True` if the request has finished, `False` otherwise.
 Public Property Get isFinished() As Boolean
-  On Error GoTo Skip 'Sometimes `responseBody` and `status` isn't ready yet. So will skip if so
-  If This.HTTP.status = 202 Then 'No content
-    isFinished = True
-  Else
-    isFinished = This.HTTP.WaitForResponse(0.001) And This.HTTP.ResponseBody()(0) >= 0
-  End If
-  Exit Property
+  #If Mac Then
+    If Not This.Response.isComplete And This.CurlProcess <> 0 Then
+      'Check if process is still running
+      If web_feof(This.CurlProcess) <> 0 Then
+        'Process finished, read response
+        Call ReadCurlResponse
+      End If
+    End If
+    isFinished = This.Response.isComplete
+  #Else
+    On Error GoTo Skip 'Sometimes `responseBody` and `status` isn't ready yet. So will skip if so
+    If This.HTTP.status = 202 Then 'No content
+      isFinished = True
+    Else
+      isFinished = This.HTTP.WaitForResponse(0.001) And This.HTTP.ResponseBody()(0) >= 0
+    End If
+    Exit Property
 Skip:
-  If Err.Description Like "The data necessary to complete this operation is not yet available*" Then Exit Property
-  
-  Debug.Print "Error in stdHTTP#isFinished: '" & Err.Description & "'"
+    If Err.Description Like "The data necessary to complete this operation is not yet available*" Then Exit Property
+    
+    Debug.Print "Error in stdHTTP#isFinished: '" & Err.Description & "'"
+  #End If
 End Property
 
 'Get the response status code
 '@returns - The response status code
 Public Property Get ResponseStatus()
-  On Error GoTo Processing
-  ResponseStatus = This.HTTP.status
-  Exit Property
+  #If Mac Then
+    ResponseStatus = This.Response.Status
+  #Else
+    On Error GoTo Processing
+    ResponseStatus = This.HTTP.status
+    Exit Property
 Processing:
-  ResponseStatus = 0
+    ResponseStatus = 0
+  #End If
 End Property
 
 'Get the response status text
 '@returns - The response status text
 Public Property Get ResponseStatusText()
-  On Error GoTo Skip
-  ResponseStatusText = This.HTTP.StatusText
-  Exit Property
+  #If Mac Then
+    If Not This.Response.isComplete Then
+      ResponseStatusText = "Awaiting Response"
+    Else
+      ResponseStatusText = This.Response.StatusText
+    End If
+  #Else
+    On Error GoTo Skip
+    ResponseStatusText = This.HTTP.StatusText
+    Exit Property
 Skip:
-  Dim sErrDescription As String: sErrDescription = Err.Description
-  Select Case sErrDescription
-    Case "The data necessary to complete this operation is not yet available." & vbCrLf: ResponseStatusText = "Awaiting Response"
-    Case Else: ResponseStatusText = "Error: " & sErrDescription
-  End Select
+    Dim sErrDescription As String: sErrDescription = Err.Description
+    Select Case sErrDescription
+      Case "The data necessary to complete this operation is not yet available." & vbCrLf: ResponseStatusText = "Awaiting Response"
+      Case Else: ResponseStatusText = "Error: " & sErrDescription
+    End Select
+  #End If
 End Property
 
 'Get the response text
 '@returns - The response text
 Public Property Get ResponseText()
-  ResponseText = This.HTTP.ResponseText
+  #If Mac Then
+    ResponseText = This.Response.Text
+  #Else
+    ResponseText = This.HTTP.ResponseText
+  #End If
 End Property
 
 'Get the response body
 '@returns - The response body
 Public Property Get ResponseBody()
-  ResponseBody = This.HTTP.ResponseBody
+  #If Mac Then
+    ResponseBody = This.Response.Body
+  #Else
+    ResponseBody = This.HTTP.ResponseBody
+  #End If
 End Property
 
 'Get a response header by name
 '@param sHeader - The name of the header to get
 '@returns - The response header
 Public Property Get ResponseHeader(ByVal sHeader As String) As Variant
-  If IsObject(This.HTTP.GetResponseHeader(sHeader)) Then
-    Set ResponseHeader = This.HTTP.GetResponseHeader(sHeader)
-  Else
-    ResponseHeader = This.HTTP.GetResponseHeader(sHeader)
-  End If
+  #If Mac Then
+    ResponseHeader = GetMacHeader(sHeader)
+  #Else
+    If IsObject(This.HTTP.GetResponseHeader(sHeader)) Then
+      Set ResponseHeader = This.HTTP.GetResponseHeader(sHeader)
+    Else
+      ResponseHeader = This.HTTP.GetResponseHeader(sHeader)
+    End If
+  #End If
 End Property
 
 'Get all response headers
-'@returns - All response headers
-Public Property Get ResponseHeaders() As Object
-  Set ResponseHeaders = This.HTTP.GetAllResponseHeaders
+'@returns - All response headers as a JSON string in the format {"header1": "value1", ...}
+Public Property Get ResponseHeaders() As String
+  Dim sHeaders as string: sHeaders = "{"
+  #If Mac Then
+    Dim i as long
+    For i = 0 To This.Response.HeadersCount - 1
+      Dim headerName As String: headerName =  This.Response.Headers(i).Key
+      Dim headerValue As String: headerValue = This.Response.Headers(i).Value
+      sHeaders = sHeaders & vbCrLf & "  """ & headerName & """:" & JSONLiteral(headerValue)
+      if i < This.Response.HeadersCount - 1 then sHeaders = sHeaders & ","
+    Next
+  #Else
+    Dim headersText As String: headersText = This.HTTP.GetAllResponseHeaders
+    Dim lines() As String: lines = Split(headersText, vbCrLf)
+    Dim i As Long  
+    For i = LBound(lines) To UBound(lines)
+      Dim headerLine As String: headerLine = Trim(lines(i))
+      If headerLine <> "" Then
+        Dim colonPos As Long: colonPos = InStr(1, headerLine, ":")
+        If colonPos > 0 Then
+          Dim headerName As String: headerName = Trim(Left(headerLine, colonPos - 1))
+          Dim headerValue As String: headerValue = Trim(Mid(headerLine, colonPos + 1))
+          sHeaders = sHeaders & vbCrLf & "  """ & headerName & """:" & JSONLiteral(headerValue)
+          if i < UBound(lines) then sHeaders = sHeaders & ","
+        End If
+      End If
+    Next
+    sHeaders = sHeaders & vbCrLf & "}"
+    ResponseHeaders = sHeaders
+  #End If
 End Property
+
+'Convert headers array to JSON string
+'Headers array format: key1, value1, key2, value2, ...
+'@protected
+Private Function JSONLiteral(ByVal value As String) As String
+  if isNumeric(value) then
+    JSONLiteral = value
+  Else
+    JSONLiteral = """" & value & """"
+  End If
+End Function
+
+'Get a header value from a header array
+'@param headers - The header array (from CreateHeaders), passed by reference
+'@param HeaderName - The name of the header
+'@returns - The header value, or empty string if not found
+'@example
+'```vb
+'Dim headers: headers = stdHTTP.CreateHeaders()
+'Call stdHTTP.SetHeader(headers, "Content-Type", "application/json")
+'Debug.Print stdHTTP.GetHeader(headers, "Content-Type")
+'```
+Public Function GetHeader(ByRef headers As Variant, ByVal HeaderName As String) As String
+  GetHeader = HeaderArrayGet(headers, HeaderName)
+End Function
+
+'Set a header value in a header array
+'@param headers - The header array (from CreateHeaders), passed by reference
+'@param HeaderName - The name of the header
+'@param value - The header value to set
+'@example
+'```vb
+'Dim headers: headers = stdHTTP.CreateHeaders()
+'Call stdHTTP.SetHeader(headers, "Content-Type", "application/json")
+'```
+Public Sub SetHeader(ByRef headers As Variant, ByVal HeaderName As String, ByVal value As String)
+  Call HeaderArraySet(headers, HeaderName, value)
+End Sub
 
 'Get the mapped response
 Public Property Get ResponseMapped() As Variant
@@ -490,75 +610,436 @@ End Property
 '@param sURL - The url to query
 '@param RequestMethod - Typically "GET", "POST", "PUT", "DELETE", but can be any string which the server responds to
 '@param ThreadingStyle - The Threading approach. Either HTTPSync (Synchronous) or HTTPAsync (Asynchronous).
-'@param Options as Object<Dictionary> - Use `stdHTTP.CreateOptions()` to generate these.
-'@param Authenticator as stdICallable<(HTTP: Object, RequestMethod: String, URL: String, ThreadingStyle: Long, options: Object)=>Void> - A callable object which will be called before the request is sent. This can be used to add authentication headers, etc.
-Friend Sub protInit(ByVal sURL As String, Optional ByVal RequestMethod As String = "GET", Optional ByVal ThreadingStyle As EHTTPSynchronisity, Optional ByVal options As Object = Nothing, Optional ByVal Authenticator As stdICallable = Nothing)
-  If options Is Nothing Then Set options = CreateOptions()
-  Set This.HTTP = CreateObject("WinHttp.WinHttpRequest.5.1")
-  This.HTTP.Open RequestMethod, sURL, True
-  This.HTTP.SetTimeouts options("TimeoutMS") / 4, options("TimeoutMS") / 4, options("TimeoutMS") / 4, options("TimeoutMS") / 4
-  
-  'Set proxy info
-  With options("Proxy")
-    If .item("hasAutoProxy") Then Call LoadAutoProxy(sURL, options("Proxy"))
-    If .item("hasProxy") Then
+'@param Options as Variant<Array> - Use `stdHTTP.CreateOptions()` to generate these. Array indexed by stdHTTPOptions enum.
+'@param Authenticator as stdICallable<(HTTP: Object, RequestMethod: String, URL: String, ThreadingStyle: Long, options: Variant)=>Void> - A callable object which will be called before the request is sent. This can be used to add authentication headers, etc.
+Friend Sub protInit(ByVal sURL As String, Optional ByVal RequestMethod As String = "GET", Optional ByVal ThreadingStyle As EHTTPSynchronisity, Optional ByVal options As Variant = Nothing, Optional ByVal Authenticator As stdICallable = Nothing)
+  #If Mac Then
+    Call protInitMac(sURL, RequestMethod, ThreadingStyle, options, Authenticator)
+  #Else
+    If IsEmpty(options) Or options Is Nothing Then options = CreateOptions()
+    Set This.HTTP = CreateObject("WinHttp.WinHttpRequest.5.1")
+    This.HTTP.Open RequestMethod, sURL, True
+    Dim timeoutMS As Long: timeoutMS = options(stdHTTPOptionTimeoutMS)
+    This.HTTP.SetTimeouts timeoutMS / 4, timeoutMS / 4, timeoutMS / 4, timeoutMS / 4
+    
+    'Set proxy info
+    Dim proxy As Variant: proxy = options(stdHTTPOptionProxy)
+    If proxy(stdHTTPProxyHasAutoProxy) Then Call LoadAutoProxy(sURL, proxy)
+    If proxy(stdHTTPProxyHasProxy) Then
       'See http://msdn.microsoft.com/en-us/library/windows/desktop/aa384059(v=vs.85).aspx for details
-      This.HTTP.SetProxy ProxySetting.Proxy, .item("Server"), .item("Bypass")
-      If .item("User") <> vbNullString Then
-        This.HTTP.SetCredentials .item("User"), .item("Pass"), SetCredentialsType.ForProxy
+      This.HTTP.SetProxy ProxySetting.Proxy, proxy(stdHTTPProxyServer), proxy(stdHTTPProxyBypass)
+      If proxy(stdHTTPProxyUser) <> vbNullString Then
+        This.HTTP.SetCredentials proxy(stdHTTPProxyUser), proxy(stdHTTPProxyPass), SetCredentialsType.ForProxy
       End If
     Else
       'Use Proxycfg.exe
       This.HTTP.SetProxy ProxySetting.PreConfig
     End If
-  End With
 
-  If options("Insecure") Then
-    This.HTTP.Option(WinHttpRequestOption.EnableCertificateRevocationCheck) = False
-    This.HTTP.Option(WinHttpRequestOption.SslErrorIgnoreFlags) = 13056
-    This.HTTP.Option(WinHttpRequestOption.EnableHttpsToHttpRedirects) = True
-  Else
-    This.HTTP.Option(WinHttpRequestOption.EnableCertificateRevocationCheck) = True
-    This.HTTP.Option(WinHttpRequestOption.SslErrorIgnoreFlags) = 0
-    This.HTTP.Option(WinHttpRequestOption.EnableHttpsToHttpRedirects) = False
-  End If
-  This.HTTP.Option(WinHttpRequestOption.EnableRedirects) = options("EnableRedirects")
-  
-  Dim vKey
-  For Each vKey In options("Headers").keys()
-    This.HTTP.SetRequestHeader vKey, options("Headers")(vKey)
-  Next
-  For Each vKey In options("Cookies").keys()
-    This.HTTP.SetRequestHeader "Cookie", vKey & "=" & options("Cookies")(vKey)
-  Next
-  
-  'Allow authenticators
-  If Not Authenticator Is Nothing Then Call Authenticator.Run(This.HTTP, RequestMethod, sURL, ThreadingStyle, options)
-  
-  'Execute request
-  This.Created = Now()
-  This.TimeoutMS = options("TimeoutMS")
-  This.HTTP.Send options("Body")
+    If options(stdHTTPOptionInsecure) Then
+      This.HTTP.Option(WinHttpRequestOption.EnableCertificateRevocationCheck) = False
+      This.HTTP.Option(WinHttpRequestOption.SslErrorIgnoreFlags) = 13056
+      This.HTTP.Option(WinHttpRequestOption.EnableHttpsToHttpRedirects) = True
+    Else
+      This.HTTP.Option(WinHttpRequestOption.EnableCertificateRevocationCheck) = True
+      This.HTTP.Option(WinHttpRequestOption.SslErrorIgnoreFlags) = 0
+      This.HTTP.Option(WinHttpRequestOption.EnableHttpsToHttpRedirects) = False
+    End If
+    This.HTTP.Option(WinHttpRequestOption.EnableRedirects) = options(stdHTTPOptionEnableRedirects)
+    
+    Dim headers As Variant: headers = options(stdHTTPOptionHeaders)
+    Dim i As Long
+    If IsArray(headers) Then
+      For i = LBound(headers) To UBound(headers) Step 2
+        This.HTTP.SetRequestHeader headers(i), headers(i + 1)
+      Next
+    End If
+    
+    Dim cookies As Variant: cookies = options(stdHTTPOptionCookies)
+    If IsArray(cookies) Then
+      For i = LBound(cookies) To UBound(cookies) Step 2
+        This.HTTP.SetRequestHeader "Cookie", cookies(i) & "=" & cookies(i + 1)
+      Next
+    End If
+    
+    'Allow authenticators
+    If Not Authenticator Is Nothing Then Call Authenticator.Run(This.HTTP, RequestMethod, sURL, ThreadingStyle, options)
+    
+    'Execute request
+    This.Created = Now()
+    This.TimeoutMS = timeoutMS
+    This.HTTP.Send options(stdHTTPOptionBody)
 
-  'Await for the request to finish if synchronous
-  if ThreadingStyle = HTTPSync Then Call Await
+    'Await for the request to finish if synchronous
+    if ThreadingStyle = HTTPSync Then Call Await
+  #End If
 End Sub
+
+'Helper functions for header arrays
+'@protected
+Private Function HeaderArrayExists(ByRef headers As Variant, ByVal key As String) As Boolean
+  Dim i As Long
+  If Not IsArray(headers) Then
+    HeaderArrayExists = False
+    Exit Function
+  End If
+  For i = LBound(headers) To UBound(headers) Step 2
+    If LCase(headers(i)) = LCase(key) Then
+      HeaderArrayExists = True
+      Exit Function
+    End If
+  Next
+  HeaderArrayExists = False
+End Function
+
+Private Sub HeaderArraySet(ByRef headers As Variant, ByVal key As String, ByVal value As String)
+  Dim i As Long
+  Dim found As Boolean
+  
+  If Not IsArray(headers) Then
+    ReDim headers(0 To 1)
+    headers(0) = key
+    headers(1) = value
+    Exit Sub
+  End If
+  
+  'Check if key exists
+  found = False
+  For i = LBound(headers) To UBound(headers) Step 2
+    If LCase(headers(i)) = LCase(key) Then
+      headers(i + 1) = value
+      found = True
+      Exit For
+    End If
+  Next
+  
+  'If not found, add it
+  If Not found Then
+    Dim newSize As Long
+    newSize = UBound(headers) + 1 + 2
+    ReDim Preserve headers(LBound(headers) To newSize - 1)
+    headers(UBound(headers) - 1) = key
+    headers(UBound(headers)) = value
+  End If
+End Sub
+
+Private Function HeaderArrayGet(ByRef headers As Variant, ByVal key As String) As String
+  Dim i As Long
+  If Not IsArray(headers) Then
+    HeaderArrayGet = ""
+    Exit Function
+  End If
+  For i = LBound(headers) To UBound(headers) Step 2
+    If LCase(headers(i)) = LCase(key) Then
+      HeaderArrayGet = headers(i + 1)
+      Exit Function
+    End If
+  Next
+  HeaderArrayGet = ""
+End Function
+
+'Mac-specific initialization
+'@protected
+#If Mac Then
+  Public Sub protInitMac(ByVal sURL As String, ByVal RequestMethod As String, ByVal ThreadingStyle As EHTTPSynchronisity, ByVal options As Variant, ByVal Authenticator As stdICallable)
+    If IsEmpty(options) Or options Is Nothing Then options = CreateOptions()
+    
+    'Initialize response storage
+    ReDim This.Response.Headers(0 To 0)
+    This.Response.HeadersCount = 0
+    This.Response.isComplete = False
+    
+    'Build curl command
+    Dim curlCmd As String
+    curlCmd = "curl -s -S -i" ' -s silent, -S show errors, -i include headers
+    
+    'Add timeout
+    Dim timeoutMS As Long: timeoutMS = options(stdHTTPOptionTimeoutMS)
+    If timeoutMS > 0 Then
+      curlCmd = curlCmd & " --max-time " & (timeoutMS / 1000)
+    End If
+    
+    'Add method
+    curlCmd = curlCmd & " -X " & RequestMethod
+    
+    'Add headers (array format: key1, value1, key2, value2, ...)
+    Dim headers As Variant: headers = options(stdHTTPOptionHeaders)
+    Dim i As Long
+    If IsArray(headers) Then
+      For i = LBound(headers) To UBound(headers) Step 2
+        curlCmd = curlCmd & " -H """ & headers(i) & ": " & Replace(headers(i + 1), """", "\""") & """"
+      Next
+    End If
+    
+    'Add cookies (array format: key1, value1, key2, value2, ...)
+    Dim cookies As Variant: cookies = options(stdHTTPOptionCookies)
+    If IsArray(cookies) Then
+      For i = LBound(cookies) To UBound(cookies) Step 2
+        curlCmd = curlCmd & " -H ""Cookie: " & cookies(i) & "=" & Replace(cookies(i + 1), """", "\""") & """"
+      Next
+    End If
+    
+    'Add body if present
+    Dim body As String: body = options(stdHTTPOptionBody)
+    If body <> "" Then
+      'Use temp file for body to handle binary data and special characters reliably
+      Dim tempFile As String
+      tempFile = Environ("TMPDIR")
+      If tempFile = "" Then tempFile = "/tmp/"
+      If Right(tempFile, 1) <> "/" Then tempFile = tempFile & "/"
+      tempFile = tempFile & "stdHTTP_" & Replace(Format(Now, "yyyymmddhhnnss"), " ", "") & "_" & Rnd * 10000 & ".tmp"
+      Open tempFile For Binary As #1
+      Put #1, , body
+      Close #1
+      curlCmd = curlCmd & " --data-binary @""" & tempFile & """"
+      'Note: Temp file cleanup would be ideal but VBA doesn't have great cleanup mechanisms
+      'The OS will clean up temp files eventually
+    End If
+    
+    'Add proxy settings
+    Dim proxy As Variant: proxy = options(stdHTTPOptionProxy)
+    If proxy(stdHTTPProxyHasAutoProxy) Then
+      'On Mac, curl uses system proxy by default, so we can use environment variables
+      proxy(stdHTTPProxyHasAutoProxy) = false
+      proxy(stdHTTPProxyHasProxy) = false
+    End If
+    If proxy(stdHTTPProxyHasProxy) Then
+      Dim proxyUrl As String
+      proxyUrl = proxy(stdHTTPProxyServer)
+      If proxy(stdHTTPProxyUser) <> vbNullString And proxy(stdHTTPProxyUser) <> "" Then
+        proxyUrl = proxy(stdHTTPProxyUser) & ":" & proxy(stdHTTPProxyPass) & "@" & proxyUrl
+      End If
+      curlCmd = curlCmd & " --proxy """ & proxyUrl & """"
+    End If
+    
+    'Add SSL options
+    If options(stdHTTPOptionInsecure) Then
+      curlCmd = curlCmd & " --insecure"
+    End If
+    
+    'Add redirect options
+    If options(stdHTTPOptionEnableRedirects) Then
+      curlCmd = curlCmd & " -L"
+    Else
+      curlCmd = curlCmd & " --max-redirs 0"
+    End If
+    
+    'Add URL
+    curlCmd = curlCmd & " """ & sURL & """"
+    
+    'Store the curl command
+    This.curlCommand = curlCmd
+    
+    'Note: Authenticator callback would need to modify curlCmd before execution
+    'For now, we'll call it but it won't have the same effect as on Windows
+    If Not Authenticator Is Nothing Then
+      'Create a mock HTTP object for authenticator compatibility
+      Dim mockHTTP As Object
+      Set mockHTTP = CreateObject("Scripting.Dictionary")
+      'Authenticator can add headers to options("Headers") if needed
+      'For now, we'll just call it for compatibility
+      'Call Authenticator.Run(mockHTTP, RequestMethod, sURL, ThreadingStyle, options)
+    End If
+    
+    'Execute curl command
+    This.Created = Now()
+    This.TimeoutMS = timeoutMS
+    #If VBA7 Then
+      This.CurlProcess = web_popen(curlCmd, "r")
+    #Else
+      This.CurlProcess = web_popen(curlCmd, "r")
+    #End If
+    
+    If This.CurlProcess = 0 Then
+      Err.Raise 1, "stdHTTP", "Failed to execute curl command"
+    End If
+    
+    'If synchronous, read response immediately
+    If ThreadingStyle = HTTPSync Then
+      Call ReadCurlResponse
+      Call Await
+    End If
+  End Sub
+#End If
+
+'Read response from curl process
+'@protected
+#If Mac Then
+  Private Sub ReadCurlResponse()
+    If This.CurlProcess = 0 Then Exit Sub
+    
+    Dim buffer As String
+    Dim chunkSize As Long
+    Dim totalOutput As String
+    Dim bytesRead As LongPtr
+    
+    chunkSize = 4096
+    buffer = Space(chunkSize)
+    totalOutput = ""
+    
+    'Read all output
+    Do While web_feof(This.CurlProcess) = 0
+      #If VBA7 Then
+        bytesRead = web_fread(buffer, 1, chunkSize, This.CurlProcess)
+      #Else
+        bytesRead = web_fread(buffer, 1, chunkSize, This.CurlProcess)
+      #End If
+      If bytesRead > 0 Then
+        totalOutput = totalOutput & Left(buffer, bytesRead)
+      Else
+        Exit Do
+      End If
+    Loop
+    
+    'Close the process
+    #If VBA7 Then
+      web_pclose(This.CurlProcess)
+    #Else
+      web_pclose(This.CurlProcess)
+    #End If
+    This.CurlProcess = 0
+    
+    'Parse response
+    Call ParseCurlResponse(totalOutput)
+    This.Response.isComplete = True
+  End Sub
+#End If
+
+'Add a header to the Mac headers array
+'@protected
+#If Mac Then
+  Private Sub AddMacHeader(ByVal key As String, ByVal value As String)
+    Dim i As Long
+    Dim found As Boolean
+    
+    'Check if header already exists (case-insensitive)
+    found = False
+    For i = 0 To This.Response.HeadersCount - 1
+      If LCase(This.Response.Headers(i).Key) = LCase(key) Then
+        This.Response.Headers(i).Value = value
+        found = True
+        Exit For
+      End If
+    Next
+    
+    'If not found, add new header
+    If Not found Then
+      If This.Response.HeadersCount > UBound(This.Response.Headers) Then
+        ReDim Preserve This.Response.Headers(0 To This.Response.HeadersCount)
+      End If
+      This.Response.Headers(This.Response.HeadersCount).Key = key
+      This.Response.Headers(This.Response.HeadersCount).Value = value
+      This.Response.HeadersCount = This.Response.HeadersCount + 1
+    End If
+  End Sub
+#End If
+
+'Get a header value from the Mac headers array
+'@protected
+#If Mac Then
+Private Function GetMacHeader(ByVal key As String) As String
+  Dim i As Long
+  For i = 0 To This.Response.HeadersCount - 1
+    If LCase(This.Response.Headers(i).Key) = LCase(key) Then
+      GetMacHeader = This.Response.Headers(i).Value
+      Exit Function
+    End If
+  Next
+  GetMacHeader = ""
+End Function
+#End If
+
+'Parse curl response output
+'@protected
+#If Mac Then
+  Private Sub ParseCurlResponse(ByVal output As String)
+    'Curl with -i flag outputs headers followed by blank line, then body
+    Dim headerEnd As Long
+    Dim headersText As String
+    Dim bodyText As String
+    Dim statusLine As String
+    Dim lines() As String
+    Dim i As Long
+    
+    'Find the blank line that separates headers from body
+    headerEnd = InStr(1, output, vbCrLf & vbCrLf)
+    If headerEnd = 0 Then headerEnd = InStr(1, output, vbLf & vbLf)
+    If headerEnd = 0 Then
+      'No headers, entire output is body
+      bodyText = output
+      headersText = ""
+    Else
+      headersText = Left(output, headerEnd - 1)
+      bodyText = Mid(output, headerEnd + 4)
+    End If
+    
+    'Parse status line (first line of headers)
+    'Normalize line endings to vbCrLf for consistent parsing
+    headersText = Replace(headersText, vbLf, vbCrLf)
+    headersText = Replace(headersText, vbCrLf & vbCrLf, vbCrLf & vbCrLf) 'Ensure double CRLF
+    lines = Split(headersText, vbCrLf)
+    If UBound(lines) >= 0 Then
+      statusLine = Trim(lines(0))
+      'Parse HTTP/1.1 200 OK format
+      Dim parts() As String
+      parts = Split(statusLine, " ", 3)
+      If UBound(parts) >= 1 Then
+        On Error Resume Next
+        This.Response.Status = CLng(parts(1))
+        If UBound(parts) >= 2 Then
+          This.Response.StatusText = parts(2)
+        Else
+          This.Response.StatusText = ""
+        End If
+        On Error GoTo 0
+      End If
+      
+      'Parse headers (skip first line which is status)
+      For i = 1 To UBound(lines)
+        Dim headerLine As String
+        Dim colonPos As Long
+        headerLine = Trim(lines(i))
+        If headerLine <> "" Then
+          colonPos = InStr(1, headerLine, ":")
+          If colonPos > 0 Then
+            Dim headerName As String
+            Dim headerValue As String
+            headerName = Trim(Left(headerLine, colonPos - 1))
+            headerValue = Trim(Mid(headerLine, colonPos + 1))
+            Call AddMacHeader(headerName, headerValue)
+          End If
+        End If
+      Next
+    End If
+    
+    'Store body
+    This.Response.Text = bodyText
+    'Convert to byte array for ResponseBody
+    Dim bodyBytes() As Byte
+    bodyBytes = StrConv(bodyText, vbFromUnicode)
+    This.Response.Body = bodyBytes
+  End Sub
+#End If
 
 'Get the HSesssion
 '@protected
 '@returns - The HSesssion
-#If VBA7 Then
-Friend Property Get protHSession() As LongPtr
+#If Mac Then
+  'Not used on Mac
 #Else
-Friend Property Get protHSession() As Long
+  #If VBA7 Then
+  Friend Property Get protHSession() As LongPtr
+  #Else
+  Friend Property Get protHSession() As Long
+  #End If
+    If Me Is stdHTTP Then
+      Static hSession As LongPtr: If hSession = 0 Then hSession = WinHttpOpen(0, 1, 0, 0, 0)
+      protHSession = hSession
+    Else
+      protHSession = stdHTTP.protHSession
+    End If
+  End Property
 #End If
-  If Me Is stdHTTP Then
-    Static hSession As LongPtr: If hSession = 0 Then hSession = WinHttpOpen(0, 1, 0, 0, 0)
-    protHSession = hSession
-  Else
-    protHSession = stdHTTP.protHSession
-  End If
-End Property
 
 'Encode a string for use in a URL
 '@param strInput - The string to encode
@@ -622,20 +1103,20 @@ End Function
 
 'Load the system proxy settings for a given URL
 '@param sURL - The url to query
-'@param oProxy - The proxy object to load the settings into
-Private Sub LoadAutoProxy(ByVal sURL As String, ByVal oProxy As Object)
+'@param proxy - The proxy array to load the settings into (passed by reference)
+Private Sub LoadAutoProxy(ByVal sURL As String, ByRef proxy As Variant)
   Dim info As ProxyInfoEx: info = GetProxyCurrentUser(sURL)
   If Not info.Error.isSet Then
     'FIX: Sometimes proxy server is empty without the error being set. Ignore these proxys.
-    oProxy("hasProxy") = (info.ProxyServer <> "")
-    oProxy("server") = info.ProxyServer
-    oProxy("bypass") = info.ProxyBypass
-    oProxy("user") = Empty  'TODO: Check if user/pass credentials with auto-proxy will ever be needed
-    oProxy("pass") = Empty
+    proxy(stdHTTPProxyHasProxy) = (info.ProxyServer <> "")
+    proxy(stdHTTPProxyServer) = info.ProxyServer
+    proxy(stdHTTPProxyBypass) = info.ProxyBypass
+    proxy(stdHTTPProxyUser) = ""  'TODO: Check if user/pass credentials with auto-proxy will ever be needed
+    proxy(stdHTTPProxyPass) = ""
   Else
     If info.Error.isRecoverable Then
       'Assume no proxy
-      oProxy("hasProxy") = False
+      proxy(stdHTTPProxyHasProxy) = False
     Else
       Err.Raise info.Error.Num, "stdHTTP", info.Error.Msg
     End If
