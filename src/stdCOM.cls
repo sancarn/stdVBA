@@ -112,6 +112,11 @@ Attribute VB_Exposed = True
     'PropertyStore
     Private Declare PtrSafe Function SHGetPropertyStoreFromParsingName Lib "shell32" (ByVal pszPath As LongPtr, pbc As Any, ByVal Flags As Long, riid As GUID, ppv As Any) As Long
 
+    'Create without registration
+    Private Declare PtrSafe Function GetModuleHandleW Lib "kernel32" (ByVal lpModuleName As LongPtr) As LongPtr
+    Private Declare PtrSafe Function GetProcAddress Lib "kernel32" (ByVal hModule As LongPtr, ByVal lpProcName As String) As LongPtr
+    Private Declare PtrSafe Function LoadLibraryW Lib "kernel32" (ByVal lpLibFileName As LongPtr) As LongPtr
+    Private Declare PtrSafe Function LoadTypeLibEx Lib "oleaut32" Alias "#183" (ByVal lpszFile As LongPtr, ByVal RegKind As Long, pptLib As IUnknown) As Long
 #Else
     Private Enum LongPtr
       [_]
@@ -145,6 +150,12 @@ Attribute VB_Exposed = True
 
     'PropertyStore
     Private Declare Function SHGetPropertyStoreFromParsingName Lib "shell32" (ByVal pszPath As LongPtr, pbc As Any, ByVal Flags As Long, riid As GUID, ppv As Any) As Long
+
+    'Create without registration
+    Private Declare Function GetModuleHandleW Lib "kernel32" (ByVal lpModuleName As LongPtr) As LongPtr
+    Private Declare Function GetProcAddress Lib "kernel32" (ByVal hModule As LongPtr, ByVal lpProcName As String) As LongPtr
+    Private Declare Function LoadLibraryW Lib "kernel32" (ByVal lpLibFileName As LongPtr) As LongPtr
+    Private Declare Function LoadTypeLibEx Lib "oleaut32" Alias "#183" (ByVal lpszFile As LongPtr, ByVal RegKind As Long, pptLib As IUnknown) As Long
 #End If
 
 'GUID struct for QueryInterface
@@ -237,6 +248,7 @@ End Type
 'Not all of these IIDs will be useful. But hopefully some will be.
 Public Enum EKnownInterfaces
   IUnknown                '00000000-0000-0000-C000-000000000046
+  IClassFactory           '00000001-0000-0000-C000-000000000046
   IDispatch               '00020400-0000-0000-C000-000000000046
   ITypeInfo               '00020401-0000-0000-C000-000000000046
   ITypeLib                '00020402-0000-0000-C000-000000000046
@@ -409,6 +421,21 @@ Public Enum EIRunningObjectTable
   NoteChangeTime
   GetTimeOfLastChange
   EnumRunning
+End Enum
+
+'[IClassFactory](https://github.com/microsoft/referencesource/blob/main/System.ServiceModel/System/ServiceModel/ComIntegration/IClassFactory.cs)
+'@remark extends IUnknown
+'0      HRESULT  QueryInterface      ([in]  REFIID riid, [out] void **ppvObject)
+'1      HRESULT  AddRef              ()
+'2      HRESULT  Release             ()
+'3      HRESULT  CreateInstance      ([in]  IUnknown *pUnkOuter, [in]  REFIID riid, [out] void **ppvObject)
+'4      HRESULT  LockServer         ([in]  BOOL fLock)
+Public Enum EIClassFactory
+  QueryInterface
+  AddRef
+  Release
+  CreateInstance
+  LockServer
 End Enum
 
 '[IEnumVARIANT](https://github.com/tpn/winsdk-10/blob/master/Include/10.0.16299.0/um/OAIdl.h#L2398-L2432)
@@ -714,6 +741,37 @@ Public Function CreatePropertyStoreFromFile(ByVal sPath As String, Optional flag
   Else
     Err.Raise 1, "stdCOM::CreatePropertyStoreFromFile", "Cannot create object from path."
   End If
+End Function
+
+'@remark This function will enable use of COM classes not registered in the system registry.
+Public Function CreateFromDLLAndClassName(ByVal className as string, ByVal dllPath as string) as stdCOM
+    ' Collection of ClassFactory objects indexed by class name
+    Static oClassFactories As Object: if oClassFactories is nothing then Set oClassFactories = CreateObject("Scripting.Dictionary")
+
+    if oClassFactories.exists(className) then
+
+    end if
+
+    Dim RegFreeIUnknown As IUnknown
+    If InvokeObj(ClassFactory(className), IClassFactory_CreateInstance, vbNullPtr, VarPtr(IID_IUnknown(0)), VarPtr(RegFreeIUnknown)) = S_OK Then ' Create an instance of this class
+        Set CreateFromDLLAndClassName = RegFreeIUnknown ' Get the IDispatch implementation of this class
+    ElseIf LoadTypeLibFromDLL(dllPath, lDllResourceNumber) Then
+        pcFound = 1 ' We want to find only one instance of this class name (there shouldn't be duplicates anyway)
+        Dim ITypeInfo As IUnknown, rgMemId As Long, pcFound As Long
+        InvokeObj ITypeLib, ITypeLib_FindName, StrPtr(className), 0&, VarPtr(ITypeInfo), VarPtr(rgMemId), VarPtr(pcFound) ' Search the TypeLib for our class name
+        If rgMemId = MEMBERID_NIL Then ' If the class name is found then "rgMemId" will return MEMBERID_NIL
+            Dim lpTypeAttr As LongPtr
+            InvokeObj ITypeInfo, ITypeInfo_GetTypeAttr, VarPtr(lpTypeAttr) ' The first member of the "TypeAttr" structure is the class GUID so we don't need to CopyMemory its contents
+            If lpTypeAttr Then
+                Dim IClassFactory As IUnknown
+                If InvokeObj(Nothing, lpDllGetClassObject, lpTypeAttr, VarPtr(IID_IClassFactory(0)), VarPtr(IClassFactory)) = S_OK Then ' Call DllGetClassObject to retrieve the class object from the DLL object handler
+                    colClassFactory.Add IClassFactory, className
+                    Set CreateFromDLLAndClassName = CreateObj(className) ' Add this ClassFactory to the collection and create an instance
+                End If
+                InvokeObj ITypeInfo, ITypeInfo_ReleaseTypeAttr, lpTypeAttr ' Release the previously allocated "TypeAttr" structure
+            End If
+        End If
+    End If
 End Function
 
 '#################################
@@ -1290,4 +1348,3 @@ End Function
 '  RegDelete, HKCU, Software\Classes\%APPID%
 '  RegDelete, HKCU, Software\Classes\CLSID\%CLSID%
 '}
-
