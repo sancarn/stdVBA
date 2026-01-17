@@ -5,6 +5,7 @@ on:
     branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -20,4 +21,5 @@ jobs:
         do-checkout: true
         do-push: true
         
+
 
