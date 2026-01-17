@@ -6815,8 +6815,8 @@
           }
         ],
         "returns": {
-          "type": "Object<Dictionary>",
-          "description": "A dictionary of headers"
+          "type": "Array",
+          "description": "An array of headers in the form Array(key1, value1, key2, value2, ...)"
         },
         "deprecation": {
           "status": false,
@@ -6847,19 +6847,19 @@
           },
           {
             "name": "Headers",
-            "type": "Object<Dictionary>",
-            "description": "The headers of the request",
+            "type": "Variant<Array>",
+            "description": "The headers of the request (array format: key1, value1, key2, value2, ...)",
             "optional": true,
-            "defaultValue": "Nothing",
+            "defaultValue": "Empty",
             "paramArray": false,
             "referenceType": "ByRef"
           },
           {
             "name": "Cookies",
-            "type": "Object<Dictionary>",
-            "description": "The cookies of the request",
+            "type": "Variant<Array>",
+            "description": "The cookies of the request (array format: key1, value1, key2, value2, ...)",
             "optional": true,
-            "defaultValue": "Nothing",
+            "defaultValue": "Empty",
             "paramArray": false,
             "referenceType": "ByRef"
           },
@@ -6898,11 +6898,20 @@
             "defaultValue": "5000",
             "paramArray": false,
             "referenceType": "ByVal"
+          },
+          {
+            "name": "Proxy",
+            "type": "Variant<Array>",
+            "description": "Proxy configuration array (use `stdHTTP.CreateProxy()` to generate)",
+            "optional": true,
+            "defaultValue": "Empty",
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
-          "type": "Object<Dictionary>",
-          "description": "A dictionary of options"
+          "type": "Variant<Array>",
+          "description": "A fixed-width array indexed by stdHTTPOptions enum"
         },
         "deprecation": {
           "status": false,
@@ -6925,7 +6934,7 @@
           {
             "name": "proxyType",
             "type": "EHTTPProxyType",
-            "description": "",
+            "description": "The type of proxy configuration",
             "optional": false,
             "defaultValue": null,
             "paramArray": false,
@@ -6969,8 +6978,8 @@
           }
         ],
         "returns": {
-          "type": "Void",
-          "description": "Proxy information object"
+          "type": "Variant<Array>",
+          "description": "A fixed-width array indexed by stdHTTPProxy enum"
         },
         "deprecation": {
           "status": false,
@@ -7002,6 +7011,117 @@
         "devNotes": [],
         "todos": [],
         "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "GetHeader",
+        "description": "Get a header value from a header array",
+        "remarks": [],
+        "examples": [
+          "```vb\r\nDim headers: headers = stdHTTP.CreateHeaders()\r\nCall stdHTTP.SetHeader(headers, \"Content-Type\", \"application/json\")\r\nDebug.Print stdHTTP.GetHeader(headers, \"Content-Type\")\r\n```"
+        ],
+        "params": [
+          {
+            "name": "headers",
+            "type": "Variant",
+            "description": "The header array (from CreateHeaders), passed by reference",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByRef"
+          },
+          {
+            "name": "HeaderName",
+            "type": "String",
+            "description": "The name of the header",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "String",
+          "description": "The header value, or empty string if not found"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "SetHeader",
+        "description": "Set a header value in a header array",
+        "remarks": [],
+        "examples": [
+          "```vb\r\nDim headers: headers = stdHTTP.CreateHeaders()\r\nCall stdHTTP.SetHeader(headers, \"Content-Type\", \"application/json\")\r\n```"
+        ],
+        "params": [
+          {
+            "name": "headers",
+            "type": "Variant",
+            "description": "The header array (from CreateHeaders), passed by reference",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByRef"
+          },
+          {
+            "name": "HeaderName",
+            "type": "String",
+            "description": "The name of the header",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "value",
+            "type": "String",
+            "description": "The header value to set",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "protInitMac",
+        "description": "Mac-specific initialization",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": true,
         "throws": [],
         "requires": [],
         "isStatic": false
@@ -7228,8 +7348,8 @@
         "examples": [],
         "params": [],
         "returns": {
-          "type": "Object",
-          "description": "All response headers"
+          "type": "String",
+          "description": "All response headers as a JSON string in the format {\"header1\": \"value1\", ...}"
         },
         "deprecation": {
           "status": false,
@@ -7326,8 +7446,8 @@
           },
           {
             "name": "options",
-            "type": "Object<Dictionary>",
-            "description": "Use `stdHTTP.CreateOptions()` to generate these.",
+            "type": "Variant<Array>",
+            "description": "Use `stdHTTP.CreateOptions()` to generate these. Array indexed by stdHTTPOptions enum.",
             "optional": true,
             "defaultValue": "Nothing",
             "paramArray": false,
@@ -7335,7 +7455,7 @@
           },
           {
             "name": "Authenticator",
-            "type": "stdICallable<(HTTP: Object, RequestMethod: String, URL: String, ThreadingStyle: Long, options: Object)=>Void>",
+            "type": "stdICallable<(HTTP: Object, RequestMethod: String, URL: String, ThreadingStyle: Long, options: Variant)=>Void>",
             "description": "A callable object which will be called before the request is sent. This can be used to add authentication headers, etc.",
             "optional": true,
             "defaultValue": "Nothing",
