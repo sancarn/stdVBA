@@ -119,8 +119,16 @@ Private This As TThis
 '@param sName - The name of the fiber
 '@returns - A fiber procedure - a wrapper around a number of procedures used for concurrent programming.
 Public Function Create(ByVal sName As String) As stdFiber
-  Set Create = New stdFiber
-  Call Create.protInit(sName)
+  With stdError.getSentry("stdFiber#Create", "sName", sName)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Set Create = New stdFiber
+      Call Create.protInit(sName)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Create a fiber
@@ -128,9 +136,17 @@ End Function
 '@protected
 '@param sName - The name of the fiber
 Friend Sub protInit(ByVal sName As String)
-  This.name = sName
-  This.procStep = 1
-  Set This.meta = CreateObject("Scripting.Dictionary")
+  With stdError.getSentry("stdFiber#protInit", "sName", sName)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      This.name = sName
+      This.procStep = 1
+      Set This.meta = CreateObject("Scripting.Dictionary")
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Add a step/sub-process to the fiber
@@ -138,155 +154,291 @@ End Sub
 '@param stepName - The name of the step. This can be used for resetting and error reporting purposes.
 '@returns - A fiber procedure - A reference to the fiber the step has been added to
 Public Function add(ByVal processStep As stdICallable, Optional ByVal stepName As String = "") As stdFiber
-  This.procsCount = This.procsCount + 1
-  ReDim Preserve This.procs(1 To This.procsCount)
-  With This.procs(This.procsCount)
-    Set .proc = processStep
-    .name = stepName
+  With stdError.getSentry("stdFiber#add", "processStep", processStep, "stepName", stepName)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      This.procsCount = This.procsCount + 1
+      ReDim Preserve This.procs(1 To This.procsCount)
+      With This.procs(This.procsCount)
+        Set .proc = processStep
+        .name = stepName
+      End With
+      Set add = Me
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
   End With
-  Set add = Me
 End Function
 
 'Add an error handler to the fiber
 '@param handler as stdICallable<(stdFiber)=>void> - Callback to run when an error occurs in the fiber
 '@returns - A fiber procedure - A reference to the fiber the step has been added to, to allow chaining
 Public Function addErrorHandler(ByVal handler As stdICallable) As stdFiber
-  Set This.errorHandler = handler
-  Set addErrorHandler = Me
+  With stdError.getSentry("stdFiber#addErrorHandler", "handler", handler)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Set This.errorHandler = handler
+      Set addErrorHandler = Me
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Add a handler which is triggered at every step change
 '@param handler as stdICallable<(stdFiber)=>void> - Callback to run when an error occurs in the fiber
 '@returns - A fiber procedure - A reference to the fiber the step has been added to, to allow chaining
 Public Function addStepChangeHandler(ByVal handler As stdICallable) As stdFiber
-  Set This.stepChangeHandler = handler
-  Set addStepChangeHandler = Me
+  With stdError.getSentry("stdFiber#addStepChangeHandler", "handler", handler)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Set This.stepChangeHandler = handler
+      Set addStepChangeHandler = Me
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Calls current sub-process in the fiber procedure. Advances the queue if the ran sub-process is finished.
 '@param agent as Object<Dictionary> - An object storing information unique to the runtime agent. This agent is bound to the fiber, allowing use of window or accessibility elements initialised on the agent.
 '@returns - `True` if this fiber procedure has finished execution (i.e. future stepping not required anymore).
 Friend Function protStep(ByVal agent As Object) As Boolean
-  Dim oMe As Object: Set oMe = Me
-  On Error GoTo ErrorHandler
-    If This.fiberStartTime = 0 Then This.fiberStartTime = Now()
-    If This.procs(This.procStep).startTime = 0 Then This.procs(This.procStep).startTime = Now()
+  With stdError.getSentry("stdFiber#protStep", "agent", agent)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    Set This.agent = agent
-    If This.procs(This.procStep).proc.Run(oMe) Then
-      This.procStep = This.procStep + 1
-      This.isFinished = This.procStep > This.procsCount
-      If This.isFinished Then
-        This.endTime = Now()
-      Else
-        If Not This.stepChangeHandler Is Nothing Then Call This.stepChangeHandler.Run(oMe)
-      End If
-    End If
-    protStep = This.isFinished
+      Dim oMe As Object: Set oMe = Me
+      On Error GoTo ErrorHandler
+        If This.fiberStartTime = 0 Then This.fiberStartTime = Now()
+        If This.procs(This.procStep).startTime = 0 Then This.procs(This.procStep).startTime = Now()
+        
+        Set This.agent = agent
+        If This.procs(This.procStep).proc.Run(oMe) Then
+          This.procStep = This.procStep + 1
+          This.isFinished = This.procStep > This.procsCount
+          If This.isFinished Then
+            This.endTime = Now()
+          Else
+            If Not This.stepChangeHandler Is Nothing Then Call This.stepChangeHandler.Run(oMe)
+          End If
+        End If
+        protStep = This.isFinished
+        Exit Function
+      On Error GoTo stdErrorWrapper_ErrorOccurred
+    ErrorHandler:
+      protStep = True
+      This.isFinished = True
+      This.result = Null
+      This.endTime = Now()
+      This.errorText = Err.Description & "(" & Err.Number & ", " & Err.Source & ")"
+      Call This.errorHandler.Run(oMe)
+    
     Exit Function
-  On Error GoTo 0
-ErrorHandler:
-  protStep = True
-  This.isFinished = True
-  This.result = Null
-  This.endTime = Now()
-  This.errorText = Err.Description & "(" & Err.Number & ", " & Err.Source & ")"
-  Call This.errorHandler.Run(oMe)
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Usually called by a sub-process, this will mark the fiber procedure as finished, and return the passed result
 '@param vResult - The result to return
 Public Sub Resolve(ByVal vResult As Variant)
-  This.isFinished = True
-  This.endTime = Now()
-  Call CopyVariant(This.result, vResult)
+  With stdError.getSentry("stdFiber#Resolve", "vResult", vResult)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      This.isFinished = True
+      This.endTime = Now()
+      Call CopyVariant(This.result, vResult)
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Reset to a specific step
 '@param sName - Step name to jump to (if not specified, will reset to first step).
 Public Sub Reset(Optional ByVal sName As String = "")
-  This.resetCount = This.resetCount + 1
-  If sName <> "" Then
-    Dim i As Long
-    For i = 1 To This.procsCount
-      If This.procs(i).name = sName Then
-        Dim j As Long
-        For j = i To This.procStep
-          This.procs(j).startTime = 0
+  With stdError.getSentry("stdFiber#Reset", "sName", sName)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      This.resetCount = This.resetCount + 1
+      If sName <> "" Then
+        Dim i As Long
+        For i = 1 To This.procsCount
+          If This.procs(i).name = sName Then
+            Dim j As Long
+            For j = i To This.procStep
+              This.procs(j).startTime = 0
+            Next
+            This.procStep = i
+            Exit Sub
+          End If
         Next
-        This.procStep = i
-        Exit Sub
+      Else
+        This.procStep = 1
       End If
-    Next
-  Else
-    This.procStep = 1
-  End If
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Obtain the number of times this fiber has reset.
 '@returns - The number of times this fiber has been reset.
 Public Property Get ResetCount() As Long
-  ResetCount = This.resetCount
+  With stdError.getSentry("stdFiber#ResetCount[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      ResetCount = This.resetCount
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Obtain the result of this fiber
 '@returns - The result of this fiber
 Public Property Get Result() As Variant
-  Call CopyVariant(Result, This.result)
+  With stdError.getSentry("stdFiber#Result[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Call CopyVariant(Result, This.result)
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Obtain errors if any as string
 '@returns - The error text
 Public Property Get ErrorText() As String
-  ErrorText = This.errorText
+  With stdError.getSentry("stdFiber#ErrorText[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      ErrorText = This.errorText
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Obtain the metadata object, usually used by the sub-process
 '@returns - The metadata object
 Public Property Get Meta() As Object
-  Set Meta = This.meta
+  With stdError.getSentry("stdFiber#Meta[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Set Meta = This.meta
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Obtain the current step which the fiber procedure is at.
 '@returns - The current step
 Public Property Get Step() As Long
-  Step = This.procStep
+  With stdError.getSentry("stdFiber#Step[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Step = This.procStep
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Obtains the name of the current step in the fiber
 '@returns - The name of the fiber step
 Public Property Get StepName() As String
-  StepName = This.procs(This.procStep).name
+  With stdError.getSentry("stdFiber#StepName[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      StepName = This.procs(This.procStep).name
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Obtains the duration of the fiber procedure
 '@returns - The duration of the fiber procedure in seconds
 Public Property Get StepDuration() As Long
-  StepDuration = DateDiff("s", This.procs(This.procStep).startTime, Now())
+  With stdError.getSentry("stdFiber#StepDuration[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      StepDuration = DateDiff("s", This.procs(This.procStep).startTime, Now())
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Obtains the duration of the fibers entire runtime
 '@returns - The duration of the fibers entire runtime in seconds
 Public Property Get TotalDuration() As Long
-  TotalDuration = DateDiff("s", This.procs(This.procsCount).startTime, This.endTime)
+  With stdError.getSentry("stdFiber#TotalDuration[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      TotalDuration = DateDiff("s", This.procs(This.procsCount).startTime, This.endTime)
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Obtains whether the fiber has finished or not
 '@returns - `True` if the fiber has finished, `False` otherwise
 Public Property Get isFinished() As Boolean
-  isFinished = This.isFinished
+  With stdError.getSentry("stdFiber#isFinished[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      isFinished = This.isFinished
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Obtain the name of the fiber
 '@returns - The name of the fiber
 Public Property Get Name() As String
-  Name = This.name
+  With stdError.getSentry("stdFiber#Name[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Name = This.name
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Obtain the agent information I.E. information unique to the runtime running this fiber
 '@returns - The agent information. 
 Public Property Get Agent() As Object
-  Set Agent = This.agent
+  With stdError.getSentry("stdFiber#Agent[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Set Agent = This.agent
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Run a collection/stdArray/stdEnumerator of fiber procedures, across a number of concurrent running fiber runtimes, returning all results as a collection.
@@ -299,83 +451,99 @@ End Property
 '@returns - Collection of results of ran fiber procedures. You can use the variant from param1 if you need to check for errors using ErrorText.
 '@TODO: Consider whether return data is correct. If we create fibers from table, how would we refer back to errornous records on the table?
 Public Function runFibers(ByVal vFibers As Variant, Optional ByVal numAgents As Long = 1, Optional ByVal agentInitCB As stdICallable = Nothing, Optional ByVal agentDestroyCB As stdICallable = Nothing, Optional ByVal runtimeUpdateCB As stdICallable = Nothing) As Collection
-  'Intiialise
-  Dim fibers As TFiberQueue: fibers = TFiberQueue_Create(vFibers)
-  Dim running() As stdFiber: ReDim running(1 To numAgents)
-  Dim agents() As Object: ReDim agents(1 To numAgents)
-  Dim i as long
-  For i = 1 To numAgents
-    Set agents(i) = CreateObject("Scripting.Dictionary")
-    agents(i)("id") = i
-    If Not agentInitCB Is Nothing Then Call agentInitCB.Run(agents(i))
-  Next
-
-  'Await completion of all processes
-  Dim iRuntimeClock As Long: iRuntimeClock = 0
-  Dim isFinished As Boolean
-  Do While Not isFinished
-    Dim iAgentsRunning As Long: iAgentsRunning = 0
-    For i = 1 To numAgents
-      'Step fiber if it exists, if it finishes remove it to signify this agent is ready for a new fiber
-      If Not running(i) Is Nothing Then
-        If running(i).protStep(agents(i)) Then
-          Set running(i) = Nothing
+  With stdError.getSentry("stdFiber#runFibers", "vFibers", vFibers, "numAgents", numAgents, "agentInitCB", agentInitCB, "agentDestroyCB", agentDestroyCB, "runtimeUpdateCB", runtimeUpdateCB)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      'Intiialise
+      Dim fibers As TFiberQueue: fibers = TFiberQueue_Create(vFibers)
+      Dim running() As stdFiber: ReDim running(1 To numAgents)
+      Dim agents() As Object: ReDim agents(1 To numAgents)
+      Dim i as long
+      For i = 1 To numAgents
+        Set agents(i) = CreateObject("Scripting.Dictionary")
+        agents(i)("id") = i
+        If Not agentInitCB Is Nothing Then Call agentInitCB.Run(agents(i))
+      Next
+    
+      'Await completion of all processes
+      Dim iRuntimeClock As Long: iRuntimeClock = 0
+      Dim isFinished As Boolean
+      Do While Not isFinished
+        Dim iAgentsRunning As Long: iAgentsRunning = 0
+        For i = 1 To numAgents
+          'Step fiber if it exists, if it finishes remove it to signify this agent is ready for a new fiber
+          If Not running(i) Is Nothing Then
+            If running(i).protStep(agents(i)) Then
+              Set running(i) = Nothing
+            End If
+          End If
+    
+          'Get next fiber if nothing is running in this agent
+          If running(i) Is Nothing Then
+            If TFiberQueue_HasNext(fibers) Then
+              Set running(i) = TFiberQueue_Get(fibers)
+              iAgentsRunning = iAgentsRunning + 1
+            End If
+          Else
+            iAgentsRunning = iAgentsRunning + 1
+          End If
+    
+          DoEvents
+        Next
+    
+        'Process is finished only when no agents are running
+        isFinished = iAgentsRunning = 0
+    
+        'Update on progress every 1k cycles
+        iRuntimeClock = iRuntimeClock + 1
+        If iRuntimeClock Mod 1000 = 0 Then
+          iRuntimeClock = 0
+          If Not runtimeUpdateCB Is Nothing Then
+            Dim iFiberCount As Long: iFiberCount = fibers.count
+            Dim iFinishedCount As Long: iFinishedCount = fibers.index - iAgentsRunning
+            Call runtimeUpdateCB.Run(iFinishedCount, iFiberCount)
+          End If
         End If
-      End If
-
-      'Get next fiber if nothing is running in this agent
-      If running(i) Is Nothing Then
-        If TFiberQueue_HasNext(fibers) Then
-          Set running(i) = TFiberQueue_Get(fibers)
-          iAgentsRunning = iAgentsRunning + 1
-        End If
-      Else
-        iAgentsRunning = iAgentsRunning + 1
-      End If
-
-      DoEvents
-    Next
-
-    'Process is finished only when no agents are running
-    isFinished = iAgentsRunning = 0
-
-    'Update on progress every 1k cycles
-    iRuntimeClock = iRuntimeClock + 1
-    If iRuntimeClock Mod 1000 = 0 Then
-      iRuntimeClock = 0
-      If Not runtimeUpdateCB Is Nothing Then
-        Dim iFiberCount As Long: iFiberCount = fibers.count
-        Dim iFinishedCount As Long: iFinishedCount = fibers.index - iAgentsRunning
-        Call runtimeUpdateCB.Run(iFinishedCount, iFiberCount)
-      End If
-    End If
-  Loop
-
-  'Cleanup agents
-  For i = 1 To numAgents
-    If Not agentDestroyCB Is Nothing Then Call agentDestroyCB.Run(agents(i))
-    Set agents(i) = Nothing 'objects will still be present on the individual fibers until end of this scope
-  Next
-
-  'Collect results
-  Dim results As Collection: Set results = New Collection
-  For i = 1 To fibers.count
-    results.Add fibers.queue(i).Result
-  Next
-
-  Set runFibers = results
+      Loop
+    
+      'Cleanup agents
+      For i = 1 To numAgents
+        If Not agentDestroyCB Is Nothing Then Call agentDestroyCB.Run(agents(i))
+        Set agents(i) = Nothing 'objects will still be present on the individual fibers until end of this scope
+      Next
+    
+      'Collect results
+      Dim results As Collection: Set results = New Collection
+      For i = 1 To fibers.count
+        results.Add fibers.queue(i).Result
+      Next
+    
+      Set runFibers = results
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Cancel the running fiber
 '@param errorText - If an error is required, set this parameter to whatever the text should be.
 Public Sub Cancel(Optional ByVal errorText As String = "")
-  This.errorText = errorText
-  This.isFinished = True
-  This.endTime = Now()
-  If Not This.errorHandler Is Nothing And errorText <> "" Then
-    Dim oMe As Object: Set oMe = Me
-    Call This.errorHandler.Run(oMe)
-  End If
+  With stdError.getSentry("stdFiber#Cancel", "errorText", errorText)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      This.errorText = errorText
+      This.isFinished = True
+      This.endTime = Now()
+      If Not This.errorHandler Is Nothing And errorText <> "" Then
+        Dim oMe As Object: Set oMe = Me
+        Call This.errorHandler.Run(oMe)
+      End If
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 '***********
@@ -386,64 +554,101 @@ End Sub
 '@param vDest - Destination
 '@param vSrc  - Source
 Private Sub CopyVariant(ByRef vDest, ByVal vSrc)
-  If IsObject(vSrc) Then
-    Set vDest = vSrc
-  Else
-    Let vDest = vSrc
-  End If
+  With stdError.getSentry("stdFiber#CopyVariant", "vDest", vDest, "vSrc", vSrc)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If IsObject(vSrc) Then
+        Set vDest = vSrc
+      Else
+        Let vDest = vSrc
+      End If
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Creates a queue of fiber procedures (TFiberQueue)
 '@param vFibers as Variant<Collection|Array|stdArray|stdEnumerator> - Fibers to execute over
 '@returns - Queue representing fibers
 Private Function TFiberQueue_Create(ByRef vFibers As Variant) As TFiberQueue
-  TFiberQueue_Create.index = 0
-  Dim i As Long
-  Select Case VarType(vFibers)
-    Case vbObject
-      Select Case TypeName(vFibers)
-        Case "Collection"
-          ReDim TFiberQueue_Create.queue(1 To vFibers.count)
-          Dim oFiber As stdFiber
-          For Each oFiber In vFibers
-            i = i + 1
-            Set TFiberQueue_Create.queue(i) = oFiber
-          Next
-        Case "stdArray"
-          Dim vQueue() As Variant: vQueue = vFibers.arr
-          ReDim TFiberQueue_Create.queue(1 To vFibers.Length)
-          For i = 1 To vFibers.length
-            Set TFiberQueue_Create.queue(i) = vQueue(i)
-          Next
-        Case "stdEnumerator"
-          Dim oQueue() As Object: oQueue = vFibers.asArray(vbObject)
-          ReDim TFiberQueue_Create.queue(1 To vFibers.Length)
-          For i = 1 To vFibers.length
-            Set TFiberQueue_Create.queue(i) = oQueue(i)
+  With stdError.getSentry("stdFiber#TFiberQueue_Create", "vFibers", vFibers)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      TFiberQueue_Create.index = 0
+      Dim i As Long
+      Select Case VarType(vFibers)
+        Case vbObject
+          Select Case TypeName(vFibers)
+            Case "Collection"
+              ReDim TFiberQueue_Create.queue(1 To vFibers.count)
+              Dim oFiber As stdFiber
+              For Each oFiber In vFibers
+                i = i + 1
+                Set TFiberQueue_Create.queue(i) = oFiber
+              Next
+            Case "stdArray"
+              Dim vQueue() As Variant: vQueue = vFibers.arr
+              ReDim TFiberQueue_Create.queue(1 To vFibers.Length)
+              For i = 1 To vFibers.length
+                Set TFiberQueue_Create.queue(i) = vQueue(i)
+              Next
+            Case "stdEnumerator"
+              Dim oQueue() As Object: oQueue = vFibers.asArray(vbObject)
+              ReDim TFiberQueue_Create.queue(1 To vFibers.Length)
+              For i = 1 To vFibers.length
+                Set TFiberQueue_Create.queue(i) = oQueue(i)
+              Next
+          End Select
+        Case Is > vbArray
+          Dim iLB As Long: iLB = LBound(vFibers)
+          Dim iLen As Long: iLen = UBound(vFibers) - iLB + 1
+          ReDim TFiberQueue_Create.queue(1 To iLen)
+          For i = 0 To iLen - 1
+            Set TFiberQueue_Create.queue(i + 1) = vFibers(i + iLB)
           Next
       End Select
-    Case Is > vbArray
-      Dim iLB As Long: iLB = LBound(vFibers)
-      Dim iLen As Long: iLen = UBound(vFibers) - iLB + 1
-      ReDim TFiberQueue_Create.queue(1 To iLen)
-      For i = 0 To iLen - 1
-        Set TFiberQueue_Create.queue(i + 1) = vFibers(i + iLB)
-      Next
-  End Select
-  TFiberQueue_Create.count = UBound(TFiberQueue_Create.queue)
+      TFiberQueue_Create.count = UBound(TFiberQueue_Create.queue)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Gets the next element in a queue
 '@param queue - The queue to get the item from
 '@returns - The resultant fiber
 Private Function TFiberQueue_Get(ByRef queue As TFiberQueue) As stdFiber
-  queue.index = queue.index + 1
-  Set TFiberQueue_Get = queue.queue(queue.index)
+  With stdError.getSentry("stdFiber#TFiberQueue_Get")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      queue.index = queue.index + 1
+      Set TFiberQueue_Get = queue.queue(queue.index)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Checks if a next element exists in a queue
 '@param queue - The queue to check
 '@returns - The result
 Private Function TFiberQueue_HasNext(ByRef queue As TFiberQueue) As Boolean
-  TFiberQueue_HasNext = queue.index < queue.count
+  With stdError.getSentry("stdFiber#TFiberQueue_HasNext")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      TFiberQueue_HasNext = queue.index < queue.count
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
+
+
+Private Sub Err_Raise(ByVal number as Long, Optional ByVal source as string = "", Optional ByVal description as string = "")
+  Call stdError.Raise(description)
+End Sub

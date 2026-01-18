@@ -61,24 +61,40 @@ End Property
 '@param Data - Array to wrap
 '@returns - The array by reference
 Public Function Create(ByRef Data As Variant) As stdRefArray
-    Set Create = New stdRefArray
-    Call Create.protInit(Data)
+  With stdError.getSentry("stdRefArray#Create", "Data", Data)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Set Create = New stdRefArray
+        Call Create.protInit(Data)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Intialise the byref array
 '@protected
 '@param DataIn - Array to wrap
 Public Sub protInit(ByRef DataIn As Variant)
-    if isArray(DataIn) then
-      'Set the variant data to a pointer
-      Data = VarPtrArr(DataIn)
-
-      'Set the variant type to VT_BYREF - VBA will handle the rest
-      Dim vt as VbVarType: vt = VarType(DataIn) or VT_BYREF
-      Call CopyMemory(Data, vt, 2)
-    else
-      Err.Raise 5, "stdRefArray#protInit", "Array required"
-    end if
+  With stdError.getSentry("stdRefArray#protInit", "DataIn", DataIn)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        if isArray(DataIn) then
+          'Set the variant data to a pointer
+          Data = VarPtrArr(DataIn)
+    
+          'Set the variant type to VT_BYREF - VBA will handle the rest
+          Dim vt as VbVarType: vt = VarType(DataIn) or VT_BYREF
+          Call CopyMemory(Data, vt, 2)
+        else
+          Err_Raise 5, "stdRefArray#protInit", "Array required"
+        end if
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 '@param arr - Array to get the pointer of
@@ -89,13 +105,26 @@ Private Function VarPtrArr(ByRef arr As Variant) As LongLong
 #Else
 Private Function VarPtrArr(ByRef arr As Variant) As Long
 #End If
-    Const vtArrByRef As Long = vbArray + VT_BYREF
-    Dim vt As VbVarType
-    Call CopyMemory(vt, arr, 2)
-    If (vt And vtArrByRef) = vtArrByRef Then
-        Const pArrayOffset As Long = 8
-        Call CopyMemory(VarPtrArr, ByVal VarPtr(arr) + pArrayOffset, PTR_SIZE)
-    Else
-        Err.Raise 5, "stdRefArray~VarPtrArr", "Array required"
-    End If
+  With stdError.getSentry("stdRefArray#VarPtrArr", "arr", arr)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Const vtArrByRef As Long = vbArray + VT_BYREF
+        Dim vt As VbVarType
+        Call CopyMemory(vt, arr, 2)
+        If (vt And vtArrByRef) = vtArrByRef Then
+            Const pArrayOffset As Long = 8
+            Call CopyMemory(VarPtrArr, ByVal VarPtr(arr) + pArrayOffset, PTR_SIZE)
+        Else
+            Err_Raise 5, "stdRefArray~VarPtrArr", "Array required"
+        End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
+
+
+Private Sub Err_Raise(ByVal number as Long, Optional ByVal source as string = "", Optional ByVal description as string = "")
+  Call stdError.Raise(description)
+End Sub
