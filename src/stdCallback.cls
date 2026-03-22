@@ -440,7 +440,6 @@ Public Function RunEx(ByVal vArr As Variant) As Variant
           #Else
             hResult = rtcCallByName(vRet, This.Callback.oObject, StrPtr(This.Callback.sMethodName), This.Callback.iCallType, vArgs, &H409)
           #End If
-          On Error GoTo stdErrorWrapper_ErrorOccurred
         Else
           CriticalRaise "Error in rtcCallByName. Arguments supplied to RunEx needs to be an array."
         End If
