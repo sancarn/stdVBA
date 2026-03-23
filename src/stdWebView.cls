@@ -402,7 +402,6 @@ Public Function JavaScriptRunSync(ByVal script As String) As String
         Err.Raise 5, "stdWebView::JavaScriptRunSync", "Failed to queue script execution"
     End If
     Do
-        Debug.Print "Waiting..."
         If This.syncScriptDone Then Exit Do
         DoEvents
     Loop
