@@ -555,6 +555,16 @@ Public Sub RemoveHostObject(ByVal name As String)
     Call HostObjects_RemoveRef(hostName)
 End Sub
 
+'Resize WebView2 surface to fill the current host client area.
+'@remark - Call from host resize events (for example UserForm_Resize).
+Public Sub Resize()
+    If This.com.pController = 0 Then Exit Sub
+    Dim r As RECT
+    Call GetClientRect(This.parentHwnd, r)
+    Call ControllerPutBounds(0&, 0&, r.Right - r.Left, r.Bottom - r.Top)
+    Call ResizeChromeWidgets
+End Sub
+
 'Protected method to handle the environment creation callback.
 '@protected
 '@param errorCode - HRESULT from environment creation callback.
