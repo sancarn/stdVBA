@@ -14223,6 +14223,77 @@
         "throws": [],
         "requires": [],
         "isStatic": false
+      },
+      {
+        "name": "AddHostObject",
+        "description": "Inject a VBA IDispatch object into JavaScript (`chrome.webview.hostObjects.<name>`).",
+        "remarks": [
+          "- Exposes async proxy access in JavaScript. Use `await chrome.webview.hostObjects.<name>.Method()`."
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "name",
+            "type": "String",
+            "description": "JavaScript host object name.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "hostObject",
+            "type": "Object",
+            "description": "VBA object implementing IDispatch.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "RemoveHostObject",
+        "description": "Remove a previously injected JavaScript host object.",
+        "remarks": [
+          "- Removes `chrome.webview.hostObjects.<name>`."
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "name",
+            "type": "String",
+            "description": "JavaScript host object name.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "properties": [
