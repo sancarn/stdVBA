@@ -13895,6 +13895,455 @@
     "implements": []
   },
   {
+    "name": "stdWebView",
+    "fileName": "stdWebView.cls",
+    "description": "",
+    "remarks": [],
+    "examples": [],
+    "devNotes": [],
+    "todos": [],
+    "requires": [],
+    "methods": [
+      {
+        "name": "zzProtWebView_QI",
+        "description": "WebView2 QueryInterface Thunk Implementation. DO NOT CALL THIS METHOD.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Long",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "zzProtWebView_AddRef",
+        "description": "WebView2 AddRef Thunk Implementation. DO NOT CALL THIS METHOD.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Long",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "zzProtWebView_Release",
+        "description": "WebView2 Release Thunk Implementation. DO NOT CALL THIS METHOD.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Long",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "zzProtWebView_EnvInvoke",
+        "description": "WebView2 Environment Invoke Thunk Implementation. DO NOT CALL THIS METHOD.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Long",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "zzProtWebView_CtrlInvoke",
+        "description": "WebView2 Controller Invoke Thunk Implementation. DO NOT CALL THIS METHOD.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Long",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "zzProtWebView_ScriptInvoke",
+        "description": "WebView2 Script Invoke Thunk Implementation. DO NOT CALL THIS METHOD.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Long",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "IsReady",
+        "description": "Check whether the WebView2 is ready to be used.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Boolean",
+          "description": "`True` when CoreWebView2 is available and navigation/script APIs can be used."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "Quit",
+        "description": "@remark - Releases controller/environment state and frees COM handler allocations. Safe to call more than once.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "Navigate",
+        "description": "Navigate to a URL.",
+        "remarks": [
+          "- Raises if the WebView is not ready."
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "url",
+            "type": "String",
+            "description": "URL to navigate to.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "Back",
+        "description": "Nagivate backward",
+        "remarks": [
+          "- Navigates backward using injected `history.back()`."
+        ],
+        "examples": [],
+        "params": [],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "Forward",
+        "description": "Navigate forward",
+        "remarks": [
+          "- Navigates forward using injected `history.forward()`."
+        ],
+        "examples": [],
+        "params": [],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "JavaScriptRunSync",
+        "description": "Execute a JavaScript script synchronously.",
+        "remarks": [
+          "- Blocks with DoEvents until completion. Only one synchronous run can be active at a time."
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "script",
+            "type": "String",
+            "description": "JavaScript executed in the page context.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "String",
+          "description": "JSON-encoded result string returned by WebView2 script execution."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "JavaScriptRun",
+        "description": "Execute a JavaScript script asynchronously.",
+        "remarks": [
+          "- Runs asynchronously. Callback receives `Array(errorCode, resultJson)`."
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "script",
+            "type": "String",
+            "description": "JavaScript executed in the page context.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "callback",
+            "type": "stdICallable<(errorCode as long, resultJson as string)=>void>",
+            "description": "Optional callback invoked when script execution completes.",
+            "optional": true,
+            "defaultValue": "Nothing",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      }
+    ],
+    "properties": [
+      {
+        "name": "Html",
+        "access": "ReadWrite",
+        "description": "Get the current document outer HTML.",
+        "remarks": [
+          "- Raises if the WebView is not ready."
+        ],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "String",
+          "description": "Current document outer HTML (`document.documentElement.outerHTML`)."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      }
+    ],
+    "constructors": [
+      {
+        "name": "CreateFromHwnd",
+        "description": "Create a stdWebView from a window handle.",
+        "remarks": [
+          "- Initialization blocks and pumps DoEvents until WebView2 is ready or times out."
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "hwnd",
+            "type": "LongPtr",
+            "description": "Parent window handle that will host the WebView2 client area.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "OnReady",
+            "type": "stdICallable<(stdWebView)=>void>",
+            "description": "Optional callback run when WebView2 controller/CoreWebView2 is ready.",
+            "optional": true,
+            "defaultValue": "Nothing",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "stdWebView",
+          "description": "Created stdWebView instance."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "CreateFromFrame",
+        "description": "Create a stdWebView from an MSForms.Frame.",
+        "remarks": [
+          "- Resolves the frame HWND and delegates to CreateFromHwnd."
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "frm",
+            "type": "Object",
+            "description": "MSForms.Frame used as the host container.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "OnReady",
+            "type": "stdICallable<(wv as stdWebView)=>void>",
+            "description": "Optional callback run when WebView2 controller/CoreWebView2 is ready.",
+            "optional": true,
+            "defaultValue": "Nothing",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "stdWebView",
+          "description": "Created stdWebView instance."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      }
+    ],
+    "events": [],
+    "implements": []
+  },
+  {
     "name": "stdWindow",
     "fileName": "stdWindow.cls",
     "description": "",
