@@ -14409,6 +14409,49 @@
         "throws": [],
         "requires": [],
         "isStatic": false
+      },
+      {
+        "name": "CreateFromUserform",
+        "description": "Create a stdWebView from a UserForm.",
+        "remarks": [
+          "- Resolves the UserForm root HWND via IOleWindow, then hosts in its first child HWND."
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "uf",
+            "type": "Object",
+            "description": "UserForm used as the host container.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "OnReady",
+            "type": "stdICallable<(wv as stdWebView)=>void>",
+            "description": "Optional callback run when WebView2 controller/CoreWebView2 is ready.",
+            "optional": true,
+            "defaultValue": "Nothing",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "stdWebView",
+          "description": "Created stdWebView instance."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "events": [],
