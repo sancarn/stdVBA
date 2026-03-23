@@ -24,6 +24,7 @@ Attribute VB_Exposed = False
 ' CONSTRUCTORS
 '   [X] CreateFromHwnd(hwnd, OnReady?) as stdWebView
 '   [X] CreateFromFrame(frm as MSForms.Frame, OnReady?) as stdWebView
+'   [X] CreateFromUserform(uf as Object, OnReady?) as stdWebView
 ' INSTANCE METHODS / PROPERTIES
 '   [X] IsReady() as Boolean
 '   [X] Quit()
@@ -416,6 +417,17 @@ Public Function CreateFromFrame(ByVal frm As Object, Optional ByVal OnReady As s
     If frm Is Nothing Then Err.Raise 5, "stdWebView::CreateFromFrame", "frm is Nothing"
     If TypeName(frm) <> "Frame" Then Err.Raise 5, "stdWebView::CreateFromFrame", "Expected MSForms.Frame"
     Set CreateFromFrame = CreateFromHwnd(FrameToHwnd(frm), OnReady)
+End Function
+
+'Create a stdWebView from a UserForm.
+'@constructor
+'@param uf - UserForm used as the host container.
+'@param OnReady as stdICallable<(wv as stdWebView)=>void> - Optional callback run when WebView2 controller/CoreWebView2 is ready.
+'@returns - Created stdWebView instance.
+'@remark - Resolves the UserForm root HWND via IOleWindow, then hosts in its first child HWND.
+Public Function CreateFromUserform(ByVal uf As Object, Optional ByVal OnReady As stdICallable = Nothing) As stdWebView
+    If uf Is Nothing Then Err.Raise 5, "stdWebView::CreateFromUserform", "uf is Nothing"
+    Set CreateFromUserform = CreateFromHwnd(UserFormToHwnd(uf), OnReady)
 End Function
 
 'Check whether the WebView2 is ready to be used.
@@ -977,6 +989,24 @@ Private Sub Scripts_ClearCompleted()
         End If
     Next i
 End Sub
+
+Private Function UserFormToHwnd(ByVal uf As Object) As LongPtr
+    Dim hr As Long
+    Dim formHwnd As LongPtr
+    Dim childHwnd As LongPtr
+
+    hr = IUnknown_GetWindow(uf, VarPtr(formHwnd))
+    If hr <> 0 Or formHwnd = 0 Then
+        Err.Raise 5, "stdWebView::UserFormToHwnd", "Could not get UserForm window handle (IOleWindow)."
+    End If
+
+    childHwnd = GetWindow(formHwnd, GW_CHILD)
+    If childHwnd = 0 Then
+        Err.Raise 5, "stdWebView::UserFormToHwnd", "Could not find a child HWND for the UserForm."
+    End If
+
+    UserFormToHwnd = childHwnd
+End Function
 
 Private Function FrameToHwnd(ByVal frm As Object) As LongPtr
     Dim hr As Long
