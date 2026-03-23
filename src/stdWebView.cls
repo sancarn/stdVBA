@@ -12,6 +12,27 @@ Attribute VB_Exposed = False
 '@description Standalone WebView2 host for Excel UserForms (primary). Requires WebView2Loader.dll,
 ' Microsoft Edge WebView2 Runtime. Handler vtables use executable thunks (see AddressOfThunkForComProc/VBA7/CMonitors.cls).
 '@attribution https://github.com/tarboh/WebView2-For-Excel-VBA - Heavily inspired by this project.
+'@example:
+'   Dim wv As stdWebView
+'   Sub UserForm_Initialize()
+'     Set wv = stdWebView.CreateFromFrame(UserForm1.Frame1, stdLambda.Create("$1.Navigate ""https://example.com"""))
+'     wv.Navigate "https://example.com"
+'     Debug.Print wv.JavaScriptRunSync("document.title")
+'   End Sub
+'
+'Spec:
+' CONSTRUCTORS
+'   [X] CreateFromHwnd(hwnd, OnReady?) as stdWebView
+'   [X] CreateFromFrame(frm as MSForms.Frame, OnReady?) as stdWebView
+' INSTANCE METHODS / PROPERTIES
+'   [X] IsReady() as Boolean
+'   [X] Quit()
+'   [X] Navigate(url)
+'   [X] Back()
+'   [X] Forward()
+'   [X] Get/Let Html() as String
+'   [X] JavaScriptRunSync(script) as String
+'   [X] JavaScriptRun(script, callback?)
 
 Option Explicit
 
@@ -273,12 +294,18 @@ Private Function PtrToStrW(ByVal pWStr As LongPtr) As String
 End Function
 
 ' ============================================================================
-' WebView2 handler vtables (IUnknown + Invoke)
-' These six Public methods must remain the first Public members in this class:
-' GetComProcAddress(Me, 0..5) depends on that. Do not move other Public methods
+' IMPORTANT - DO NOT MOVE THESE METHODS,
+' AND DO NOT ADD ANY NEW PUBLIC METHODS ABOVE
+' OR INBETWEEN THEM!!
+' This is because the WebView2 handler vtables (IUnknown + Invoke)
+' depend on the order of the Public methods.
+'
+' `GetComProcAddress(Me, 0..5)` depends on that. Do not move other Public methods
 ' above them without adjusting the indexes.
 ' ============================================================================
 
+'WebView2 QueryInterface Thunk Implementation. DO NOT CALL THIS METHOD.
+'@protected
 Public Function zzProtWebView_QI( _
     ByVal callbackThis As LongPtr, _
     ByVal riid As LongPtr, _
@@ -288,14 +315,20 @@ Public Function zzProtWebView_QI( _
     zzProtWebView_QI = 0&
 End Function
 
+'WebView2 AddRef Thunk Implementation. DO NOT CALL THIS METHOD.
+'@protected
 Public Function zzProtWebView_AddRef(ByVal callbackThis As LongPtr) As Long
     zzProtWebView_AddRef = 1&
 End Function
 
+'WebView2 Release Thunk Implementation. DO NOT CALL THIS METHOD.
+'@protected
 Public Function zzProtWebView_Release(ByVal callbackThis As LongPtr) As Long
     zzProtWebView_Release = 1&
 End Function
 
+'WebView2 Environment Invoke Thunk Implementation. DO NOT CALL THIS METHOD.
+'@protected
 Public Function zzProtWebView_EnvInvoke( _
     ByVal callbackThis As LongPtr, _
     ByVal errorCode As Long, _
@@ -306,6 +339,8 @@ Public Function zzProtWebView_EnvInvoke( _
     zzProtWebView_EnvInvoke = 0&
 End Function
 
+'WebView2 Controller Invoke Thunk Implementation. DO NOT CALL THIS METHOD.
+'@protected
 Public Function zzProtWebView_CtrlInvoke( _
     ByVal callbackThis As LongPtr, _
     ByVal errorCode As Long, _
@@ -316,6 +351,8 @@ Public Function zzProtWebView_CtrlInvoke( _
     zzProtWebView_CtrlInvoke = 0&
 End Function
 
+'WebView2 Script Invoke Thunk Implementation. DO NOT CALL THIS METHOD.
+'@protected
 Public Function zzProtWebView_ScriptInvoke( _
     ByVal callbackThis As LongPtr, _
     ByVal errorCode As Long, _
@@ -332,26 +369,37 @@ End Function
 
 ' ============================================================================
 
+'Create a stdWebView from a window handle.
 '@constructor
+'@param hwnd - Parent window handle that will host the WebView2 client area.
 '@param OnReady as stdICallable<(stdWebView)=>void> - Optional callback run when WebView2 controller/CoreWebView2 is ready.
+'@returns - Created stdWebView instance.
+'@remark - Initialization blocks and pumps DoEvents until WebView2 is ready or times out.
 Public Function CreateFromHwnd(ByVal hwnd As LongPtr, Optional ByVal OnReady As stdICallable = Nothing) As stdWebView
     Dim w As New stdWebView
     Call w.protCreate(hwnd, OnReady)
     Set CreateFromHwnd = w
 End Function
 
+'Create a stdWebView from an MSForms.Frame.
 '@constructor
-'@param OnReady as stdICallable<(stdWebView)=>void> - Optional callback run when WebView2 controller/CoreWebView2 is ready.
+'@param frm - MSForms.Frame used as the host container.
+'@param OnReady as stdICallable<(wv as stdWebView)=>void> - Optional callback run when WebView2 controller/CoreWebView2 is ready.
+'@returns - Created stdWebView instance.
+'@remark - Resolves the frame HWND and delegates to CreateFromHwnd.
 Public Function CreateFromFrame(ByVal frm As Object, Optional ByVal OnReady As stdICallable = Nothing) As stdWebView
     If frm Is Nothing Then Err.Raise 5, "stdWebView::CreateFromFrame", "frm is Nothing"
     If TypeName(frm) <> "Frame" Then Err.Raise 5, "stdWebView::CreateFromFrame", "Expected MSForms.Frame"
     Set CreateFromFrame = CreateFromHwnd(FrameToHwnd(frm), OnReady)
 End Function
 
+'Check whether the WebView2 is ready to be used.
+'@returns - `True` when CoreWebView2 is available and navigation/script APIs can be used.
 Public Function IsReady() As Boolean
     IsReady = (This.ppWebView2 <> 0)
 End Function
 
+'@remark - Releases controller/environment state and frees COM handler allocations. Safe to call more than once.
 Public Sub Quit()
     On Error Resume Next
     If This.pController <> 0 Then
@@ -364,30 +412,48 @@ Public Sub Quit()
     Call FreeHandlerAllocs
 End Sub
 
+'Navigate to a URL.
+'@param url - URL to navigate to.
+'@remark - Raises if the WebView is not ready.
+'@TODO: Add a callback parameter.
 Public Sub Navigate(ByVal url As String)
     If Not IsReady Then Err.Raise 5, "stdWebView::Navigate", "WebView not ready"
     Call CallVT(This.ppWebView2, 5, vbLong, StrPtr(url))
 End Sub
 
+'Nagivate backward
+'@remark - Navigates backward using injected `history.back()`.
 Public Sub Back()
     Call JavaScriptRunSync("history.back(); void 0")
 End Sub
 
+'Navigate forward
+'@remark - Navigates forward using injected `history.forward()`.
 Public Sub Forward()
     Call JavaScriptRunSync("history.forward(); void 0")
 End Sub
 
+'Get the current document outer HTML.
+'@returns - Current document outer HTML (`document.documentElement.outerHTML`).
+'@remark - Raises if the WebView is not ready.
 Public Property Get Html() As String
     If Not IsReady Then Err.Raise 5, "stdWebView::Html [Get]", "WebView not ready"
     Html = JsonUnquoteString(JavaScriptRunSync("(function(){try{return document.documentElement?document.documentElement.outerHTML:'';}catch(e){return '';}})()"))
 End Property
 
+'Set the current document outer HTML.
+'@param rhs - HTML content loaded with WebView2 `NavigateToString`.
+'@remark - Raises if the WebView is not ready.
 Public Property Let Html(ByVal rhs As String)
     If Not IsReady Then Err.Raise 5, "stdWebView::Html [Let]", "WebView not ready"
     This.lastHtml = rhs
     Call CallVT(This.ppWebView2, 6, vbLong, StrPtr(rhs))
 End Property
 
+'Execute a JavaScript script synchronously.
+'@param script - JavaScript executed in the page context.
+'@returns - JSON-encoded result string returned by WebView2 script execution.
+'@remark - Blocks with DoEvents until completion. Only one synchronous run can be active at a time.
 Public Function JavaScriptRunSync(ByVal script As String) As String
     If Not IsReady Then Err.Raise 5, "stdWebView::JavaScriptRunSync", "WebView not ready"
     If This.syncWaitRequestId <> 0 Then
@@ -410,7 +476,10 @@ Public Function JavaScriptRunSync(ByVal script As String) As String
     JavaScriptRunSync = This.scriptResult
 End Function
 
+'Execute a JavaScript script asynchronously.
+'@param script - JavaScript executed in the page context.
 '@param callback as stdICallable<(errorCode as long, resultJson as string)=>void> - Optional callback invoked when script execution completes.
+'@remark - Runs asynchronously. Callback receives `Array(errorCode, resultJson)`.
 Public Sub JavaScriptRun(ByVal script As String, Optional ByVal callback As stdICallable = Nothing)
     If Not IsReady Then Err.Raise 5, "stdWebView::JavaScriptRun", "WebView not ready"
     Call SweepCompletedPendingScripts
@@ -419,6 +488,10 @@ Public Sub JavaScriptRun(ByVal script As String, Optional ByVal callback As stdI
     End If
 End Sub
 
+'Protected method to handle the environment creation callback.
+'@protected
+'@param errorCode - HRESULT from environment creation callback.
+'@param pEnvironment - IWebView2Environment pointer returned by WebView2.
 Friend Sub protEnvCompleted(ByVal errorCode As Long, ByVal pEnvironment As LongPtr)
     If errorCode <> 0 Then
         This.waitingInit = False
@@ -432,6 +505,10 @@ Friend Sub protEnvCompleted(ByVal errorCode As Long, ByVal pEnvironment As LongP
     Call CallVT(pEnvironment, 3, vbLong, This.parentHwnd, This.pCtrlHandlerObj)
 End Sub
 
+'Protected method to handle the controller creation callback.
+'@protected
+'@param errorCode - HRESULT from controller creation callback.
+'@param pController - IWebView2Controller pointer returned by WebView2.
 Friend Sub protCtrlCompleted(ByVal errorCode As Long, ByVal pController As LongPtr)
     If errorCode <> 0 Then
         This.waitingInit = False
@@ -457,6 +534,11 @@ Friend Sub protCtrlCompleted(ByVal errorCode As Long, ByVal pController As LongP
     End If
 End Sub
 
+'Protected method to handle the script completion callback.
+'@protected
+'@param errorCode - HRESULT from script completion callback.
+'@param resultJson - JSON result string returned by WebView2.
+'@param requestId - Internal request identifier for queued script work.
 Friend Sub protScriptCompleted(ByVal errorCode As Long, ByVal resultJson As String, ByVal requestId As Long)
     Dim idx As Long
     Dim cb As stdICallable
@@ -486,6 +568,12 @@ Friend Sub protScriptCompleted(ByVal errorCode As Long, ByVal resultJson As Stri
     End If
 End Sub
 
+'Protected method to create the stdWebView instance.
+'@constructor
+'@protected
+'@param hwnd - Parent window handle used to host WebView2.
+'@param OnReady as stdICallable<(stdWebView)=>void> - Optional callback run when initialization completes.
+'@remark - Internal creation entry point used by public constructors.
 Friend Sub protCreate(ByVal hwnd As LongPtr, Optional ByVal OnReady As stdICallable = Nothing)
     If hwnd = 0 Then Err.Raise 5, "stdWebView::CreateFromHwnd", "hwnd is 0"
     This.parentHwnd = hwnd
