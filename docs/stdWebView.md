@@ -81,6 +81,33 @@ Queues script execution without blocking. If `callback` is set, it is invoked wi
 wv.JavaScriptRun "console.log(1)", stdLambda.Create("Debug.Print $1, $2")  ' errorCode, resultJson
 ```
 
+#### `AddHostObject(ByVal name As String, ByVal hostObject As Object)`
+
+Injects a VBA COM object into JavaScript as `chrome.webview.hostObjects.<name>`.
+
+* Requires `IsReady`.
+* `name` must be non-empty.
+* `hostObject` must be a non-`Nothing` object that is dispatchable (`IDispatch`).
+
+```vb
+' Class cBridge
+' Public Function Echo(ByVal s As String) As String: Echo = "VBA:" & s: End Function
+
+Dim bridge As New cBridge
+wv.AddHostObject "bridge", bridge
+```
+
+JavaScript usage (async host object proxy):
+
+```js
+const value = await chrome.webview.hostObjects.bridge.Echo("hello");
+console.log(value); // "VBA:hello"
+```
+
+#### `RemoveHostObject(ByVal name As String)`
+
+Removes a previously injected object so `chrome.webview.hostObjects.<name>` is no longer available.
+
 ### Checklist (quick reference)
 
 **Constructors**
@@ -97,6 +124,8 @@ wv.JavaScriptRun "console.log(1)", stdLambda.Create("Debug.Print $1, $2")  ' err
 * [X] `Html` Get/Let
 * [X] `JavaScriptRunSync(script)`
 * [X] `JavaScriptRun(script, callback?)`
+* [X] `AddHostObject(name, hostObject)`
+* [X] `RemoveHostObject(name)`
 
 ### Protected / Friend API
 
@@ -107,3 +136,4 @@ wv.JavaScriptRun "console.log(1)", stdLambda.Create("Debug.Print $1, $2")  ' err
 * A per-instance user data folder is created under `%TEMP%` (`stdWebView_*`) for the WebView2 profile.
 * If `CreateCoreWebView2EnvironmentWithOptions` fails, the error is raised with the HRESULT from the loader.
 * `zzProtWebView_*` entry points must remain `Public` so thunk code can dispatch into the instance; they are not user APIs.
+* Vtable offsets used in `stdWebView.cls` are verified against `ICoreWebView2Vtbl` in `WebView2.h` from the WebView2 SDK (`build/native/include/WebView2.h` in the NuGet package). Official header reference: [WebView2.h](https://github.com/MicrosoftEdge/WebView2Browser/blob/main/packages/Microsoft.Web.WebView2.1.0.2903.40/build/native/include/WebView2.h).

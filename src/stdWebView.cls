@@ -93,6 +93,10 @@ Private Type TScripts
     scriptCount As Long
 End Type
 
+Private Type THostObjectState
+    refs As Collection
+End Type
+
 Private Type TComState
     pEnvironment As LongPtr
     pController As LongPtr
@@ -111,6 +115,7 @@ Private Type TThis
     init As TInitState
     script As TScriptState
     scripts As TScripts
+    host As THostObjectState
     com As TComState
 End Type
 
@@ -127,6 +132,10 @@ Private Const GW_CHILD As Long = 5
 Private Const GW_HWNDNEXT As Long = 2
 Private Const LOGPIXELSX As Long = 88
 Private Const LOGPIXELSY As Long = 90
+' Method slots are from ICoreWebView2Vtbl in WebView2.h (IUnknown + interface members).
+Private Const COREWEBVIEW2_VTBL_EXECUTESCRIPT As Long = 29
+Private Const COREWEBVIEW2_VTBL_ADDHOSTOBJECTTOSCRIPT As Long = 49
+Private Const COREWEBVIEW2_VTBL_REMOVEHOSTOBJECTFROMSCRIPT As Long = 50
 
 #If VBA7 Then
 
@@ -504,6 +513,36 @@ Public Sub JavaScriptRun(ByVal script As String, Optional ByVal callback As stdI
     End If
 End Sub
 
+'Inject a VBA IDispatch object into JavaScript (`chrome.webview.hostObjects.<name>`).
+'@param name - JavaScript host object name.
+'@param hostObject - VBA object implementing IDispatch.
+'@remark - Exposes async proxy access in JavaScript. Use `await chrome.webview.hostObjects.<name>.Method()`.
+Public Sub AddHostObject(ByVal name As String, ByVal hostObject As Object)
+    Dim hostName As String
+    Dim hostVariant As Variant
+    hostName = Trim$(name)
+    If Not IsReady Then Err.Raise 5, "stdWebView::AddHostObject", "WebView not ready"
+    If LenB(hostName) = 0 Then Err.Raise 5, "stdWebView::AddHostObject", "name cannot be blank"
+    If hostObject Is Nothing Then Err.Raise 5, "stdWebView::AddHostObject", "hostObject is Nothing"
+
+    Set hostVariant = hostObject
+    Call CallVT(This.com.ppWebView2, COREWEBVIEW2_VTBL_ADDHOSTOBJECTTOSCRIPT, vbLong, StrPtr(hostName), VarPtr(hostVariant))
+    Call HostObjects_SetRef(hostName, hostObject)
+End Sub
+
+'Remove a previously injected JavaScript host object.
+'@param name - JavaScript host object name.
+'@remark - Removes `chrome.webview.hostObjects.<name>`.
+Public Sub RemoveHostObject(ByVal name As String)
+    Dim hostName As String
+    hostName = Trim$(name)
+    If Not IsReady Then Err.Raise 5, "stdWebView::RemoveHostObject", "WebView not ready"
+    If LenB(hostName) = 0 Then Err.Raise 5, "stdWebView::RemoveHostObject", "name cannot be blank"
+
+    Call CallVT(This.com.ppWebView2, COREWEBVIEW2_VTBL_REMOVEHOSTOBJECTFROMSCRIPT, vbLong, StrPtr(hostName))
+    Call HostObjects_RemoveRef(hostName)
+End Sub
+
 'Protected method to handle the environment creation callback.
 '@protected
 '@param errorCode - HRESULT from environment creation callback.
@@ -749,6 +788,7 @@ End Sub
 Private Sub FreeHandlerAllocs()
     On Error Resume Next
     Set This.init.onReadyCallback = Nothing
+    Call HostObjects_ClearAll
     Call FreeHandlerThunks(This.com.envThunk)
     Call FreeHandlerThunks(This.com.ctrlThunk)
     If This.com.pEnvHandlerObj <> 0 Then
@@ -789,7 +829,7 @@ Private Function JavaScriptRunCore(ByVal script As String, ByVal callback As std
     Call CopyMemory(ByVal pObj + PTR_SZ, reqIdLP, PTR_SZ)
 
     idx = Scripts_AddScript(reqId, callback, isSyncWait, pObj, pVTable, thunks)
-    Call CallVT(This.com.ppWebView2, 29, vbLong, StrPtr(script), pObj)
+    Call CallVT(This.com.ppWebView2, COREWEBVIEW2_VTBL_EXECUTESCRIPT, vbLong, StrPtr(script), pObj)
     On Error GoTo 0
     JavaScriptRunCore = reqId
     Exit Function
@@ -800,6 +840,30 @@ fail:
     If pVTable <> 0 Then Call GlobalFree(pVTable)
     Call FreeHandlerThunks(thunks)
 End Function
+
+Private Sub HostObjects_EnsureMap()
+    If This.host.refs Is Nothing Then Set This.host.refs = New Collection
+End Sub
+
+Private Sub HostObjects_SetRef(ByVal name As String, ByVal hostObject As Object)
+    Call HostObjects_EnsureMap
+    On Error Resume Next
+    This.host.refs.Remove name
+    Err.Clear
+    On Error GoTo 0
+    This.host.refs.Add hostObject, name
+End Sub
+
+Private Sub HostObjects_RemoveRef(ByVal name As String)
+    If This.host.refs Is Nothing Then Exit Sub
+    On Error Resume Next
+    This.host.refs.Remove name
+    On Error GoTo 0
+End Sub
+
+Private Sub HostObjects_ClearAll()
+    Set This.host.refs = Nothing
+End Sub
 
 Private Function NextScriptRequestId() As Long
     This.script.nextRequestId = This.script.nextRequestId + 1
