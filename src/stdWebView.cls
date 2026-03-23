@@ -64,41 +64,57 @@ Private Type THandlerThunks
     pInvoke As LongPtr
 End Type
 
-Private Type TPendingScript
+Private Type TScriptItem
     requestId As Long
     isSyncWait As Boolean
     isCompleted As Boolean
+    callback As stdICallable
     pHandlerObj As LongPtr
     pVTable As LongPtr
     thunks As THandlerThunks
 End Type
 
-Private Type TThis
-    parentHwnd As LongPtr
+Private Type TInitState
+    userDataFolder As String
+    waiting As Boolean
+    failed As Boolean
+    onReadyCallback As stdICallable
+End Type
+
+Private Type TScriptState
+    result As String
+    syncDone As Boolean
+    syncWaitRequestId As Long
+    nextRequestId As Long
+End Type
+
+Private Type TScripts
+    mScripts() As TScriptItem
+    scriptCount As Long
+End Type
+
+Private Type TComState
     pEnvironment As LongPtr
     pController As LongPtr
     ppWebView2 As LongPtr
-    userDataFolder As String
     pEnvHandlerObj As LongPtr
     pEnvVTable As LongPtr
     envThunk As THandlerThunks
     pCtrlHandlerObj As LongPtr
     pCtrlVTable As LongPtr
     ctrlThunk As THandlerThunks
-    waitingInit As Boolean
-    initFailed As Boolean
+End Type
+
+Private Type TThis
+    parentHwnd As LongPtr
     lastHtml As String
-    scriptResult As String
-    syncScriptDone As Boolean
-    syncWaitRequestId As Long
-    nextRequestId As Long
+    init As TInitState
+    script As TScriptState
+    scripts As TScripts
+    com As TComState
 End Type
 
 Private This As TThis
-Private mOnReadyCallback As stdICallable
-Private mPendingScripts() As TPendingScript
-Private mPendingCallbacks() As stdICallable
-Private mPendingScriptCount As Long
 
 Private Const CC_STDCALL As Long = 4
 Private Const GPTR As Long = &H40
@@ -396,19 +412,19 @@ End Function
 'Check whether the WebView2 is ready to be used.
 '@returns - `True` when CoreWebView2 is available and navigation/script APIs can be used.
 Public Function IsReady() As Boolean
-    IsReady = (This.ppWebView2 <> 0)
+    IsReady = (This.com.ppWebView2 <> 0)
 End Function
 
 '@remark - Releases controller/environment state and frees COM handler allocations. Safe to call more than once.
 Public Sub Quit()
     On Error Resume Next
-    If This.pController <> 0 Then
-        Call CallVTQuiet(This.pController, 24, vbLong)
+    If This.com.pController <> 0 Then
+        Call CallVTQuiet(This.com.pController, 24, vbLong)
     End If
-    Set mOnReadyCallback = Nothing
-    This.pController = 0
-    This.ppWebView2 = 0
-    This.pEnvironment = 0
+    Set This.init.onReadyCallback = Nothing
+    This.com.pController = 0
+    This.com.ppWebView2 = 0
+    This.com.pEnvironment = 0
     Call FreeHandlerAllocs
 End Sub
 
@@ -418,7 +434,7 @@ End Sub
 '@TODO: Add a callback parameter.
 Public Sub Navigate(ByVal url As String)
     If Not IsReady Then Err.Raise 5, "stdWebView::Navigate", "WebView not ready"
-    Call CallVT(This.ppWebView2, 5, vbLong, StrPtr(url))
+    Call CallVT(This.com.ppWebView2, 5, vbLong, StrPtr(url))
 End Sub
 
 'Nagivate backward
@@ -447,7 +463,7 @@ End Property
 Public Property Let Html(ByVal rhs As String)
     If Not IsReady Then Err.Raise 5, "stdWebView::Html [Let]", "WebView not ready"
     This.lastHtml = rhs
-    Call CallVT(This.ppWebView2, 6, vbLong, StrPtr(rhs))
+    Call CallVT(This.com.ppWebView2, 6, vbLong, StrPtr(rhs))
 End Property
 
 'Execute a JavaScript script synchronously.
@@ -456,24 +472,24 @@ End Property
 '@remark - Blocks with DoEvents until completion. Only one synchronous run can be active at a time.
 Public Function JavaScriptRunSync(ByVal script As String) As String
     If Not IsReady Then Err.Raise 5, "stdWebView::JavaScriptRunSync", "WebView not ready"
-    If This.syncWaitRequestId <> 0 Then
+    If This.script.syncWaitRequestId <> 0 Then
         Err.Raise 5, "stdWebView::JavaScriptRunSync", "A synchronous script call is already in progress"
     End If
-    Call SweepCompletedPendingScripts
-    This.syncScriptDone = False
-    This.scriptResult = vbNullString
-    This.syncWaitRequestId = JavaScriptRunCore(script, Nothing, True)
-    If This.syncWaitRequestId = 0 Then
-        This.syncWaitRequestId = 0
+    Call Scripts_ClearCompleted
+    This.script.syncDone = False
+    This.script.result = vbNullString
+    This.script.syncWaitRequestId = JavaScriptRunCore(script, Nothing, True)
+    If This.script.syncWaitRequestId = 0 Then
+        This.script.syncWaitRequestId = 0
         Err.Raise 5, "stdWebView::JavaScriptRunSync", "Failed to queue script execution"
     End If
     Do
-        If This.syncScriptDone Then Exit Do
+        If This.script.syncDone Then Exit Do
         DoEvents
     Loop
-    This.syncWaitRequestId = 0
-    Call SweepCompletedPendingScripts
-    JavaScriptRunSync = This.scriptResult
+    This.script.syncWaitRequestId = 0
+    Call Scripts_ClearCompleted
+    JavaScriptRunSync = This.script.result
 End Function
 
 'Execute a JavaScript script asynchronously.
@@ -482,7 +498,7 @@ End Function
 '@remark - Runs asynchronously. Callback receives `Array(errorCode, resultJson)`.
 Public Sub JavaScriptRun(ByVal script As String, Optional ByVal callback As stdICallable = Nothing)
     If Not IsReady Then Err.Raise 5, "stdWebView::JavaScriptRun", "WebView not ready"
-    Call SweepCompletedPendingScripts
+    Call Scripts_ClearCompleted
     If JavaScriptRunCore(script, callback, False) = 0 Then
         Err.Raise 5, "stdWebView::JavaScriptRun", "Failed to queue script execution"
     End If
@@ -494,15 +510,15 @@ End Sub
 '@param pEnvironment - IWebView2Environment pointer returned by WebView2.
 Friend Sub protEnvCompleted(ByVal errorCode As Long, ByVal pEnvironment As LongPtr)
     If errorCode <> 0 Then
-        This.waitingInit = False
-        This.initFailed = True
+        This.init.waiting = False
+        This.init.failed = True
         Exit Sub
     End If
-    This.pEnvironment = pEnvironment
-    This.pCtrlVTable = BuildHandlerVTable(4, This.ctrlThunk)
-    This.pCtrlHandlerObj = GlobalAlloc(GPTR, PTR_SZ)
-    Call CopyMemory(ByVal This.pCtrlHandlerObj, This.pCtrlVTable, PTR_SZ)
-    Call CallVT(pEnvironment, 3, vbLong, This.parentHwnd, This.pCtrlHandlerObj)
+    This.com.pEnvironment = pEnvironment
+    This.com.pCtrlVTable = BuildHandlerVTable(4, This.com.ctrlThunk)
+    This.com.pCtrlHandlerObj = GlobalAlloc(GPTR, PTR_SZ)
+    Call CopyMemory(ByVal This.com.pCtrlHandlerObj, This.com.pCtrlVTable, PTR_SZ)
+    Call CallVT(pEnvironment, 3, vbLong, This.parentHwnd, This.com.pCtrlHandlerObj)
 End Sub
 
 'Protected method to handle the controller creation callback.
@@ -511,24 +527,24 @@ End Sub
 '@param pController - IWebView2Controller pointer returned by WebView2.
 Friend Sub protCtrlCompleted(ByVal errorCode As Long, ByVal pController As LongPtr)
     If errorCode <> 0 Then
-        This.waitingInit = False
-        This.initFailed = True
+        This.init.waiting = False
+        This.init.failed = True
         Exit Sub
     End If
     Call ComAddRef(pController)
-    This.pController = pController
+    This.com.pController = pController
     Dim r As RECT
     Call GetClientRect(This.parentHwnd, r)
     Call ControllerPutBounds(0&, 0&, r.Right - r.Left, r.Bottom - r.Top)
     Call ControllerPutVisible(True)
     Call ControllerGetCoreWebView2
     Call ResizeChromeWidgets
-    This.syncScriptDone = True
-    This.waitingInit = False
-    If Not mOnReadyCallback Is Nothing Then
+    This.script.syncDone = True
+    This.init.waiting = False
+    If Not This.init.onReadyCallback Is Nothing Then
         Dim cbReady As stdICallable
-        Set cbReady = mOnReadyCallback
-        Set mOnReadyCallback = Nothing
+        Set cbReady = This.init.onReadyCallback
+        Set This.init.onReadyCallback = Nothing
         On Error Resume Next
         Call cbReady.RunEx(Array(Me))
     End If
@@ -544,22 +560,22 @@ Friend Sub protScriptCompleted(ByVal errorCode As Long, ByVal resultJson As Stri
     Dim cb As stdICallable
     Dim isSyncWait As Boolean
 
-    idx = FindPendingScriptIndex(requestId)
+    idx = Scripts_FindScriptIndex(requestId)
     If idx < 0 Then Exit Sub
 
-    If mPendingScripts(idx).isCompleted Then Exit Sub
-    mPendingScripts(idx).isCompleted = True
-    If mPendingCallbacks(idx) Is Nothing Then
+    If This.scripts.mScripts(idx).isCompleted Then Exit Sub
+    This.scripts.mScripts(idx).isCompleted = True
+    If This.scripts.mScripts(idx).callback Is Nothing Then
         Set cb = Nothing
     Else
-        Set cb = mPendingCallbacks(idx)
+        Set cb = This.scripts.mScripts(idx).callback
     End If
-    Set mPendingCallbacks(idx) = Nothing
-    isSyncWait = mPendingScripts(idx).isSyncWait
+    Set This.scripts.mScripts(idx).callback = Nothing
+    isSyncWait = This.scripts.mScripts(idx).isSyncWait
 
-    If isSyncWait And This.syncWaitRequestId = requestId Then
-        This.scriptResult = resultJson
-        This.syncScriptDone = True
+    If isSyncWait And This.script.syncWaitRequestId = requestId Then
+        This.script.result = resultJson
+        This.script.syncDone = True
     End If
 
     If Not cb Is Nothing Then
@@ -577,32 +593,31 @@ End Sub
 Friend Sub protCreate(ByVal hwnd As LongPtr, Optional ByVal OnReady As stdICallable = Nothing)
     If hwnd = 0 Then Err.Raise 5, "stdWebView::CreateFromHwnd", "hwnd is 0"
     This.parentHwnd = hwnd
-    This.waitingInit = True
-    This.initFailed = False
-    This.syncScriptDone = False
-    This.syncWaitRequestId = 0
-    This.nextRequestId = 0
-    mPendingScriptCount = 0
-    Erase mPendingScripts
-    Erase mPendingCallbacks
-    Set mOnReadyCallback = OnReady
+    This.init.waiting = True
+    This.init.failed = False
+    This.script.syncDone = False
+    This.script.syncWaitRequestId = 0
+    This.script.nextRequestId = 0
+    This.scripts.scriptCount = 0
+    Erase This.scripts.mScripts
+    Set This.init.onReadyCallback = OnReady
     Randomize
-    This.userDataFolder = Environ$("TEMP") & "\stdWebView_" & CStr(CLng(Timer * 10000) Xor CLng(Rnd * 1000000))
-    This.pEnvVTable = BuildHandlerVTable(3, This.envThunk)
-    This.pEnvHandlerObj = GlobalAlloc(GPTR, PTR_SZ)
-    Call CopyMemory(ByVal This.pEnvHandlerObj, This.pEnvVTable, PTR_SZ)
+    This.init.userDataFolder = Environ$("TEMP") & "\stdWebView_" & CStr(CLng(Timer * 10000) Xor CLng(Rnd * 1000000))
+    This.com.pEnvVTable = BuildHandlerVTable(3, This.com.envThunk)
+    This.com.pEnvHandlerObj = GlobalAlloc(GPTR, PTR_SZ)
+    Call CopyMemory(ByVal This.com.pEnvHandlerObj, This.com.pEnvVTable, PTR_SZ)
     Dim hr As Long
-    hr = CreateCoreWebView2EnvironmentWithOptions(0, StrPtr(This.userDataFolder), 0, This.pEnvHandlerObj)
+    hr = CreateCoreWebView2EnvironmentWithOptions(0, StrPtr(This.init.userDataFolder), 0, This.com.pEnvHandlerObj)
     If hr <> 0 Then
         Call CleanupFailedInit
         Err.Raise hr, "stdWebView", "CreateCoreWebView2EnvironmentWithOptions failed (" & CStr(hr) & ")"
     End If
     Dim j As Long
     For j = 1 To 60000
-        If Not This.waitingInit Then Exit For
+        If Not This.init.waiting Then Exit For
         DoEvents
     Next j
-    If This.initFailed Or This.ppWebView2 = 0 Then
+    If This.init.failed Or This.com.ppWebView2 = 0 Then
         Call CleanupFailedInit
         Err.Raise &H80040201, "stdWebView", "WebView2 initialization failed or timed out"
     End If
@@ -618,17 +633,17 @@ Private Sub ControllerPutBounds(ByVal x As Long, ByVal y As Long, ByVal w As Lon
     rc.Top = y
     rc.Right = x + w
     rc.Bottom = y + h
-    Call CallVT(This.pController, 6, vbLong, VarPtr(rc))
+    Call CallVT(This.com.pController, 6, vbLong, VarPtr(rc))
 End Sub
 
 Private Sub ControllerPutVisible(ByVal visible As Boolean)
-    Call CallVT(This.pController, 4, vbLong, CLng(IIf(visible, 1, 0)))
+    Call CallVT(This.com.pController, 4, vbLong, CLng(IIf(visible, 1, 0)))
 End Sub
 
 Private Sub ControllerGetCoreWebView2()
     Dim pp As LongPtr
-    Call CallVT(This.pController, 25, vbLong, VarPtr(pp))
-    This.ppWebView2 = pp
+    Call CallVT(This.com.pController, 25, vbLong, VarPtr(pp))
+    This.com.ppWebView2 = pp
 End Sub
 
 Private Sub ResizeChromeWidgets()
@@ -727,32 +742,32 @@ End Sub
 
 Private Sub CleanupFailedInit()
     On Error Resume Next
-    Set mOnReadyCallback = Nothing
+    Set This.init.onReadyCallback = Nothing
     Call FreeHandlerAllocs
 End Sub
 
 Private Sub FreeHandlerAllocs()
     On Error Resume Next
-    Set mOnReadyCallback = Nothing
-    Call FreeHandlerThunks(This.envThunk)
-    Call FreeHandlerThunks(This.ctrlThunk)
-    If This.pEnvHandlerObj <> 0 Then
-        Call GlobalFree(This.pEnvHandlerObj)
-        This.pEnvHandlerObj = 0
+    Set This.init.onReadyCallback = Nothing
+    Call FreeHandlerThunks(This.com.envThunk)
+    Call FreeHandlerThunks(This.com.ctrlThunk)
+    If This.com.pEnvHandlerObj <> 0 Then
+        Call GlobalFree(This.com.pEnvHandlerObj)
+        This.com.pEnvHandlerObj = 0
     End If
-    If This.pEnvVTable <> 0 Then
-        Call GlobalFree(This.pEnvVTable)
-        This.pEnvVTable = 0
+    If This.com.pEnvVTable <> 0 Then
+        Call GlobalFree(This.com.pEnvVTable)
+        This.com.pEnvVTable = 0
     End If
-    If This.pCtrlHandlerObj <> 0 Then
-        Call GlobalFree(This.pCtrlHandlerObj)
-        This.pCtrlHandlerObj = 0
+    If This.com.pCtrlHandlerObj <> 0 Then
+        Call GlobalFree(This.com.pCtrlHandlerObj)
+        This.com.pCtrlHandlerObj = 0
     End If
-    If This.pCtrlVTable <> 0 Then
-        Call GlobalFree(This.pCtrlVTable)
-        This.pCtrlVTable = 0
+    If This.com.pCtrlVTable <> 0 Then
+        Call GlobalFree(This.com.pCtrlVTable)
+        This.com.pCtrlVTable = 0
     End If
-    Call ClearAllPendingScripts
+    Call Scripts_ClearAll
 End Sub
 
 Private Function JavaScriptRunCore(ByVal script As String, ByVal callback As stdICallable, ByVal isSyncWait As Boolean) As Long
@@ -773,44 +788,43 @@ Private Function JavaScriptRunCore(ByVal script As String, ByVal callback As std
     reqIdLP = CLngPtr(reqId)
     Call CopyMemory(ByVal pObj + PTR_SZ, reqIdLP, PTR_SZ)
 
-    idx = AddPendingScript(reqId, callback, isSyncWait, pObj, pVTable, thunks)
-    Call CallVT(This.ppWebView2, 29, vbLong, StrPtr(script), pObj)
+    idx = Scripts_AddScript(reqId, callback, isSyncWait, pObj, pVTable, thunks)
+    Call CallVT(This.com.ppWebView2, 29, vbLong, StrPtr(script), pObj)
     On Error GoTo 0
     JavaScriptRunCore = reqId
     Exit Function
 
 fail:
-    If idx >= 0 Then Call RemovePendingScriptAt(idx)
+    If idx >= 0 Then Call Scripts_RemoveScriptAt(idx)
     If pObj <> 0 Then Call GlobalFree(pObj)
     If pVTable <> 0 Then Call GlobalFree(pVTable)
     Call FreeHandlerThunks(thunks)
 End Function
 
 Private Function NextScriptRequestId() As Long
-    This.nextRequestId = This.nextRequestId + 1
-    If This.nextRequestId <= 0 Then This.nextRequestId = 1
-    NextScriptRequestId = This.nextRequestId
+    This.script.nextRequestId = This.script.nextRequestId + 1
+    If This.script.nextRequestId <= 0 Then This.script.nextRequestId = 1
+    NextScriptRequestId = This.script.nextRequestId
 End Function
 
-Private Sub EnsurePendingCapacity()
+Private Sub Scripts_EnsureCapacity()
     Dim cap As Long
-    If mPendingScriptCount < 0 Then mPendingScriptCount = 0
-    cap = PendingCapacity()
-    If mPendingScriptCount < cap Then Exit Sub
+    If This.scripts.scriptCount < 0 Then This.scripts.scriptCount = 0
+    cap = Scripts_Capacity()
+    If This.scripts.scriptCount < cap Then Exit Sub
     cap = cap + 4
-    ReDim Preserve mPendingScripts(0 To cap - 1)
-    ReDim Preserve mPendingCallbacks(0 To cap - 1)
+    ReDim Preserve This.scripts.mScripts(0 To cap - 1)
 End Sub
 
-Private Function PendingCapacity() As Long
+Private Function Scripts_Capacity() As Long
     On Error GoTo noArray
-    PendingCapacity = UBound(mPendingScripts) - LBound(mPendingScripts) + 1
+    Scripts_Capacity = UBound(This.scripts.mScripts) - LBound(This.scripts.mScripts) + 1
     Exit Function
 noArray:
-    PendingCapacity = 0
+    Scripts_Capacity = 0
 End Function
 
-Private Function AddPendingScript( _
+Private Function Scripts_AddScript( _
     ByVal requestId As Long, _
     ByVal callback As stdICallable, _
     ByVal isSyncWait As Boolean, _
@@ -819,73 +833,83 @@ Private Function AddPendingScript( _
     ByRef thunks As THandlerThunks) As Long
 
     Dim idx As Long
-    Call EnsurePendingCapacity
-    idx = mPendingScriptCount
-    mPendingScripts(idx).requestId = requestId
-    mPendingScripts(idx).isSyncWait = isSyncWait
-    mPendingScripts(idx).isCompleted = False
-    mPendingScripts(idx).pHandlerObj = pHandlerObj
-    mPendingScripts(idx).pVTable = pVTable
-    mPendingScripts(idx).thunks = thunks
-    Set mPendingCallbacks(idx) = callback
-    mPendingScriptCount = mPendingScriptCount + 1
-    AddPendingScript = idx
+    Call Scripts_EnsureCapacity
+    idx = This.scripts.scriptCount
+    This.scripts.mScripts(idx).requestId = requestId
+    This.scripts.mScripts(idx).isSyncWait = isSyncWait
+    This.scripts.mScripts(idx).isCompleted = False
+    Set This.scripts.mScripts(idx).callback = callback
+    This.scripts.mScripts(idx).pHandlerObj = pHandlerObj
+    This.scripts.mScripts(idx).pVTable = pVTable
+    This.scripts.mScripts(idx).thunks = thunks
+    This.scripts.scriptCount = This.scripts.scriptCount + 1
+    Scripts_AddScript = idx
 End Function
 
-Private Function FindPendingScriptIndex(ByVal requestId As Long) As Long
+Private Function Scripts_FindScriptIndex(ByVal requestId As Long) As Long
     Dim i As Long
-    For i = 0 To mPendingScriptCount - 1
-        If mPendingScripts(i).requestId = requestId Then
-            FindPendingScriptIndex = i
+    For i = 0 To This.scripts.scriptCount - 1
+        If This.scripts.mScripts(i).requestId = requestId Then
+            Scripts_FindScriptIndex = i
             Exit Function
         End If
     Next i
-    FindPendingScriptIndex = -1
+    Scripts_FindScriptIndex = -1
 End Function
 
-Private Sub RemovePendingScriptAt(ByVal idx As Long)
+Private Sub Scripts_RemoveScriptAt(ByVal idx As Long)
     Dim lastIdx As Long
-    lastIdx = mPendingScriptCount - 1
+    lastIdx = This.scripts.scriptCount - 1
     If idx < 0 Or idx > lastIdx Then Exit Sub
     If idx <> lastIdx Then
-        mPendingScripts(idx) = mPendingScripts(lastIdx)
-        Set mPendingCallbacks(idx) = mPendingCallbacks(lastIdx)
+        This.scripts.mScripts(idx).requestId = This.scripts.mScripts(lastIdx).requestId
+        This.scripts.mScripts(idx).isSyncWait = This.scripts.mScripts(lastIdx).isSyncWait
+        This.scripts.mScripts(idx).isCompleted = This.scripts.mScripts(lastIdx).isCompleted
+        Set This.scripts.mScripts(idx).callback = This.scripts.mScripts(lastIdx).callback
+        This.scripts.mScripts(idx).pHandlerObj = This.scripts.mScripts(lastIdx).pHandlerObj
+        This.scripts.mScripts(idx).pVTable = This.scripts.mScripts(lastIdx).pVTable
+        This.scripts.mScripts(idx).thunks = This.scripts.mScripts(lastIdx).thunks
     End If
-    mPendingScripts(lastIdx).requestId = 0
-    mPendingScripts(lastIdx).isSyncWait = False
-    mPendingScripts(lastIdx).isCompleted = False
-    mPendingScripts(lastIdx).pHandlerObj = 0
-    mPendingScripts(lastIdx).pVTable = 0
-    Call EraseThunkStruct(mPendingScripts(lastIdx).thunks)
-    Set mPendingCallbacks(lastIdx) = Nothing
-    mPendingScriptCount = lastIdx
+    This.scripts.mScripts(lastIdx).requestId = 0
+    This.scripts.mScripts(lastIdx).isSyncWait = False
+    This.scripts.mScripts(lastIdx).isCompleted = False
+    Set This.scripts.mScripts(lastIdx).callback = Nothing
+    This.scripts.mScripts(lastIdx).pHandlerObj = 0
+    This.scripts.mScripts(lastIdx).pVTable = 0
+    Call EraseThunkStruct(This.scripts.mScripts(lastIdx).thunks)
+    This.scripts.scriptCount = lastIdx
 End Sub
 
-Private Sub FreePendingScriptResources(ByRef pending As TPendingScript)
-    If pending.pHandlerObj <> 0 Then Call GlobalFree(pending.pHandlerObj)
-    If pending.pVTable <> 0 Then Call GlobalFree(pending.pVTable)
-    Call FreeHandlerThunks(pending.thunks)
+Private Sub Scripts_FreeScriptResources(ByRef scriptItem As TScriptItem)
+    If scriptItem.pHandlerObj <> 0 Then Call GlobalFree(scriptItem.pHandlerObj)
+    If scriptItem.pVTable <> 0 Then Call GlobalFree(scriptItem.pVTable)
+    Call FreeHandlerThunks(scriptItem.thunks)
 End Sub
 
-Private Sub ClearAllPendingScripts()
+Private Sub Scripts_ClearAll()
     Dim i As Long
-    For i = 0 To mPendingScriptCount - 1
-        Call FreePendingScriptResources(mPendingScripts(i))
-        Set mPendingCallbacks(i) = Nothing
+    For i = 0 To This.scripts.scriptCount - 1
+        Call Scripts_FreeScriptResources(This.scripts.mScripts(i))
+        Set This.scripts.mScripts(i).callback = Nothing
     Next i
-    mPendingScriptCount = 0
-    Erase mPendingScripts
-    Erase mPendingCallbacks
+    This.scripts.scriptCount = 0
+    Erase This.scripts.mScripts
 End Sub
 
-Private Sub SweepCompletedPendingScripts()
+Private Sub Scripts_ClearCompleted()
     Dim i As Long
-    Dim pending As TPendingScript
-    For i = mPendingScriptCount - 1 To 0 Step -1
-        If mPendingScripts(i).isCompleted Then
-            pending = mPendingScripts(i)
-            Call RemovePendingScriptAt(i)
-            Call FreePendingScriptResources(pending)
+    Dim pHandlerObj As LongPtr
+    Dim pVTable As LongPtr
+    Dim thunks As THandlerThunks
+    For i = This.scripts.scriptCount - 1 To 0 Step -1
+        If This.scripts.mScripts(i).isCompleted Then
+            pHandlerObj = This.scripts.mScripts(i).pHandlerObj
+            pVTable = This.scripts.mScripts(i).pVTable
+            thunks = This.scripts.mScripts(i).thunks
+            Call Scripts_RemoveScriptAt(i)
+            If pHandlerObj <> 0 Then Call GlobalFree(pHandlerObj)
+            If pVTable <> 0 Then Call GlobalFree(pVTable)
+            Call FreeHandlerThunks(thunks)
         End If
     Next i
 End Sub
