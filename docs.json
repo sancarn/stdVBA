@@ -14296,6 +14296,86 @@
         "isStatic": false
       },
       {
+        "name": "SetVirtualHostNameToFolderMapping",
+        "description": "Map a virtual host name to a local folder path for loading local content.",
+        "remarks": [
+          "- Navigate to `https://<hostName>/path` to load local content from `<folderPath>\\path`."
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "hostName",
+            "type": "String",
+            "description": "Virtual host name (e.g. \"app.local\").",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "folderPath",
+            "type": "String",
+            "description": "Local folder path to map (e.g. \"C:\\MyApp\\wwwroot\").",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "accessKind",
+            "type": "COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND",
+            "description": "Access level for resources (ALLOW, DENY, or DENY_CORS).",
+            "optional": true,
+            "defaultValue": "COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND_ALLOW",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "ClearVirtualHostNameToFolderMapping",
+        "description": "Clear a previously set virtual host name to folder mapping.",
+        "remarks": [
+          "- Removes the mapping set by SetVirtualHostNameToFolderMapping."
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "hostName",
+            "type": "String",
+            "description": "Virtual host name to clear (e.g. \"app.local\").",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
         "name": "Resize",
         "description": "Resize WebView2 surface to fill the current host client area.",
         "remarks": [
