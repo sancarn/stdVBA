@@ -100,6 +100,17 @@ Private Type THostObjectState
     refs As Collection
 End Type
 
+Private Type TWebResourceFilterItem
+    filterString As String
+    context As Long
+    callback As stdICallable
+End Type
+
+Private Type TWebResourceFilters
+    items() As TWebResourceFilterItem
+    count As Long
+End Type
+
 Private Type TComState
     pEnvironment As LongPtr
     pController As LongPtr
@@ -110,6 +121,11 @@ Private Type TComState
     pCtrlHandlerObj As LongPtr
     pCtrlVTable As LongPtr
     ctrlThunk As THandlerThunks
+    pWebReqHandlerObj As LongPtr
+    pWebReqVTable As LongPtr
+    webReqThunk As THandlerThunks
+    webReqTokenLow As Long
+    webReqTokenHigh As Long
 End Type
 
 Private Type TThis
@@ -119,6 +135,7 @@ Private Type TThis
     script As TScriptState
     scripts As TScripts
     host As THostObjectState
+    webResource As TWebResourceFilters
     com As TComState
 End Type
 
@@ -126,6 +143,8 @@ Private This As TThis
 
 Private Const CC_STDCALL As Long = 4
 Private Const GPTR As Long = &H40
+Private Const GMEM_MOVEABLE As Long = &H2&
+Private Const GMEM_ZEROINIT As Long = &H40&
 
 Private Const MEM_COMMIT As Long = &H1000&
 Private Const MEM_RESERVE As Long = &H2000&
@@ -139,13 +158,52 @@ Private Const LOGPIXELSY As Long = 90
 Private Const COREWEBVIEW2_VTBL_EXECUTESCRIPT As Long = 29
 Private Const COREWEBVIEW2_VTBL_ADDHOSTOBJECTTOSCRIPT As Long = 49
 Private Const COREWEBVIEW2_VTBL_REMOVEHOSTOBJECTFROMSCRIPT As Long = 50
+Private Const COREWEBVIEW2_VTBL_ADD_WEBRESOURCEREQUESTED As Long = 55
+Private Const COREWEBVIEW2_VTBL_ADDWEBRESOURCEREQUESTEDFILTER As Long = 57
 Private Const COREWEBVIEW2_VTBL_SETVIRTUALHOSTNAMETOFOLDERMAPPING As Long = 71
 Private Const COREWEBVIEW2_VTBL_CLEARVIRTUALHOSTNAMETOFOLDERMAPPING As Long = 72
+Private Const COREWEBVIEW2ENVIRONMENT_VTBL_CREATEWEBRESOURCERESPONSE As Long = 4
+
+Private Const COREWEBVIEW2WEBRESOURCEREQUEST_VTBL_GET_URI As Long = 3
+Private Const COREWEBVIEW2WEBRESOURCEREQUEST_VTBL_GET_METHOD As Long = 5
+Private Const COREWEBVIEW2WEBRESOURCEREQUEST_VTBL_GET_HEADERS As Long = 9
+
+Private Const COREWEBVIEW2HTTPREQUESTHEADERS_VTBL_SETHEADER As Long = 6
+Private Const COREWEBVIEW2HTTPREQUESTHEADERS_VTBL_REMOVEHEADER As Long = 7
+Private Const COREWEBVIEW2HTTPREQUESTHEADERS_VTBL_GETITERATOR As Long = 8
+
+Private Const COREWEBVIEW2HTTPHEADERSITERATOR_VTBL_GETCURRENTHEADER As Long = 3
+Private Const COREWEBVIEW2HTTPHEADERSITERATOR_VTBL_GETHASCURRENTHEADER As Long = 4
+Private Const COREWEBVIEW2HTTPHEADERSITERATOR_VTBL_MOVENEXT As Long = 5
+
+Private Const COREWEBVIEW2WEBRESOURCEREQUESTEDEVENTARGS_VTBL_GET_REQUEST As Long = 3
+Private Const COREWEBVIEW2WEBRESOURCEREQUESTEDEVENTARGS_VTBL_PUT_RESPONSE As Long = 5
+Private Const COREWEBVIEW2WEBRESOURCEREQUESTEDEVENTARGS_VTBL_GET_RESOURCECONTEXT As Long = 7
 
 Public Enum COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND
     COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND_DENY = 0
     COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND_ALLOW = 1
     COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND_DENY_CORS = 2
+End Enum
+
+Public Enum ECoreWebView2WebResourceContext
+    COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL = 0
+    COREWEBVIEW2_WEB_RESOURCE_CONTEXT_DOCUMENT = 1
+    COREWEBVIEW2_WEB_RESOURCE_CONTEXT_STYLESHEET = 2
+    COREWEBVIEW2_WEB_RESOURCE_CONTEXT_IMAGE = 3
+    COREWEBVIEW2_WEB_RESOURCE_CONTEXT_MEDIA = 4
+    COREWEBVIEW2_WEB_RESOURCE_CONTEXT_FONT = 5
+    COREWEBVIEW2_WEB_RESOURCE_CONTEXT_SCRIPT = 6
+    COREWEBVIEW2_WEB_RESOURCE_CONTEXT_XML_HTTP_REQUEST = 7
+    COREWEBVIEW2_WEB_RESOURCE_CONTEXT_FETCH = 8
+    COREWEBVIEW2_WEB_RESOURCE_CONTEXT_TEXT_TRACK = 9
+    COREWEBVIEW2_WEB_RESOURCE_CONTEXT_EVENT_SOURCE = 10
+    COREWEBVIEW2_WEB_RESOURCE_CONTEXT_WEBSOCKET = 11
+    COREWEBVIEW2_WEB_RESOURCE_CONTEXT_MANIFEST = 12
+    COREWEBVIEW2_WEB_RESOURCE_CONTEXT_SIGNED_EXCHANGE = 13
+    COREWEBVIEW2_WEB_RESOURCE_CONTEXT_PING = 14
+    COREWEBVIEW2_WEB_RESOURCE_CONTEXT_CSP_VIOLATION_REPORT = 15
+    COREWEBVIEW2_WEB_RESOURCE_CONTEXT_OTHER = 16
 End Enum
 
 #If VBA7 Then
@@ -189,7 +247,10 @@ End Enum
         ByVal Length As LongPtr)
     Private Declare PtrSafe Function GlobalAlloc Lib "kernel32" (ByVal uFlags As Long, ByVal dwBytes As LongPtr) As LongPtr
     Private Declare PtrSafe Function GlobalFree Lib "kernel32" (ByVal hMem As LongPtr) As LongPtr
+    Private Declare PtrSafe Function GlobalLock Lib "kernel32" (ByVal hMem As LongPtr) As LongPtr
+    Private Declare PtrSafe Function GlobalUnlock Lib "kernel32" (ByVal hMem As LongPtr) As Long
     Private Declare PtrSafe Sub CoTaskMemFree Lib "ole32.dll" (ByVal pv As LongPtr)
+    Private Declare PtrSafe Function CreateStreamOnHGlobal Lib "ole32.dll" (ByVal hGlobal As LongPtr, ByVal fDeleteOnRelease As Long, ByRef ppstm As Any) As Long
 
     Private Declare PtrSafe Function DispCallFunc Lib "oleaut32.dll" ( _
         ByVal pvInstance As LongPtr, ByVal oVft As LongPtr, ByVal cc As Long, _
@@ -248,7 +309,10 @@ End Enum
         ByVal Length As LongPtr)
     Private Declare Function GlobalAlloc Lib "kernel32" (ByVal uFlags As Long, ByVal dwBytes As LongPtr) As LongPtr
     Private Declare Function GlobalFree Lib "kernel32" (ByVal hMem As LongPtr) As LongPtr
+    Private Declare Function GlobalLock Lib "kernel32" (ByVal hMem As LongPtr) As LongPtr
+    Private Declare Function GlobalUnlock Lib "kernel32" (ByVal hMem As LongPtr) As Long
     Private Declare Sub CoTaskMemFree Lib "ole32.dll" (ByVal pv As LongPtr)
+    Private Declare Function CreateStreamOnHGlobal Lib "ole32.dll" (ByVal hGlobal As LongPtr, ByVal fDeleteOnRelease As Long, ByRef ppstm As Any) As Long
 
     Private Declare Function DispCallFunc Lib "oleaut32.dll" ( _
         ByVal pvInstance As LongPtr, ByVal oVft As LongPtr, ByVal cc As Long, _
@@ -336,7 +400,7 @@ End Function
 ' This is because the WebView2 handler vtables (IUnknown + Invoke)
 ' depend on the order of the Public methods.
 '
-' `GetComProcAddress(Me, 0..5)` depends on that. Do not move other Public methods
+' `GetComProcAddress(Me, 0..6)` depends on that. Do not move other Public methods
 ' above them without adjusting the indexes.
 ' ============================================================================
 
@@ -401,6 +465,18 @@ Public Function zzProtWebView_ScriptInvoke( _
     reqId = CLng(reqIdLP)
     Call protScriptCompleted(errorCode, PtrToStrW(resultJsonPtr), reqId)
     zzProtWebView_ScriptInvoke = 0&
+End Function
+
+'WebView2 WebResourceRequested Invoke Thunk Implementation. DO NOT CALL THIS METHOD.
+'@protected
+Public Function zzProtWebView_WebResourceRequestedInvoke( _
+    ByVal callbackThis As LongPtr, _
+    ByVal pSender As LongPtr, _
+    ByVal pArgs As LongPtr) As Long
+
+    On Error Resume Next
+    Call protWebResourceRequested(pSender, pArgs)
+    zzProtWebView_WebResourceRequestedInvoke = 0&
 End Function
 
 ' ============================================================================
@@ -594,6 +670,27 @@ Public Sub ClearVirtualHostNameToFolderMapping(ByVal hostName As String)
     Call CallVT(This.com.ppWebView2, COREWEBVIEW2_VTBL_CLEARVIRTUALHOSTNAMETOFOLDERMAPPING, vbLong, StrPtr(host))
 End Sub
 
+'Intercept matching web resource requests via a callback.
+'@param filterString - URI filter pattern (for example `https://example.com/*`).
+'@param callback as stdICallable<(request as Dictionary)=>void> - Callback that mutates request envelope keys.
+'@param context - Optional resource context filter (`COREWEBVIEW2_WEB_RESOURCE_CONTEXT_*`).
+'@remark - Callback may either set `respond=True` + response fields to short-circuit, or mutate request headers and continue.
+Public Sub AddWebResourceRequestedFilter(ByVal filterString As String, ByVal callback As stdICallable, Optional ByVal context As ECoreWebView2WebResourceContext = COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL)
+    Dim pattern As String
+    Dim idx As Long
+
+    If Not IsReady Then Err.Raise 5, "stdWebView::AddWebResourceRequestedFilter", "WebView not ready"
+    pattern = Trim$(filterString)
+    If LenB(pattern) = 0 Then Err.Raise 5, "stdWebView::AddWebResourceRequestedFilter", "filterString cannot be blank"
+    If callback Is Nothing Then Err.Raise 5, "stdWebView::AddWebResourceRequestedFilter", "callback is Nothing"
+
+    Call WebResource_EnsureEventHandler
+    Call CallVT(This.com.ppWebView2, COREWEBVIEW2_VTBL_ADDWEBRESOURCEREQUESTEDFILTER, vbLong, StrPtr(pattern), CLng(context))
+
+    idx = WebResource_AddFilter(pattern, CLng(context), callback)
+    If idx < 0 Then Err.Raise 5, "stdWebView::AddWebResourceRequestedFilter", "Failed to register filter callback"
+End Sub
+
 'Resize WebView2 surface to fill the current host client area.
 '@remark - Call from host resize events (for example UserForm_Resize).
 Public Sub Resize()
@@ -684,6 +781,72 @@ Friend Sub protScriptCompleted(ByVal errorCode As Long, ByVal resultJson As Stri
     End If
 End Sub
 
+Friend Sub protWebResourceRequested(ByVal pSender As LongPtr, ByVal pArgs As LongPtr)
+    Dim pRequest As LongPtr
+    Dim pHeaders As LongPtr
+    Dim pResponse As LongPtr
+    Dim pUri As LongPtr
+    Dim pMethod As LongPtr
+    Dim uri As String
+    Dim method As String
+    Dim contextValue As Long
+    Dim i As Long
+    Dim envelope As Object
+    Dim cb As stdICallable
+
+    If This.webResource.count <= 0 Then Exit Sub
+    If pArgs = 0 Then Exit Sub
+
+    Call CallVT(pArgs, COREWEBVIEW2WEBRESOURCEREQUESTEDEVENTARGS_VTBL_GET_REQUEST, vbLong, VarPtr(pRequest))
+    If pRequest = 0 Then Exit Sub
+
+    On Error Resume Next
+    Call CallVT(pArgs, COREWEBVIEW2WEBRESOURCEREQUESTEDEVENTARGS_VTBL_GET_RESOURCECONTEXT, vbLong, VarPtr(contextValue))
+    On Error GoTo fail
+
+    Call CallVT(pRequest, COREWEBVIEW2WEBRESOURCEREQUEST_VTBL_GET_URI, vbLong, VarPtr(pUri))
+    Call CallVT(pRequest, COREWEBVIEW2WEBRESOURCEREQUEST_VTBL_GET_METHOD, vbLong, VarPtr(pMethod))
+    uri = PtrToStrW(pUri)
+    method = PtrToStrW(pMethod)
+    If pUri <> 0 Then Call CoTaskMemFree(pUri)
+    If pMethod <> 0 Then Call CoTaskMemFree(pMethod)
+    pUri = 0
+    pMethod = 0
+
+    Call CallVT(pRequest, COREWEBVIEW2WEBRESOURCEREQUEST_VTBL_GET_HEADERS, vbLong, VarPtr(pHeaders))
+    For i = 0 To This.webResource.count - 1
+        If WebResource_FilterMatches(This.webResource.items(i), uri, contextValue) Then
+            Set cb = This.webResource.items(i).callback
+            If cb Is Nothing Then GoTo nextFilter
+
+            Set envelope = WebResource_BuildEnvelope(uri, method, contextValue, pHeaders)
+            On Error Resume Next
+            Call cb.RunEx(Array(envelope))
+            On Error GoTo fail
+
+            Call WebResource_ApplyHeaderChanges(envelope, pHeaders)
+            If WebResource_ShouldRespond(envelope) Then
+                pResponse = WebResource_CreateResponse(envelope)
+                If pResponse <> 0 Then
+                    Call CallVT(pArgs, COREWEBVIEW2WEBRESOURCEREQUESTEDEVENTARGS_VTBL_PUT_RESPONSE, vbLong, pResponse)
+                    Call ComRelease(pResponse)
+                    pResponse = 0
+                End If
+                Exit For
+            End If
+        End If
+nextFilter:
+    Next i
+
+cleanup:
+    If pHeaders <> 0 Then Call ComRelease(pHeaders)
+    If pRequest <> 0 Then Call ComRelease(pRequest)
+    Exit Sub
+
+fail:
+    Resume cleanup
+End Sub
+
 'Protected method to create the stdWebView instance.
 '@constructor
 '@protected
@@ -725,6 +888,10 @@ End Sub
 
 Private Sub ComAddRef(ByVal pUnk As LongPtr)
     Call CallVT(pUnk, 1, vbLong)
+End Sub
+
+Private Sub ComRelease(ByVal pUnk As LongPtr)
+    If pUnk <> 0 Then Call CallVTQuiet(pUnk, 2, vbLong)
 End Sub
 
 Private Sub ControllerPutBounds(ByVal x As Long, ByVal y As Long, ByVal w As Long, ByVal h As Long)
@@ -852,6 +1019,7 @@ Private Sub FreeHandlerAllocs()
     Call HostObjects_ClearAll
     Call FreeHandlerThunks(This.com.envThunk)
     Call FreeHandlerThunks(This.com.ctrlThunk)
+    Call FreeHandlerThunks(This.com.webReqThunk)
     If This.com.pEnvHandlerObj <> 0 Then
         Call GlobalFree(This.com.pEnvHandlerObj)
         This.com.pEnvHandlerObj = 0
@@ -868,6 +1036,15 @@ Private Sub FreeHandlerAllocs()
         Call GlobalFree(This.com.pCtrlVTable)
         This.com.pCtrlVTable = 0
     End If
+    If This.com.pWebReqHandlerObj <> 0 Then
+        Call GlobalFree(This.com.pWebReqHandlerObj)
+        This.com.pWebReqHandlerObj = 0
+    End If
+    If This.com.pWebReqVTable <> 0 Then
+        Call GlobalFree(This.com.pWebReqVTable)
+        This.com.pWebReqVTable = 0
+    End If
+    Call WebResource_ClearFilters
     Call Scripts_ClearAll
 End Sub
 
@@ -925,6 +1102,309 @@ End Sub
 Private Sub HostObjects_ClearAll()
     Set This.host.refs = Nothing
 End Sub
+
+Private Sub WebResource_EnsureCapacity()
+    Dim cap As Long
+    If This.webResource.count < 0 Then This.webResource.count = 0
+    cap = WebResource_Capacity()
+    If This.webResource.count < cap Then Exit Sub
+    cap = cap + 4
+    ReDim Preserve This.webResource.items(0 To cap - 1)
+End Sub
+
+Private Function WebResource_Capacity() As Long
+    On Error GoTo noArray
+    WebResource_Capacity = UBound(This.webResource.items) - LBound(This.webResource.items) + 1
+    Exit Function
+noArray:
+    WebResource_Capacity = 0
+End Function
+
+Private Function WebResource_AddFilter(ByVal filterString As String, ByVal context As Long, ByVal callback As stdICallable) As Long
+    Dim idx As Long
+    Call WebResource_EnsureCapacity
+    idx = This.webResource.count
+    This.webResource.items(idx).filterString = filterString
+    This.webResource.items(idx).context = context
+    Set This.webResource.items(idx).callback = callback
+    This.webResource.count = This.webResource.count + 1
+    WebResource_AddFilter = idx
+End Function
+
+Private Sub WebResource_ClearFilters()
+    Dim i As Long
+    For i = 0 To This.webResource.count - 1
+        Set This.webResource.items(i).callback = Nothing
+        This.webResource.items(i).filterString = vbNullString
+        This.webResource.items(i).context = 0
+    Next i
+    This.webResource.count = 0
+    Erase This.webResource.items
+End Sub
+
+Private Sub WebResource_EnsureEventHandler()
+    If This.com.pWebReqHandlerObj <> 0 Then Exit Sub
+    If This.com.ppWebView2 = 0 Then Err.Raise 5, "stdWebView::WebResource_EnsureEventHandler", "WebView not ready"
+
+    This.com.pWebReqVTable = BuildHandlerVTable(6, This.com.webReqThunk, 3)
+    This.com.pWebReqHandlerObj = GlobalAlloc(GPTR, PTR_SZ)
+    If This.com.pWebReqHandlerObj = 0 Then Err.Raise 5, "stdWebView::WebResource_EnsureEventHandler", "Failed allocating WebResourceRequested handler object"
+    Call CopyMemory(ByVal This.com.pWebReqHandlerObj, This.com.pWebReqVTable, PTR_SZ)
+    This.com.webReqTokenLow = 0
+    This.com.webReqTokenHigh = 0
+    Call CallVT(This.com.ppWebView2, COREWEBVIEW2_VTBL_ADD_WEBRESOURCEREQUESTED, vbLong, This.com.pWebReqHandlerObj, VarPtr(This.com.webReqTokenLow))
+End Sub
+
+Private Function WebResource_FilterMatches(ByRef filterItem As TWebResourceFilterItem, ByVal uri As String, ByVal context As Long) As Boolean
+    Dim u As String
+    Dim p As String
+
+    If filterItem.context <> COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL Then
+        If filterItem.context <> context Then Exit Function
+    End If
+
+    p = LCase$(Trim$(filterItem.filterString))
+    u = LCase$(uri)
+    If LenB(p) = 0 Then Exit Function
+    If p = "*" Then
+        WebResource_FilterMatches = True
+        Exit Function
+    End If
+
+    On Error Resume Next
+    WebResource_FilterMatches = (u Like p)
+    If Err.Number <> 0 Then
+        Err.Clear
+        WebResource_FilterMatches = (u = p)
+    End If
+    On Error GoTo 0
+End Function
+
+Private Function WebResource_NewDictionary() As Object
+    Set WebResource_NewDictionary = CreateObject("Scripting.Dictionary")
+End Function
+
+Private Function WebResource_BuildEnvelope(ByVal uri As String, ByVal method As String, ByVal resourceContext As Long, ByVal pHeaders As LongPtr) As Object
+    Dim requestHeaders As Object
+    Dim setHeaders As Object
+    Dim envelope As Object
+
+    Set envelope = WebResource_NewDictionary()
+    Set requestHeaders = WebResource_ReadHeadersAsDictionary(pHeaders)
+    Set setHeaders = WebResource_NewDictionary()
+
+    envelope("uri") = uri
+    envelope("method") = method
+    envelope("resourceContext") = resourceContext
+    Set envelope("requestHeaders") = requestHeaders
+    Set envelope("setRequestHeaders") = setHeaders
+    envelope("removeRequestHeaders") = Empty
+    envelope("respond") = False
+    envelope("responseStatusCode") = 200
+    envelope("responseReasonPhrase") = "OK"
+    envelope("responseHeaders") = vbNullString
+    envelope("responseBody") = Empty
+    Set WebResource_BuildEnvelope = envelope
+End Function
+
+Private Function WebResource_ReadHeadersAsDictionary(ByVal pHeaders As LongPtr) As Object
+    Dim result As Object
+    Dim pIterator As LongPtr
+    Dim hasCurrent As Long
+    Dim pName As LongPtr
+    Dim pValue As LongPtr
+    Dim name As String
+    Dim value As String
+
+    Set result = WebResource_NewDictionary()
+    If pHeaders = 0 Then
+        Set WebResource_ReadHeadersAsDictionary = result
+        Exit Function
+    End If
+
+    Call CallVT(pHeaders, COREWEBVIEW2HTTPREQUESTHEADERS_VTBL_GETITERATOR, vbLong, VarPtr(pIterator))
+    If pIterator = 0 Then
+        Set WebResource_ReadHeadersAsDictionary = result
+        Exit Function
+    End If
+
+    On Error GoTo cleanup
+    Call CallVT(pIterator, COREWEBVIEW2HTTPHEADERSITERATOR_VTBL_GETHASCURRENTHEADER, vbLong, VarPtr(hasCurrent))
+    Do While hasCurrent <> 0
+        pName = 0
+        pValue = 0
+        Call CallVT(pIterator, COREWEBVIEW2HTTPHEADERSITERATOR_VTBL_GETCURRENTHEADER, vbLong, VarPtr(pName), VarPtr(pValue))
+        name = PtrToStrW(pName)
+        value = PtrToStrW(pValue)
+        If pName <> 0 Then Call CoTaskMemFree(pName)
+        If pValue <> 0 Then Call CoTaskMemFree(pValue)
+        If LenB(name) > 0 Then
+            If result.Exists(name) Then
+                result(name) = CStr(result(name)) & ", " & value
+            Else
+                result(name) = value
+            End If
+        End If
+        Call CallVT(pIterator, COREWEBVIEW2HTTPHEADERSITERATOR_VTBL_MOVENEXT, vbLong, VarPtr(hasCurrent))
+    Loop
+
+cleanup:
+    If pIterator <> 0 Then Call ComRelease(pIterator)
+    Set WebResource_ReadHeadersAsDictionary = result
+End Function
+
+Private Sub WebResource_ApplyHeaderChanges(ByVal envelope As Object, ByVal pHeaders As LongPtr)
+    Dim setHeaders As Object
+    Dim removeHeaders As Variant
+    Dim key As Variant
+    Dim headerName As String
+    Dim headerValue As String
+    Dim i As Long
+
+    If pHeaders = 0 Then Exit Sub
+    If envelope Is Nothing Then Exit Sub
+
+    If envelope.Exists("setRequestHeaders") Then
+        If IsObject(envelope("setRequestHeaders")) Then
+            Set setHeaders = envelope("setRequestHeaders")
+            If Not setHeaders Is Nothing Then
+                For Each key In setHeaders.Keys
+                    headerName = CStr(key)
+                    headerValue = CStr(setHeaders(key))
+                    If LenB(headerName) > 0 Then
+                        Call CallVT(pHeaders, COREWEBVIEW2HTTPREQUESTHEADERS_VTBL_SETHEADER, vbLong, StrPtr(headerName), StrPtr(headerValue))
+                    End If
+                Next key
+            End If
+        End If
+    End If
+
+    If envelope.Exists("removeRequestHeaders") Then
+        removeHeaders = envelope("removeRequestHeaders")
+        If IsArray(removeHeaders) Then
+            For i = LBound(removeHeaders) To UBound(removeHeaders)
+                headerName = CStr(removeHeaders(i))
+                If LenB(headerName) > 0 Then
+                    Call CallVT(pHeaders, COREWEBVIEW2HTTPREQUESTHEADERS_VTBL_REMOVEHEADER, vbLong, StrPtr(headerName))
+                End If
+            Next i
+        ElseIf IsObject(removeHeaders) Then
+            Dim objHeaders As Object
+            Set objHeaders = removeHeaders
+            If TypeName(objHeaders) = "Collection" Then
+                For i = 1 To objHeaders.Count
+                    headerName = CStr(objHeaders(i))
+                    If LenB(headerName) > 0 Then
+                        Call CallVT(pHeaders, COREWEBVIEW2HTTPREQUESTHEADERS_VTBL_REMOVEHEADER, vbLong, StrPtr(headerName))
+                    End If
+                Next i
+            Else
+                For Each key In objHeaders.Keys
+                    headerName = CStr(key)
+                    If LenB(headerName) > 0 Then
+                        Call CallVT(pHeaders, COREWEBVIEW2HTTPREQUESTHEADERS_VTBL_REMOVEHEADER, vbLong, StrPtr(headerName))
+                    End If
+                Next key
+            End If
+        ElseIf VarType(removeHeaders) = vbString Then
+            headerName = CStr(removeHeaders)
+            If LenB(headerName) > 0 Then
+                Call CallVT(pHeaders, COREWEBVIEW2HTTPREQUESTHEADERS_VTBL_REMOVEHEADER, vbLong, StrPtr(headerName))
+            End If
+        End If
+    End If
+End Sub
+
+Private Function WebResource_ShouldRespond(ByVal envelope As Object) As Boolean
+    If envelope Is Nothing Then Exit Function
+    If Not envelope.Exists("respond") Then Exit Function
+    On Error Resume Next
+    WebResource_ShouldRespond = CBool(envelope("respond"))
+    If Err.Number <> 0 Then
+        Err.Clear
+        WebResource_ShouldRespond = False
+    End If
+    On Error GoTo 0
+End Function
+
+Private Function WebResource_CreateResponse(ByVal envelope As Object) As LongPtr
+    Dim statusCode As Long
+    Dim reasonPhrase As String
+    Dim headersRaw As String
+    Dim body As Variant
+    Dim pStream As LongPtr
+    Dim pResponse As LongPtr
+    Dim hr As Long
+    Dim pHeadersRaw As LongPtr
+
+    statusCode = 200
+    reasonPhrase = "OK"
+    headersRaw = vbNullString
+
+    If envelope.Exists("responseStatusCode") Then statusCode = CLng(envelope("responseStatusCode"))
+    If envelope.Exists("responseReasonPhrase") Then reasonPhrase = CStr(envelope("responseReasonPhrase"))
+    If envelope.Exists("responseHeaders") Then headersRaw = CStr(envelope("responseHeaders"))
+    If envelope.Exists("responseBody") Then body = envelope("responseBody") Else body = Empty
+    If LenB(headersRaw) > 0 Then pHeadersRaw = StrPtr(headersRaw) Else pHeadersRaw = 0
+
+    pStream = WebResource_CreateBodyStream(body)
+    hr = CallVT(This.com.pEnvironment, COREWEBVIEW2ENVIRONMENT_VTBL_CREATEWEBRESOURCERESPONSE, vbLong, pStream, statusCode, StrPtr(reasonPhrase), pHeadersRaw, VarPtr(pResponse))
+    If pStream <> 0 Then Call ComRelease(pStream)
+    If hr < 0 Then
+        WebResource_CreateResponse = 0
+        Exit Function
+    End If
+    WebResource_CreateResponse = pResponse
+End Function
+
+Private Function WebResource_CreateBodyStream(ByVal body As Variant) As LongPtr
+    Dim bytes() As Byte
+    Dim cb As Long
+    Dim hMem As LongPtr
+    Dim pMem As LongPtr
+    Dim pStream As LongPtr
+    Dim hr As Long
+
+    If IsEmpty(body) Then Exit Function
+    If IsNull(body) Then Exit Function
+
+    On Error Resume Next
+    If IsArray(body) Then
+        bytes = body
+    Else
+        bytes = StrConv(CStr(body), vbFromUnicode)
+    End If
+    If Err.Number <> 0 Then
+        Err.Clear
+        Exit Function
+    End If
+    On Error GoTo fail
+
+    cb = 0
+    On Error Resume Next
+    cb = UBound(bytes) - LBound(bytes) + 1
+    On Error GoTo fail
+    If cb <= 0 Then Exit Function
+
+    hMem = GlobalAlloc(GMEM_MOVEABLE Or GMEM_ZEROINIT, cb)
+    If hMem = 0 Then Exit Function
+    pMem = GlobalLock(hMem)
+    If pMem = 0 Then GoTo fail
+
+    Call CopyMemory(ByVal pMem, bytes(LBound(bytes)), cb)
+    Call GlobalUnlock(hMem)
+
+    hr = CreateStreamOnHGlobal(hMem, 1, pStream)
+    If hr <> 0 Then GoTo fail
+    WebResource_CreateBodyStream = pStream
+    Exit Function
+
+fail:
+    On Error Resume Next
+    If pMem <> 0 Then Call GlobalUnlock(hMem)
+    If hMem <> 0 Then Call GlobalFree(hMem)
+    WebResource_CreateBodyStream = 0
+End Function
 
 Private Function NextScriptRequestId() As Long
     This.script.nextRequestId = This.script.nextRequestId + 1
