@@ -367,3 +367,4 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2025-11-21 `stdCallback` FIX - Fixing typos. See #146.
 - 2026-01-02 `stdHTTP` BREAKING - Mac compatibility
 - 2026-03-23 `stdWebView` FEATURE - Added `AddHostObject(name, hostObject)` and `RemoveHostObject(name)` to inject/remove VBA `IDispatch` objects in JavaScript via `chrome.webview.hostObjects`.
+- 2026-03-25 `stdWebView` FEATURE - Added `SetVirtualHostNameToFolderMapping` and `ClearVirtualHostNameToFolderMapping`.

@@ -34,6 +34,8 @@ Attribute VB_Exposed = False
 '   [X] Get/Let Html() as String
 '   [X] JavaScriptRunSync(script) as String
 '   [X] JavaScriptRun(script, callback?)
+'   [X] SetVirtualHostNameToFolderMapping(hostName, folderPath, accessKind?)
+'   [X] ClearVirtualHostNameToFolderMapping(hostName)
 
 Option Explicit
 
@@ -137,6 +139,14 @@ Private Const LOGPIXELSY As Long = 90
 Private Const COREWEBVIEW2_VTBL_EXECUTESCRIPT As Long = 29
 Private Const COREWEBVIEW2_VTBL_ADDHOSTOBJECTTOSCRIPT As Long = 49
 Private Const COREWEBVIEW2_VTBL_REMOVEHOSTOBJECTFROMSCRIPT As Long = 50
+Private Const COREWEBVIEW2_VTBL_SETVIRTUALHOSTNAMETOFOLDERMAPPING As Long = 71
+Private Const COREWEBVIEW2_VTBL_CLEARVIRTUALHOSTNAMETOFOLDERMAPPING As Long = 72
+
+Public Enum COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND
+    COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND_DENY = 0
+    COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND_ALLOW = 1
+    COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND_DENY_CORS = 2
+End Enum
 
 #If VBA7 Then
 
@@ -553,6 +563,35 @@ Public Sub RemoveHostObject(ByVal name As String)
 
     Call CallVT(This.com.ppWebView2, COREWEBVIEW2_VTBL_REMOVEHOSTOBJECTFROMSCRIPT, vbLong, StrPtr(hostName))
     Call HostObjects_RemoveRef(hostName)
+End Sub
+
+'Map a virtual host name to a local folder path for loading local content.
+'@param hostName - Virtual host name (e.g. "app.local").
+'@param folderPath - Local folder path to map (e.g. "C:\MyApp\wwwroot").
+'@param accessKind - Access level for resources (ALLOW, DENY, or DENY_CORS).
+'@remark - Navigate to `https://<hostName>/path` to load local content from `<folderPath>\path`.
+Public Sub SetVirtualHostNameToFolderMapping(ByVal hostName As String, ByVal folderPath As String, Optional ByVal accessKind As COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND = COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND_ALLOW)
+    Dim host As String
+    Dim folder As String
+    host = Trim$(hostName)
+    folder = Trim$(folderPath)
+    If Not IsReady Then Err.Raise 5, "stdWebView::SetVirtualHostNameToFolderMapping", "WebView not ready"
+    If LenB(host) = 0 Then Err.Raise 5, "stdWebView::SetVirtualHostNameToFolderMapping", "hostName cannot be blank"
+    If LenB(folder) = 0 Then Err.Raise 5, "stdWebView::SetVirtualHostNameToFolderMapping", "folderPath cannot be blank"
+
+    Call CallVT(This.com.ppWebView2, COREWEBVIEW2_VTBL_SETVIRTUALHOSTNAMETOFOLDERMAPPING, vbLong, StrPtr(host), StrPtr(folder), CLng(accessKind))
+End Sub
+
+'Clear a previously set virtual host name to folder mapping.
+'@param hostName - Virtual host name to clear (e.g. "app.local").
+'@remark - Removes the mapping set by SetVirtualHostNameToFolderMapping.
+Public Sub ClearVirtualHostNameToFolderMapping(ByVal hostName As String)
+    Dim host As String
+    host = Trim$(hostName)
+    If Not IsReady Then Err.Raise 5, "stdWebView::ClearVirtualHostNameToFolderMapping", "WebView not ready"
+    If LenB(host) = 0 Then Err.Raise 5, "stdWebView::ClearVirtualHostNameToFolderMapping", "hostName cannot be blank"
+
+    Call CallVT(This.com.ppWebView2, COREWEBVIEW2_VTBL_CLEARVIRTUALHOSTNAMETOFOLDERMAPPING, vbLong, StrPtr(host))
 End Sub
 
 'Resize WebView2 surface to fill the current host client area.
