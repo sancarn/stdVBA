@@ -154,14 +154,126 @@ Private Const GW_CHILD As Long = 5
 Private Const GW_HWNDNEXT As Long = 2
 Private Const LOGPIXELSX As Long = 88
 Private Const LOGPIXELSY As Long = 90
-' Method slots are from ICoreWebView2Vtbl in WebView2.h (IUnknown + interface members).
+' Method slots are from ICoreWebView2_19Vtbl in WebView2.h (IUnknown + interface members).
+Private Const COREWEBVIEW2_VTBL_GET_SETTINGS As Long = 3
+Private Const COREWEBVIEW2_VTBL_GET_SOURCE As Long = 4
+Private Const COREWEBVIEW2_VTBL_NAVIGATE As Long = 5
+Private Const COREWEBVIEW2_VTBL_NAVIGATETOSTRING As Long = 6
+Private Const COREWEBVIEW2_VTBL_ADD_NAVIGATIONSTARTING As Long = 7
+Private Const COREWEBVIEW2_VTBL_REMOVE_NAVIGATIONSTARTING As Long = 8
+Private Const COREWEBVIEW2_VTBL_ADD_CONTENTLOADING As Long = 9
+Private Const COREWEBVIEW2_VTBL_REMOVE_CONTENTLOADING As Long = 10
+Private Const COREWEBVIEW2_VTBL_ADD_SOURCECHANGED As Long = 11
+Private Const COREWEBVIEW2_VTBL_REMOVE_SOURCECHANGED As Long = 12
+Private Const COREWEBVIEW2_VTBL_ADD_HISTORYCHANGED As Long = 13
+Private Const COREWEBVIEW2_VTBL_REMOVE_HISTORYCHANGED As Long = 14
+Private Const COREWEBVIEW2_VTBL_ADD_NAVIGATIONCOMPLETED As Long = 15
+Private Const COREWEBVIEW2_VTBL_REMOVE_NAVIGATIONCOMPLETED As Long = 16
+Private Const COREWEBVIEW2_VTBL_ADD_FRAMENAVIGATIONSTARTING As Long = 17
+Private Const COREWEBVIEW2_VTBL_REMOVE_FRAMENAVIGATIONSTARTING As Long = 18
+Private Const COREWEBVIEW2_VTBL_ADD_FRAMENAVIGATIONCOMPLETED As Long = 19
+Private Const COREWEBVIEW2_VTBL_REMOVE_FRAMENAVIGATIONCOMPLETED As Long = 20
+Private Const COREWEBVIEW2_VTBL_ADD_SCRIPTDIALOGOPENING As Long = 21
+Private Const COREWEBVIEW2_VTBL_REMOVE_SCRIPTDIALOGOPENING As Long = 22
+Private Const COREWEBVIEW2_VTBL_ADD_PERMISSIONREQUESTED As Long = 23
+Private Const COREWEBVIEW2_VTBL_REMOVE_PERMISSIONREQUESTED As Long = 24
+Private Const COREWEBVIEW2_VTBL_ADD_PROCESSFAILED As Long = 25
+Private Const COREWEBVIEW2_VTBL_REMOVE_PROCESSFAILED As Long = 26
+Private Const COREWEBVIEW2_VTBL_ADDSCRIPTTOEXECUTEONDOCUMENTCREATED As Long = 27
+Private Const COREWEBVIEW2_VTBL_REMOVESCRIPTTOEXECUTEONDOCUMENTCREATED As Long = 28
 Private Const COREWEBVIEW2_VTBL_EXECUTESCRIPT As Long = 29
+Private Const COREWEBVIEW2_VTBL_CAPTUREPREVIEW As Long = 30
+Private Const COREWEBVIEW2_VTBL_RELOAD As Long = 31
+Private Const COREWEBVIEW2_VTBL_POSTWEBMESSAGEASJSON As Long = 32
+Private Const COREWEBVIEW2_VTBL_POSTWEBMESSAGEASSTRING As Long = 33
+Private Const COREWEBVIEW2_VTBL_ADD_WEBMESSAGERECEIVED As Long = 34
+Private Const COREWEBVIEW2_VTBL_REMOVE_WEBMESSAGERECEIVED As Long = 35
+Private Const COREWEBVIEW2_VTBL_CALLDEVTOOLSPROTOCOLMETHOD As Long = 36
+Private Const COREWEBVIEW2_VTBL_GET_BROWSERPROCESSID As Long = 37
+Private Const COREWEBVIEW2_VTBL_GET_CANGOBACK As Long = 38
+Private Const COREWEBVIEW2_VTBL_GET_CANGOFORWARD As Long = 39
+Private Const COREWEBVIEW2_VTBL_GOBACK As Long = 40
+Private Const COREWEBVIEW2_VTBL_GOFORWARD As Long = 41
+Private Const COREWEBVIEW2_VTBL_GETDEVTOOLSPROTOCOLEVENTRECEIVER As Long = 42
+Private Const COREWEBVIEW2_VTBL_STOP As Long = 43
+Private Const COREWEBVIEW2_VTBL_ADD_NEWWINDOWREQUESTED As Long = 44
+Private Const COREWEBVIEW2_VTBL_REMOVE_NEWWINDOWREQUESTED As Long = 45
+Private Const COREWEBVIEW2_VTBL_ADD_DOCUMENTTITLECHANGED As Long = 46
+Private Const COREWEBVIEW2_VTBL_REMOVE_DOCUMENTTITLECHANGED As Long = 47
+Private Const COREWEBVIEW2_VTBL_GET_DOCUMENTTITLE As Long = 48
 Private Const COREWEBVIEW2_VTBL_ADDHOSTOBJECTTOSCRIPT As Long = 49
 Private Const COREWEBVIEW2_VTBL_REMOVEHOSTOBJECTFROMSCRIPT As Long = 50
+Private Const COREWEBVIEW2_VTBL_OPENDEVTOOLSWINDOW As Long = 51
+Private Const COREWEBVIEW2_VTBL_ADD_CONTAINSFULLSCREENELEMENTCHANGED As Long = 52
+Private Const COREWEBVIEW2_VTBL_REMOVE_CONTAINSFULLSCREENELEMENTCHANGED As Long = 53
+Private Const COREWEBVIEW2_VTBL_GET_CONTAINSFULLSCREENELEMENT As Long = 54
 Private Const COREWEBVIEW2_VTBL_ADD_WEBRESOURCEREQUESTED As Long = 55
+Private Const COREWEBVIEW2_VTBL_REMOVE_WEBRESOURCEREQUESTED As Long = 56
 Private Const COREWEBVIEW2_VTBL_ADDWEBRESOURCEREQUESTEDFILTER As Long = 57
+Private Const COREWEBVIEW2_VTBL_REMOVEWEBRESOURCEREQUESTEDFILTER As Long = 58
+Private Const COREWEBVIEW2_VTBL_ADD_WINDOWCLOSEREQUESTED As Long = 59
+Private Const COREWEBVIEW2_VTBL_REMOVE_WINDOWCLOSEREQUESTED As Long = 60
+Private Const COREWEBVIEW2_VTBL_ADD_WEBRESOURCERESPONSERECEIVED As Long = 61
+Private Const COREWEBVIEW2_VTBL_REMOVE_WEBRESOURCERESPONSERECEIVED As Long = 62
+Private Const COREWEBVIEW2_VTBL_NAVIGATEWITHWEBRESOURCEREQUEST As Long = 63
+Private Const COREWEBVIEW2_VTBL_ADD_DOMCONTENTLOADED As Long = 64
+Private Const COREWEBVIEW2_VTBL_REMOVE_DOMCONTENTLOADED As Long = 65
+Private Const COREWEBVIEW2_VTBL_GET_COOKIEMANAGER As Long = 66
+Private Const COREWEBVIEW2_VTBL_GET_ENVIRONMENT As Long = 67
+Private Const COREWEBVIEW2_VTBL_TRYSUSPEND As Long = 68
+Private Const COREWEBVIEW2_VTBL_RESUME As Long = 69
+Private Const COREWEBVIEW2_VTBL_GET_ISSUSPENDED As Long = 70
 Private Const COREWEBVIEW2_VTBL_SETVIRTUALHOSTNAMETOFOLDERMAPPING As Long = 71
 Private Const COREWEBVIEW2_VTBL_CLEARVIRTUALHOSTNAMETOFOLDERMAPPING As Long = 72
+Private Const COREWEBVIEW2_VTBL_ADD_FRAMECREATED As Long = 73
+Private Const COREWEBVIEW2_VTBL_REMOVE_FRAMECREATED As Long = 74
+Private Const COREWEBVIEW2_VTBL_ADD_DOWNLOADSTARTING As Long = 75
+Private Const COREWEBVIEW2_VTBL_REMOVE_DOWNLOADSTARTING As Long = 76
+Private Const COREWEBVIEW2_VTBL_ADD_CLIENTCERTIFICATEREQUESTED As Long = 77
+Private Const COREWEBVIEW2_VTBL_REMOVE_CLIENTCERTIFICATEREQUESTED As Long = 78
+Private Const COREWEBVIEW2_VTBL_OPENTASKMANAGERWINDOW As Long = 79
+Private Const COREWEBVIEW2_VTBL_PRINTTOPDF As Long = 80
+Private Const COREWEBVIEW2_VTBL_ADD_ISMUTEDCHANGED As Long = 81
+Private Const COREWEBVIEW2_VTBL_REMOVE_ISMUTEDCHANGED As Long = 82
+Private Const COREWEBVIEW2_VTBL_GET_ISMUTED As Long = 83
+Private Const COREWEBVIEW2_VTBL_PUT_ISMUTED As Long = 84
+Private Const COREWEBVIEW2_VTBL_ADD_ISDOCUMENTPLAYINGAUDIOCHANGED As Long = 85
+Private Const COREWEBVIEW2_VTBL_REMOVE_ISDOCUMENTPLAYINGAUDIOCHANGED As Long = 86
+Private Const COREWEBVIEW2_VTBL_GET_ISDOCUMENTPLAYINGAUDIO As Long = 87
+Private Const COREWEBVIEW2_VTBL_ADD_ISDEFAULTDOWNLOADDIALOGOPENCHANGED As Long = 88
+Private Const COREWEBVIEW2_VTBL_REMOVE_ISDEFAULTDOWNLOADDIALOGOPENCHANGED As Long = 89
+Private Const COREWEBVIEW2_VTBL_GET_ISDEFAULTDOWNLOADDIALOGOPEN As Long = 90
+Private Const COREWEBVIEW2_VTBL_OPENDEFAULTDOWNLOADDIALOG As Long = 91
+Private Const COREWEBVIEW2_VTBL_CLOSEDEFAULTDOWNLOADDIALOG As Long = 92
+Private Const COREWEBVIEW2_VTBL_GET_DEFAULTDOWNLOADDIALOGCORNERALIGNMENT As Long = 93
+Private Const COREWEBVIEW2_VTBL_PUT_DEFAULTDOWNLOADDIALOGCORNERALIGNMENT As Long = 94
+Private Const COREWEBVIEW2_VTBL_GET_DEFAULTDOWNLOADDIALOGMARGIN As Long = 95
+Private Const COREWEBVIEW2_VTBL_PUT_DEFAULTDOWNLOADDIALOGMARGIN As Long = 96
+Private Const COREWEBVIEW2_VTBL_ADD_BASICAUTHENTICATIONREQUESTED As Long = 97
+Private Const COREWEBVIEW2_VTBL_REMOVE_BASICAUTHENTICATIONREQUESTED As Long = 98
+Private Const COREWEBVIEW2_VTBL_CALLDEVTOOLSPROTOCOLMETHODFORSESSION As Long = 99
+Private Const COREWEBVIEW2_VTBL_ADD_CONTEXTMENUREQUESTED As Long = 100
+Private Const COREWEBVIEW2_VTBL_REMOVE_CONTEXTMENUREQUESTED As Long = 101
+Private Const COREWEBVIEW2_VTBL_ADD_STATUSBARTEXTCHANGED As Long = 102
+Private Const COREWEBVIEW2_VTBL_REMOVE_STATUSBARTEXTCHANGED As Long = 103
+Private Const COREWEBVIEW2_VTBL_GET_STATUSBARTEXT As Long = 104
+Private Const COREWEBVIEW2_VTBL_GET_PROFILE As Long = 105
+Private Const COREWEBVIEW2_VTBL_ADD_SERVERCERTIFICATEERRORDETECTED As Long = 106
+Private Const COREWEBVIEW2_VTBL_REMOVE_SERVERCERTIFICATEERRORDETECTED As Long = 107
+Private Const COREWEBVIEW2_VTBL_CLEARSERVERCERTIFICATEERRORACTIONS As Long = 108
+Private Const COREWEBVIEW2_VTBL_ADD_FAVICONCHANGED As Long = 109
+Private Const COREWEBVIEW2_VTBL_REMOVE_FAVICONCHANGED As Long = 110
+Private Const COREWEBVIEW2_VTBL_GET_FAVICONURI As Long = 111
+Private Const COREWEBVIEW2_VTBL_GETFAVICON As Long = 112
+Private Const COREWEBVIEW2_VTBL_PRINT As Long = 113
+Private Const COREWEBVIEW2_VTBL_SHOWPRINTUI As Long = 114
+Private Const COREWEBVIEW2_VTBL_PRINTTOPDFSTREAM As Long = 115
+Private Const COREWEBVIEW2_VTBL_POSTSHAREDBUFFERTOSCRIPT As Long = 116
+Private Const COREWEBVIEW2_VTBL_ADD_LAUNCHINGEXTERNALURISCHEME As Long = 117
+Private Const COREWEBVIEW2_VTBL_REMOVE_LAUNCHINGEXTERNALURISCHEME As Long = 118
+Private Const COREWEBVIEW2_VTBL_GET_MEMORYUSAGETARGETLEVEL As Long = 119
+Private Const COREWEBVIEW2_VTBL_PUT_MEMORYUSAGETARGETLEVEL As Long = 120
+
 Private Const COREWEBVIEW2ENVIRONMENT_VTBL_CREATEWEBRESOURCERESPONSE As Long = 4
 
 Private Const COREWEBVIEW2WEBRESOURCEREQUEST_VTBL_GET_URI As Long = 3
@@ -678,6 +790,7 @@ End Sub
 Public Sub AddWebResourceRequestedFilter(ByVal filterString As String, ByVal callback As stdICallable, Optional ByVal context As ECoreWebView2WebResourceContext = COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL)
     Dim pattern As String
     Dim idx As Long
+    Dim hr As Long
 
     If Not IsReady Then Err.Raise 5, "stdWebView::AddWebResourceRequestedFilter", "WebView not ready"
     pattern = Trim$(filterString)
@@ -685,7 +798,8 @@ Public Sub AddWebResourceRequestedFilter(ByVal filterString As String, ByVal cal
     If callback Is Nothing Then Err.Raise 5, "stdWebView::AddWebResourceRequestedFilter", "callback is Nothing"
 
     Call WebResource_EnsureEventHandler
-    Call CallVT(This.com.ppWebView2, COREWEBVIEW2_VTBL_ADDWEBRESOURCEREQUESTEDFILTER, vbLong, StrPtr(pattern), CLng(context))
+    hr = CLng(CallVT(This.com.ppWebView2, COREWEBVIEW2_VTBL_ADDWEBRESOURCEREQUESTEDFILTER, vbLong, StrPtr(pattern), CLng(context)))
+    If hr < 0 Then Err.Raise hr, "stdWebView::AddWebResourceRequestedFilter", "AddWebResourceRequestedFilter failed (" & CStr(hr) & ")"
 
     idx = WebResource_AddFilter(pattern, CLng(context), callback)
     If idx < 0 Then Err.Raise 5, "stdWebView::AddWebResourceRequestedFilter", "Failed to register filter callback"
@@ -1143,6 +1257,7 @@ Private Sub WebResource_ClearFilters()
 End Sub
 
 Private Sub WebResource_EnsureEventHandler()
+    Dim hr As Long
     If This.com.pWebReqHandlerObj <> 0 Then Exit Sub
     If This.com.ppWebView2 = 0 Then Err.Raise 5, "stdWebView::WebResource_EnsureEventHandler", "WebView not ready"
 
@@ -1152,7 +1267,10 @@ Private Sub WebResource_EnsureEventHandler()
     Call CopyMemory(ByVal This.com.pWebReqHandlerObj, This.com.pWebReqVTable, PTR_SZ)
     This.com.webReqTokenLow = 0
     This.com.webReqTokenHigh = 0
-    Call CallVT(This.com.ppWebView2, COREWEBVIEW2_VTBL_ADD_WEBRESOURCEREQUESTED, vbLong, This.com.pWebReqHandlerObj, VarPtr(This.com.webReqTokenLow))
+    hr = CLng(CallVT(This.com.ppWebView2, COREWEBVIEW2_VTBL_ADD_WEBRESOURCEREQUESTED, vbLong, This.com.pWebReqHandlerObj, VarPtr(This.com.webReqTokenLow)))
+    If hr < 0 Then
+        Err.Raise hr, "stdWebView::WebResource_EnsureEventHandler", "add_WebResourceRequested failed (" & CStr(hr) & ")"
+    End If
 End Sub
 
 Private Function WebResource_FilterMatches(ByRef filterItem As TWebResourceFilterItem, ByVal uri As String, ByVal context As Long) As Boolean
@@ -1260,6 +1378,7 @@ Private Sub WebResource_ApplyHeaderChanges(ByVal envelope As Object, ByVal pHead
     Dim headerName As String
     Dim headerValue As String
     Dim i As Long
+    Dim hr As Long
 
     If pHeaders = 0 Then Exit Sub
     If envelope Is Nothing Then Exit Sub
@@ -1272,7 +1391,10 @@ Private Sub WebResource_ApplyHeaderChanges(ByVal envelope As Object, ByVal pHead
                     headerName = CStr(key)
                     headerValue = CStr(setHeaders(key))
                     If LenB(headerName) > 0 Then
-                        Call CallVT(pHeaders, COREWEBVIEW2HTTPREQUESTHEADERS_VTBL_SETHEADER, vbLong, StrPtr(headerName), StrPtr(headerValue))
+                        hr = CLng(CallVT(pHeaders, COREWEBVIEW2HTTPREQUESTHEADERS_VTBL_SETHEADER, vbLong, StrPtr(headerName), StrPtr(headerValue)))
+                        If hr < 0 Then
+                            Err.Raise hr, "stdWebView::WebResource_ApplyHeaderChanges", "SetHeader failed for '" & headerName & "' (" & CStr(hr) & ")"
+                        End If
                     End If
                 Next key
             End If
@@ -1285,7 +1407,10 @@ Private Sub WebResource_ApplyHeaderChanges(ByVal envelope As Object, ByVal pHead
             For i = LBound(removeHeaders) To UBound(removeHeaders)
                 headerName = CStr(removeHeaders(i))
                 If LenB(headerName) > 0 Then
-                    Call CallVT(pHeaders, COREWEBVIEW2HTTPREQUESTHEADERS_VTBL_REMOVEHEADER, vbLong, StrPtr(headerName))
+                    hr = CLng(CallVT(pHeaders, COREWEBVIEW2HTTPREQUESTHEADERS_VTBL_REMOVEHEADER, vbLong, StrPtr(headerName)))
+                    If hr < 0 Then
+                        Err.Raise hr, "stdWebView::WebResource_ApplyHeaderChanges", "RemoveHeader failed for '" & headerName & "' (" & CStr(hr) & ")"
+                    End If
                 End If
             Next i
         ElseIf IsObject(removeHeaders) Then
@@ -1295,21 +1420,30 @@ Private Sub WebResource_ApplyHeaderChanges(ByVal envelope As Object, ByVal pHead
                 For i = 1 To objHeaders.Count
                     headerName = CStr(objHeaders(i))
                     If LenB(headerName) > 0 Then
-                        Call CallVT(pHeaders, COREWEBVIEW2HTTPREQUESTHEADERS_VTBL_REMOVEHEADER, vbLong, StrPtr(headerName))
+                        hr = CLng(CallVT(pHeaders, COREWEBVIEW2HTTPREQUESTHEADERS_VTBL_REMOVEHEADER, vbLong, StrPtr(headerName)))
+                        If hr < 0 Then
+                            Err.Raise hr, "stdWebView::WebResource_ApplyHeaderChanges", "RemoveHeader failed for '" & headerName & "' (" & CStr(hr) & ")"
+                        End If
                     End If
                 Next i
             Else
                 For Each key In objHeaders.Keys
                     headerName = CStr(key)
                     If LenB(headerName) > 0 Then
-                        Call CallVT(pHeaders, COREWEBVIEW2HTTPREQUESTHEADERS_VTBL_REMOVEHEADER, vbLong, StrPtr(headerName))
+                        hr = CLng(CallVT(pHeaders, COREWEBVIEW2HTTPREQUESTHEADERS_VTBL_REMOVEHEADER, vbLong, StrPtr(headerName)))
+                        If hr < 0 Then
+                            Err.Raise hr, "stdWebView::WebResource_ApplyHeaderChanges", "RemoveHeader failed for '" & headerName & "' (" & CStr(hr) & ")"
+                        End If
                     End If
                 Next key
             End If
         ElseIf VarType(removeHeaders) = vbString Then
             headerName = CStr(removeHeaders)
             If LenB(headerName) > 0 Then
-                Call CallVT(pHeaders, COREWEBVIEW2HTTPREQUESTHEADERS_VTBL_REMOVEHEADER, vbLong, StrPtr(headerName))
+                hr = CLng(CallVT(pHeaders, COREWEBVIEW2HTTPREQUESTHEADERS_VTBL_REMOVEHEADER, vbLong, StrPtr(headerName)))
+                If hr < 0 Then
+                    Err.Raise hr, "stdWebView::WebResource_ApplyHeaderChanges", "RemoveHeader failed for '" & headerName & "' (" & CStr(hr) & ")"
+                End If
             End If
         End If
     End If
