@@ -14294,6 +14294,27 @@
         "throws": [],
         "requires": [],
         "isStatic": false
+      },
+      {
+        "name": "Resize",
+        "description": "Resize WebView2 surface to fill the current host client area.",
+        "remarks": [
+          "- Call from host resize events (for example UserForm_Resize)."
+        ],
+        "examples": [],
+        "params": [],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "properties": [
