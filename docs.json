@@ -14037,6 +14037,28 @@
         "isStatic": false
       },
       {
+        "name": "zzProtWebView_WebResourceRequestedInvoke",
+        "description": "WebView2 WebResourceRequested Invoke Thunk Implementation. DO NOT CALL THIS METHOD.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Long",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
         "name": "IsReady",
         "description": "Check whether the WebView2 is ready to be used.",
         "remarks": [],
@@ -14358,6 +14380,55 @@
             "description": "Virtual host name to clear (e.g. \"app.local\").",
             "optional": false,
             "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "AddWebResourceRequestedFilter",
+        "description": "Intercept matching web resource requests via a callback.",
+        "remarks": [
+          "- Callback may either set `respond=True` + response fields to short-circuit, or mutate request headers and continue."
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "filterString",
+            "type": "String",
+            "description": "URI filter pattern (for example `https://example.com/*`).",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "callback",
+            "type": "stdICallable<(request as Dictionary)=>void>",
+            "description": "Callback that mutates request envelope keys.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "context",
+            "type": "ECoreWebView2WebResourceContext",
+            "description": "Optional resource context filter (`COREWEBVIEW2_WEB_RESOURCE_CONTEXT_*`).",
+            "optional": true,
+            "defaultValue": "COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL",
             "paramArray": false,
             "referenceType": "ByVal"
           }
