@@ -369,3 +369,4 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2026-03-23 `stdWebView` FEATURE - Added `AddHostObject(name, hostObject)` and `RemoveHostObject(name)` to inject/remove VBA `IDispatch` objects in JavaScript via `chrome.webview.hostObjects`.
 - 2026-03-25 `stdWebView` FEATURE - Added `SetVirtualHostNameToFolderMapping` and `ClearVirtualHostNameToFolderMapping`.
 - 2026-03-25 `stdWebView` FEATURE - Added `AddWebResourceRequestedFilter(filterString, callback, context)` with mutable Dictionary envelopes for request interception, request header injection, and custom short-circuit responses.
+- 2026-03-25 `stdWebView` FEATURE - Added deferred async web-resource completion with `requestId` + `defer` envelope keys and public `WebResourceRequest_Complete` / `WebResourceRequest_Fail` APIs.

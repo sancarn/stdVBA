@@ -111,6 +111,19 @@ Private Type TWebResourceFilters
     count As Long
 End Type
 
+Private Type TDeferredWebResourceItem
+    requestId As Long
+    pArgs As LongPtr
+    pDeferral As LongPtr
+    createdAt As Double
+End Type
+
+Private Type TDeferredWebResources
+    items() As TDeferredWebResourceItem
+    count As Long
+    nextRequestId As Long
+End Type
+
 Private Type TComState
     pEnvironment As LongPtr
     pController As LongPtr
@@ -136,6 +149,7 @@ Private Type TThis
     scripts As TScripts
     host As THostObjectState
     webResource As TWebResourceFilters
+    deferredWebResource As TDeferredWebResources
     com As TComState
 End Type
 
@@ -290,7 +304,9 @@ Private Const COREWEBVIEW2HTTPHEADERSITERATOR_VTBL_MOVENEXT As Long = 5
 
 Private Const COREWEBVIEW2WEBRESOURCEREQUESTEDEVENTARGS_VTBL_GET_REQUEST As Long = 3
 Private Const COREWEBVIEW2WEBRESOURCEREQUESTEDEVENTARGS_VTBL_PUT_RESPONSE As Long = 5
+Private Const COREWEBVIEW2WEBRESOURCEREQUESTEDEVENTARGS_VTBL_GETDEFERRAL As Long = 6
 Private Const COREWEBVIEW2WEBRESOURCEREQUESTEDEVENTARGS_VTBL_GET_RESOURCECONTEXT As Long = 7
+Private Const COREWEBVIEW2DEFERRAL_VTBL_COMPLETE As Long = 3
 
 Public Enum COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND
     COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND_DENY = 0
@@ -805,6 +821,43 @@ Public Sub AddWebResourceRequestedFilter(ByVal filterString As String, ByVal cal
     If idx < 0 Then Err.Raise 5, "stdWebView::AddWebResourceRequestedFilter", "Failed to register filter callback"
 End Sub
 
+'Complete a deferred web resource request with a custom response.
+'@param requestId - Request identifier provided to the callback envelope.
+'@param responseEnvelope - Dictionary containing response fields (`responseBody`, `responseStatusCode`, etc.).
+Public Sub WebResourceRequest_Complete(ByVal requestId As Long, ByVal responseEnvelope As Object)
+    Dim idx As Long
+    Dim pArgs As LongPtr
+    Dim pResponse As LongPtr
+    Dim hr As Long
+
+    idx = DeferredWebResource_FindIndex(requestId)
+    If idx < 0 Then Err.Raise 5, "stdWebView::WebResourceRequest_Complete", "Unknown deferred requestId: " & CStr(requestId)
+
+    pArgs = This.deferredWebResource.items(idx).pArgs
+    If Not responseEnvelope Is Nothing Then
+        pResponse = WebResource_CreateResponse(responseEnvelope)
+        If pResponse <> 0 Then
+            hr = CLng(CallVT(pArgs, COREWEBVIEW2WEBRESOURCEREQUESTEDEVENTARGS_VTBL_PUT_RESPONSE, vbLong, pResponse))
+            Call ComRelease(pResponse)
+            If hr < 0 Then
+                Call DeferredWebResource_CompleteAndRemoveAt(idx, True)
+                Err.Raise hr, "stdWebView::WebResourceRequest_Complete", "put_Response failed (" & CStr(hr) & ")"
+            End If
+        End If
+    End If
+
+    Call DeferredWebResource_CompleteAndRemoveAt(idx, True)
+End Sub
+
+'Fail/continue a deferred web resource request without custom response.
+'@param requestId - Request identifier provided to the callback envelope.
+Public Sub WebResourceRequest_Fail(ByVal requestId As Long)
+    Dim idx As Long
+    idx = DeferredWebResource_FindIndex(requestId)
+    If idx < 0 Then Exit Sub
+    Call DeferredWebResource_CompleteAndRemoveAt(idx, True)
+End Sub
+
 'Resize WebView2 surface to fill the current host client area.
 '@remark - Call from host resize events (for example UserForm_Resize).
 Public Sub Resize()
@@ -907,6 +960,10 @@ Friend Sub protWebResourceRequested(ByVal pSender As LongPtr, ByVal pArgs As Lon
     Dim i As Long
     Dim envelope As Object
     Dim cb As stdICallable
+    Dim requestId As Long
+    Dim shouldDefer As Boolean
+    Dim pDeferral As LongPtr
+    Dim hr As Long
 
     If This.webResource.count <= 0 Then Exit Sub
     If pArgs = 0 Then Exit Sub
@@ -933,12 +990,25 @@ Friend Sub protWebResourceRequested(ByVal pSender As LongPtr, ByVal pArgs As Lon
             Set cb = This.webResource.items(i).callback
             If cb Is Nothing Then GoTo nextFilter
 
-            Set envelope = WebResource_BuildEnvelope(uri, method, contextValue, pHeaders)
+            requestId = DeferredWebResource_NextRequestId()
+            Set envelope = WebResource_BuildEnvelope(uri, method, contextValue, pHeaders, requestId)
             On Error Resume Next
             Call cb.RunEx(Array(envelope))
             On Error GoTo fail
 
             Call WebResource_ApplyHeaderChanges(envelope, pHeaders)
+            shouldDefer = WebResource_ShouldDefer(envelope)
+            If shouldDefer Then
+                hr = CLng(CallVT(pArgs, COREWEBVIEW2WEBRESOURCEREQUESTEDEVENTARGS_VTBL_GETDEFERRAL, vbLong, VarPtr(pDeferral)))
+                If hr < 0 Or pDeferral = 0 Then
+                    Err.Raise IIf(hr < 0, hr, 5), "stdWebView::protWebResourceRequested", "GetDeferral failed"
+                End If
+                Call DeferredWebResource_Add(requestId, pArgs, pDeferral)
+                Call ComRelease(pDeferral)
+                pDeferral = 0
+                Exit For
+            End If
+
             If WebResource_ShouldRespond(envelope) Then
                 pResponse = WebResource_CreateResponse(envelope)
                 If pResponse <> 0 Then
@@ -953,6 +1023,7 @@ nextFilter:
     Next i
 
 cleanup:
+    If pDeferral <> 0 Then Call ComRelease(pDeferral)
     If pHeaders <> 0 Then Call ComRelease(pHeaders)
     If pRequest <> 0 Then Call ComRelease(pRequest)
     Exit Sub
@@ -976,7 +1047,10 @@ Friend Sub protCreate(ByVal hwnd As LongPtr, Optional ByVal OnReady As stdICalla
     This.script.syncWaitRequestId = 0
     This.script.nextRequestId = 0
     This.scripts.scriptCount = 0
+    This.deferredWebResource.count = 0
+    This.deferredWebResource.nextRequestId = 0
     Erase This.scripts.mScripts
+    Erase This.deferredWebResource.items
     Set This.init.onReadyCallback = OnReady
     Randomize
     This.init.userDataFolder = Environ$("TEMP") & "\stdWebView_" & CStr(CLng(Timer * 10000) Xor CLng(Rnd * 1000000))
@@ -1158,6 +1232,7 @@ Private Sub FreeHandlerAllocs()
         Call GlobalFree(This.com.pWebReqVTable)
         This.com.pWebReqVTable = 0
     End If
+    Call DeferredWebResource_ClearAll(True)
     Call WebResource_ClearFilters
     Call Scripts_ClearAll
 End Sub
@@ -1256,6 +1331,89 @@ Private Sub WebResource_ClearFilters()
     Erase This.webResource.items
 End Sub
 
+Private Sub DeferredWebResource_EnsureCapacity()
+    Dim cap As Long
+    If This.deferredWebResource.count < 0 Then This.deferredWebResource.count = 0
+    cap = DeferredWebResource_Capacity()
+    If This.deferredWebResource.count < cap Then Exit Sub
+    cap = cap + 8
+    ReDim Preserve This.deferredWebResource.items(0 To cap - 1)
+End Sub
+
+Private Function DeferredWebResource_Capacity() As Long
+    On Error GoTo noArray
+    DeferredWebResource_Capacity = UBound(This.deferredWebResource.items) - LBound(This.deferredWebResource.items) + 1
+    Exit Function
+noArray:
+    DeferredWebResource_Capacity = 0
+End Function
+
+Private Function DeferredWebResource_NextRequestId() As Long
+    This.deferredWebResource.nextRequestId = This.deferredWebResource.nextRequestId + 1
+    If This.deferredWebResource.nextRequestId <= 0 Then This.deferredWebResource.nextRequestId = 1
+    DeferredWebResource_NextRequestId = This.deferredWebResource.nextRequestId
+End Function
+
+Private Sub DeferredWebResource_Add(ByVal requestId As Long, ByVal pArgs As LongPtr, ByVal pDeferral As LongPtr)
+    Dim idx As Long
+    Call DeferredWebResource_EnsureCapacity
+    idx = This.deferredWebResource.count
+    This.deferredWebResource.items(idx).requestId = requestId
+    This.deferredWebResource.items(idx).pArgs = pArgs
+    This.deferredWebResource.items(idx).pDeferral = pDeferral
+    This.deferredWebResource.items(idx).createdAt = Timer
+    Call ComAddRef(pArgs)
+    Call ComAddRef(pDeferral)
+    This.deferredWebResource.count = This.deferredWebResource.count + 1
+End Sub
+
+Private Function DeferredWebResource_FindIndex(ByVal requestId As Long) As Long
+    Dim i As Long
+    For i = 0 To This.deferredWebResource.count - 1
+        If This.deferredWebResource.items(i).requestId = requestId Then
+            DeferredWebResource_FindIndex = i
+            Exit Function
+        End If
+    Next i
+    DeferredWebResource_FindIndex = -1
+End Function
+
+Private Sub DeferredWebResource_CompleteAndRemoveAt(ByVal idx As Long, ByVal completeDeferral As Boolean)
+    Dim lastIdx As Long
+    Dim pArgs As LongPtr
+    Dim pDeferral As LongPtr
+
+    lastIdx = This.deferredWebResource.count - 1
+    If idx < 0 Or idx > lastIdx Then Exit Sub
+
+    pArgs = This.deferredWebResource.items(idx).pArgs
+    pDeferral = This.deferredWebResource.items(idx).pDeferral
+
+    If completeDeferral And pDeferral <> 0 Then
+        Call CallVTQuiet(pDeferral, COREWEBVIEW2DEFERRAL_VTBL_COMPLETE, vbLong)
+    End If
+    If pDeferral <> 0 Then Call ComRelease(pDeferral)
+    If pArgs <> 0 Then Call ComRelease(pArgs)
+
+    If idx <> lastIdx Then
+        This.deferredWebResource.items(idx) = This.deferredWebResource.items(lastIdx)
+    End If
+    This.deferredWebResource.items(lastIdx).requestId = 0
+    This.deferredWebResource.items(lastIdx).pArgs = 0
+    This.deferredWebResource.items(lastIdx).pDeferral = 0
+    This.deferredWebResource.items(lastIdx).createdAt = 0#
+    This.deferredWebResource.count = lastIdx
+End Sub
+
+Private Sub DeferredWebResource_ClearAll(ByVal completeDeferrals As Boolean)
+    Dim i As Long
+    For i = This.deferredWebResource.count - 1 To 0 Step -1
+        Call DeferredWebResource_CompleteAndRemoveAt(i, completeDeferrals)
+    Next i
+    This.deferredWebResource.count = 0
+    Erase This.deferredWebResource.items
+End Sub
+
 Private Sub WebResource_EnsureEventHandler()
     Dim hr As Long
     If This.com.pWebReqHandlerObj <> 0 Then Exit Sub
@@ -1302,7 +1460,7 @@ Private Function WebResource_NewDictionary() As Object
     Set WebResource_NewDictionary = CreateObject("Scripting.Dictionary")
 End Function
 
-Private Function WebResource_BuildEnvelope(ByVal uri As String, ByVal method As String, ByVal resourceContext As Long, ByVal pHeaders As LongPtr) As Object
+Private Function WebResource_BuildEnvelope(ByVal uri As String, ByVal method As String, ByVal resourceContext As Long, ByVal pHeaders As LongPtr, ByVal requestId As Long) As Object
     Dim requestHeaders As Object
     Dim setHeaders As Object
     Dim envelope As Object
@@ -1314,9 +1472,11 @@ Private Function WebResource_BuildEnvelope(ByVal uri As String, ByVal method As 
     envelope("uri") = uri
     envelope("method") = method
     envelope("resourceContext") = resourceContext
+    envelope("requestId") = requestId
     Set envelope("requestHeaders") = requestHeaders
     Set envelope("setRequestHeaders") = setHeaders
     envelope("removeRequestHeaders") = Empty
+    envelope("defer") = False
     envelope("respond") = False
     envelope("responseStatusCode") = 200
     envelope("responseReasonPhrase") = "OK"
@@ -1448,6 +1608,18 @@ Private Sub WebResource_ApplyHeaderChanges(ByVal envelope As Object, ByVal pHead
         End If
     End If
 End Sub
+
+Private Function WebResource_ShouldDefer(ByVal envelope As Object) As Boolean
+    If envelope Is Nothing Then Exit Function
+    If Not envelope.Exists("defer") Then Exit Function
+    On Error Resume Next
+    WebResource_ShouldDefer = CBool(envelope("defer"))
+    If Err.Number <> 0 Then
+        Err.Clear
+        WebResource_ShouldDefer = False
+    End If
+    On Error GoTo 0
+End Function
 
 Private Function WebResource_ShouldRespond(ByVal envelope As Object) As Boolean
     If envelope Is Nothing Then Exit Function
