@@ -43,6 +43,9 @@ Option Explicit
     Private Const PTR_SZ As Long = 8
 #Else
     Private Const PTR_SZ As Long = 4
+#End If
+
+#If VBA7 = 0 then
     Private Enum LongPtr
         [_]
     End Enum
