@@ -8,6 +8,26 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
+#If Win64 Then
+  Private Const PTR_SZ As Long = 8
+  Private Const NULL_PTR As LongLong = 0^
+#Else
+  Private Const PTR_SZ As Long = 4
+  Private Const NULL_PTR As Long = 0&
+#End If
+
+#If VBA7 = 0 Then
+  Private Enum LongPtr
+    [_]
+  End Enum
+#End If
+
+#If VBA7 Then
+  Private Declare PtrSafe Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (Destination As Any, Source As Any, ByVal Length As LongPtr)
+#Else
+  Private Declare Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (Destination As Any, Source As Any, ByVal Length As LongPtr)
+#End If
+
 
 Private Enum EElementType
   ENone
@@ -48,6 +68,7 @@ Private Type TThis
   Element as TElement
   Literal as TLiteral
   Raw as TRaw
+  ParentPtr As LongPtr
 End Type
 Private This As TThis
 
@@ -133,6 +154,7 @@ Public Sub protInitElement(tagName as string, attributes as variant, isSelfClosi
     This.Element.Attributes = NormalizeAttributes(attributes)
     Erase This.Element.Children
     This.Element.isSelfClosing = isSelfClosing
+    This.ParentPtr = 0
 End Sub
 
 'Initialise a literal object.
@@ -140,6 +162,7 @@ End Sub
 Public Sub protInitLiteral(content as string)
     This.ElementType = EElementType.ELiteral
     This.Literal.content = content
+    This.ParentPtr = 0
 End Sub
 
 'Initialise a raw object.
@@ -147,6 +170,7 @@ End Sub
 Public Sub protInitRaw(content as string)
     This.ElementType = EElementType.ERaw
     This.Raw.content = content
+    This.ParentPtr = 0
 End Sub
 
 Public Property Get ElementType() As Long
@@ -228,6 +252,12 @@ End Property
 Public Property Get Children() As stdHTML()
   If this.ElementType <> EElementType.EElement then Err.Raise vbObjectError + 1, "Cannot get children of a non-element context."
   Children = This.Element.Children
+End Property
+
+'Returns the parent node when available via weak pointer.
+Public Property Get Parent() As stdHTML
+  If This.ParentPtr = 0 Then Exit Property
+  Set Parent = ObjFromPtr(This.ParentPtr)
 End Property
 
 'Adds the specified classes to the element
@@ -360,6 +390,7 @@ Public Sub AppendChild(ByVal child As stdHTML)
     ReDim Preserve This.Element.Children(0 To childUB + 1)
     Set This.Element.Children(childUB + 1) = child
   End If
+  child.This.ParentPtr = ObjPtr(Me)
 End Sub
 
 'Replaces the current node contents with another node's contents.
@@ -416,6 +447,13 @@ Public Sub protInitFromStateDictionary(ByVal state As Object)
       This.Element.Attributes = state("Attributes")
       This.Element.Children = state("Children")
       This.Element.isSelfClosing = CBool(state("IsSelfClosing"))
+      Dim childUB As Long: childUB = UBoundChildren()
+      Dim i As Long
+      For i = 0 To childUB
+        If Not This.Element.Children(i) Is Nothing Then
+          This.Element.Children(i).This.ParentPtr = ObjPtr(Me)
+        End If
+      Next i
     Case EElementType.ELiteral
       This.Literal.content = CStr(state("Content"))
       Erase This.Element.Attributes
@@ -1109,4 +1147,11 @@ Private Function UBoundChildren() As Long
 
 noChildren:
   UBoundChildren = -1
+End Function
+
+Private Function ObjFromPtr(ByVal ptr As LongPtr) As stdHTML
+  Dim tmp As stdHTML
+  CopyMemory tmp, ptr, PTR_SZ
+  Set ObjFromPtr = tmp
+  CopyMemory tmp, NULL_PTR, PTR_SZ
 End Function
