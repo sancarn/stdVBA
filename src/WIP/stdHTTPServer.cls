@@ -117,6 +117,7 @@ End Type
     Private Declare PtrSafe Function WSAStartup Lib "wsock32.dll" (ByVal wVersionRequested As Long, ByRef wsadata As wsadata) As Long
     Private Declare PtrSafe Function htons Lib "wsock32.dll" (ByVal hostshort As Long) As Integer
     Private Declare PtrSafe Function WSASelect Lib "wsock32.dll" Alias "select" (ByVal nfds As Long, ByRef readFDSet As FD_SET, ByRef writeFDSet As FD_SET, ByRef errorFDSet As FD_SET, ByRef timeout As timeval) As Long
+    Private Declare PtrSafe Function ioctlsocket Lib "wsock32.dll" (ByVal s As LongPtr, ByVal cmd As Long, ByRef argp As Long) As Long
 #Else
     Private Declare Function socket lib "wsock32.dll" (ByVal addressFamily As Long, ByVal typeSpec As Long, ByVal protocol As Long) As LongPtr
     Private Declare Function bind lib "wsock32.dll" (ByVal socketHandle As LongPtr, ByRef socketAddress As WinsockAddress, ByVal addressLength As Long) As Long
@@ -130,13 +131,20 @@ End Type
     Private Declare Function WSAStartup lib "wsock32.dll" (ByVal wVersionRequested As Long, ByRef wsadata As WSADATA) As Long
     Private Declare Function htons lib "wsock32.dll" (ByVal hostshort As Long) As Integer
     Private Declare Function WSASelect Lib "wsock32.dll" Alias "select" (ByVal nfds As Long, ByRef socketToRead As LongPtr, ByRef socketToWrite as LongPtr, ByRef socketForError As LongPtr, ByRef timeout As timeval) As Long
+    Private Declare Function ioctlsocket Lib "wsock32.dll" (ByVal s As LongPtr, ByVal cmd As Long, ByRef argp As Long) As Long
 #End If
 
 #If Win64 Then
-    Const NullPtr As LongLong = 0^
+    Private Const NullPtr As LongLong = 0^
+    Private Const INVALID_SOCKET As LongLong = -1^
 #Else
-    Const NullPtr As Long = 0&
+    Private Const NullPtr As Long = 0&
+    Private Const INVALID_SOCKET As Long = -1&
 #End If
+
+Private Const FIONBIO As Long = &H8004667E
+Private Const WSAEWOULDBLOCK As Long = 10035
+
 
 
 
@@ -168,6 +176,15 @@ Public Sub protInit(ByVal port As Long, ByVal maxQueue As Long)
     This.listenHandle = socket(addressFamily.AF_INET, TypeSpecification.SOCK_STREAM, protocol.IPPROTO_TCP)
     If This.listenHandle = 0 Then
         Err.Raise vbObjectError + 2, "stdHTTPServer.protInit", "socket failed with error " & WSAGetLastError
+        WSACleanup
+    End If
+
+    ' Set the listening socket to non-blocking mode
+    Dim iMode As Long
+    iMode = 1
+    success = ioctlsocket(This.listenHandle, FIONBIO, iMode)
+    If success <> 0 Then
+        Err.Raise vbObjectError + 6, "stdHTTPServer.protInit", "ioctlsocket failed with error " & WSAGetLastError
         WSACleanup
     End If
 
@@ -216,6 +233,54 @@ Function getRequestData(Optional ByRef bytesReceived As Long = 0) As Byte()
   bytesReceived = recv(This.acceptedClient, VarPtr(buffer(0)), 1024, 0)
   getRequestData = buffer
   This.OverrideStatus = EHTTPServerStatus.AwaitingResponse
+End Function
+
+Function getRequestDataNB(Optional ByRef bytesReceived As Long = 0) As Byte()
+    ' Attempt to accept a new connection
+    This.acceptedClient = accept(This.listenHandle, This.sockaddr, LenB(This.sockaddr))
+    If This.acceptedClient = INVALID_SOCKET Then
+        Dim errCode As Long
+        errCode = WSAGetLastError()
+        If errCode = WSAEWOULDBLOCK Then
+            ' No incoming connection; exit the function
+            Exit Function
+        Else
+            Err.Raise vbObjectError + 5, "stdHTTPServer.getRequestData", "accept failed with error " & errCode
+        End If
+    End If
+
+    ' Set the accepted client socket to non-blocking mode
+    Dim iMode As Long
+    iMode = 1
+    Dim success As Long
+    success = ioctlsocket(This.acceptedClient, FIONBIO, iMode)
+    If success <> 0 Then
+        Err.Raise vbObjectError + 7, "stdHTTPServer.getRequestData", "ioctlsocket failed with error " & WSAGetLastError
+    End If
+
+    ' Attempt to receive data
+    Dim buffer(0 To 1024) As Byte
+    bytesReceived = recv(This.acceptedClient, VarPtr(buffer(0)), 1024, 0)
+    If bytesReceived = -1 Then
+        Dim errCode As Long
+        errCode = WSAGetLastError()
+        If errCode = WSAEWOULDBLOCK Then
+            ' No data available yet; exit the function
+            Exit Function
+        Else
+            Err.Raise vbObjectError + 8, "stdHTTPServer.getRequestData", "recv failed with error " & errCode
+        End If
+    ElseIf bytesReceived = 0 Then
+        ' Connection was gracefully closed by the client
+        Call closesocket(This.acceptedClient)
+        This.acceptedClient = 0
+        Exit Function
+    Else
+        ' Data was received
+        ReDim Preserve buffer(0 To bytesReceived - 1)
+        getRequestDataNB = buffer
+        This.OverrideStatus = EHTTPServerStatus.AwaitingResponse
+    End If
 End Function
 
 Sub sendResponse(ByVal data As String, Optional ByVal ContentType As String = "text/plain")
