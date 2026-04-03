@@ -27,6 +27,21 @@ End Type
 Private Type TRaw
   content as string
 End Type
+Private Type TSelectorAtom
+  TagName As String
+  IsUniversal As Boolean
+  Id As String
+  Classes() As String
+  AttrNames() As String
+  AttrValues() As String
+End Type
+Private Type TSelectorStep
+  Combinator As String
+  Atom As TSelectorAtom
+End Type
+Private Type TSelectorGroup
+  Steps() As TSelectorStep
+End Type
 
 Private Type TThis
   ElementType As EElementType
@@ -133,6 +148,10 @@ Public Sub protInitRaw(content as string)
     This.ElementType = EElementType.ERaw
     This.Raw.content = content
 End Sub
+
+Public Property Get ElementType() As Long
+  ElementType = This.ElementType
+End Property
 
 
 
@@ -339,6 +358,558 @@ Public Sub AppendChild(ByVal child As stdHTML)
     Set This.Element.Children(childUB + 1) = child
   End If
 End Sub
+
+Public Function QuerySelector(ByVal selector As String) As stdHTML
+  Dim matches() As stdHTML
+  matches = QuerySelectorAll(selector)
+
+  Dim ub As Long: ub = SafeUBoundHTMLArray(matches)
+  If ub >= 0 Then Set QuerySelector = matches(0)
+End Function
+
+Public Function QuerySelectorAll(ByVal selector As String) As stdHTML()
+  If this.ElementType <> EElementType.EElement Then
+    Err.Raise vbObjectError + 1, "stdHTML#QuerySelectorAll", "Cannot query a non-element context."
+  End If
+
+  Dim trimmedSelector As String
+  trimmedSelector = Trim$(selector)
+  If Len(trimmedSelector) = 0 Then
+    Err.Raise vbObjectError + 4, "stdHTML#QuerySelectorAll", "Selector cannot be empty."
+  End If
+
+  Dim groups() As TSelectorGroup
+  groups = ParseSelectorGroups(trimmedSelector)
+
+  Dim output() As stdHTML
+  Dim seen As Collection: Set seen = New Collection
+
+  Dim groupUB As Long: groupUB = SafeUBoundSelectorGroupArray(groups)
+  Dim i As Long
+  For i = 0 To groupUB
+    Dim groupMatches() As stdHTML
+    groupMatches = EvaluateSelectorGroup(groups(i))
+    AppendHTMLArrayUnique output, groupMatches, seen
+  Next i
+
+  QuerySelectorAll = output
+End Function
+
+Private Function EvaluateSelectorGroup(ByRef group As TSelectorGroup) As stdHTML()
+  Dim stepUB As Long: stepUB = SafeUBoundSelectorStepArray(group.Steps)
+  If stepUB < 0 Then Exit Function
+
+  Dim current() As stdHTML
+  Dim currentSeen As Collection: Set currentSeen = New Collection
+  Dim firstAtom As TSelectorAtom
+  firstAtom = group.Steps(0).Atom
+  CollectMatchingWithinScope Me, firstAtom, current, currentSeen
+
+  Dim stepIndex As Long
+  For stepIndex = 1 To stepUB
+    Dim nextMatches() As stdHTML
+    Dim nextSeen As Collection: Set nextSeen = New Collection
+    Dim currentUB As Long: currentUB = SafeUBoundHTMLArray(current)
+    Dim i As Long
+    Dim atom As TSelectorAtom
+    atom = group.Steps(stepIndex).Atom
+    For i = 0 To currentUB
+      ApplyCombinator group.Steps(stepIndex).Combinator, current(i), atom, nextMatches, nextSeen
+    Next i
+    current = nextMatches
+  Next stepIndex
+
+  EvaluateSelectorGroup = current
+End Function
+
+Private Sub ApplyCombinator(ByVal combinator As String, ByVal baseNode As stdHTML, ByRef atom As TSelectorAtom, ByRef output() As stdHTML, ByVal seen As Collection)
+  Select Case combinator
+    Case " "
+      CollectDescendantMatches baseNode, atom, output, seen
+    Case ">"
+      CollectChildMatches baseNode, atom, output, seen
+    Case "+"
+      CollectAdjacentSiblingMatch baseNode, atom, output, seen
+    Case "~"
+      CollectGeneralSiblingMatches baseNode, atom, output, seen
+    Case Else
+      Err.Raise vbObjectError + 4, "stdHTML#QuerySelectorAll", "Unsupported selector combinator: " & combinator
+  End Select
+End Sub
+
+Private Sub CollectMatchingWithinScope(ByVal root As stdHTML, ByRef atom As TSelectorAtom, ByRef output() As stdHTML, ByVal seen As Collection)
+  If NodeMatchesAtom(root, atom) Then AppendHTMLUnique output, root, seen
+  CollectDescendantMatches root, atom, output, seen
+End Sub
+
+Private Sub CollectDescendantMatches(ByVal root As stdHTML, ByRef atom As TSelectorAtom, ByRef output() As stdHTML, ByVal seen As Collection)
+  Dim children As Variant: children = GetChildrenArray(root)
+  Dim childUB As Long: childUB = SafeUBoundVariant(children)
+  Dim i As Long
+  For i = 0 To childUB
+    Dim child As stdHTML
+    Set child = children(i)
+    If Not child Is Nothing Then
+      If IsElementNode(child) Then
+        If NodeMatchesAtom(child, atom) Then AppendHTMLUnique output, child, seen
+        CollectDescendantMatches child, atom, output, seen
+      End If
+    End If
+  Next i
+End Sub
+
+Private Sub CollectChildMatches(ByVal root As stdHTML, ByRef atom As TSelectorAtom, ByRef output() As stdHTML, ByVal seen As Collection)
+  Dim children As Variant: children = GetChildrenArray(root)
+  Dim childUB As Long: childUB = SafeUBoundVariant(children)
+  Dim i As Long
+  For i = 0 To childUB
+    Dim child As stdHTML
+    Set child = children(i)
+    If Not child Is Nothing Then
+      If IsElementNode(child) Then
+        If NodeMatchesAtom(child, atom) Then AppendHTMLUnique output, child, seen
+      End If
+    End If
+  Next i
+End Sub
+
+Private Sub CollectAdjacentSiblingMatch(ByVal baseNode As stdHTML, ByRef atom As TSelectorAtom, ByRef output() As stdHTML, ByVal seen As Collection)
+  Dim parent As stdHTML
+  Dim childIndex As Long
+  If Not FindParentAndChildIndex(Me, baseNode, parent, childIndex) Then Exit Sub
+
+  Dim siblings As Variant: siblings = GetChildrenArray(parent)
+  Dim siblingUB As Long: siblingUB = SafeUBoundVariant(siblings)
+  Dim i As Long
+  For i = childIndex + 1 To siblingUB
+    Dim sibling As stdHTML
+    Set sibling = siblings(i)
+    If Not sibling Is Nothing Then
+      If IsElementNode(sibling) Then
+        If NodeMatchesAtom(sibling, atom) Then AppendHTMLUnique output, sibling, seen
+        Exit Sub
+      End If
+    End If
+  Next i
+End Sub
+
+Private Sub CollectGeneralSiblingMatches(ByVal baseNode As stdHTML, ByRef atom As TSelectorAtom, ByRef output() As stdHTML, ByVal seen As Collection)
+  Dim parent As stdHTML
+  Dim childIndex As Long
+  If Not FindParentAndChildIndex(Me, baseNode, parent, childIndex) Then Exit Sub
+
+  Dim siblings As Variant: siblings = GetChildrenArray(parent)
+  Dim siblingUB As Long: siblingUB = SafeUBoundVariant(siblings)
+  Dim i As Long
+  For i = childIndex + 1 To siblingUB
+    Dim sibling As stdHTML
+    Set sibling = siblings(i)
+    If Not sibling Is Nothing Then
+      If IsElementNode(sibling) Then
+        If NodeMatchesAtom(sibling, atom) Then AppendHTMLUnique output, sibling, seen
+      End If
+    End If
+  Next i
+End Sub
+
+Private Function FindParentAndChildIndex(ByVal root As stdHTML, ByVal target As stdHTML, ByRef parentOut As stdHTML, ByRef indexOut As Long) As Boolean
+  Dim children As Variant: children = GetChildrenArray(root)
+  Dim childUB As Long: childUB = SafeUBoundVariant(children)
+  Dim i As Long
+  For i = 0 To childUB
+    Dim child As stdHTML
+    Set child = children(i)
+    If Not child Is Nothing Then
+      If child Is target Then
+        Set parentOut = root
+        indexOut = i
+        FindParentAndChildIndex = True
+        Exit Function
+      End If
+      If IsElementNode(child) Then
+        If FindParentAndChildIndex(child, target, parentOut, indexOut) Then
+          FindParentAndChildIndex = True
+          Exit Function
+        End If
+      End If
+    End If
+  Next i
+End Function
+
+Private Function NodeMatchesAtom(ByVal node As stdHTML, ByRef atom As TSelectorAtom) As Boolean
+  If Not IsElementNode(node) Then Exit Function
+
+  If Len(atom.TagName) > 0 Then
+    If StrComp(node.TagName, atom.TagName, vbTextCompare) <> 0 Then Exit Function
+  ElseIf Not atom.IsUniversal Then
+    'No tag selector specified, continue with id/class/attributes.
+  End If
+
+  If Len(atom.Id) > 0 Then
+    Dim nodeId As Variant: nodeId = node.Attr("id")
+    If IsEmpty(nodeId) Or IsNull(nodeId) Then Exit Function
+    If StrComp(CStr(nodeId), atom.Id, vbTextCompare) <> 0 Then Exit Function
+  End If
+
+  Dim classUB As Long: classUB = SafeUBoundStringArray(atom.Classes)
+  If classUB >= 0 Then
+    Dim classList As String
+    classList = NormalizeWhitespace(CoalesceString(node.Attr("class")))
+    Dim classIndex As Long
+    For classIndex = 0 To classUB
+      If Not ContainsClass(classList, atom.Classes(classIndex)) Then Exit Function
+    Next classIndex
+  End If
+
+  Dim attrUB As Long: attrUB = SafeUBoundStringArray(atom.AttrNames)
+  If attrUB >= 0 Then
+    Dim attrIndex As Long
+    For attrIndex = 0 To attrUB
+      Dim attrValue As Variant
+      attrValue = node.Attr(atom.AttrNames(attrIndex))
+      If IsEmpty(attrValue) Or IsNull(attrValue) Then Exit Function
+      If StrComp(CStr(attrValue), atom.AttrValues(attrIndex), vbTextCompare) <> 0 Then Exit Function
+    Next attrIndex
+  End If
+
+  NodeMatchesAtom = True
+End Function
+
+Private Function ParseSelectorGroups(ByVal selector As String) As TSelectorGroup()
+  Dim idx As Long: idx = 1
+  Dim length As Long: length = Len(selector)
+  Dim groups() As TSelectorGroup
+
+  SkipSelectorWhitespace selector, idx, length
+  If idx > length Then
+    Err.Raise vbObjectError + 4, "stdHTML#QuerySelectorAll", "Selector cannot be empty."
+  End If
+
+  Do While idx <= length
+    Dim group As TSelectorGroup
+    ParseSelectorGroup selector, idx, length, group
+    AppendSelectorGroup groups, group
+
+    SkipSelectorWhitespace selector, idx, length
+    If idx <= length Then
+      If Mid$(selector, idx, 1) <> "," Then
+        Err.Raise vbObjectError + 4, "stdHTML#QuerySelectorAll", "Unexpected token in selector at position " & CStr(idx) & "."
+      End If
+      idx = idx + 1
+      SkipSelectorWhitespace selector, idx, length
+      If idx > length Then
+        Err.Raise vbObjectError + 4, "stdHTML#QuerySelectorAll", "Selector cannot end with ','."
+      End If
+    End If
+  Loop
+
+  ParseSelectorGroups = groups
+End Function
+
+Private Sub ParseSelectorGroup(ByVal selector As String, ByRef idx As Long, ByVal length As Long, ByRef group As TSelectorGroup)
+  Dim step As TSelectorStep
+  step.Combinator = ""
+  step.Atom = ParseSelectorAtom(selector, idx, length)
+  AppendSelectorStep group.Steps, step
+
+  Do
+    Dim hadWhitespace As Boolean
+    hadWhitespace = SkipSelectorWhitespace(selector, idx, length)
+    If idx > length Then Exit Do
+
+    Dim ch As String: ch = Mid$(selector, idx, 1)
+    If ch = "," Then Exit Do
+
+    Dim combinator As String
+    Select Case ch
+      Case ">", "+", "~"
+        combinator = ch
+        idx = idx + 1
+        SkipSelectorWhitespace selector, idx, length
+      Case Else
+        If hadWhitespace Then
+          combinator = " "
+        Else
+          Err.Raise vbObjectError + 4, "stdHTML#QuerySelectorAll", "Expected combinator at position " & CStr(idx) & "."
+        End If
+    End Select
+
+    If idx > length Then
+      Err.Raise vbObjectError + 4, "stdHTML#QuerySelectorAll", "Selector cannot end with combinator."
+    End If
+    If Mid$(selector, idx, 1) = "," Then
+      Err.Raise vbObjectError + 4, "stdHTML#QuerySelectorAll", "Selector cannot end with combinator."
+    End If
+
+    Dim nextStep As TSelectorStep
+    nextStep.Combinator = combinator
+    nextStep.Atom = ParseSelectorAtom(selector, idx, length)
+    AppendSelectorStep group.Steps, nextStep
+  Loop
+End Sub
+
+Private Function ParseSelectorAtom(ByVal selector As String, ByRef idx As Long, ByVal length As Long) As TSelectorAtom
+  Dim atom As TSelectorAtom
+  Dim hasPart As Boolean
+
+  If idx > length Then
+    Err.Raise vbObjectError + 4, "stdHTML#QuerySelectorAll", "Unexpected end of selector."
+  End If
+
+  Dim ch As String: ch = Mid$(selector, idx, 1)
+  If ch = "*" Then
+    atom.IsUniversal = True
+    hasPart = True
+    idx = idx + 1
+  ElseIf IsIdentifierStart(ch) Then
+    atom.TagName = ParseIdentifier(selector, idx, length, "tag")
+    hasPart = True
+  End If
+
+  Do While idx <= length
+    ch = Mid$(selector, idx, 1)
+    Select Case ch
+      Case "#"
+        idx = idx + 1
+        If Len(atom.Id) > 0 Then Err.Raise vbObjectError + 4, "stdHTML#QuerySelectorAll", "Duplicate id selector in one segment."
+        atom.Id = ParseIdentifier(selector, idx, length, "id")
+        hasPart = True
+      Case "."
+        idx = idx + 1
+        AppendString atom.Classes, ParseIdentifier(selector, idx, length, "class")
+        hasPart = True
+      Case "["
+        idx = idx + 1
+        ParseAttributeSelector selector, idx, length, atom
+        hasPart = True
+      Case Else
+        Exit Do
+    End Select
+  Loop
+
+  If Not hasPart Then
+    Err.Raise vbObjectError + 4, "stdHTML#QuerySelectorAll", "Expected selector segment at position " & CStr(idx) & "."
+  End If
+
+  ParseSelectorAtom = atom
+End Function
+
+Private Sub ParseAttributeSelector(ByVal selector As String, ByRef idx As Long, ByVal length As Long, ByRef atom As TSelectorAtom)
+  SkipSelectorWhitespace selector, idx, length
+  Dim attrName As String
+  attrName = ParseIdentifier(selector, idx, length, "attribute name")
+
+  SkipSelectorWhitespace selector, idx, length
+  If idx > length Or Mid$(selector, idx, 1) <> "=" Then
+    Err.Raise vbObjectError + 4, "stdHTML#QuerySelectorAll", "Only [attr=value] selectors are currently supported."
+  End If
+  idx = idx + 1
+
+  SkipSelectorWhitespace selector, idx, length
+  Dim attrValue As String
+  attrValue = ParseAttributeValue(selector, idx, length)
+
+  SkipSelectorWhitespace selector, idx, length
+  If idx > length Or Mid$(selector, idx, 1) <> "]" Then
+    Err.Raise vbObjectError + 4, "stdHTML#QuerySelectorAll", "Missing closing ']' for attribute selector."
+  End If
+  idx = idx + 1
+
+  AppendString atom.AttrNames, attrName
+  AppendString atom.AttrValues, attrValue
+End Sub
+
+Private Function ParseAttributeValue(ByVal selector As String, ByRef idx As Long, ByVal length As Long) As String
+  If idx > length Then
+    Err.Raise vbObjectError + 4, "stdHTML#QuerySelectorAll", "Missing attribute value."
+  End If
+
+  Dim ch As String: ch = Mid$(selector, idx, 1)
+  If ch = """" Or ch = "'" Then
+    Dim quoteChar As String: quoteChar = ch
+    idx = idx + 1
+    Dim startPos As Long: startPos = idx
+    Do While idx <= length And Mid$(selector, idx, 1) <> quoteChar
+      idx = idx + 1
+    Loop
+    If idx > length Then
+      Err.Raise vbObjectError + 4, "stdHTML#QuerySelectorAll", "Unterminated quoted attribute value."
+    End If
+    ParseAttributeValue = Mid$(selector, startPos, idx - startPos)
+    idx = idx + 1
+    Exit Function
+  End If
+
+  Dim valueStart As Long: valueStart = idx
+  Do While idx <= length
+    ch = Mid$(selector, idx, 1)
+    If ch = "]" Or ch = " " Or ch = vbTab Or ch = vbCr Or ch = vbLf Then Exit Do
+    idx = idx + 1
+  Loop
+
+  ParseAttributeValue = Trim$(Mid$(selector, valueStart, idx - valueStart))
+  If Len(ParseAttributeValue) = 0 Then
+    Err.Raise vbObjectError + 4, "stdHTML#QuerySelectorAll", "Missing attribute value."
+  End If
+End Function
+
+Private Function ParseIdentifier(ByVal selector As String, ByRef idx As Long, ByVal length As Long, ByVal identifierName As String) As String
+  If idx > length Then
+    Err.Raise vbObjectError + 4, "stdHTML#QuerySelectorAll", "Missing " & identifierName & " at end of selector."
+  End If
+
+  If Not IsIdentifierStart(Mid$(selector, idx, 1)) Then
+    Err.Raise vbObjectError + 4, "stdHTML#QuerySelectorAll", "Invalid " & identifierName & " at position " & CStr(idx) & "."
+  End If
+
+  Dim startPos As Long: startPos = idx
+  idx = idx + 1
+  Do While idx <= length
+    If Not IsIdentifierChar(Mid$(selector, idx, 1)) Then Exit Do
+    idx = idx + 1
+  Loop
+
+  ParseIdentifier = Mid$(selector, startPos, idx - startPos)
+End Function
+
+Private Function IsIdentifierStart(ByVal ch As String) As Boolean
+  IsIdentifierStart = IsIdentifierChar(ch)
+End Function
+
+Private Function IsIdentifierChar(ByVal ch As String) As Boolean
+  If Len(ch) = 0 Then Exit Function
+  Dim code As Long: code = AscW(ch)
+  IsIdentifierChar = _
+      (code >= 48 And code <= 57) Or _
+      (code >= 65 And code <= 90) Or _
+      (code >= 97 And code <= 122) Or _
+      ch = "_" Or ch = "-"
+End Function
+
+Private Function SkipSelectorWhitespace(ByVal selector As String, ByRef idx As Long, ByVal length As Long) As Boolean
+  Do While idx <= length
+    Dim ch As String: ch = Mid$(selector, idx, 1)
+    If ch <> " " And ch <> vbTab And ch <> vbCr And ch <> vbLf Then Exit Do
+    idx = idx + 1
+    SkipSelectorWhitespace = True
+  Loop
+End Function
+
+Private Function GetChildrenArray(ByVal node As stdHTML) As Variant
+  On Error GoTo noChildren
+  Dim children() As stdHTML
+  children = node.Children
+  GetChildrenArray = children
+  Exit Function
+
+noChildren:
+  GetChildrenArray = Array()
+End Function
+
+Private Function IsElementNode(ByVal node As stdHTML) As Boolean
+  If node Is Nothing Then Exit Function
+  IsElementNode = (node.ElementType = EElementType.EElement)
+End Function
+
+Private Sub AppendHTMLArrayUnique(ByRef target() As stdHTML, ByRef source() As stdHTML, ByVal seen As Collection)
+  Dim sourceUB As Long: sourceUB = SafeUBoundHTMLArray(source)
+  Dim i As Long
+  For i = 0 To sourceUB
+    AppendHTMLUnique target, source(i), seen
+  Next i
+End Sub
+
+Private Sub AppendHTMLUnique(ByRef values() As stdHTML, ByVal item As stdHTML, ByVal seen As Collection)
+  If item Is Nothing Then Exit Sub
+
+  Dim key As String: key = CStr(ObjPtr(item))
+  On Error Resume Next
+  seen.Add key, key
+  If Err.Number <> 0 Then
+    Err.Clear
+    On Error GoTo 0
+    Exit Sub
+  End If
+  On Error GoTo 0
+
+  Dim ub As Long: ub = SafeUBoundHTMLArray(values)
+  If ub < 0 Then
+    ReDim values(0 To 0)
+    Set values(0) = item
+  Else
+    ReDim Preserve values(0 To ub + 1)
+    Set values(ub + 1) = item
+  End If
+End Sub
+
+Private Sub AppendString(ByRef values() As String, ByVal value As String)
+  Dim ub As Long: ub = SafeUBoundStringArray(values)
+  If ub < 0 Then
+    ReDim values(0 To 0)
+    values(0) = value
+  Else
+    ReDim Preserve values(0 To ub + 1)
+    values(ub + 1) = value
+  End If
+End Sub
+
+Private Sub AppendSelectorStep(ByRef values() As TSelectorStep, ByRef value As TSelectorStep)
+  Dim ub As Long: ub = SafeUBoundSelectorStepArray(values)
+  If ub < 0 Then
+    ReDim values(0 To 0)
+    values(0) = value
+  Else
+    ReDim Preserve values(0 To ub + 1)
+    values(ub + 1) = value
+  End If
+End Sub
+
+Private Sub AppendSelectorGroup(ByRef values() As TSelectorGroup, ByRef value As TSelectorGroup)
+  Dim ub As Long: ub = SafeUBoundSelectorGroupArray(values)
+  If ub < 0 Then
+    ReDim values(0 To 0)
+    values(0) = value
+  Else
+    ReDim Preserve values(0 To ub + 1)
+    values(ub + 1) = value
+  End If
+End Sub
+
+Private Function SafeUBoundHTMLArray(ByRef values() As stdHTML) As Long
+  On Error GoTo noValues
+  SafeUBoundHTMLArray = UBound(values)
+  Exit Function
+
+noValues:
+  SafeUBoundHTMLArray = -1
+End Function
+
+Private Function SafeUBoundStringArray(ByRef values() As String) As Long
+  On Error GoTo noValues
+  SafeUBoundStringArray = UBound(values)
+  Exit Function
+
+noValues:
+  SafeUBoundStringArray = -1
+End Function
+
+Private Function SafeUBoundSelectorStepArray(ByRef values() As TSelectorStep) As Long
+  On Error GoTo noValues
+  SafeUBoundSelectorStepArray = UBound(values)
+  Exit Function
+
+noValues:
+  SafeUBoundSelectorStepArray = -1
+End Function
+
+Private Function SafeUBoundSelectorGroupArray(ByRef values() As TSelectorGroup) As Long
+  On Error GoTo noValues
+  SafeUBoundSelectorGroupArray = UBound(values)
+  Exit Function
+
+noValues:
+  SafeUBoundSelectorGroupArray = -1
+End Function
 
 Private Function NormalizeAttributes(ByVal attributes As Variant) As Variant
   If IsArray(attributes) Then
