@@ -260,6 +260,13 @@ Public Property Get Parent() As stdHTML
   Set Parent = ObjFromPtr(This.ParentPtr)
 End Property
 
+'Sets the parent pointer for the current node.
+'@protected
+'@param parentPtr - Pointer to the parent node
+Public Sub protSetParentPtr(ByVal parentPtr As LongPtr)
+  This.ParentPtr = parentPtr
+End Sub
+
 'Adds the specified classes to the element
 '@param classes as Variant<string>() - Classes to add
 Public Sub AddClasses(ParamArray classes())
@@ -390,7 +397,7 @@ Public Sub AppendChild(ByVal child As stdHTML)
     ReDim Preserve This.Element.Children(0 To childUB + 1)
     Set This.Element.Children(childUB + 1) = child
   End If
-  child.This.ParentPtr = ObjPtr(Me)
+  child.protSetParentPtr ObjPtr(Me)
 End Sub
 
 'Replaces the current node contents with another node's contents.
@@ -451,7 +458,7 @@ Public Sub protInitFromStateDictionary(ByVal state As Object)
       Dim i As Long
       For i = 0 To childUB
         If Not This.Element.Children(i) Is Nothing Then
-          This.Element.Children(i).This.ParentPtr = ObjPtr(Me)
+          This.Element.Children(i).protSetParentPtr ObjPtr(Me)
         End If
       Next i
     Case EElementType.ELiteral
