@@ -348,6 +348,9 @@ Public Sub AppendChild(ByVal child As stdHTML)
   If this.ElementType <> EElementType.EElement Then
     Err.Raise vbObjectError + 1, "stdHTML", "Cannot add child to a non-element context."
   End If
+  If child Is Nothing Then
+    Err.Raise vbObjectError + 5, "stdHTML", "Cannot add a Nothing child."
+  End If
 
   Dim childUB As Long: childUB = UBoundChildren()
   If childUB < 0 Then
@@ -357,6 +360,77 @@ Public Sub AppendChild(ByVal child As stdHTML)
     ReDim Preserve This.Element.Children(0 To childUB + 1)
     Set This.Element.Children(childUB + 1) = child
   End If
+End Sub
+
+'Replaces the current node contents with another node's contents.
+'@param replacement - Replacement node
+'@returns True when replacement data was applied
+Public Function ReplaceWith(ByVal replacement As stdHTML) As Boolean
+  If replacement Is Nothing Then
+    Err.Raise vbObjectError + 5, "stdHTML#ReplaceWith", "Replacement node cannot be Nothing."
+  End If
+
+  If replacement Is Me Then
+    ReplaceWith = True
+    Exit Function
+  End If
+
+  Dim replacementState As Object
+  Set replacementState = replacement.protGetStateAsDictionary()
+  Call protInitFromStateDictionary(replacementState)
+
+  ReplaceWith = True
+End Function
+
+'@protected
+Public Function protGetStateAsDictionary() As Object
+  Dim state As Object
+  Set state = CreateObject("Scripting.Dictionary")
+
+  state("ElementType") = CLng(This.ElementType)
+
+  Select Case This.ElementType
+    Case EElementType.EElement
+      state("TagName") = This.Element.TagName
+      state("Attributes") = This.Element.Attributes
+      state("Children") = This.Element.Children
+      state("IsSelfClosing") = This.Element.isSelfClosing
+    Case EElementType.ELiteral
+      state("Content") = This.Literal.content
+    Case EElementType.ERaw
+      state("Content") = This.Raw.content
+    Case Else
+      Err.Raise vbObjectError + 1, "stdHTML#protGetStateAsDictionary", "Invalid element type."
+  End Select
+
+  Set protGetStateAsDictionary = state
+End Function
+
+'@protected
+Public Sub protInitFromStateDictionary(ByVal state As Object)
+  This.ElementType = CLng(state("ElementType"))
+
+  Select Case This.ElementType
+    Case EElementType.EElement
+      This.Element.TagName = CStr(state("TagName"))
+      This.Element.Attributes = state("Attributes")
+      This.Element.Children = state("Children")
+      This.Element.isSelfClosing = CBool(state("IsSelfClosing"))
+    Case EElementType.ELiteral
+      This.Literal.content = CStr(state("Content"))
+      Erase This.Element.Attributes
+      Erase This.Element.Children
+      This.Element.TagName = vbNullString
+      This.Element.isSelfClosing = False
+    Case EElementType.ERaw
+      This.Raw.content = CStr(state("Content"))
+      Erase This.Element.Attributes
+      Erase This.Element.Children
+      This.Element.TagName = vbNullString
+      This.Element.isSelfClosing = False
+    Case Else
+      Err.Raise vbObjectError + 1, "stdHTML#protInitFromStateDictionary", "Invalid element type."
+  End Select
 End Sub
 
 Public Function QuerySelector(ByVal selector As String) As stdHTML
