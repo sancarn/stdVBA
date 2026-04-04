@@ -70,6 +70,10 @@ Private Type TThis
   Raw as TRaw
   ParentPtr As LongPtr
 End Type
+Private Type THTMLParseOptions
+  parseBooleanAttributes As Boolean
+  preserveComments As Boolean
+End Type
 Private This As TThis
 
 Public Enum ECDNType
@@ -81,6 +85,39 @@ End Enum
 Public Function Create() as stdHTML
   set Create = New stdHTML
   Call Create.protInit("html", Array(), False)
+End Function
+
+'Creates stdHTML nodes from a HTML string.
+'@param html - HTML markup to parse into stdHTML nodes
+Public Function CreateFromHTML(ByVal html As String) As stdHTML
+  Dim options As THTMLParseOptions
+  options = DefaultHTMLParseOptions()
+
+  Dim parsed() As stdHTML
+  parsed = ParseHTMLNodes(html, options)
+
+  Dim parsedUB As Long: parsedUB = SafeUBoundHTMLArray(parsed)
+  If parsedUB < 0 Then
+    Set CreateFromHTML = Create()
+    Exit Function
+  End If
+
+  If parsedUB = 0 Then
+    If Not parsed(0) Is Nothing Then
+      If parsed(0).ElementType = EElementType.EElement Then
+        Set CreateFromHTML = parsed(0)
+        Exit Function
+      End If
+    End If
+  End If
+
+  Set CreateFromHTML = Create()
+  Dim i As Long
+  For i = 0 To parsedUB
+    If Not parsed(i) Is Nothing Then
+      CreateFromHTML.AppendChild parsed(i)
+    End If
+  Next i
 End Function
 
 ' Creates a new stdHTML object with the specified tag name and attributes, and adds it to the current element.
@@ -993,6 +1030,355 @@ Private Sub AppendSelectorGroup(ByRef values() As TSelectorGroup, ByRef value As
     values(ub + 1) = value
   End If
 End Sub
+
+Private Function DefaultHTMLParseOptions() As THTMLParseOptions
+  Dim options As THTMLParseOptions
+  options.parseBooleanAttributes = False
+  options.preserveComments = False
+  DefaultHTMLParseOptions = options
+End Function
+
+Private Function ParseHTMLNodes(ByVal html As String, ByRef options As THTMLParseOptions) As stdHTML()
+  Dim roots() As stdHTML
+  Dim stack As New Collection
+
+  Dim idx As Long: idx = 1
+  Dim length As Long: length = Len(html)
+
+  Do While idx <= length
+    If Mid$(html, idx, 1) = "<" Then
+      If StartsWithAt(html, idx, "<!--") Then
+        idx = SkipHTMLComment(html, idx, options)
+      ElseIf StartsWithAt(html, idx, "</") Then
+        idx = ParseHTMLEndTag(html, idx, stack)
+      ElseIf StartsWithAt(html, idx, "<!") Then
+        idx = SkipHTMLDeclaration(html, idx)
+      ElseIf StartsWithAt(html, idx, "<?") Then
+        idx = SkipProcessingInstruction(html, idx)
+      Else
+        idx = ParseHTMLStartTag(html, idx, stack, roots, options)
+      End If
+    Else
+      idx = ParseHTMLText(html, idx, stack, roots)
+    End If
+  Loop
+
+  ParseHTMLNodes = roots
+End Function
+
+Private Function ParseHTMLText(ByVal html As String, ByVal idx As Long, ByVal stack As Collection, ByRef roots() As stdHTML) As Long
+  Dim nextTag As Long: nextTag = InStr(idx, html, "<")
+  Dim content As String
+  If nextTag = 0 Then
+    content = Mid$(html, idx)
+    ParseHTMLText = Len(html) + 1
+  Else
+    content = Mid$(html, idx, nextTag - idx)
+    ParseHTMLText = nextTag
+  End If
+
+  If Len(content) = 0 Then Exit Function
+  If stack.Count = 0 Then
+    If Len(NormalizeWhitespace(content)) = 0 Then Exit Function
+  End If
+
+  Dim textNode As stdHTML
+  Set textNode = New stdHTML
+  textNode.protInitRaw content
+  AppendParsedNode textNode, stack, roots
+End Function
+
+Private Function ParseHTMLStartTag(ByVal html As String, ByVal idx As Long, ByVal stack As Collection, ByRef roots() As stdHTML, ByRef options As THTMLParseOptions) As Long
+  Dim length As Long: length = Len(html)
+  Dim cursor As Long: cursor = idx + 1
+  SkipHTMLWhitespace html, cursor, length
+
+  Dim tagName As String
+  tagName = ReadHTMLName(html, cursor, length)
+  If Len(tagName) = 0 Then
+    ParseHTMLStartTag = idx + 1
+    Exit Function
+  End If
+
+  Dim attributes As Variant: attributes = Array()
+  Dim isSelfClosing As Boolean
+
+  Do While cursor <= length
+    SkipHTMLWhitespace html, cursor, length
+    If cursor > length Then Exit Do
+
+    Dim ch As String: ch = Mid$(html, cursor, 1)
+    If ch = ">" Then
+      cursor = cursor + 1
+      Exit Do
+    End If
+
+    If ch = "/" Then
+      Dim lookahead As Long: lookahead = cursor + 1
+      SkipHTMLWhitespace html, lookahead, length
+      If lookahead <= length And Mid$(html, lookahead, 1) = ">" Then
+        isSelfClosing = True
+        cursor = lookahead + 1
+        Exit Do
+      End If
+    End If
+
+    ParseHTMLAttribute html, cursor, length, attributes, options
+  Loop
+
+  If IsHTMLVoidElement(tagName) Then isSelfClosing = True
+
+  Dim elementNode As stdHTML
+  Set elementNode = New stdHTML
+  elementNode.protInitElement tagName, attributes, isSelfClosing
+
+  If (Not isSelfClosing) And (StrComp(tagName, "svg", vbTextCompare) = 0) Then
+    Dim closingStart As Long: closingStart = InStr(cursor, html, "</svg", vbTextCompare)
+    If closingStart > 0 Then
+      Dim closingEnd As Long: closingEnd = InStr(closingStart, html, ">")
+      If closingEnd = 0 Then closingEnd = length
+
+      Dim svgRaw As String: svgRaw = Mid$(html, cursor, closingStart - cursor)
+      If Len(svgRaw) > 0 Then
+        Dim rawNode As stdHTML
+        Set rawNode = New stdHTML
+        rawNode.protInitRaw svgRaw
+        elementNode.AppendChild rawNode
+      End If
+
+      AppendParsedNode elementNode, stack, roots
+      ParseHTMLStartTag = closingEnd + 1
+      Exit Function
+    End If
+  End If
+
+  AppendParsedNode elementNode, stack, roots
+  If Not isSelfClosing Then stack.Add elementNode
+
+  ParseHTMLStartTag = cursor
+End Function
+
+Private Sub ParseHTMLAttribute(ByVal html As String, ByRef idx As Long, ByVal length As Long, ByRef attributes As Variant, ByRef options As THTMLParseOptions)
+  SkipHTMLWhitespace html, idx, length
+  If idx > length Then Exit Sub
+
+  Dim attrName As String
+  attrName = ReadHTMLName(html, idx, length)
+  If Len(attrName) = 0 Then
+    idx = idx + 1
+    Exit Sub
+  End If
+
+  SkipHTMLWhitespace html, idx, length
+
+  Dim attrValue As Variant
+  If idx <= length And Mid$(html, idx, 1) = "=" Then
+    idx = idx + 1
+    SkipHTMLWhitespace html, idx, length
+
+    If idx <= length Then
+      Dim quote As String: quote = Mid$(html, idx, 1)
+      If quote = """" Or quote = "'" Then
+        idx = idx + 1
+        Dim valueStart As Long: valueStart = idx
+        Do While idx <= length And Mid$(html, idx, 1) <> quote
+          idx = idx + 1
+        Loop
+        attrValue = Mid$(html, valueStart, idx - valueStart)
+        If idx <= length Then idx = idx + 1
+      Else
+        Dim rawStart As Long: rawStart = idx
+        Do While idx <= length
+          Dim ch As String: ch = Mid$(html, idx, 1)
+          Select Case ch
+            Case " ", vbTab, vbCr, vbLf, ">"
+              Exit Do
+          End Select
+          idx = idx + 1
+        Loop
+        attrValue = Mid$(html, rawStart, idx - rawStart)
+      End If
+    Else
+      attrValue = vbNullString
+    End If
+  Else
+    ' TODO: Implement full boolean-attribute policy behind parseBooleanAttributes option.
+    If options.parseBooleanAttributes Then
+      attrValue = Null
+    Else
+      attrValue = Null
+    End If
+  End If
+
+  AppendVariantPair attributes, attrName, attrValue
+End Sub
+
+Private Function ParseHTMLEndTag(ByVal html As String, ByVal idx As Long, ByVal stack As Collection) As Long
+  Dim length As Long: length = Len(html)
+  Dim cursor As Long: cursor = idx + 2
+
+  SkipHTMLWhitespace html, cursor, length
+  Dim tagName As String: tagName = ReadHTMLName(html, cursor, length)
+
+  Dim closePos As Long: closePos = InStr(cursor, html, ">")
+  If closePos = 0 Then
+    ParseHTMLEndTag = length + 1
+  Else
+    ParseHTMLEndTag = closePos + 1
+  End If
+
+  If Len(tagName) > 0 Then
+    CloseHTMLStackToTag stack, tagName
+  End If
+End Function
+
+Private Function SkipHTMLComment(ByVal html As String, ByVal idx As Long, ByRef options As THTMLParseOptions) As Long
+  Dim endPos As Long: endPos = InStr(idx + 4, html, "-->")
+  If endPos = 0 Then
+    SkipHTMLComment = Len(html) + 1
+  Else
+    SkipHTMLComment = endPos + 3
+  End If
+
+  ' TODO: Implement optional comment-node retention behind preserveComments option.
+  If options.preserveComments Then
+    ' Intentionally not implemented in v1.
+  End If
+End Function
+
+Private Function SkipHTMLDeclaration(ByVal html As String, ByVal idx As Long) As Long
+  Dim endPos As Long: endPos = InStr(idx + 2, html, ">")
+  If endPos = 0 Then
+    SkipHTMLDeclaration = Len(html) + 1
+  Else
+    SkipHTMLDeclaration = endPos + 1
+  End If
+End Function
+
+Private Function SkipProcessingInstruction(ByVal html As String, ByVal idx As Long) As Long
+  Dim endPos As Long: endPos = InStr(idx + 2, html, "?>")
+  If endPos > 0 Then
+    SkipProcessingInstruction = endPos + 2
+  Else
+    SkipProcessingInstruction = SkipHTMLDeclaration(html, idx)
+  End If
+End Function
+
+Private Sub SkipHTMLWhitespace(ByVal html As String, ByRef idx As Long, ByVal length As Long)
+  Do While idx <= length
+    Select Case Mid$(html, idx, 1)
+      Case " ", vbTab, vbCr, vbLf
+        idx = idx + 1
+      Case Else
+        Exit Sub
+    End Select
+  Loop
+End Sub
+
+Private Function ReadHTMLName(ByVal html As String, ByRef idx As Long, ByVal length As Long) As String
+  Dim startPos As Long: startPos = idx
+  Do While idx <= length
+    If Not IsHTMLNameChar(Mid$(html, idx, 1)) Then Exit Do
+    idx = idx + 1
+  Loop
+  If idx > startPos Then
+    ReadHTMLName = Mid$(html, startPos, idx - startPos)
+  Else
+    ReadHTMLName = vbNullString
+  End If
+End Function
+
+Private Function IsHTMLNameChar(ByVal ch As String) As Boolean
+  If Len(ch) = 0 Then Exit Function
+
+  Dim code As Long: code = AscW(ch)
+  If (code >= 48 And code <= 57) Then
+    IsHTMLNameChar = True
+    Exit Function
+  End If
+  If (code >= 65 And code <= 90) Then
+    IsHTMLNameChar = True
+    Exit Function
+  End If
+  If (code >= 97 And code <= 122) Then
+    IsHTMLNameChar = True
+    Exit Function
+  End If
+
+  Select Case ch
+    Case "_", "-", ":", "."
+      IsHTMLNameChar = True
+  End Select
+End Function
+
+Private Function IsHTMLVoidElement(ByVal tagName As String) As Boolean
+  Select Case LCase$(tagName)
+    Case "area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"
+      IsHTMLVoidElement = True
+  End Select
+End Function
+
+Private Sub AppendVariantPair(ByRef values As Variant, ByVal key As String, ByVal value As Variant)
+  If Not IsArray(values) Then
+    ReDim values(0 To 1)
+    values(0) = key
+    values(1) = value
+    Exit Sub
+  End If
+
+  Dim ub As Long: ub = SafeUBoundVariant(values)
+  If ub < 0 Then
+    ReDim values(0 To 1)
+    values(0) = key
+    values(1) = value
+  Else
+    ReDim Preserve values(0 To ub + 2)
+    values(ub + 1) = key
+    values(ub + 2) = value
+  End If
+End Sub
+
+Private Sub AppendParsedNode(ByVal node As stdHTML, ByVal stack As Collection, ByRef roots() As stdHTML)
+  If node Is Nothing Then Exit Sub
+
+  If stack.Count = 0 Then
+    AppendHTMLNode roots, node
+  Else
+    stack(stack.Count).AppendChild node
+  End If
+End Sub
+
+Private Sub AppendHTMLNode(ByRef values() As stdHTML, ByVal item As stdHTML)
+  If item Is Nothing Then Exit Sub
+
+  Dim ub As Long: ub = SafeUBoundHTMLArray(values)
+  If ub < 0 Then
+    ReDim values(0 To 0)
+    Set values(0) = item
+  Else
+    ReDim Preserve values(0 To ub + 1)
+    Set values(ub + 1) = item
+  End If
+End Sub
+
+Private Sub CloseHTMLStackToTag(ByVal stack As Collection, ByVal tagName As String)
+  Dim i As Long
+  For i = stack.Count To 1 Step -1
+    If StrComp(stack(i).TagName, tagName, vbTextCompare) = 0 Then
+      Dim j As Long
+      For j = stack.Count To i Step -1
+        stack.Remove j
+      Next j
+      Exit Sub
+    End If
+  Next i
+End Sub
+
+Private Function StartsWithAt(ByVal text As String, ByVal startPos As Long, ByVal expected As String) As Boolean
+  If startPos < 1 Then Exit Function
+  If Len(expected) = 0 Then Exit Function
+  StartsWithAt = (StrComp(Mid$(text, startPos, Len(expected)), expected, vbBinaryCompare) = 0)
+End Function
 
 Private Function SafeUBoundHTMLArray(ByRef values() As stdHTML) As Long
   On Error GoTo noValues
