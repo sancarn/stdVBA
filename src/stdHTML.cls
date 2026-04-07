@@ -8,6 +8,67 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
+'@module
+'@description `stdHTML` provides a fluent, object-based API for building, querying, and transforming HTML in VBA.
+'`stdHTML.Create()` creates a new document root (`<html>`), and child nodes can be composed via `CreateChild`.
+'Use `CreateLiteral` for escaped text content and `Raw` for unescaped content when embedding trusted markup or script.
+'The selector APIs (`QuerySelector`/`QuerySelectorAll`) support CSS-style traversal for reading or mutating node trees.
+'@example **1. Build and render HTML**:
+'```vb
+'Sub mBuildHtml()
+'  Dim doc As stdHTML
+'  Set doc = stdHTML.Create()
+'
+'  With doc.CreateChild("body")
+'    .CreateChild("h1").CreateLiteral "Hello"
+'    .CreateChild("p").CreateLiteral "Generated with stdHTML"
+'  End With
+'
+'  Debug.Print doc.ToString()
+'End Sub
+'```
+'@example **2. Add raw script and query nodes**:
+'```vb
+'Sub mTest()
+'  With stdHTML.Create()
+'    With .CreateChild("head")
+'      With .CreateChild("script")
+'        .Raw "function hello(){"
+'        .Raw "  console.log('hello world')"
+'        .Raw "}"
+'      End With
+'    End With
+'    With .CreateChild("body")
+'      With .CreateChild("div")
+'        .ID = "hi"
+'        Call .CreateLiteral("hello world")
+'      End With
+'    End With
+'    Call .QuerySelector("body > #hi").replaceWith(...)
+'  End With
+'End Sub
+'```
+'@example **3. Using `Self` to pass the current node**:
+'```vb
+'Sub mTestSelf()
+'  With stdHTML.Create()
+'    With .CreateChild("body")
+'      With .CreateChild("div")
+'        Call createCustomElement(.Self)
+'      End With
+'    End With
+'  End With
+'End Sub
+'
+'Private Sub createCustomElement(ByVal node As stdHTML)
+'  With node
+'    With .CreateChild("div")
+'      .ClassName = "custom-card"
+'      .CreateChild("span").CreateLiteral "Reusable content"
+'    End With
+'  End With
+'End Sub
+'```
 #If Win64 Then
   Private Const PTR_SZ As Long = 8
   Private Const NULL_PTR As LongLong = 0^
@@ -82,13 +143,24 @@ Public Enum ECDNType
 End Enum
 
 'Creates a new stdHTML object. This is the main entry point for creating HTML document objects.
-Public Function Create() as stdHTML
+'@constructor
+'@param tagName - Name of the tag to create
+'@param attributes - Attributes to add to the tag
+'@param isSelfClosing - Whether the tag is self-closing
+'@returns - New stdHTML object
+Public Function Create(Optional ByVal tagName as string = "html", Optional ByVal attributes as variant = Empty, optional byval isSelfClosing as Boolean = false) as stdHTML
   set Create = New stdHTML
-  Call Create.protInit("html", Array(), False)
+  if tagName = "html" then
+    Call Create.protInit(tagName, attributes, isSelfClosing)
+  else
+    Call Create.protInitElement(tagName, attributes, isSelfClosing)
+  end if
 End Function
 
 'Creates stdHTML nodes from a HTML string.
+'@constructor
 '@param html - HTML markup to parse into stdHTML nodes
+'@returns - New stdHTML object
 Public Function CreateFromHTML(ByVal html As String) As stdHTML
   Dim options As THTMLParseOptions
   options = DefaultHTMLParseOptions()
@@ -115,46 +187,57 @@ Public Function CreateFromHTML(ByVal html As String) As stdHTML
   Dim i As Long
   For i = 0 To parsedUB
     If Not parsed(i) Is Nothing Then
-      CreateFromHTML.AppendChild parsed(i)
+      CreateFromHTML.ChildAppend parsed(i)
     End If
   Next i
 End Function
 
 ' Creates a new stdHTML object with the specified tag name and attributes, and adds it to the current element.
+'@constructor
 '@param tagName - Name of the tag to create
 '@param attributes - Attributes to add to the tag
 '@param isSelfClosing - Whether the tag is self-closing
-Public Function CreateChild(ByVal tagName as string, ByVal attributes as variant, optional byval isSelfClosing as Boolean = false) as stdHTML
+'@returns - New stdHTML object
+Public Function CreateChild(ByVal tagName as string, Optional ByVal attributes as variant = Empty, optional byval isSelfClosing as Boolean = false) as stdHTML
   set CreateChild = new stdHTML
+  if isEmpty(attributes) then attributes = Array()
   Call CreateChild.protInit(tagName, attributes, isSelfClosing)
-  Call AppendChild(CreateChild)
+  Call ChildAppend(CreateChild)
 End Function
 
 'Creates a literal element and adds it to the current element.
+'@constructor
 '@param text - Text to add
+'@returns - New stdHTML object
 Public Sub CreateLiteral(ByVal text as string)
   Dim newLit as stdHTML: set newLit = new stdHTML
   Call newLit.protInitLiteral(text)
-  Call AppendChild(newLit)
+  Call ChildAppend(newLit)
 End Sub
 
 'Creates a raw literal element and adds it to the current element.
+'@constructor
 '@param text - Raw text to add
+'@returns - New stdHTML object
 Public Sub CreateRaw(ByVal text as string)
   Dim newLit as stdHTML: set newLit = new stdHTML
   Call newLit.protInitRaw(text)
-  Call AppendChild(newLit)
+  Call ChildAppend(newLit)
 End Sub
 
 'Alias for CreateRaw.
+'@constructor
 '@param text - Raw text to add
+'@returns - New stdHTML object
 Public Sub Raw(ByVal text as string)
   Call CreateRaw(text)
 End Sub
 
 'Creates a CDN resource element and adds it to the current element.
+'@constructor
 '@param cdnType - Type of CDN element to create
 '@param link - URL of the CDN resource
+'@returns - New stdHTML object
 Public Function CreateCDNElement(ByVal cdnType As ECDNType, ByVal link As String) As stdHTML
   If Len(link) = 0 Then
     Err.Raise vbObjectError + 3, "stdHTML", "CDN link cannot be empty."
@@ -171,6 +254,10 @@ Public Function CreateCDNElement(ByVal cdnType As ECDNType, ByVal link As String
 End Function
 
 'Internal initializer shared by factory methods.
+'@protected
+'@param tagName - Name of the tag to create
+'@param attributes - Attributes to add to the tag
+'@param isSelfClosing - Whether the tag is self-closing
 Friend Sub protInit(Optional ByVal tagName As String = "html", Optional ByVal attributes As Variant, Optional ByVal isSelfClosing As Boolean = False)
   Dim normalizedAttributes As Variant
   If IsMissing(attributes) Then
@@ -182,6 +269,7 @@ Friend Sub protInit(Optional ByVal tagName As String = "html", Optional ByVal at
 End Sub
 
 'Initialise an element object.
+'@protected
 '@param tagName - Name of the tag to create
 '@param attributes - Attributes to add to the tag
 '@param isSelfClosing - Whether the tag is self-closing
@@ -195,6 +283,7 @@ Public Sub protInitElement(tagName as string, attributes as variant, isSelfClosi
 End Sub
 
 'Initialise a literal object.
+'@protected
 '@param content - Content of the literal element
 Public Sub protInitLiteral(content as string)
     This.ElementType = EElementType.ELiteral
@@ -203,6 +292,7 @@ Public Sub protInitLiteral(content as string)
 End Sub
 
 'Initialise a raw object.
+'@protected
 '@param content - Content of the raw element
 Public Sub protInitRaw(content as string)
     This.ElementType = EElementType.ERaw
@@ -210,12 +300,20 @@ Public Sub protInitRaw(content as string)
     This.ParentPtr = 0
 End Sub
 
+'Returns the current instance for helper calls inside fluent `With` chains.
+'@returns - Current instance
+Public Property Get Self() as stdHTML
+  Set Self = Me
+End Property
+
+'Gets the underlying node type (`EElement`, `ELiteral`, or `ERaw`).
+'@returns - Element type
 Public Property Get ElementType() As Long
   ElementType = This.ElementType
 End Property
 
-
-
+'Gets the tag name for element nodes.
+'@returns - Tag name
 Public Property Get TagName() as string
   Select Case this.ElementType
     Case EElementType.EElement
@@ -229,6 +327,9 @@ Public Property Get TagName() as string
   End Select
 End Property
 
+'Gets an attribute value on an element node.
+'@param name - Attribute name
+'@returns - Attribute value, or Empty when the attribute is missing
 Public Property Get Attr(name as string) as variant
   If this.ElementType <> EElementType.EElement Then Err.Raise vbObjectError + 1, "stdHTML", "Cannot get attributes on a non-element context."
 
@@ -303,6 +404,8 @@ Private Sub RemoveAttributePairAt(ByVal pairStartIndex As Long)
 End Sub
 
 
+'Get/Set the `id` attribute.
+'@returns - `id` attribute value
 Public Property Get Id() as string
   ID = Attr("id")
 End Property
@@ -310,6 +413,8 @@ Public Property Let ID(value As String)
   Attr("id") = value
 End Property
 
+'Get/Set the `title` attribute.
+'@returns - `title` attribute value
 Public Property Get Title() as string
   Title = Attr("title")
 End Property
@@ -317,12 +422,15 @@ Public Property Let Title(value As String)
   Attr("title") = value
 End Property
 
+'Gets child nodes from an element node.
+'@returns - Child nodes
 Public Property Get Children() As stdHTML()
   If this.ElementType <> EElementType.EElement then Err.Raise vbObjectError + 1, "Cannot get children of a non-element context."
   Children = This.Element.Children
 End Property
 
 'Returns the parent node when available via weak pointer.
+'@returns - Parent node
 Public Property Get Parent() As stdHTML
   If This.ParentPtr = 0 Then Exit Property
   Set Parent = ObjFromPtr(This.ParentPtr)
@@ -337,7 +445,7 @@ End Sub
 
 'Adds the specified classes to the element
 '@param classes as Variant<string>() - Classes to add
-Public Sub AddClasses(ParamArray classes())
+Public Sub ClassesAdd(ParamArray classes())
   If this.ElementType <> EElementType.EElement then Err.Raise vbObjectError + 1, "Cannot add classes to a non-element context."
 
   Dim classList As String
@@ -363,7 +471,7 @@ End Sub
 
 'Removes the specified classes from the element
 '@param classes as Variant<string>() - Classes to remove
-Public Sub RemoveClasses(ParamArray classes())
+Public Sub ClassesRemove(ParamArray classes())
   If this.ElementType <> EElementType.EElement then Err.Raise vbObjectError + 1, "Cannot remove classes from a non-element context."
 
   Dim classList As String
@@ -380,6 +488,7 @@ End Sub
 
 'Obtain the HTML string representation of the element.
 '@param indent - Indentation string to use for nested elements
+'@returns - HTML string representation
 Public Function ToString(Optional indent As String = "") As String
   select case this.ElementType
     case EElementType.EElement
@@ -457,7 +566,9 @@ Private Function serializeAttribute(ByRef attr as Variant) as string
   end select
 End Function
 
-Public Sub AppendChild(ByVal child As stdHTML)
+'Appends a child node to the current element.
+'@param child - Child node to append
+Public Sub ChildAppend(ByVal child As stdHTML)
   If this.ElementType <> EElementType.EElement Then
     Err.Raise vbObjectError + 1, "stdHTML", "Cannot add child to a non-element context."
   End If
@@ -496,7 +607,10 @@ Public Function ReplaceWith(ByVal replacement As stdHTML) As Boolean
   ReplaceWith = True
 End Function
 
+
+'Creates a serializable snapshot of the current node state.
 '@protected
+'@returns Dictionary containing node data
 Public Function protGetStateAsDictionary() As Object
   Dim state As Object
   Set state = CreateObject("Scripting.Dictionary")
@@ -520,7 +634,10 @@ Public Function protGetStateAsDictionary() As Object
   Set protGetStateAsDictionary = state
 End Function
 
+
+'Initializes the current node from a serialized state dictionary.
 '@protected
+'@param state - Dictionary produced by `protGetStateAsDictionary`
 Public Sub protInitFromStateDictionary(ByVal state As Object)
   This.ElementType = CLng(state("ElementType"))
 
@@ -554,6 +671,9 @@ Public Sub protInitFromStateDictionary(ByVal state As Object)
   End Select
 End Sub
 
+'Returns the first node that matches the selector.
+'@param selector - CSS selector string
+'@returns First matching node, or Nothing if no nodes match
 Public Function QuerySelector(ByVal selector As String) As stdHTML
   Dim matches() As stdHTML
   matches = QuerySelectorAll(selector)
@@ -562,6 +682,9 @@ Public Function QuerySelector(ByVal selector As String) As stdHTML
   If ub >= 0 Then Set QuerySelector = matches(0)
 End Function
 
+'Returns all nodes that match the selector.
+'@param selector - CSS selector string
+'@returns Array of matching nodes
 Public Function QuerySelectorAll(ByVal selector As String) As stdHTML()
   If this.ElementType <> EElementType.EElement Then
     Err.Raise vbObjectError + 1, "stdHTML#QuerySelectorAll", "Cannot query a non-element context."
@@ -1216,7 +1339,7 @@ Private Function ParseHTMLStartTag(ByVal html As String, ByVal idx As Long, ByVa
         Dim rawNode As stdHTML
         Set rawNode = New stdHTML
         rawNode.protInitRaw svgRaw
-        elementNode.AppendChild rawNode
+        elementNode.ChildAppend rawNode
       End If
 
       AppendParsedNode elementNode, stack, roots
@@ -1485,7 +1608,7 @@ Private Sub AppendParsedNode(ByVal node As stdHTML, ByVal stack As Collection, B
   If stack.Count = 0 Then
     AppendHTMLNode roots, node
   Else
-    stack(stack.Count).AppendChild node
+    stack(stack.Count).ChildAppend node
   End If
 End Sub
 
