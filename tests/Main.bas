@@ -19,4 +19,5 @@ Sub MainTestAll()
     Call stdPerformanceTests.testAll
     Call stdStringBuilderTests.testAll
     call stdSentryTests.testAll
+    Call stdHTMLTests.testAll
 End Sub
