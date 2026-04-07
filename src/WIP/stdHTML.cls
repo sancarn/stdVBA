@@ -53,6 +53,7 @@ Private Type TSelectorAtom
   Id As String
   Classes() As String
   AttrNames() As String
+  AttrHasValue() As Boolean
   AttrValues() As String
 End Type
 Private Type TSelectorStep
@@ -71,7 +72,6 @@ Private Type TThis
   ParentPtr As LongPtr
 End Type
 Private Type THTMLParseOptions
-  parseBooleanAttributes As Boolean
   preserveComments As Boolean
 End Type
 Private This As TThis
@@ -254,10 +254,16 @@ Public Property Let Attr(name as string, value as variant)
   Dim i as Long
   For i = 0 to attrUB step 2
     if This.Element.Attributes(i) = name then
-      This.Element.Attributes(i + 1) = value
+      If IsEmpty(value) Then
+        RemoveAttributePairAt i
+      Else
+        This.Element.Attributes(i + 1) = value
+      End If
       Exit Property
     end if
   next i
+
+  If IsEmpty(value) Then Exit Property
 
   'If the attribute doesn't exist, add it
   If attrUB < 0 Then
@@ -270,6 +276,31 @@ Public Property Let Attr(name as string, value as variant)
     This.Element.Attributes(attrUB + 2) = value
   End If
 End Property
+
+Private Sub RemoveAttributePairAt(ByVal pairStartIndex As Long)
+  Dim attrUB As Long: attrUB = UBoundAttributes()
+  If pairStartIndex < 0 Or pairStartIndex > attrUB - 1 Then Exit Sub
+
+  If attrUB <= 1 Then
+    Erase This.Element.Attributes
+    Exit Sub
+  End If
+
+  Dim newValues() As Variant
+  ReDim newValues(0 To attrUB - 2)
+
+  Dim src As Long
+  Dim dst As Long
+  For src = 0 To attrUB Step 2
+    If src <> pairStartIndex Then
+      newValues(dst) = This.Element.Attributes(src)
+      newValues(dst + 1) = This.Element.Attributes(src + 1)
+      dst = dst + 2
+    End If
+  Next src
+
+  This.Element.Attributes = newValues
+End Sub
 
 
 Public Property Get Id() as string
@@ -357,7 +388,13 @@ Public Function ToString(Optional indent As String = "") As String
       Dim i As Long
       Dim attrUB As Long: attrUB = UBoundAttributes()
       For i = 0 To attrUB Step 2
-        output = output & " " & this.Element.Attributes(i) & serializeAttribute(this.Element.Attributes(i + 1))
+        Dim attrValue As Variant
+        attrValue = This.Element.Attributes(i + 1)
+
+        ' Empty means the attribute is removed; do not emit name or value.
+        If Not IsEmpty(attrValue) Then
+          output = output & " " & this.Element.Attributes(i) & serializeAttribute(attrValue)
+        End If
       Next i
 
       If this.Element.isSelfClosing Then
@@ -397,6 +434,8 @@ End Function
 '@returns Serialized attribute
 Private Function serializeAttribute(ByRef attr as Variant) as string
   select case varType(attr)
+    case vbEmpty
+      serializeAttribute = ""
     case vbNull
       serializeAttribute = ""
     case vbString
@@ -719,12 +758,16 @@ Private Function NodeMatchesAtom(ByVal node As stdHTML, ByRef atom As TSelectorA
 
   Dim attrUB As Long: attrUB = SafeUBoundStringArray(atom.AttrNames)
   If attrUB >= 0 Then
+    Dim nodeAttributes As Variant
+    nodeAttributes = GetNodeAttributes(node)
+
     Dim attrIndex As Long
     For attrIndex = 0 To attrUB
-      Dim attrValue As Variant
-      attrValue = node.Attr(atom.AttrNames(attrIndex))
-      If IsEmpty(attrValue) Or IsNull(attrValue) Then Exit Function
-      If StrComp(CStr(attrValue), atom.AttrValues(attrIndex), vbTextCompare) <> 0 Then Exit Function
+      If atom.AttrHasValue(attrIndex) Then
+        If Not ContainsAttributeNameValue(nodeAttributes, atom.AttrNames(attrIndex), atom.AttrValues(attrIndex)) Then Exit Function
+      Else
+        If Not ContainsAttributeName(nodeAttributes, atom.AttrNames(attrIndex)) Then Exit Function
+      End If
     Next attrIndex
   End If
 
@@ -856,22 +899,28 @@ Private Sub ParseAttributeSelector(ByVal selector As String, ByRef idx As Long, 
   attrName = ParseIdentifier(selector, idx, length, "attribute name")
 
   SkipSelectorWhitespace selector, idx, length
-  If idx > length Or Mid$(selector, idx, 1) <> "=" Then
-    Err.Raise vbObjectError + 4, "stdHTML#QuerySelectorAll", "Only [attr=value] selectors are currently supported."
-  End If
-  idx = idx + 1
-
-  SkipSelectorWhitespace selector, idx, length
+  Dim hasValue As Boolean
   Dim attrValue As String
-  attrValue = ParseAttributeValue(selector, idx, length)
+  If idx <= length And Mid$(selector, idx, 1) = "=" Then
+    hasValue = True
+    idx = idx + 1
 
-  SkipSelectorWhitespace selector, idx, length
-  If idx > length Or Mid$(selector, idx, 1) <> "]" Then
-    Err.Raise vbObjectError + 4, "stdHTML#QuerySelectorAll", "Missing closing ']' for attribute selector."
+    SkipSelectorWhitespace selector, idx, length
+    attrValue = ParseAttributeValue(selector, idx, length)
+
+    SkipSelectorWhitespace selector, idx, length
+    If idx > length Or Mid$(selector, idx, 1) <> "]" Then
+      Err.Raise vbObjectError + 4, "stdHTML#QuerySelectorAll", "Missing closing ']' for attribute selector."
+    End If
+    idx = idx + 1
+  ElseIf idx <= length And Mid$(selector, idx, 1) = "]" Then
+    idx = idx + 1
+  Else
+    Err.Raise vbObjectError + 4, "stdHTML#QuerySelectorAll", "Expected '=' or closing ']' in attribute selector."
   End If
-  idx = idx + 1
 
   AppendString atom.AttrNames, attrName
+  AppendBoolean atom.AttrHasValue, hasValue
   AppendString atom.AttrValues, attrValue
 End Sub
 
@@ -1009,6 +1058,17 @@ Private Sub AppendString(ByRef values() As String, ByVal value As String)
   End If
 End Sub
 
+Private Sub AppendBoolean(ByRef values() As Boolean, ByVal value As Boolean)
+  Dim ub As Long: ub = SafeUBoundBooleanArray(values)
+  If ub < 0 Then
+    ReDim values(0 To 0)
+    values(0) = value
+  Else
+    ReDim Preserve values(0 To ub + 1)
+    values(ub + 1) = value
+  End If
+End Sub
+
 Private Sub AppendSelectorStep(ByRef values() As TSelectorStep, ByRef value As TSelectorStep)
   Dim ub As Long: ub = SafeUBoundSelectorStepArray(values)
   If ub < 0 Then
@@ -1033,7 +1093,6 @@ End Sub
 
 Private Function DefaultHTMLParseOptions() As THTMLParseOptions
   Dim options As THTMLParseOptions
-  options.parseBooleanAttributes = False
   options.preserveComments = False
   DefaultHTMLParseOptions = options
 End Function
@@ -1056,7 +1115,7 @@ Private Function ParseHTMLNodes(ByVal html As String, ByRef options As THTMLPars
       ElseIf StartsWithAt(html, idx, "<?") Then
         idx = SkipProcessingInstruction(html, idx)
       Else
-        idx = ParseHTMLStartTag(html, idx, stack, roots, options)
+        idx = ParseHTMLStartTag(html, idx, stack, roots)
       End If
     Else
       idx = ParseHTMLText(html, idx, stack, roots)
@@ -1102,7 +1161,7 @@ Private Function ParseHTMLText(ByVal html As String, ByVal idx As Long, ByVal st
   AppendParsedNode textNode, stack, roots
 End Function
 
-Private Function ParseHTMLStartTag(ByVal html As String, ByVal idx As Long, ByVal stack As Collection, ByRef roots() As stdHTML, ByRef options As THTMLParseOptions) As Long
+Private Function ParseHTMLStartTag(ByVal html As String, ByVal idx As Long, ByVal stack As Collection, ByRef roots() As stdHTML) As Long
   Dim length As Long: length = Len(html)
   Dim cursor As Long: cursor = idx + 1
   SkipHTMLWhitespace html, cursor, length
@@ -1137,7 +1196,7 @@ Private Function ParseHTMLStartTag(ByVal html As String, ByVal idx As Long, ByVa
       End If
     End If
 
-    ParseHTMLAttribute html, cursor, length, attributes, options
+    ParseHTMLAttribute html, cursor, length, attributes
   Loop
 
   If IsHTMLVoidElement(tagName) Then isSelfClosing = True
@@ -1172,7 +1231,7 @@ Private Function ParseHTMLStartTag(ByVal html As String, ByVal idx As Long, ByVa
   ParseHTMLStartTag = cursor
 End Function
 
-Private Sub ParseHTMLAttribute(ByVal html As String, ByRef idx As Long, ByVal length As Long, ByRef attributes As Variant, ByRef options As THTMLParseOptions)
+Private Sub ParseHTMLAttribute(ByVal html As String, ByRef idx As Long, ByVal length As Long, ByRef attributes As Variant)
   SkipHTMLWhitespace html, idx, length
   If idx > length Then Exit Sub
 
@@ -1216,12 +1275,8 @@ Private Sub ParseHTMLAttribute(ByVal html As String, ByRef idx As Long, ByVal le
       attrValue = vbNullString
     End If
   Else
-    ' TODO: Implement full boolean-attribute policy behind parseBooleanAttributes option.
-    If options.parseBooleanAttributes Then
-      attrValue = Null
-    Else
-      attrValue = Null
-    End If
+    ' Name-only attributes are minimized/presence attributes (e.g. disabled, checked).
+    attrValue = Null
   End If
 
   AppendVariantPair attributes, attrName, attrValue
@@ -1484,6 +1539,15 @@ noValues:
   SafeUBoundStringArray = -1
 End Function
 
+Private Function SafeUBoundBooleanArray(ByRef values() As Boolean) As Long
+  On Error GoTo noValues
+  SafeUBoundBooleanArray = UBound(values)
+  Exit Function
+
+noValues:
+  SafeUBoundBooleanArray = -1
+End Function
+
 Private Function SafeUBoundSelectorStepArray(ByRef values() As TSelectorStep) As Long
   On Error GoTo noValues
   SafeUBoundSelectorStepArray = UBound(values)
@@ -1532,6 +1596,48 @@ Private Function NormalizeAttributes(ByVal attributes As Variant) As Variant
   End If
 
   Err.Raise vbObjectError + 2, "stdHTML", "Attributes must be key/value array pairs."
+End Function
+
+Private Function GetNodeAttributes(ByVal node As stdHTML) As Variant
+  Dim state As Object
+  Set state = node.protGetStateAsDictionary()
+  If state.Exists("Attributes") Then
+    GetNodeAttributes = state("Attributes")
+  Else
+    GetNodeAttributes = Array()
+  End If
+End Function
+
+Private Function ContainsAttributeName(ByVal attributes As Variant, ByVal attrName As String) As Boolean
+  Dim attrUB As Long: attrUB = SafeUBoundVariant(attributes)
+  If attrUB < 1 Then Exit Function
+
+  Dim i As Long
+  For i = 0 To attrUB Step 2
+    If StrComp(CStr(attributes(i)), attrName, vbTextCompare) = 0 Then
+      ContainsAttributeName = True
+      Exit Function
+    End If
+  Next i
+End Function
+
+Private Function ContainsAttributeNameValue(ByVal attributes As Variant, ByVal attrName As String, ByVal expectedValue As String) As Boolean
+  Dim attrUB As Long: attrUB = SafeUBoundVariant(attributes)
+  If attrUB < 1 Then Exit Function
+
+  Dim i As Long
+  For i = 0 To attrUB Step 2
+    If StrComp(CStr(attributes(i)), attrName, vbTextCompare) = 0 Then
+      Dim attrValue As Variant
+      attrValue = attributes(i + 1)
+      If Not IsEmpty(attrValue) And Not IsNull(attrValue) Then
+        If StrComp(CStr(attrValue), expectedValue, vbTextCompare) = 0 Then
+          ContainsAttributeNameValue = True
+          Exit Function
+        End If
+      End If
+    End If
+  Next i
 End Function
 
 Private Function CoalesceString(ByVal value As Variant) As String
