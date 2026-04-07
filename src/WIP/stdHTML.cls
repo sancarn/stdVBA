@@ -1078,8 +1078,22 @@ Private Function ParseHTMLText(ByVal html As String, ByVal idx As Long, ByVal st
   End If
 
   If Len(content) = 0 Then Exit Function
-  If stack.Count = 0 Then
-    If Len(NormalizeWhitespace(content)) = 0 Then Exit Function
+
+  ' ToString always inserts vbCrLf before each child; pretty-printed source also puts newlines
+  ' after '>' and before '</tag>' inside the text node. Strip those edges so we do not double up.
+  If stack.Count > 0 Then
+    If ShouldTrimParsedEdgeWhitespace(stack(stack.Count).TagName) Then
+      content = TrimHTMLAsciiWhitespace(content)
+    End If
+  End If
+  If Len(content) = 0 Then Exit Function
+
+  ' Drop text nodes that are only HTML "ASCII whitespace" when they are just markup formatting
+  ' between tags (e.g. pretty-printed ToString output). Use Ascii-whitespace-only, not
+  ' NormalizeWhitespace, so spaces inside <pre> etc. are not collapsed away.
+  If IsHTMLAsciiWhitespaceOnly(content) Then
+    If stack.Count = 0 Then Exit Function
+    If IsHTMLIgnorableInterelementWhitespaceParent(stack(stack.Count).TagName) Then Exit Function
   End If
 
   Dim textNode As stdHTML
@@ -1315,6 +1329,78 @@ Private Function IsHTMLVoidElement(ByVal tagName As String) As Boolean
   Select Case LCase$(tagName)
     Case "area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"
       IsHTMLVoidElement = True
+  End Select
+End Function
+
+' Strips leading/trailing HTML ASCII whitespace (TAB, LF, FF, CR, space). Middle is untouched.
+Private Function TrimHTMLAsciiWhitespace(ByVal s As String) As String
+  Dim n As Long: n = Len(s)
+  Dim L As Long: L = 1
+  Dim r As Long: r = n
+  Dim c As Long
+
+  Do While L <= n
+    c = AscW(Mid$(s, L, 1))
+    Select Case c
+      Case 9, 10, 12, 13, 32
+        L = L + 1
+      Case Else
+        Exit Do
+    End Select
+  Loop
+
+  Do While r >= L
+    c = AscW(Mid$(s, r, 1))
+    Select Case c
+      Case 9, 10, 12, 13, 32
+        r = r - 1
+      Case Else
+        Exit Do
+    End Select
+  Loop
+
+  If L > r Then
+    TrimHTMLAsciiWhitespace = vbNullString
+  Else
+    TrimHTMLAsciiWhitespace = Mid$(s, L, r - L + 1)
+  End If
+End Function
+
+' True for elements where leading/trailing text-node whitespace is formatting, not meaningful content.
+Private Function ShouldTrimParsedEdgeWhitespace(ByVal tagName As String) As Boolean
+  Select Case LCase$(tagName)
+    Case "pre", "textarea", "listing", "xmp", "plaintext", "svg", "math"
+      ShouldTrimParsedEdgeWhitespace = False
+    Case Else
+      ShouldTrimParsedEdgeWhitespace = True
+  End Select
+End Function
+
+' True if s is empty or every character is HTML ASCII whitespace (TAB, LF, FF, CR, space).
+Private Function IsHTMLAsciiWhitespaceOnly(ByVal s As String) As Boolean
+  Dim i As Long
+  Dim n As Long
+  Dim c As Long
+  n = Len(s)
+  For i = 1 To n
+    c = AscW(Mid$(s, i, 1))
+    Select Case c
+      Case 9, 10, 12, 13, 32
+      Case Else
+        Exit Function
+    End Select
+  Next i
+  IsHTMLAsciiWhitespaceOnly = True
+End Function
+
+' Parents where whitespace-only text between child elements is not meaningful (pretty-print, etc.).
+' Default ignorable; only raw / RCDATA / preformatted elements keep ASCII-whitespace-only runs.
+Private Function IsHTMLIgnorableInterelementWhitespaceParent(ByVal tagName As String) As Boolean
+  Select Case LCase$(tagName)
+    Case "script", "style", "pre", "textarea", "title", "listing", "xmp", "plaintext"
+      IsHTMLIgnorableInterelementWhitespaceParent = False
+    Case Else
+      IsHTMLIgnorableInterelementWhitespaceParent = True
   End Select
 End Function
 
