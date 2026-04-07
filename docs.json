@@ -6783,6 +6783,776 @@
     "implements": []
   },
   {
+    "name": "stdHTML",
+    "fileName": "stdHTML.cls",
+    "description": "",
+    "remarks": [],
+    "examples": [],
+    "devNotes": [],
+    "todos": [],
+    "requires": [],
+    "methods": [
+      {
+        "name": "Create",
+        "description": "Creates a new stdHTML object. This is the main entry point for creating HTML document objects.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "stdHTML",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "CreateFromHTML",
+        "description": "Creates stdHTML nodes from a HTML string.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "html",
+            "type": "String",
+            "description": "HTML markup to parse into stdHTML nodes",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "stdHTML",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "CreateChild",
+        "description": "Creates a new stdHTML object with the specified tag name and attributes, and adds it to the current element.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "tagName",
+            "type": "string",
+            "description": "Name of the tag to create",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "attributes",
+            "type": "variant",
+            "description": "Attributes to add to the tag",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "isSelfClosing",
+            "type": "Boolean",
+            "description": "Whether the tag is self-closing",
+            "optional": true,
+            "defaultValue": "false",
+            "paramArray": false,
+            "referenceType": "byval"
+          }
+        ],
+        "returns": {
+          "type": "stdHTML",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "CreateLiteral",
+        "description": "Creates a literal element and adds it to the current element.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "text",
+            "type": "string",
+            "description": "Text to add",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "CreateRaw",
+        "description": "Creates a raw literal element and adds it to the current element.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "text",
+            "type": "string",
+            "description": "Raw text to add",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "Raw",
+        "description": "Alias for CreateRaw.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "text",
+            "type": "string",
+            "description": "Raw text to add",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "CreateCDNElement",
+        "description": "Creates a CDN resource element and adds it to the current element.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "cdnType",
+            "type": "ECDNType",
+            "description": "Type of CDN element to create",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "link",
+            "type": "String",
+            "description": "URL of the CDN resource",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "stdHTML",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "protInitElement",
+        "description": "Initialise an element object.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "tagName",
+            "type": "string",
+            "description": "Name of the tag to create",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByRef"
+          },
+          {
+            "name": "attributes",
+            "type": "variant",
+            "description": "Attributes to add to the tag",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByRef"
+          },
+          {
+            "name": "isSelfClosing",
+            "type": "Boolean",
+            "description": "Whether the tag is self-closing",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByRef"
+          }
+        ],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "protInitLiteral",
+        "description": "Initialise a literal object.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "content",
+            "type": "string",
+            "description": "Content of the literal element",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByRef"
+          }
+        ],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "protInitRaw",
+        "description": "Initialise a raw object.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "content",
+            "type": "string",
+            "description": "Content of the raw element",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByRef"
+          }
+        ],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "protSetParentPtr",
+        "description": "Sets the parent pointer for the current node.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "parentPtr",
+            "type": "LongPtr",
+            "description": "Pointer to the parent node",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "AddClasses",
+        "description": "Adds the specified classes to the element",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "classes",
+            "type": "Variant<string>()",
+            "description": "Classes to add",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByRef"
+          }
+        ],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "RemoveClasses",
+        "description": "Removes the specified classes from the element",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "classes",
+            "type": "Variant<string>()",
+            "description": "Classes to remove",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByRef"
+          }
+        ],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "ToString",
+        "description": "Obtain the HTML string representation of the element.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "indent",
+            "type": "String",
+            "description": "Indentation string to use for nested elements",
+            "optional": true,
+            "defaultValue": "\"\"",
+            "paramArray": false,
+            "referenceType": "ByRef"
+          }
+        ],
+        "returns": {
+          "type": "String",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "AppendChild",
+        "description": "",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "ReplaceWith",
+        "description": "Replaces the current node contents with another node's contents.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "replacement",
+            "type": "stdHTML",
+            "description": "Replacement node",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "Boolean",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "protGetStateAsDictionary",
+        "description": "@protected",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Object",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "protInitFromStateDictionary",
+        "description": "@protected",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "QuerySelector",
+        "description": "",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "stdHTML",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "QuerySelectorAll",
+        "description": "",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "stdHTML",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      }
+    ],
+    "properties": [
+      {
+        "name": "ElementType",
+        "access": "ReadOnly",
+        "description": "",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Long",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "TagName",
+        "access": "ReadOnly",
+        "description": "",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "string",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "Attr",
+        "access": "ReadWrite",
+        "description": "",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "variant",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "Id",
+        "access": "ReadWrite",
+        "description": "",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "string",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "Title",
+        "access": "ReadWrite",
+        "description": "",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "string",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "Children",
+        "access": "ReadOnly",
+        "description": "",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "stdHTML",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "Parent",
+        "access": "ReadOnly",
+        "description": "Returns the parent node when available via weak pointer.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "stdHTML",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      }
+    ],
+    "constructors": [],
+    "events": [],
+    "implements": []
+  },
+  {
     "name": "stdHTTP",
     "fileName": "stdHTTP.cls",
     "description": "A class used to make HTTP requests.",
