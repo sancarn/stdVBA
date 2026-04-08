@@ -15007,6 +15007,65 @@
         "isStatic": false
       },
       {
+        "name": "WaitForDocumentReady",
+        "description": "Wait until current page is fully loaded and URL prefix is stable.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "urlPrefix",
+            "type": "String",
+            "description": "Required URL prefix (case-insensitive). Pass \"\" to skip URL matching.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "timeoutMs",
+            "type": "Long",
+            "description": "Max wait time in milliseconds.",
+            "optional": true,
+            "defaultValue": "120000",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "stableMs",
+            "type": "Long",
+            "description": "Consecutive milliseconds condition must remain true before success.",
+            "optional": true,
+            "defaultValue": "1000",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "pollMs",
+            "type": "Long",
+            "description": "Poll interval in milliseconds.",
+            "optional": true,
+            "defaultValue": "200",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "Boolean",
+          "description": "`True` when ready condition is satisfied within timeout, else `False`."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
         "name": "Back",
         "description": "Nagivate backward",
         "remarks": [
@@ -15412,6 +15471,54 @@
       }
     ],
     "properties": [
+      {
+        "name": "Source",
+        "access": "ReadOnly",
+        "description": "Get current page URL.",
+        "remarks": [
+          "- Raises if the WebView is not ready."
+        ],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "String",
+          "description": "Current `CoreWebView2.Source`."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "Address",
+        "access": "ReadWrite",
+        "description": "Get/Let Address",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "String",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
       {
         "name": "Html",
         "access": "ReadWrite",
