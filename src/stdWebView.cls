@@ -45,7 +45,7 @@ Option Explicit
     Private Const PTR_SZ As Long = 4
 #End If
 
-#If VBA7 = 0 then
+#If VBA7 = 0 Then
     Private Enum LongPtr
         [_]
     End Enum
@@ -519,7 +519,7 @@ Private Function PtrToStrW(ByVal pWStr As LongPtr) As String
     If pWStr = 0 Then Exit Function
     n = lstrlenW(pWStr)
     If n <= 0 Then Exit Function
-    buf = String$(n, vbNullChar)
+    buf = string$(n, vbNullChar)
     CopyMemory ByVal StrPtr(buf), ByVal pWStr, n * 2&
     PtrToStrW = buf
 End Function
@@ -674,6 +674,80 @@ Public Sub Navigate(ByVal url As String)
     If Not IsReady Then Err.Raise 5, "stdWebView::Navigate", "WebView not ready"
     Call CallVT(This.com.ppWebView2, 5, vbLong, StrPtr(url))
 End Sub
+
+'Get current page URL.
+'@returns - Current `CoreWebView2.Source`.
+'@remark - Raises if the WebView is not ready.
+Public Property Get Source() As String
+    Dim pSource As LongPtr
+    If Not IsReady Then Err.Raise 5, "stdWebView::Source [Get]", "WebView not ready"
+    Call CallVT(This.com.ppWebView2, COREWEBVIEW2_VTBL_GET_SOURCE, vbLong, VarPtr(pSource))
+    Source = PtrToStrW(pSource)
+    If pSource <> 0 Then Call CoTaskMemFree(pSource)
+End Property
+
+'Get/Let Address
+Public Property Get Address() As String
+    Address = Source
+End Property
+Public Property Let Address(v As String)
+    Navigate v
+End Property
+
+'Wait until current page is fully loaded and URL prefix is stable.
+'@param urlPrefix - Required URL prefix (case-insensitive). Pass "" to skip URL matching.
+'@param timeoutMs - Max wait time in milliseconds.
+'@param stableMs - Consecutive milliseconds condition must remain true before success.
+'@param pollMs - Poll interval in milliseconds.
+'@returns - `True` when ready condition is satisfied within timeout, else `False`.
+Public Function WaitForDocumentReady( _
+    ByVal urlPrefix As String, _
+    Optional ByVal timeoutMs As Long = 120000, _
+    Optional ByVal stableMs As Long = 1000, _
+    Optional ByVal pollMs As Long = 200) As Boolean
+
+    Dim requiredPrefix As String
+    Dim startedAt As Double
+    Dim stableStart As Double
+    Dim readyState As String
+    Dim currentUrl As String
+    Dim isReadyNow As Boolean
+    Dim hasPrefix As Boolean
+
+    If Not IsReady Then Err.Raise 5, "stdWebView::WaitForDocumentReady", "WebView not ready"
+    requiredPrefix = LCase$(Trim$(urlPrefix))
+    If timeoutMs < 0 Then timeoutMs = 0
+    If stableMs < 0 Then stableMs = 0
+    If pollMs < 1 Then pollMs = 1
+
+    startedAt = Timer
+    stableStart = -1#
+
+    Do
+        currentUrl = LCase$(Trim$(Source))
+        hasPrefix = (LenB(requiredPrefix) = 0) Or (Left$(currentUrl, Len(requiredPrefix)) = requiredPrefix)
+
+        If hasPrefix Then
+            readyState = LCase$(Trim$(JsonUnquoteString(JavaScriptRunSync("(function(){try{return document.readyState||'';}catch(e){return '';}})()"))))
+            isReadyNow = (readyState = "complete")
+        Else
+            isReadyNow = False
+        End If
+
+        If isReadyNow Then
+            If stableStart < 0 Then stableStart = Timer
+            If TimerElapsedMs(stableStart, Timer) >= CDbl(stableMs) Then
+                WaitForDocumentReady = True
+                Exit Function
+            End If
+        Else
+            stableStart = -1#
+        End If
+
+        If TimerElapsedMs(startedAt, Timer) >= CDbl(timeoutMs) Then Exit Do
+        Call SpinWaitMs(pollMs)
+    Loop
+End Function
 
 'Nagivate backward
 '@remark - Navigates backward using injected `history.back()`.
@@ -1580,7 +1654,7 @@ Private Sub WebResource_ApplyHeaderChanges(ByVal envelope As Object, ByVal pHead
             Dim objHeaders As Object
             Set objHeaders = removeHeaders
             If TypeName(objHeaders) = "Collection" Then
-                For i = 1 To objHeaders.Count
+                For i = 1 To objHeaders.count
                     headerName = CStr(objHeaders(i))
                     If LenB(headerName) > 0 Then
                         hr = CLng(CallVT(pHeaders, COREWEBVIEW2HTTPREQUESTHEADERS_VTBL_REMOVEHEADER, vbLong, StrPtr(headerName)))
@@ -1920,6 +1994,23 @@ Private Function PtsToPx(ByVal pts As Long, ByVal vertical As Boolean) As Long
     End If
     Call ReleaseDC(0, hdc)
     PtsToPx = CLng(CDbl(pts) * (CDbl(dpi) / 72#))
+End Function
+
+Private Sub SpinWaitMs(ByVal milliseconds As Long)
+    Dim waitStart As Double
+    waitStart = Timer
+    Do
+        DoEvents
+        If TimerElapsedMs(waitStart, Timer) >= CDbl(milliseconds) Then Exit Do
+    Loop
+End Sub
+
+Private Function TimerElapsedMs(ByVal startedAt As Double, ByVal nowAt As Double) As Double
+    If nowAt >= startedAt Then
+        TimerElapsedMs = (nowAt - startedAt) * 1000#
+    Else
+        TimerElapsedMs = ((86400# - startedAt) + nowAt) * 1000#
+    End If
 End Function
 
 Private Function JsonUnquoteString(ByVal s As String) As String
