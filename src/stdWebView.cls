@@ -91,6 +91,10 @@ Private Type TScriptState
     result As String
     syncDone As Boolean
     syncWaitRequestId As Long
+    syncBridgeRequestId As String
+    syncBridgeDone As Boolean
+    syncBridgeOk As Boolean
+    syncBridgePayload As String
     nextRequestId As Long
 End Type
 
@@ -142,6 +146,11 @@ Private Type TComState
     webReqThunk As THandlerThunks
     webReqTokenLow As Long
     webReqTokenHigh As Long
+    pWebMsgHandlerObj As LongPtr
+    pWebMsgVTable As LongPtr
+    webMsgThunk As THandlerThunks
+    webMsgTokenLow As Long
+    webMsgTokenHigh As Long
 End Type
 
 Private Type TThis
@@ -310,6 +319,10 @@ Private Const COREWEBVIEW2WEBRESOURCEREQUESTEDEVENTARGS_VTBL_PUT_RESPONSE As Lon
 Private Const COREWEBVIEW2WEBRESOURCEREQUESTEDEVENTARGS_VTBL_GETDEFERRAL As Long = 6
 Private Const COREWEBVIEW2WEBRESOURCEREQUESTEDEVENTARGS_VTBL_GET_RESOURCECONTEXT As Long = 7
 Private Const COREWEBVIEW2DEFERRAL_VTBL_COMPLETE As Long = 3
+Private Const COREWEBVIEW2WEBMESSAGERECEIVEDEVENTARGS_VTBL_GET_WEBMESSAGEASJSON As Long = 4
+
+Private Const SCRIPT_SYNC_BRIDGE_PREFIX As String = "__stdwv_sync__"
+Private Const SCRIPT_SYNC_TIMEOUT_MS As Long = 120000
 
 Public Enum COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND
     COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND_DENY = 0
@@ -610,6 +623,18 @@ Public Function zzProtWebView_WebResourceRequestedInvoke( _
     zzProtWebView_WebResourceRequestedInvoke = 0&
 End Function
 
+'WebView2 WebMessageReceived Invoke Thunk Implementation. DO NOT CALL THIS METHOD.
+'@protected
+Public Function zzProtWebView_WebMessageReceivedInvoke( _
+    ByVal callbackThis As LongPtr, _
+    ByVal pSender As LongPtr, _
+    ByVal pArgs As LongPtr) As Long
+
+    On Error Resume Next
+    Call protWebMessageReceived(pSender, pArgs)
+    zzProtWebView_WebMessageReceivedInvoke = 0&
+End Function
+
 ' ============================================================================
 
 'Create a stdWebView from a window handle.
@@ -656,6 +681,8 @@ End Function
 '@remark - Releases controller/environment state and frees COM handler allocations. Safe to call more than once.
 Public Sub Quit()
     On Error Resume Next
+    Call WebMessage_RemoveEventHandler
+    Call WebResource_RemoveEventHandler
     If This.com.pController <> 0 Then
         Call CallVTQuiet(This.com.pController, 24, vbLong)
     End If
@@ -783,25 +810,49 @@ End Property
 '@returns - JSON-encoded result string returned by WebView2 script execution.
 '@remark - Blocks with DoEvents until completion. Only one synchronous run can be active at a time.
 Public Function JavaScriptRunSync(ByVal script As String) As String
+    Dim bridgeRequestId As String
+    Dim wrappedScript As String
+    Dim startedAt As Double
+    Dim elapsedMs As Double
+
     If Not IsReady Then Err.Raise 5, "stdWebView::JavaScriptRunSync", "WebView not ready"
     If This.script.syncWaitRequestId <> 0 Then
         Err.Raise 5, "stdWebView::JavaScriptRunSync", "A synchronous script call is already in progress"
     End If
     Call Scripts_ClearCompleted
+    Call WebMessage_EnsureEventHandler
     This.script.syncDone = False
     This.script.result = vbNullString
-    This.script.syncWaitRequestId = JavaScriptRunCore(script, Nothing, True)
+    bridgeRequestId = CStr(NextScriptRequestId())
+    wrappedScript = BuildSyncBridgeScript(script, bridgeRequestId)
+    Call ScriptSyncBridge_Reset
+    This.script.syncBridgeRequestId = bridgeRequestId
+    This.script.syncWaitRequestId = JavaScriptRunCore(wrappedScript, Nothing, False)
     If This.script.syncWaitRequestId = 0 Then
+        Call ScriptSyncBridge_Reset
         This.script.syncWaitRequestId = 0
         Err.Raise 5, "stdWebView::JavaScriptRunSync", "Failed to queue script execution"
     End If
+    startedAt = Timer
     Do
-        If This.script.syncDone Then Exit Do
+        If This.script.syncBridgeDone Then Exit Do
+        elapsedMs = TimerElapsedMs(startedAt, Timer)
+        If elapsedMs >= CDbl(SCRIPT_SYNC_TIMEOUT_MS) Then
+            This.script.syncWaitRequestId = 0
+            Call ScriptSyncBridge_Reset
+            Call Scripts_ClearCompleted
+            Err.Raise 5, "stdWebView::JavaScriptRunSync", "Timed out waiting for script result"
+        End If
         DoEvents
     Loop
     This.script.syncWaitRequestId = 0
     Call Scripts_ClearCompleted
-    JavaScriptRunSync = This.script.result
+    If This.script.syncBridgeOk Then
+        JavaScriptRunSync = This.script.syncBridgePayload
+    Else
+        Err.Raise 5, "stdWebView::JavaScriptRunSync", JsonUnquoteString(This.script.syncBridgePayload)
+    End If
+    Call ScriptSyncBridge_Reset
 End Function
 
 'Execute a JavaScript script asynchronously.
@@ -1025,6 +1076,21 @@ Friend Sub protScriptCompleted(ByVal errorCode As Long, ByVal resultJson As Stri
     End If
 End Sub
 
+Friend Sub protWebMessageReceived(ByVal pSender As LongPtr, ByVal pArgs As LongPtr)
+    Dim pMessageJson As LongPtr
+    Dim messageJson As String
+    Dim messageText As String
+
+    If pArgs = 0 Then Exit Sub
+    If This.script.syncWaitRequestId = 0 Then Exit Sub
+
+    Call CallVT(pArgs, COREWEBVIEW2WEBMESSAGERECEIVEDEVENTARGS_VTBL_GET_WEBMESSAGEASJSON, vbLong, VarPtr(pMessageJson))
+    messageJson = PtrToStrW(pMessageJson)
+    If pMessageJson <> 0 Then Call CoTaskMemFree(pMessageJson)
+    messageText = JsonUnquoteString(messageJson)
+    Call ScriptSyncBridge_TryConsumeMessage(messageText)
+End Sub
+
 Friend Sub protWebResourceRequested(ByVal pSender As LongPtr, ByVal pArgs As LongPtr)
     Dim pRequest As LongPtr
     Dim pHeaders As LongPtr
@@ -1122,10 +1188,18 @@ Friend Sub protCreate(ByVal hwnd As LongPtr, Optional ByVal OnReady As stdICalla
     This.init.failed = False
     This.script.syncDone = False
     This.script.syncWaitRequestId = 0
+    This.script.syncBridgeRequestId = vbNullString
+    This.script.syncBridgeDone = False
+    This.script.syncBridgeOk = False
+    This.script.syncBridgePayload = vbNullString
     This.script.nextRequestId = 0
     This.scripts.scriptCount = 0
     This.deferredWebResource.count = 0
     This.deferredWebResource.nextRequestId = 0
+    This.com.webReqTokenLow = 0
+    This.com.webReqTokenHigh = 0
+    This.com.webMsgTokenLow = 0
+    This.com.webMsgTokenHigh = 0
     Erase This.scripts.mScripts
     Erase This.deferredWebResource.items
     Set This.init.onReadyCallback = OnReady
@@ -1285,6 +1359,7 @@ Private Sub FreeHandlerAllocs()
     Call FreeHandlerThunks(This.com.envThunk)
     Call FreeHandlerThunks(This.com.ctrlThunk)
     Call FreeHandlerThunks(This.com.webReqThunk)
+    Call FreeHandlerThunks(This.com.webMsgThunk)
     If This.com.pEnvHandlerObj <> 0 Then
         Call GlobalFree(This.com.pEnvHandlerObj)
         This.com.pEnvHandlerObj = 0
@@ -1309,6 +1384,19 @@ Private Sub FreeHandlerAllocs()
         Call GlobalFree(This.com.pWebReqVTable)
         This.com.pWebReqVTable = 0
     End If
+    If This.com.pWebMsgHandlerObj <> 0 Then
+        Call GlobalFree(This.com.pWebMsgHandlerObj)
+        This.com.pWebMsgHandlerObj = 0
+    End If
+    If This.com.pWebMsgVTable <> 0 Then
+        Call GlobalFree(This.com.pWebMsgVTable)
+        This.com.pWebMsgVTable = 0
+    End If
+    This.com.webReqTokenLow = 0
+    This.com.webReqTokenHigh = 0
+    This.com.webMsgTokenLow = 0
+    This.com.webMsgTokenHigh = 0
+    Call ScriptSyncBridge_Reset
     Call DeferredWebResource_ClearAll(True)
     Call WebResource_ClearFilters
     Call Scripts_ClearAll
@@ -1506,6 +1594,39 @@ Private Sub WebResource_EnsureEventHandler()
     If hr < 0 Then
         Err.Raise hr, "stdWebView::WebResource_EnsureEventHandler", "add_WebResourceRequested failed (" & CStr(hr) & ")"
     End If
+End Sub
+
+Private Sub WebResource_RemoveEventHandler()
+    If This.com.ppWebView2 = 0 Then Exit Sub
+    If This.com.webReqTokenLow = 0 And This.com.webReqTokenHigh = 0 Then Exit Sub
+    Call CallVTQuiet(This.com.ppWebView2, COREWEBVIEW2_VTBL_REMOVE_WEBRESOURCEREQUESTED, vbLong, VarPtr(This.com.webReqTokenLow))
+    This.com.webReqTokenLow = 0
+    This.com.webReqTokenHigh = 0
+End Sub
+
+Private Sub WebMessage_EnsureEventHandler()
+    Dim hr As Long
+    If This.com.pWebMsgHandlerObj <> 0 Then Exit Sub
+    If This.com.ppWebView2 = 0 Then Err.Raise 5, "stdWebView::WebMessage_EnsureEventHandler", "WebView not ready"
+
+    This.com.pWebMsgVTable = BuildHandlerVTable(7, This.com.webMsgThunk, 3)
+    This.com.pWebMsgHandlerObj = GlobalAlloc(GPTR, PTR_SZ)
+    If This.com.pWebMsgHandlerObj = 0 Then Err.Raise 5, "stdWebView::WebMessage_EnsureEventHandler", "Failed allocating WebMessageReceived handler object"
+    Call CopyMemory(ByVal This.com.pWebMsgHandlerObj, This.com.pWebMsgVTable, PTR_SZ)
+    This.com.webMsgTokenLow = 0
+    This.com.webMsgTokenHigh = 0
+    hr = CLng(CallVT(This.com.ppWebView2, COREWEBVIEW2_VTBL_ADD_WEBMESSAGERECEIVED, vbLong, This.com.pWebMsgHandlerObj, VarPtr(This.com.webMsgTokenLow)))
+    If hr < 0 Then
+        Err.Raise hr, "stdWebView::WebMessage_EnsureEventHandler", "add_WebMessageReceived failed (" & CStr(hr) & ")"
+    End If
+End Sub
+
+Private Sub WebMessage_RemoveEventHandler()
+    If This.com.ppWebView2 = 0 Then Exit Sub
+    If This.com.webMsgTokenLow = 0 And This.com.webMsgTokenHigh = 0 Then Exit Sub
+    Call CallVTQuiet(This.com.ppWebView2, COREWEBVIEW2_VTBL_REMOVE_WEBMESSAGERECEIVED, vbLong, VarPtr(This.com.webMsgTokenLow))
+    This.com.webMsgTokenLow = 0
+    This.com.webMsgTokenHigh = 0
 End Sub
 
 Private Function WebResource_FilterMatches(ByRef filterItem As TWebResourceFilterItem, ByVal uri As String, ByVal context As Long) As Boolean
@@ -2047,6 +2168,81 @@ Private Function JsonUnquoteString(ByVal s As String) As String
         i = i + 1
     Loop
     JsonUnquoteString = out
+End Function
+
+Private Function JsonQuoteString(ByVal value As String) As String
+    Dim s As String
+    s = value
+    s = Replace(s, "\", "\\")
+    s = Replace(s, """", "\""")
+    s = Replace(s, vbCrLf, "\n")
+    s = Replace(s, vbCr, "\n")
+    s = Replace(s, vbLf, "\n")
+    JsonQuoteString = """" & s & """"
+End Function
+
+Private Sub ScriptSyncBridge_Reset()
+    This.script.syncBridgeRequestId = vbNullString
+    This.script.syncBridgeDone = False
+    This.script.syncBridgeOk = False
+    This.script.syncBridgePayload = vbNullString
+End Sub
+
+Private Function ScriptSyncBridge_TryConsumeMessage(ByVal messageText As String) As Boolean
+    Dim prefixLen As Long
+    Dim p1 As Long
+    Dim p2 As Long
+    Dim token As String
+    Dim requestId As String
+    Dim okFlag As String
+    Dim payload As String
+
+    prefixLen = Len(SCRIPT_SYNC_BRIDGE_PREFIX)
+    p1 = InStr(1, messageText, "|", vbBinaryCompare)
+    If p1 <= prefixLen Then Exit Function
+
+    token = Left$(messageText, p1 - 1)
+    If Left$(token, prefixLen) <> SCRIPT_SYNC_BRIDGE_PREFIX Then Exit Function
+    requestId = Mid$(token, prefixLen + 1)
+    If requestId <> This.script.syncBridgeRequestId Then Exit Function
+
+    p2 = InStr(p1 + 1, messageText, "|", vbBinaryCompare)
+    If p2 <= p1 Then Exit Function
+
+    okFlag = Mid$(messageText, p1 + 1, p2 - p1 - 1)
+    payload = Mid$(messageText, p2 + 1)
+    If LenB(payload) = 0 Then payload = "null"
+
+    This.script.syncBridgeOk = (okFlag = "1")
+    This.script.syncBridgePayload = payload
+    This.script.syncBridgeDone = True
+    ScriptSyncBridge_TryConsumeMessage = True
+End Function
+
+Private Function BuildSyncBridgeScript(ByVal userScript As String, ByVal bridgeRequestId As String) As String
+    Dim scriptLiteral As String
+    Dim tokenLiteral As String
+
+    scriptLiteral = JsonQuoteString(userScript)
+    tokenLiteral = JsonQuoteString(SCRIPT_SYNC_BRIDGE_PREFIX & bridgeRequestId)
+
+    BuildSyncBridgeScript = "(function(){" _
+        & "const __stdwvToken=" & tokenLiteral & ";" _
+        & "const __stdwvSource=" & scriptLiteral & ";" _
+        & "const __stdwvPost=function(ok,payload){try{if(window.chrome&&chrome.webview&&chrome.webview.postMessage){chrome.webview.postMessage(__stdwvToken+'|'+(ok?'1':'0')+'|'+payload);}}catch(_){}};" _
+        & "const __stdwvToJson=function(v){try{const s=JSON.stringify(v);return (s===undefined)?'null':s;}catch(_){return 'null';}};" _
+        & "try{" _
+            & "const __stdwvValue=(0,eval)(__stdwvSource);" _
+            & "if(__stdwvValue&&typeof __stdwvValue.then==='function'){" _
+                & "__stdwvValue.then(function(v){__stdwvPost(true,__stdwvToJson(v));},function(e){const m=(e&&e.message)?String(e.message):String(e);__stdwvPost(false,JSON.stringify(m));});" _
+            & "}else{" _
+                & "__stdwvPost(true,__stdwvToJson(__stdwvValue));" _
+            & "}" _
+        & "}catch(e){" _
+            & "const m=(e&&e.message)?String(e.message):String(e);__stdwvPost(false,JSON.stringify(m));" _
+        & "}" _
+        & "return null;" _
+    & "})()"
 End Function
 
 ' ============================================================================
