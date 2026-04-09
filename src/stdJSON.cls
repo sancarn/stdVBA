@@ -268,10 +268,10 @@ Public Function Add(ParamArray v()) As stdJSON
   Select Case This.iType
     Case eJSONObject
       key = v(0)
-      item = v(1)
+      Call CopyVariant(item, v(1))
       Call This.children.add(key, item)
     Case eJSONArray
-      item = v(0)
+      Call CopyVariant(item, v(0))
       Call This.children.add(item)
   End Select
   If IsObject(item) Then If TypeOf item Is stdJSON Then Set Add = item
