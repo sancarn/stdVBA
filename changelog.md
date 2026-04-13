@@ -373,3 +373,4 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2026-04-07 `stdHTML` FEATURE - Added `stdHTML` - allows for building, parsing and analysing `html` documents. Includes query selectors, with-block building mechanisms like with JSON, a full parser, and document editing tools too.
 - 2026-04-07 `stdHTML` FEATURE - `stdHTML::Create()` has optional tag name
 - 2026-04-07 `stdHTML` FEATURE - `stdHTML#Self` added to return current object
+- 2026-04-13 `stdWebView` FEATURE - Added `Get` and `Let` for Cookie information.
