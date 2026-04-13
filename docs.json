@@ -14935,6 +14935,28 @@
         "isStatic": false
       },
       {
+        "name": "zzProtWebView_WebMessageReceivedInvoke",
+        "description": "WebView2 WebMessageReceived Invoke Thunk Implementation. DO NOT CALL THIS METHOD.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Long",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
         "name": "IsReady",
         "description": "Check whether the WebView2 is ready to be used.",
         "remarks": [],
