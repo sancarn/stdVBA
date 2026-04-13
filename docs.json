@@ -14957,6 +14957,28 @@
         "isStatic": false
       },
       {
+        "name": "zzProtWebView_GetCookiesInvoke",
+        "description": "WebView2 GetCookiesCompleted Invoke Thunk Implementation. DO NOT CALL THIS METHOD.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Long",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
         "name": "IsReady",
         "description": "Check whether the WebView2 is ready to be used.",
         "remarks": [],
@@ -15016,6 +15038,66 @@
           }
         ],
         "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "CookieDelete",
+        "description": "Delete a cookie by name using URL scope or explicit domain/path.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "CookieDeleteAll",
+        "description": "Delete all cookies in scope (Url, Domain or full profile).",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "CookiesForRequest",
+        "description": "Get cookie key/value pairs suitable for stdHTTP.CreateOptions(..., Cookies:=...).",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Variant",
+          "description": ""
+        },
         "deprecation": {
           "status": false,
           "message": ""
@@ -15522,6 +15604,29 @@
         "name": "Address",
         "access": "ReadWrite",
         "description": "Get/Let Address",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "String",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "Cookie",
+        "access": "ReadWrite",
+        "description": "Get a cookie value by URL/name, optionally narrowing by domain/path.",
         "remarks": [],
         "examples": [],
         "params": [],
