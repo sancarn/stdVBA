@@ -612,11 +612,11 @@ End Property
 '@param ThreadingStyle - The Threading approach. Either HTTPSync (Synchronous) or HTTPAsync (Asynchronous).
 '@param Options as Variant<Array> - Use `stdHTTP.CreateOptions()` to generate these. Array indexed by stdHTTPOptions enum.
 '@param Authenticator as stdICallable<(HTTP: Object, RequestMethod: String, URL: String, ThreadingStyle: Long, options: Variant)=>Void> - A callable object which will be called before the request is sent. This can be used to add authentication headers, etc.
-Friend Sub protInit(ByVal sURL As String, Optional ByVal RequestMethod As String = "GET", Optional ByVal ThreadingStyle As EHTTPSynchronisity, Optional ByVal options As Variant = Nothing, Optional ByVal Authenticator As stdICallable = Nothing)
+Friend Sub protInit(ByVal sURL As String, Optional ByVal RequestMethod As String = "GET", Optional ByVal ThreadingStyle As EHTTPSynchronisity, Optional ByVal options As Variant = Empty, Optional ByVal Authenticator As stdICallable = Nothing)
   #If Mac Then
     Call protInitMac(sURL, RequestMethod, ThreadingStyle, options, Authenticator)
   #Else
-    If IsEmpty(options) Or options Is Nothing Then options = CreateOptions()
+    If IsEmpty(options) Then options = CreateOptions()
     Set This.HTTP = CreateObject("WinHttp.WinHttpRequest.5.1")
     This.HTTP.Open RequestMethod, sURL, True
     Dim timeoutMS As Long: timeoutMS = options(stdHTTPOptionTimeoutMS)
