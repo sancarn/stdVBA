@@ -274,7 +274,10 @@ Public Function Add(ParamArray v()) As stdJSON
       Call CopyVariant(item, v(0))
       Call This.children.add(item)
   End Select
-  If IsObject(item) Then If TypeOf item Is stdJSON Then Set Add = item
+  If IsObject(item) Then
+    if item is nothing then exit function
+    If TypeOf item Is stdJSON Then Set Add = item
+  end if
 End Function
 
 'Create and add an array to the JSON object/array.
