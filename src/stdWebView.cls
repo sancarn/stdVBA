@@ -799,26 +799,18 @@ End Property
 'Get a cookie value by URL/name, optionally narrowing by domain/path.
 Public Property Get Cookie( _
     ByVal Url As String, _
-    ByVal Name As String, _
-    Optional ByVal Domain As String = vbNullString, _
-    Optional ByVal Path As String = vbNullString) As String
+    ByVal Name As String) As String
 
     Dim i As Long
     Dim cookieName As String
-    Dim filterDomain As String
-    Dim filterPath As String
 
     cookieName = LCase$(Trim$(Name))
-    filterDomain = LCase$(Trim$(Domain))
-    filterPath = Trim$(Path)
     If LenB(cookieName) = 0 Then Err.Raise 5, "stdWebView::Cookie [Get]", "Name cannot be blank"
     If LenB(Trim$(Url)) = 0 Then Err.Raise 5, "stdWebView::Cookie [Get]", "Url cannot be blank"
 
     Call CookieQuery_LoadForUrl(Url)
     For i = 0 To This.cookie.count - 1
         If LCase$(This.cookie.records(i).Name) = cookieName Then
-            If LenB(filterDomain) > 0 And LCase$(This.cookie.records(i).Domain) <> filterDomain Then GoTo nextCookie
-            If LenB(filterPath) > 0 And This.cookie.records(i).Path <> filterPath Then GoTo nextCookie
             Cookie = This.cookie.records(i).Value
             Exit Property
         End If

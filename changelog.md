@@ -376,3 +376,4 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2026-04-13 `stdWebView` FEATURE - Added `Get` and `Let` for Cookie information.
 - 2026-04-13 `stdHTTP` FIX - Fix options leftover from when we used dictionary objects.
 - 2026-04-13 `stdJSON` FIX - `Typeof item is stdJSON` will fail if `item` is `nothing`.
+- 2026-04-13 `stdWebView` FIX - Fix compile error in `Cookie` `Get` property
