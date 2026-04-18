@@ -881,7 +881,8 @@ Private Function CreateDictionary(ParamArray children()) As Object
   #Else
     Set CreateDictionary = New Scripting.Dictionary
   #End If
-  CreateDictionary.CompareMode = vbTextCompare
+  'JSON object keys are case-sensitive ("Id" and "ID" are different keys).
+  CreateDictionary.CompareMode = vbBinaryCompare
 
   Dim i As Long
   For i = LBound(children) To UBound(children) Step 2
