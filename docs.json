@@ -15119,7 +15119,7 @@
           {
             "name": "urlPrefix",
             "type": "String",
-            "description": "Required URL prefix (case-insensitive). Pass \"\" to skip URL matching.",
+            "description": "Required URL prefix (case-insensitive). Comparison normalizes `http://` vs `https://` and a single leading `www.` on the host; actual navigation URLs are unchanged. Pass \"\" to skip URL matching.",
             "optional": false,
             "defaultValue": null,
             "paramArray": false,
