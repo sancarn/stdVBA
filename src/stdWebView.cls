@@ -962,7 +962,7 @@ Public Function CookiesForRequest(ByVal Url As String) As Variant
 End Function
 
 'Wait until current page is fully loaded and URL prefix is stable.
-'@param urlPrefix - Required URL prefix (case-insensitive). Pass "" to skip URL matching.
+'@param urlPrefix - Required URL prefix (case-insensitive). Comparison normalizes `http://` vs `https://` and a single leading `www.` on the host; actual navigation URLs are unchanged. Pass "" to skip URL matching.
 '@param timeoutMs - Max wait time in milliseconds.
 '@param stableMs - Consecutive milliseconds condition must remain true before success.
 '@param pollMs - Poll interval in milliseconds.
@@ -982,7 +982,7 @@ Public Function WaitForDocumentReady( _
     Dim hasPrefix As Boolean
 
     If Not IsReady Then Err.Raise 5, "stdWebView::WaitForDocumentReady", "WebView not ready"
-    requiredPrefix = LCase$(Trim$(urlPrefix))
+    requiredPrefix = UrlWaitPrefixNormalize(urlPrefix)
     If timeoutMs < 0 Then timeoutMs = 0
     If stableMs < 0 Then stableMs = 0
     If pollMs < 1 Then pollMs = 1
@@ -991,7 +991,7 @@ Public Function WaitForDocumentReady( _
     stableStart = -1#
 
     Do
-        currentUrl = LCase$(Trim$(Source))
+        currentUrl = UrlWaitPrefixNormalize(Source)
         hasPrefix = (LenB(requiredPrefix) = 0) Or (Left$(currentUrl, Len(requiredPrefix)) = requiredPrefix)
 
         If hasPrefix Then
@@ -2309,6 +2309,22 @@ Private Sub CookieQuery_FreeHandlerAllocs()
     End If
     Call FreeHandlerThunks(This.cookie.thunks)
 End Sub
+
+'Normalize URL for WaitForDocumentReady prefix compare: lowercase, trim, strip http(s)://, strip one leading www.
+Private Function UrlWaitPrefixNormalize(ByVal url As String) As String
+    Dim s As String
+    s = LCase$(Trim$(url))
+    If LenB(s) = 0 Then Exit Function
+    If Left$(s, 8) = "https://" Then
+        s = Mid$(s, 9)
+    ElseIf Left$(s, 7) = "http://" Then
+        s = Mid$(s, 8)
+    End If
+    If Left$(s, 4) = "www." Then
+        s = Mid$(s, 5)
+    End If
+    UrlWaitPrefixNormalize = s
+End Function
 
 Private Function UrlHost(ByVal url As String) As String
     Dim s As String
