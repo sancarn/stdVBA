@@ -1467,10 +1467,10 @@ Friend Sub protCreate(ByVal hwnd As LongPtr, Optional ByVal OnReady As stdICalla
         Err.Raise hr, "stdWebView", "CreateCoreWebView2EnvironmentWithOptions failed (" & CStr(hr) & ")"
     End If
     Dim j As Long
-    For j = 1 To 60000
-        If Not This.init.waiting Then Exit For
+    Do
+        If Not This.init.waiting Then Exit Do
         DoEvents
-    Next j
+    Loop
     If This.init.failed Or This.com.ppWebView2 = 0 Then
         Call CleanupFailedInit
         Err.Raise &H80040201, "stdWebView", "WebView2 initialization failed or timed out"
