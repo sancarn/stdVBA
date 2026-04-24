@@ -435,10 +435,14 @@ Public Property Get isFinished() As Boolean
     isFinished = This.Response.isComplete
   #Else
     On Error GoTo Skip 'Sometimes `responseBody` and `status` isn't ready yet. So will skip if so
-    If This.HTTP.status = 202 Then 'No content
+    If This.HTTP.status = 204 Then 'No content
       isFinished = True
     Else
-      isFinished = This.HTTP.WaitForResponse(0.001) And This.HTTP.ResponseBody()(0) >= 0
+      Dim testFinished as boolean: testFinished = This.HTTP.WaitForResponse(0.001)
+      if testFinished then
+        Dim bytes: bytes = This.HTTP.ResponseBody()
+        isFinished = bytes(0) >= 0
+      end if
     End If
     Exit Property
 Skip:
