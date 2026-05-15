@@ -2960,5 +2960,6 @@ End Sub
 
 Private Sub Class_Terminate()
     On Error Resume Next
+    Call HostObjects_ClearAll
     Call Quit
 End Sub
