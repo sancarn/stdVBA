@@ -116,8 +116,16 @@ Private This as TThis
 'End With
 '```
 Public Function Create(ByVal OnInit as stdICallable, ByVal OnDestroy as stdICallable, Optional ByVal passVars as boolean = true) as stdSentry
-  set Create = new stdSentry
-  Call Create.protInitFactory(OnInit, OnDestroy, passVars)
+  With stdError.getSentry("stdSentry#Create", "OnInit", OnInit, "OnDestroy", OnDestroy, "passVars", passVars)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      set Create = new stdSentry
+      Call Create.protInitFactory(OnInit, OnDestroy, passVars)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Create a sentry which acts as an "optimiser" for code. Note, setting options doesn't always lead to performance improvements. See [vba-articles performance thread](https://sancarn.github.io/vba-articles/performance-tips.html) for details.
@@ -133,33 +141,41 @@ End Function
 'End With
 '```
 Public Function CreateOptimiser(Optional ByVal EnableEvents as vbTriState = vbUseDefault, Optional ByVal ScreenUpdating as vbTriState = vbUseDefault, Optional ByVal Calculation as Long = -1) as stdSentry
-  if not isObject(stdLambda) then Err.Raise 5, "stdSentry.CreateFromObjectMethod", "stdLambda is required for this function"
-  
-  'Validate inputs
-  if not (Calculation = -1 or Calculation = 2 or Calculation = -4135  or Calculation = -4105) then Err.Raise 5, "stdSentry.CreateOptimiser", "Calculation must be either xlCalculationAutomatic, xlCalculationSemiautomatic, xlCalculationManual, or -1"
-  
-  'Convert Calculation to a variant
-  Dim vCalculation as Variant: vCalculation = IIf(Calculation = -1, Empty, Calculation)
-
-  'Create the OnInit and OnDestroy functions
-  '@remark vbUseDefault == -2
-  Dim onInit as stdICallable: Set onInit = stdLambda.CreateMultiLine(Array( _
-    "let t1 = -2", _ 
-    "let t2 = -2", _ 
-    "let t3 = -2", _
-    "If $1 <> -2 Then let t1 = Application.EnableEvents   : let Application.EnableEvents = $1    end", _
-    "If $2 <> -2 Then let t2 = Application.ScreenUpdating : let Application.ScreenUpdating = $2  end", _
-    "If $3 <> -2 Then let t3 = Application.Calculation    : let Application.Calculation = $3     end", _
-    "Array(t1,t2,t3)" _
-  ))
-  Dim onDestroy as stdICallable: Set onDestroy = stdLambda.CreateMultiLine(Array( _
-    "If $1 <> -2 Then let Application.EnableEvents = $1 end", _
-    "If $2 <> -2 Then let Application.ScreenUpdating = $2 end", _
-    "If $3 <> -2 Then let Application.Calculation = $3 end" _
-  ))
-  
-  'Create the sentry
-  set CreateOptimiser = Create(onInit, onDestroy).Run(EnableEvents, ScreenUpdating, vCalculation)
+  With stdError.getSentry("stdSentry#CreateOptimiser", "EnableEvents", EnableEvents, "ScreenUpdating", ScreenUpdating, "Calculation", Calculation)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      if not isObject(stdLambda) then Err_Raise 5, "stdSentry.CreateFromObjectMethod", "stdLambda is required for this function"
+      
+      'Validate inputs
+      if not (Calculation = -1 or Calculation = 2 or Calculation = -4135  or Calculation = -4105) then Err_Raise 5, "stdSentry.CreateOptimiser", "Calculation must be either xlCalculationAutomatic, xlCalculationSemiautomatic, xlCalculationManual, or -1"
+      
+      'Convert Calculation to a variant
+      Dim vCalculation as Variant: vCalculation = IIf(Calculation = -1, Empty, Calculation)
+    
+      'Create the OnInit and OnDestroy functions
+      '@remark vbUseDefault == -2
+      Dim onInit as stdICallable: Set onInit = stdLambda.CreateMultiLine(Array( _
+        "let t1 = -2", _ 
+        "let t2 = -2", _ 
+        "let t3 = -2", _
+        "If $1 <> -2 Then let t1 = Application.EnableEvents   : let Application.EnableEvents = $1    end", _
+        "If $2 <> -2 Then let t2 = Application.ScreenUpdating : let Application.ScreenUpdating = $2  end", _
+        "If $3 <> -2 Then let t3 = Application.Calculation    : let Application.Calculation = $3     end", _
+        "Array(t1,t2,t3)" _
+      ))
+      Dim onDestroy as stdICallable: Set onDestroy = stdLambda.CreateMultiLine(Array( _
+        "If $1 <> -2 Then let Application.EnableEvents = $1 end", _
+        "If $2 <> -2 Then let Application.ScreenUpdating = $2 end", _
+        "If $3 <> -2 Then let Application.Calculation = $3 end" _
+      ))
+      
+      'Create the sentry
+      set CreateOptimiser = Create(onInit, onDestroy).Run(EnableEvents, ScreenUpdating, vCalculation)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Create a sentry from a property of an object
@@ -175,17 +191,25 @@ End Function
 'End With
 '```
 Public Function CreateFromObjectProperty(ByVal obj as Object, ByVal sPropertyName as String, ByVal value as Variant) as stdSentry
-  if not isObject(stdLambda) then Err.Raise 5, "stdSentry.CreateFromObjectMethod", "stdLambda is required for this function"
-  Dim onInit as stdICallable: Set onInit = stdLambda.CreateMultiLine(Array( _
-    "let t1 = $1." & sPropertyName, _ 
-    "let $1." & sPropertyName & " = $2", _
-    "Array(t1)" _
-  )).bind(obj)
-  Dim onDestroy as stdICallable: Set onDestroy = stdLambda.CreateMultiLine(Array( _
-    "let $1." & sPropertyName & " = $2" _
-  )).bind(obj)
-
-  set CreateFromObjectProperty = Create(OnInit, OnDestroy).Run(value)
+  With stdError.getSentry("stdSentry#CreateFromObjectProperty", "obj", obj, "sPropertyName", sPropertyName, "value", value)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      if not isObject(stdLambda) then Err_Raise 5, "stdSentry.CreateFromObjectMethod", "stdLambda is required for this function"
+      Dim onInit as stdICallable: Set onInit = stdLambda.CreateMultiLine(Array( _
+        "let t1 = $1." & sPropertyName, _ 
+        "let $1." & sPropertyName & " = $2", _
+        "Array(t1)" _
+      )).bind(obj)
+      Dim onDestroy as stdICallable: Set onDestroy = stdLambda.CreateMultiLine(Array( _
+        "let $1." & sPropertyName & " = $2" _
+      )).bind(obj)
+    
+      set CreateFromObjectProperty = Create(OnInit, OnDestroy).Run(value)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Create a sentry from a method of an object
@@ -201,10 +225,18 @@ End Function
 'End With
 '```
 Public Function CreateFromObjectMethod(ByVal obj as Object, ByVal OnInitName as String, ByVal initParams as Variant, ByVal OnDestroyName as String, ByVal destroyParams as variant) as stdSentry
-  if not isObject(stdCallback) then Err.Raise 5, "stdSentry.CreateFromObjectMethod", "stdCallback is required for this function"
-  Dim onInit as stdICallable: set onInit = stdCallback.CreateFromObjectMethod(obj, OnInitName).BindEx(initParams)
-  Dim onDestroy as stdICallable: set onDestroy = stdCallback.CreateFromObjectMethod(obj, OnDestroyName).BindEx(destroyParams)
-  set CreateFromObjectMethod = Create(onInit, onDestroy, false).Run()
+  With stdError.getSentry("stdSentry#CreateFromObjectMethod", "obj", obj, "OnInitName", OnInitName, "initParams", initParams, "OnDestroyName", OnDestroyName, "destroyParams", destroyParams)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      if not isObject(stdCallback) then Err_Raise 5, "stdSentry.CreateFromObjectMethod", "stdCallback is required for this function"
+      Dim onInit as stdICallable: set onInit = stdCallback.CreateFromObjectMethod(obj, OnInitName).BindEx(initParams)
+      Dim onDestroy as stdICallable: set onDestroy = stdCallback.CreateFromObjectMethod(obj, OnDestroyName).BindEx(destroyParams)
+      set CreateFromObjectMethod = Create(onInit, onDestroy, false).Run()
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Create a sentry for error stack management
@@ -220,8 +252,16 @@ End Function
 'End Sub
 '```
 Public Function CreateErrorStack(ByVal name as String) as stdSentry
-  if not isObject(stdError) then Err.Raise 5, "stdSentry.CreateFromObjectMethod", "stdError is required for this function"
-  set CreateErrorStack = CreateFromObjectMethod(stdError, "AddStack", Array(name), "PopStack", Array()).Run()
+  With stdError.getSentry("stdSentry#CreateErrorStack", "name", name)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      if not isObject(stdError) then Err_Raise 5, "stdSentry.CreateFromObjectMethod", "stdError is required for this function"
+      set CreateErrorStack = CreateFromObjectMethod(stdError, "AddStack", Array(name), "PopStack", Array()).Run()
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Create a sentry from an AutomationSecurity setting
@@ -235,7 +275,15 @@ End Function
 'End With
 '```
 Public Function CreateFromAutomationSecurity(ByVal sec as MsoAutomationSecurity) as stdSentry
-  set CreateFromAutomationSecurity = CreateFromObjectProperty(Application, "AutomationSecurity", sec)
+  With stdError.getSentry("stdSentry#CreateFromAutomationSecurity", "sec", sec)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      set CreateFromAutomationSecurity = CreateFromObjectProperty(Application, "AutomationSecurity", sec)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Initialise the sentry factory
@@ -243,10 +291,18 @@ End Function
 '@param OnInit - Function to run when the sentry is created. Should return arguments to pass to OnDestroy. If OnInit returns Empty, no arguments are passed to OnDestroy.
 '@param OnDestroy - Function to run when the sentry is destroyed. Should take the arguments returned by OnInit.
 Public Sub protInitFactory(ByVal OnInit as stdICallable, ByVal OnDestroy as stdICallable, ByVal passVars as boolean)
-  With This.Factory
-    Set .OnInit = OnInit
-    Set .OnDestroy = OnDestroy
-    .passVars = passVars
+  With stdError.getSentry("stdSentry#protInitFactory", "OnInit", OnInit, "OnDestroy", OnDestroy, "passVars", passVars)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      With This.Factory
+        Set .OnInit = OnInit
+        Set .OnDestroy = OnDestroy
+        .passVars = passVars
+      End With
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
   End With
 End Sub
 
@@ -256,10 +312,18 @@ End Sub
 '@param args - Arguments to pass to the OnDestroy function
 '@param passVars - If true, `args` will be passed to OnDestroy. If false, no arguments are passed to OnDestroy.
 Public Sub protInitInstance(ByVal onDestroy as stdICallable, ByVal args as Variant, ByVal passVars as boolean)
-  With This.Instance
-    Set .onDestroy = onDestroy
-    .DestroyArgs = args
-    .passVars = passVars
+  With stdError.getSentry("stdSentry#protInitInstance", "onDestroy", onDestroy, "args", args, "passVars", passVars)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      With This.Instance
+        Set .onDestroy = onDestroy
+        .DestroyArgs = args
+        .passVars = passVars
+      End With
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
   End With
 End Sub
 
@@ -267,38 +331,70 @@ End Sub
 '@param args - Arguments to pass to the OnInit function
 '@returns - The sentry
 Public Function Run(ParamArray args() as Variant) as stdSentry
-Attribute Run.VB_UserMemId = 0
-  Dim copy: copy = args
-  set Run = RunEx(copy)
+  With stdError.getSentry("stdSentry#Run")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+    Attribute Run.VB_UserMemId = 0
+      Dim copy: copy = args
+      set Run = RunEx(copy)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Run the sentry
 '@param args - Arguments to pass to the OnInit function
 '@returns - The sentry
 Public Function RunEx(ByVal args as Variant) as stdSentry
-  'Run the OnInit function and prepare destroy arguments
-  Dim destroyArgs: destroyArgs = This.Factory.OnInit.RunEx(args)
-  if IsEmpty(destroyArgs) then destroyArgs = Array()
-
-  'Return the sentry
-  set RunEx = new stdSentry
-  Call RunEx.protInitInstance(This.Factory.OnDestroy, destroyArgs, This.Factory.passVars)
+  With stdError.getSentry("stdSentry#RunEx", "args", args)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      'Run the OnInit function and prepare destroy arguments
+      Dim destroyArgs: destroyArgs = This.Factory.OnInit.RunEx(args)
+      if IsEmpty(destroyArgs) then destroyArgs = Array()
+    
+      'Return the sentry
+      set RunEx = new stdSentry
+      Call RunEx.protInitInstance(This.Factory.OnDestroy, destroyArgs, This.Factory.passVars)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Bind arguments to the sentry factory
 '@param args - Arguments to bind to the sentry
 '@returns - The sentry
 Public Function Bind(ParamArray args() as Variant) as stdSentry
-  Dim copy: copy = args
-  set Bind = BindEx(copy)
+  With stdError.getSentry("stdSentry#Bind")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim copy: copy = args
+      set Bind = BindEx(copy)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Bind arguments to the sentry factory
 '@param args as Variant<Array<Variant>> - Arguments to bind to the sentry
 '@returns - The sentry
 Public Function BindEx(ByVal args as Variant) as stdSentry
-  set BindEx = new stdSentry
-  'TODO: 
+  With stdError.getSentry("stdSentry#BindEx", "args", args)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      set BindEx = new stdSentry
+      'TODO: 
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Making late-bound calls to `stdSentry` members. Each object which implements `stdICallable`
@@ -309,34 +405,50 @@ End Function
 '@param params   - Any variant, typically parameters as an array. Passed along with the message.
 '@returns - Any return value.
 Public Function SendMessage(ByVal sMessage as string, ByRef success as boolean, ByVal params as variant) as Variant
-  select case sMessage
-    case "obj":
-      success = true
-      set SendMessage = Me
-    case "className":
-      success = true
-      SendMessage = "stdSentry"
-    case "OnInit":
-      success = true
-      set SendMessage = This.Factory.OnInit
-    case "OnDestroy":
-      success = true
-      set SendMessage = This.Factory.OnDestroy
-    case else
-      success = false
-  end select
+  With stdError.getSentry("stdSentry#SendMessage", "sMessage", sMessage, "success", success, "params", params)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      select case sMessage
+        case "obj":
+          success = true
+          set SendMessage = Me
+        case "className":
+          success = true
+          SendMessage = "stdSentry"
+        case "OnInit":
+          success = true
+          set SendMessage = This.Factory.OnInit
+        case "OnDestroy":
+          success = true
+          set SendMessage = This.Factory.OnDestroy
+        case else
+          success = false
+      end select
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 
 Private Sub Class_Terminate()
-  With This.Instance
-    if not .OnDestroy is nothing then
-      if this.Instance.passVars then
-        Call .OnDestroy.RunEx(.DestroyArgs)
-      else
-        Call .OnDestroy.Run
-      end if
-    End if
+  With stdError.getSentry("stdSentry#Class_Terminate")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      With This.Instance
+        if not .OnDestroy is nothing then
+          if this.Instance.passVars then
+            Call .OnDestroy.RunEx(.DestroyArgs)
+          else
+            Call .OnDestroy.Run
+          end if
+        End if
+      End With
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
   End With
 End Sub
 
@@ -344,26 +456,72 @@ End Sub
 '@param vOut - Variant to copy to
 '@param vIn - Variant to copy from
 Private Sub CopyVariant(ByRef vOut, ByVal vIn)
-  If isObject(vIn) Then
-    Set vOut = vIn
-  Else
-    vOut = vIn
-  End If
+  With stdError.getSentry("stdSentry#CopyVariant", "vOut", vOut, "vIn", vIn)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If isObject(vIn) Then
+        Set vOut = vIn
+      Else
+        vOut = vIn
+      End If
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Implement stdICallable
 Private Function stdICallable_Bind(ParamArray params() As Variant) As stdICallable
-  Dim v: v = params
-  Call CopyVariant(stdICallable_Bind, BindEx(v))
+  With stdError.getSentry("stdSentry#stdICallable_Bind")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim v: v = params
+      Call CopyVariant(stdICallable_Bind, BindEx(v))
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 Private Function stdICallable_Run(ParamArray params() As Variant) As Variant
-  Dim v: v = params
-  Call CopyVariant(stdICallable_Run, RunEx(v))
+  With stdError.getSentry("stdSentry#stdICallable_Run")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim v: v = params
+      Call CopyVariant(stdICallable_Run, RunEx(v))
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 Private Function stdICallable_RunEx(ByVal params As Variant) As Variant
-  Call CopyVariant(stdICallable_RunEx, RunEx(params))
+  With stdError.getSentry("stdSentry#stdICallable_RunEx", "params", params)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Call CopyVariant(stdICallable_RunEx, RunEx(params))
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 Private Function stdICallable_SendMessage(ByVal sMessage As String, success As Boolean, ByVal params As Variant) As Variant
-  Call CopyVariant(stdICallable_SendMessage, SendMessage(sMessage, success, params))
+  With stdError.getSentry("stdSentry#stdICallable_SendMessage", "sMessage", sMessage, "success", success, "params", params)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Call CopyVariant(stdICallable_SendMessage, SendMessage(sMessage, success, params))
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
+
+
+
+Private Sub Err_Raise(ByVal number as Long, Optional ByVal source as string = "", Optional ByVal description as string = "")
+  Call stdError.Raise(description)
+End Sub

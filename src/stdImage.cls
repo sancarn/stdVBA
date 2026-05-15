@@ -423,66 +423,74 @@ Private This As TThis
 '  Call stdImage.CreateFromBinary(b).ToFile("H:\test1.png")
 '```
 Public Function CreateFromBinary(ByRef b() As Byte, Optional ByVal format As stdImgFormat = stdImgFormatDefault) As stdImage
-  Const GMEM_MOVEABLE As Long = &H2
-  Const S_OK As Long = &H0
-
-  'The 'format' parameter is not used because GDI+ will infer the format from the data.
-  
-  If (Not b) = -1 Then Err.Raise 5, "stdImage.CreateFromBinary", "Byte array is empty."
-
-  Dim hMem As LongPtr
-  hMem = GlobalAlloc(GMEM_MOVEABLE, UBound(b) - LBound(b) + 1)
-  If hMem = 0 Then Err.Raise 7, "stdImage.CreateFromBinary", "Failed to allocate global memory."
-
-  Dim ptrMem As LongPtr
-  ptrMem = GlobalLock(hMem)
-  If ptrMem = 0 Then
-      GlobalFree hMem
-      Err.Raise 7, "stdImage.CreateFromBinary", "Failed to lock global memory."
-  End If
-  
-  'Copy the byte array into the allocated memory
-  CopyMemory ptrMem, VarPtr(b(LBound(b))), UBound(b) - LBound(b) + 1
-  GlobalUnlock hMem
-
-  Dim oStream As stdole.IUnknown
-  If CreateStreamOnHGlobal(hMem, 1, oStream) <> S_OK Then
-      GlobalFree hMem
-      Err.Raise 7, "stdImage.CreateFromBinary", "Failed to create IStream on HGLOBAL."
-  End If
-
-  '--- GDI+ Initialization ---
-  Dim uGdiInput As GdiplusStartupInput
-  uGdiInput.GdiplusVersion = 1
-  Dim hGDIPlus As LongPtr
-  Dim lResult As Long
-  
-  lResult = GdiplusStartup(hGDIPlus, uGdiInput)
-  If lResult = 0 Then
-      Dim hGDIImage As LongPtr
-      'Create GDI+ bitmap from the memory stream. GDI+ auto-detects the format.
-      lResult = GdipCreateBitmapFromStream(oStream, hGDIImage)
+  With stdError.getSentry("stdImage#CreateFromBinary", "format", format)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Const GMEM_MOVEABLE As Long = &H2
+      Const S_OK As Long = &H0
+    
+      'The 'format' parameter is not used because GDI+ will infer the format from the data.
       
-      If lResult = 0 Then
-          Dim hBitmap As LongPtr
-          'Create a GDI hBitmap from the GDI+ bitmap
-          lResult = GdipCreateHBITMAPFromBitmap(hGDIImage, hBitmap, 0)
-          
-          If lResult = 0 Then
-              Set CreateFromBinary = CreateFromHBitmap(hBitmap)
-          Else
-              Err.Raise 1, "stdImage::CreateFromBinary", "Could not convert GDI+ image to HBITMAP (Error: " & lResult & ")"
-          End If
-          
-          GdipDisposeImage hGDIImage
-      Else
-          Err.Raise 1, "stdImage::CreateFromBinary", "Could not load image from stream (Error: " & lResult & ")"
+      If (Not b) = -1 Then Err_Raise 5, "stdImage.CreateFromBinary", "Byte array is empty."
+    
+      Dim hMem As LongPtr
+      hMem = GlobalAlloc(GMEM_MOVEABLE, UBound(b) - LBound(b) + 1)
+      If hMem = 0 Then Err_Raise 7, "stdImage.CreateFromBinary", "Failed to allocate global memory."
+    
+      Dim ptrMem As LongPtr
+      ptrMem = GlobalLock(hMem)
+      If ptrMem = 0 Then
+          GlobalFree hMem
+          Err_Raise 7, "stdImage.CreateFromBinary", "Failed to lock global memory."
       End If
       
-      GdiplusShutdown hGDIPlus
-  Else
-      Err.Raise 1, "stdImage::CreateFromBinary", "Could not start GDI+ (Error: " & lResult & ")"
-  End If
+      'Copy the byte array into the allocated memory
+      CopyMemory ptrMem, VarPtr(b(LBound(b))), UBound(b) - LBound(b) + 1
+      GlobalUnlock hMem
+    
+      Dim oStream As stdole.IUnknown
+      If CreateStreamOnHGlobal(hMem, 1, oStream) <> S_OK Then
+          GlobalFree hMem
+          Err_Raise 7, "stdImage.CreateFromBinary", "Failed to create IStream on HGLOBAL."
+      End If
+    
+      '--- GDI+ Initialization ---
+      Dim uGdiInput As GdiplusStartupInput
+      uGdiInput.GdiplusVersion = 1
+      Dim hGDIPlus As LongPtr
+      Dim lResult As Long
+      
+      lResult = GdiplusStartup(hGDIPlus, uGdiInput)
+      If lResult = 0 Then
+          Dim hGDIImage As LongPtr
+          'Create GDI+ bitmap from the memory stream. GDI+ auto-detects the format.
+          lResult = GdipCreateBitmapFromStream(oStream, hGDIImage)
+          
+          If lResult = 0 Then
+              Dim hBitmap As LongPtr
+              'Create a GDI hBitmap from the GDI+ bitmap
+              lResult = GdipCreateHBITMAPFromBitmap(hGDIImage, hBitmap, 0)
+              
+              If lResult = 0 Then
+                  Set CreateFromBinary = CreateFromHBitmap(hBitmap)
+              Else
+                  Err_Raise 1, "stdImage::CreateFromBinary", "Could not convert GDI+ image to HBITMAP (Error: " & lResult & ")"
+              End If
+              
+              GdipDisposeImage hGDIImage
+          Else
+              Err_Raise 1, "stdImage::CreateFromBinary", "Could not load image from stream (Error: " & lResult & ")"
+          End If
+          
+          GdiplusShutdown hGDIPlus
+      Else
+          Err_Raise 1, "stdImage::CreateFromBinary", "Could not start GDI+ (Error: " & lResult & ")"
+      End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Creates a stdImage object from a Data URL string
@@ -495,40 +503,48 @@ End Function
 '  stdImage.CreateFromDataURL(dataUrl).ToFile "C:\Temp\FromDataUrl.png"
 '```
 Public Function CreateFromDataURL(ByVal sDataURL As String) As stdImage
-  Const CRYPT_STRING_BASE64 As Long = 1
-
-  ' 1. Find the comma that separates the metadata from the Base64 data
-  Dim commaPos As Long
-  commaPos = InStr(1, sDataURL, ",")
-  If commaPos = 0 Then
-    Err.Raise 5, "stdImage.CreateFromDataURL", "Invalid Data URL format: missing comma separator."
-  End If
-  
-  ' 2. Extract the Base64 encoded string part
-  Dim b64String As String
-  b64String = Mid$(sDataURL, commaPos + 1)
-  
-  ' 3. Decode the Base64 string into a byte array using the Crypto API
-  Dim decodedBytes() As Byte
-  Dim nBytes As Long
-  
-  ' First call: get the required size for the output byte array
-  Dim lResult As Long: lResult = CryptStringToBinaryA(b64String, Len(b64String), CRYPT_STRING_BASE64, ByVal 0&, nBytes, 0, 0)
-  If lResult = 0 Then
-    Err.Raise 5, "stdImage.CreateFromDataURL", "Failed to get required buffer size for decoding."
-  End If
-  
-  ' Size the byte array appropriately
-  ReDim decodedBytes(0 To nBytes - 1)
-  
-  ' Second call: perform the actual decoding
-  lResult = CryptStringToBinaryA(b64String, Len(b64String), CRYPT_STRING_BASE64, decodedBytes(0), nBytes, 0, 0)
-  If lResult = 0 Then
-    Err.Raise 5, "stdImage.CreateFromDataURL", "Failed to decode Base64 string."
-  End If
-
-  ' 4. Create the image from the resulting byte array
-  Set CreateFromDataURL = stdImage.CreateFromBinary(decodedBytes)
+  With stdError.getSentry("stdImage#CreateFromDataURL", "sDataURL", sDataURL)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Const CRYPT_STRING_BASE64 As Long = 1
+    
+      ' 1. Find the comma that separates the metadata from the Base64 data
+      Dim commaPos As Long
+      commaPos = InStr(1, sDataURL, ",")
+      If commaPos = 0 Then
+        Err_Raise 5, "stdImage.CreateFromDataURL", "Invalid Data URL format: missing comma separator."
+      End If
+      
+      ' 2. Extract the Base64 encoded string part
+      Dim b64String As String
+      b64String = Mid$(sDataURL, commaPos + 1)
+      
+      ' 3. Decode the Base64 string into a byte array using the Crypto API
+      Dim decodedBytes() As Byte
+      Dim nBytes As Long
+      
+      ' First call: get the required size for the output byte array
+      Dim lResult As Long: lResult = CryptStringToBinaryA(b64String, Len(b64String), CRYPT_STRING_BASE64, ByVal 0&, nBytes, 0, 0)
+      If lResult = 0 Then
+        Err_Raise 5, "stdImage.CreateFromDataURL", "Failed to get required buffer size for decoding."
+      End If
+      
+      ' Size the byte array appropriately
+      ReDim decodedBytes(0 To nBytes - 1)
+      
+      ' Second call: perform the actual decoding
+      lResult = CryptStringToBinaryA(b64String, Len(b64String), CRYPT_STRING_BASE64, decodedBytes(0), nBytes, 0, 0)
+      If lResult = 0 Then
+        Err_Raise 5, "stdImage.CreateFromDataURL", "Failed to decode Base64 string."
+      End If
+    
+      ' 4. Create the image from the resulting byte array
+      Set CreateFromDataURL = stdImage.CreateFromBinary(decodedBytes)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Creates a stdImage object from a file
@@ -540,50 +556,58 @@ End Function
 'stdImage.CreateFromFile("H:\test1.bmp").ToFile("H:\test1.png")
 '```
 Public Function CreateFromFile(ByVal sPath As String, Optional ByVal format As stdImgFormat = stdImgFormatDefault, Optional ByVal transparentColor As Long = 0) As stdImage
-  If format = stdImgFormatDefault Then
-    Dim pathParts: pathParts = Split(sPath, ".")
-    Dim ext As String: ext = pathParts(UBound(pathParts))
-    Select Case LCase(ext)
-      Case "png": format = stdImgFormat.stdImgFormatPNG
-      Case "bmp": format = stdImgFormat.stdImgFormatBMP
-      Case "gif": format = stdImgFormat.stdImgFormatGIF
-      Case "jpeg", "jpg": format = stdImgFormat.stdImgFormatJPEG
-      Case "tiff": format = stdImgFormat.stdImgFormatTIFF
-      Case "webp": Err.Raise 5, "stdImage::CreateFromFile", "WEBP format is not currently supported"
-      Case "svg": Err.Raise 5, "stdImage::CreateFromFile", "SVG format is not currently supported"
-      Case Else
-        Err.Raise 1, "stdImage::CreateFromFile", "Could not determine format from file extension"
-    End Select
-  End If
-  Select Case format
-    'TODO: Case webp
-    Case Else 'BMP, GIF, JPEG, PNG, TIFF, Exif, WMF, and EMF - Load using GDI+
-      Dim uGdiInput As GdiplusStartupInput
-      uGdiInput.GdiplusVersion = 1
-      Dim hGDIPlus As LongPtr
-      Dim lResult As Long: lResult = GdiplusStartup(hGDIPlus, uGdiInput)
-      If lResult = 0 Then
-        Dim hGDIImage As LongPtr
-        lResult = GdipCreateBitmapFromFile(StrPtr(sPath), hGDIImage)
-        If lResult = 0 Then
-          Dim hBitmap As LongPtr
-          lResult = GdipCreateHBITMAPFromBitmap(hGDIImage, hBitmap, BGR(transparentColor))
-          If lResult = 0 Then
-            Set CreateFromFile = CreateFromHBitmap(hBitmap)
-          Else
-            Err.Raise 1, "stdImage::CreateFromFile", "Could not convert GDI+ image to HBITMAP (Error Result: " & lResult & ")"
-          End If
-
-          Call GdipDisposeImage(hGDIImage)
-        Else
-          Err.Raise 1, "stdImage::CreateFromFile", "Could not load image (Error Result: " & lResult & ")"
-        End If
-
-        Call GdiplusShutdown(hGDIPlus)
-      Else
-        Err.Raise 1, "stdImage::CreateFromFile", "Could not start GDI+ (Error Result: " & lResult & ")"
+  With stdError.getSentry("stdImage#CreateFromFile", "sPath", sPath, "format", format, "transparentColor", transparentColor)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If format = stdImgFormatDefault Then
+        Dim pathParts: pathParts = Split(sPath, ".")
+        Dim ext As String: ext = pathParts(UBound(pathParts))
+        Select Case LCase(ext)
+          Case "png": format = stdImgFormat.stdImgFormatPNG
+          Case "bmp": format = stdImgFormat.stdImgFormatBMP
+          Case "gif": format = stdImgFormat.stdImgFormatGIF
+          Case "jpeg", "jpg": format = stdImgFormat.stdImgFormatJPEG
+          Case "tiff": format = stdImgFormat.stdImgFormatTIFF
+          Case "webp": Err_Raise 5, "stdImage::CreateFromFile", "WEBP format is not currently supported"
+          Case "svg": Err_Raise 5, "stdImage::CreateFromFile", "SVG format is not currently supported"
+          Case Else
+            Err_Raise 1, "stdImage::CreateFromFile", "Could not determine format from file extension"
+        End Select
       End If
-  End Select
+      Select Case format
+        'TODO: Case webp
+        Case Else 'BMP, GIF, JPEG, PNG, TIFF, Exif, WMF, and EMF - Load using GDI+
+          Dim uGdiInput As GdiplusStartupInput
+          uGdiInput.GdiplusVersion = 1
+          Dim hGDIPlus As LongPtr
+          Dim lResult As Long: lResult = GdiplusStartup(hGDIPlus, uGdiInput)
+          If lResult = 0 Then
+            Dim hGDIImage As LongPtr
+            lResult = GdipCreateBitmapFromFile(StrPtr(sPath), hGDIImage)
+            If lResult = 0 Then
+              Dim hBitmap As LongPtr
+              lResult = GdipCreateHBITMAPFromBitmap(hGDIImage, hBitmap, BGR(transparentColor))
+              If lResult = 0 Then
+                Set CreateFromFile = CreateFromHBitmap(hBitmap)
+              Else
+                Err_Raise 1, "stdImage::CreateFromFile", "Could not convert GDI+ image to HBITMAP (Error Result: " & lResult & ")"
+              End If
+    
+              Call GdipDisposeImage(hGDIImage)
+            Else
+              Err_Raise 1, "stdImage::CreateFromFile", "Could not load image (Error Result: " & lResult & ")"
+            End If
+    
+            Call GdiplusShutdown(hGDIPlus)
+          Else
+            Err_Raise 1, "stdImage::CreateFromFile", "Could not start GDI+ (Error Result: " & lResult & ")"
+          End If
+      End Select
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Creates a stdImage object from a url
@@ -596,20 +620,28 @@ End Function
 '```
 '@remark - TODO: consider removing
 Public Function CreateFromUrl(ByVal sURL As String, Optional ByVal format As stdImgFormat = stdImgFormatDefault) As stdImage
-  Set CreateFromUrl = New stdImage
-  Dim HTTP As Object: Set HTTP = CreateObject("WinHttp.WinHttpRequest.5.1")
-  HTTP.Open "GET", sURL, False
-  'TODO: AutoProxy?
-  HTTP.send
-  If HTTP.status = 200 Then
-    Dim body() As Byte: body = HTTP.responseBody
-    If format = stdImgFormatDefault Then
-      'TODO: Detect format
-    End If
-    Set CreateFromUrl = CreateFromBinary(body, format)
-  Else
-    Err.Raise 1, "", "Could not get file (HTTP Status: " & HTTP.status & ")"
-  End If
+  With stdError.getSentry("stdImage#CreateFromUrl", "sURL", sURL, "format", format)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Set CreateFromUrl = New stdImage
+      Dim HTTP As Object: Set HTTP = CreateObject("WinHttp.WinHttpRequest.5.1")
+      HTTP.Open "GET", sURL, False
+      'TODO: AutoProxy?
+      HTTP.send
+      If HTTP.status = 200 Then
+        Dim body() As Byte: body = HTTP.responseBody
+        If format = stdImgFormatDefault Then
+          'TODO: Detect format
+        End If
+        Set CreateFromUrl = CreateFromBinary(body, format)
+      Else
+        Err_Raise 1, "", "Could not get file (HTTP Status: " & HTTP.status & ")"
+      End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Creates a stdImage object from a file
@@ -620,13 +652,21 @@ End Function
 '  stdImage.CreateFromHBitmap(Image1.Picture.Handle).ToFile("H:\test.png", stdImgFormatPNG)
 '```
 Public Function CreateFromHBitmap(ByVal hBitmap As LongPtr) As stdImage
-  Dim bmp As BITMAP
-  If GetObjectAPI(hBitmap, LenB(bmp), bmp) <> 0 Then
-    Set CreateFromHBitmap = New stdImage
-    Call CreateFromHBitmap.protInit(hBitmap)
-  Else
-    Err.Raise 1, "stdImage::CreateFromHBitmap", "The provided hBITMAP is not valid"
-  End If
+  With stdError.getSentry("stdImage#CreateFromHBitmap", "hBitmap", hBitmap)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim bmp As BITMAP
+      If GetObjectAPI(hBitmap, LenB(bmp), bmp) <> 0 Then
+        Set CreateFromHBitmap = New stdImage
+        Call CreateFromHBitmap.protInit(hBitmap)
+      Else
+        Err_Raise 1, "stdImage::CreateFromHBitmap", "The provided hBITMAP is not valid"
+      End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Creates a stdImage from the image in the clipboard
@@ -636,20 +676,28 @@ End Function
 'stdImage.CreateFromClipboard().ToFile("H:\test.png", stdImgFormatPNG)
 '```
 Public Function CreateFromClipboard() As stdImage
-  'Open clipboard
-  If Not CBool(OpenClipboardTimeout(getAppHwnd())) Then Call Err.Raise(1, "Value [GET]", "Unable to open clipboard (DllError: " & Err.LastDllError & ")")
-  
-  'Check image in clipboard
-  If CBool(IsClipboardFormatAvailable(CF_BITMAP)) Then
-    Dim hBitmap As LongPtr: hBitmap = GetClipboardData(CF_BITMAP)  'Obtain image handle
-    Set CreateFromClipboard = CreateFromHBitmap(hBitmap)
-  Else
-    Dim sErrorText As String: sErrorText = "No bitmap format in clipboard"
-  End If
-  
-  'Close clipboard
-  If Not CBool(CloseClipboard()) Then Call Err.Raise(1, "Value [GET]", "Unable to close clipboard (DllError: " & Err.LastDllError & ")")
-  If sErrorText <> "" Then Call Err.Raise(1, "Value [GET]", sErrorText)
+  With stdError.getSentry("stdImage#CreateFromClipboard")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      'Open clipboard
+      If Not CBool(OpenClipboardTimeout(getAppHwnd())) Then Call Err_Raise(1, "Value [GET]", "Unable to open clipboard (DllError: " & Err.LastDllError & ")")
+      
+      'Check image in clipboard
+      If CBool(IsClipboardFormatAvailable(CF_BITMAP)) Then
+        Dim hBitmap As LongPtr: hBitmap = GetClipboardData(CF_BITMAP)  'Obtain image handle
+        Set CreateFromClipboard = CreateFromHBitmap(hBitmap)
+      Else
+        Dim sErrorText As String: sErrorText = "No bitmap format in clipboard"
+      End If
+      
+      'Close clipboard
+      If Not CBool(CloseClipboard()) Then Call Err_Raise(1, "Value [GET]", "Unable to close clipboard (DllError: " & Err.LastDllError & ")")
+      If sErrorText <> "" Then Call Err_Raise(1, "Value [GET]", sErrorText)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Creates a stdImage object from a stdole.IPictureDisp object
@@ -658,7 +706,15 @@ End Function
 '@returns - Picture object representing data
 '@example TODO:
 Public Function CreateFromIPictureDisp(ByVal picture As stdole.IPictureDisp) As stdImage
-  Set CreateFromIPictureDisp = CreateFromHBitmap(picture.handle)
+  With stdError.getSentry("stdImage#CreateFromIPictureDisp", "picture", picture)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Set CreateFromIPictureDisp = CreateFromHBitmap(picture.handle)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Creates a stdImage object from a stdole.stdPicture object
@@ -669,7 +725,15 @@ End Function
 'stdImage.CreateFromStdPicture(Userform1.Picture).ToFile("H:\test.png", stdImgFormatPNG)
 '```
 Public Function CreateFromStdPicture(ByVal picture As stdole.StdPicture) As stdImage
-  Set CreateFromStdPicture = CreateFromHBitmap(picture.handle)
+  With stdError.getSentry("stdImage#CreateFromStdPicture", "picture", picture)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Set CreateFromStdPicture = CreateFromHBitmap(picture.handle)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Creates a stdImage object from a stdole.IPicture object
@@ -678,7 +742,15 @@ End Function
 '@returns - Picture object representing data
 '@example TODO:
 Public Function CreateFromIPicture(ByVal picture As stdole.IPicture) As stdImage
-  Set CreateFromIPicture = CreateFromHBitmap(picture.handle)
+  With stdError.getSentry("stdImage#CreateFromIPicture", "picture", picture)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Set CreateFromIPicture = CreateFromHBitmap(picture.handle)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Creates a stdImage object from a Excel.IPicture object
@@ -687,8 +759,16 @@ End Function
 '@returns - Picture object representing data
 '@example TODO:
 Public Function CreateFromExcelIPicture(ByVal picture As Object) As stdImage
-  Call picture.CopyPicture(, xlBitmap)
-  Set CreateFromExcelIPicture = CreateFromClipboard()
+  With stdError.getSentry("stdImage#CreateFromExcelIPicture", "picture", picture)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Call picture.CopyPicture(, xlBitmap)
+      Set CreateFromExcelIPicture = CreateFromClipboard()
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Creates a stdImage object from a Shape object
@@ -699,12 +779,20 @@ End Function
 'stdImage.CreateFromShape(Sheet1.Shapes("Picture 2")).ToFile("H:\test.png")
 '```
 Public Function CreateFromShape(ByVal shp As Object) As stdImage
-  Select Case Application.Name
-    Case "Microsoft Excel"
-      Dim xlShp As excel.Shape: Set xlShp = shp
-      Call xlShp.CopyPicture(, XlCopyPictureFormat.xlBitmap)
-      Set CreateFromShape = stdImage.CreateFromClipboard()
-  End Select
+  With stdError.getSentry("stdImage#CreateFromShape", "shp", shp)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Select Case Application.Name
+        Case "Microsoft Excel"
+          Dim xlShp As excel.Shape: Set xlShp = shp
+          Call xlShp.CopyPicture(, XlCopyPictureFormat.xlBitmap)
+          Set CreateFromShape = stdImage.CreateFromClipboard()
+      End Select
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Creates a stdImage object from a Chart object
@@ -715,12 +803,20 @@ End Function
 'stdImage.CreateFromChart(Sheet1.ChartObjects(1).Chart).ToFile("H:\test.png")
 '```
 Public Function CreateFromChart(ByVal chart As Object) As stdImage
-  Select Case Application.Name
-    Case "Microsoft Excel"
-      Dim xlChart As excel.chart: Set xlChart = chart
-      Call xlChart.CopyPicture(, XlCopyPictureFormat.xlBitmap)
-      Set CreateFromChart = stdImage.CreateFromClipboard()
-  End Select
+  With stdError.getSentry("stdImage#CreateFromChart", "chart", chart)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Select Case Application.Name
+        Case "Microsoft Excel"
+          Dim xlChart As excel.chart: Set xlChart = chart
+          Call xlChart.CopyPicture(, XlCopyPictureFormat.xlBitmap)
+          Set CreateFromChart = stdImage.CreateFromClipboard()
+      End Select
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Creates a stdImage object from the screen/desktop window (screenshot)
@@ -731,18 +827,26 @@ End Function
 '```
 '@TODO: Capture both monitors https://stackoverflow.com/a/34445431/6302131
 Public Function CreateFromScreen() As stdImage
-  Dim hDesktop As LongPtr: hDesktop = GetDesktopWindow()
-  
-  Const SM_XVIRTUALSCREEN = 76
-  Const SM_YVIRTUALSCREEN = 77
-  Const SM_CXVIRTUALSCREEN = 78
-  Const SM_CYVIRTUALSCREEN = 79
-  Dim ScreenX As Long: ScreenX = GetSystemMetrics(SM_XVIRTUALSCREEN)
-  Dim ScreenY As Long: ScreenY = GetSystemMetrics(SM_YVIRTUALSCREEN)
-  Dim ScreenWidth As Long: ScreenWidth = GetSystemMetrics(SM_CXVIRTUALSCREEN)
-  Dim ScreenHeight As Long: ScreenHeight = GetSystemMetrics(SM_CYVIRTUALSCREEN)
-  
-  Set CreateFromScreen = CreateFromWindow(hDesktop, region:=Array(ScreenX, ScreenY, ScreenX + ScreenWidth, ScreenY + ScreenHeight))
+  With stdError.getSentry("stdImage#CreateFromScreen")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim hDesktop As LongPtr: hDesktop = GetDesktopWindow()
+      
+      Const SM_XVIRTUALSCREEN = 76
+      Const SM_YVIRTUALSCREEN = 77
+      Const SM_CXVIRTUALSCREEN = 78
+      Const SM_CYVIRTUALSCREEN = 79
+      Dim ScreenX As Long: ScreenX = GetSystemMetrics(SM_XVIRTUALSCREEN)
+      Dim ScreenY As Long: ScreenY = GetSystemMetrics(SM_YVIRTUALSCREEN)
+      Dim ScreenWidth As Long: ScreenWidth = GetSystemMetrics(SM_CXVIRTUALSCREEN)
+      Dim ScreenHeight As Long: ScreenHeight = GetSystemMetrics(SM_CYVIRTUALSCREEN)
+      
+      Set CreateFromScreen = CreateFromWindow(hDesktop, region:=Array(ScreenX, ScreenY, ScreenX + ScreenWidth, ScreenY + ScreenHeight))
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Creates a stdImage object from a window
@@ -756,64 +860,72 @@ End Function
 '@TODO: Investigate usage of `DirectX Duplication API` - can we get screenshots in a more direct manor? [Example](https://github.com/smasherprog/screen_capture_lite/blob/master/src_cpp/windows/DXFrameProcessor.cpp)
 '@TODO: Option to include cursor https://stackoverflow.com/a/48925443/6302131
 #If VBA7 Then
-  Public Function CreateFromWindow(ByVal hwnd As LongPtr, Optional ByVal bClientArea As Boolean = False, Optional ByVal region As Variant = Empty) As stdImage
+Public Function CreateFromWindow(ByVal hwnd As LongPtr, Optional ByVal bClientArea As Boolean = False, Optional ByVal region As Variant = Empty) As stdImage
 #Else
   Public Function CreateFromWindow(ByVal hwnd As Long, Optional ByVal bClientArea As Boolean = False, Optional ByVal region As Variant = Empty) As stdImage
 #End If
-  Const SRCCOPY As Long = &HCC0020
-  
-  'Get the proper Device Context (DC) depending on the value of bClient.
-  'Additionally get the rect of the window/client.
-  Dim hDCSource As LongPtr
-  If bClientArea Then
-    hDCSource = GetDC(hwnd)
-  Else
-    hDCSource = GetWindowDC(hwnd)
-  End If
+  With stdError.getSentry("stdImage#CreateFromWindow", "hwnd", hwnd, "bClientArea", bClientArea, "region", region)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-  Dim tRect As RECT
-  If IsEmpty(region) Then
-    If bClientArea Then
-      Call GetClientRect(hwnd, tRect)
-    Else
-      Call GetWindowRect(hwnd, tRect)
-    End If
-  Else
-    'region => Array(Left, Top, Right, Bottom)
-    With tRect
-      .Left = region(0)
-      .Top = region(1)
-      .Right = region(2)
-      .Bottom = region(3)
-    End With
-  End If
-  
-  'Create an in-memory DC for the copy process
-  Dim hCaptureDC As LongPtr: hCaptureDC = CreateCompatibleDC(hDCSource)
-
-  'Create a bitmap to capture the window
-  Dim hCaptureBitmap As LongPtr: hCaptureBitmap = CreateCompatibleBitmap(hDCSource, tRect.Right - tRect.Left, tRect.Bottom - tRect.Top)
-  
-  'Load bitmap into in-memory DC
-  Dim hOldBitmap As LongPtr: hOldBitmap = SelectObject(hCaptureDC, hCaptureBitmap)
-
-  'Copy the on-screen image into the memory DC.
-  Dim bSuccess As Long: bSuccess = PrintWindow(hwnd, hCaptureDC, 0&)
-  If bSuccess = 0 Then
-    'Sometimes `PrintWindow` fails... Try again with bitblt here
-    bSuccess = BitBlt(hCaptureDC, 0, 0, tRect.Right - tRect.Left, tRect.Bottom - tRect.Top, hDCSource, 0, 0, SRCCOPY)
-    If bSuccess = 0 Then
-      Err.Raise 1, "", "Cannot capture image. Error: " & Hex(Err.LastDllError)
-    End If
-  End If
-  
-  'Move old bitmap back into capture DC
-  Call SelectObject(hCaptureDC, hOldBitmap)
-  Call ReleaseDC(hwnd, hDCSource)
-  Call DeleteDC(hCaptureDC)
-
-  'Create stdImage from bitmap
-  Set CreateFromWindow = CreateFromHBitmap(hCaptureBitmap)
+      Const SRCCOPY As Long = &HCC0020
+      
+      'Get the proper Device Context (DC) depending on the value of bClient.
+      'Additionally get the rect of the window/client.
+      Dim hDCSource As LongPtr
+      If bClientArea Then
+        hDCSource = GetDC(hwnd)
+      Else
+        hDCSource = GetWindowDC(hwnd)
+      End If
+        
+      Dim tRect As RECT
+      If IsEmpty(region) Then
+        If bClientArea Then
+          Call GetClientRect(hwnd, tRect)
+        Else
+          Call GetWindowRect(hwnd, tRect)
+        End If
+      Else
+        'region => Array(Left, Top, Right, Bottom)
+        With tRect
+          .Left = region(0)
+          .Top = region(1)
+          .Right = region(2)
+          .Bottom = region(3)
+        End With
+      End If
+      
+      'Create an in-memory DC for the copy process
+      Dim hCaptureDC As LongPtr: hCaptureDC = CreateCompatibleDC(hDCSource)
+    
+      'Create a bitmap to capture the window
+      Dim hCaptureBitmap As LongPtr: hCaptureBitmap = CreateCompatibleBitmap(hDCSource, tRect.Right - tRect.Left, tRect.Bottom - tRect.Top)
+      
+      'Load bitmap into in-memory DC
+      Dim hOldBitmap As LongPtr: hOldBitmap = SelectObject(hCaptureDC, hCaptureBitmap)
+    
+      'Copy the on-screen image into the memory DC.
+      Dim bSuccess As Long: bSuccess = PrintWindow(hwnd, hCaptureDC, 0&)
+      If bSuccess = 0 Then
+        'Sometimes `PrintWindow` fails... Try again with bitblt here
+        bSuccess = BitBlt(hCaptureDC, 0, 0, tRect.Right - tRect.Left, tRect.Bottom - tRect.Top, hDCSource, 0, 0, SRCCOPY)
+        If bSuccess = 0 Then
+          Err_Raise 1, "", "Cannot capture image. Error: " & Hex(Err.LastDllError)
+        End If
+      End If
+      
+      'Move old bitmap back into capture DC
+      Call SelectObject(hCaptureDC, hOldBitmap)
+      Call ReleaseDC(hwnd, hDCSource)
+      Call DeleteDC(hCaptureDC)
+    
+      'Create stdImage from bitmap
+      Set CreateFromWindow = CreateFromHBitmap(hCaptureBitmap)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Creates a stdImage object from a HICON
@@ -825,43 +937,51 @@ End Function
 'stdImage.CreateFromHICON(hICON).ToFile("H:\test.png", stdImgFormatPNG)
 '```
 #If VBA7 Then
-  Public Function CreateFromHICON(ByVal HICON As LongPtr) As stdImage
+Public Function CreateFromHICON(ByVal HICON As LongPtr) As stdImage
 #Else
   Public Function CreateFromHICON(ByVal HICON As Long) As stdImage
 #End If
-  'Get icon information from HICON
-  Dim iconInf As ICONINFO: If GetIconInfo(HICON, iconInf) = 0 Then Err.Raise 1, "stdImage::CreateFromHICON", "Could not get icon information"
-  
-  'Get bitmap from icon
-  Dim bmp As BITMAP: Call GetObjectAPI(iconInf.hbmColor, LenB(bmp), bmp)
-
-  'Get DC
-  Dim hDC As LongPtr: hDC = GetDC(0)
-
-  'Create an in-memory DC for the copy process
-  Dim hCaptureDC As LongPtr: hCaptureDC = CreateCompatibleDC(hDC)
-
-  'Create a bitmap to capture the window
-  Dim hCaptureBitmap As LongPtr: hCaptureBitmap = CreateCompatibleBitmap(hDC, bmp.bmWidth, bmp.bmHeight)
-
-  'Load bitmap into in-memory DC
-  Dim hOldBitmap As LongPtr: hOldBitmap = SelectObject(hCaptureDC, hCaptureBitmap)
-
-  'Copy the on-screen image into the memory DC.
-  Const DI_NORMAL As Long = &H3
-  Dim r As Long: r = DrawIconEx(hCaptureDC, 0, 0, HICON, bmp.bmWidth, bmp.bmHeight, 0, 0, DI_NORMAL)
-
-  'Move old bitmap back into capture DC
-  Call SelectObject(hCaptureDC, hOldBitmap)
-
-  'Create stdImage from bitmap
-  Set CreateFromHICON = CreateFromHBitmap(hCaptureBitmap)
-
-  'Clean up
-  Call DeleteObject(iconInf.hbmColor)
-  Call DeleteObject(iconInf.hbmMask)
-  Call DeleteDC(hCaptureDC)
-  Call ReleaseDC(0, hDC)
+  With stdError.getSentry("stdImage#CreateFromHICON", "HICON", HICON)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      'Get icon information from HICON
+      Dim iconInf As ICONINFO: If GetIconInfo(HICON, iconInf) = 0 Then Err_Raise 1, "stdImage::CreateFromHICON", "Could not get icon information"
+      
+      'Get bitmap from icon
+      Dim bmp As BITMAP: Call GetObjectAPI(iconInf.hbmColor, LenB(bmp), bmp)
+    
+      'Get DC
+      Dim hDC As LongPtr: hDC = GetDC(0)
+    
+      'Create an in-memory DC for the copy process
+      Dim hCaptureDC As LongPtr: hCaptureDC = CreateCompatibleDC(hDC)
+    
+      'Create a bitmap to capture the window
+      Dim hCaptureBitmap As LongPtr: hCaptureBitmap = CreateCompatibleBitmap(hDC, bmp.bmWidth, bmp.bmHeight)
+    
+      'Load bitmap into in-memory DC
+      Dim hOldBitmap As LongPtr: hOldBitmap = SelectObject(hCaptureDC, hCaptureBitmap)
+    
+      'Copy the on-screen image into the memory DC.
+      Const DI_NORMAL As Long = &H3
+      Dim r As Long: r = DrawIconEx(hCaptureDC, 0, 0, HICON, bmp.bmWidth, bmp.bmHeight, 0, 0, DI_NORMAL)
+    
+      'Move old bitmap back into capture DC
+      Call SelectObject(hCaptureDC, hOldBitmap)
+    
+      'Create stdImage from bitmap
+      Set CreateFromHICON = CreateFromHBitmap(hCaptureBitmap)
+    
+      'Clean up
+      Call DeleteObject(iconInf.hbmColor)
+      Call DeleteObject(iconInf.hbmMask)
+      Call DeleteDC(hCaptureDC)
+      Call ReleaseDC(0, hDC)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 '@param x - The x coord to start the crop at
@@ -869,243 +989,363 @@ End Function
 '@param width - The width of the new cropped image
 '@param height - The height of the new cropped image
 Public Function Crop(ByVal x As Long, ByVal y As Long, ByVal width As Long, ByVal height As Long) As stdImage
-  Dim hDCScreen As LongPtr: hDCScreen = GetDC(0) ' Get screen DC to create compatible ones
-  Dim hDCOriginal As LongPtr: hDCOriginal = CreateCompatibleDC(hDCScreen)
-  Dim hDCCropped As LongPtr: hDCCropped = CreateCompatibleDC(hDCScreen)
-
-  Dim hOldBitmapOriginal As LongPtr
-  Dim hOldBitmapCropped As LongPtr
-  Dim hBitmapCropped As LongPtr
-
-  ' Select the original bitmap into a memory DC
-  hOldBitmapOriginal = SelectObject(hDCOriginal, This.hBitmap)
-
-  ' Create a new bitmap for the cropped image
-  hBitmapCropped = CreateCompatibleBitmap(hDCScreen, width, height)
-  hOldBitmapCropped = SelectObject(hDCCropped, hBitmapCropped)
-
-  ' Copy the specified rectangle from the original bitmap to the new cropped bitmap
-  ' Source (original) coordinates start at x, y
-  ' Destination (cropped) coordinates start at 0, 0
-  Const SRCCOPY As Long = &HCC0020 ' Standard copy flag
-  Dim r As Long: r = BitBlt(hDCCropped, 0, 0, width, height, hDCOriginal, x, y, SRCCOPY)
-
-  ' Deselect bitmaps from DCs
-  Call SelectObject(hDCOriginal, hOldBitmapOriginal)
-  Call SelectObject(hDCCropped, hOldBitmapCropped)
-
-  ' Clean up DCs
-  Call DeleteDC(hDCCropped)
-  Call DeleteDC(hDCOriginal)
-  Call ReleaseDC(0, hDCScreen)
-
-  If r = 0 Then
-    ' BitBlt failed, clean up the created bitmap and raise an error
-    Call DeleteObject(hBitmapCropped)
-    Err.Raise 1, "stdImage::Crop", "Failed to crop image using BitBlt."
-    Set Crop = Nothing
-  Else
-    ' Create a new stdImage object from the cropped HBITMAP
-    Set Crop = New stdImage ' Assuming stdImage has a default constructor
-    ' You'll need a private/friend method in stdImage to set its hBitmap from an external handle
-    ' Or, if CreateFromHBitmap is public static/class method, use it:
-    Set Crop = CreateFromHBitmap(hBitmapCropped) ' Assuming CreateFromHBitmap is accessible
-                                                 ' and handles ownership/deletion of hBitmap
-  End If
+  With stdError.getSentry("stdImage#Crop", "x", x, "y", y, "width", width, "height", height)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim hDCScreen As LongPtr: hDCScreen = GetDC(0) ' Get screen DC to create compatible ones
+      Dim hDCOriginal As LongPtr: hDCOriginal = CreateCompatibleDC(hDCScreen)
+      Dim hDCCropped As LongPtr: hDCCropped = CreateCompatibleDC(hDCScreen)
+    
+      Dim hOldBitmapOriginal As LongPtr
+      Dim hOldBitmapCropped As LongPtr
+      Dim hBitmapCropped As LongPtr
+    
+      ' Select the original bitmap into a memory DC
+      hOldBitmapOriginal = SelectObject(hDCOriginal, This.hBitmap)
+    
+      ' Create a new bitmap for the cropped image
+      hBitmapCropped = CreateCompatibleBitmap(hDCScreen, width, height)
+      hOldBitmapCropped = SelectObject(hDCCropped, hBitmapCropped)
+    
+      ' Copy the specified rectangle from the original bitmap to the new cropped bitmap
+      ' Source (original) coordinates start at x, y
+      ' Destination (cropped) coordinates start at 0, 0
+      Const SRCCOPY As Long = &HCC0020 ' Standard copy flag
+      Dim r As Long: r = BitBlt(hDCCropped, 0, 0, width, height, hDCOriginal, x, y, SRCCOPY)
+    
+      ' Deselect bitmaps from DCs
+      Call SelectObject(hDCOriginal, hOldBitmapOriginal)
+      Call SelectObject(hDCCropped, hOldBitmapCropped)
+    
+      ' Clean up DCs
+      Call DeleteDC(hDCCropped)
+      Call DeleteDC(hDCOriginal)
+      Call ReleaseDC(0, hDCScreen)
+    
+      If r = 0 Then
+        ' BitBlt failed, clean up the created bitmap and raise an error
+        Call DeleteObject(hBitmapCropped)
+        Err_Raise 1, "stdImage::Crop", "Failed to crop image using BitBlt."
+        Set Crop = Nothing
+      Else
+        ' Create a new stdImage object from the cropped HBITMAP
+        Set Crop = New stdImage ' Assuming stdImage has a default constructor
+        ' You'll need a private/friend method in stdImage to set its hBitmap from an external handle
+        ' Or, if CreateFromHBitmap is public static/class method, use it:
+        Set Crop = CreateFromHBitmap(hBitmapCropped) ' Assuming CreateFromHBitmap is accessible
+                                                     ' and handles ownership/deletion of hBitmap
+      End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Initialised stdImage
 '@protected
 '@param hBITMAP - Handle to bitmap
 Public Sub protInit(ByVal hBitmap As LongPtr)
-  Call GetObjectAPI(hBitmap, LenB(This.HBITMAPTYPE), This.HBITMAPTYPE)
-  This.hBitmap = hBitmap
-  This.Cache.HICON = 0
+  With stdError.getSentry("stdImage#protInit", "hBitmap", hBitmap)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Call GetObjectAPI(hBitmap, LenB(This.HBITMAPTYPE), This.HBITMAPTYPE)
+      This.hBitmap = hBitmap
+      This.Cache.HICON = 0
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Obtain a HBitmap
 '@returns stdole.StdPicture - Obtain the image as a stdole.StdPicture
 '@remark You are in charge of freeing this pointer.
 Public Property Get hBitmap() As LongPtr
-  hBitmap = This.hBitmap
+  With stdError.getSentry("stdImage#hBitmap[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      hBitmap = This.hBitmap
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Obtain (and cache) an HICON
 Public Property Get HICON() As LongPtr
-  If This.Cache.HICON = 0 Then
-    Dim iconInf As ICONINFO
-    iconInf.fIcon = 1
-    iconInf.hbmMask = This.hBitmap
-    iconInf.hbmColor = This.hBitmap
-    This.Cache.HICON = CreateIconIndirect(iconInf)
-  End If
-  HICON = This.Cache.HICON
+  With stdError.getSentry("stdImage#HICON[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If This.Cache.HICON = 0 Then
+        Dim iconInf As ICONINFO
+        iconInf.fIcon = 1
+        iconInf.hbmMask = This.hBitmap
+        iconInf.hbmColor = This.hBitmap
+        This.Cache.HICON = CreateIconIndirect(iconInf)
+      End If
+      HICON = This.Cache.HICON
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Obtain the colors of the image
 '@returns ARGB() - 2D array of colors. Colors ordered from (1,1) = bottom-left, (1,height) = top-left, across to (width, height) = top-right.
 Public Property Get Colors() As Long()
-  Const BI_RGB = 0
-  With This.HBITMAPTYPE
-    'Obtain colors
-    Dim ret() As Long
-    ReDim ret(1 To .bmWidth, 1 To .bmHeight)
-    'If .bmBits = NULL_PTR Then Err.Raise 1, "", "Image is empty?"
-    'Call CopyMemory(VarPtr(ret(1, 1)), .bmBits, .bmWidth * .bmHeight * 4)
+  With stdError.getSentry("stdImage#Colors[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    Dim hDC As LongPtr: hDC = GetDC(NULL_PTR)
-    Dim lBitsPerPixel As Long: lBitsPerPixel = 32
-    Dim lWidthBytes As Long: lWidthBytes = (((.bmWidth * lBitsPerPixel) + 31) \ 32) * 4
-    Dim lImageSikze As Long: lImageSize = lWidthBytes * Abs(.bmHeight) \ 8
+      Const BI_RGB = 0
+      With This.HBITMAPTYPE
+        'Obtain colors
+        Dim ret() As Long
+        ReDim ret(1 To .bmWidth, 1 To .bmHeight)
+        'If .bmBits = NULL_PTR Then Err_Raise 1, "", "Image is empty?"
+        'Call CopyMemory(VarPtr(ret(1, 1)), .bmBits, .bmWidth * .bmHeight * 4)
+        
+        Dim hDC As LongPtr: hDC = GetDC(NULL_PTR)
+        Dim lBitsPerPixel As Long: lBitsPerPixel = 32
+        Dim lWidthBytes As Long: lWidthBytes = (((.bmWidth * lBitsPerPixel) + 31) \ 32) * 4
+        Dim lImageSikze As Long: lImageSize = lWidthBytes * Abs(.bmHeight) \ 8
+        
+        Dim tBmpInf As BITMAPINFO
+        With tBmpInf.bmiheader
+            .biSize = LenB(tBmpInf.bmiheader)
+            .biWidth = This.HBITMAPTYPE.bmWidth
+            .biHeight = This.HBITMAPTYPE.bmHeight
+            .biPlanes = 1
+            .biBitCount = lBitsPerPixel
+            .biCompression = BI_RGB ' No compression
+            .biSizeImage = lImageSize
+        End With
+        
+        If GetDIBits(hDC, hBitmap, 0, .bmHeight, ret(1, 1), tBmpInf, 0&) = 0 Then
+          Err_Raise 1, "", "Could not get pixels?"
+        End If
+        
+        Call DeleteDC(hDC)
+        
+        Colors = ret
+      End With
     
-    Dim tBmpInf As BITMAPINFO
-    With tBmpInf.bmiheader
-        .biSize = LenB(tBmpInf.bmiheader)
-        .biWidth = This.HBITMAPTYPE.bmWidth
-        .biHeight = This.HBITMAPTYPE.bmHeight
-        .biPlanes = 1
-        .biBitCount = lBitsPerPixel
-        .biCompression = BI_RGB ' No compression
-        .biSizeImage = lImageSize
-    End With
-    
-    If GetDIBits(hDC, hBitmap, 0, .bmHeight, ret(1, 1), tBmpInf, 0&) = 0 Then
-      Err.Raise 1, "", "Could not get pixels?"
-    End If
-    
-    Call DeleteDC(hDC)
-    
-    Colors = ret
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
   End With
 End Property
 
 'Obtain the Image Data
-Public Property Get Typee() As Long: Typee = This.HBITMAPTYPE.bmType: End Property                      'Type cannot be used As a name, thats why its named Typee
-Public Property Get width() As Long: width = This.HBITMAPTYPE.bmWidth: End Property
-Public Property Get height() As Long: height = This.HBITMAPTYPE.bmHeight: End Property
-Public Property Get WidthBytes() As Long: WidthBytes = This.HBITMAPTYPE.bmWidthBytes: End Property
-Public Property Get Planes() As Integer: Planes = This.HBITMAPTYPE.bmPlanes: End Property
-Public Property Get BitsPixel() As Integer: BitsPixel = This.HBITMAPTYPE.bmBitsPixel: End Property
-Public Property Get Bits() As LongPtr: Bits = This.HBITMAPTYPE.bmBits: End Property
+Public Property Get Typee() As Long
+  With stdError.getSentry("stdImage#Typee[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    : Typee = This.HBITMAPTYPE.bmType: 
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
+End Property                      'Type cannot be used As a name, thats why its named Typee
+Public Property Get width() As Long
+  With stdError.getSentry("stdImage#width[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    : width = This.HBITMAPTYPE.bmWidth: 
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
+End Property
+Public Property Get height() As Long
+  With stdError.getSentry("stdImage#height[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    : height = This.HBITMAPTYPE.bmHeight: 
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
+End Property
+Public Property Get WidthBytes() As Long
+  With stdError.getSentry("stdImage#WidthBytes[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    : WidthBytes = This.HBITMAPTYPE.bmWidthBytes: 
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
+End Property
+Public Property Get Planes() As Integer
+  With stdError.getSentry("stdImage#Planes[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    : Planes = This.HBITMAPTYPE.bmPlanes: 
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
+End Property
+Public Property Get BitsPixel() As Integer
+  With stdError.getSentry("stdImage#BitsPixel[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    : BitsPixel = This.HBITMAPTYPE.bmBitsPixel: 
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
+End Property
+Public Property Get Bits() As LongPtr
+  With stdError.getSentry("stdImage#Bits[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    : Bits = This.HBITMAPTYPE.bmBits: 
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
+End Property
 
 
 'Obtain binary data of the image in any format required
 '@param eFormat - The format the data should be in.
 '@returns - Binary data of image, ready to load into a file
 Public Function ToBinary(Optional ByVal eFormat As stdImgFormat = stdImgFormatDefault) As Byte()
-  'HACK: This is a hack to get the image data as a byte array. It is not the most efficient way to do this.
-  'TODO: Implement a more efficient way to do this.
-  Dim sPath As String: sPath = ToTempFile()
-  Dim ff As Long: ff = FreeFile()
-  Open sPath For Binary As #ff
-    ToBinary = InputB(LOF(ff), 1)
-  Close #ff
+  With stdError.getSentry("stdImage#ToBinary", "eFormat", eFormat)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      'HACK: This is a hack to get the image data as a byte array. It is not the most efficient way to do this.
+      'TODO: Implement a more efficient way to do this.
+      Dim sPath As String: sPath = ToTempFile()
+      Dim ff As Long: ff = FreeFile()
+      Open sPath For Binary As #ff
+        ToBinary = InputB(LOF(ff), 1)
+      Close #ff
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Save image as file
 '@param sSaveAsFile - Path to new file
 '@param eFormat - The required format of the file. Default is the current assosciated format.
 Public Sub ToFile(ByVal FileName As String, Optional format As stdImgFormat = stdImgFormatDefault, Optional ByVal Quality As Byte = 80, Optional ByVal TIFF_ColorDepth As Long = 24, Optional ByVal TIFF_Compression As Long = 6)
-  If format = stdImgFormatDefault Then
-    Dim pathParts: pathParts = Split(FileName, ".")
-    Dim ext As String: ext = pathParts(UBound(pathParts))
-    Select Case LCase(ext)
-      Case "png": format = stdImgFormat.stdImgFormatPNG
-      Case "bmp": format = stdImgFormat.stdImgFormatBMP
-      Case "gif": format = stdImgFormat.stdImgFormatGIF
-      Case "jpeg", "jpg": format = stdImgFormat.stdImgFormatJPEG
-      Case "tiff": format = stdImgFormat.stdImgFormatTIFF
-      Case "webp": Err.Raise 1, "stdImage::CreateFromFile", "WEBP format is not currently supported"
-      Case Else
-        Err.Raise 1, "stdImage::CreateFromFile", "Could not determine format from file extension"
-    End Select
-  End If
-  
-  Dim tSI As GdiplusStartupInput
-  tSI.GdiplusVersion = 1
-  
-  Dim lRes As Long, lGDIP As LongPtr
-  lRes = GdiplusStartup(lGDIP, tSI)
-  If lRes = 0 Then
-    Dim gdipBitmap As LongPtr
-    lRes = GdipCreateBitmapFromHBITMAP(This.hBitmap, 0, gdipBitmap)
-    If lRes = 0 Then
-      Dim EncoderGUID As GUID, tParams As EncoderParameters
-      Select Case format
-        Case stdImgFormatJPEG
-          Call IIDFromString(StrPtr("{557CF401-1A04-11D3-9A73-0000F81EF32E}"), EncoderGUID)
-          tParams.count = 1
-          ReDim tParams.Parameter(1 To 1)
-          With tParams.Parameter(1)
-            Call IIDFromString(StrPtr("{1D5BE4B5-FA4A-452D-9CDD-5DB35105E7EB}"), .GUID)
-            .NumberOfValues = 1
-            .type = 4
-            .Value = VarPtr(Quality)
-          End With
-          
-
-        Case stdImgFormatPNG
-          Call IIDFromString(StrPtr("{557CF406-1A04-11D3-9A73-0000F81EF32E}"), EncoderGUID)
-
-        Case stdImgFormatGIF
-          Call IIDFromString(StrPtr("{557CF402-1A04-11D3-9A73-0000F81EF32E}"), EncoderGUID)
-
-        Case stdImgFormatTIFF
-          Call IIDFromString(StrPtr("{557CF405-1A04-11D3-9A73-0000F81EF32E}"), EncoderGUID)
-          tParams.count = 2
-          ReDim tParams.Parameter(1 To 2)
-          With tParams.Parameter(1)
-            .NumberOfValues = 1
-            .type = 4
-            Call IIDFromString(StrPtr("{E09D739D-CCD4-44EE-8EBA-3FBF8BE4FC58}"), .GUID)
-            .Value = VarPtr(TIFF_Compression)
-          End With
-          With tParams.Parameter(2)
-            .NumberOfValues = 1
-            .type = 4
-            Call IIDFromString(StrPtr("{66087055-AD66-4C7C-9A18-38A2310B8337}"), .GUID)
-            .Value = VarPtr(TIFF_ColorDepth)
-          End With
-
-        Case stdImgFormatBMP
-          Call SavePicture(ToStdPicture(), FileName)
-          Exit Sub
-      End Select
-
-      'Save the image. It seems that encoderParams should be NULL if there are no parameters.
-      If tParams.count = 0 Then
-        lRes = GdipSaveImageToFile(gdipBitmap, StrPtr(FileName), EncoderGUID, ByVal 0)
-      Else
-        lRes = GdipSaveImageToFile(gdipBitmap, StrPtr(FileName), EncoderGUID, tParams)
+  With stdError.getSentry("stdImage#ToFile", "FileName", FileName, "format", format, "Quality", Quality, "TIFF_ColorDepth", TIFF_ColorDepth, "TIFF_Compression", TIFF_Compression)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If format = stdImgFormatDefault Then
+        Dim pathParts: pathParts = Split(FileName, ".")
+        Dim ext As String: ext = pathParts(UBound(pathParts))
+        Select Case LCase(ext)
+          Case "png": format = stdImgFormat.stdImgFormatPNG
+          Case "bmp": format = stdImgFormat.stdImgFormatBMP
+          Case "gif": format = stdImgFormat.stdImgFormatGIF
+          Case "jpeg", "jpg": format = stdImgFormat.stdImgFormatJPEG
+          Case "tiff": format = stdImgFormat.stdImgFormatTIFF
+          Case "webp": Err_Raise 1, "stdImage::CreateFromFile", "WEBP format is not currently supported"
+          Case Else
+            Err_Raise 1, "stdImage::CreateFromFile", "Could not determine format from file extension"
+        End Select
       End If
-      If lRes <> 0 Then Err.Raise 1, "stdImage::ToFile", "Could not save image to file (Error Result: " & lRes & ")"
-
-      GdipDisposeImage gdipBitmap
-    Else
-      Err.Raise 1, "stdImage::ToFile", "Could not convert HBITMAP to GDI+ image (Error Result: " & lRes & ")"
-    End If
-    GdiplusShutdown lGDIP
-  End If
+      
+      Dim tSI As GdiplusStartupInput
+      tSI.GdiplusVersion = 1
+      
+      Dim lRes As Long, lGDIP As LongPtr
+      lRes = GdiplusStartup(lGDIP, tSI)
+      If lRes = 0 Then
+        Dim gdipBitmap As LongPtr
+        lRes = GdipCreateBitmapFromHBITMAP(This.hBitmap, 0, gdipBitmap)
+        If lRes = 0 Then
+          Dim EncoderGUID As GUID, tParams As EncoderParameters
+          Select Case format
+            Case stdImgFormatJPEG
+              Call IIDFromString(StrPtr("{557CF401-1A04-11D3-9A73-0000F81EF32E}"), EncoderGUID)
+              tParams.count = 1
+              ReDim tParams.Parameter(1 To 1)
+              With tParams.Parameter(1)
+                Call IIDFromString(StrPtr("{1D5BE4B5-FA4A-452D-9CDD-5DB35105E7EB}"), .GUID)
+                .NumberOfValues = 1
+                .type = 4
+                .Value = VarPtr(Quality)
+              End With
+              
+    
+            Case stdImgFormatPNG
+              Call IIDFromString(StrPtr("{557CF406-1A04-11D3-9A73-0000F81EF32E}"), EncoderGUID)
+    
+            Case stdImgFormatGIF
+              Call IIDFromString(StrPtr("{557CF402-1A04-11D3-9A73-0000F81EF32E}"), EncoderGUID)
+    
+            Case stdImgFormatTIFF
+              Call IIDFromString(StrPtr("{557CF405-1A04-11D3-9A73-0000F81EF32E}"), EncoderGUID)
+              tParams.count = 2
+              ReDim tParams.Parameter(1 To 2)
+              With tParams.Parameter(1)
+                .NumberOfValues = 1
+                .type = 4
+                Call IIDFromString(StrPtr("{E09D739D-CCD4-44EE-8EBA-3FBF8BE4FC58}"), .GUID)
+                .Value = VarPtr(TIFF_Compression)
+              End With
+              With tParams.Parameter(2)
+                .NumberOfValues = 1
+                .type = 4
+                Call IIDFromString(StrPtr("{66087055-AD66-4C7C-9A18-38A2310B8337}"), .GUID)
+                .Value = VarPtr(TIFF_ColorDepth)
+              End With
+    
+            Case stdImgFormatBMP
+              Call SavePicture(ToStdPicture(), FileName)
+              Exit Sub
+          End Select
+    
+          'Save the image. It seems that encoderParams should be NULL if there are no parameters.
+          If tParams.count = 0 Then
+            lRes = GdipSaveImageToFile(gdipBitmap, StrPtr(FileName), EncoderGUID, ByVal 0)
+          Else
+            lRes = GdipSaveImageToFile(gdipBitmap, StrPtr(FileName), EncoderGUID, tParams)
+          End If
+          If lRes <> 0 Then Err_Raise 1, "stdImage::ToFile", "Could not save image to file (Error Result: " & lRes & ")"
+    
+          GdipDisposeImage gdipBitmap
+        Else
+          Err_Raise 1, "stdImage::ToFile", "Could not convert HBITMAP to GDI+ image (Error Result: " & lRes & ")"
+        End If
+        GdiplusShutdown lGDIP
+      End If
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Copy the image to the clipboard
 '@example `stdImage.CreateFromFile("H:\test1.bmp").ToClipboard()
 Public Sub ToClipboard()
-  Dim oHtml As Object
-  Set oHtml = CreateObject("htmlfile")
-  If VarType(Clipboard) = vbObject Then
-    Call oHtml.parentWindow.clipboardData.SetData(ToStdPicture())
-  Else
-    'Hack: This is a hack; better approach would be to get the image data as a byte array and use clipboard directly.
-    'TODO: A less hacky method can be found here:  http://access.mvps.org/access/api/api0042.htm
-    With ActiveSheet.OLEObjects.add(ClassType:="Forms.Image.1", Link:=False, DisplayAsIcon:=False, Left:=330, Top:=215)
-      .Activate
-      Set .picture = ToStdPicture()
-      .AutoSize = True
-      .CopyPicture
-      .Delete
-    End With
-  End If
+  With stdError.getSentry("stdImage#ToClipboard")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim oHtml As Object
+      Set oHtml = CreateObject("htmlfile")
+      If VarType(Clipboard) = vbObject Then
+        Call oHtml.parentWindow.clipboardData.SetData(ToStdPicture())
+      Else
+        'Hack: This is a hack; better approach would be to get the image data as a byte array and use clipboard directly.
+        'TODO: A less hacky method can be found here:  http://access.mvps.org/access/api/api0042.htm
+        With ActiveSheet.OLEObjects.add(ClassType:="Forms.Image.1", Link:=False, DisplayAsIcon:=False, Left:=330, Top:=215)
+          .Activate
+          Set .picture = ToStdPicture()
+          .AutoSize = True
+          .CopyPicture
+          .Delete
+        End With
+      End If
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 
@@ -1113,17 +1353,25 @@ End Sub
 '@param eFormat - The format the data should be in.
 '@returns - The path to the temporary file.
 Public Function ToTempFile(Optional ByVal eFormat As stdImgFormat = stdImgFormatDefault) As String
-  Dim sExt As String
-  Select Case eFormat
-    Case stdImgFormatBMP:  sExt = "bmp"
-    Case stdImgFormatPNG:  sExt = "png"
-    Case stdImgFormatGIF:  sExt = "gif"
-    Case stdImgFormatJPEG: sExt = "jpeg"
-    Case stdImgFormatTIFF: sExt = "tiff"
-  End Select
-  Dim sPath As String: sPath = Environ("Temp") & "\" & getGUID() & "." & sExt
-  Call ToFile(sPath, eFormat)
-  ToTempFile = sPath
+  With stdError.getSentry("stdImage#ToTempFile", "eFormat", eFormat)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim sExt As String
+      Select Case eFormat
+        Case stdImgFormatBMP:  sExt = "bmp"
+        Case stdImgFormatPNG:  sExt = "png"
+        Case stdImgFormatGIF:  sExt = "gif"
+        Case stdImgFormatJPEG: sExt = "jpeg"
+        Case stdImgFormatTIFF: sExt = "tiff"
+      End Select
+      Dim sPath As String: sPath = Environ("Temp") & "\" & getGUID() & "." & sExt
+      Call ToFile(sPath, eFormat)
+      ToTempFile = sPath
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Adds the picture to the sheet
@@ -1133,7 +1381,15 @@ End Function
 '@param compress - Whether to compress the image on import.
 '@returns Object<Picture> - Picture object
 Public Function ToSheet(ByVal ws As Worksheet, Optional ByVal Top As Double = 0, Optional ByVal Left As Double = 0, Optional ByVal compress As MsoPictureCompress) As Object
-  Set ToSheet = ws.Shapes.AddPicture2(ToTempFile(), False, 0, Top, Left, -1, -1, compress)
+  With stdError.getSentry("stdImage#ToSheet", "ws", ws, "Top", Top, "Left", Left, "compress", compress)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Set ToSheet = ws.Shapes.AddPicture2(ToTempFile(), False, 0, Top, Left, -1, -1, compress)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Update a UI control's background picture
@@ -1142,15 +1398,31 @@ End Function
 'stdImage.CreateFromFile("H:\test1.bmp").ToUIControl(UserForm1.Image1)
 '```
 Public Sub ToUIControl(ByVal oControl As Object)
-  Set oControl.picture = ToStdPicture()
+  With stdError.getSentry("stdImage#ToUIControl", "oControl", oControl)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Set oControl.picture = ToStdPicture()
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Obtain a data URL of the image
 '@param eFormat - The format of the image
 '@returns - Data URL of the image
 Public Function ToDataUrl(Optional ByVal eFormat As stdImgFormat = stdImgFormatDefault) As String
-  'TODO:
-  Err.Raise 1, , "Not implemented"
+  With stdError.getSentry("stdImage#ToDataUrl", "eFormat", eFormat)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      'TODO:
+      Err_Raise 1, , "Not implemented"
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Output the image to a shape's fill
@@ -1159,81 +1431,113 @@ End Function
 'stdImage.CreateFromFile("H:\test1.bmp").ToShapeFill(ActiveSheet.Shapes(1))
 '```
 Public Sub ToShapeFill(ByVal shp As Object)
-  Select Case Application.Name
-    Case "Microsoft Excel"
-      Dim xlShp As excel.Shape: Set xlShp = shp
-      Call xlShp.Fill.UserPicture(ToTempFile())
-  End Select
+  With stdError.getSentry("stdImage#ToShapeFill", "shp", shp)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Select Case Application.Name
+        Case "Microsoft Excel"
+          Dim xlShp As excel.Shape: Set xlShp = shp
+          Call xlShp.Fill.UserPicture(ToTempFile())
+      End Select
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Obtain a stdole.StdPicture
 '@returns - Obtain the image as a stdole.StdPicture
 Public Function ToStdPicture() As stdole.StdPicture
-  Const PICTYPE_BITMAP = 1
-
-  Dim IID_IDispatch As GUID
-  If IIDFromString(StrPtr("{7BF80980-BF32-101A-8BBB-00AA00300CAB}"), IID_IDispatch) <> 0 Then Err.Raise 1, , "Could not convert IID_IDispatch to GUID"
-
-  Dim uPicinfo As PICTDESC
-  With uPicinfo
-    .Size = Len(uPicinfo)
-    .type = PICTYPE_BITMAP
-    .hPic = This.hBitmap
-    .hPal = 0
+  With stdError.getSentry("stdImage#ToStdPicture")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Const PICTYPE_BITMAP = 1
+    
+      Dim IID_IDispatch As GUID
+      If IIDFromString(StrPtr("{7BF80980-BF32-101A-8BBB-00AA00300CAB}"), IID_IDispatch) <> 0 Then Err_Raise 1, , "Could not convert IID_IDispatch to GUID"
+    
+      Dim uPicinfo As PICTDESC
+      With uPicinfo
+        .Size = Len(uPicinfo)
+        .type = PICTYPE_BITMAP
+        .hPic = This.hBitmap
+        .hPal = 0
+      End With
+    
+      Dim lResult As Long: lResult = OleCreatePictureIndirect(uPicinfo, IID_IDispatch, 0, ToStdPicture)
+      If lResult <> 0 Then Call Err_Raise(1, "Value [GET]", "Could not create StdPicture (Error Result: " & lResult & ")")
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
   End With
-
-  Dim lResult As Long: lResult = OleCreatePictureIndirect(uPicinfo, IID_IDispatch, 0, ToStdPicture)
-  If lResult <> 0 Then Call Err.Raise(1, "Value [GET]", "Could not create StdPicture (Error Result: " & lResult & ")")
 End Function
 
 Private Sub Class_Terminate()
-  'Free HICON
-  If This.Cache.HICON <> 0 Then Call DestroyIcon(This.Cache.HICON)
-  
-  'Free HBITMAP
-  If This.hBitmap <> 0 Then Call DeleteObject(This.hBitmap)
+  With stdError.getSentry("stdImage#Class_Terminate")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      'Free HICON
+      If This.Cache.HICON <> 0 Then Call DestroyIcon(This.Cache.HICON)
+      
+      'Free HBITMAP
+      If This.hBitmap <> 0 Then Call DeleteObject(This.hBitmap)
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 '@devRemark source - https://www.mrexcel.com/board/threads/working-with-images-in-vba-displaying-png-files.1224206/#post-5991836
 '@devRemark - Not sure if this is needed, could be useful for ToBinary() method.
 Private Function getHBitmapBytes(ByVal hBitmap As LongPtr) As Byte()
-    Const DIB_RGB_COLORS = 0&
+  With stdError.getSentry("stdImage#getHBitmapBytes", "hBitmap", hBitmap)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    Dim tBmpInf As BITMAPINFO, tBmpFileHearder As BITMAPFILEHEADER, tBitmap As BITMAP
-    Dim bDIBBits() As Byte
-    Dim hDC As LongPtr, hDib As LongPtr
+        Const DIB_RGB_COLORS = 0&
+        
+        Dim tBmpInf As BITMAPINFO, tBmpFileHearder As BITMAPFILEHEADER, tBitmap As BITMAP
+        Dim bDIBBits() As Byte
+        Dim hDC As LongPtr, hDib As LongPtr
+        
+        If GetObjectAPI(hBitmap, LenB(tBitmap), tBitmap) = NULL_PTR Then
+            MsgBox "Failed to retrieve info for the bitmap.": GoTo ReleaseHandles
+        End If
+        With tBmpInf.bmiheader
+            .biSize = LenB(tBmpInf.bmiheader)
+            .biWidth = tBitmap.bmWidth
+            .biHeight = tBitmap.bmHeight
+            .biPlanes = 1&
+            .biBitCount = 32&
+            .biSizeImage = .biWidth * 4& * .biHeight
+            hDib = CreateDIBSection(NULL_PTR, tBmpInf, 0&, NULL_PTR, NULL_PTR, 0&)
+            If hDib = NULL_PTR Then
+                MsgBox "Failed to create a DIB.": GoTo ReleaseHandles
+            End If
+            'OleLoadPicture expects the graphic byte array to include 54 bytes [file header + Inf header].
+            ReDim bDIBBits(0& To .biSizeImage + 53&)
+            'Fill bmp file header
+            Call CopyMemory(VarPtr(bDIBBits(0&)), VarPtr(&H4D42&), 2&)
+            Call CopyMemory(VarPtr(bDIBBits(2&)), VarPtr(54& + .biSizeImage), 4&)
+            Call CopyMemory(VarPtr(bDIBBits(10&)), VarPtr(54&), 4&)
+            'Fill bmp info header
+            Call CopyMemory(VarPtr(bDIBBits(14&)), VarPtr(tBmpInf), 40&)
+            hDC = GetDC(NULL_PTR)
+            If GetDIBits(hDC, hBitmap, 0&, .biHeight, bDIBBits(54&), tBmpInf, DIB_RGB_COLORS) = NULL_PTR Then
+                MsgBox "Failed to retrieve the bits of the bitmap.": GoTo ReleaseHandles
+            End If
+        End With
+        getHBitmapBytes = bDIBBits
+    ReleaseHandles:
+        Call ReleaseDC(NULL_PTR, hDC)
+        Call DeleteObject(hDib)
     
-    If GetObjectAPI(hBitmap, LenB(tBitmap), tBitmap) = NULL_PTR Then
-        MsgBox "Failed to retrieve info for the bitmap.": GoTo ReleaseHandles
-    End If
-    With tBmpInf.bmiheader
-        .biSize = LenB(tBmpInf.bmiheader)
-        .biWidth = tBitmap.bmWidth
-        .biHeight = tBitmap.bmHeight
-        .biPlanes = 1&
-        .biBitCount = 32&
-        .biSizeImage = .biWidth * 4& * .biHeight
-        hDib = CreateDIBSection(NULL_PTR, tBmpInf, 0&, NULL_PTR, NULL_PTR, 0&)
-        If hDib = NULL_PTR Then
-            MsgBox "Failed to create a DIB.": GoTo ReleaseHandles
-        End If
-        'OleLoadPicture expects the graphic byte array to include 54 bytes [file header + Inf header].
-        ReDim bDIBBits(0& To .biSizeImage + 53&)
-        'Fill bmp file header
-        Call CopyMemory(VarPtr(bDIBBits(0&)), VarPtr(&H4D42&), 2&)
-        Call CopyMemory(VarPtr(bDIBBits(2&)), VarPtr(54& + .biSizeImage), 4&)
-        Call CopyMemory(VarPtr(bDIBBits(10&)), VarPtr(54&), 4&)
-        'Fill bmp info header
-        Call CopyMemory(VarPtr(bDIBBits(14&)), VarPtr(tBmpInf), 40&)
-        hDC = GetDC(NULL_PTR)
-        If GetDIBits(hDC, hBitmap, 0&, .biHeight, bDIBBits(54&), tBmpInf, DIB_RGB_COLORS) = NULL_PTR Then
-            MsgBox "Failed to retrieve the bits of the bitmap.": GoTo ReleaseHandles
-        End If
-    End With
-    getHBitmapBytes = bDIBBits
-ReleaseHandles:
-    Call ReleaseDC(NULL_PTR, hDC)
-    Call DeleteObject(hDib)
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Returns a byte array stored at a pointer using RtlMoveMemory
@@ -1242,14 +1546,22 @@ End Function
 '@returns - The bytes stired at the pointer
 '@devRemark - Not sure if this is needed, could be useful for ToBinary() method.
 Private Function BytesFromPointer(ByVal pointer As LongPtr, ByVal Size As Long) As Byte()
-  Dim buff() As Byte
-  If Size > 0 Then
-    ReDim buff(1 To Size)
-    Call CopyMemory(VarPtr(buff(1)), pointer, Size)
-  Else
-    Call Err.Raise(1, "BytesFromPointer [PRIVATE]", "No size supplied.")
-  End If
-  BytesFromPointer = buff
+  With stdError.getSentry("stdImage#BytesFromPointer", "pointer", pointer, "Size", Size)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim buff() As Byte
+      If Size > 0 Then
+        ReDim buff(1 To Size)
+        Call CopyMemory(VarPtr(buff(1)), pointer, Size)
+      Else
+        Call Err_Raise(1, "BytesFromPointer [PRIVATE]", "No size supplied.")
+      End If
+      BytesFromPointer = buff
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Tries to open the clipbaord with a timeout
@@ -1257,39 +1569,63 @@ End Function
 '@param dwTimeoutMilliseconds - number of milliseconds to wait
 '@returns - true if clipboard is open, false if clipboard couldn't be opened
 Private Function OpenClipboardTimeout(ByVal hwnd As LongPtr, Optional ByVal dwTimeoutMilliseconds As Long = 5000) As Boolean
-  Dim iStart As Long: iStart = GetTickCount()
-  Dim bOpen As Boolean, bExpired As Boolean
-  While Not (bOpen Or bExpired)
-    'Open clipboard and only continue if open
-    bOpen = CBool(OpenClipboard(hwnd))
-    OpenClipboardTimeout = bOpen
-    If bOpen Then Exit Function
+  With stdError.getSentry("stdImage#OpenClipboardTimeout", "hwnd", hwnd, "dwTimeoutMilliseconds", dwTimeoutMilliseconds)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    'Check for expirey
-    bExpired = Abs(GetTickCount() - iStart) >= dwTimeoutMilliseconds
+      Dim iStart As Long: iStart = GetTickCount()
+      Dim bOpen As Boolean, bExpired As Boolean
+      While Not (bOpen Or bExpired)
+        'Open clipboard and only continue if open
+        bOpen = CBool(OpenClipboard(hwnd))
+        OpenClipboardTimeout = bOpen
+        If bOpen Then Exit Function
+        
+        'Check for expirey
+        bExpired = Abs(GetTickCount() - iStart) >= dwTimeoutMilliseconds
+        
+        'Do Excel events
+        DoEvents
+      Wend
     
-    'Do Excel events
-    DoEvents
-  Wend
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Generates a new GUID
 '@returns - A new GUID
 Private Function getGUID() As String
-  Call Randomize 'Ensure random GUID generated
-  getGUID = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx"
-  getGUID = Replace(getGUID, "y", Hex(Rnd() And &H3 Or &H8))
-  Dim i As Long: For i = 1 To 30
-    getGUID = Replace(getGUID, "x", Hex$(Int(Rnd() * 16)), 1, 1)
-  Next
+  With stdError.getSentry("stdImage#getGUID")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Call Randomize 'Ensure random GUID generated
+      getGUID = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx"
+      getGUID = Replace(getGUID, "y", Hex(Rnd() And &H3 Or &H8))
+      Dim i As Long: For i = 1 To 30
+        getGUID = Replace(getGUID, "x", Hex$(Int(Rnd() * 16)), 1, 1)
+      Next
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Converts a long color to a BGR color
 '@param longColor - The long color to convert
 '@returns - The BGR color
 Private Function BGR(ByVal longColor As Long) As Long
-  Call OleTranslateColor(longColor, 0, longColor)
-  BGR = RGB((longColor \ 65536) Mod 256, (longColor \ 256) Mod 256, (longColor Mod 256))
+  With stdError.getSentry("stdImage#BGR", "longColor", longColor)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Call OleTranslateColor(longColor, 0, longColor)
+      BGR = RGB((longColor \ 65536) Mod 256, (longColor \ 256) Mod 256, (longColor Mod 256))
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 #If VBA7 Then
@@ -1297,27 +1633,35 @@ Private Function getAppHwnd() As LongPtr
 #Else
 Private Function getAppHwnd() As Long
 #End If
-Static hwnd As LongPtr
-If hwnd = 0 Then
-    Dim oApp As Object: Set oApp = Application
-    Select Case oApp.Name
-    Case "Microsoft Excel"
-        hwnd = oApp.hwnd
-    Case "Microsoft Word"
-        hwnd = oApp.ActiveWindow.hwnd
-    Case "Microsoft Access"
-        hwnd = oApp.hWndAccessApp.hwnd
-    Case "Microsoft PowerPoint"
-        hwnd = oApp.CommandBars("Status Bar").hwnd
-    Case "Outlook"
-        hwnd = oApp.ActiveWindow.CommandBars("Status Bar").hwnd
-    Case "Microsoft Publisher"
-        hwnd = oApp.CommandBars("Status Bar").hwnd
-    Case Else
-        Err.Raise 1, "stdAcc::CreateFromApplication()", "No implementation for getting application window of " & oApp.Name
-    End Select
-End If
-getAppHwnd = hwnd
+  With stdError.getSentry("stdImage#getAppHwnd")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+    Static hwnd As LongPtr
+    If hwnd = 0 Then
+        Dim oApp As Object: Set oApp = Application
+        Select Case oApp.Name
+        Case "Microsoft Excel"
+            hwnd = oApp.hwnd
+        Case "Microsoft Word"
+            hwnd = oApp.ActiveWindow.hwnd
+        Case "Microsoft Access"
+            hwnd = oApp.hWndAccessApp.hwnd
+        Case "Microsoft PowerPoint"
+            hwnd = oApp.CommandBars("Status Bar").hwnd
+        Case "Outlook"
+            hwnd = oApp.ActiveWindow.CommandBars("Status Bar").hwnd
+        Case "Microsoft Publisher"
+            hwnd = oApp.CommandBars("Status Bar").hwnd
+        Case Else
+            Err_Raise 1, "stdAcc::CreateFromApplication()", "No implementation for getting application window of " & oApp.Name
+        End Select
+    End If
+    getAppHwnd = hwnd
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 
@@ -1334,47 +1678,55 @@ End Function
 '  result = haystack.FindImage(needle, 10)
 '  If Not IsEmpty(result) Then Debug.Print "Found at:", result(0), result(1)
 Public Function FindFirst(ByVal template As stdImage, Optional ByVal tolerance As Long = 5, Optional ByVal TopToBottom As Boolean = True, Optional ByVal LeftToRight As Boolean = True) As Variant
-  Dim haystackColors() As Long: haystackColors = Me.Colors
-  Dim templateColors() As Long: templateColors = template.Colors
-  Dim hayW As Long: hayW = UBound(haystackColors, 1)
-  Dim hayH As Long: hayH = UBound(haystackColors, 2)
-  Dim tplW As Long: tplW = UBound(templateColors, 1)
-  Dim tplH As Long: tplH = UBound(templateColors, 2)
-
-  Dim startY As Long, endY As Long, stepY As Long
-  If TopToBottom Then
-    startY = 0: endY = hayH - tplH: stepY = 1
-  Else
-    startY = hayH - tplH: endY = 0: stWepY = -1
-  End If
-  
-  Dim startX As Long, endX As Long, stepX As Long
-  If LeftToRight Then
-    startX = 0: endX = hayW - tplW: stepX = 1
-  Else
-    startX = hayW - tplW: endX = 0: stepX = -1
-  End If
-  
-  Dim x As Long, y As Long, i As Long, j As Long, match As Boolean
-  For y = startY To endY Step stepY
-    For x = startX To endX Step stepX
-      match = True
-      For j = 1 To tplH
-        For i = 1 To tplW
-          If Not ColorsMatch(haystackColors(x + i, y + j), templateColors(i, j), tolerance) Then
-            match = False
-            Exit For
+  With stdError.getSentry("stdImage#FindFirst", "template", template, "tolerance", tolerance, "TopToBottom", TopToBottom, "LeftToRight", LeftToRight)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim haystackColors() As Long: haystackColors = Me.Colors
+      Dim templateColors() As Long: templateColors = template.Colors
+      Dim hayW As Long: hayW = UBound(haystackColors, 1)
+      Dim hayH As Long: hayH = UBound(haystackColors, 2)
+      Dim tplW As Long: tplW = UBound(templateColors, 1)
+      Dim tplH As Long: tplH = UBound(templateColors, 2)
+    
+      Dim startY As Long, endY As Long, stepY As Long
+      If TopToBottom Then
+        startY = 0: endY = hayH - tplH: stepY = 1
+      Else
+        startY = hayH - tplH: endY = 0: stWepY = -1
+      End If
+      
+      Dim startX As Long, endX As Long, stepX As Long
+      If LeftToRight Then
+        startX = 0: endX = hayW - tplW: stepX = 1
+      Else
+        startX = hayW - tplW: endX = 0: stepX = -1
+      End If
+      
+      Dim x As Long, y As Long, i As Long, j As Long, match As Boolean
+      For y = startY To endY Step stepY
+        For x = startX To endX Step stepX
+          match = True
+          For j = 1 To tplH
+            For i = 1 To tplW
+              If Not ColorsMatch(haystackColors(x + i, y + j), templateColors(i, j), tolerance) Then
+                match = False
+                Exit For
+              End If
+            Next
+            If Not match Then Exit For
+          Next
+          If match Then
+            FindFirst = Array(x, hayH - y - tplH + 1)
+            Exit Function
           End If
         Next
-        If Not match Then Exit For
       Next
-      If match Then
-        FindFirst = Array(x, hayH - y - tplH + 1)
-        Exit Function
-      End If
-    Next
-  Next
-  FindFirst = Empty
+      FindFirst = Empty
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Searches for a template image within a larger image (i.e., this image)
@@ -1387,48 +1739,56 @@ End Function
 '  Dim haystack as stdImage: set haystack = stdImage.CreateFromWindow(Application.hWnd)
 '  Dim needle as stdImage: set needle = stdImage.CreateFrom
 Public Function FindAll(ByVal template As stdImage, Optional ByVal tolerance As Long = 5, Optional ByVal TopToBottom As Boolean = True, Optional ByVal LeftToRight As Boolean = True) As Collection
-  Set FindAll = New Collection
-  
-  Dim haystackColors() As Long: haystackColors = Me.Colors
-  Dim templateColors() As Long: templateColors = template.Colors
-  Dim hayW As Long: hayW = UBound(haystackColors, 1)
-  Dim hayH As Long: hayH = UBound(haystackColors, 2)
-  Dim tplW As Long: tplW = UBound(templateColors, 1)
-  Dim tplH As Long: tplH = UBound(templateColors, 2)
-
-  Dim startY As Long, endY As Long, stepY As Long
-  If TopToBottom Then
-    startY = 0: endY = hayH - tplH: stepY = 1
-  Else
-    startY = hayH - tplH: endY = 0: stepY = -1
-  End If
-  
-  Dim startX As Long, endX As Long, stepX As Long
-  If LeftToRight Then
-    startX = 0: endX = hayW - tplW: stepX = 1
-  Else
-    startX = hayW - tplW: endX = 0: stepX = -1
-  End If
-  
-  Dim x As Long, y As Long, i As Long, j As Long, match As Boolean
-  For y = startY To endY Step stepY
-    For x = startX To endX Step stepX
-      match = True
-      For j = 1 To tplH
-        For i = 1 To tplW
-          If Not ColorsMatch(haystackColors(x + i, y + j), templateColors(i, j), tolerance) Then
-            match = False
-            Exit For
-          End If
-        Next i
-        If Not match Then Exit For
-      Next j
+  With stdError.getSentry("stdImage#FindAll", "template", template, "tolerance", tolerance, "TopToBottom", TopToBottom, "LeftToRight", LeftToRight)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Set FindAll = New Collection
       
-      If match Then
-        Call FindAll.add(Array(x, hayH - y - tplH + 1))
+      Dim haystackColors() As Long: haystackColors = Me.Colors
+      Dim templateColors() As Long: templateColors = template.Colors
+      Dim hayW As Long: hayW = UBound(haystackColors, 1)
+      Dim hayH As Long: hayH = UBound(haystackColors, 2)
+      Dim tplW As Long: tplW = UBound(templateColors, 1)
+      Dim tplH As Long: tplH = UBound(templateColors, 2)
+    
+      Dim startY As Long, endY As Long, stepY As Long
+      If TopToBottom Then
+        startY = 0: endY = hayH - tplH: stepY = 1
+      Else
+        startY = hayH - tplH: endY = 0: stepY = -1
       End If
-    Next x
-  Next y
+      
+      Dim startX As Long, endX As Long, stepX As Long
+      If LeftToRight Then
+        startX = 0: endX = hayW - tplW: stepX = 1
+      Else
+        startX = hayW - tplW: endX = 0: stepX = -1
+      End If
+      
+      Dim x As Long, y As Long, i As Long, j As Long, match As Boolean
+      For y = startY To endY Step stepY
+        For x = startX To endX Step stepX
+          match = True
+          For j = 1 To tplH
+            For i = 1 To tplW
+              If Not ColorsMatch(haystackColors(x + i, y + j), templateColors(i, j), tolerance) Then
+                match = False
+                Exit For
+              End If
+            Next i
+            If Not match Then Exit For
+          Next j
+          
+          If match Then
+            Call FindAll.add(Array(x, hayH - y - tplH + 1))
+          End If
+        Next x
+      Next y
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Compares two ARGB color values within a given tolerance per RGB channel
@@ -1437,8 +1797,21 @@ End Function
 '@param tolerance - Maximum allowed difference per channel (0-255).
 '@returns - True if the colors match within the given tolerance, otherwise False
 Private Function ColorsMatch(ByVal c1 As Long, ByVal c2 As Long, ByVal tolerance As Long) As Boolean
-  Dim r1 As Long, g1 As Long, b1 As Long, r2 As Long, g2 As Long, b2 As Long
-  r1 = (c1 And &HFF): g1 = (c1 \ &H100) And &HFF: b1 = (c1 \ &H10000) And &HFF
-  r2 = (c2 And &HFF): g2 = (c2 \ &H100) And &HFF: b2 = (c2 \ &H10000) And &HFF
-  ColorsMatch = Abs(r1 - r2) <= tolerance And Abs(g1 - g2) <= tolerance And Abs(b1 - b2) <= tolerance
+  With stdError.getSentry("stdImage#ColorsMatch", "c1", c1, "c2", c2, "tolerance", tolerance)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim r1 As Long, g1 As Long, b1 As Long, r2 As Long, g2 As Long, b2 As Long
+      r1 = (c1 And &HFF): g1 = (c1 \ &H100) And &HFF: b1 = (c1 \ &H10000) And &HFF
+      r2 = (c2 And &HFF): g2 = (c2 \ &H100) And &HFF: b2 = (c2 \ &H10000) And &HFF
+      ColorsMatch = Abs(r1 - r2) <= tolerance And Abs(g1 - g2) <= tolerance And Abs(b1 - b2) <= tolerance
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
+
+
+Private Sub Err_Raise(ByVal number as Long, Optional ByVal source as string = "", Optional ByVal description as string = "")
+  Call stdError.Raise(description)
+End Sub
