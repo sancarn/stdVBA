@@ -175,8 +175,16 @@ Private This As TThis
 '@param normalisePath - If `true`, then path will be normalised to use `"\"` as path separator
 '@returns - `stdReg` object
 Public Function Create(ByVal path As String, Optional ByVal access As ERegistryAccess = ERegistryAccess.PERM_READ, Optional ByVal normalisePath As Boolean = True) As stdReg
-  Set Create = New stdReg
-  Call Create.protInit(path, ERegistryType.iCalculate, access, normalisePath)
+  With stdError.getSentry("stdReg#Create", "path", path, "access", access, "normalisePath", normalisePath)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Set Create = New stdReg
+      Call Create.protInit(path, ERegistryType.iCalculate, access, normalisePath)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Create a new stdReg object from a key path with required access
@@ -186,8 +194,16 @@ End Function
 '@param normalisePath - If `true`, then path will be normalised to use `"\"` as path separator
 '@returns - `stdReg` object representing registry key
 Public Function CreateFromKey(ByVal path As String, Optional ByVal access As ERegistryAccess = ERegistryAccess.PERM_READ, Optional ByVal normalisePath As Boolean = True) As stdReg
-  Set CreateFromKey = New stdReg
-  Call CreateFromKey.protInit(path, ERegistryType.iKey, access, normalisePath)
+  With stdError.getSentry("stdReg#CreateFromKey", "path", path, "access", access, "normalisePath", normalisePath)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Set CreateFromKey = New stdReg
+      Call CreateFromKey.protInit(path, ERegistryType.iKey, access, normalisePath)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Create a new stdReg object from a value path with required access
@@ -197,8 +213,16 @@ End Function
 '@param normalisePath - If `true`, then path will be normalised to use `"\"` as path separator
 '@returns - `stdReg` object representing registry value
 Public Function CreateFromItem(ByVal path As String, Optional ByVal access As ERegistryAccess = ERegistryAccess.PERM_READ, Optional ByVal normalisePath As Boolean = True) As stdReg
-  Set CreateFromItem = New stdReg
-  Call CreateFromItem.protInit(path, ERegistryType.iItem, access, normalisePath)
+  With stdError.getSentry("stdReg#CreateFromItem", "path", path, "access", access, "normalisePath", normalisePath)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Set CreateFromItem = New stdReg
+      Call CreateFromItem.protInit(path, ERegistryType.iItem, access, normalisePath)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Create a new stdReg object from a key path with required access
@@ -208,89 +232,97 @@ End Function
 '@param access - Access required to open key i.e. `PERM_READ`, `PERM_WRITE`, `PERM_ALL_ACCESS`
 '@param normalisePath - If `true`, then path will be normalised to use `"\"` as path separator
 Friend Sub protInit(ByVal path As String, Optional ByVal iType As ERegistryType = 0, Optional ByVal access As ERegistryAccess = ERegistryAccess.PERM_READ, Optional ByVal normalisePath As Boolean = True)
-  Static roots As Variant: If IsEmpty(roots) Then roots = Array( _
-    "HKEY_CLASSES_ROOT", HKEY_CLASSES_ROOT, _
-    "HKEY_CURRENT_USER", HKEY_CURRENT_USER, _
-    "HKEY_LOCAL_MACHINE", HKEY_LOCAL_MACHINE, _
-    "HKEY_USERS", HKEY_USERS, _
-    "HKEY_CURRENT_CONFIG", HKEY_CURRENT_CONFIG, _
-    "HKCR", HKEY_CLASSES_ROOT, _
-    "HKCU", HKEY_CURRENT_USER, _
-    "HKLM", HKEY_LOCAL_MACHINE _
-  )
-  
-  'In theory / is a valid character in a Key/Value name therefore this is optional.
-  If normalisePath Then This.path = Replace(path, "/", "\")
-  
-  This.path = path
-  This.Type = iType
-  This.access = access
-  
-  'Obtain root and query for API
-  Dim i As Long
-  For i = 0 To UBound(roots) Step 2
-    If path Like roots(i) & "*" Then
-      This.root = roots(i + 1)
-      This.query = Mid(This.path, Len(roots(i)) + 1)
-      If left(This.query, 1) = "\" Then
-        This.query = Mid(This.query, 2)
-      End If
-      Exit For
-    End If
-  Next
-  
-  'Try to open key, if fails, then assume value and try again
-  If This.Type = iCalculate Then
-    Select Case RegOpenKeyExA(This.root, This.query, 0, This.access, This.queryHandle)
-      Case ERROR_SUCCESS
-        This.Type = iKey
-        Call RegCloseKey(This.queryHandle)
-      Case Else
-        This.Type = iItem
-    End Select
-  End If
-  
-  'Identify key location and value name
-  If This.query <> "" Then
-    Dim parts As Variant: parts = Split(This.query, "\")
-    Dim iub As Long: iub = UBound(parts)
-    If iub <> -1 Then
-      This.name = parts(iub)
+  With stdError.getSentry("stdReg#protInit", "path", path, "iType", iType, "access", access, "normalisePath", normalisePath)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Static roots As Variant: If IsEmpty(roots) Then roots = Array( _
+        "HKEY_CLASSES_ROOT", HKEY_CLASSES_ROOT, _
+        "HKEY_CURRENT_USER", HKEY_CURRENT_USER, _
+        "HKEY_LOCAL_MACHINE", HKEY_LOCAL_MACHINE, _
+        "HKEY_USERS", HKEY_USERS, _
+        "HKEY_CURRENT_CONFIG", HKEY_CURRENT_CONFIG, _
+        "HKCR", HKEY_CLASSES_ROOT, _
+        "HKCU", HKEY_CURRENT_USER, _
+        "HKLM", HKEY_LOCAL_MACHINE _
+      )
       
-      'If value then trim name from key path
-      If This.Type = iItem Then
-        'Accessing default value via path
-        If This.name = "(Default)" And normalisePath Then
-          This.name = ""
-          This.Type = iItem
+      'In theory / is a valid character in a Key/Value name therefore this is optional.
+      If normalisePath Then This.path = Replace(path, "/", "\")
+      
+      This.path = path
+      This.Type = iType
+      This.access = access
+      
+      'Obtain root and query for API
+      Dim i As Long
+      For i = 0 To UBound(roots) Step 2
+        If path Like roots(i) & "*" Then
+          This.root = roots(i + 1)
+          This.query = Mid(This.path, Len(roots(i)) + 1)
+          If left(This.query, 1) = "\" Then
+            This.query = Mid(This.query, 2)
+          End If
+          Exit For
         End If
-        
-        'Trim query based on name
-        If iub <> 0 Then
-          ReDim Preserve parts(0 To iub - 1)
-          This.query = Join(parts, "\")
+      Next
+      
+      'Try to open key, if fails, then assume value and try again
+      If This.Type = iCalculate Then
+        Select Case RegOpenKeyExA(This.root, This.query, 0, This.access, This.queryHandle)
+          Case ERROR_SUCCESS
+            This.Type = iKey
+            Call RegCloseKey(This.queryHandle)
+          Case Else
+            This.Type = iItem
+        End Select
+      End If
+      
+      'Identify key location and value name
+      If This.query <> "" Then
+        Dim parts As Variant: parts = Split(This.query, "\")
+        Dim iub As Long: iub = UBound(parts)
+        If iub <> -1 Then
+          This.name = parts(iub)
+          
+          'If value then trim name from key path
+          If This.Type = iItem Then
+            'Accessing default value via path
+            If This.name = "(Default)" And normalisePath Then
+              This.name = ""
+              This.Type = iItem
+            End If
+            
+            'Trim query based on name
+            If iub <> 0 Then
+              ReDim Preserve parts(0 To iub - 1)
+              This.query = Join(parts, "\")
+            Else
+              This.query = ""
+            End If
+          End If
         Else
           This.query = ""
+          This.name = ""
         End If
+      Else
+        This.name = This.path
+        'Shorthands
+        If This.name = "HKCR" Then This.name = "HKEY_CLASSES_ROOT"
+        If This.name = "HKCU" Then This.name = "HKEY_CURRENT_USER"
+        If This.name = "HKLM" Then This.name = "HKEY_LOCAL_MACHINE"
       End If
-    Else
-      This.query = ""
-      This.name = ""
-    End If
-  Else
-    This.name = This.path
-    'Shorthands
-    If This.name = "HKCR" Then This.name = "HKEY_CLASSES_ROOT"
-    If This.name = "HKCU" Then This.name = "HKEY_CURRENT_USER"
-    If This.name = "HKLM" Then This.name = "HKEY_LOCAL_MACHINE"
-  End If
-  
-  'Open key
-  If RegOpenKeyExA(This.root, This.query, 0, This.access, This.queryHandle) = ERROR_SUCCESS Then
-      If This.Type = iItem Then This.valtype = pRegistryQueryValueType()
-  Else
-      Err.Raise 1, "stdReg", "ERROR: Opening registry key failed"
-  End If
+      
+      'Open key
+      If RegOpenKeyExA(This.root, This.query, 0, This.access, This.queryHandle) = ERROR_SUCCESS Then
+          If This.Type = iItem Then This.valtype = pRegistryQueryValueType()
+      Else
+          Err_Raise 1, "stdReg", "ERROR: Opening registry key failed"
+      End If
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 
@@ -301,41 +333,81 @@ End Sub
 'Obtain name of registry key
 '@returns - Name of registry key
 Public Property Get name() As String
-  If This.name = "" Then
-    name = "(Default)"
-  Else
-    name = This.name
-  End If
+  With stdError.getSentry("stdReg#name[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If This.name = "" Then
+        name = "(Default)"
+      Else
+        name = This.name
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Obtain type of registry object. Either `ERegistryType.iKey` or `ERegistryType.iItem`.
 '@returns - Type of registry Either `ERegistryType.iKey` or `ERegistryType.iItem`.
 Public Property Get RegType() As ERegistryType
-  RegType = This.Type
+  With stdError.getSentry("stdReg#RegType[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      RegType = This.Type
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Obtain whether registry key/item is root
 '@returns - Whether registry key/item is root
 Public Property Get isRoot() As Boolean
-  isRoot = This.query = ""
+  With stdError.getSentry("stdReg#isRoot[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      isRoot = This.query = ""
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Obtain the path of the registry key/item
 '@returns - Path of the registry key/item
 Public Property Get path() As String
-  path = This.path & IIf(right(This.path, 9) <> "(Default)" And This.name = "", "(Default)", "")
+  With stdError.getSentry("stdReg#path[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      path = This.path & IIf(right(This.path, 9) <> "(Default)" And This.name = "", "(Default)", "")
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Obtain the parent of the registry key/item
 '@returns - Parent of the registry key/item
 Public Property Get Parent() As stdReg
-  If isRoot Then
-    Set Parent = Nothing
-  Else
-    Dim iLastSlash As Long: iLastSlash = InStrRev(This.path, "\")
-    Dim sPath As String: sPath = left(This.path, iLastSlash - 1)
-    Set Parent = stdReg.CreateFromKey(sPath)
-  End If
+  With stdError.getSentry("stdReg#Parent[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If isRoot Then
+        Set Parent = Nothing
+      Else
+        Dim iLastSlash As Long: iLastSlash = InStrRev(This.path, "\")
+        Dim sPath As String: sPath = left(This.path, iLastSlash - 1)
+        Set Parent = stdReg.CreateFromKey(sPath)
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 '***************
@@ -347,58 +419,82 @@ End Property
 '@throws 1, "ERROR: Only stdReg keys have subkeys"
 '@throws 1, "ERROR: Only stdReg keys have items"
 Public Property Get children() As Collection
-  Set children = Keys
-  
-  Dim o As stdReg
-  For Each o In Items
-    Call children.Add(o)
-  Next
+  With stdError.getSentry("stdReg#children[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Set children = Keys
+      
+      Dim o As stdReg
+      For Each o In Items
+        Call children.Add(o)
+      Next
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get all subkeys
 '@returns Collection<stdReg> - Collection of stdReg keys
 '@throws 1, "ERROR: Only stdReg keys have subkeys"
 Public Property Get Keys() As Collection
-  Set Keys = New Collection
-  Select Case This.Type
-    Case ERegistryType.iKey
-      'Enumerate keys
-      Dim i As Long: i = -1
-      Do
-        i = i + 1
-        Dim iSize As Long: iSize = 256
-        Dim sName As String: sName = Space(iSize)
-        Dim result As Long: result = RegEnumKeyExA(This.queryHandle, i, sName, iSize, 0, 0, 0, 0)
-        If result = ERROR_SUCCESS Then
-          Call Keys.Add(CreateFromKey(This.path & "\" & left(sName, iSize)))
-        End If
-      Loop While result = ERROR_SUCCESS
-    Case Else
-      Err.Raise 1, "stdReg", "ERROR: Only stdReg keys have subkeys"
-  End Select
+  With stdError.getSentry("stdReg#Keys[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Set Keys = New Collection
+      Select Case This.Type
+        Case ERegistryType.iKey
+          'Enumerate keys
+          Dim i As Long: i = -1
+          Do
+            i = i + 1
+            Dim iSize As Long: iSize = 256
+            Dim sName As String: sName = Space(iSize)
+            Dim result As Long: result = RegEnumKeyExA(This.queryHandle, i, sName, iSize, 0, 0, 0, 0)
+            If result = ERROR_SUCCESS Then
+              Call Keys.Add(CreateFromKey(This.path & "\" & left(sName, iSize)))
+            End If
+          Loop While result = ERROR_SUCCESS
+        Case Else
+          Err_Raise 1, "stdReg", "ERROR: Only stdReg keys have subkeys"
+      End Select
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get all items
 '@returns Collection<stdReg> - Collection of stdReg items
 '@throws 1, "ERROR: Only stdReg keys have items"
 Public Property Get Items() As Collection
-  Set Items = New Collection
-  Select Case This.Type
-    Case ERegistryType.iKey
-      'Enumerate keys
-      Dim i As Long: i = -1
-      Do
-        i = i + 1
-        Dim iSize As Long: iSize = 256
-        Dim sName As String: sName = Space(iSize)
-        Dim result As Long: result = RegEnumValueA(This.queryHandle, i, sName, iSize, 0, 0, 0, 0)
-        If result = ERROR_SUCCESS Then
-          Call Items.Add(CreateFromItem(This.path & "\" & left(sName, iSize)))
-        End If
-      Loop While result = ERROR_SUCCESS
-    case else
-      Err.Raise 1, "stdReg", "ERROR: Only stdReg keys have items"
-  End Select
+  With stdError.getSentry("stdReg#Items[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Set Items = New Collection
+      Select Case This.Type
+        Case ERegistryType.iKey
+          'Enumerate keys
+          Dim i As Long: i = -1
+          Do
+            i = i + 1
+            Dim iSize As Long: iSize = 256
+            Dim sName As String: sName = Space(iSize)
+            Dim result As Long: result = RegEnumValueA(This.queryHandle, i, sName, iSize, 0, 0, 0, 0)
+            If result = ERROR_SUCCESS Then
+              Call Items.Add(CreateFromItem(This.path & "\" & left(sName, iSize)))
+            End If
+          Loop While result = ERROR_SUCCESS
+        case else
+          Err_Raise 1, "stdReg", "ERROR: Only stdReg keys have items"
+      End Select
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 '****************
@@ -409,11 +505,19 @@ End Property
 '@returns - Type of stdReg Item
 '@throws 1, "ERROR: Only stdReg items have values"
 Public Property Get ItemType() As ERegistryValueType
-  If This.Type = iItem Then
-    ItemType = This.valtype
-  Else
-    Err.Raise 1, "stdReg", "ERROR: Only stdReg items have values"
-  End If
+  With stdError.getSentry("stdReg#ItemType[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If This.Type = iItem Then
+        ItemType = This.valtype
+      Else
+        Err_Raise 1, "stdReg", "ERROR: Only stdReg items have values"
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get / Set value
@@ -422,118 +526,142 @@ End Property
 '@throws 2, "stdReg", "ERROR: Cannot get value (0x" & Hex(iStatus) & ")"
 '@throws 3, "", "ERROR: Only stdReg items have values"
 Public Property Get value() As Variant
-  If This.Type <> ERegistryType.iItem Then Err.Raise 3, "", "ERROR: Only stdReg items have values"
-  Dim iSize As Long: iSize = pRegistryQueryValueSize()
-  Dim vRet As Variant, iStatus As Long
-  Select Case This.valtype
-    Case ERegistryValueType.Value_Binary
-      Dim binary() As Byte
-      ReDim binary(1 To iSize)
-      iStatus = RegQueryValueExA(This.queryHandle, This.name, 0, 0, VarPtr(binary(1)), iSize)
-      value = binary
-    Case ERegistryValueType.Value_DWORD
-      Dim DWORD As Long
-      iStatus = RegQueryValueExA(This.queryHandle, This.name, 0, 0, VarPtr(DWORD), iSize)
-      value = DWORD
-    Case ERegistryValueType.Value_DWORD_BE
-      Dim DWORD_BE As Long
-      iStatus = RegQueryValueExA(This.queryHandle, This.name, 0, 0, VarPtr(DWORD_BE), iSize)
-      'TODO: SWAP
-      iStatus = 666
-    Case ERegistryValueType.Value_None
-      value = Empty
-    Case ERegistryValueType.Value_QWORD
-      Dim QWORD As Currency
-      iStatus = RegQueryValueExA(This.queryHandle, This.name, 0, 0, VarPtr(QWORD), iSize)
-      value = QWORD
-    Case ERegistryValueType.Value_String, ERegistryValueType.Value_String_WithEnvVars, ERegistryValueType.Value_Link
-      Dim bSZ() As Byte
-      ReDim bSZ(1 To iSize)
-      iStatus = RegQueryValueExA(This.queryHandle, This.name, 0, 0, VarPtr(bSZ(1)), iSize)
+  With stdError.getSentry("stdReg#value[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If This.Type <> ERegistryType.iItem Then Err_Raise 3, "", "ERROR: Only stdReg items have values"
+      Dim iSize As Long: iSize = pRegistryQueryValueSize()
+      Dim vRet As Variant, iStatus As Long
+      Select Case This.valtype
+        Case ERegistryValueType.Value_Binary
+          Dim binary() As Byte
+          ReDim binary(1 To iSize)
+          iStatus = RegQueryValueExA(This.queryHandle, This.name, 0, 0, VarPtr(binary(1)), iSize)
+          value = binary
+        Case ERegistryValueType.Value_DWORD
+          Dim DWORD As Long
+          iStatus = RegQueryValueExA(This.queryHandle, This.name, 0, 0, VarPtr(DWORD), iSize)
+          value = DWORD
+        Case ERegistryValueType.Value_DWORD_BE
+          Dim DWORD_BE As Long
+          iStatus = RegQueryValueExA(This.queryHandle, This.name, 0, 0, VarPtr(DWORD_BE), iSize)
+          'TODO: SWAP
+          iStatus = 666
+        Case ERegistryValueType.Value_None
+          value = Empty
+        Case ERegistryValueType.Value_QWORD
+          Dim QWORD As Currency
+          iStatus = RegQueryValueExA(This.queryHandle, This.name, 0, 0, VarPtr(QWORD), iSize)
+          value = QWORD
+        Case ERegistryValueType.Value_String, ERegistryValueType.Value_String_WithEnvVars, ERegistryValueType.Value_Link
+          Dim bSZ() As Byte
+          ReDim bSZ(1 To iSize)
+          iStatus = RegQueryValueExA(This.queryHandle, This.name, 0, 0, VarPtr(bSZ(1)), iSize)
+          
+          Dim sRet As String, i As Long
+          For i = 1 To iSize
+              If bSZ(i) = 0 Then Exit For
+              sRet = sRet & Chr(bSZ(i))
+          Next
+          
+          'TODO: Expand vars(?)
+          'If This.valtype = ERegistryValueType.Value_String_WithEnvVars Then
+          '
+          'End If
+          
+          value = sRet
+        Case ERegistryValueType.Value_String_Array
+          Dim bMULTISZ() As Byte
+          ReDim bMULTISZ(1 To iSize)
+          iStatus = RegQueryValueExA(This.queryHandle, This.name, 0, 0, VarPtr(bMULTISZ(1)), iSize)
+          
+          Dim sRetArray() As String, iItem As Long: iItem = 0
+          ReDim sRetArray(0 To 0)
+          For i = 1 To iSize
+            If bMULTISZ(i) = 0 Then
+              'If \0\0 then stop, else add item to array
+              If bMULTISZ(i + 1) = 0 Then
+                Exit For
+              Else
+                ReDim Preserve sRetArray(0 To UBound(sRetArray) + 1)
+                iItem = iItem + 1
+              End If
+            Else
+              'Concatenate
+              sRetArray(iItem) = sRetArray(iItem) & Chr(bMULTISZ(i))
+            End If
+          Next
+        Case Else
+          Err_Raise 1, "stdReg", "ERROR: Unknown value type"
+      End Select
       
-      Dim sRet As String, i As Long
-      For i = 1 To iSize
-          If bSZ(i) = 0 Then Exit For
-          sRet = sRet & Chr(bSZ(i))
-      Next
-      
-      'TODO: Expand vars(?)
-      'If This.valtype = ERegistryValueType.Value_String_WithEnvVars Then
-      '
-      'End If
-      
-      value = sRet
-    Case ERegistryValueType.Value_String_Array
-      Dim bMULTISZ() As Byte
-      ReDim bMULTISZ(1 To iSize)
-      iStatus = RegQueryValueExA(This.queryHandle, This.name, 0, 0, VarPtr(bMULTISZ(1)), iSize)
-      
-      Dim sRetArray() As String, iItem As Long: iItem = 0
-      ReDim sRetArray(0 To 0)
-      For i = 1 To iSize
-        If bMULTISZ(i) = 0 Then
-          'If \0\0 then stop, else add item to array
-          If bMULTISZ(i + 1) = 0 Then
-            Exit For
-          Else
-            ReDim Preserve sRetArray(0 To UBound(sRetArray) + 1)
-            iItem = iItem + 1
-          End If
-        Else
-          'Concatenate
-          sRetArray(iItem) = sRetArray(iItem) & Chr(bMULTISZ(i))
-        End If
-      Next
-    Case Else
-      Err.Raise 1, "stdReg", "ERROR: Unknown value type"
-  End Select
-  
-  If iStatus <> 0 Then Err.Raise 2, "stdReg", "ERROR: Cannot get value (0x" & Hex(iStatus) & ")"
+      If iStatus <> 0 Then Err_Raise 2, "stdReg", "ERROR: Cannot get value (0x" & Hex(iStatus) & ")"
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 Public Property Let value(vNew As Variant)
-  Call SetValue(vNew, This.valtype)
+  With stdError.getSentry("stdReg#value[Let]", "vNew", vNew)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Call SetValue(vNew, This.valtype)
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Set value and change type
 '@param vNew  - Value to set item to
 '@param iType - Type of value to set
 Public Sub SetValue(ByVal vNew As Variant, ByVal iType As ERegistryValueType)
-  If This.Type <> ERegistryType.iItem Then Err.Raise 3, "", "ERROR: Only stdReg items have values"
-  Call pRegistryInitWriteHandle
-  
-  Dim iStatus As Long
-  Select Case iType
-    Case ERegistryValueType.Value_Binary
-      Dim bNew() As Byte: bNew = vNew
-      Dim lb As Long: lb = LBound(bNew)
-      Dim ub As Long: ub = UBound(bNew)
-      iStatus = RegSetValueExA(This.writeHandle, This.name, 0, iType, VarPtr(bNew(lb)), ub - lb + 1)
-    Case ERegistryValueType.Value_DWORD
-      Dim DWORD As Long: DWORD =  vNew
-      iStatus = RegSetValueExA(This.writeHandle, This.name, 0, iType, VarPtr(DWORD), LenB(DWORD))
-    Case ERegistryValueType.Value_DWORD_BE
-      Dim DWORD_BE As Long: DWORD_BE =  vNew
-      'TODO: SWAP
-      iStatus = 666
-      if iStatus = ERROR_SUCCESS Then iStatus = RegQueryValueExA(This.queryHandle, This.name, 0, 0, VarPtr(DWORD_BE), LenB(DWORD))
-    Case ERegistryValueType.Value_None
-      iStatus = RegSetValueExA(This.writeHandle, This.name, 0, iType, 0, 0)
-    Case ERegistryValueType.Value_QWORD
-      Dim QWORD As Currency: QWORD = vNew
-      iStatus = RegSetValueExA(This.writeHandle, This.name, 0, iType, VarPtr(QWORD), LenB(QWORD))
-    Case ERegistryValueType.Value_String, ERegistryValueType.Value_String_WithEnvVars, ERegistryValueType.Value_Link
-      Dim bSZ() As Byte: bSZ = vNew
-      Dim ilb As Long: ilb = LBound(bSZ)
-      Dim iub As Long: iub = UBound(bSZ)
-      iStatus = RegSetValueExA(This.writeHandle, This.name, 0, iType, VarPtr(bSZ(ilb)), iub-ilb+1)
-    Case ERegistryValueType.Value_String_Array
-      'TODO: TBC 
-      Err.Raise 1, "stdReg", "ERROR: Not implemented"
-    Case Else
-      Err.Raise 1, "stdReg", "ERROR: Unknown value type"
-  End Select
-  
-  If iStatus <> 0 Then Err.Raise 2, "stdReg", "ERROR: Cannot set value (0x" & Hex(iStatus) & ")"
+  With stdError.getSentry("stdReg#SetValue", "vNew", vNew, "iType", iType)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If This.Type <> ERegistryType.iItem Then Err_Raise 3, "", "ERROR: Only stdReg items have values"
+      Call pRegistryInitWriteHandle
+      
+      Dim iStatus As Long
+      Select Case iType
+        Case ERegistryValueType.Value_Binary
+          Dim bNew() As Byte: bNew = vNew
+          Dim lb As Long: lb = LBound(bNew)
+          Dim ub As Long: ub = UBound(bNew)
+          iStatus = RegSetValueExA(This.writeHandle, This.name, 0, iType, VarPtr(bNew(lb)), ub - lb + 1)
+        Case ERegistryValueType.Value_DWORD
+          Dim DWORD As Long: DWORD =  vNew
+          iStatus = RegSetValueExA(This.writeHandle, This.name, 0, iType, VarPtr(DWORD), LenB(DWORD))
+        Case ERegistryValueType.Value_DWORD_BE
+          Dim DWORD_BE As Long: DWORD_BE =  vNew
+          'TODO: SWAP
+          iStatus = 666
+          if iStatus = ERROR_SUCCESS Then iStatus = RegQueryValueExA(This.queryHandle, This.name, 0, 0, VarPtr(DWORD_BE), LenB(DWORD))
+        Case ERegistryValueType.Value_None
+          iStatus = RegSetValueExA(This.writeHandle, This.name, 0, iType, 0, 0)
+        Case ERegistryValueType.Value_QWORD
+          Dim QWORD As Currency: QWORD = vNew
+          iStatus = RegSetValueExA(This.writeHandle, This.name, 0, iType, VarPtr(QWORD), LenB(QWORD))
+        Case ERegistryValueType.Value_String, ERegistryValueType.Value_String_WithEnvVars, ERegistryValueType.Value_Link
+          Dim bSZ() As Byte: bSZ = vNew
+          Dim ilb As Long: ilb = LBound(bSZ)
+          Dim iub As Long: iub = UBound(bSZ)
+          iStatus = RegSetValueExA(This.writeHandle, This.name, 0, iType, VarPtr(bSZ(ilb)), iub-ilb+1)
+        Case ERegistryValueType.Value_String_Array
+          'TODO: TBC 
+          Err_Raise 1, "stdReg", "ERROR: Not implemented"
+        Case Else
+          Err_Raise 1, "stdReg", "ERROR: Unknown value type"
+      End Select
+      
+      If iStatus <> 0 Then Err_Raise 2, "stdReg", "ERROR: Cannot set value (0x" & Hex(iStatus) & ")"
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 
@@ -544,32 +672,70 @@ End Sub
 'Initialise write handle
 '@private
 Private Sub pRegistryInitWriteHandle()
-  If This.writeHandle = NULL_PTR Then
-    If RegOpenKeyExA(This.root, This.query, 0, ERegistryAccess.PERM_WRITE, This.writeHandle) <> ERROR_SUCCESS Then
-      Err.Raise 1, "stdReg", "ERROR: Insufficient permissions to write to this registry key."
-    End If
-  End If
+  With stdError.getSentry("stdReg#pRegistryInitWriteHandle")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If This.writeHandle = NULL_PTR Then
+        If RegOpenKeyExA(This.root, This.query, 0, ERegistryAccess.PERM_WRITE, This.writeHandle) <> ERROR_SUCCESS Then
+          Err_Raise 1, "stdReg", "ERROR: Insufficient permissions to write to this registry key."
+        End If
+      End If
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Query value type
 '@private
 '@returns - Value type of registry item
 Private Function pRegistryQueryValueType() As ERegistryValueType
-  Dim iType As ERegistryValueType
-  Call RegQueryValueExA(This.queryHandle, This.name, 0, VarPtr(iType), 0, 0)
-  pRegistryQueryValueType = iType
+  With stdError.getSentry("stdReg#pRegistryQueryValueType")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim iType As ERegistryValueType
+      Call RegQueryValueExA(This.queryHandle, This.name, 0, VarPtr(iType), 0, 0)
+      pRegistryQueryValueType = iType
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Query value size
 '@private
 '@returns - Size of registry item
 Private Function pRegistryQueryValueSize() As Long
-  Call RegQueryValueExA(This.queryHandle, This.name, 0, 0, 0, pRegistryQueryValueSize)
+  With stdError.getSentry("stdReg#pRegistryQueryValueSize")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Call RegQueryValueExA(This.queryHandle, This.name, 0, 0, 0, pRegistryQueryValueSize)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Close handles
 '@destructor
 '@private
 Private Sub Class_Terminate()
-  Call RegCloseKey(This.queryHandle)
+  With stdError.getSentry("stdReg#Class_Terminate")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Call RegCloseKey(This.queryHandle)
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
+End Sub
+
+
+
+Private Sub Err_Raise(ByVal number as Long, Optional ByVal source as string = "", Optional ByVal description as string = "")
+  Call stdError.Raise(description)
 End Sub

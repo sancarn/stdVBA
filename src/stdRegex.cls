@@ -107,26 +107,34 @@ Private This As TThis
 'stdRegex.Create("A\d+","i")
 '```
 Public Function Create(ByVal pattern As String, Optional ByVal flags As String = "") As stdRegex
-  If Not Me Is stdRegex Then
-    Call CriticalRaise("Constructor called on object not class")
-    Exit Function
-  End If
-  
-  'Cache regex objects for faster speed
-  Static cache As Object: If cache Is Nothing Then Set cache = CreateObject("Scripting.Dictionary")
-  Dim sKey As String: sKey = pattern & "&" & flags
-  If Not cache.exists(sKey) Then
-    'Call to [friend] init requires type information, can't use dict directly
-    Dim r As stdRegex
-    Set r = New stdRegex
-    Call r.protInit(pattern, flags)
+  With stdError.getSentry("stdRegex#Create", "pattern", pattern, "flags", flags)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    'Set cache
-    Set cache(sKey) = r
-  End If
-
-  'Return cached object
-  Set Create = cache(sKey)
+      If Not Me Is stdRegex Then
+        Call CriticalRaise("Constructor called on object not class")
+        Exit Function
+      End If
+      
+      'Cache regex objects for faster speed
+      Static cache As Object: If cache Is Nothing Then Set cache = CreateObject("Scripting.Dictionary")
+      Dim sKey As String: sKey = pattern & "&" & flags
+      If Not cache.exists(sKey) Then
+        'Call to [friend] init requires type information, can't use dict directly
+        Dim r As stdRegex
+        Set r = New stdRegex
+        Call r.protInit(pattern, flags)
+        
+        'Set cache
+        Set cache(sKey) = r
+      End If
+    
+      'Return cached object
+      Set Create = cache(sKey)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 
@@ -140,89 +148,97 @@ End Function
 'obj.protInit("A\d+","i")
 '```
 Friend Sub protInit(ByVal pattern As String, ByVal flags As String)
-  If Me Is stdRegex Then
-    CriticalRaise ("Cannot run init on class")
+  With stdError.getSentry("stdRegex#protInit", "pattern", pattern, "flags", flags)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Me Is stdRegex Then
+        CriticalRaise ("Cannot run init on class")
+        Exit Sub
+      End If
+      
+      This.pattern = pattern
+      This.flags = flags
+    
+      'Named regexp used to detect capturing groups and named capturing groups
+      'Captures all capturing groups. All capturing groups with a name has a subcapturing group containing the name.
+      'This is used to distribute names across the submatches captured across the regular expression.
+      'Not the regex used here has to ignore all non-capturing groups. E.G. (?:...), (?!...), (?=...), (?<=...), (?<!...)
+      'In theory must also not match a (\\)*\(
+      Static NamesMatcher As Object
+      If NamesMatcher Is Nothing Then
+        Set NamesMatcher = CreateObject("VBScript.RegExp")
+        NamesMatcher.pattern = "\((?!(?:\?:|\?!|\?=|\?<=|\?<!))(?:\?\<(\w+?)\>)?"  'SaveEscape("(")  -->  match regex --> LoadEscape("(")
+        NamesMatcher.Global = True
+      End If
+      
+      'Names replacer is used to strip the name syntax from the regular expression before it's injected into VBScript.Regexp.
+      Static NamesReplacer As Object
+      If NamesReplacer Is Nothing Then
+        Set NamesReplacer = CreateObject("VBScript.Regexp")
+        NamesReplacer.pattern = "\((?!(?:\?:|\?!|\?=|\?<=|\?<!))(?:\?\<(\w+?)\>)?"  'SaveEscape("(")  -->  Replace regex with "(" --> LoadEscape("(")
+        NamesReplacer.Global = True
+      End If
+    
+      'Ignore White Space option (x) will ignore all undeclared whitespace. It also makes # a comment
+      'i.e. `/hello world\ and stuff #this is a comment/` --> `/helloworld andstuff/`
+      Static OptionIgnoreWhiteSpace As Object
+      If OptionIgnoreWhiteSpace Is Nothing Then
+        Set OptionIgnoreWhiteSpace = CreateObject("VBScript.RegExp")
+        OptionIgnoreWhiteSpace.pattern = " +"                               'SaveEscape(" ")  -->  Replace " +" with "" --> LoadEscape(" ")
+        OptionIgnoreWhiteSpace.Global = True
+      End If
+      
+      'Non standard option to allow for the injection of comments into the end of regex strings using #.* under option c
+      Static OptionIgnoreComment As Object
+      If OptionIgnoreComment Is Nothing Then
+        Set OptionIgnoreComment = CreateObject("VBScript.RegExp")
+        OptionIgnoreComment.pattern = "#.*"                                'SaveEscape("#")  -->  Replace "#.*" with "" --> LoadEscape("#")
+        OptionIgnoreComment.Global = True
+      End If
+    
+      'SingleLineMode (s) forces period (.) to match every character (instead of every character apart from `\n`).
+      'With this regex you can do:            OptionSingleLineMode.replace(sRegex,"$1(?:.|\s)")
+      'to inject the new regex characters into place.
+      Static OptionSingleLineMode As Object
+      If OptionSingleLineMode Is Nothing Then
+        Set OptionSingleLineMode = CreateObject("VBScript.RegExp")
+        OptionSingleLineMode.pattern = "(?<!\\)((?:\\\\)*)\."             'SaveEscape(".")  -->  Replace "." with "(?:.|\s)" --> LoadEscape(".")
+        OptionSingleLineMode.Global = True
+      End If
+    
+      'Create dictionary of names in the regex.
+      Set This.namesDict = NamesMatcher.Execute(SaveEscape(This.pattern, "("))
+      
+      
+      'Initialise p_regex
+      Set This.regex = CreateObject("VBScript.RegExp")
+      This.regex.pattern = LoadEscape(NamesReplacer.Replace(SaveEscape(This.pattern, "("), "("), "(")
+    
+      'Process regex options
+      Dim i As Integer
+      For i = 1 To Len(flags)
+        Select Case Mid(flags, i, 1)
+          Case "i"
+            This.regex.ignoreCase = True
+          Case "g"
+            This.regex.Global = True
+          Case "m"
+            This.regex.MultiLine = True
+          Case "x"
+            This.regex.pattern = LoadEscape(OptionIgnoreWhiteSpace.Replace(SaveEscape(This.regex.pattern, " "), ""), " ")
+          Case "c"
+            This.regex.pattern = LoadEscape(OptionIgnoreComment.Replace(SaveEscape(This.regex.pattern, "#"), ""), "#")
+          Case "s"
+            This.regex.pattern = LoadEscape(OptionSingleLineMode.Replace(SaveEscape(This.regex.pattern, "."), "(?:.|\s)"), ".")
+        End Select
+      Next
+    
+      This.initialised = True
+    
     Exit Sub
-  End If
-  
-  This.pattern = pattern
-  This.flags = flags
-
-  'Named regexp used to detect capturing groups and named capturing groups
-  'Captures all capturing groups. All capturing groups with a name has a subcapturing group containing the name.
-  'This is used to distribute names across the submatches captured across the regular expression.
-  'Not the regex used here has to ignore all non-capturing groups. E.G. (?:...), (?!...), (?=...), (?<=...), (?<!...)
-  'In theory must also not match a (\\)*\(
-  Static NamesMatcher As Object
-  If NamesMatcher Is Nothing Then
-    Set NamesMatcher = CreateObject("VBScript.RegExp")
-    NamesMatcher.pattern = "\((?!(?:\?:|\?!|\?=|\?<=|\?<!))(?:\?\<(\w+?)\>)?"  'SaveEscape("(")  -->  match regex --> LoadEscape("(")
-    NamesMatcher.Global = True
-  End If
-  
-  'Names replacer is used to strip the name syntax from the regular expression before it's injected into VBScript.Regexp.
-  Static NamesReplacer As Object
-  If NamesReplacer Is Nothing Then
-    Set NamesReplacer = CreateObject("VBScript.Regexp")
-    NamesReplacer.pattern = "\((?!(?:\?:|\?!|\?=|\?<=|\?<!))(?:\?\<(\w+?)\>)?"  'SaveEscape("(")  -->  Replace regex with "(" --> LoadEscape("(")
-    NamesReplacer.Global = True
-  End If
-
-  'Ignore White Space option (x) will ignore all undeclared whitespace. It also makes # a comment
-  'i.e. `/hello world\ and stuff #this is a comment/` --> `/helloworld andstuff/`
-  Static OptionIgnoreWhiteSpace As Object
-  If OptionIgnoreWhiteSpace Is Nothing Then
-    Set OptionIgnoreWhiteSpace = CreateObject("VBScript.RegExp")
-    OptionIgnoreWhiteSpace.pattern = " +"                               'SaveEscape(" ")  -->  Replace " +" with "" --> LoadEscape(" ")
-    OptionIgnoreWhiteSpace.Global = True
-  End If
-  
-  'Non standard option to allow for the injection of comments into the end of regex strings using #.* under option c
-  Static OptionIgnoreComment As Object
-  If OptionIgnoreComment Is Nothing Then
-    Set OptionIgnoreComment = CreateObject("VBScript.RegExp")
-    OptionIgnoreComment.pattern = "#.*"                                'SaveEscape("#")  -->  Replace "#.*" with "" --> LoadEscape("#")
-    OptionIgnoreComment.Global = True
-  End If
-
-  'SingleLineMode (s) forces period (.) to match every character (instead of every character apart from `\n`).
-  'With this regex you can do:            OptionSingleLineMode.replace(sRegex,"$1(?:.|\s)")
-  'to inject the new regex characters into place.
-  Static OptionSingleLineMode As Object
-  If OptionSingleLineMode Is Nothing Then
-    Set OptionSingleLineMode = CreateObject("VBScript.RegExp")
-    OptionSingleLineMode.pattern = "(?<!\\)((?:\\\\)*)\."             'SaveEscape(".")  -->  Replace "." with "(?:.|\s)" --> LoadEscape(".")
-    OptionSingleLineMode.Global = True
-  End If
-
-  'Create dictionary of names in the regex.
-  Set This.namesDict = NamesMatcher.Execute(SaveEscape(This.pattern, "("))
-  
-  
-  'Initialise p_regex
-  Set This.regex = CreateObject("VBScript.RegExp")
-  This.regex.pattern = LoadEscape(NamesReplacer.Replace(SaveEscape(This.pattern, "("), "("), "(")
-
-  'Process regex options
-  Dim i As Integer
-  For i = 1 To Len(flags)
-    Select Case Mid(flags, i, 1)
-      Case "i"
-        This.regex.ignoreCase = True
-      Case "g"
-        This.regex.Global = True
-      Case "m"
-        This.regex.MultiLine = True
-      Case "x"
-        This.regex.pattern = LoadEscape(OptionIgnoreWhiteSpace.Replace(SaveEscape(This.regex.pattern, " "), ""), " ")
-      Case "c"
-        This.regex.pattern = LoadEscape(OptionIgnoreComment.Replace(SaveEscape(This.regex.pattern, "#"), ""), "#")
-      Case "s"
-        This.regex.pattern = LoadEscape(OptionSingleLineMode.Replace(SaveEscape(This.regex.pattern, "."), "(?:.|\s)"), ".")
-    End Select
-  Next
-
-  This.initialised = True
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 
@@ -234,20 +250,36 @@ End Sub
 'Get/Set pattern for regex
 '@returns - Pattern for regex
 Public Property Get pattern() As String
-  If Me Is stdRegex Then
-    CriticalRaise ("Property called on class not object")
+  With stdError.getSentry("stdRegex#pattern[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Me Is stdRegex Then
+        CriticalRaise ("Property called on class not object")
+        Exit Property
+      End If
+    
+      pattern = This.pattern
+    
     Exit Property
-  End If
-
-  pattern = This.pattern
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 Public Property Let pattern(val As String)
-  If Me Is stdRegex Then
-    CriticalRaise ("Property called on class not object")
+  With stdError.getSentry("stdRegex#pattern[Let]", "val", val)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Me Is stdRegex Then
+        CriticalRaise ("Property called on class not object")
+        Exit Property
+      End If
+      
+      Call protInit(val, This.flags)
+    
     Exit Property
-  End If
-  
-  Call protInit(val, This.flags)
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 
@@ -255,20 +287,36 @@ End Property
 'Get/Set Flags for regex
 '@returns - Flags for regex
 Public Property Get flags() As String
-  If Me Is stdRegex Then
-    CriticalRaise ("Property called on class not object")
+  With stdError.getSentry("stdRegex#flags[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Me Is stdRegex Then
+        CriticalRaise ("Property called on class not object")
+        Exit Property
+      End If
+    
+      flags = This.flags
+    
     Exit Property
-  End If
-
-  flags = This.flags
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 Public Property Let flags(val As String)
-  If Me Is stdRegex Then
-    CriticalRaise ("Property called on class not object")
+  With stdError.getSentry("stdRegex#flags[Let]", "val", val)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Me Is stdRegex Then
+        CriticalRaise ("Property called on class not object")
+        Exit Property
+      End If
+    
+      Call protInit(This.pattern, val)
+    
     Exit Property
-  End If
-
-  Call protInit(This.pattern, val)
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 
@@ -284,12 +332,20 @@ End Property
 '```
 'The result is: `True`
 Public Function Test(ByVal sHaystack As String) As Boolean
-  If Me Is stdRegex Then
-    CriticalRaise ("Method called on class not object")
+  With stdError.getSentry("stdRegex#Test", "sHaystack", sHaystack)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Me Is stdRegex Then
+        CriticalRaise ("Method called on class not object")
+        Exit Function
+      End If
+      
+      Test = This.regex.Test(sHaystack)
+    
     Exit Function
-  End If
-  
-  Test = This.regex.Test(sHaystack)
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 
@@ -320,37 +376,45 @@ End Function
 '}
 '```
 Public Function Match(ByVal sHaystack As String) As Object
-  If Me Is stdRegex Then
-    CriticalRaise ("Method called on class not object")
-    Exit Function
-  End If
-  
-  'Execute regex on haystack provided
-  Dim oMatches As Object
-  Set oMatches = This.regex.Execute(sHaystack)
-  
-  Dim oRet As Object
-  If oMatches.Count <> 0 Then
-    'Create dictionary to store this match's data
-    Set oRet = CreateObject("Scripting.Dictionary")
-  
-    'Basic properties
-    oRet(0) = oMatches(0)
-    oRet("$COUNT") = oMatches(0).Submatches.Count
-    Set oRet("$RAW") = oMatches
-  
-    'Loop over submatches and apply to dict
-    Dim i As Long
-    For i = 1 To This.namesDict.Count
-      oRet(i) = oMatches(0).Submatches(i - 1)
-      If Not IsEmpty(oMatches(0).Submatches(i - 1)) Then
-        If Not IsEmpty(This.namesDict(i - 1).Submatches(0)) Then oRet(This.namesDict(i - 1).Submatches(0)) = oMatches(0).Submatches(i - 1)
+  With stdError.getSentry("stdRegex#Match", "sHaystack", sHaystack)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Me Is stdRegex Then
+        CriticalRaise ("Method called on class not object")
+        Exit Function
       End If
-    Next i
-  End If
-  
-  'Return data
-  Set Match = oRet
+      
+      'Execute regex on haystack provided
+      Dim oMatches As Object
+      Set oMatches = This.regex.Execute(sHaystack)
+      
+      Dim oRet As Object
+      If oMatches.Count <> 0 Then
+        'Create dictionary to store this match's data
+        Set oRet = CreateObject("Scripting.Dictionary")
+      
+        'Basic properties
+        oRet(0) = oMatches(0)
+        oRet("$COUNT") = oMatches(0).Submatches.Count
+        Set oRet("$RAW") = oMatches
+      
+        'Loop over submatches and apply to dict
+        Dim i As Long
+        For i = 1 To This.namesDict.Count
+          oRet(i) = oMatches(0).Submatches(i - 1)
+          If Not IsEmpty(oMatches(0).Submatches(i - 1)) Then
+            If Not IsEmpty(This.namesDict(i - 1).Submatches(0)) Then oRet(This.namesDict(i - 1).Submatches(0)) = oMatches(0).Submatches(i - 1)
+          End If
+        Next i
+      End If
+      
+      'Return data
+      Set Match = oRet
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 
@@ -378,52 +442,60 @@ End Function
 ']
 '```
 Public Function MatchAll(ByVal sHaystack As String) As Collection
-  If Me Is stdRegex Then
-    CriticalRaise ("Method called on class not object")
-    Exit Function
-  End If
-  
-  'Note: In order to match all, we need to ensure global is true, but will revert our changes afterwards.
-  Dim bOriginalGlobal As Boolean: bOriginalGlobal = This.regex.Global
-  This.regex.Global = True
-  
-  'Execute regex on haystack provided
-  Dim oMatches As Object
-  Set oMatches = This.regex.Execute(sHaystack)
-  
-  'Revert forced global
-  This.regex.Global = bOriginalGlobal
-  
-  'Create array to hold match data
-  Dim oRet As Collection
-  Set oRet = New Collection
-  
-  'Loop over all matches
-  Dim i As Long, j As Long
-  For i = 1 To oMatches.Count
-    'Create dictionary to store this match's data
-    Dim oDict As Object
-    Set oDict = CreateObject("Scripting.Dictionary")
-
-    'Basic properties
-    oDict(0) = oMatches(i - 1)
-    oDict("$COUNT") = oMatches(i - 1).Submatches.Count
-    Set oDict("$RAW") = oMatches
-
-    'Loop over submatches and apply to dict
-    For j = 1 To This.namesDict.Count
-      oDict(j) = oMatches(i - 1).Submatches(j - 1)
-      If Not IsEmpty(oMatches(i - 1).Submatches(j - 1)) Then
-        If Not IsEmpty(This.namesDict(j - 1).Submatches(0)) Then oDict(This.namesDict(j - 1).Submatches(0)) = oMatches(i - 1).Submatches(j - 1)
+  With stdError.getSentry("stdRegex#MatchAll", "sHaystack", sHaystack)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Me Is stdRegex Then
+        CriticalRaise ("Method called on class not object")
+        Exit Function
       End If
-    Next
-
-    'Push dictionary to array
-    Call oRet.Add(oDict)
-  Next
-
-  'Return data
-  Set MatchAll = oRet
+      
+      'Note: In order to match all, we need to ensure global is true, but will revert our changes afterwards.
+      Dim bOriginalGlobal As Boolean: bOriginalGlobal = This.regex.Global
+      This.regex.Global = True
+      
+      'Execute regex on haystack provided
+      Dim oMatches As Object
+      Set oMatches = This.regex.Execute(sHaystack)
+      
+      'Revert forced global
+      This.regex.Global = bOriginalGlobal
+      
+      'Create array to hold match data
+      Dim oRet As Collection
+      Set oRet = New Collection
+      
+      'Loop over all matches
+      Dim i As Long, j As Long
+      For i = 1 To oMatches.Count
+        'Create dictionary to store this match's data
+        Dim oDict As Object
+        Set oDict = CreateObject("Scripting.Dictionary")
+    
+        'Basic properties
+        oDict(0) = oMatches(i - 1)
+        oDict("$COUNT") = oMatches(i - 1).Submatches.Count
+        Set oDict("$RAW") = oMatches
+    
+        'Loop over submatches and apply to dict
+        For j = 1 To This.namesDict.Count
+          oDict(j) = oMatches(i - 1).Submatches(j - 1)
+          If Not IsEmpty(oMatches(i - 1).Submatches(j - 1)) Then
+            If Not IsEmpty(This.namesDict(j - 1).Submatches(0)) Then oDict(This.namesDict(j - 1).Submatches(0)) = oMatches(i - 1).Submatches(j - 1)
+          End If
+        Next
+    
+        'Push dictionary to array
+        Call oRet.Add(oDict)
+      Next
+    
+      'Return data
+      Set MatchAll = oRet
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 
@@ -453,24 +525,32 @@ End Function
 '62346-STZ9,01/05/1932,5
 '```
 Public Function Replace(ByVal sHaystack As String, ByVal sReplacer As String) As String
-  If Me Is stdRegex Then
-    CriticalRaise ("Method called on class not object")
-    Exit Function
-  End If
-  
-  'Replace names in sReplacer with indexed replacers ($1,$2,...)
-  Dim i As Long
-  For i = 1 To This.namesDict.Count
-    If Not IsEmpty(This.namesDict(i - 1).Submatches(0)) Then
-      Dim sName As String
-      sName = This.namesDict(i - 1).Submatches(0)
+  With stdError.getSentry("stdRegex#Replace", "sHaystack", sHaystack, "sReplacer", sReplacer)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Me Is stdRegex Then
+        CriticalRaise ("Method called on class not object")
+        Exit Function
+      End If
       
-      sReplacer = VBA.Replace(sReplacer, "$" & sName, "$" & i)
-    End If
-  Next
-
-  'Pass to vbscript regex handler and return
-  Replace = This.regex.Replace(sHaystack, sReplacer)
+      'Replace names in sReplacer with indexed replacers ($1,$2,...)
+      Dim i As Long
+      For i = 1 To This.namesDict.Count
+        If Not IsEmpty(This.namesDict(i - 1).Submatches(0)) Then
+          Dim sName As String
+          sName = This.namesDict(i - 1).Submatches(0)
+          
+          sReplacer = VBA.Replace(sReplacer, "$" & sName, "$" & i)
+        End If
+      Next
+    
+      'Pass to vbscript regex handler and return
+      Replace = This.regex.Replace(sHaystack, sReplacer)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 
@@ -496,24 +576,32 @@ End Function
 '62346-STZ9,01/05/1932,5
 '```
 Public Function List(ByVal sHaystack As String, ByVal sFormat As String) As String
-  If Me Is stdRegex Then
-    CriticalRaise ("Method called on class not object")
+  With stdError.getSentry("stdRegex#List", "sHaystack", sHaystack, "sFormat", sFormat)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Me Is stdRegex Then
+        CriticalRaise ("Method called on class not object")
+        Exit Function
+      End If
+    
+      'Get all matches
+      Dim matches As Collection
+      Set matches = MatchAll(sHaystack)
+      
+      'Loop over all matches and list
+      Dim match As Variant, j As Long, sList As String, sTmpFormat As String
+      For Each match In matches
+        'Concatenate to sList
+        sList = sList & FormatFromMatch(match, sFormat)
+      Next
+    
+      'Return sList
+      List = sList
+    
     Exit Function
-  End If
-
-  'Get all matches
-  Dim matches As Collection
-  Set matches = MatchAll(sHaystack)
-  
-  'Loop over all matches and list
-  Dim match As Variant, j As Long, sList As String, sTmpFormat As String
-  For Each match In matches
-    'Concatenate to sList
-    sList = sList & FormatFromMatch(match, sFormat)
-  Next
-
-  'Return sList
-  List = sList
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 
@@ -523,33 +611,41 @@ End Function
 '@param vFormats as Variant<Array<String>> - Array of formats to print into seperate columns. E.G. `Array("$id-$date","$detail")`
 '@returns Variant<Array[2d]<String>> - All matches as a 2d array. Useful especially for dumping matches to Excel.
 Public Function ListArr(ByVal sHaystack As String, ByVal vFormats As Variant) As Variant
-  If Me Is stdRegex Then
-    Call CriticalRaise("Method called on class not object")
+  With stdError.getSentry("stdRegex#ListArr", "sHaystack", sHaystack, "vFormats", vFormats)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Me Is stdRegex Then
+        Call CriticalRaise("Method called on class not object")
+        Exit Function
+      End If
+    
+      'Get all matches
+      Dim matches As Collection
+      Set matches = MatchAll(sHaystack)
+      
+      Dim numCols As Long: numCols = UBound(vFormats) - LBound(vFormats) + 1
+      
+      Dim v() As Variant
+      ReDim v(1 To matches.Count, 1 To numCols)
+    
+      'Loop over all matches
+      Dim match As Variant, j As Long, iRow As Long, iCol As Long
+      For Each match In matches
+        iRow = iRow + 1
+        iCol = 0
+        For j = LBound(vFormats) To UBound(vFormats)
+          iCol = iCol + 1
+          v(iRow, iCol) = FormatFromMatch(match, vFormats(j))
+        Next
+      Next
+    
+      'Return sList
+      ListArr = v
+    
     Exit Function
-  End If
-
-  'Get all matches
-  Dim matches As Collection
-  Set matches = MatchAll(sHaystack)
-  
-  Dim numCols As Long: numCols = UBound(vFormats) - LBound(vFormats) + 1
-  
-  Dim v() As Variant
-  ReDim v(1 To matches.Count, 1 To numCols)
-
-  'Loop over all matches
-  Dim match As Variant, j As Long, iRow As Long, iCol As Long
-  For Each match In matches
-    iRow = iRow + 1
-    iCol = 0
-    For j = LBound(vFormats) To UBound(vFormats)
-      iCol = iCol + 1
-      v(iRow, iCol) = FormatFromMatch(match, vFormats(j))
-    Next
-  Next
-
-  'Return sList
-  ListArr = v
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 
@@ -562,32 +658,40 @@ End Function
 '@param sFormat - Format to return data in. Indexed submatches to be extracted using $1, $2, ... . Named submatches to be extracted using $name syntax. \r\n will be 
 '@returns - String formatted with data from match object.
 Private Function FormatFromMatch(ByVal match As Object, ByVal sFormat As String) As String
-  'TODO: Make this more efficient, ideally we'd only loop through the format once
-
-  'Get keys of each match
-  Dim keys As Variant
-  keys = match.keys()
-
-  'Loop over default keys and make replacements
-  sFormat = VBA.Replace(sFormat, "$&", match(0))
-  sFormat = VBA.Replace(sFormat, "\\", "f934b47b-b799-4f52-9b4c-f170a82b52fe")
-  sFormat = VBA.Replace(sFormat, "\$", "bfde0637-8207-418d-9d34-68ba974e8110")
-  sFormat = VBA.Replace(sFormat, "\r", Chr(13))
-  sFormat = VBA.Replace(sFormat, "\n", Chr(10))
-  sFormat = VBA.Replace(sFormat, "f934b47b-b799-4f52-9b4c-f170a82b52fe", "\")
-
-  'Loop over remaining keys and make replacements
-  Dim j As Long
-  For j = 1 To UBound(keys)
-    Select Case keys(j)
-      Case "$RAW", "$COUNT"
-      Case Else
-        sFormat = VBA.Replace(sFormat, "$" & keys(j), match(keys(j)))
-    End Select
-  Next
-
-  sFormat = VBA.Replace(sFormat, "bfde0637-8207-418d-9d34-68ba974e8110", "$")
-  FormatFromMatch = sFormat
+  With stdError.getSentry("stdRegex#FormatFromMatch", "match", match, "sFormat", sFormat)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      'TODO: Make this more efficient, ideally we'd only loop through the format once
+    
+      'Get keys of each match
+      Dim keys As Variant
+      keys = match.keys()
+    
+      'Loop over default keys and make replacements
+      sFormat = VBA.Replace(sFormat, "$&", match(0))
+      sFormat = VBA.Replace(sFormat, "\\", "f934b47b-b799-4f52-9b4c-f170a82b52fe")
+      sFormat = VBA.Replace(sFormat, "\$", "bfde0637-8207-418d-9d34-68ba974e8110")
+      sFormat = VBA.Replace(sFormat, "\r", Chr(13))
+      sFormat = VBA.Replace(sFormat, "\n", Chr(10))
+      sFormat = VBA.Replace(sFormat, "f934b47b-b799-4f52-9b4c-f170a82b52fe", "\")
+    
+      'Loop over remaining keys and make replacements
+      Dim j As Long
+      For j = 1 To UBound(keys)
+        Select Case keys(j)
+          Case "$RAW", "$COUNT"
+          Case Else
+            sFormat = VBA.Replace(sFormat, "$" & keys(j), match(keys(j)))
+        End Select
+      Next
+    
+      sFormat = VBA.Replace(sFormat, "bfde0637-8207-418d-9d34-68ba974e8110", "$")
+      FormatFromMatch = sFormat
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 
@@ -597,7 +701,15 @@ End Function
 '@param sChar - Char to escape
 '@returns - Escaped string
 Private Function SaveEscape(ByVal sHaystack As String, ByVal sChar As String) As String
-  SaveEscape = VBA.Replace(VBA.Replace(sHaystack, "\\", ";f934b47b-b799-4f52-9b4c-f170a82b52fe;"), "\" & sChar, ";6632df85-1730-4159-a742-5b0c8c526ab8;")
+  With stdError.getSentry("stdRegex#SaveEscape", "sHaystack", sHaystack, "sChar", sChar)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      SaveEscape = VBA.Replace(VBA.Replace(sHaystack, "\\", ";f934b47b-b799-4f52-9b4c-f170a82b52fe;"), "\" & sChar, ";6632df85-1730-4159-a742-5b0c8c526ab8;")
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Convert a string with escaped chars to those without escaped chars
@@ -605,15 +717,36 @@ End Function
 '@param sChar - Char to un-escape
 '@returns - Unescaped string
 Private Function LoadEscape(ByVal sHaystack As String, ByVal sChar As String) As String
-  LoadEscape = VBA.Replace(VBA.Replace(sHaystack, ";f934b47b-b799-4f52-9b4c-f170a82b52fe;", "\\"), ";6632df85-1730-4159-a742-5b0c8c526ab8;", "\" & sChar)
+  With stdError.getSentry("stdRegex#LoadEscape", "sHaystack", sHaystack, "sChar", sChar)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      LoadEscape = VBA.Replace(VBA.Replace(sHaystack, ";f934b47b-b799-4f52-9b4c-f170a82b52fe;", "\\"), ";6632df85-1730-4159-a742-5b0c8c526ab8;", "\" & sChar)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Raise an error with the class name as the source
 '@param sMessage - Error message
 Private Sub CriticalRaise(ByVal sMessage As String)
-  If IsObject(stdError) Then
-    Call stdError.Raise(sMessage, "stdRegex")
-  Else
-    Call Err.Raise(1, "stdRegex", sMessage)
-  End If
+  With stdError.getSentry("stdRegex#CriticalRaise", "sMessage", sMessage)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If IsObject(stdError) Then
+        Call stdError.Raise(sMessage, "stdRegex")
+      Else
+        Call Err_Raise(1, "stdRegex", sMessage)
+      End If
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
+End Sub
+
+
+Private Sub Err_Raise(ByVal number as Long, Optional ByVal source as string = "", Optional ByVal description as string = "")
+  Call stdError.Raise(description)
 End Sub
