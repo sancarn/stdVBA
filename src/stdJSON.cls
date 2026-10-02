@@ -593,11 +593,12 @@ Private Function simpleStringify(ByVal value As Variant) As String
       simpleStringify = value
     Case vbDouble, vbSingle
       'Handle different locales where "." is not the decimal separator
-      Dim intPart As Long: intPart = Fix(value)
-      If value - intPart = 0 Then
+      Dim sIntPart As String: sIntPart = Fix(value)
+      Dim fIntPart as Double: fIntPart = Fix(value)
+      If value - fIntPart = 0 Then
         simpleStringify = value
       Else
-        simpleStringify = intPart & "." & Mid(CStr(value - intPart), IIf(value < 0, 4, 3))
+        simpleStringify = sIntPart & "." & Mid(CStr(value - fIntPart), IIf(value < 0, 4, 3))
       End If
     Case Else
       If IsArray(value) Then
