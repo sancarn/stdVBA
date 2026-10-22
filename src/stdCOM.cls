@@ -575,8 +575,16 @@ Private This As TThis
 '@param obj - Object to create raw COM object from
 '@returns - A wrapper around a raw COM object
 Public Function Create(ByRef obj As IUnknown) As stdCOM
-  Set Create = New stdCOM
-  Call Create.protInitFromObject(obj)
+  With stdError.getSentry("stdCOM#Create", "obj", obj)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Set Create = New stdCOM
+      Call Create.protInitFromObject(obj)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Create from a pointer
@@ -587,12 +595,20 @@ End Function
 '@remark Specifically this function reuires a `*Interface` pointer. E.G. `*IUnknown`/`*IDispatch`/`*ITypeInfo`. If your DLL function provides a `[out] **Interface` object the
 'typical method is to pass in a varptr to the dll function as follows `Call SomeDLLCall(VarPtr(myPointer)): ... later ...: stdCOM.CreateFromPtr(myPointer)`
 #If VBA7 Then
-  Public Function CreateFromPtr(ByVal ptr As LongPtr, Optional ByVal bAddRef As Boolean = True) As stdCOM
+Public Function CreateFromPtr(ByVal ptr As LongPtr, Optional ByVal bAddRef As Boolean = True) As stdCOM
 #Else
   Public Function CreateFromPtr(ByVal ptr As Long, Optional ByVal bAddRef As Boolean = True) As stdCOM
 #End If
-  Set CreateFromPtr = New stdCOM
-  Call CreateFromPtr.protInitFromPtr(ptr, bAddRef)
+  With stdError.getSentry("stdCOM#CreateFromPtr", "ptr", ptr, "bAddRef", bAddRef)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Set CreateFromPtr = New stdCOM
+      Call CreateFromPtr.protInitFromPtr(ptr, bAddRef)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Create `stdCOM` objects from existing objects in the RunningObjectTable (ROT)
@@ -601,57 +617,65 @@ End Function
 '@remark This function is heavily inspired off code provided by `Jaafar Tribak`
 '@devNote stdCOM objects will auto-release when not needed
 Public Function CreateFromActiveObjects() As Collection
-  #If VBA7 Then
-    Dim pROT As LongPtr, pBindCtx As LongPtr, pEnumMoniker As LongPtr, pMoniker As LongPtr, pStr As LongPtr, pMonikerObject As LongPtr
-  #Else
-    Dim pROT As Long, pBindCtx As Long, pEnumMoniker As Long, pMoniker As Long, pStr As Long, pMonikerObject As Long
-  #End If
-  
-  Dim ret As Collection: Set ret = New Collection 'Collection to return
-  If CLng(GetRunningObjectTable(0, pROT)) <> S_OK Then Exit Function                               '*IRunningObjectTable
-  If CLng(CreateBindCtx(0, pBindCtx)) <> S_OK Then Exit Function                                   '*IBindCtx
-  Dim CTX As stdCOM: Set CTX = stdCOM.CreateFromPtr(pBindCtx)                                      'stdCOM<IBindCtx>
-  Dim ROT As stdCOM: Set ROT = stdCOM.CreateFromPtr(pROT).QueryKnownInterface(IRunningObjectTable) 'stdCOM<IRunningObjectTable>
-  Call ROT.CallVT(EIRunningObjectTable.EnumRunning, vbLong, VarPtr(pEnumMoniker))                  '*IEnumMoniker
-  Dim e As stdCOM: Set e = stdCOM.CreateFromPtr(pEnumMoniker)                                      'stdCOM<IEnumMoniker>
-  'Dim e As stdCOM: Set e = ROT.CallVTW(EIRunningObjectTable.EnumRunning, vbLong, Null)            'stdCOM<IEnumMoniker>
-  
-  'Enumerate ROT
-  Dim nCount As Long: nCount = 1&
-  Dim nCountFetched As Long: nCountFetched = 1& 'Note: This has to be set else a crash occurs
-  Do While e.CallVT(EIEnumMoniker.Nextt, vbLong, nCount, VarPtr(pMoniker), VarPtr(nCountFetched)) = S_OK     '*IMoniker
-    'Note: This check is required, in some instances (still not certain when specifically) S_OK is returned, despite `nCountFetched` holding `0` and `nCount` holding `1`
-    If nCountFetched = 0 Then Exit Do
-
-    Dim moniker As stdCOM: Set moniker = stdCOM.CreateFromPtr(pMoniker)                                   'stdCOM<IMoniker>
-
-    'Get DisplayName and Object
-    Dim sName As String: If moniker.CallVT(EIMoniker.GetDisplayName, vbLong, VarPtr(pBindCtx), VarPtr(pMoniker), VarPtr(pStr)) = S_OK Then _
-        sName = GetStrFromPtrW(pStr)
-    Call ROT.CallVT(EIRunningObjectTable.GetObject_, vbLong, pMoniker, VarPtr(pMonikerObject))                          '*Interface
-    Dim obj As stdCOM: Set obj = stdCOM.CreateFromPtr(pMonikerObject)                                                  'stdCOM<Interface>
+  With stdError.getSentry("stdCOM#CreateFromActiveObjects")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    'Get ProgID from PathName
-    Dim CLSID As GUID: CLSID.Data1 = 0: CLSID.Data2 = 0: CLSID.Data3 = 0: Erase CLSID.Data4
-    Dim ProgID As String: ProgID = ""
-    If sName Like "!{*}" Then
-      Dim tCLSID As String: tCLSID = Mid(sName, 2)
-      Call IIDFromString(StrPtr(tCLSID), CLSID)
-      If ProgIDFromCLSID(CLSID, VarPtr(pStr)) = S_OK Then
-        ProgID = GetStrFromPtrW(pStr)
-      End If
-    End If
+      #If VBA7 Then
+        Dim pROT As LongPtr, pBindCtx As LongPtr, pEnumMoniker As LongPtr, pMoniker As LongPtr, pStr As LongPtr, pMonikerObject As LongPtr
+      #Else
+        Dim pROT As Long, pBindCtx As Long, pEnumMoniker As Long, pMoniker As Long, pStr As Long, pMonikerObject As Long
+      #End If
+      
+      Dim ret As Collection: Set ret = New Collection 'Collection to return
+      If CLng(GetRunningObjectTable(0, pROT)) <> S_OK Then Exit Function                               '*IRunningObjectTable
+      If CLng(CreateBindCtx(0, pBindCtx)) <> S_OK Then Exit Function                                   '*IBindCtx
+      Dim CTX As stdCOM: Set CTX = stdCOM.CreateFromPtr(pBindCtx)                                      'stdCOM<IBindCtx>
+      Dim ROT As stdCOM: Set ROT = stdCOM.CreateFromPtr(pROT).QueryKnownInterface(IRunningObjectTable) 'stdCOM<IRunningObjectTable>
+      Call ROT.CallVT(EIRunningObjectTable.EnumRunning, vbLong, VarPtr(pEnumMoniker))                  '*IEnumMoniker
+      Dim e As stdCOM: Set e = stdCOM.CreateFromPtr(pEnumMoniker)                                      'stdCOM<IEnumMoniker>
+      'Dim e As stdCOM: Set e = ROT.CallVTW(EIRunningObjectTable.EnumRunning, vbLong, Null)            'stdCOM<IEnumMoniker>
+      
+      'Enumerate ROT
+      Dim nCount As Long: nCount = 1&
+      Dim nCountFetched As Long: nCountFetched = 1& 'Note: This has to be set else a crash occurs
+      Do While e.CallVT(EIEnumMoniker.Nextt, vbLong, nCount, VarPtr(pMoniker), VarPtr(nCountFetched)) = S_OK     '*IMoniker
+        'Note: This check is required, in some instances (still not certain when specifically) S_OK is returned, despite `nCountFetched` holding `0` and `nCount` holding `1`
+        If nCountFetched = 0 Then Exit Do
     
-    'Wrap return value in dictionary for easy enumeration with stdLambda
-    Dim oDict As Object: Set oDict = CreateObject("Scripting.Dictionary")
-    oDict("Name") = sName
-    oDict("Type") = TypeName(obj.Object)
-    oDict("ProgID") = ProgID
-    Set oDict("COM") = obj
-    ret.Add oDict
-  Loop
-  
-  Set CreateFromActiveObjects = ret
+        Dim moniker As stdCOM: Set moniker = stdCOM.CreateFromPtr(pMoniker)                                   'stdCOM<IMoniker>
+    
+        'Get DisplayName and Object
+        Dim sName As String: If moniker.CallVT(EIMoniker.GetDisplayName, vbLong, VarPtr(pBindCtx), VarPtr(pMoniker), VarPtr(pStr)) = S_OK Then _
+            sName = GetStrFromPtrW(pStr)
+        Call ROT.CallVT(EIRunningObjectTable.GetObject_, vbLong, pMoniker, VarPtr(pMonikerObject))                          '*Interface
+        Dim obj As stdCOM: Set obj = stdCOM.CreateFromPtr(pMonikerObject)                                                  'stdCOM<Interface>
+        
+        'Get ProgID from PathName
+        Dim CLSID As GUID: CLSID.Data1 = 0: CLSID.Data2 = 0: CLSID.Data3 = 0: Erase CLSID.Data4
+        Dim ProgID As String: ProgID = ""
+        If sName Like "!{*}" Then
+          Dim tCLSID As String: tCLSID = Mid(sName, 2)
+          Call IIDFromString(StrPtr(tCLSID), CLSID)
+          If ProgIDFromCLSID(CLSID, VarPtr(pStr)) = S_OK Then
+            ProgID = GetStrFromPtrW(pStr)
+          End If
+        End If
+        
+        'Wrap return value in dictionary for easy enumeration with stdLambda
+        Dim oDict As Object: Set oDict = CreateObject("Scripting.Dictionary")
+        oDict("Name") = sName
+        oDict("Type") = TypeName(obj.Object)
+        oDict("ProgID") = ProgID
+        Set oDict("COM") = obj
+        ret.Add oDict
+      Loop
+      
+      Set CreateFromActiveObjects = ret
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Create `stdCOM` object from WinRT Activatable ClassID.
@@ -662,18 +686,26 @@ End Function
 'stdCOM.CreateFromWinRTClassID("Windows.Storage.Pickers.FolderPicker")
 '```
 Public Function CreateFromWinRTClassID(ByVal sActivatableClassId As String) As stdCOM
-  Dim hString As LongPtr
-  If WindowsCreateString(StrPtr(sActivatableClassId), Len(sActivatableClassId), hString) <> S_OK Then Err.Raise 1, "stdCOM::CreateFromWinRTClassID", "Cannot create HSTRING"
-  If hString = NULL_PTR Then Err.Raise 1, "stdCOM::CreateFromWinRTClassID", "Cannot create HSTRING"
-
-  'Obtain stdCOM object
-  Dim pIInspectable As LongPtr
-  If RoActivateInstance(hString, pIInspectable) <> S_OK Then Err.Raise 1, "stdCOM::CreateFromWinRTClassID", "Cannot activate class ID"
-  If pIInspectable = 0 Then Err.Raise 1, "stdCOM::CreateFromWinRTClassID", "Cannot activate class ID"
-  Set CreateFromWinRTClassID = CreateFromPtr(pIInspectable)
-
-  'Delete string
-  Call WindowsDeleteString(hString)
+  With stdError.getSentry("stdCOM#CreateFromWinRTClassID", "sActivatableClassId", sActivatableClassId)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim hString As LongPtr
+      If WindowsCreateString(StrPtr(sActivatableClassId), Len(sActivatableClassId), hString) <> S_OK Then Err_Raise 1, "stdCOM::CreateFromWinRTClassID", "Cannot create HSTRING"
+      If hString = NULL_PTR Then Err_Raise 1, "stdCOM::CreateFromWinRTClassID", "Cannot create HSTRING"
+    
+      'Obtain stdCOM object
+      Dim pIInspectable As LongPtr
+      If RoActivateInstance(hString, pIInspectable) <> S_OK Then Err_Raise 1, "stdCOM::CreateFromWinRTClassID", "Cannot activate class ID"
+      If pIInspectable = 0 Then Err_Raise 1, "stdCOM::CreateFromWinRTClassID", "Cannot activate class ID"
+      Set CreateFromWinRTClassID = CreateFromPtr(pIInspectable)
+    
+      'Delete string
+      Call WindowsDeleteString(hString)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 
@@ -686,14 +718,22 @@ End Function
 '  stdCOM.CreateFromClassAndIID("{FF48DBA4-60EF-4201-AA87-54103EEF594E}","{30CBE57D-D9D0-452A-AB13-7AC5AC4825EE}") 'IUIAutomation
 '```
 Public Function CreateFromClassAndIID(ByVal sClassID As String, Optional ByVal sIID As String = "{00020400-0000-0000-C000-000000000046}") As stdCOM
-  Dim clsid As GUID: If IIDFromString(StrPtr(sClassID), clsid) <> S_OK Then Err.Raise 1, "stdCOM::CreateFromClassAndIID", "Cannot retrieve CLSID from String."
-  Dim iid As GUID: If IIDFromString(StrPtr(sIID), iid) <> S_OK Then Err.Raise 1, "stdCOM::CreateFromClassAndIID", "Cannot retrieve IID from String."
-  Const CLSCTX_INPROC_SERVER = &H1
-
-  Dim pIUnknown As LongPtr
-  If CoCreateInstance(clsid, NULL_PTR, CLSCTX_INPROC_SERVER, iid, pIUnknown) <> S_OK Then Err.Raise 1, "stdCOM::CreateFromClassAndIID", "Cannot create object from CLSID and IID."
-  
-  Set CreateFromClassAndIID = CreateFromPtr(pIUnknown)
+  With stdError.getSentry("stdCOM#CreateFromClassAndIID", "sClassID", sClassID, "sIID", sIID)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim clsid As GUID: If IIDFromString(StrPtr(sClassID), clsid) <> S_OK Then Err_Raise 1, "stdCOM::CreateFromClassAndIID", "Cannot retrieve CLSID from String."
+      Dim iid As GUID: If IIDFromString(StrPtr(sIID), iid) <> S_OK Then Err_Raise 1, "stdCOM::CreateFromClassAndIID", "Cannot retrieve IID from String."
+      Const CLSCTX_INPROC_SERVER = &H1
+    
+      Dim pIUnknown As LongPtr
+      If CoCreateInstance(clsid, NULL_PTR, CLSCTX_INPROC_SERVER, iid, pIUnknown) <> S_OK Then Err_Raise 1, "stdCOM::CreateFromClassAndIID", "Cannot create object from CLSID and IID."
+      
+      Set CreateFromClassAndIID = CreateFromPtr(pIUnknown)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Create a `stdCOM` object from a property store path
@@ -706,14 +746,22 @@ End Function
 'Dim p as stdCOM: set p = stdCOM.CreatePropertyStoreFromFile("C:\my\files\song.mp3", EPropertyStoreFlags.GPS_READWRITE Or EPropertyStoreFlags.GPS_OPENSLOWITEM)
 '```
 Public Function CreatePropertyStoreFromFile(ByVal sPath As String, Optional flags As EPropertyStoreFlags = GPS_READWRITE Or GPS_OPENSLOWITEM) As stdCOM
-  Const IID_PropertyStore = "{886D8EEB-8CF2-4446-8D02-CDBA1DBDCF99}"
-  Dim clsid As GUID: If IIDFromString(StrPtr(IID_PropertyStore), clsid) <> S_OK Then Err.Raise 1, "stdCOM::CreateFromPropertyStore", "Cannot retrieve IID from String."
-  Dim pIUnknown As LongPtr
-  If SHGetPropertyStoreFromParsingName(StrPtr(sPath), ByVal NULL_PTR, flags, clsid, pIUnknown) = S_OK Then
-    Set CreatePropertyStoreFromFile = CreateFromPtr(pIUnknown, false)
-  Else
-    Err.Raise 1, "stdCOM::CreatePropertyStoreFromFile", "Cannot create object from path."
-  End If
+  With stdError.getSentry("stdCOM#CreatePropertyStoreFromFile", "sPath", sPath, "flags", flags)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Const IID_PropertyStore = "{886D8EEB-8CF2-4446-8D02-CDBA1DBDCF99}"
+      Dim clsid As GUID: If IIDFromString(StrPtr(IID_PropertyStore), clsid) <> S_OK Then Err_Raise 1, "stdCOM::CreateFromPropertyStore", "Cannot retrieve IID from String."
+      Dim pIUnknown As LongPtr
+      If SHGetPropertyStoreFromParsingName(StrPtr(sPath), ByVal NULL_PTR, flags, clsid, pIUnknown) = S_OK Then
+        Set CreatePropertyStoreFromFile = CreateFromPtr(pIUnknown, false)
+      Else
+        Err_Raise 1, "stdCOM::CreatePropertyStoreFromFile", "Cannot create object from path."
+      End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 '#################################
@@ -729,11 +777,19 @@ End Function
 'stdCOM.CreateFromPtr(ObjPtr(Application)).Object.Name
 '```
 Public Property Get Object() As IUnknown
-  If This.Meta Is Nothing Then
-    Set Object = Deref(This.ObjPtr)
-  Else
-    Set Object = This.Meta
-  End If
+  With stdError.getSentry("stdCOM#Object[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If This.Meta Is Nothing Then
+        Set Object = Deref(This.ObjPtr)
+      Else
+        Set Object = This.Meta
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Obtain raw object from stdCOM wrapper
@@ -746,25 +802,41 @@ End Property
 '```
 '@throws {...} Unsupported interface IDispatch
 Public Property Get AsObject() As Object
-  If This.Meta Is Nothing Then
-    Set AsObject = Deref(This.ObjPtr)
-  Else
-    Set AsObject = This.Meta
-  End If
+  With stdError.getSentry("stdCOM#AsObject[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If This.Meta Is Nothing Then
+        Set AsObject = Deref(This.ObjPtr)
+      Else
+        Set AsObject = This.Meta
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Obtain pointer as LongPtr (VBA)/Long (VB6)
 '@returns - Pointer to object
 #If VBA7 Then
-  Public Property Get Pointer() As LongPtr
+Public Property Get Pointer() As LongPtr
 #Else
   Public Property Get Pointer() As Long
 #End If
-  If This.Meta Is Nothing Then
-    Pointer = This.ObjPtr
-  Else
-    Pointer = ObjPtr(This.Meta)
-  End If
+  With stdError.getSentry("stdCOM#Pointer[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If This.Meta Is Nothing Then
+        Pointer = This.ObjPtr
+      Else
+        Pointer = ObjPtr(This.Meta)
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Call `IUnknown::QueryInterface` on the object
@@ -778,36 +850,60 @@ End Property
 '  set typeInfo = com.unkQueryInterface("00020401-0000-0000-C000-000000000046")
 '```
 Public Function unkQueryInterface(ByVal sIID As String) As stdCOM
-  Dim IInterface As IUnknown
-  Dim tGUID As GUID
-  If IIDFromString(StrPtr(sIID), tGUID) = S_OK Then
-    Dim hResult As Long: hResult = CallVT(EIUnknown.QueryInterface, vbLong, VarPtr(tGUID.Data1), VarPtr(IInterface))
-    If hResult = S_OK Then
-      If IInterface Is Nothing Then
-        Set unkQueryInterface = Nothing
+  With stdError.getSentry("stdCOM#unkQueryInterface", "sIID", sIID)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim IInterface As IUnknown
+      Dim tGUID As GUID
+      If IIDFromString(StrPtr(sIID), tGUID) = S_OK Then
+        Dim hResult As Long: hResult = CallVT(EIUnknown.QueryInterface, vbLong, VarPtr(tGUID.Data1), VarPtr(IInterface))
+        If hResult = S_OK Then
+          If IInterface Is Nothing Then
+            Set unkQueryInterface = Nothing
+          Else
+            Set unkQueryInterface = stdCOM.Create(IInterface)
+          End If
+        ElseIf hResult = E_POINTER Then
+          Set unkQueryInterface = Nothing
+        ElseIf hResult = E_NOINTERFACE Then
+          Err_Raise E_NOINTERFACE, "stdCOM<IUnknown>#unkQueryInterface", "Interface not implemented."
+        Else
+          Err_Raise hResult, "stdCOM<IUnknown>#unkQueryInterface", "Unknown error occurred."
+        End If
       Else
-        Set unkQueryInterface = stdCOM.Create(IInterface)
+        Err_Raise Err.LastDllError, "stdCOM<IUnknown>#unkQueryInterface", "Cannot retrieve IID from String."
       End If
-    ElseIf hResult = E_POINTER Then
-      Set unkQueryInterface = Nothing
-    ElseIf hResult = E_NOINTERFACE Then
-      Err.Raise E_NOINTERFACE, "stdCOM<IUnknown>#unkQueryInterface", "Interface not implemented."
-    Else
-      Err.Raise hResult, "stdCOM<IUnknown>#unkQueryInterface", "Unknown error occurred."
-    End If
-  Else
-    Err.Raise Err.LastDllError, "stdCOM<IUnknown>#unkQueryInterface", "Cannot retrieve IID from String."
-  End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Call `IUnknown::AddRef()`
 Public Sub unkAddRef()
-  CallVT EIUnknown.AddRef, vbLong
+  With stdError.getSentry("stdCOM#unkAddRef")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      CallVT EIUnknown.AddRef, vbLong
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Call IUnknown::Release()
 Public Sub unkRelease()
-  CallVT EIUnknown.Release, vbLong
+  With stdError.getSentry("stdCOM#unkRelease")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      CallVT EIUnknown.Release, vbLong
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Query the object for a known interface.
@@ -815,14 +911,22 @@ End Sub
 '@returns - interface queried.
 '@throws "Interface IID not known."
 Public Function QueryKnownInterface(ByVal interface As EKnownInterfaces) As stdCOM
-  Dim sIID As String: sIID = KnownIID(interface)
-  If sIID <> "" Then
-    Dim oRet As stdCOM: Set oRet = unkQueryInterface(sIID)
-    If Not oRet Is Nothing Then Call oRet.unkAddRef
-    Set QueryKnownInterface = oRet
-  Else
-    Err.Raise 1, "stdCOM::QueryKnownInterface", "Interface IID not known."
-  End If
+  With stdError.getSentry("stdCOM#QueryKnownInterface", "interface", interface)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim sIID As String: sIID = KnownIID(interface)
+      If sIID <> "" Then
+        Dim oRet As stdCOM: Set oRet = unkQueryInterface(sIID)
+        If Not oRet Is Nothing Then Call oRet.unkAddRef
+        Set QueryKnownInterface = oRet
+      Else
+        Err_Raise 1, "stdCOM::QueryKnownInterface", "Interface IID not known."
+      End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 
@@ -832,101 +936,125 @@ End Function
 'myCom.TypeInfo.CallVT(EITypeInfo.GetTypeAttr, vbLong, VarPtr(lPtr))
 '```
 Public Property Get TypeInfo() As stdCOM
-  On Error GoTo CannotQuery
-    Set TypeInfo = QueryKnownInterface(ITypeInfo)
-    If TypeInfo Is Nothing Then GoTo CannotQuery
+  With stdError.getSentry("stdCOM#TypeInfo[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      On Error GoTo CannotQuery
+        Set TypeInfo = QueryKnownInterface(ITypeInfo)
+        If TypeInfo Is Nothing Then GoTo CannotQuery
+        Exit Property
+    CannotQuery:
+      On Error GoTo UnknownError
+      'Attempt to query from IDispatch
+      With QueryKnownInterface(IDispatch)
+        Dim pTypeInfo As IUnknown
+        Dim hResult As Long: hResult = .CallVT(EIDispatch.GetTypeInfo, vbLongPtr, NULL_PTR, NULL_PTR, VarPtr(pTypeInfo))
+        If hResult <> S_OK Then Err_Raise hResult, "InterfaceInfo", "stdCOM::InterfaceInfo"
+        If Not pTypeInfo Is Nothing Then Set TypeInfo = stdCOM.Create(pTypeInfo)
+      End With
+      Exit Property
+    UnknownError:
+      Set TypeInfo = Nothing
+    
     Exit Property
-CannotQuery:
-  On Error GoTo UnknownError
-  'Attempt to query from IDispatch
-  With QueryKnownInterface(IDispatch)
-    Dim pTypeInfo As IUnknown
-    Dim hResult As Long: hResult = .CallVT(EIDispatch.GetTypeInfo, vbLongPtr, NULL_PTR, NULL_PTR, VarPtr(pTypeInfo))
-    If hResult <> S_OK Then Err.Raise hResult, "InterfaceInfo", "stdCOM::InterfaceInfo"
-    If Not pTypeInfo Is Nothing Then Set TypeInfo = stdCOM.Create(pTypeInfo)
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
   End With
-  Exit Property
-UnknownError:
-  Set TypeInfo = Nothing
 End Property
 
 'Obtain all properties and methods of an object via it's TypeInfo
 '@returns Collection<Array<string, vbCallType, long, long>> - Collection of arrays containing Method/Property name, CallType, Index in type info and DispID
 Public Property Get InterfaceInfo() As Collection
-  Static pInterfaceInfo As Collection
-  If pInterfaceInfo Is Nothing Then
-    'Wrap pTypeInfo in stdCOM
-    Dim oTypeInfo As stdCOM: Set oTypeInfo = TypeInfo()
-    If oTypeInfo Is Nothing Then
-        Set InterfaceInfo = New Collection
-        Exit Property
-    End If
+  With stdError.getSentry("stdCOM#InterfaceInfo[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    #If Win64 Then
-      Dim lPtr As LongLong
-      Const CountPos As Long = 12
-    #Else
-      Dim lPtr As Long
-      Const CountPos As Long = 11
-    #End If
-    'Get TypeAttribute
-    Call oTypeInfo.CallVT(EITypeInfo.GetTypeAttr, vbLong, VarPtr(lPtr))
-    
-    'Fix bug in VBA/VB6 engine - for some reason the next CopyMemory statement will set the following
-    'value to nothing
-    Dim vTmp: Set vTmp = oTypeInfo
-    
-    'Only fill the type size which is required, otherwise we'd use LENB(tTypeAttr)
-    Dim tTypeAttr As TYPEATTR
-    CopyMemory tTypeAttr, ByVal lPtr, LenB(tTypeAttr)
-    
-    'Release TypeAttribute
-    Call oTypeInfo.CallVT(EITypeInfo.ReleaseTypeAttr, vbLong, lPtr)
-    
-    Dim oRet As Collection
-    Set oRet = New Collection
-    
-    Dim tFuncDesc As FUNCDESC
-    Dim iFuncMemSize As Long: iFuncMemSize = 2 * PTRSIZE + 12: iFuncMemSize = LenB(tFuncDesc)
-    
-    'Enumerate over all members of typeinfo
-    Dim i As Long
-    For i = 0 To tTypeAttr.cFuncs - 1
-      lPtr = 0
-      Call oTypeInfo.CallVT(EITypeInfo.GetFuncDesc, vbLong, i, VarPtr(lPtr))
-      If lPtr <> 0 Then
-        CopyMemory tFuncDesc, ByVal lPtr, iFuncMemSize
-        Call oTypeInfo.CallVT(EITypeInfo.ReleaseFuncDesc, vbLong, lPtr)
+      Static pInterfaceInfo As Collection
+      If pInterfaceInfo Is Nothing Then
+        'Wrap pTypeInfo in stdCOM
+        Dim oTypeInfo As stdCOM: Set oTypeInfo = TypeInfo()
+        If oTypeInfo Is Nothing Then
+            Set InterfaceInfo = New Collection
+            Exit Property
+        End If
         
-        Dim sName As String: sName = vbNullString
-        Call oTypeInfo.CallVT(EITypeInfo.GetDocumentation, vbLong, tFuncDesc.memid, VarPtr(sName), NULL_PTR, NULL_PTR, NULL_PTR)
-        oRet.Add Array(sName, tFuncDesc.INVOKEKIND, i, tFuncDesc.memid)
+        #If Win64 Then
+          Dim lPtr As LongLong
+          Const CountPos As Long = 12
+        #Else
+          Dim lPtr As Long
+          Const CountPos As Long = 11
+        #End If
+        'Get TypeAttribute
+        Call oTypeInfo.CallVT(EITypeInfo.GetTypeAttr, vbLong, VarPtr(lPtr))
+        
+        'Fix bug in VBA/VB6 engine - for some reason the next CopyMemory statement will set the following
+        'value to nothing
+        Dim vTmp: Set vTmp = oTypeInfo
+        
+        'Only fill the type size which is required, otherwise we'd use LENB(tTypeAttr)
+        Dim tTypeAttr As TYPEATTR
+        CopyMemory tTypeAttr, ByVal lPtr, LenB(tTypeAttr)
+        
+        'Release TypeAttribute
+        Call oTypeInfo.CallVT(EITypeInfo.ReleaseTypeAttr, vbLong, lPtr)
+        
+        Dim oRet As Collection
+        Set oRet = New Collection
+        
+        Dim tFuncDesc As FUNCDESC
+        Dim iFuncMemSize As Long: iFuncMemSize = 2 * PTRSIZE + 12: iFuncMemSize = LenB(tFuncDesc)
+        
+        'Enumerate over all members of typeinfo
+        Dim i As Long
+        For i = 0 To tTypeAttr.cFuncs - 1
+          lPtr = 0
+          Call oTypeInfo.CallVT(EITypeInfo.GetFuncDesc, vbLong, i, VarPtr(lPtr))
+          If lPtr <> 0 Then
+            CopyMemory tFuncDesc, ByVal lPtr, iFuncMemSize
+            Call oTypeInfo.CallVT(EITypeInfo.ReleaseFuncDesc, vbLong, lPtr)
+            
+            Dim sName As String: sName = vbNullString
+            Call oTypeInfo.CallVT(EITypeInfo.GetDocumentation, vbLong, tFuncDesc.memid, VarPtr(sName), NULL_PTR, NULL_PTR, NULL_PTR)
+            oRet.Add Array(sName, tFuncDesc.INVOKEKIND, i, tFuncDesc.memid)
+          End If
+          If (i Mod 50) = 0 Then DoEvents
+        Next
+        Set pInterfaceInfo = oRet
       End If
-      If (i Mod 50) = 0 Then DoEvents
-    Next
-    Set pInterfaceInfo = oRet
-  End If
-  
-  Set InterfaceInfo = pInterfaceInfo
-  Exit Property
-UnknownError:
-  Set InterfaceInfo = Nothing
+      
+      Set InterfaceInfo = pInterfaceInfo
+      Exit Property
+    UnknownError:
+      Set InterfaceInfo = Nothing
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Obtain a collection of all method names on an object
 '@returns Collection<string> - Collection of method names
 Public Property Get Methods() As Collection
-  Static oMethods As Collection
-  If oMethods Is Nothing Then
-    Set oMethods = New Collection
-    Dim info As Variant
-    For Each info In InterfaceInfo
-      If info(1) = vbMethod Then
-        oMethods.Add info(0)
+  With stdError.getSentry("stdCOM#Methods[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Static oMethods As Collection
+      If oMethods Is Nothing Then
+        Set oMethods = New Collection
+        Dim info As Variant
+        For Each info In InterfaceInfo
+          If info(1) = vbMethod Then
+            oMethods.Add info(0)
+          End If
+        Next
       End If
-    Next
-  End If
-  Set Methods = oMethods
+      Set Methods = oMethods
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Obtain a collection of all property names on an object
@@ -938,50 +1066,82 @@ End Property
 '  next
 '```
 Public Property Get Properties(Optional bIncludeReadWriteType As Boolean = False) As Collection
-  Static oProperties As Collection
-  If oProperties Is Nothing Then
-    Set oProperties = New Collection
-    Dim info As Variant
-    For Each info In InterfaceInfo
-      If info(1) <> vbMethod Then
-          Dim sReadWritePrefix As String
-          If bIncludeReadWriteType Then
-            Select Case info(1)
-              Case vbGet: sReadWritePrefix = "GET"
-              Case vbLet: sReadWritePrefix = "LET"
-              Case vbSet: sReadWritePrefix = "SET"
-              Case Else: sReadWritePrefix = "UNK"
-            End Select
-            oProperties.Add sReadWritePrefix & " " & info(0)
-          Else
-            On Error Resume Next
-              oProperties.Add info(0), info(0)
-            On Error GoTo 0
+  With stdError.getSentry("stdCOM#Properties[Get]", "bIncludeReadWriteType", bIncludeReadWriteType)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Static oProperties As Collection
+      If oProperties Is Nothing Then
+        Set oProperties = New Collection
+        Dim info As Variant
+        For Each info In InterfaceInfo
+          If info(1) <> vbMethod Then
+              Dim sReadWritePrefix As String
+              If bIncludeReadWriteType Then
+                Select Case info(1)
+                  Case vbGet: sReadWritePrefix = "GET"
+                  Case vbLet: sReadWritePrefix = "LET"
+                  Case vbSet: sReadWritePrefix = "SET"
+                  Case Else: sReadWritePrefix = "UNK"
+                End Select
+                oProperties.Add sReadWritePrefix & " " & info(0)
+              Else
+                On Error Resume Next
+                  oProperties.Add info(0), info(0)
+                On Error GoTo stdErrorWrapper_ErrorOccurred
+              End If
           End If
+        Next
       End If
-    Next
-  End If
-
-  Set Properties = oProperties
+    
+      Set Properties = oProperties
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Register the object held in stdCOM to the ROT as a CLSID or ProgID
 '@param sCLSID - CLSID if required. If this arg isn't provided, a ProgID must be provided.
 '@param ProgID - ProgID if required. If this arg isn't provided, a CLSID must be provided.
 Public Sub RegisterActiveObject(Optional ByVal sCLSID As String = "", Optional ByVal ProgID As String = "")
-    Call RegisterActiveObjectEx(Object, This.RegisteredOLEInstance, sCLSID, ProgID)
+  With stdError.getSentry("stdCOM#RegisterActiveObject", "sCLSID", sCLSID, "ProgID", ProgID)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Call RegisterActiveObjectEx(Object, This.RegisteredOLEInstance, sCLSID, ProgID)
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Revoke the previously registered object
 Public Sub RevokeActiveObject()
-    Call RevokeActiveObjectEx(Object, This.RegisteredOLEInstance)
+  With stdError.getSentry("stdCOM#RevokeActiveObject")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Call RevokeActiveObjectEx(Object, This.RegisteredOLEInstance)
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Get the number of properties in the property store
 '@returns - The number of properties
 '@remark - `IPropertyStore` helper method.
 Public Function PropertyStore_GetCount() As Long
-  Call CallVt(EIPropertyStore.GetCount, vbLong, VarPtr(PropertyStore_GetCount))
+  With stdError.getSentry("stdCOM#PropertyStore_GetCount")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Call CallVt(EIPropertyStore.GetCount, vbLong, VarPtr(PropertyStore_GetCount))
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Get a property at a given index
@@ -989,7 +1149,15 @@ End Function
 '@returns - The property at the given index. Use `CopyMemory` to copy the data.
 '@remark - `IPropertyStore` helper method.
 Public Function PropertyStore_GetAt(ByVal index As Long) As LongPtr
-  Call CallVt(EIPropertyStore.GetAt, vbLong, VarPtr(index), VarPtr(PropertyStore_GetAt))
+  With stdError.getSentry("stdCOM#PropertyStore_GetAt", "index", index)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Call CallVt(EIPropertyStore.GetAt, vbLong, VarPtr(index), VarPtr(PropertyStore_GetAt))
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Get a property value
@@ -998,10 +1166,18 @@ End Function
 '@returns - The property value.
 '@remark - `IPropertyStore` helper method.
 Public Function PropertyStore_GetValue(ByVal formatID as string, ByVal propID as long) As Variant
-  Dim format as PropertyKey
-  Call IIDFromString(StrPtr(formatID), format.formatID)
-  format.propID = propID
-  Call CallVt(EIPropertyStore.GetValue, vbLong, VarPtr(format), VarPtr(PropertyStore_GetValue))
+  With stdError.getSentry("stdCOM#PropertyStore_GetValue", "formatID", formatID, "propID", propID)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim format as PropertyKey
+      Call IIDFromString(StrPtr(formatID), format.formatID)
+      format.propID = propID
+      Call CallVt(EIPropertyStore.GetValue, vbLong, VarPtr(format), VarPtr(PropertyStore_GetValue))
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Set a property value
@@ -1010,16 +1186,32 @@ End Function
 '@param value - The value to set the property to
 '@remark - `IPropertyStore` helper method.
 Public Sub PropertyStore_SetValue(ByVal formatID as string, ByVal propID as long, ByVal value as variant)
-  Dim format as PropertyKey
-  Call IIDFromString(StrPtr(formatID), format.formatID)
-  format.propID = propID
-  Call CallVt(EIPropertyStore.SetValue, vbLong, VarPtr(format), VarPtr(value))
+  With stdError.getSentry("stdCOM#PropertyStore_SetValue", "formatID", formatID, "propID", propID, "value", value)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim format as PropertyKey
+      Call IIDFromString(StrPtr(formatID), format.formatID)
+      format.propID = propID
+      Call CallVt(EIPropertyStore.SetValue, vbLong, VarPtr(format), VarPtr(value))
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Commit the changes to the property store
 '@remark - `IPropertyStore` helper method.
 Public Sub PropertyStore_Commit()
-  Call CallVt(EIPropertyStore.Commit, vbLong)
+  With stdError.getSentry("stdCOM#PropertyStore_Commit")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Call CallVt(EIPropertyStore.Commit, vbLong)
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 '############################
@@ -1035,43 +1227,51 @@ End Sub
 '@example ```vb
 '  Dim pITypeInfo As IUnknown
 '  Dim hResult As Long: hResult = com.CallVT(EIUnknown.QueryInterface, vbLong, VarPtr(tGUID.Data1), VarPtr(pITypeInfo))
-'  If hResult <> S_OK Then Err.Raise hResult, "InterfaceInfo", "stdCOM::InterfaceInfo"
+'  If hResult <> S_OK Then Err_Raise hResult, "InterfaceInfo", "stdCOM::InterfaceInfo"
 '```
 Public Function CallVT(ByVal VTableOffset As Long, ByVal ReturnType As VbVarType, ParamArray FunctionParameters() As Variant) As Variant
-    'Create array from params
-    Dim vParam() As Variant: vParam = FunctionParameters
-    Dim iParamCount As Long: iParamCount = UBound(vParam) - LBound(vParam) + 1
+  With stdError.getSentry("stdCOM#CallVT", "VTableOffset", VTableOffset, "ReturnType", ReturnType)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    'Create array of types and pointers to vars, for function call
-    #If VBA7 Then
-      Dim vPtr() As LongPtr
-    #Else
-      Dim vPtr() As Long
-    #End If
-    Dim vType() As Integer
-
-    'Populate array of pointers to params, and array of types for DispCallFunc
-    If iParamCount = 0 Then
-      ReDim vType(0 To 0)
-      ReDim vPtr(0 To 0)
-    Else
-      ReDim vType(0 To iParamCount - 1)
-      ReDim vPtr(0 To iParamCount - 1)
+        'Create array from params
+        Dim vParam() As Variant: vParam = FunctionParameters
+        Dim iParamCount As Long: iParamCount = UBound(vParam) - LBound(vParam) + 1
+        
+        'Create array of types and pointers to vars, for function call
+        #If VBA7 Then
+          Dim vPtr() As LongPtr
+        #Else
+          Dim vPtr() As Long
+        #End If
+        Dim vType() As Integer
     
-      Dim lIdx As Long
-      For lIdx = 0 To iParamCount - 1
-        vType(lIdx) = VarType(vParam(lIdx))
-        vPtr(lIdx) = VarPtr(vParam(lIdx))
-      Next
-    End If
+        'Populate array of pointers to params, and array of types for DispCallFunc
+        If iParamCount = 0 Then
+          ReDim vType(0 To 0)
+          ReDim vPtr(0 To 0)
+        Else
+          ReDim vType(0 To iParamCount - 1)
+          ReDim vPtr(0 To iParamCount - 1)
+        
+          Dim lIdx As Long
+          For lIdx = 0 To iParamCount - 1
+            vType(lIdx) = VarType(vParam(lIdx))
+            vPtr(lIdx) = VarPtr(vParam(lIdx))
+          Next
+        End If
+        
+        'Call function
+        Dim hResult As Long, vv as variant
+        hResult = DispCallFunc(This.ObjPtr, VTableOffset * PTRSIZE, CC_STDCALL, ReturnType, iParamCount, VarPtr(vType(0)), VarPtr(vPtr(0)), vv)
+        
+        If hResult < 0 Then
+            Err_Raise hResult, "DispCallFunc", "DispCallFunc - Unknown error occurred."
+        End If
     
-    'Call function
-    Dim hResult As Long, vv as variant
-    hResult = DispCallFunc(This.ObjPtr, VTableOffset * PTRSIZE, CC_STDCALL, ReturnType, iParamCount, VarPtr(vType(0)), VarPtr(vPtr(0)), vv)
-    
-    If hResult < 0 Then
-        Err.Raise hResult, "DispCallFunc", "DispCallFunc - Unknown error occurred."
-    End If
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 '*************
@@ -1081,8 +1281,16 @@ End Function
 '@protected
 '@param obj - Object to create raw COM object from
 Friend Sub protInitFromObject(ByVal obj As IUnknown)
-  This.ObjPtr = ObjPtr(obj)
-  Set This.Meta = obj
+  With stdError.getSentry("stdCOM#protInitFromObject", "obj", obj)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      This.ObjPtr = ObjPtr(obj)
+      Set This.Meta = obj
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Initialise from pointer to object
@@ -1090,19 +1298,35 @@ End Sub
 '@param ptr - Pointer to object
 '@param bAddRef - Whether to call `AddRef` on the object
 Friend Sub protInitFromPtr(ByVal ptr As LongPtr, Optional ByVal bAddRef As Boolean = True)
-  This.ObjPtr = ptr
-  if bAddRef then Call unkAddRef
+  With stdError.getSentry("stdCOM#protInitFromPtr", "ptr", ptr, "bAddRef", bAddRef)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      This.ObjPtr = ptr
+      if bAddRef then Call unkAddRef
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 '
 '@destructor
 Private Sub Class_Terminate()
-  'Revoke active objects
-  If This.RegisteredOLEInstance > 0 Then Call RevokeActiveObjectEx(Object(), This.RegisteredOLEInstance)
-  If This.RegisteredTimerOLEInstance > 0 Then Call RevokeActiveObjectEx(Me, This.RegisteredTimerOLEInstance)
-  
-  'Call unknown release (prevent memory leaks)
-  If This.Meta Is Nothing Then Call unkRelease
+  With stdError.getSentry("stdCOM#Class_Terminate")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      'Revoke active objects
+      If This.RegisteredOLEInstance > 0 Then Call RevokeActiveObjectEx(Object(), This.RegisteredOLEInstance)
+      If This.RegisteredTimerOLEInstance > 0 Then Call RevokeActiveObjectEx(Me, This.RegisteredTimerOLEInstance)
+      
+      'Call unknown release (prevent memory leaks)
+      If This.Meta Is Nothing Then Call unkRelease
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Register an object in the ROT
@@ -1111,150 +1335,190 @@ End Sub
 '@param sCLSID      - CLSID if required. If this arg isn't provided, a ProgID must be provided.
 '@param ProgID      - ProgID if required. If this arg isn't provided, a CLSID must be provided.
 Private Sub RegisterActiveObjectEx(obj As IUnknown, ByRef OLEInstance As Long, Optional ByVal sCLSID As String = "", Optional ByVal ProgID As String = "")
-    Const ACTIVEOBJECT_WEAK = 1
-
-    'Get clsid whether it be from CLSID string or ProgID
-    Dim clsid As GUID, result As Long
-    If ProgID <> "" Then
-        result = CLSIDFromProgID(StrPtr(ProgID), clsid)
-        If result <> S_OK Then
-          Select Case Hex(result)
-            Case "800401F3" 'CO_E_CLASSSTRING
-              Err.Raise 1, "", "The registered CLSID for the ProgID '" & ProgID & "' is invalid"
-            Case "80040151" 'REGDB_E_WRITEREGDB
-              Err.Raise 1, "", "An error occurred writing the CLSID to the registry. See Remarks https://docs.microsoft.com/en-us/windows/win32/api/combaseapi/nf-combaseapi-clsidfromprogid."
-          End Select
-        End If
-    ElseIf sCLSID <> "" Then
-        result = CLSIDFromString(StrPtr(sCLSID), clsid)
-        If result <> S_OK Then
-          Select Case Hex(result)
-            Case "800401F3" 'CO_E_CLASSSTRING
-              Err.Raise 1, "", "The CLSID was incorrectly formatted."
-            Case "80040154" 'REGDB_E_CLASSNOTREG
-              Err.Raise 1, "", "The CLSID corresponding to the class string was not found in the registry."
-            Case "80040150" 'REGDB_E_READREGDB
-              Err.Raise 1, "", "The registry could not be opened for reading."
-              
-          End Select
-        End If
-    Else
-        Err.Raise 7, "No CLSID or ProgId"
-    End If
+  With stdError.getSentry("stdCOM#RegisterActiveObjectEx", "obj", obj, "OLEInstance", OLEInstance, "sCLSID", sCLSID, "ProgID", ProgID)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    'Attempt to register object to ROT
-    If RegisterActiveObject32(obj, clsid, ACTIVEOBJECT_WEAK, OLEInstance) <> S_OK Then Err.Raise Err.LastDllError, "Object couldn't be registered"
+        Const ACTIVEOBJECT_WEAK = 1
+    
+        'Get clsid whether it be from CLSID string or ProgID
+        Dim clsid As GUID, result As Long
+        If ProgID <> "" Then
+            result = CLSIDFromProgID(StrPtr(ProgID), clsid)
+            If result <> S_OK Then
+              Select Case Hex(result)
+                Case "800401F3" 'CO_E_CLASSSTRING
+                  Err_Raise 1, "", "The registered CLSID for the ProgID '" & ProgID & "' is invalid"
+                Case "80040151" 'REGDB_E_WRITEREGDB
+                  Err_Raise 1, "", "An error occurred writing the CLSID to the registry. See Remarks https://docs.microsoft.com/en-us/windows/win32/api/combaseapi/nf-combaseapi-clsidfromprogid."
+              End Select
+            End If
+        ElseIf sCLSID <> "" Then
+            result = CLSIDFromString(StrPtr(sCLSID), clsid)
+            If result <> S_OK Then
+              Select Case Hex(result)
+                Case "800401F3" 'CO_E_CLASSSTRING
+                  Err_Raise 1, "", "The CLSID was incorrectly formatted."
+                Case "80040154" 'REGDB_E_CLASSNOTREG
+                  Err_Raise 1, "", "The CLSID corresponding to the class string was not found in the registry."
+                Case "80040150" 'REGDB_E_READREGDB
+                  Err_Raise 1, "", "The registry could not be opened for reading."
+                  
+              End Select
+            End If
+        Else
+            Err_Raise 7, "No CLSID or ProgId"
+        End If
+        
+        'Attempt to register object to ROT
+        If RegisterActiveObject32(obj, clsid, ACTIVEOBJECT_WEAK, OLEInstance) <> S_OK Then Err_Raise Err.LastDllError, "Object couldn't be registered"
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Revoke an object in the ROT
 '@param obj         - Object to revoke from ROT
 '@param OLEInstance - ROT Cookie. This variable will be populated with data.
 Private Sub RevokeActiveObjectEx(obj As IUnknown, ByRef OLEInstance As Long)
-    'Remove instance from ROT
-    If OLEInstance <> 0 Then
-      If RevokeActiveObject32(OLEInstance, 0) <> 0 Then
-        Debug.Print "Could not revoke?"
-      End If
-    End If
+  With stdError.getSentry("stdCOM#RevokeActiveObjectEx", "obj", obj, "OLEInstance", OLEInstance)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    'Disconnect any remote process connections being maintained on behalf of the active object pointer.
-    If CoDisconnectObject(obj, 0) <> 0 Then Debug.Print "Couldn't disconnect object " & TypeName(obj)
+        'Remove instance from ROT
+        If OLEInstance <> 0 Then
+          If RevokeActiveObject32(OLEInstance, 0) <> 0 Then
+            Debug.Print "Could not revoke?"
+          End If
+        End If
+        
+        'Disconnect any remote process connections being maintained on behalf of the active object pointer.
+        If CoDisconnectObject(obj, 0) <> 0 Then Debug.Print "Couldn't disconnect object " & TypeName(obj)
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Obtain a new GUID
 '@returns - GUID as string
 Private Function getGUID() As String
-  getGUID = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx"
-  getGUID = Replace(getGUID, "y", Hex(Rnd() And &H3 Or &H8))
-  Dim i As Long: For i = 1 To 30
-    getGUID = Replace(getGUID, "x", Hex$(CLng(Rnd() * 15.9999)), 1, 1)
-  Next
+  With stdError.getSentry("stdCOM#getGUID")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      getGUID = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx"
+      getGUID = Replace(getGUID, "y", Hex(Rnd() And &H3 Or &H8))
+      Dim i As Long: For i = 1 To 30
+        getGUID = Replace(getGUID, "x", Hex$(CLng(Rnd() * 15.9999)), 1, 1)
+      Next
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Map between EKnownInterfaces and Interface IIDs
 '@param iIID - Known interface to query for
 '@returns - IID as string
 Private Function KnownIID(ByVal iIID As EKnownInterfaces) As String
-  Select Case iIID
-    Case IUnknown:                KnownIID = "00000000-0000-0000-C000-000000000046"
-    Case IDispatch:               KnownIID = "00020400-0000-0000-C000-000000000046"
-    Case ITypeInfo:               KnownIID = "00020401-0000-0000-C000-000000000046"
-    Case ITypeLib:                KnownIID = "00020402-0000-0000-C000-000000000046"
-    Case ITypeComp:               KnownIID = "00020403-0000-0000-C000-000000000046"
-    Case IEnumVARIANT:            KnownIID = "00020404-0000-0000-C000-000000000046"
-    'Note sure if these are going to be useful,
-    'but I found the IIDs and IIDs are generally hard to find
-    'therefore, I'm providing them here
-    Case ICreateTypeInfo:         KnownIID = "00020405-0000-0000-C000-000000000046"
-    Case ICreateTypeLib:          KnownIID = "00020406-0000-0000-C000-000000000046"
-    Case IClassFactory:           KnownIID = "00000001-0000-0000-C000-000000000046"
-    Case IMalloc:                 KnownIID = "00000002-0000-0000-C000-000000000046"
-    Case IMarshal:                KnownIID = "00000003-0000-0000-C000-000000000046"
-    Case IRpcChannel:             KnownIID = "00000004-0000-0000-C000-000000000046"
-    Case IRpcStub:                KnownIID = "00000005-0000-0000-C000-000000000046"
-    Case IRpcProxy:               KnownIID = "00000007-0000-0000-C000-000000000046"
-    Case IPSFactory:              KnownIID = "00000009-0000-0000-C000-000000000046"
-    Case ILockBytes:              KnownIID = "0000000A-0000-0000-C000-000000000046"
-    Case IStorage:                KnownIID = "0000000B-0000-0000-C000-000000000046"
-    Case IStream:                 KnownIID = "0000000C-0000-0000-C000-000000000046"
-    Case IEnumSTATSTG:            KnownIID = "0000000D-0000-0000-C000-000000000046"
-    Case IBindCtx:                KnownIID = "0000000E-0000-0000-C000-000000000046"
-    Case IMoniker:                KnownIID = "0000000F-0000-0000-C000-000000000046"
-    Case IRunningObjectTable:     KnownIID = "00000010-0000-0000-C000-000000000046"
-    Case IRootStorage:            KnownIID = "00000012-0000-0000-C000-000000000046"
-    Case IMessageFilter:          KnownIID = "00000016-0000-0000-C000-000000000046"
-    Case IStdMarshalInfo:         KnownIID = "00000018-0000-0000-C000-000000000046"
-    Case IExternalConnection:     KnownIID = "00000019-0000-0000-C000-000000000046"
-    Case IEnumUnknown:            KnownIID = "00000100-0000-0000-C000-000000000046"
-    Case IEnumString:             KnownIID = "00000101-0000-0000-C000-000000000046"
-    Case IEnumMoniker:            KnownIID = "00000102-0000-0000-C000-000000000046"
-    Case IEnumFORMATETC:          KnownIID = "00000103-0000-0000-C000-000000000046"
-    Case IEnumOLEVERB:            KnownIID = "00000104-0000-0000-C000-000000000046"
-    Case IEnumSTATDATA:           KnownIID = "00000105-0000-0000-C000-000000000046"
-    Case IPersistStream:          KnownIID = "00000109-0000-0000-C000-000000000046"
-    Case IPersistStorage:         KnownIID = "0000010A-0000-0000-C000-000000000046"
-    Case IPersistFile:            KnownIID = "0000010B-0000-0000-C000-000000000046"
-    Case IPersist:                KnownIID = "0000010C-0000-0000-C000-000000000046"
-    Case IViewObject:             KnownIID = "0000010D-0000-0000-C000-000000000046"
-    Case IDataObject:             KnownIID = "0000010E-0000-0000-C000-000000000046"
-    Case IAdviseSink:             KnownIID = "0000010F-0000-0000-C000-000000000046"
-    Case IDataAdviseHolder:       KnownIID = "00000110-0000-0000-C000-000000000046"
-    Case IOleAdviseHolder:        KnownIID = "00000111-0000-0000-C000-000000000046"
-    Case IOleObject:              KnownIID = "00000112-0000-0000-C000-000000000046"
-    Case IOleInPlaceObject:       KnownIID = "00000113-0000-0000-C000-000000000046"
-    Case IOleWindow:              KnownIID = "00000114-0000-0000-C000-000000000046"
-    Case IOleInPlaceUIWindow:     KnownIID = "00000115-0000-0000-C000-000000000046"
-    Case IOleInPlaceFrame:        KnownIID = "00000116-0000-0000-C000-000000000046"
-    Case IOleInPlaceActiveObject: KnownIID = "00000117-0000-0000-C000-000000000046"
-    Case IOleClientSite:          KnownIID = "00000118-0000-0000-C000-000000000046"
-    Case IOleInPlaceSite:         KnownIID = "00000119-0000-0000-C000-000000000046"
-    Case IParseDisplayName:       KnownIID = "0000011A-0000-0000-C000-000000000046"
-    Case IOleContainer:           KnownIID = "0000011B-0000-0000-C000-000000000046"
-    Case IOleItemContainer:       KnownIID = "0000011C-0000-0000-C000-000000000046"
-    Case IOleLink:                KnownIID = "0000011D-0000-0000-C000-000000000046"
-    Case IOleCache:               KnownIID = "0000011E-0000-0000-C000-000000000046"
-    Case IDropSource:             KnownIID = "00000121-0000-0000-C000-000000000046"
-    Case IDropTarget:             KnownIID = "00000122-0000-0000-C000-000000000046"
-    Case IDebugStream:            KnownIID = "00000124-0000-0000-C000-000000000046"
-    Case IAdviseSink2:            KnownIID = "00000125-0000-0000-C000-000000000046"
-    Case IRunnableObject:         KnownIID = "00000126-0000-0000-C000-000000000046"
-    Case IViewObject2:            KnownIID = "00000127-0000-0000-C000-000000000046"
-    Case IOleCache2:              KnownIID = "00000128-0000-0000-C000-000000000046"
-    Case IOleCacheControl:        KnownIID = "00000129-0000-0000-C000-000000000046"
-    Case IInspectable:            KnownIID = "af86e2e0-b12d-4c6a-9c5a-d7aa65101e90"
-  End Select
-  KnownIID = "{" & KnownIID & "}"
+  With stdError.getSentry("stdCOM#KnownIID", "iIID", iIID)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Select Case iIID
+        Case IUnknown:                KnownIID = "00000000-0000-0000-C000-000000000046"
+        Case IDispatch:               KnownIID = "00020400-0000-0000-C000-000000000046"
+        Case ITypeInfo:               KnownIID = "00020401-0000-0000-C000-000000000046"
+        Case ITypeLib:                KnownIID = "00020402-0000-0000-C000-000000000046"
+        Case ITypeComp:               KnownIID = "00020403-0000-0000-C000-000000000046"
+        Case IEnumVARIANT:            KnownIID = "00020404-0000-0000-C000-000000000046"
+        'Note sure if these are going to be useful,
+        'but I found the IIDs and IIDs are generally hard to find
+        'therefore, I'm providing them here
+        Case ICreateTypeInfo:         KnownIID = "00020405-0000-0000-C000-000000000046"
+        Case ICreateTypeLib:          KnownIID = "00020406-0000-0000-C000-000000000046"
+        Case IClassFactory:           KnownIID = "00000001-0000-0000-C000-000000000046"
+        Case IMalloc:                 KnownIID = "00000002-0000-0000-C000-000000000046"
+        Case IMarshal:                KnownIID = "00000003-0000-0000-C000-000000000046"
+        Case IRpcChannel:             KnownIID = "00000004-0000-0000-C000-000000000046"
+        Case IRpcStub:                KnownIID = "00000005-0000-0000-C000-000000000046"
+        Case IRpcProxy:               KnownIID = "00000007-0000-0000-C000-000000000046"
+        Case IPSFactory:              KnownIID = "00000009-0000-0000-C000-000000000046"
+        Case ILockBytes:              KnownIID = "0000000A-0000-0000-C000-000000000046"
+        Case IStorage:                KnownIID = "0000000B-0000-0000-C000-000000000046"
+        Case IStream:                 KnownIID = "0000000C-0000-0000-C000-000000000046"
+        Case IEnumSTATSTG:            KnownIID = "0000000D-0000-0000-C000-000000000046"
+        Case IBindCtx:                KnownIID = "0000000E-0000-0000-C000-000000000046"
+        Case IMoniker:                KnownIID = "0000000F-0000-0000-C000-000000000046"
+        Case IRunningObjectTable:     KnownIID = "00000010-0000-0000-C000-000000000046"
+        Case IRootStorage:            KnownIID = "00000012-0000-0000-C000-000000000046"
+        Case IMessageFilter:          KnownIID = "00000016-0000-0000-C000-000000000046"
+        Case IStdMarshalInfo:         KnownIID = "00000018-0000-0000-C000-000000000046"
+        Case IExternalConnection:     KnownIID = "00000019-0000-0000-C000-000000000046"
+        Case IEnumUnknown:            KnownIID = "00000100-0000-0000-C000-000000000046"
+        Case IEnumString:             KnownIID = "00000101-0000-0000-C000-000000000046"
+        Case IEnumMoniker:            KnownIID = "00000102-0000-0000-C000-000000000046"
+        Case IEnumFORMATETC:          KnownIID = "00000103-0000-0000-C000-000000000046"
+        Case IEnumOLEVERB:            KnownIID = "00000104-0000-0000-C000-000000000046"
+        Case IEnumSTATDATA:           KnownIID = "00000105-0000-0000-C000-000000000046"
+        Case IPersistStream:          KnownIID = "00000109-0000-0000-C000-000000000046"
+        Case IPersistStorage:         KnownIID = "0000010A-0000-0000-C000-000000000046"
+        Case IPersistFile:            KnownIID = "0000010B-0000-0000-C000-000000000046"
+        Case IPersist:                KnownIID = "0000010C-0000-0000-C000-000000000046"
+        Case IViewObject:             KnownIID = "0000010D-0000-0000-C000-000000000046"
+        Case IDataObject:             KnownIID = "0000010E-0000-0000-C000-000000000046"
+        Case IAdviseSink:             KnownIID = "0000010F-0000-0000-C000-000000000046"
+        Case IDataAdviseHolder:       KnownIID = "00000110-0000-0000-C000-000000000046"
+        Case IOleAdviseHolder:        KnownIID = "00000111-0000-0000-C000-000000000046"
+        Case IOleObject:              KnownIID = "00000112-0000-0000-C000-000000000046"
+        Case IOleInPlaceObject:       KnownIID = "00000113-0000-0000-C000-000000000046"
+        Case IOleWindow:              KnownIID = "00000114-0000-0000-C000-000000000046"
+        Case IOleInPlaceUIWindow:     KnownIID = "00000115-0000-0000-C000-000000000046"
+        Case IOleInPlaceFrame:        KnownIID = "00000116-0000-0000-C000-000000000046"
+        Case IOleInPlaceActiveObject: KnownIID = "00000117-0000-0000-C000-000000000046"
+        Case IOleClientSite:          KnownIID = "00000118-0000-0000-C000-000000000046"
+        Case IOleInPlaceSite:         KnownIID = "00000119-0000-0000-C000-000000000046"
+        Case IParseDisplayName:       KnownIID = "0000011A-0000-0000-C000-000000000046"
+        Case IOleContainer:           KnownIID = "0000011B-0000-0000-C000-000000000046"
+        Case IOleItemContainer:       KnownIID = "0000011C-0000-0000-C000-000000000046"
+        Case IOleLink:                KnownIID = "0000011D-0000-0000-C000-000000000046"
+        Case IOleCache:               KnownIID = "0000011E-0000-0000-C000-000000000046"
+        Case IDropSource:             KnownIID = "00000121-0000-0000-C000-000000000046"
+        Case IDropTarget:             KnownIID = "00000122-0000-0000-C000-000000000046"
+        Case IDebugStream:            KnownIID = "00000124-0000-0000-C000-000000000046"
+        Case IAdviseSink2:            KnownIID = "00000125-0000-0000-C000-000000000046"
+        Case IRunnableObject:         KnownIID = "00000126-0000-0000-C000-000000000046"
+        Case IViewObject2:            KnownIID = "00000127-0000-0000-C000-000000000046"
+        Case IOleCache2:              KnownIID = "00000128-0000-0000-C000-000000000046"
+        Case IOleCacheControl:        KnownIID = "00000129-0000-0000-C000-000000000046"
+        Case IInspectable:            KnownIID = "af86e2e0-b12d-4c6a-9c5a-d7aa65101e90"
+      End Select
+      KnownIID = "{" & KnownIID & "}"
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Deref pointer to string helper
 '@param ptr - Pointer to string
 '@returns - String
 #If VBA7 Then
-    Private Function GetStrFromPtrW(ByVal ptr As LongPtr) As String
+Private Function GetStrFromPtrW(ByVal ptr As LongPtr) As String
 #Else
     Private Function GetStrFromPtrW(ByVal ptr As Long) As String
 #End If
-    SysReAllocString VarPtr(GetStrFromPtrW), ptr
+  With stdError.getSentry("stdCOM#GetStrFromPtrW", "ptr", ptr)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        SysReAllocString VarPtr(GetStrFromPtrW), ptr
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 
@@ -1263,14 +1527,22 @@ End Function
 '@returns - IUnknown
 '@devNote DO NOT RETURN `result`
 #If VBA7 Then
-  Private Function Deref(ByVal memAddress As LongPtr) As IUnknown
+Private Function Deref(ByVal memAddress As LongPtr) As IUnknown
 #Else
   Private Function Deref(ByVal memAddress As Long) As IUnknown
 #End If
-  Dim result As IUnknown
-  CopyMemory result, ByVal VarPtr(memAddress), LenB(memAddress)
-  Set Deref = result                             'Set and add ref
-  ZeroMemory result, LenB(memAddress)
+  With stdError.getSentry("stdCOM#Deref", "memAddress", memAddress)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim result As IUnknown
+      CopyMemory result, ByVal VarPtr(memAddress), LenB(memAddress)
+      Set Deref = result                             'Set and add ref
+      ZeroMemory result, LenB(memAddress)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'IDEA: for ProgID based registration
@@ -1291,3 +1563,9 @@ End Function
 '  RegDelete, HKCU, Software\Classes\CLSID\%CLSID%
 '}
 
+
+
+
+Private Sub Err_Raise(ByVal number as Long, Optional ByVal source as string = "", Optional ByVal description as string = "")
+  Call stdError.Raise(description)
+End Sub

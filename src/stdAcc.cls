@@ -44,7 +44,7 @@ Attribute VB_Exposed = False
 '    'Click the button
 '    Call Group.FindFirst(stdLambda.Create("$2.Name = $1 and $2.Role = ""ROLE_PUSHBUTTON""").Bind(buttonName)).DoDefaultAction
 '  Else
-'    Err.Raise 1, "clickRibbonButton", ""
+'    Err_Raise 1, "clickRibbonButton", ""
 '  End If
 'End Sub
 '```
@@ -334,8 +334,16 @@ Private This As TThis
 '@param y - Y Coordinate
 '@returns stdAcc - Object at the specified point
 Public Function CreateFromPoint(ByVal x As Long, ByVal y As Long) As stdAcc
-    Set CreateFromPoint = New stdAcc
-    Set CreateFromPoint.protAccessible = AccessibilityObjectFromPointEx(x, y)
+  With stdError.getSentry("stdAcc#CreateFromPoint", "x", x, "y", y)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Set CreateFromPoint = New stdAcc
+        Set CreateFromPoint.protAccessible = AccessibilityObjectFromPointEx(x, y)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Creates an `stdAcc` object from a window handle.
@@ -343,11 +351,19 @@ End Function
 '@param hwnd - Window handle to wrap
 '@returns stdAcc - stdAcc object for the window 
 Public Function CreateFromHwnd(ByVal hwnd As LongPtr) As stdAcc
-    Dim acc As stdAcc: Set acc = New stdAcc
-    Dim obj As IAccessible
-    Set obj = IAccessibleFromHwnd(hwnd)
-    Set acc.protAccessible = obj
-    Set CreateFromHwnd = acc
+  With stdError.getSentry("stdAcc#CreateFromHwnd", "hwnd", hwnd)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim acc As stdAcc: Set acc = New stdAcc
+        Dim obj As IAccessible
+        Set obj = IAccessibleFromHwnd(hwnd)
+        Set acc.protAccessible = obj
+        Set CreateFromHwnd = acc
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Creates an `stdAcc` object from the current running application (e.g. Excel / Word / Powerpoint).
@@ -355,35 +371,51 @@ End Function
 '@param oApp - Application to create from. Defaults to `Application` if unspecified.
 '@returns - IAccessible wrapper around application window.
 Public Function CreateFromApplication(Optional ByVal oApp As Object = Nothing) As stdAcc
-  If oApp Is Nothing Then Set oApp = Application
-  Select Case oApp.Name
-    Case "Microsoft Excel"
-      Set CreateFromApplication = CreateFromHwnd(oApp.hwnd)
-    Case "Microsoft Word"
-      Set CreateFromApplication = CreateFromHwnd(oApp.ActiveWindow.Hwnd)
-    Case "Microsoft Access"
-      Set CreateFromApplication = CreateFromHwnd(oApp.hWndAccessApp)
-    Case "Microsoft PowerPoint"
-      Set CreateFromApplication = CreateFromIAccessible(oApp.CommandBars("Status Bar")).AncestralRoot
-    Case "Outlook"
-      Set CreateFromApplication = CreateFromIAccessible(oApp.ActiveWindow.CommandBars("Status Bar")).AncestralRoot
-    Case "Microsoft Publisher"
-      Set CreateFromApplication = CreateFromIAccessible(oApp.CommandBars("Status Bar")).AncestralRoot
-    Case Else
-      Err.Raise 1, "stdAcc::CreateFromApplication()", "No implementation for getting application window of " & Application.Name
-  End Select
+  With stdError.getSentry("stdAcc#CreateFromApplication", "oApp", oApp)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If oApp Is Nothing Then Set oApp = Application
+      Select Case oApp.Name
+        Case "Microsoft Excel"
+          Set CreateFromApplication = CreateFromHwnd(oApp.hwnd)
+        Case "Microsoft Word"
+          Set CreateFromApplication = CreateFromHwnd(oApp.ActiveWindow.Hwnd)
+        Case "Microsoft Access"
+          Set CreateFromApplication = CreateFromHwnd(oApp.hWndAccessApp)
+        Case "Microsoft PowerPoint"
+          Set CreateFromApplication = CreateFromIAccessible(oApp.CommandBars("Status Bar")).AncestralRoot
+        Case "Outlook"
+          Set CreateFromApplication = CreateFromIAccessible(oApp.ActiveWindow.CommandBars("Status Bar")).AncestralRoot
+        Case "Microsoft Publisher"
+          Set CreateFromApplication = CreateFromIAccessible(oApp.CommandBars("Status Bar")).AncestralRoot
+        Case Else
+          Err_Raise 1, "stdAcc::CreateFromApplication()", "No implementation for getting application window of " & Application.Name
+      End Select
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Creates an `stdAcc` object from the desktop.
 '@constructor
 '@returns - IAccessible wrapper around desktop window.
 Public Function CreateFromDesktop() As stdAcc
-    Dim acc As stdAcc
-    Set acc = CreateFromApplication()
-    While Not acc.Parent Is Nothing
-        Set acc = acc.Parent
-    Wend
-    Set CreateFromDesktop = acc
+  With stdError.getSentry("stdAcc#CreateFromDesktop")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim acc As stdAcc
+        Set acc = CreateFromApplication()
+        While Not acc.Parent Is Nothing
+            Set acc = acc.Parent
+        Wend
+        Set CreateFromDesktop = acc
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Creates an `stdAcc` object from an object which implements `IAccessible`.
@@ -391,18 +423,34 @@ End Function
 '@param obj - Object implementing `IAccessible` interface.
 '@returns - IAccessible wrapper around an IAccessible object.
 Public Function CreateFromIAccessible(ByVal obj As IAccessible) As stdAcc
-    Set CreateFromIAccessible = New stdAcc
-    Set CreateFromIAccessible.protAccessible = obj
+  With stdError.getSentry("stdAcc#CreateFromIAccessible", "obj", obj)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Set CreateFromIAccessible = New stdAcc
+        Set CreateFromIAccessible.protAccessible = obj
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Creates an `stdAcc` object for the element the mouse currently hovers over.
 '@constructor
 '@returns - IAccessible wrapper around element under mouse.
 Public Function CreateFromMouse() As stdAcc
-    Dim pT As tPOINT
-    Dim success As Long
-    success = GetCursorPos(pT)
-    Set CreateFromMouse = CreateFromPoint(pT.x, pT.y)
+  With stdError.getSentry("stdAcc#CreateFromMouse")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim pT As tPOINT
+        Dim success As Long
+        success = GetCursorPos(pT)
+        Set CreateFromMouse = CreateFromPoint(pT.x, pT.y)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Creates an `stdAcc` object for the element at a given path from the current element.
@@ -413,30 +461,38 @@ End Function
 'Debug.Print stdAcc.CreateFromApplication().CreateFromPath("3.1").name
 '```
 Public Function CreateFromPath(ByVal sPath As String) As stdAcc
-    'If starting with "." remove it
-    If Left(sPath, 1) = "P" Then sPath = Mid(sPath, 2)
-    If Left(sPath, 1) = "." Then sPath = Mid(sPath, 2)
+  With stdError.getSentry("stdAcc#CreateFromPath", "sPath", sPath)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    'Get descendants list
-    Dim descendants As Variant
-    descendants = Split(sPath, ".")
+        'If starting with "." remove it
+        If Left(sPath, 1) = "P" Then sPath = Mid(sPath, 2)
+        If Left(sPath, 1) = "." Then sPath = Mid(sPath, 2)
+        
+        'Get descendants list
+        Dim descendants As Variant
+        descendants = Split(sPath, ".")
+        
+        'Initiate acc (used for tracing through descendants)
+        Dim acc As stdAcc
+        Set acc = Me
+        
+        'Loop over descendants
+        On Error GoTo ExitFunction 'theoretically this should never error, but still sometimes does...
+          Dim i As Integer
+          For i = 0 To UBound(descendants)
+              If CLng(descendants(i)) > acc.children.Count Then Exit Function
+              Set acc = acc.children(CLng(descendants(i)))
+          Next i
+        On Error GoTo stdErrorWrapper_ErrorOccurred
+        
+        'Return descendant
+        Set CreateFromPath = acc
+    ExitFunction:
     
-    'Initiate acc (used for tracing through descendants)
-    Dim acc As stdAcc
-    Set acc = Me
-    
-    'Loop over descendants
-    On Error GoTo ExitFunction 'theoretically this should never error, but still sometimes does...
-      Dim i As Integer
-      For i = 0 To UBound(descendants)
-          If CLng(descendants(i)) > acc.children.Count Then Exit Function
-          Set acc = acc.children(CLng(descendants(i)))
-      Next i
-    On Error GoTo 0
-    
-    'Return descendant
-    Set CreateFromPath = acc
-ExitFunction:
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Initialises an stdAcc object as a `Proxy` object, who's methods are implemented on the parent instead of on the element itself
@@ -444,43 +500,75 @@ End Function
 '@param oParent - Parent object to proxy
 '@param index - Index of element in parent
 Public Sub protInitWithProxy(ByRef oParent As stdAcc, ByVal index As Long)
-    This.isProxy = True
-    Set This.Proxy.Parent = oParent.protAccessible
-    This.Proxy.Index = index
+  With stdError.getSentry("stdAcc#protInitWithProxy", "oParent", oParent, "index", index)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        This.isProxy = True
+        Set This.Proxy.Parent = oParent.protAccessible
+        This.Proxy.Index = index
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'The object which implements `IAccessible`, with which this class wraps. Please don't modify this object, unless you know what you are doing.
 '@protected 
 '@returns Object<IAccessible> - The object which implements `IAccessible`
 Public Property Get protAccessible() As Object
-    Set protAccessible = This.IAccessible
+  With stdError.getSentry("stdAcc#protAccessible[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Set protAccessible = This.IAccessible
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 Public Property Set protAccessible(ByVal obj As Object)
-    Set This.IAccessible = obj
+  With stdError.getSentry("stdAcc#protAccessible[Set]", "obj", obj)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Set This.IAccessible = obj
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 
 'Get all descendents of the stdAcc control
 '@returns Collection<stdAcc> - Collection of descendents
 Public Function GetDescendents() As Collection
-    'Create collection which will be returned
-    Dim c As Collection
-    Set c = New Collection
+  With stdError.getSentry("stdAcc#GetDescendents")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    'Loop over all children...
-    Dim accChild As stdAcc, accDesc As stdAcc
-    For Each accChild In children
-        'Add children to collection
-        c.Add accChild
+        'Create collection which will be returned
+        Dim c As Collection
+        Set c = New Collection
         
-        'Loop over descendents and add these to collection also (recurse)
-        For Each accDesc In accChild.GetDescendents
-            c.Add accDesc
+        'Loop over all children...
+        Dim accChild As stdAcc, accDesc As stdAcc
+        For Each accChild In children
+            'Add children to collection
+            c.Add accChild
+            
+            'Loop over descendents and add these to collection also (recurse)
+            For Each accDesc In accChild.GetDescendents
+                c.Add accDesc
+            Next
         Next
-    Next
+        
+        'Return descendents
+        Set GetDescendents = c
     
-    'Return descendents
-    Set GetDescendents = c
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Search the IAccessible tree for elements which match a certain criteria. Return the first element found.
@@ -511,63 +599,71 @@ End Function
 'el.FindFirst(stdLambda.Create("$1.name = ""hello"" AND $2 > 4"))
 '```
 Public Function FindFirst(ByVal query As stdICallable, Optional ByVal searchType As EAccFindType = EAccFindType.DepthFirst) As stdAcc
-    Dim stack() As tFindNode
-    ReDim stack(0 To 0)
-    stack(0).initialised = True
-    stack(0).depth = 0
-    Set stack(0).element = Me
+  With stdError.getSentry("stdAcc#FindFirst", "query", query, "searchType", searchType)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    Dim length As Long: length = 1
-    Dim index As Long: index = -1
-
-    'Bind globals to query
-    Call BindGlobals(query)
-
-    'Loop over the stack/array
-    Do While length > 0 And index < length
-        Dim part As tFindNode
-        Select Case searchType
-            Case EAccFindType.DepthFirst
-                'Depth first search, so pop the item out of the stack
-                part = stackPopV(stack, length)
-            Case EAccFindType.BreadthFirst
-                'Breadth first search, get item directly out of array, no need to change array size
-                index = index + 1
-                if index >= length Then Exit Do
-                part = stack(index)
-            Case Else
-                Err.Raise 1, "stdAcc#FindFirst", "Invalid search type given. Please use EAccFindType"
-        End Select
+        Dim stack() As tFindNode
+        ReDim stack(0 To 0)
+        stack(0).initialised = True
+        stack(0).depth = 0
+        Set stack(0).element = Me
         
-        With part
-            If Not .initialised Then Exit Function
-            
-            'Run query and test options
-            Select Case query.Run(.element, .depth)
-                Case EAccFindResult.NoMatchFound
-                    'Nothing found, search descendents
-                    Dim child As stdAcc
-                    For Each child In part.element.children
-                        Call stackPushV(stack, length, CreateFindNode(.depth + 1, child))
-                    Next
-                Case EAccFindResult.MatchFound, True, EAccFindResult.MatchFoundSearchDescendents
-                    'Found, return element
-                    Set FindFirst = .element
-                    Exit Function
-                Case EAccFindResult.NoMatchCancelSearch
-                    'Nothing found, cancel function
-                    Set FindFirst = Nothing
-                    Exit Function
-                Case EAccFindResult.NoMatchSkipDescendents
-                '    Nothing found, don't search descendents
-            End Select
-        End With
-        'Just make sure no freezing occurs
-        DoEvents
-    Loop
+        Dim length As Long: length = 1
+        Dim index As Long: index = -1
     
-    'Else set to nothing
-    Set FindFirst = Nothing
+        'Bind globals to query
+        Call BindGlobals(query)
+    
+        'Loop over the stack/array
+        Do While length > 0 And index < length
+            Dim part As tFindNode
+            Select Case searchType
+                Case EAccFindType.DepthFirst
+                    'Depth first search, so pop the item out of the stack
+                    part = stackPopV(stack, length)
+                Case EAccFindType.BreadthFirst
+                    'Breadth first search, get item directly out of array, no need to change array size
+                    index = index + 1
+                    if index >= length Then Exit Do
+                    part = stack(index)
+                Case Else
+                    Err_Raise 1, "stdAcc#FindFirst", "Invalid search type given. Please use EAccFindType"
+            End Select
+            
+            With part
+                If Not .initialised Then Exit Function
+                
+                'Run query and test options
+                Select Case query.Run(.element, .depth)
+                    Case EAccFindResult.NoMatchFound
+                        'Nothing found, search descendents
+                        Dim child As stdAcc
+                        For Each child In part.element.children
+                            Call stackPushV(stack, length, CreateFindNode(.depth + 1, child))
+                        Next
+                    Case EAccFindResult.MatchFound, True, EAccFindResult.MatchFoundSearchDescendents
+                        'Found, return element
+                        Set FindFirst = .element
+                        Exit Function
+                    Case EAccFindResult.NoMatchCancelSearch
+                        'Nothing found, cancel function
+                        Set FindFirst = Nothing
+                        Exit Function
+                    Case EAccFindResult.NoMatchSkipDescendents
+                    '    Nothing found, don't search descendents
+                End Select
+            End With
+            'Just make sure no freezing occurs
+            DoEvents
+        Loop
+        
+        'Else set to nothing
+        Set FindFirst = Nothing
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Search the IAccessible tree for elements which match a certain criteria. Return all elements found.
@@ -598,149 +694,189 @@ End Function
 'el.FindAll(stdLambda.Create("if $2 < 4 then 4 else if $2 = 4 then 1 else 3"))
 '```
 Public Function FindAll(ByVal query As stdICallable, Optional ByVal searchType As EAccFindType = EAccFindType.DepthFirst) As Collection
-    Dim stack() As tFindNode
-    ReDim stack(0 To 0)
-    stack(0).initialised = True
-    stack(0).depth = 0
-    Set stack(0).element = Me
+  With stdError.getSentry("stdAcc#FindAll", "query", query, "searchType", searchType)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    Dim length As Long: length = 1
-    Dim index As Long: index = -1
-    
-    'Bind globals to query
-    Call BindGlobals(query)
-
-    'Initialise collection
-    Set FindAll = New Collection
-
-    'Loop over the stack/array
-    Do While length > 0 And index < length
-        Dim part As tFindNode
-        Select Case searchType
-            Case EAccFindType.DepthFirst
-                'Depth first search, so pop the item out of the stack
-                part = stackPopV(stack, length)
-            Case EAccFindType.BreadthFirst
-                'Breadth first search, get item directly out of array, no need to change array size
-                index = index + 1
-                If index >= length Then Exit Do
-                part = stack(index)
-            Case Else
-                Err.Raise 1, "stdAcc#FindAll", "Invalid search type given. Please use EAccFindType"
-        End Select
+        Dim stack() As tFindNode
+        ReDim stack(0 To 0)
+        stack(0).initialised = True
+        stack(0).depth = 0
+        Set stack(0).element = Me
         
-        With part
-            'When hitting the edge of the stack quit
-            If Not .initialised Then Exit Function
-
-            'Run query and test options
-            Dim child As stdAcc
-            Select Case query.Run(.element,.depth)
-                Case EAccFindResult.NoMatchFound
-                    'Nothing found, search descendents
-                    For Each child In .element.children
-                        Call stackPushV(stack, length, CreateFindNode(.depth + 1, child))
-                    Next
-                Case EAccFindResult.MatchFound, True
-                    'Found, add element
-                    Call FindAll.Add(.element)
-                Case EAccFindResult.NoMatchCancelSearch
-                    'Nothing found, cancel function
-                    Exit Function
-                Case EAccFindResult.NoMatchSkipDescendents
-                    'Nothing found, don't search descendents
-                Case EAccFindResult.MatchFoundSearchDescendents
-                    Call FindAll.Add(.element)
-                    For Each child In .element.children
-                        Call stackPushV(stack, length, CreateFindNode(.depth + 1, child))
-                    Next
+        Dim length As Long: length = 1
+        Dim index As Long: index = -1
+        
+        'Bind globals to query
+        Call BindGlobals(query)
+    
+        'Initialise collection
+        Set FindAll = New Collection
+    
+        'Loop over the stack/array
+        Do While length > 0 And index < length
+            Dim part As tFindNode
+            Select Case searchType
+                Case EAccFindType.DepthFirst
+                    'Depth first search, so pop the item out of the stack
+                    part = stackPopV(stack, length)
+                Case EAccFindType.BreadthFirst
+                    'Breadth first search, get item directly out of array, no need to change array size
+                    index = index + 1
+                    If index >= length Then Exit Do
+                    part = stack(index)
+                Case Else
+                    Err_Raise 1, "stdAcc#FindAll", "Invalid search type given. Please use EAccFindType"
             End Select
-        End With
-        'Just make sure no freezing occurs
-        DoEvents
-    Loop
+            
+            With part
+                'When hitting the edge of the stack quit
+                If Not .initialised Then Exit Function
+    
+                'Run query and test options
+                Dim child As stdAcc
+                Select Case query.Run(.element,.depth)
+                    Case EAccFindResult.NoMatchFound
+                        'Nothing found, search descendents
+                        For Each child In .element.children
+                            Call stackPushV(stack, length, CreateFindNode(.depth + 1, child))
+                        Next
+                    Case EAccFindResult.MatchFound, True
+                        'Found, add element
+                        Call FindAll.Add(.element)
+                    Case EAccFindResult.NoMatchCancelSearch
+                        'Nothing found, cancel function
+                        Exit Function
+                    Case EAccFindResult.NoMatchSkipDescendents
+                        'Nothing found, don't search descendents
+                    Case EAccFindResult.MatchFoundSearchDescendents
+                        Call FindAll.Add(.element)
+                        For Each child In .element.children
+                            Call stackPushV(stack, length, CreateFindNode(.depth + 1, child))
+                        Next
+                End Select
+            End With
+            'Just make sure no freezing occurs
+            DoEvents
+        Loop
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Return the parent of the IAccessible object
 '@returns stdAcc - Parent of this element
 Public Property Get Parent() As stdAcc
-    If This.isProxy Then
-        Set Parent = stdAcc.CreateFromIAccessible(This.Proxy.Parent)
-    Else
-        On Error GoTo handle_error
-            Set Parent = stdAcc.CreateFromIAccessible(protAccessible.accParent)
-        On Error GoTo 0
-    End If
+  With stdError.getSentry("stdAcc#Parent[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        If This.isProxy Then
+            Set Parent = stdAcc.CreateFromIAccessible(This.Proxy.Parent)
+        Else
+            On Error GoTo handle_error
+                Set Parent = stdAcc.CreateFromIAccessible(protAccessible.accParent)
+            On Error GoTo stdErrorWrapper_ErrorOccurred
+        End If
+        Exit Property
+    handle_error:
+        Set Parent = Nothing
+    
     Exit Property
-handle_error:
-    Set Parent = Nothing
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Obtain the ancestral root of the IAccessible object (A child of the desktop)
 '@returns - Ancestral root of this element (child window of the desktop)
 Public Property Get AncestralRoot() As stdAcc
-    Dim desktop As stdAcc: Set desktop = stdAcc.CreateFromDesktop()
-    'Walk up the tree until we hit the element just before desktop
-    Dim acc As stdAcc: Set acc = Me
-    While Not acc.Parent.hwnd <> desktop.hwnd
-        Set acc = acc.Parent
-    Wend
-    Set AncestralRoot = acc
+  With stdError.getSentry("stdAcc#AncestralRoot[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim desktop As stdAcc: Set desktop = stdAcc.CreateFromDesktop()
+        'Walk up the tree until we hit the element just before desktop
+        Dim acc As stdAcc: Set acc = Me
+        While Not acc.Parent.hwnd <> desktop.hwnd
+            Set acc = acc.Parent
+        Wend
+        Set AncestralRoot = acc
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Return the children of the IAccessible object
 '@returns Collection<stdAcc> - Children of this element
 Public Property Get children() As Collection
-  set children = new Collection
-
-  'Guards
-  If this.isProxy then Exit Property
-  
-  'On error assume no children
-  'note: sometimes will get "Method 'accChildCount' of object 'IAccessible' failed" error.
-  On Error GoTo ErrorHandler
-    If protAccessible.accChildCount = 0 Then Exit Property
-
-    'Get IAccessible children as Array of children  
-    Dim vChildren(): ReDim vChildren(1 To protAccessible.accChildCount)
-    Dim iChildrenObtained As Long
-  
-    Call AccessibleChildren(protAccessible, 0, protAccessible.accChildCount, vChildren(1), iChildrenObtained)
-  On Error GoTo 0
-
-  'Loop over children and add them to the collection
-  Dim iChildId As Long
-  For iChildId = 1 To iChildrenObtained
-    'Check if child is an object, if it is set it, otherwise let it
-    If VarType(vChildren(iChildId)) = vbObject Then
-      Call children.Add(CreateFromIAccessible(vChildren(iChildId)))
-    Else
-      Call children.Add(CreateProxyChild(vChildren(iChildId)))
-    End If
-  Next
-ErrorHandler:
+  With stdError.getSentry("stdAcc#children[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      set children = new Collection
+    
+      'Guards
+      If this.isProxy then Exit Property
+      
+      'On error assume no children
+      'note: sometimes will get "Method 'accChildCount' of object 'IAccessible' failed" error.
+      On Error GoTo ErrorHandler
+        If protAccessible.accChildCount = 0 Then Exit Property
+    
+        'Get IAccessible children as Array of children  
+        Dim vChildren(): ReDim vChildren(1 To protAccessible.accChildCount)
+        Dim iChildrenObtained As Long
+      
+        Call AccessibleChildren(protAccessible, 0, protAccessible.accChildCount, vChildren(1), iChildrenObtained)
+      On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      'Loop over children and add them to the collection
+      Dim iChildId As Long
+      For iChildId = 1 To iChildrenObtained
+        'Check if child is an object, if it is set it, otherwise let it
+        If VarType(vChildren(iChildId)) = vbObject Then
+          Call children.Add(CreateFromIAccessible(vChildren(iChildId)))
+        Else
+          Call children.Add(CreateProxyChild(vChildren(iChildId)))
+        End If
+      Next
+    ErrorHandler:
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Return the hwnd of the IAccessible object
 '@returns LongPtr - hwnd of this element
 #If VBA7 Then
-  Public Property Get hwnd() As LongPtr
+Public Property Get hwnd() As LongPtr
 #Else
   Public Property Get hwnd() As Long
 #End If
-    On Error GoTo handle_error
-        Dim lHwnd As LongPtr
-        Dim res As Long
-        res = WindowFromAccessibleObject(protAccessible, lHwnd)
-        If res = 0 Then
-            hwnd = lHwnd
-        Else
-            Call Err.Raise(1, "", "Error " & Hex(res) & " - " & COMErrorDescription(res) & " in stdAcc#hwnd")
-        End If
-    On Error GoTo 0
+  With stdError.getSentry("stdAcc#hwnd[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        On Error GoTo handle_error
+            Dim lHwnd As LongPtr
+            Dim res As Long
+            res = WindowFromAccessibleObject(protAccessible, lHwnd)
+            If res = 0 Then
+                hwnd = lHwnd
+            Else
+                Call Err_Raise(1, "", "Error " & Hex(res) & " - " & COMErrorDescription(res) & " in stdAcc#hwnd")
+            End If
+        On Error GoTo stdErrorWrapper_ErrorOccurred
+        Exit Property
+    handle_error:
+        hwnd = 0
+    
     Exit Property
-handle_error:
-    hwnd = 0
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get a unique identifier for an element.
@@ -749,41 +885,57 @@ End Property
 'stdAcc.CreateFromMouse().Identity
 '```
 Public Property Get Identity() As String
-  On Error GoTo Fallback
-  Dim accIdent As IUnknown: Set accIdent = unkQueryInterface(protAccessible, "{7852B78D-1CFD-41C1-A615-9C0C85960B5F}")
-  If Not accIdent Is Nothing Then Identity = accGetIdentity(accIdent)
-  Exit Property
-Fallback:
-  'TODO: Fallback identity
-  Identity = "Unknown"
+  With stdError.getSentry("stdAcc#Identity[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      On Error GoTo Fallback
+      Dim accIdent As IUnknown: Set accIdent = unkQueryInterface(protAccessible, "{7852B78D-1CFD-41C1-A615-9C0C85960B5F}")
+      If Not accIdent Is Nothing Then Identity = accGetIdentity(accIdent)
+      Exit Property
+    Fallback:
+      'TODO: Fallback identity
+      Identity = "Unknown"
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Return the location of the element as a collection
 '@returns Collection<Long|stdAcc> - The location of the element. Collection has 5 named keys: "Width", "Height", "Left", "Top" and "Parent". "Parent" refers to the element itself.
 Public Property Get Location() As Collection
-    On Error GoTo ErrorHandler
-        'Get location from protAccessible
-        Dim pcxWidth As Long
-        Dim pcyHeight As Long
-        Dim pxLeft As Long
-        Dim pyTop As Long
-        If This.isProxy Then
-          Call This.Proxy.Parent.accLocation(pxLeft, pyTop, pcxWidth, pcyHeight, This.Proxy.Index)
-        Else
-          Call This.IAccessible.accLocation(pxLeft, pyTop, pcxWidth, pcyHeight, CHILDID_SELF)
-        End If
-        
-        'Create location collection
-        Set Location = New Collection
-        Location.Add pcxWidth, "Width"
-        Location.Add pcyHeight, "Height"
-        Location.Add pxLeft, "Left"
-        Location.Add pyTop, "Top"
-        Location.Add Me, "Parent"
-    On Error GoTo 0
+  With stdError.getSentry("stdAcc#Location[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        On Error GoTo ErrorHandler
+            'Get location from protAccessible
+            Dim pcxWidth As Long
+            Dim pcyHeight As Long
+            Dim pxLeft As Long
+            Dim pyTop As Long
+            If This.isProxy Then
+              Call This.Proxy.Parent.accLocation(pxLeft, pyTop, pcxWidth, pcyHeight, This.Proxy.Index)
+            Else
+              Call This.IAccessible.accLocation(pxLeft, pyTop, pcxWidth, pcyHeight, CHILDID_SELF)
+            End If
+            
+            'Create location collection
+            Set Location = New Collection
+            Location.Add pcxWidth, "Width"
+            Location.Add pcyHeight, "Height"
+            Location.Add pxLeft, "Left"
+            Location.Add pyTop, "Top"
+            Location.Add Me, "Parent"
+        On Error GoTo stdErrorWrapper_ErrorOccurred
+        Exit Property
+    ErrorHandler:
+        Set Location = Nothing
+    
     Exit Property
-ErrorHandler:
-    Set Location = Nothing
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Return the element under the specified location
@@ -792,171 +944,291 @@ End Property
 '@param y - y coord
 '@returns stdAcc - element under point
 Public Property Get HitTest(ByVal x As Long, ByVal y As Long) As stdAcc
-  Set HitTest = New stdAcc
-  Dim NewAcc As Object
-  Call protAccessible.accHitTest(x, y, NewAcc)
-  Set HitTest.protAccessible = NewAcc
+  With stdError.getSentry("stdAcc#HitTest[Get]", "x", x, "y", y)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Set HitTest = New stdAcc
+      Dim NewAcc As Object
+      Call protAccessible.accHitTest(x, y, NewAcc)
+      Set HitTest.protAccessible = NewAcc
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Gets/Sets the value of the element
 '@returns String - the current value of the element
 Public Property Get value() As String
-  On Error Resume Next 'FIX: Sometimes this is unsupported, so leave this error.
-  If This.isProxy Then
-    value = This.Proxy.Parent.accValue(This.Proxy.Index)
-  Else
-    value = protAccessible.accValue(CHILDID_SELF)
-  End If
+  With stdError.getSentry("stdAcc#value[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      On Error Resume Next 'FIX: Sometimes this is unsupported, so leave this error.
+      If This.isProxy Then
+        value = This.Proxy.Parent.accValue(This.Proxy.Index)
+      Else
+        value = protAccessible.accValue(CHILDID_SELF)
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 Public Property Let value(val As String)
-  If This.isProxy Then
-    This.Proxy.Parent.accValue(This.Proxy.Index) = val
-  Else
-    protAccessible.accValue(CHILDID_SELF) = val
-  End If
+  With stdError.getSentry("stdAcc#value[Let]", "val", val)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If This.isProxy Then
+        This.Proxy.Parent.accValue(This.Proxy.Index) = val
+      Else
+        protAccessible.accValue(CHILDID_SELF) = val
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Returns the name of the element
 '@returns String - the name of the element
 Public Property Get name() As String
-  On Error Resume Next 'FIX: Sometimes this is unsupported, so leave this error.
-  If This.isProxy Then
-    name = This.Proxy.Parent.accName(This.Proxy.Index)
-  Else
-    name = protAccessible.accName(CHILDID_SELF)
-  End If
+  With stdError.getSentry("stdAcc#name[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      On Error Resume Next 'FIX: Sometimes this is unsupported, so leave this error.
+      If This.isProxy Then
+        name = This.Proxy.Parent.accName(This.Proxy.Index)
+      Else
+        name = protAccessible.accName(CHILDID_SELF)
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Returns the description of the default action of the element
 '@returns String - the description of the default action of the element
 Public Property Get DefaultAction() As String
-  On Error Resume Next 'FIX: Sometimes this is unsupported, so leave this error.
-  If This.isProxy Then
-    DefaultAction = This.Proxy.Parent.accDefaultAction(This.Proxy.Index)
-  Else
-    DefaultAction = protAccessible.accDefaultAction(CHILDID_SELF)
-  End If
+  With stdError.getSentry("stdAcc#DefaultAction[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      On Error Resume Next 'FIX: Sometimes this is unsupported, so leave this error.
+      If This.isProxy Then
+        DefaultAction = This.Proxy.Parent.accDefaultAction(This.Proxy.Index)
+      Else
+        DefaultAction = protAccessible.accDefaultAction(CHILDID_SELF)
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Returns the role of the element
 '@returns String - the role of the element
 Public Property Get Role() As String
-  On Error Resume Next 'FIXME: On extremely rare occasions the OLE object will disconnect / not expect automation. `On Error Resume Next` silences the error but this isn't a real fix.
-  If This.isProxy Then
-    Role = This.Singleton.Lookups("EAccRoles")("N2S")(This.Proxy.Parent.accRole(This.Proxy.Index))
-  Else
-    Role = This.Singleton.Lookups("EAccRoles")("N2S")(protAccessible.accRole(CHILDID_SELF))
-  End If
+  With stdError.getSentry("stdAcc#Role[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      On Error Resume Next 'FIXME: On extremely rare occasions the OLE object will disconnect / not expect automation. `On Error Resume Next` silences the error but this isn't a real fix.
+      If This.isProxy Then
+        Role = This.Singleton.Lookups("EAccRoles")("N2S")(This.Proxy.Parent.accRole(This.Proxy.Index))
+      Else
+        Role = This.Singleton.Lookups("EAccRoles")("N2S")(protAccessible.accRole(CHILDID_SELF))
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Returns the state of the element
 '@returns String - the state of the element
 Public Property Get States() As String
-  Dim iStateData As Long: iStateData = StateData
-  Dim oLookup As Object: Set oLookup = This.Singleton.Lookups("EAccStates")("S2N")
-  Dim sStates As String, vKey As Variant
-  For Each vKey In oLookup.keys()
-    If (oLookup(vKey) And iStateData) = oLookup(vKey) Then
-        sStates = sStates & vKey & ";"
-    End If
-  Next
-  
-  States = sStates
+  With stdError.getSentry("stdAcc#States[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim iStateData As Long: iStateData = StateData
+      Dim oLookup As Object: Set oLookup = This.Singleton.Lookups("EAccStates")("S2N")
+      Dim sStates As String, vKey As Variant
+      For Each vKey In oLookup.keys()
+        If (oLookup(vKey) And iStateData) = oLookup(vKey) Then
+            sStates = sStates & vKey & ";"
+        End If
+      Next
+      
+      States = sStates
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Returns the state(s) of the element
 '@returns Long - the state(s) of the element
 Public Property Get StateData() As Long
-  On Error Resume Next 'FIXME: On extremely rare occasions the OLE object will disconnect / not expect automation. `On Error Resume Next` silences the error but this isn't a real fix.
-  If This.isProxy Then
-    StateData = This.Proxy.Parent.accState(This.Proxy.Index)
-  Else
-    StateData = protAccessible.accState(CHILDID_SELF)
-  End If
+  With stdError.getSentry("stdAcc#StateData[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      On Error Resume Next 'FIXME: On extremely rare occasions the OLE object will disconnect / not expect automation. `On Error Resume Next` silences the error but this isn't a real fix.
+      If This.isProxy Then
+        StateData = This.Proxy.Parent.accState(This.Proxy.Index)
+      Else
+        StateData = protAccessible.accState(CHILDID_SELF)
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Returns the description of the element
 '@returns String - the description of the element
 Public Property Get Description() As String
-  On Error Resume Next 'FIX: Sometimes this is unsupported, so leave this error.
-  If This.isProxy Then
-    Description = This.Proxy.Parent.accDescription(This.Proxy.Index)
-  Else
-    Description = protAccessible.accDescription(CHILDID_SELF)
-  End If
+  With stdError.getSentry("stdAcc#Description[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      On Error Resume Next 'FIX: Sometimes this is unsupported, so leave this error.
+      If This.isProxy Then
+        Description = This.Proxy.Parent.accDescription(This.Proxy.Index)
+      Else
+        Description = protAccessible.accDescription(CHILDID_SELF)
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Returns the keyboard shortcut used to trigger the default action of the element
 '@returns String - The keyboard shortcut used to trigger the default action of the element
 Public Property Get KeyboardShortcut() As String
-  On Error Resume Next 'FIX: Sometimes this is unsupported, so leave this error handling.
-  If This.isProxy Then
-    KeyboardShortcut = This.Proxy.Parent.accKeyboardShortcut(This.Proxy.Index)
-  Else
-    KeyboardShortcut = protAccessible.accKeyboardShortcut(CHILDID_SELF)
-  End If
+  With stdError.getSentry("stdAcc#KeyboardShortcut[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      On Error Resume Next 'FIX: Sometimes this is unsupported, so leave this error handling.
+      If This.isProxy Then
+        KeyboardShortcut = This.Proxy.Parent.accKeyboardShortcut(This.Proxy.Index)
+      Else
+        KeyboardShortcut = protAccessible.accKeyboardShortcut(CHILDID_SELF)
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get the Focus of the UI element
 '@returns Boolean - Whether the element has focus
 Public Property Get Focus() As Boolean
-  'On Error Resume Next
-  If This.isProxy Then
-    Focus = This.Proxy.Parent.accFocus(This.Proxy.Index)
-  Else
-    Focus = protAccessible.accFocus(CHILDID_SELF)
-  End If
+  With stdError.getSentry("stdAcc#Focus[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      'On Error Resume Next
+      If This.isProxy Then
+        Focus = This.Proxy.Parent.accFocus(This.Proxy.Index)
+      Else
+        Focus = protAccessible.accFocus(CHILDID_SELF)
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Set the Focus of the UI element
 '@param Boolean - `True` if the element should be focussed, otherwise `false`
 Public Property Let Focus(ByVal val As Boolean)
-  'On Error Resume Next
-  If This.isProxy Then
-    This.Proxy.Parent.accFocus(This.Proxy.Index) = val
-  Else
-    protAccessible.accFocus(CHILDID_SELF) = val
-  End If
+  With stdError.getSentry("stdAcc#Focus[Let]", "val", val)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      'On Error Resume Next
+      If This.isProxy Then
+        This.Proxy.Parent.accFocus(This.Proxy.Index) = val
+      Else
+        protAccessible.accFocus(CHILDID_SELF) = val
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Returns the help
 '@returns String - the help for the element
 Public Property Get Help() As String
-  On Error Resume Next 'FIX#97: Sometimes this is unsupported, so leave this error handling.
-  If This.isProxy Then
-    Help = This.Proxy.Parent.accHelp(This.Proxy.Index)
-  Else
-    Help = protAccessible.accHelp(CHILDID_SELF)
-  End If
+  With stdError.getSentry("stdAcc#Help[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      On Error Resume Next 'FIX#97: Sometimes this is unsupported, so leave this error handling.
+      If This.isProxy Then
+        Help = This.Proxy.Parent.accHelp(This.Proxy.Index)
+      Else
+        Help = protAccessible.accHelp(CHILDID_SELF)
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Returns the help topic
 '@param sFile - File to get help topic for
 '@returns - the help topic for the element
 Public Property Get HelpTopic(Optional ByVal sFile As String = "") As String
-  On Error Resume Next 'FIX: Sometimes this is unsupported, so leave this error.
-  If This.isProxy Then
-    HelpTopic = This.Proxy.Parent.accHelpTopic(sFile, This.Proxy.Index)
-  Else
-    HelpTopic = protAccessible.accHelpTopic(sFile, CHILDID_SELF)
-  End If
+  With stdError.getSentry("stdAcc#HelpTopic[Get]", "sFile", sFile)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      On Error Resume Next 'FIX: Sometimes this is unsupported, so leave this error.
+      If This.isProxy Then
+        HelpTopic = This.Proxy.Parent.accHelpTopic(sFile, This.Proxy.Index)
+      Else
+        HelpTopic = protAccessible.accHelpTopic(sFile, CHILDID_SELF)
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Returns a string containing numerous properties from stdAcc concatenated together.
 '@returns String - Concatenation of Name, Value, DefaultAction, Description, Role, Help, HelpTopic and KeyboardShortcut.
 Public Property Get Text() As String
-  If Len(name & value & DefaultAction & Description & Help & HelpTopic & KeyboardShortcut) > 0 Then
-    Text = "Name: """ & name & """; " & _
-            "Value: """ & value & """; " & _
-            "DefaultAction: """ & DefaultAction & """; " & _
-            "Description: """ & Description & """; " & _
-            "Role: """ & Role & """; " & _
-            "Help: """ & Help & """; " & _
-            "HelpTopic: """ & HelpTopic & """; " & _
-            "KeyboardShortcut: """ & KeyboardShortcut & """;"
-  Else
-    Text = ""
-  End If
+  With stdError.getSentry("stdAcc#Text[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Len(name & value & DefaultAction & Description & Help & HelpTopic & KeyboardShortcut) > 0 Then
+        Text = "Name: """ & name & """; " & _
+                "Value: """ & value & """; " & _
+                "DefaultAction: """ & DefaultAction & """; " & _
+                "Description: """ & Description & """; " & _
+                "Role: """ & Role & """; " & _
+                "Help: """ & Help & """; " & _
+                "HelpTopic: """ & HelpTopic & """; " & _
+                "KeyboardShortcut: """ & KeyboardShortcut & """;"
+      Else
+        Text = ""
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Performs the default action of the `IAccessible` object
@@ -964,11 +1236,19 @@ End Property
 'app.getButton().DoDefaultAction()
 '```
 Public Sub DoDefaultAction()
-  If This.isProxy Then
-    Call This.Proxy.Parent.accDoDefaultAction(This.Proxy.Index)
-  Else
-    Call protAccessible.accDoDefaultAction(CHILDID_SELF)
-  End If
+  With stdError.getSentry("stdAcc#DoDefaultAction")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If This.isProxy Then
+        Call This.Proxy.Parent.accDoDefaultAction(This.Proxy.Index)
+      Else
+        Call protAccessible.accDoDefaultAction(CHILDID_SELF)
+      End If
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Sends a message to the window
@@ -978,21 +1258,37 @@ End Sub
 '@param lParam - LParam to send
 '@returns Long - Return value
 Public Function SendMessage(ByVal Msg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
-    If hwnd() > 0 Then
-        SendMessage = APISendMessage(hwnd(), Msg, wParam, lParam)
-    Else
-        Err.Raise 1, "No hwnd on this window"
-    End If
+  With stdError.getSentry("stdAcc#SendMessage", "Msg", Msg, "wParam", wParam, "lParam", lParam)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        If hwnd() > 0 Then
+            SendMessage = APISendMessage(hwnd(), Msg, wParam, lParam)
+        Else
+            Err_Raise 1, "No hwnd on this window"
+        End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Print the text of all child elements. Useful for debugging.
 Public Sub PrintChildTexts()
-    Dim child As stdAcc
-    Dim iIndex As Long: iIndex = 0
-    For Each child In children
-        iIndex = iIndex + 1
-        Debug.Print iIndex & ". " & child.Text
-    Next
+  With stdError.getSentry("stdAcc#PrintChildTexts")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim child As stdAcc
+        Dim iIndex As Long: iIndex = 0
+        For Each child In children
+            iIndex = iIndex + 1
+            Debug.Print iIndex & ". " & child.Text
+        Next
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Prints all descendent texts. Useful for debugging. Also includes all paths of all descendents which can be very beneficial.
@@ -1001,115 +1297,139 @@ End Sub
 '@param sPath         - Prefix path (sometimes you might wnat to use Me.getPath(...))
 '@param fileNum       - Filenum to output too, typically this will be left unprovided
 Public Sub PrintDescTexts(Optional ByVal sToFilePath As String = "", Optional ByVal bPrintToDebug As Boolean = True, Optional ByVal sPath As String = "P", Optional ByVal fileNum As Long = 0)
-    'Open file is file name passed and file num not given
-    Dim bFileOpened As Boolean
-    If fileNum = 0 And Len(sToFilePath) > 0 Then
-        bFileOpened = True
-        fileNum = FreeFile()
-        Open sToFilePath For Output As #fileNum
-    End If
-
-    'Loop over all children
-    Dim child As stdAcc
-    Dim iIndex As Long: iIndex = 0
-    For Each child In children
-        'Get child index for path
-        iIndex = iIndex + 1
-
-        'Create path string
-        Dim myPath As String: myPath = sPath & "." & iIndex
-
-        'If file has been opened, print data to file
-        If fileNum <> 0 Then Print #fileNum, myPath & ". " & child.Text
-        
-        'Only print to debug if bPrintToDebug
-        If bPrintToDebug Then Debug.Print myPath & ". " & child.Text
-
-        'Recurse to all children
-        Call child.PrintDescTexts(sToFilePath, bPrintToDebug, myPath, fileNum)
-    Next
-
-    'Only close file if file was opened within sub
-    If bFileOpened Then
-        Close #fileNum
-    End If
+  With stdError.getSentry("stdAcc#PrintDescTexts", "sToFilePath", sToFilePath, "bPrintToDebug", bPrintToDebug, "sPath", sPath, "fileNum", fileNum)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        'Open file is file name passed and file num not given
+        Dim bFileOpened As Boolean
+        If fileNum = 0 And Len(sToFilePath) > 0 Then
+            bFileOpened = True
+            fileNum = FreeFile()
+            Open sToFilePath For Output As #fileNum
+        End If
+    
+        'Loop over all children
+        Dim child As stdAcc
+        Dim iIndex As Long: iIndex = 0
+        For Each child In children
+            'Get child index for path
+            iIndex = iIndex + 1
+    
+            'Create path string
+            Dim myPath As String: myPath = sPath & "." & iIndex
+    
+            'If file has been opened, print data to file
+            If fileNum <> 0 Then Print #fileNum, myPath & ". " & child.Text
+            
+            'Only print to debug if bPrintToDebug
+            If bPrintToDebug Then Debug.Print myPath & ". " & child.Text
+    
+            'Recurse to all children
+            Call child.PrintDescTexts(sToFilePath, bPrintToDebug, myPath, fileNum)
+        Next
+    
+        'Only close file if file was opened within sub
+        If bFileOpened Then
+            Close #fileNum
+        End If
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Returns the path to an element
 '@param toAccessible - Stop creating path at this element
 '@returns String - String representing path to element from either Desktop or toAccessible.
 Public Function getPath(Optional toAccessible As stdAcc = Nothing) As String
-    'Initialise trace
-    Dim acc As stdAcc
-    Set acc = Me
+  With stdError.getSentry("stdAcc#getPath", "toAccessible", toAccessible)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    'Collection to store path
-    Dim col As Collection: Set col = New Collection
+        'Initialise trace
+        Dim acc As stdAcc
+        Set acc = Me
         
-    'Collect parents
-    If Not acc.Parent Is Nothing Then
-      While Not acc.Parent.name = "Desktop"
-          Dim child As stdAcc
-          Dim index As Long: index = 0
-          Dim savedIndex As Long: savedIndex = 0
-          For Each child In acc.Parent.children
-              index = index + 1
-              If child.hwnd = acc.hwnd And child.Role = acc.Role Then
-                  savedIndex = index
-                  Exit For
+        'Collection to store path
+        Dim col As Collection: Set col = New Collection
+            
+        'Collect parents
+        If Not acc.Parent Is Nothing Then
+          While Not acc.Parent.name = "Desktop"
+              Dim child As stdAcc
+              Dim index As Long: index = 0
+              Dim savedIndex As Long: savedIndex = 0
+              For Each child In acc.Parent.children
+                  index = index + 1
+                  If child.hwnd = acc.hwnd And child.Role = acc.Role Then
+                      savedIndex = index
+                      Exit For
+                  End If
+              Next
+              
+              'Add index to stack
+              If savedIndex > 0 Then
+                  col.Add savedIndex
+              Else
+                  'In some scenarios this has occurred where acc tree has changed after initial pass. Not much we can do if this is the case.
+                  getPath = "UNKNOWN"
+                  Exit Function
               End If
-          Next
+                      
+              'Elevate parent
+              Set acc = acc.Parent
+          Wend
           
-          'Add index to stack
-          If savedIndex > 0 Then
-              col.Add savedIndex
-          Else
-              'In some scenarios this has occurred where acc tree has changed after initial pass. Not much we can do if this is the case.
-              getPath = "UNKNOWN"
-              Exit Function
-          End If
-                  
-          'Elevate parent
-          Set acc = acc.Parent
-      Wend
-      
-      'Create path
-      Dim path As String
-      Dim i As Integer
-      For i = col.Count To 1 Step -1
-          path = path & "." & col(i)
-      Next i
-      
-      'Return path
-      getPath = "D.W" & path
-    Else
-      getPath = "D"
-    End If
+          'Create path
+          Dim path As String
+          Dim i As Integer
+          For i = col.Count To 1 Step -1
+              path = path & "." & col(i)
+          Next i
+          
+          'Return path
+          getPath = "D.W" & path
+        Else
+          getPath = "D"
+        End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Returns this element and all descendents as a JSON string. Useful for debugging
 '@returns String - JSON representation of element tree
 Public Function toJSON() As String
-    'Get children string
-    Dim sChildren As String
-    sChildren = ""
-    Dim acc As stdAcc
-    For Each acc In children()
-        sChildren = sChildren & "," & acc.toJSON()
-    Next
-    sChildren = Mid(sChildren, 2)
+  With stdError.getSentry("stdAcc#toJSON")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    'Convert to json
-    toJSON = "{" & _
-        """name"":""" & jsonEscape(name()) & """," & _
-        """desc"":""" & jsonEscape(Description()) & """," & _
-        """value"":""" & jsonEscape(value()) & """," & _
-        """role"":""" & jsonEscape(Role()) & """," & _
-        """states"":""" & jsonEscape(States()) & """," & _
-        """ks"":""" & jsonEscape(KeyboardShortcut()) & """," & _
-        """help"":""" & jsonEscape(Help()) & """," & _
-        """ht"":""" & jsonEscape(HelpTopic()) & """," & _
-        """children"":[" & sChildren & "]}"
+        'Get children string
+        Dim sChildren As String
+        sChildren = ""
+        Dim acc As stdAcc
+        For Each acc In children()
+            sChildren = sChildren & "," & acc.toJSON()
+        Next
+        sChildren = Mid(sChildren, 2)
+        
+        'Convert to json
+        toJSON = "{" & _
+            """name"":""" & jsonEscape(name()) & """," & _
+            """desc"":""" & jsonEscape(Description()) & """," & _
+            """value"":""" & jsonEscape(value()) & """," & _
+            """role"":""" & jsonEscape(Role()) & """," & _
+            """states"":""" & jsonEscape(States()) & """," & _
+            """ks"":""" & jsonEscape(KeyboardShortcut()) & """," & _
+            """help"":""" & jsonEscape(Help()) & """," & _
+            """ht"":""" & jsonEscape(HelpTopic()) & """," & _
+            """children"":[" & sChildren & "]}"
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Await for the existence of an element which meets a specified condition.
@@ -1119,77 +1439,93 @@ End Function
 '@returns stdAcc                                  - Element awaited for
 '@remark calls `Me.FindFirst(awaitFor)` to wait for chosen element
 Public Function AwaitForElement(awaitFor As stdICallable, Optional error As stdICallable = Nothing, Optional timeout As Long = -1) As stdAcc
-  Dim bCond As Boolean: bCond = True
-  Dim el As Object: Set el = Nothing
-  Dim oldTime As Date: oldTime = Now()
-  While bCond
-      Set el = FindFirst(awaitFor)
-      If Not el Is Nothing Then bCond = False
-      If Not error Is Nothing Then
-          If error.Run(Me) Then bCond = False
-      End If
-      If timeout <> -1 And Second(Now() - oldTime) > timeout Then bCond = False
-      DoEvents
-  Wend
-  Set AwaitForElement = el
+  With stdError.getSentry("stdAcc#AwaitForElement", "awaitFor", awaitFor, "error", error, "timeout", timeout)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim bCond As Boolean: bCond = True
+      Dim el As Object: Set el = Nothing
+      Dim oldTime As Date: oldTime = Now()
+      While bCond
+          Set el = FindFirst(awaitFor)
+          If Not el Is Nothing Then bCond = False
+          If Not error Is Nothing Then
+              If error.Run(Me) Then bCond = False
+          End If
+          If timeout <> -1 And Second(Now() - oldTime) > timeout Then bCond = False
+          DoEvents
+      Wend
+      Set AwaitForElement = el
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Returns the lookups object
 '@returns Object<Dictionary<string,Dictionary<string,Dictionary<string,long>>>>
 Friend Function protGetLookups() As Object
-    If This.Singleton.Lookups Is Nothing Then
-        Set This.Singleton.Lookups = CreateObject("Scripting.Dictionary")
-        Set This.Singleton.Lookups("EAccStates") = CreateLookupDict(Array( _
-            "STATE_NORMAL", &H0, "STATE_UNAVAILABLE", &H1, _
-            "STATE_SELECTED", &H2, "STATE_FOCUSED", &H4, _
-            "STATE_PRESSED", &H8, "STATE_CHECKED", &H10, _
-            "STATE_MIXED", &H20, "STATE_INDETERMINATE", &H99, _
-            "STATE_READONLY", &H40, "STATE_HOTTRACKED", &H80, _
-            "STATE_DEFAULT", &H100, "STATE_EXPANDED", &H200, _
-            "STATE_COLLAPSED", &H400, "STATE_BUSY", &H800, _
-            "STATE_FLOATING", &H1000, "STATE_MARQUEED", &H2000, _
-            "STATE_ANIMATED", &H4000, "STATE_INVISIBLE", &H8000, _
-            "STATE_OFFSCREEN", &H10000, "STATE_SIZEABLE", &H20000, _
-            "STATE_MOVEABLE", &H40000, "STATE_SELFVOICING", &H80000, _
-            "STATE_FOCUSABLE", &H100000, "STATE_SELECTABLE", &H200000, _
-            "STATE_LINKED", &H400000, "STATE_TRAVERSED", &H800000, _
-            "STATE_MULTISELECTABLE", &H1000000, "STATE_EXTSELECTABLE", &H2000000, _
-            "STATE_ALERT_LOW", &H4000000, "STATE_ALERT_MEDIUM", &H8000000, _
-            "STATE_ALERT_HIGH", &H10000000, "STATE_PROTECTED", &H20000000, _
-            "STATE_VALID", &H7FFFFFFF _
-        ))
-        Set This.Singleton.Lookups("EAccRoles") = CreateLookupDict(Array( _
-            "ROLE_TITLEBAR", &H1&, "ROLE_MENUBAR", &H2&, "ROLE_SCROLLBAR", &H3&, _
-            "ROLE_GRIP", &H4&, "ROLE_SOUND", &H5&, "ROLE_CURSOR", &H6&, _
-            "ROLE_CARET", &H7&, "ROLE_ALERT", &H8&, "ROLE_WINDOW", &H9&, _
-            "ROLE_CLIENT", &HA&, "ROLE_MENUPOPUP", &HB&, "ROLE_MENUITEM", &HC&, _
-            "ROLE_TOOLTIP", &HD&, "ROLE_APPLICATION", &HE&, "ROLE_DOCUMENT", &HF&, _
-            "ROLE_PANE", &H10&, "ROLE_CHART", &H11&, "ROLE_DIALOG", &H12&, _
-            "ROLE_BORDER", &H13&, "ROLE_GROUPING", &H14&, "ROLE_SEPARATOR", &H15&, _
-            "ROLE_TOOLBAR", &H16&, "ROLE_STATUSBAR", &H17&, "ROLE_TABLE", &H18&, _
-            "ROLE_COLUMNHEADER", &H19&, "ROLE_ROWHEADER", &H1A&, "ROLE_COLUMN", &H1B&, _
-            "ROLE_ROW", &H1C&, "ROLE_CELL", &H1D&, "ROLE_LINK", &H1E&, _
-            "ROLE_HELPBALLOON", &H1F&, "ROLE_CHARACTER", &H20&, "ROLE_LIST", &H21&, _
-            "ROLE_LISTITEM", &H22&, "ROLE_OUTLINE", &H23&, "ROLE_OUTLINEITEM", &H24&, _
-            "ROLE_PAGETAB", &H25&, "ROLE_PROPERTYPAGE", &H26&, "ROLE_INDICATOR", &H27&, _
-            "ROLE_GRAPHIC", &H28&, "ROLE_STATICTEXT", &H29&, "ROLE_TEXT", &H2A&, _
-            "ROLE_PUSHBUTTON", &H2B&, "ROLE_CHECKBUTTON", &H2C&, "ROLE_RADIOBUTTON", &H2D&, _
-            "ROLE_COMBOBOX", &H2E&, "ROLE_DROPLIST", &H2F&, "ROLE_PROGRESSBAR", &H30&, _
-            "ROLE_DIAL", &H31&, "ROLE_HOTKEYFIELD", &H32&, "ROLE_SLIDER", &H33&, _
-            "ROLE_SPINBUTTON", &H34&, "ROLE_DIAGRAM", &H35&, "ROLE_ANIMATION", &H36&, _
-            "ROLE_EQUATION", &H37&, "ROLE_BUTTONDROPDOWN", &H38&, "ROLE_BUTTONMENU", &H39&, _
-            "ROLE_BUTTONDROPDOWNGRID", &H3A&, "ROLE_WHITESPACE", &H3B&, "ROLE_PAGETABLIST", &H3C&, _
-            "ROLE_CLOCK", &H3D& _
-        ))
-        Set This.Singleton.Lookups("EAccFindResult") = CreateLookupDict(Array( _
-            "MatchFound", EAccFindResult.MatchFound, _
-            "MatchFoundSearchDescendents", EAccFindResult.MatchFoundSearchDescendents, _
-            "NoMatchFound", EAccFindResult.NoMatchFound, _
-            "NoMatchCancelSearch", EAccFindResult.NoMatchCancelSearch, _
-            "NoMatchSkipDescendents", EAccFindResult.NoMatchSkipDescendents _
-        ))
-    End If
-    Set protGetLookups = This.Singleton.Lookups
+  With stdError.getSentry("stdAcc#protGetLookups")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        If This.Singleton.Lookups Is Nothing Then
+            Set This.Singleton.Lookups = CreateObject("Scripting.Dictionary")
+            Set This.Singleton.Lookups("EAccStates") = CreateLookupDict(Array( _
+                "STATE_NORMAL", &H0, "STATE_UNAVAILABLE", &H1, _
+                "STATE_SELECTED", &H2, "STATE_FOCUSED", &H4, _
+                "STATE_PRESSED", &H8, "STATE_CHECKED", &H10, _
+                "STATE_MIXED", &H20, "STATE_INDETERMINATE", &H99, _
+                "STATE_READONLY", &H40, "STATE_HOTTRACKED", &H80, _
+                "STATE_DEFAULT", &H100, "STATE_EXPANDED", &H200, _
+                "STATE_COLLAPSED", &H400, "STATE_BUSY", &H800, _
+                "STATE_FLOATING", &H1000, "STATE_MARQUEED", &H2000, _
+                "STATE_ANIMATED", &H4000, "STATE_INVISIBLE", &H8000, _
+                "STATE_OFFSCREEN", &H10000, "STATE_SIZEABLE", &H20000, _
+                "STATE_MOVEABLE", &H40000, "STATE_SELFVOICING", &H80000, _
+                "STATE_FOCUSABLE", &H100000, "STATE_SELECTABLE", &H200000, _
+                "STATE_LINKED", &H400000, "STATE_TRAVERSED", &H800000, _
+                "STATE_MULTISELECTABLE", &H1000000, "STATE_EXTSELECTABLE", &H2000000, _
+                "STATE_ALERT_LOW", &H4000000, "STATE_ALERT_MEDIUM", &H8000000, _
+                "STATE_ALERT_HIGH", &H10000000, "STATE_PROTECTED", &H20000000, _
+                "STATE_VALID", &H7FFFFFFF _
+            ))
+            Set This.Singleton.Lookups("EAccRoles") = CreateLookupDict(Array( _
+                "ROLE_TITLEBAR", &H1&, "ROLE_MENUBAR", &H2&, "ROLE_SCROLLBAR", &H3&, _
+                "ROLE_GRIP", &H4&, "ROLE_SOUND", &H5&, "ROLE_CURSOR", &H6&, _
+                "ROLE_CARET", &H7&, "ROLE_ALERT", &H8&, "ROLE_WINDOW", &H9&, _
+                "ROLE_CLIENT", &HA&, "ROLE_MENUPOPUP", &HB&, "ROLE_MENUITEM", &HC&, _
+                "ROLE_TOOLTIP", &HD&, "ROLE_APPLICATION", &HE&, "ROLE_DOCUMENT", &HF&, _
+                "ROLE_PANE", &H10&, "ROLE_CHART", &H11&, "ROLE_DIALOG", &H12&, _
+                "ROLE_BORDER", &H13&, "ROLE_GROUPING", &H14&, "ROLE_SEPARATOR", &H15&, _
+                "ROLE_TOOLBAR", &H16&, "ROLE_STATUSBAR", &H17&, "ROLE_TABLE", &H18&, _
+                "ROLE_COLUMNHEADER", &H19&, "ROLE_ROWHEADER", &H1A&, "ROLE_COLUMN", &H1B&, _
+                "ROLE_ROW", &H1C&, "ROLE_CELL", &H1D&, "ROLE_LINK", &H1E&, _
+                "ROLE_HELPBALLOON", &H1F&, "ROLE_CHARACTER", &H20&, "ROLE_LIST", &H21&, _
+                "ROLE_LISTITEM", &H22&, "ROLE_OUTLINE", &H23&, "ROLE_OUTLINEITEM", &H24&, _
+                "ROLE_PAGETAB", &H25&, "ROLE_PROPERTYPAGE", &H26&, "ROLE_INDICATOR", &H27&, _
+                "ROLE_GRAPHIC", &H28&, "ROLE_STATICTEXT", &H29&, "ROLE_TEXT", &H2A&, _
+                "ROLE_PUSHBUTTON", &H2B&, "ROLE_CHECKBUTTON", &H2C&, "ROLE_RADIOBUTTON", &H2D&, _
+                "ROLE_COMBOBOX", &H2E&, "ROLE_DROPLIST", &H2F&, "ROLE_PROGRESSBAR", &H30&, _
+                "ROLE_DIAL", &H31&, "ROLE_HOTKEYFIELD", &H32&, "ROLE_SLIDER", &H33&, _
+                "ROLE_SPINBUTTON", &H34&, "ROLE_DIAGRAM", &H35&, "ROLE_ANIMATION", &H36&, _
+                "ROLE_EQUATION", &H37&, "ROLE_BUTTONDROPDOWN", &H38&, "ROLE_BUTTONMENU", &H39&, _
+                "ROLE_BUTTONDROPDOWNGRID", &H3A&, "ROLE_WHITESPACE", &H3B&, "ROLE_PAGETABLIST", &H3C&, _
+                "ROLE_CLOCK", &H3D& _
+            ))
+            Set This.Singleton.Lookups("EAccFindResult") = CreateLookupDict(Array( _
+                "MatchFound", EAccFindResult.MatchFound, _
+                "MatchFoundSearchDescendents", EAccFindResult.MatchFoundSearchDescendents, _
+                "NoMatchFound", EAccFindResult.NoMatchFound, _
+                "NoMatchCancelSearch", EAccFindResult.NoMatchCancelSearch, _
+                "NoMatchSkipDescendents", EAccFindResult.NoMatchSkipDescendents _
+            ))
+        End If
+        Set protGetLookups = This.Singleton.Lookups
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 
@@ -1199,11 +1535,19 @@ End Function
   '@param x - X coordinate (Horizontal)
   '@param y - Y coordinate (Vertical)
   '@returns - Accessibility object
-  Private Function AccessibilityObjectFromPointEx(ByVal x As Long, ByVal y As Long) As IAccessible
-    Dim o As IAccessible, v As Variant
-    Call AccessibleObjectFromPoint(PointToLongLong(x, y), o, v)
-    Set AccessibilityObjectFromPointEx = o
-  End Function
+Private Function AccessibilityObjectFromPointEx(ByVal x As Long, ByVal y As Long) As IAccessible
+  With stdError.getSentry("stdAcc#AccessibilityObjectFromPointEx", "x", x, "y", y)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim o As IAccessible, v As Variant
+        Call AccessibleObjectFromPoint(PointToLongLong(x, y), o, v)
+        Set AccessibilityObjectFromPointEx = o
+      
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
+End Function
 
   'Convert a Point's X (Long) and Y (Long) into a `LongLong`
   '@param x - X coordinate (Horizontal)
@@ -1213,26 +1557,42 @@ End Function
   '        I believe this is because stdCall convention puts arguments onto the stack in the reverse order, but in this case
   '        Since we are providing a single argument, we have to do that instead of the compiler. This ordering has been confirmed
   '        experimentally, this is just my hypothesis for this weird ordering.
-  Private Function PointToLongLong(ByVal x As Long, ByVal y As Long) As LongLong
-    'If sign bit is set (10000000 00000000 00000000 00000000) then shifting by 4 bytes left will cause an overflow.
-    'Therefore exclude it (XOR part) but set the sign bit.
-    Dim sign As LongLong
-    If y And &H80000000 Then
-      y = y Xor &H80000000
-      sign = &H8000000000000000^
-    End If
-    PointToLongLong = (y * &H100000000^) Or (x And &HFFFFFFFF) Or sign
-  End Function
+Private Function PointToLongLong(ByVal x As Long, ByVal y As Long) As LongLong
+  With stdError.getSentry("stdAcc#PointToLongLong", "x", x, "y", y)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        'If sign bit is set (10000000 00000000 00000000 00000000) then shifting by 4 bytes left will cause an overflow.
+        'Therefore exclude it (XOR part) but set the sign bit.
+        Dim sign As LongLong
+        If y And &H80000000 Then
+          y = y Xor &H80000000
+          sign = &H8000000000000000^
+        End If
+        PointToLongLong = (y * &H100000000^) Or (x And &HFFFFFFFF) Or sign
+      
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
+End Function
 #Else
   'Get an IAccessible object from a screen point
   '@param x - X coordinate (Horizontal)
   '@param y - Y coordinate (Vertical)
   '@returns - Accessibility object
-  Private Function AccessibilityObjectFromPointEx(ByVal x as long, ByVal y as long) As IAccessible
-    Dim o As IAccessible, v As Variant
-    Call AccessibleObjectFromPoint(x, y, o, v)
-    Set AccessibilityObjectFromPointEx = o
-  End Function
+Private Function AccessibilityObjectFromPointEx(ByVal x as long, ByVal y as long) As IAccessible
+  With stdError.getSentry("stdAcc#AccessibilityObjectFromPointEx", "x", x, "y", y)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim o As IAccessible, v As Variant
+        Call AccessibleObjectFromPoint(x, y, o, v)
+        Set AccessibilityObjectFromPointEx = o
+      
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
+End Function
 #End If
 
 ''Creates a userform with transparent background and red border around the element. Useful for debugging.
@@ -1245,111 +1605,167 @@ End Function
 '@param {LongPtr} hwnd
 '@returns {IAccessible} IAccessible interface for hwnd
 Private Function IAccessibleFromHwnd(ByVal hwnd As LongPtr) As IAccessible
-    ' Define the GUID for the IAccessible object {618736E0-3C3D-11CF-810C-00AA00389B71}
-    Dim Guid As tGUID
-    Guid = convertGUID("618736E0-3C3D-11CF-810C-00AA00389B71")
-   
-    ' Retrieve the IAccessible object from the window
-    Dim oIA As IAccessible, lReturn As Long
-    lReturn = AccessibleObjectFromWindow(hwnd, 0, Guid, oIA)
-    Set IAccessibleFromHwnd = oIA
+  With stdError.getSentry("stdAcc#IAccessibleFromHwnd", "hwnd", hwnd)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        ' Define the GUID for the IAccessible object {618736E0-3C3D-11CF-810C-00AA00389B71}
+        Dim Guid As tGUID
+        Guid = convertGUID("618736E0-3C3D-11CF-810C-00AA00389B71")
+       
+        ' Retrieve the IAccessible object from the window
+        Dim oIA As IAccessible, lReturn As Long
+        lReturn = AccessibleObjectFromWindow(hwnd, 0, Guid, oIA)
+        Set IAccessibleFromHwnd = oIA
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Create a GUID struct from input string
 '@param guid - GUID string to convert
 '@returns - guid struct for use in API calls
 Private Function convertGUID(Guid As String) As tGUID
-    'Lookups defined by:
-    ' Define the GUID for the IAccessible object
-    ' {618736E0-3C3D-11CF-810C-00AA00389B71}
-    ' With tg
-    '    .lData1 = &H618736E0
-    '    .nData2 = &H3C3D
-    '    .nData3 = &H11CF
-    '    .abytData4(0) = &H81
-    '    .abytData4(1) = &HC
-    '    .abytData4(2) = &H0
-    '    .abytData4(3) = &HAA
-    '    .abytData4(4) = &H0
-    '    .abytData4(5) = &H38
-    '    .abytData4(6) = &H9B
-    '    .abytData4(7) = &H71
-    ' End With
+  With stdError.getSentry("stdAcc#convertGUID", "Guid", Guid)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    Dim vArr: vArr = Split(Guid, "-")
+        'Lookups defined by:
+        ' Define the GUID for the IAccessible object
+        ' {618736E0-3C3D-11CF-810C-00AA00389B71}
+        ' With tg
+        '    .lData1 = &H618736E0
+        '    .nData2 = &H3C3D
+        '    .nData3 = &H11CF
+        '    .abytData4(0) = &H81
+        '    .abytData4(1) = &HC
+        '    .abytData4(2) = &H0
+        '    .abytData4(3) = &HAA
+        '    .abytData4(4) = &H0
+        '    .abytData4(5) = &H38
+        '    .abytData4(6) = &H9B
+        '    .abytData4(7) = &H71
+        ' End With
+        
+        Dim vArr: vArr = Split(Guid, "-")
+        
+        'Generate GUID structure from string of hex
+        convertGUID.lData1 = CLng("&H" & vArr(0))             '618736E0
+        convertGUID.nData2 = CInt("&H" & vArr(1))             '3C3D
+        convertGUID.nData3 = CInt("&H" & vArr(2))             '11CF
+        convertGUID.abytData4(0) = CInt("&H" & Mid(vArr(3), 1, 2))  '81
+        convertGUID.abytData4(1) = CInt("&H" & Mid(vArr(3), 3, 2))  '0C
+        convertGUID.abytData4(2) = CInt("&H" & Mid(vArr(4), 1, 2))  '00
+        convertGUID.abytData4(3) = CInt("&H" & Mid(vArr(4), 3, 2))  'AA
+        convertGUID.abytData4(4) = CInt("&H" & Mid(vArr(4), 5, 2))  '00
+        convertGUID.abytData4(5) = CInt("&H" & Mid(vArr(4), 7, 2))  '38
+        convertGUID.abytData4(6) = CInt("&H" & Mid(vArr(4), 9, 2))  '9B
+        convertGUID.abytData4(7) = CInt("&H" & Mid(vArr(4), 11, 2)) '71
     
-    'Generate GUID structure from string of hex
-    convertGUID.lData1 = CLng("&H" & vArr(0))             '618736E0
-    convertGUID.nData2 = CInt("&H" & vArr(1))             '3C3D
-    convertGUID.nData3 = CInt("&H" & vArr(2))             '11CF
-    convertGUID.abytData4(0) = CInt("&H" & Mid(vArr(3), 1, 2))  '81
-    convertGUID.abytData4(1) = CInt("&H" & Mid(vArr(3), 3, 2))  '0C
-    convertGUID.abytData4(2) = CInt("&H" & Mid(vArr(4), 1, 2))  '00
-    convertGUID.abytData4(3) = CInt("&H" & Mid(vArr(4), 3, 2))  'AA
-    convertGUID.abytData4(4) = CInt("&H" & Mid(vArr(4), 5, 2))  '00
-    convertGUID.abytData4(5) = CInt("&H" & Mid(vArr(4), 7, 2))  '38
-    convertGUID.abytData4(6) = CInt("&H" & Mid(vArr(4), 9, 2))  '9B
-    convertGUID.abytData4(7) = CInt("&H" & Mid(vArr(4), 11, 2)) '71
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Bind standard acc global variables to a callable
 '@param stdICallable - A callable to bind global variables to (if the callable supports it)
 Private Sub BindGlobals(ByRef query As stdICallable)
-    Dim bSuccess As Boolean
-    Call query.SendMessage("bindGlobal", bSuccess, Array("EAccRoles", This.Singleton.Lookups("EAccRoles")("S2N")))
-    Call query.SendMessage("bindGlobal", bSuccess, Array("EAccStates", This.Singleton.Lookups("EAccStates")("S2N")))
-    Call query.SendMessage("bindGlobal", bSuccess, Array("EAccFindResult", This.Singleton.Lookups("EAccFindResult")("S2N")))
+  With stdError.getSentry("stdAcc#BindGlobals", "query", query)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim bSuccess As Boolean
+        Call query.SendMessage("bindGlobal", bSuccess, Array("EAccRoles", This.Singleton.Lookups("EAccRoles")("S2N")))
+        Call query.SendMessage("bindGlobal", bSuccess, Array("EAccStates", This.Singleton.Lookups("EAccStates")("S2N")))
+        Call query.SendMessage("bindGlobal", bSuccess, Array("EAccFindResult", This.Singleton.Lookups("EAccFindResult")("S2N")))
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Creates a proxy element under this element (this element is parent). Proxy elements get there information from the parent directly.
 '@param childID - Child ID to create proxy element on
 '@returns - stdAcc element for child
 Private Function createProxyChild(ByVal childID As Long) As stdAcc
-    Set createProxyChild = New stdAcc
-    Call createProxyChild.protInitWithProxy(Me, childID)
+  With stdError.getSentry("stdAcc#createProxyChild", "childID", childID)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Set createProxyChild = New stdAcc
+        Call createProxyChild.protInitWithProxy(Me, childID)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Escape string for compatibility with JSON
 '@param s - string to escape
 '@returns - Escaped string
 Private Function jsonEscape(ByVal s As String) As String
-    s = Replace(s, "\", "\\")
-    s = Replace(s, vbCr, "\r")
-    s = Replace(s, vbLf, "\n")
-    s = Replace(s, """", "\""")
-    jsonEscape = s
+  With stdError.getSentry("stdAcc#jsonEscape", "s", s)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        s = Replace(s, "\", "\\")
+        s = Replace(s, vbCr, "\r")
+        s = Replace(s, vbLf, "\n")
+        s = Replace(s, """", "\""")
+        jsonEscape = s
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Whenever we initialise ensure to get Lookups from `stdAcc`
 Private Sub Class_Initialize()
-    Set This.Singleton.Lookups = stdAcc.protGetLookups()
+  With stdError.getSentry("stdAcc#Class_Initialize")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Set This.Singleton.Lookups = stdAcc.protGetLookups()
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'From an array of Key-Value pairs, create a dictionary of Key-->Value and Value-->Key lookups
 '@param arr as Array<Variant> - 1D array of Key,Value pairs
 '@returns Object<Dictionary<S2N: Dictionary<key: string,value: variant>, N2S: Dictionary<value: variant, key: string>>> - Dictionary of dictionaries containing the lookups
 Private Function CreateLookupDict(arr As Variant) As Object
-    Dim oRet As Object
-    Set oRet = CreateObject("Scripting.Dictionary")
-    oRet.CompareMode = 1
-    Dim i As Long
-
-    'Create string --> number dictionary
-    Set oRet("S2N") = CreateObject("Scripting.Dictionary")
-    oRet("S2N").CompareMode = 1
-    For i = LBound(arr) To UBound(arr) Step 2
-        Call oRet("S2N").add(arr(i), arr(i + 1))
-    Next
-
-    'Create number --> string dictionary
-    Set oRet("N2S") = CreateObject("Scripting.Dictionary")
-    oRet("N2S").CompareMode = 1
-    For i = LBound(arr) To UBound(arr) Step 2
-        Call oRet("N2S").add(arr(i + 1), arr(i))
-    Next
-
-    'Return dictionary
-    Set CreateLookupDict = oRet
+  With stdError.getSentry("stdAcc#CreateLookupDict", "arr", arr)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim oRet As Object
+        Set oRet = CreateObject("Scripting.Dictionary")
+        oRet.CompareMode = 1
+        Dim i As Long
+    
+        'Create string --> number dictionary
+        Set oRet("S2N") = CreateObject("Scripting.Dictionary")
+        oRet("S2N").CompareMode = 1
+        For i = LBound(arr) To UBound(arr) Step 2
+            Call oRet("S2N").add(arr(i), arr(i + 1))
+        Next
+    
+        'Create number --> string dictionary
+        Set oRet("N2S") = CreateObject("Scripting.Dictionary")
+        oRet("N2S").CompareMode = 1
+        For i = LBound(arr) To UBound(arr) Step 2
+            Call oRet("N2S").add(arr(i + 1), arr(i))
+        Next
+    
+        'Return dictionary
+        Set CreateLookupDict = oRet
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 '****************************************
@@ -1360,9 +1776,17 @@ End Function
 '@param element - element to store in tFindNode
 '@returns - FindNode struct
 Private Function CreateFindNode(ByVal depth As Long, ByVal element As stdAcc) As tFindNode
-    CreateFindNode.initialised = True
-    CreateFindNode.depth = depth
-    Set CreateFindNode.element = element
+  With stdError.getSentry("stdAcc#CreateFindNode", "depth", depth, "element", element)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        CreateFindNode.initialised = True
+        CreateFindNode.depth = depth
+        Set CreateFindNode.element = element
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Given an array `stack`, and length `index`, append `item` onto the stack 
@@ -1370,15 +1794,23 @@ End Function
 '@param index - current index in stack
 '@param item - Item to insert into stack
 Private Sub stackPushV(ByRef stack() As tFindNode, ByRef index As Long, ByRef item As tFindNode)
-    Dim ub As Long: ub = UBound(stack)
-    Dim size As Long: size = ub + 1
-    If index > ub Then
-        ReDim Preserve stack(0 To size * 2)
-    End If
-    stack(index).initialised = item.initialised
-    stack(index).depth = item.depth
-    Set stack(index).element = item.element
-    index = index + 1
+  With stdError.getSentry("stdAcc#stackPushV", "index", index)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim ub As Long: ub = UBound(stack)
+        Dim size As Long: size = ub + 1
+        If index > ub Then
+            ReDim Preserve stack(0 To size * 2)
+        End If
+        stack(index).initialised = item.initialised
+        stack(index).depth = item.depth
+        Set stack(index).element = item.element
+        index = index + 1
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 
@@ -1387,18 +1819,26 @@ End Sub
 '@param index - current index in stack
 '@returns - FindNode found at index
 Private Function stackPopV(ByRef stack() As tFindNode, ByRef index As Variant) As tFindNode
-    Dim size As Long: size = UBound(stack) + 1
-    If index < size / 3 Then
-        ReDim Preserve stack(0 To CLng(size / 2))
-    End If
-    index = index - 1
+  With stdError.getSentry("stdAcc#stackPopV", "index", index)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    stackPopV.initialised = stack(index).initialised
-    stackPopV.depth = stack(index).depth
-    Set stackPopV.element = stack(index).element
-    stack(index).initialised = False
-    stack(index).depth = 0
-    Set stack(index).element = Nothing
+        Dim size As Long: size = UBound(stack) + 1
+        If index < size / 3 Then
+            ReDim Preserve stack(0 To CLng(size / 2))
+        End If
+        index = index - 1
+        
+        stackPopV.initialised = stack(index).initialised
+        stackPopV.depth = stack(index).depth
+        Set stackPopV.element = stack(index).element
+        stack(index).initialised = False
+        stack(index).depth = 0
+        Set stack(index).element = Nothing
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 
@@ -1406,93 +1846,117 @@ End Function
 '@param code - Error code
 '@returns - Description of error
 Private Function COMErrorDescription(ByVal code As Long) As String
-    Static pErrorCodes As Object
-    If pErrorCodes Is Nothing Then
-        Set pErrorCodes = CreateObject("Scripting.Dictionary")
-        pErrorCodes(Hex(-2147352563)) = "DISP_E_ARRAYISLOCKED"
-        pErrorCodes(Hex(-2147352560)) = "DISP_E_BADCALLEE"
-        pErrorCodes(Hex(-2147352565)) = "DISP_E_BADINDEX"
-        pErrorCodes(Hex(-2147352562)) = "DISP_E_BADPARAMCOUNT"
-        pErrorCodes(Hex(-2147352568)) = "DISP_E_BADVARTYPE"
-        pErrorCodes(Hex(-2147352557)) = "DISP_E_BUFFERTOOSMALL"
-        pErrorCodes(Hex(-2147352558)) = "DISP_E_DIVBYZERO"
-        pErrorCodes(Hex(-2147352567)) = "DISP_E_EXCEPTION"
-        pErrorCodes(Hex(-2147352573)) = "DISP_E_MEMBERNOTFOUND"
-        pErrorCodes(Hex(-2147352569)) = "DISP_E_NONAMEDARGS"
-        pErrorCodes(Hex(-2147352559)) = "DISP_E_NOTACOLLECTION"
-        pErrorCodes(Hex(-2147352566)) = "DISP_E_OVERFLOW"
-        pErrorCodes(Hex(-2147352572)) = "DISP_E_PARAMNOTFOUND"
-        pErrorCodes(Hex(-2147352561)) = "DISP_E_PARAMNOTOPTIONAL"
-        pErrorCodes(Hex(-2147352571)) = "DISP_E_TYPEMISMATCH"
-        pErrorCodes(Hex(-2147352575)) = "DISP_E_UNKNOWNINTERFACE"
-        pErrorCodes(Hex(-2147352564)) = "DISP_E_UNKNOWNLCID"
-        pErrorCodes(Hex(-2147352570)) = "DISP_E_UNKNOWNNAME"
-        pErrorCodes(Hex(-2147467260)) = "E_ABORT"
-        pErrorCodes(Hex(-2147024891)) = "E_ACCESSDENIED"
-        pErrorCodes(Hex(-2147467259)) = "E_FAIL"
-        pErrorCodes(Hex(-2147024890)) = "E_HANDLE"
-        pErrorCodes(Hex(-2147024809)) = "E_INVALIDARG"
-        pErrorCodes(Hex(-2147467262)) = "E_NOINTERFACE"
-        pErrorCodes(Hex(-2147467263)) = "E_NOTIMPL"
-        pErrorCodes(Hex(-2147024882)) = "E_OUTOFMEMORY"
-        pErrorCodes(Hex(-2147483638)) = "E_PENDING"
-        pErrorCodes(Hex(-2147467261)) = "E_POINTER"
-        pErrorCodes(Hex(-2147418113)) = "E_UNEXPECTED"
-    End If
-    COMErrorDescription = pErrorCodes(Hex(code))
+  With stdError.getSentry("stdAcc#COMErrorDescription", "code", code)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Static pErrorCodes As Object
+        If pErrorCodes Is Nothing Then
+            Set pErrorCodes = CreateObject("Scripting.Dictionary")
+            pErrorCodes(Hex(-2147352563)) = "DISP_E_ARRAYISLOCKED"
+            pErrorCodes(Hex(-2147352560)) = "DISP_E_BADCALLEE"
+            pErrorCodes(Hex(-2147352565)) = "DISP_E_BADINDEX"
+            pErrorCodes(Hex(-2147352562)) = "DISP_E_BADPARAMCOUNT"
+            pErrorCodes(Hex(-2147352568)) = "DISP_E_BADVARTYPE"
+            pErrorCodes(Hex(-2147352557)) = "DISP_E_BUFFERTOOSMALL"
+            pErrorCodes(Hex(-2147352558)) = "DISP_E_DIVBYZERO"
+            pErrorCodes(Hex(-2147352567)) = "DISP_E_EXCEPTION"
+            pErrorCodes(Hex(-2147352573)) = "DISP_E_MEMBERNOTFOUND"
+            pErrorCodes(Hex(-2147352569)) = "DISP_E_NONAMEDARGS"
+            pErrorCodes(Hex(-2147352559)) = "DISP_E_NOTACOLLECTION"
+            pErrorCodes(Hex(-2147352566)) = "DISP_E_OVERFLOW"
+            pErrorCodes(Hex(-2147352572)) = "DISP_E_PARAMNOTFOUND"
+            pErrorCodes(Hex(-2147352561)) = "DISP_E_PARAMNOTOPTIONAL"
+            pErrorCodes(Hex(-2147352571)) = "DISP_E_TYPEMISMATCH"
+            pErrorCodes(Hex(-2147352575)) = "DISP_E_UNKNOWNINTERFACE"
+            pErrorCodes(Hex(-2147352564)) = "DISP_E_UNKNOWNLCID"
+            pErrorCodes(Hex(-2147352570)) = "DISP_E_UNKNOWNNAME"
+            pErrorCodes(Hex(-2147467260)) = "E_ABORT"
+            pErrorCodes(Hex(-2147024891)) = "E_ACCESSDENIED"
+            pErrorCodes(Hex(-2147467259)) = "E_FAIL"
+            pErrorCodes(Hex(-2147024890)) = "E_HANDLE"
+            pErrorCodes(Hex(-2147024809)) = "E_INVALIDARG"
+            pErrorCodes(Hex(-2147467262)) = "E_NOINTERFACE"
+            pErrorCodes(Hex(-2147467263)) = "E_NOTIMPL"
+            pErrorCodes(Hex(-2147024882)) = "E_OUTOFMEMORY"
+            pErrorCodes(Hex(-2147483638)) = "E_PENDING"
+            pErrorCodes(Hex(-2147467261)) = "E_POINTER"
+            pErrorCodes(Hex(-2147418113)) = "E_UNEXPECTED"
+        End If
+        COMErrorDescription = pErrorCodes(Hex(code))
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 
 
 Private Function accGetIdentity(ByRef accIdent As IUnknown) As String
-  Const GetIdentityOffset As Long = 3
-  Dim accIdentPtr As LongPtr
-  Dim accIdentLen As Long
-  Dim hResult As Long: hResult = DispCallFuncEx(accIdent, GetIdentityOffset, vbLong, 0, VarPtr(accIdentPtr), VarPtr(accIdentLen))
-  If hResult = 0 Then
-    Dim ptr As LongPtr
-    Dim accIdentByt() As Byte
-    ReDim accIdentByt(0 To accIdentLen)
-    Call CopyMemory(VarPtr(accIdentByt(0)), accIdentPtr, accIdentLen)
-    Call CoTaskMemFree(accIdentPtr)
-
-    Dim s As String: s = Space(accIdentLen * 2)
-    Dim i As Long: For i = 0 To accIdentLen - 1
-      Mid(s, i * 2 + 1, 2) = IIf(accIdentByt(i) < 10, "0", "") & Hex(accIdentByt(i))
-    Next
-
-    accGetIdentity = s
-  End If
+  With stdError.getSentry("stdAcc#accGetIdentity", "accIdent", accIdent)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Const GetIdentityOffset As Long = 3
+      Dim accIdentPtr As LongPtr
+      Dim accIdentLen As Long
+      Dim hResult As Long: hResult = DispCallFuncEx(accIdent, GetIdentityOffset, vbLong, 0, VarPtr(accIdentPtr), VarPtr(accIdentLen))
+      If hResult = 0 Then
+        Dim ptr As LongPtr
+        Dim accIdentByt() As Byte
+        ReDim accIdentByt(0 To accIdentLen)
+        Call CopyMemory(VarPtr(accIdentByt(0)), accIdentPtr, accIdentLen)
+        Call CoTaskMemFree(accIdentPtr)
+    
+        Dim s As String: s = Space(accIdentLen * 2)
+        Dim i As Long: For i = 0 To accIdentLen - 1
+          Mid(s, i * 2 + 1, 2) = IIf(accIdentByt(i) < 10, "0", "") & Hex(accIdentByt(i))
+        Next
+    
+        accGetIdentity = s
+      End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 Private Function unkQueryInterface(ByRef unk As IUnknown, ByVal sIID As String) As IUnknown
-  Const IUnknownQueryInterface = 0
-  Const S_OK          As Long = 0
-  Const E_NOINTERFACE As Long = &H80004002
-  Const E_POINTER     As Long = &H80004003
-
-  Dim IInterface As IUnknown
-  Dim tIID As GUID
-  If IIDFromString(StrPtr(sIID), tIID) = S_OK Then
-    On Error Resume Next
-    Dim hResult As Long: hResult = DispCallFuncEx(unk, IUnknownQueryInterface, vbLong, VarPtr(tIID.Data1), VarPtr(IInterface))
-    On Error GoTo 0
-    If hResult = S_OK Then
-      If IInterface Is Nothing Then
-        Set unkQueryInterface = Nothing
+  With stdError.getSentry("stdAcc#unkQueryInterface", "unk", unk, "sIID", sIID)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Const IUnknownQueryInterface = 0
+      Const S_OK          As Long = 0
+      Const E_NOINTERFACE As Long = &H80004002
+      Const E_POINTER     As Long = &H80004003
+    
+      Dim IInterface As IUnknown
+      Dim tIID As GUID
+      If IIDFromString(StrPtr(sIID), tIID) = S_OK Then
+        On Error Resume Next
+        Dim hResult As Long: hResult = DispCallFuncEx(unk, IUnknownQueryInterface, vbLong, VarPtr(tIID.Data1), VarPtr(IInterface))
+        On Error GoTo stdErrorWrapper_ErrorOccurred
+        If hResult = S_OK Then
+          If IInterface Is Nothing Then
+            Set unkQueryInterface = Nothing
+          Else
+            Set unkQueryInterface = IInterface
+          End If
+        ElseIf hResult = E_POINTER Then
+          Set unkQueryInterface = Nothing
+        ElseIf hResult = E_NOINTERFACE Then
+          Err_Raise E_NOINTERFACE, "stdAcc", "IUnknown::QueryInterface - Interface not implemented."
+        Else
+          Err_Raise hResult, "stdAcc", "IUnknown::QueryInterface - Unknown error occurred."
+        End If
       Else
-        Set unkQueryInterface = IInterface
+        Err_Raise Err.LastDllError, "stdAcc", "IUnknown::QueryInterface - Cannot retrieve IID from String."
       End If
-    ElseIf hResult = E_POINTER Then
-      Set unkQueryInterface = Nothing
-    ElseIf hResult = E_NOINTERFACE Then
-      Err.Raise E_NOINTERFACE, "stdAcc", "IUnknown::QueryInterface - Interface not implemented."
-    Else
-      Err.Raise hResult, "stdAcc", "IUnknown::QueryInterface - Unknown error occurred."
-    End If
-  Else
-    Err.Raise Err.LastDllError, "stdAcc", "IUnknown::QueryInterface - Cannot retrieve IID from String."
-  End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Call a function in the VTable of the object at a specified offset
@@ -1502,51 +1966,65 @@ End Function
 '@param FunctionParameters - Arguments to send to function.
 '@returns - Return value of function
 Private Function DispCallFuncEx(ByRef unk As IUnknown, ByVal VTableOffset As Long, ByVal ReturnType As VbVarType, ParamArray FunctionParameters() As Variant) As Variant
-    #If Win64 Then
-      Const PTRSIZE = 8
-    #Else
-      Const PTRSIZE = 4
-    #End If
-    Const CC_STDCALL As Long = 4
-
-    'Create array from params
-    Dim vParam() As Variant: vParam = FunctionParameters
-    Dim iParamCount As Long: iParamCount = UBound(vParam) - LBound(vParam) + 1
-
-    'Create array of types and pointers to vars, for function call
-    #If VBA7 Then
-      Dim vPtr() As LongPtr
-    #Else
-      Dim vPtr() As Long
-    #End If
-    Dim vType() As Integer
-
-    'Populate array of pointers to params, and array of types for DispCallFunc
-    If iParamCount = 0 Then
-      ReDim vType(0 To 0)
-      ReDim vPtr(0 To 0)
-    Else
-      ReDim vType(0 To iParamCount - 1)
-      ReDim vPtr(0 To iParamCount - 1)
-
-      Dim lIdx As Long
-      For lIdx = 0 To iParamCount - 1
-        vType(lIdx) = VarType(vParam(lIdx))
-        vPtr(lIdx) = VarPtr(vParam(lIdx))
-      Next
-    End If
-
-    'Call function
-    Dim ox As LongPtr: ox = ObjPtr(unk)
-    Dim hResult As Long, vv as Variant
-    hResult = DispCallFunc(ox, VTableOffset * PTRSIZE, CC_STDCALL, ReturnType, iParamCount, VarPtr(vType(0)), VarPtr(vPtr(0)), vv)
-    If IsObject(vv) Then
-      Set DispCallFuncEx = vv
-    Else
-      Let DispCallFuncEx = vv
-    End If
-    If hResult < 0 Then
-        Err.Raise hResult, "DispCallFunc", "Error in calling DispCallFunc"
-    End If
+  With stdError.getSentry("stdAcc#DispCallFuncEx", "unk", unk, "VTableOffset", VTableOffset, "ReturnType", ReturnType)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        #If Win64 Then
+          Const PTRSIZE = 8
+        #Else
+          Const PTRSIZE = 4
+        #End If
+        Const CC_STDCALL As Long = 4
+    
+        'Create array from params
+        Dim vParam() As Variant: vParam = FunctionParameters
+        Dim iParamCount As Long: iParamCount = UBound(vParam) - LBound(vParam) + 1
+    
+        'Create array of types and pointers to vars, for function call
+        #If VBA7 Then
+          Dim vPtr() As LongPtr
+        #Else
+          Dim vPtr() As Long
+        #End If
+        Dim vType() As Integer
+    
+        'Populate array of pointers to params, and array of types for DispCallFunc
+        If iParamCount = 0 Then
+          ReDim vType(0 To 0)
+          ReDim vPtr(0 To 0)
+        Else
+          ReDim vType(0 To iParamCount - 1)
+          ReDim vPtr(0 To iParamCount - 1)
+    
+          Dim lIdx As Long
+          For lIdx = 0 To iParamCount - 1
+            vType(lIdx) = VarType(vParam(lIdx))
+            vPtr(lIdx) = VarPtr(vParam(lIdx))
+          Next
+        End If
+    
+        'Call function
+        Dim ox As LongPtr: ox = ObjPtr(unk)
+        Dim hResult As Long, vv as Variant
+        hResult = DispCallFunc(ox, VTableOffset * PTRSIZE, CC_STDCALL, ReturnType, iParamCount, VarPtr(vType(0)), VarPtr(vPtr(0)), vv)
+        If IsObject(vv) Then
+          Set DispCallFuncEx = vv
+        Else
+          Let DispCallFuncEx = vv
+        End If
+        If hResult < 0 Then
+            Err_Raise hResult, "DispCallFunc", "Error in calling DispCallFunc"
+        End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
+
+
+
+Private Sub Err_Raise(ByVal number as Long, Optional ByVal source as string = "", Optional ByVal description as string = "")
+  Call stdError.Raise(description)
+End Sub
