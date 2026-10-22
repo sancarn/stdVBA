@@ -736,7 +736,7 @@ End Function
 '@returns - Window object representing the ContextMenu
 Public Function CreateFromContextMenu() As stdWindow
   Dim hwnd As LongPtr
-  hwnd = FindWindowExA(Null, Null, MakeIntAtom(&H8000&), vbNullString)
+  hwnd = FindWindowExA(NULL_PTR, NULL_PTR, MakeIntAtom(&H8000&), vbNullString)
   If hwnd <> 0 Then
     Set CreateFromContextMenu = CreateFromHwnd(hwnd)
   Else
@@ -2268,7 +2268,7 @@ Friend Function protGetNextDescendent(ByVal stack As Collection, ByVal DFS As Bo
     'Return oNext
     Set protGetNextDescendent = oNext
   Else
-    protGetNextDescendent = Null
+    Set protGetNextDescendent = Nothing
   End If
 End Function
 
