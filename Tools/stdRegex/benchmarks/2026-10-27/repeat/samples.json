@@ -1,0 +1,17 @@
+{
+  "excel_build": 20618.0,
+  "migrated_sha256": "7DA20D40C65860E42F3E4D34378556A1C59965315A86963F9A92BE12C50C67A3",
+  "legacy_commit": "abf14dd81e553cbcf438284975c80f3e9220196a",
+  "target_batch_ms": 30,
+  "excel_version": "16.0",
+  "cpu": "Intel(R) Core(TM) i7-9700KF CPU @ 3.60GHz",
+  "migrated_commit": "04e7d048482b0cdf0a3eb3480fc8cd0d3578dc9c",
+  "description": "Public API timings: migrated and legacy stdRegex wrappers; standalone ASF. Fresh object + initialization + first Test for compile; cached objects for other operations. Correctness checked before each timed cell.",
+  "asf_commit": "290ad3eabff97fc16f34568d83139994f89b83ac",
+  "timer": "QueryPerformanceCounter",
+  "engine_step_limits": 2147483647,
+  "sihlfall_commit": "1619cd75526903045b8c5cb8c6048f93bc4160be",
+  "operating_system": "Windows (64-bit) NT 10.00",
+  "samples": 5,
+  "date": "2026-10-27"
+}
