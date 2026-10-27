@@ -378,5 +378,6 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2026-04-13 `stdJSON` FIX - `Typeof item is stdJSON` will fail if `item` is `nothing`.
 - 2026-04-13 `stdWebView` FIX - Fix compile error in `Cookie` `Get` property
 - 2026-10-20 `stdWindow` FIX - Use `NULL_PTR` for context-menu window lookup and return `Nothing` when the descendant traversal stack is empty (#156).
+- 2026-10-27 `stdArray` FIX - Fixed `arr` assignment losing values and retaining the previous length; synchronised internal capacity so subsequent appends work (#160).
 - 2026-10-27 `stdRegex` FIX - Bundle sihlfall's pure VBA regex engine to avoid the Office/VBScript regex failure in #141 and the dot-all flag error in #162; preserve existing methods, flags, and legacy replacement formats.
 - 2026-10-27 `stdRegex` BREAKING - Remove the COM-specific `$RAW` match entry. Patterns use the bundled engine's syntax and are validated at construction; processing-budget exhaustion raises `vbObjectError + 3051`. `Create` accepts an optional third `stepsLimit` argument (default 10000). Empty `ListArr` results return `Array()`.

@@ -413,10 +413,12 @@ Public Property Let arr(v As Variant)
   Dim lb As Long: lb = LBound(v)
   Dim ub As Long: ub = UBound(v)
   Dim cnt As Long: cnt = ub - lb + 1
-  ReDim This.BaseArray(1 To (Int(cnt / This.Chunking) + 1) * This.Chunking) As Variant
+  This.ProxyLength = (Int(cnt / This.Chunking) + 1) * This.Chunking
+  ReDim This.BaseArray(1 To This.ProxyLength) As Variant
+  This.Length = 0
   Dim i As Long
   For i = lb To ub
-    Call Push(This.BaseArray(i))
+    Call Push(v(i))
   Next
   RaiseEvent AfterArrLet(Me, v)
 End Property
