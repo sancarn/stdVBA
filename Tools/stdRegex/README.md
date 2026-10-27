@@ -72,7 +72,9 @@ choice but shows that replacing the COM engine has a runtime performance cost.
 
 ## Performance benchmark (27 October 2026)
 
-The [recorded results](benchmarks/2026-10-27/summary.json) cover eight workloads:
+The [single-file HTML report](benchmarks/2026-10-27/report.html) includes all charts,
+tables, and data and opens offline without dependencies. The
+[recorded results](benchmarks/2026-10-27/summary.json) cover eight workloads:
 literal scanning, short validation, repeated captures, case-insensitive alternation,
 multiline records, no-match scanning, word boundaries, and a numeric backreference.
 Each engine/workload runs fresh construction plus first Test, reused Test, MatchAll,
@@ -113,6 +115,7 @@ To reproduce from the repository root:
 # Run again to capture a second independent sample set:
 ./Tools/stdRegex/Benchmark.ps1 -TemporaryTrustAccess -OutputDirectory ./Tools/stdRegex/benchmarks/latest/repeat
 python ./Tools/stdRegex/Analyze.py ./Tools/stdRegex/benchmarks/latest
+python ./Tools/stdRegex/BuildReport.py ./Tools/stdRegex/benchmarks/latest
 ```
 
 The old class is read from pinned commit `abf14dd81e553cbcf438284975c80f3e9220196a`
