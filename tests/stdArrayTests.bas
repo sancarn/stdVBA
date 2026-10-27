@@ -52,6 +52,8 @@ Sub testAll()
         Test.Assert "Property Arr 4 item 2 equal", vArr(2) = arr.item(2)
         Test.Assert "Property Arr 4 item 3 equal", vArr(3) = arr.item(3)
     end if
+
+    Call testArrLet
     
     'Remove
     set tmp = stdArray.Create(1,2,3)
@@ -157,6 +159,86 @@ Sub testAll()
     Test.Assert "Min no lambda", arr.min() = 1
     Test.Assert "Max w/ lambda", arr.max(stdLambda.Create("1/$1")) = 1
     Test.Assert "Min w/ lambda", arr.min(stdLambda.Create("1/$1")) = 5
+End Sub
+
+Public Sub testArrLet()
+    Dim arr As stdArray
+    Dim oneBased(1 To 2) As Variant
+    oneBased(1) = 9
+    oneBased(2) = 10
+    Set arr = stdArray.Create(7, 8)
+    arr.arr = oneBased
+    Test.Assert "Arr Let replaces length", arr.Length = 2
+    Test.Assert "Arr Let copies one-based values", arr.Join() = "9,10"
+
+    Dim exported As Variant
+    exported = arr.arr
+    Test.Assert "Arr Let export lower bound", LBound(exported) = 1
+    Test.Assert "Arr Let export upper bound", UBound(exported) = 2
+    Test.Assert "Arr Let export values", exported(1) = 9 And exported(2) = 10
+
+    Dim zeroBased(0 To 1) As Variant
+    zeroBased(0) = 11
+    zeroBased(1) = 12
+    arr.arr = zeroBased
+    Test.Assert "Arr Let copies zero-based values", arr.Join() = "11,12"
+    Test.Assert "Arr Let repeated assignment resets length", arr.Length = 2
+
+    Dim negativeBased(-3 To -2) As Long
+    negativeBased(-3) = 13
+    negativeBased(-2) = 14
+    arr.arr = negativeBased
+    Test.Assert "Arr Let copies typed arrays with negative bounds", arr.Join() = "13,14"
+
+    'Replacing a large allocation with a smaller one must also update capacity.
+    Set arr = stdArray.CreateWithOptions(40, 4, 7, 8)
+    arr.arr = oneBased
+    Dim capacity As Long: capacity = arr.zProxyLength
+    Dim i As Long
+    For i = 3 To capacity + 1
+        Call arr.Push(i)
+    Next
+    Test.Assert "Arr Let smaller replacement can grow", arr.Length = capacity + 1
+    Test.Assert "Arr Let smaller replacement preserves values", arr.Item(1) = 9 And arr.Item(2) = 10
+    Test.Assert "Arr Let smaller replacement appends values", arr.Item(capacity + 1) = capacity + 1
+
+    'Replacing with more items must permit growth past the new allocation.
+    Dim longer(1 To 12) As Variant
+    For i = 1 To 12
+        longer(i) = i
+    Next
+    Set arr = stdArray.Create(7, 8)
+    arr.arr = longer
+    Test.Assert "Arr Let longer replacement length", arr.Length = 12
+    Test.Assert "Arr Let longer replacement values", arr.Join() = "1,2,3,4,5,6,7,8,9,10,11,12"
+    capacity = arr.zProxyLength
+    For i = 13 To capacity + 1
+        Call arr.Push(i)
+    Next
+    Test.Assert "Arr Let longer replacement can grow", arr.Length = capacity + 1
+    Test.Assert "Arr Let longer replacement appends values", arr.Item(capacity + 1) = capacity + 1
+
+    arr.arr = Array()
+    Test.Assert "Arr Let empty array clears length", arr.Length = 0
+    exported = arr.arr
+    Test.Assert "Arr Let empty array exports empty array", UBound(exported) < LBound(exported)
+    Call arr.Push(15)
+    Test.Assert "Arr Let empty replacement can append", arr.Length = 1 And arr.Item(1) = 15
+
+    Dim obj As Collection: Set obj = New Collection
+    Dim mixed(0 To 4) As Variant
+    Set mixed(0) = obj
+    mixed(2) = Null
+    Set mixed(3) = Nothing
+    mixed(4) = Array(3, 4)
+    arr.arr = mixed
+    Test.Assert "Arr Let preserves object identity", arr.Item(1) Is obj
+    Test.Assert "Arr Let preserves Empty", IsEmpty(arr.Item(2))
+    Test.Assert "Arr Let preserves Null", IsNull(arr.Item(3))
+    Test.Assert "Arr Let preserves Nothing", arr.Item(4) Is Nothing
+    exported = arr.Item(5)
+    Test.Assert "Arr Let preserves nested arrays", exported(0) = 3 And exported(1) = 4
+    Test.Assert "Arr Let leaves source unchanged", mixed(0) Is obj
 End Sub
 
 

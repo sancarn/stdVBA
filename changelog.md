@@ -378,3 +378,4 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2026-04-13 `stdJSON` FIX - `Typeof item is stdJSON` will fail if `item` is `nothing`.
 - 2026-04-13 `stdWebView` FIX - Fix compile error in `Cookie` `Get` property
 - 2026-10-20 `stdWindow` FIX - Use `NULL_PTR` for context-menu window lookup and return `Nothing` when the descendant traversal stack is empty (#156).
+- 2026-10-27 `stdArray` FIX - Fixed `arr` assignment losing values and retaining the previous length; synchronised internal capacity so subsequent appends work (#160).
