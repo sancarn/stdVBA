@@ -67,44 +67,14 @@ explicitly classify pattern backreferences as unsupported. Replacing stdRegex
 with it would therefore require engine changes before it could pass issue 141
 or retain existing pattern semantics. Dependencies are not the obstacle.
 
-The local benchmark below now measures the trade-off. It supports the compatibility
-choice but shows that replacing the COM engine has a runtime performance cost.
+## Performance benchmark
 
-## Performance benchmark (27 October 2026)
-
-The [recorded results](benchmarks/2026-10-27/summary.json) cover eight workloads:
-literal scanning, short validation, repeated captures, case-insensitive alternation,
-multiline records, no-match scanning, word boundaries, and a numeric backreference.
-Each engine/workload runs fresh construction plus first Test, reused Test, MatchAll,
-and global Replace. Two isolated Excel runs produce ten timed batches per cell.
-Raw samples and machine/source metadata are saved alongside the summary, with the
-second run under `repeat/`.
-
-On this Excel 16.0 build 20618 / x64 / Core i7-9700KF machine:
-
-- Reused short-pattern Test calls took Sihlfall about 17–22 microseconds versus
-  old stdRegex's 5–7 microseconds. Unanchored 1,024-character scans took Sihlfall
-  about 1.1 ms versus old stdRegex's 0.005 ms and ASF's 25–26 ms.
-- For 100 captured records, MatchAll took Sihlfall 175 ms, old stdRegex 177 ms,
-  and ASF 31 ms. These are different public output representations: the two
-  stdRegex versions create dictionaries, while ASF returns VBA Collections.
-  A separate five-batch diagnostic measured about 67 ms to construct 100 comparable
-  dictionary results, versus 0.31 ms for collections, without any regex matching.
-  This is a substantial confounder; it does not establish that ASF's matcher is faster.
-  The diagnostic discards each container before constructing the next; real
-  MatchAll retains all results, so this is not an exact decomposition of its cost.
-- Global replacement over the same 100 records took Sihlfall 1.98 ms, old stdRegex
-  0.025 ms, and ASF 37.4 ms. Sihlfall beat ASF on Test and Replace for all six
-  compatible workloads. Old stdRegex was faster on those reused operations.
-- Fresh construction plus the first short validation took Sihlfall 0.060 ms,
-  old stdRegex 0.092 ms, and ASF 0.818 ms. This includes the first search and is
-  not isolated compiler time; VBScript compilation is lazy.
-- ASF failed output checks for word boundaries and backreferences. Those cells
-  are marked `mismatch` and excluded from timing comparisons. The exact known
-  Office-crashing issue 141 pattern was not run in the old engine.
-
-The migration remains a compatibility/reliability choice, not a performance upgrade
-over VBScript. Match-result construction is a useful separate optimization target.
+The benchmark covers literal scanning, short validation, repeated captures,
+case-insensitive alternation, multiline records, no-match scanning, word boundaries,
+and a numeric backreference. Each workload measures fresh construction plus first
+Test, reused Test, MatchAll, and global Replace. Two isolated Excel runs produce
+ten timed batches per cell. The scripts save raw samples and machine/source metadata
+alongside a summary and can generate a standalone HTML report.
 
 To reproduce from the repository root:
 
