@@ -117,6 +117,13 @@ Private Sub testNativeEngine()
     Test.Assert "Unknown replacement token", rx.Replace("ab", "$unknown") = "$unknown"
     Test.Assert "MatchAll leaves flags unchanged", rx.MatchAll("aa").Count = 2 And rx.flags = "g"
 
+    'Issue 162: dot-all must work at construction without a VBScript lookbehind helper.
+    Set rx = stdRegex.Create("a.b", "s")
+    Test.Assert "Issue 162 dot-all constructor", rx.Test("a" & vbLf & "b")
+    Test.Assert "Issue 162 dot-all adjacent dots", stdRegex.Create("^a..b$", "s").Test("a" & vbCrLf & "b")
+    Test.Assert "Issue 162 escaped dot matches literal", stdRegex.Create("^a\.b$", "s").Test("a.b")
+    Test.Assert "Issue 162 class dot matches literal", stdRegex.Create("^a[.]b$", "s").Test("a.b")
+
     Set rx = stdRegex.Create("a.b")
     Test.Assert "Dot excludes newline", Not rx.Test("a" & vbLf & "b")
     rx.flags = "s"

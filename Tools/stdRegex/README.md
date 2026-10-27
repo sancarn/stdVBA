@@ -133,7 +133,7 @@ preinitialized regex objects. Shared static initialization is warmed up first.
 
 Native processing budgets are raised to 2147483647 to prevent repeated replacements
 from hitting ASF's accumulated step count. All chosen inputs are small and do not
-exercise pathological backtracking. The existing 78 compatibility assertions run
+exercise pathological backtracking. The compatibility suite runs
 before every benchmark. Excel access and debugger settings are restored afterward.
 Results are specific to this machine and workload; ranges and separate run medians
 in the summary show noise from background load and COM allocation.
@@ -147,6 +147,7 @@ process, imports only `stdRegex`, its tests, and an assertion module, then disca
 the workbook. It temporarily selects unhandled-error trapping for expected-error
 tests and restores the debugger preferences afterward.
 
-The suite includes the exact issue 141 reproducer `(.)(?=.*\1)` against `ss`, plus
-the legacy API, flags, setters, backreferences, word boundaries, empty matches,
-replacement formats, and processing-budget errors.
+The suite includes the exact issue 141 reproducer `(.)(?=.*\1)` against `ss` and
+the issue 162 dot-all constructor, plus the legacy API, flags, setters,
+backreferences, word boundaries, empty matches, replacement formats, and
+processing-budget errors.
