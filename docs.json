@@ -12948,10 +12948,10 @@
   {
     "name": "stdRegex",
     "fileName": "stdRegex.cls",
-    "description": "A class which implements a wrapper around the VBScript.RegExp object. Use this class to\r\ncreate regex objects with additional features like named captures, and use them to analyse text.",
+    "description": "A class which uses sihlfall's pure VBA regex engine. Use this class to\r\ncreate regex objects with additional features like named captures, and use them to analyse text.",
     "remarks": [],
     "examples": [
-      "A simple example of using the class:\r\n```vb\r\nDim rx as stdRegex: set rx = stdRegex.Create(\"(?<Site>\\d{5})-(\\w{2}\\d)\")\r\nDebug.Print rx.Test(\"12345-AA1\")  '=> True\r\nDebug.Print rx.Match(\"12345-AA1\").Site  '=> 12345-AA1\r\nDebug.Print rx.MatchAll(\"12345-AA1,12345-AB1,15233-AC3,63234-ZD2\")  '=> 12345-AA1,12345-AB1,15233-AC3,63234-ZD2\r\nDebug.Print rx.Replace(\"12345-AA1,12345-AB1,15233-AC3,63234-ZD2\", \"<Redacted>\")  '=> \"<Redacted>,<Redacted>,<Redacted>,<Redacted>\"\r\nDebug.Print rx.List(\"12345-AA1,12345-AB1,15233-AC3,63234-ZD2\", \"$site\\r\\n\")  '=> \"12345\\r\\n12345\\r\\n15233\\r\\n63234\\r\\n\"  \r\n```"
+      "A simple example of using the class:\r\n```vb\r\nDim rx as stdRegex: set rx = stdRegex.Create(\"(?<Site>\\d{5})-(\\w{2}\\d)\")\r\nDebug.Print rx.Test(\"12345-AA1\")  '=> True\r\nDebug.Print rx.Match(\"12345-AA1\").Site  '=> 12345-AA1\r\nDebug.Print rx.MatchAll(\"12345-AA1,12345-AB1,15233-AC3,63234-ZD2\")  '=> 12345-AA1,12345-AB1,15233-AC3,63234-ZD2\r\nDebug.Print rx.Replace(\"12345-AA1,12345-AB1,15233-AC3,63234-ZD2\", \"<Redacted>\")  '=> \"<Redacted>,<Redacted>,<Redacted>,<Redacted>\"\r\nDebug.Print rx.List(\"12345-AA1,12345-AB1,15233-AC3,63234-ZD2\", \"$site\\r\\n\")  '=> \"12345\\r\\n12345\\r\\n15233\\r\\n63234\\r\\n\"\r\n```"
     ],
     "devNotes": [],
     "todos": [
@@ -12998,7 +12998,7 @@
         "description": "Given a text string, return the first match.",
         "remarks": [],
         "examples": [
-          "For Regex: `(?<id>\\d{5}-ST[A-Z]\\d) - (?<desc>.*)` and data:\r\n```\r\nSome sites were in critical condition\r\n* 12345-STA1 - Large crack through pipe.\r\n* 12323-STB9 - Acid leakage polluting watercourse.\r\nand some others were largely ok:\r\n* 23565-STC2\r\n* 62346-STZ9\r\n```\r\nProduces result:\r\n```json\r\n{\r\n  0: \"12345-STA1 - Large crack through pipe.\",\r\n  \"id\":\"12345-STA1\",\r\n  1: \"12345-STA1\",\r\n  \"desc\": \"Large crack through pipe.\"\r\n  2: \"Large crack through pipe.\",\r\n  \"$COUNT\":2,\r\n  \"$RAW\": {...}\r\n}\r\n```"
+          "For Regex: `(?<id>\\d{5}-ST[A-Z]\\d) - (?<desc>.*)` and data:\r\n```\r\nSome sites were in critical condition\r\n* 12345-STA1 - Large crack through pipe.\r\n* 12323-STB9 - Acid leakage polluting watercourse.\r\nand some others were largely ok:\r\n* 23565-STC2\r\n* 62346-STZ9\r\n```\r\nProduces result:\r\n```json\r\n{\r\n  0: \"12345-STA1 - Large crack through pipe.\",\r\n  \"id\":\"12345-STA1\",\r\n  1: \"12345-STA1\",\r\n  \"desc\": \"Large crack through pipe.\"\r\n  2: \"Large crack through pipe.\",\r\n  \"$COUNT\":2\r\n}\r\n```"
         ],
         "params": [
           {
@@ -13013,7 +13013,7 @@
         ],
         "returns": {
           "type": "Object<Dictionary<string|number,string>>",
-          "description": "A dictionary containing the match, submatches, named matches, Count and Raw match object"
+          "description": "A dictionary containing the match, submatches, named matches and Count"
         },
         "deprecation": {
           "status": false,
@@ -13032,7 +13032,7 @@
         "description": "Given a text string, return all strings which match the source regex pattern.",
         "remarks": [],
         "examples": [
-          "For regex: `\\d{5}-ST[A-Z]\\d` and data:\r\n```\r\nSome sites were in critical condition\r\n* 12345-STA1 - Large crack through pipe.\r\n* 12323-STB9 - Acid leakage polluting watercourse.\r\nand some others were largely ok:\r\n* 23565-STC2\r\n* 62346-STZ9\r\n```\r\nWill result in an array of matches like:\r\n```json\r\n[\r\n  {0: \"12345-STA1\", ...},\r\n  {0: \"12323-STB9\", ...},\r\n  {0: \"23565-STC2\", ...}, \r\n  {0: \"62346-STZ9\", ...}\r\n]\r\n```"
+          "For regex: `\\d{5}-ST[A-Z]\\d` and data:\r\n```\r\nSome sites were in critical condition\r\n* 12345-STA1 - Large crack through pipe.\r\n* 12323-STB9 - Acid leakage polluting watercourse.\r\nand some others were largely ok:\r\n* 23565-STC2\r\n* 62346-STZ9\r\n```\r\nWill result in an array of matches like:\r\n```json\r\n[\r\n  {0: \"12345-STA1\", ...},\r\n  {0: \"12323-STB9\", ...},\r\n  {0: \"23565-STC2\", ...},\r\n  {0: \"62346-STZ9\", ...}\r\n]\r\n```"
         ],
         "params": [
           {
@@ -13066,7 +13066,7 @@
         "description": "Given a Haystack and a Replacer, Replace all matches with the source regex with the format given in the Replacer.",
         "remarks": [],
         "examples": [
-          "For regex: `(?<id>\\d{5}-ST[A-Z]\\d))\\s+(?<count>\\d+)\\s+(?<date>../../....)` and data: \r\n```\r\nHere is some cool data:\r\n12345-STA1  123    10/02/2019\r\n12323-STB9  2123   01/01/2005\r\nand here is some more:\r\n23565-STC2  23     ??/??/????\r\n62346-STZ9  5      01/05/1932\r\n```\r\nWith replacer `$id,$date,$count` will result in:\r\n```\r\nHere is some cool data:\r\n12345-STA1,10/02/2019,123\r\n12323-STB9,01/01/2005,2123\r\nand here is some more:\r\n23565-STC2,??/??/????,23\r\n62346-STZ9,01/05/1932,5\r\n```"
+          "For regex: `(?<id>\\d{5}-ST[A-Z]\\d))\\s+(?<count>\\d+)\\s+(?<date>../../....)` and data:\r\n```\r\nHere is some cool data:\r\n12345-STA1  123    10/02/2019\r\n12323-STB9  2123   01/01/2005\r\nand here is some more:\r\n23565-STC2  23     ??/??/????\r\n62346-STZ9  5      01/05/1932\r\n```\r\nWith replacer `$id,$date,$count` will result in:\r\n```\r\nHere is some cool data:\r\n12345-STA1,10/02/2019,123\r\n12323-STB9,01/01/2005,2123\r\nand here is some more:\r\n23565-STC2,??/??/????,23\r\n62346-STZ9,01/05/1932,5\r\n```"
         ],
         "params": [
           {
@@ -13261,6 +13261,15 @@
             "description": "Optional flags to apply",
             "optional": true,
             "defaultValue": "\"\"",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "stepsLimit",
+            "type": "Long",
+            "description": "Maximum engine steps per candidate match (default 10000); exhaustion raises vbObjectError + 3051.",
+            "optional": true,
+            "defaultValue": "10000",
             "paramArray": false,
             "referenceType": "ByVal"
           }
