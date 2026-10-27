@@ -72,9 +72,7 @@ choice but shows that replacing the COM engine has a runtime performance cost.
 
 ## Performance benchmark (27 October 2026)
 
-The [single-file HTML report](benchmarks/2026-10-27/report.html) includes all charts,
-tables, and data and opens offline without dependencies. The
-[recorded results](benchmarks/2026-10-27/summary.json) cover eight workloads:
+The [recorded results](benchmarks/2026-10-27/summary.json) cover eight workloads:
 literal scanning, short validation, repeated captures, case-insensitive alternation,
 multiline records, no-match scanning, word boundaries, and a numeric backreference.
 Each engine/workload runs fresh construction plus first Test, reused Test, MatchAll,
