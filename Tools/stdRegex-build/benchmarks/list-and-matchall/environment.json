@@ -1,0 +1,16 @@
+{
+  "measured_at_utc": "2026-10-28T00:02:45.2888070Z",
+  "host_application": "Word",
+  "office_version": "16.0",
+  "vba_architecture": "64-bit VBA",
+  "operating_system": "Microsoft Windows NT 10.0.26200.0",
+  "baseline_commit": "c02d86fd7e5c99b648f9729d7a0c6160d492a642",
+  "current_class_sha256": "BCC3DA41303909694DC238FF78848D2D91037148313FF3A4C6AC8747B30FEE46",
+  "engine": {
+    "repository": "https://github.com/sihlfall/vba-regex",
+    "revision": "1619cd75526903045b8c5cb8c6048f93bc4160be"
+  },
+  "samples": 7,
+  "minimum_batch_seconds": 0.05,
+  "methodology": "QueryPerformanceCounter; compiled regexes reused; 2 warm-up calls; calibrated batches; rotated operation order; includes result allocation and release; output equality checked before timing."
+}

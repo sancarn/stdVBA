@@ -1,0 +1,386 @@
+{
+  "environment": {
+    "measured_at_utc": "2026-10-28T00:02:45.2888070Z",
+    "host_application": "Word",
+    "office_version": "16.0",
+    "vba_architecture": "64-bit VBA",
+    "operating_system": "Microsoft Windows NT 10.0.26200.0",
+    "baseline_commit": "c02d86fd7e5c99b648f9729d7a0c6160d492a642",
+    "current_class_sha256": "BCC3DA41303909694DC238FF78848D2D91037148313FF3A4C6AC8747B30FEE46",
+    "engine": {
+      "repository": "https://github.com/sihlfall/vba-regex",
+      "revision": "1619cd75526903045b8c5cb8c6048f93bc4160be"
+    },
+    "samples": 7,
+    "minimum_batch_seconds": 0.05,
+    "methodology": "QueryPerformanceCounter; compiled regexes reused; 2 warm-up calls; calibrated batches; rotated operation order; includes result allocation and release; output equality checked before timing."
+  },
+  "cases": [
+    {
+      "case": "No matches, 1,000 characters",
+      "timings": {
+        "List before": {
+          "median_ms": 2.6890031240327517,
+          "min_ms": 2.5798062488320284,
+          "max_ms": 2.8140843751316424
+        },
+        "List after": {
+          "median_ms": 2.696125000511529,
+          "min_ms": 2.6370625018898863,
+          "max_ms": 3.0989000006229617
+        },
+        "ListArr before": {
+          "median_ms": 2.6923718742182245,
+          "min_ms": 2.5995031246566214,
+          "max_ms": 3.3566093752597226
+        },
+        "ListArr after": {
+          "median_ms": 2.694371874895296,
+          "min_ms": 2.614931250718655,
+          "max_ms": 3.9521812486782437
+        },
+        "MatchAll": {
+          "median_ms": 2.807434375426965,
+          "min_ms": 2.603449998787255,
+          "max_ms": 3.65778124978533
+        },
+        "MatchAllArr": {
+          "median_ms": 3.997556250396883,
+          "min_ms": 3.72756249998929,
+          "max_ms": 4.727000003185822
+        }
+      },
+      "comparisons": [
+        {
+          "before": "List before",
+          "after": "List after",
+          "before_ms": 2.6890031240327517,
+          "after_ms": 2.696125000511529,
+          "speedup": 0.9973584768964993,
+          "time_reduction_percent": -0.26485192282322256
+        },
+        {
+          "before": "ListArr before",
+          "after": "ListArr after",
+          "before_ms": 2.6923718742182245,
+          "after_ms": 2.694371874895296,
+          "speedup": 0.999257711715407,
+          "time_reduction_percent": -0.07428396857890389
+        },
+        {
+          "before": "MatchAll",
+          "after": "MatchAllArr",
+          "before_ms": 2.807434375426965,
+          "after_ms": 3.997556250396883,
+          "speedup": 0.7022876476467939,
+          "time_reduction_percent": -42.39179677312743
+        }
+      ]
+    },
+    {
+      "case": "1 match, 3 named captures",
+      "timings": {
+        "List before": {
+          "median_ms": 1.10030156247376,
+          "min_ms": 1.0699656249926193,
+          "max_ms": 1.1554437505765236
+        },
+        "List after": {
+          "median_ms": 0.06399228516329458,
+          "min_ms": 0.06282236330434898,
+          "max_ms": 0.06490458986263548
+        },
+        "ListArr before": {
+          "median_ms": 1.1342031257299823,
+          "min_ms": 1.0746796879175236,
+          "max_ms": 1.1954749998039915
+        },
+        "ListArr after": {
+          "median_ms": 0.07133125001246299,
+          "min_ms": 0.07099394531451253,
+          "max_ms": 0.07261718752715751
+        },
+        "MatchAll": {
+          "median_ms": 1.0565765624050982,
+          "min_ms": 1.0249906245007878,
+          "max_ms": 1.206867187647731
+        },
+        "MatchAllArr": {
+          "median_ms": 1.1040999997931067,
+          "min_ms": 1.0406343753857072,
+          "max_ms": 1.1218078125239117
+        }
+      },
+      "comparisons": [
+        {
+          "before": "List before",
+          "after": "List after",
+          "before_ms": 1.10030156247376,
+          "after_ms": 0.06399228516329458,
+          "speedup": 17.194284587056494,
+          "time_reduction_percent": 94.1841139424156
+        },
+        {
+          "before": "ListArr before",
+          "after": "ListArr after",
+          "before_ms": 1.1342031257299823,
+          "after_ms": 0.07133125001246299,
+          "speedup": 15.900508199867723,
+          "time_reduction_percent": 93.71089283795143
+        },
+        {
+          "before": "MatchAll",
+          "after": "MatchAllArr",
+          "before_ms": 1.0565765624050982,
+          "after_ms": 1.1040999997931067,
+          "speedup": 0.9569573069496299,
+          "time_reduction_percent": -4.4978697312602005
+        }
+      ]
+    },
+    {
+      "case": "100 matches, 3 named captures",
+      "timings": {
+        "List before": {
+          "median_ms": 109.1211000457406,
+          "min_ms": 106.51060001691803,
+          "max_ms": 111.09170003328472
+        },
+        "List after": {
+          "median_ms": 4.698349999671336,
+          "min_ms": 4.538950001006015,
+          "max_ms": 4.8767937514639925
+        },
+        "ListArr before": {
+          "median_ms": 109.02100004022941,
+          "min_ms": 105.50940001849085,
+          "max_ms": 133.12499999301508
+        },
+        "ListArr after": {
+          "median_ms": 5.4098499967949465,
+          "min_ms": 5.325387501216028,
+          "max_ms": 6.092199997510761
+        },
+        "MatchAll": {
+          "median_ms": 107.99749998841435,
+          "min_ms": 99.04080000706017,
+          "max_ms": 128.08070000028238
+        },
+        "MatchAllArr": {
+          "median_ms": 5.223750002187444,
+          "min_ms": 5.062649997853441,
+          "max_ms": 5.854718750924803
+        }
+      },
+      "comparisons": [
+        {
+          "before": "List before",
+          "after": "List after",
+          "before_ms": 109.1211000457406,
+          "after_ms": 4.698349999671336,
+          "speedup": 23.22540893151297,
+          "time_reduction_percent": 95.69437075166772
+        },
+        {
+          "before": "ListArr before",
+          "after": "ListArr after",
+          "before_ms": 109.02100004022941,
+          "after_ms": 5.4098499967949465,
+          "speedup": 20.152314778564776,
+          "time_reduction_percent": 95.03779088909597
+        },
+        {
+          "before": "MatchAll",
+          "after": "MatchAllArr",
+          "before_ms": 107.99749998841435,
+          "after_ms": 5.223750002187444,
+          "speedup": 20.67432399008192,
+          "time_reduction_percent": 95.16308247621673
+        }
+      ]
+    },
+    {
+      "case": "1,000 matches, 3 named captures",
+      "timings": {
+        "List before": {
+          "median_ms": 447.35440000658855,
+          "min_ms": 425.0918000470847,
+          "max_ms": 1232.1355000021867
+        },
+        "List after": {
+          "median_ms": 45.12574998079799,
+          "min_ms": 44.177599978866056,
+          "max_ms": 48.664000001735985
+        },
+        "ListArr before": {
+          "median_ms": 464.1107000061311,
+          "min_ms": 449.12140001542866,
+          "max_ms": 1122.1271999529563
+        },
+        "ListArr after": {
+          "median_ms": 51.296699966769665,
+          "min_ms": 50.575400004163384,
+          "max_ms": 59.34000003617257
+        },
+        "MatchAll": {
+          "median_ms": 422.7653000270948,
+          "min_ms": 416.75140004372224,
+          "max_ms": 1037.0853000204079
+        },
+        "MatchAllArr": {
+          "median_ms": 39.383299998007715,
+          "min_ms": 38.42820000136271,
+          "max_ms": 40.184250014135614
+        }
+      },
+      "comparisons": [
+        {
+          "before": "List before",
+          "after": "List after",
+          "before_ms": 447.35440000658855,
+          "after_ms": 45.12574998079799,
+          "speedup": 9.913506151076664,
+          "time_reduction_percent": 89.91275150526442
+        },
+        {
+          "before": "ListArr before",
+          "after": "ListArr after",
+          "before_ms": 464.1107000061311,
+          "after_ms": 51.296699966769665,
+          "speedup": 9.04757421640739,
+          "time_reduction_percent": 88.94731365467506
+        },
+        {
+          "before": "MatchAll",
+          "after": "MatchAllArr",
+          "before_ms": 422.7653000270948,
+          "after_ms": 39.383299998007715,
+          "speedup": 10.734633716536736,
+          "time_reduction_percent": 90.6843584382437
+        }
+      ]
+    },
+    {
+      "case": "100 matches, no captures",
+      "timings": {
+        "List before": {
+          "median_ms": 44.85624999506399,
+          "min_ms": 43.02410001400858,
+          "max_ms": 45.57094999472611
+        },
+        "List after": {
+          "median_ms": 6.552037499204744,
+          "min_ms": 6.456099996285047,
+          "max_ms": 6.582037494808901
+        },
+        "ListArr before": {
+          "median_ms": 44.78029999881983,
+          "min_ms": 43.8595000305213,
+          "max_ms": 47.188199998345226
+        },
+        "ListArr after": {
+          "median_ms": 7.04724999377504,
+          "min_ms": 6.9892500032437965,
+          "max_ms": 7.254037496750243
+        },
+        "MatchAll": {
+          "median_ms": 42.95235002064146,
+          "min_ms": 41.87759998603724,
+          "max_ms": 54.75309997564182
+        },
+        "MatchAllArr": {
+          "median_ms": 6.052262498997152,
+          "min_ms": 6.003081249218667,
+          "max_ms": 6.198687500727829
+        }
+      },
+      "comparisons": [
+        {
+          "before": "List before",
+          "after": "List after",
+          "before_ms": 44.85624999506399,
+          "after_ms": 6.552037499204744,
+          "speedup": 6.846152818952644,
+          "time_reduction_percent": 85.39325623536133
+        },
+        {
+          "before": "ListArr before",
+          "after": "ListArr after",
+          "before_ms": 44.78029999881983,
+          "after_ms": 7.04724999377504,
+          "speedup": 6.354294233690455,
+          "time_reduction_percent": 84.26261102770466
+        },
+        {
+          "before": "MatchAll",
+          "after": "MatchAllArr",
+          "before_ms": 42.95235002064146,
+          "after_ms": 6.052262498997152,
+          "speedup": 7.096907979083621,
+          "time_reduction_percent": 85.90935654023905
+        }
+      ]
+    },
+    {
+      "case": "100 sparse matches, 3 named captures",
+      "timings": {
+        "List before": {
+          "median_ms": 96.09170001931489,
+          "min_ms": 94.60989997023717,
+          "max_ms": 99.1908999858424
+        },
+        "List after": {
+          "median_ms": 55.62940001254901,
+          "min_ms": 55.31289998907596,
+          "max_ms": 56.49020004784688
+        },
+        "ListArr before": {
+          "median_ms": 97.71700005512685,
+          "min_ms": 96.30540001671761,
+          "max_ms": 99.12159998202696
+        },
+        "ListArr after": {
+          "median_ms": 56.70690000988543,
+          "min_ms": 55.98649999592453,
+          "max_ms": 57.51420004526153
+        },
+        "MatchAll": {
+          "median_ms": 94.22819997416809,
+          "min_ms": 92.81430003466085,
+          "max_ms": 96.26670001307502
+        },
+        "MatchAllArr": {
+          "median_ms": 55.53889996372163,
+          "min_ms": 54.926800017710775,
+          "max_ms": 56.06970004737377
+        }
+      },
+      "comparisons": [
+        {
+          "before": "List before",
+          "after": "List after",
+          "before_ms": 96.09170001931489,
+          "after_ms": 55.62940001254901,
+          "speedup": 1.727354600222873,
+          "time_reduction_percent": 42.10800724582119
+        },
+        {
+          "before": "ListArr before",
+          "after": "ListArr after",
+          "before_ms": 97.71700005512685,
+          "after_ms": 56.70690000988543,
+          "speedup": 1.7231941798633381,
+          "time_reduction_percent": 41.96823482311742
+        },
+        {
+          "before": "MatchAll",
+          "after": "MatchAllArr",
+          "before_ms": 94.22819997416809,
+          "after_ms": 55.53889996372163,
+          "speedup": 1.6966162461935428,
+          "time_reduction_percent": 41.05915216575592
+        }
+      ]
+    }
+  ]
+}

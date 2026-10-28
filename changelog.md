@@ -381,3 +381,10 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2026-10-27 `stdArray` FIX - Fixed `arr` assignment losing values and retaining the previous length; synchronised internal capacity so subsequent appends work (#160).
 - 2026-10-27 `stdRegex` FIX - Bundle sihlfall's pure VBA regex engine to avoid the Office/VBScript regex failure in #141 and the dot-all flag error in #162; preserve existing methods, flags, and legacy replacement formats.
 - 2026-10-27 `stdRegex` BREAKING - Remove the COM-specific `$RAW` match entry. Patterns use the bundled engine's syntax and are validated at construction; processing-budget exhaustion raises `vbObjectError + 3051`. `Create` accepts an optional third `stepsLimit` argument (default 10000). Empty `ListArr` results return `Array()`.
+
+- 2026-10-27 `stdRegex` PERFORMANCE - Format `List` and `ListArr` directly from engine captures without per-match dictionaries, preserving legacy formats and array bounds.
+- 2026-10-27 `stdRegex` FEATURE - Add `MatchAllArr`, returning a 2D match/capture array with optional name-to-column dictionary. Match rows are 1-based, capture columns are 0-based, unmatched groups contain empty strings, and no matches returns `Array()`. Duplicate names map to the first declared group. `MatchAll` retains its Collection of Dictionaries contract.
+- 2026-10-27 `stdRegex` BUILD - Maintain the stdVBA wrapper and pinned upstream engine packaging in `Tools/stdRegex-build`; generate the standalone `src/stdRegex.cls` from one wrapper template.
+
+- 2026-10-28 `stdRegex` BUILD - Rename integration tooling to `Tools/stdRegex-build`, add explicit engine-ref/version-record updates, and add a manual GitHub Actions build with latest, recorded, and specific-ref engine selection.
+- 2026-10-28 `stdRegex` BENCHMARK - Add reproducible before/after List and ListArr benchmarks and MatchAll/MatchAllArr comparisons, including raw timings, environment, and output parity checks.

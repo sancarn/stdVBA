@@ -1,0 +1,117 @@
+name: Build stdRegex
+
+on:
+  workflow_dispatch:
+    inputs:
+      engine_source:
+        description: Engine version to build
+        type: choice
+        required: true
+        default: latest
+        options:
+          - latest
+          - recorded
+          - ref
+      engine_ref:
+        description: Branch, tag, or commit (required only when engine_source is ref)
+        type: string
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout stdVBA
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+
+      - name: Select engine source
+        id: engine
+        env:
+          ENGINE_SOURCE: ${{ inputs.engine_source }}
+          ENGINE_REF: ${{ inputs.engine_ref }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          from urllib.parse import urlparse
+
+          manifest = json.loads(Path("Tools/stdRegex-build/engine.json").read_text())
+          url = urlparse(manifest["repository"])
+          if url.scheme != "https" or url.netloc != "github.com" or len(url.path.strip("/").split("/")) != 2:
+              raise SystemExit("Expected a GitHub repository URL in engine.json")
+          source = os.environ["ENGINE_SOURCE"]
+          if source == "recorded":
+              ref = manifest["revision"]
+          elif source == "latest":
+              ref = ""  # checkout selects the upstream repository's default branch
+          elif source == "ref" and os.environ["ENGINE_REF"].strip():
+              ref = os.environ["ENGINE_REF"].strip()
+          else:
+              raise SystemExit("Choose latest, recorded, or ref with a nonempty engine_ref")
+          # Git refs do not contain newlines; reject them before writing outputs.
+          if any(ch in ref for ch in "\r\n"):
+              raise SystemExit("engine_ref must be one line")
+          with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+              output.write("repository=" + url.path.strip("/") + "\n")
+              output.write("ref=" + ref + "\n")
+          PY
+
+      - name: Checkout selected upstream engine
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ steps.engine.outputs.repository }}
+          ref: ${{ steps.engine.outputs.ref }}
+          path: .engine-source
+          persist-credentials: false
+
+      - name: Test builder version selection
+        run: python -m unittest discover -s Tools/stdRegex-build -p 'test_build.py' -v
+
+      - name: Build class and record selected commit
+        env:
+          ENGINE_SOURCE: ${{ inputs.engine_source }}
+        run: |
+          if [ "$ENGINE_SOURCE" = "recorded" ]; then
+            python Tools/stdRegex-build/build.py --engine-root .engine-source
+          else
+            python Tools/stdRegex-build/build.py --engine-root .engine-source --engine-ref HEAD --update-engine
+          fi
+          python Tools/stdRegex-build/build.py --engine-root .engine-source --check
+          git -c core.whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol diff --check
+          git diff --binary -- src/stdRegex.cls Tools/stdRegex-build/engine.json > stdRegex-build.patch
+
+      - name: Write build summary
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          manifest = json.loads(Path("Tools/stdRegex-build/engine.json").read_text())
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as summary:
+              summary.write("## stdRegex build\n\n")
+              summary.write("Engine commit: `" + manifest["revision"] + "`\n\n")
+              summary.write("Download the artifact for src/stdRegex.cls, engine.json, and an update patch.\n\n")
+              summary.write("This job builds and checks reproducibility. Office VBA runtime tests must be run locally before adopting an engine update.\n")
+          PY
+
+      - name: Upload generated class and update patch
+        uses: actions/upload-artifact@v7
+        with:
+          name: stdRegex-build-${{ github.run_id }}
+          if-no-files-found: error
+          path: |
+            src/stdRegex.cls
+            Tools/stdRegex-build/engine.json
+            stdRegex-build.patch

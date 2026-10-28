@@ -82,6 +82,7 @@ Sub testAll()
     Test.Assert "Check data 2,1", vResult(2,1) = "12323-STB9-01/01/2005"
     Test.Assert "Check data 2,2", vResult(2,2) = "2123"
     testNativeEngine
+    testCaptureArraysAndLists
 End Sub
 
 Private Sub testNativeEngine()
@@ -182,6 +183,9 @@ Private Function stepLimitRaises(Optional ByVal operation As String = "Test") As
         Case "Test": result = rx.Test("aaaa")
         Case "Replace": rx.Replace "aaaa", "x"
         Case "MatchAll": rx.MatchAll "aaaa"
+        Case "List": rx.List "aaaa", "$&"
+        Case "ListArr": rx.ListArr "aaaa", Array("$&")
+        Case "MatchAllArr": rx.MatchAllArr "aaaa"
     End Select
     Exit Function
 Expected:
@@ -191,3 +195,144 @@ End Function
 Sub performanceTest2()
     
 End Sub
+
+Private Sub testCaptureArraysAndLists()
+    Dim rx As stdRegex, values As Variant, names As Object, matches As Collection
+    Dim row As Long, col As Long, formats As Variant, otherFormats(3 To 4) As Variant
+
+    'Use .*? here: the example's \w+ cannot capture spaces.
+    Set rx = stdRegex.Create("abc(?<hello>.*?)efg")
+    values = rx.MatchAllArr("abcdefg and abc something efg", names)
+    Test.Assert "MatchAllArr row bounds", LBound(values, 1) = 1 And UBound(values, 1) = 2
+    Test.Assert "MatchAllArr column bounds", LBound(values, 2) = 0 And UBound(values, 2) = 1
+    Test.Assert "MatchAllArr first whole match", values(1, 0) = "abcdefg"
+    Test.Assert "MatchAllArr first capture", values(1, 1) = "d"
+    Test.Assert "MatchAllArr second whole match", values(2, 0) = "abc something efg"
+    Test.Assert "MatchAllArr second capture", values(2, 1) = " something "
+    Test.Assert "MatchAllArr names dictionary", TypeName(names) = "Dictionary" And names.Count = 1
+    Test.Assert "MatchAllArr named column", names("hello") = 1
+    Test.Assert "MatchAllArr case sensitive names", Not names.Exists("Hello")
+    Test.Assert "MatchAllArr flags unchanged", rx.flags = ""
+    values = rx.MatchAllArr("abcdefg")
+    Test.Assert "MatchAllArr optional output", values(1, 1) = "d"
+
+    Set rx = stdRegex.Create("(?<first>a)(?<second>b)?")
+    values = rx.MatchAllArr("aa", names)
+    Test.Assert "MatchAllArr all matches without g", UBound(values, 1) = 2
+    Test.Assert "MatchAllArr unmatched capture", values(1, 2) = "" And names("second") = 2
+    Set matches = rx.MatchAll("aa")
+    Test.Assert "MatchAll collection contract unchanged", TypeName(matches) = "Collection" And TypeName(matches(1)) = "Dictionary"
+    For row = 1 To matches.Count
+        For col = 0 To matches(row)("$COUNT")
+            Test.Assert "Array/dictionary capture parity", values(row, col) = matches(row)(col)
+        Next
+    Next
+    names("stale") = 42
+    values = rx.MatchAllArr("z", names)
+    Test.Assert "MatchAllArr empty result", IsArray(values) And UBound(values) = -1
+    Test.Assert "MatchAllArr names without matches", names.Count = 2 And names("second") = 2 And Not names.Exists("stale")
+    values = stdRegex.Create("x").MatchAllArr("xx", names)
+    Test.Assert "MatchAllArr no captures", UBound(values, 2) = 0 And values(2, 0) = "x" And names.Count = 0
+    values = stdRegex.Create("").MatchAllArr("a", names)
+    Test.Assert "MatchAllArr empty pattern", UBound(values, 1) = 2 And values(1, 0) = "" And values(2, 0) = ""
+    values = stdRegex.Create("(?=a)").MatchAllArr("aa")
+    Test.Assert "MatchAllArr zero width advances", UBound(values, 1) = 2
+    values = stdRegex.Create("(?<same>a)|(?<same>b)").MatchAllArr("ab", names)
+    Test.Assert "Duplicate name first declared group", names.Count = 1 And names("same") = 1
+    Test.Assert "Duplicate name keeps numbered captures", values(1, 1) = "a" And values(2, 1) = "" And values(2, 2) = "b"
+    Set rx = stdRegex.Create("(?<=(?<same>a)(?<same>b))c")
+    values = rx.MatchAllArr("abc", names)
+    Test.Assert "Lookbehind names use declaration order", names("same") = 1
+    Set matches = rx.MatchAll("abc")
+    For col = 0 To matches(1)("$COUNT")
+        Test.Assert "Lookbehind array/dictionary parity", values(1, col) = matches(1)(col)
+    Next
+    values = stdRegex.Create("(?<head>[ab]{1,2})(?:x|y)*?(?<tail>c{2,3})\1?").MatchAllArr("axcc", names)
+    Test.Assert "Names decode instruction operands", names("head") = 1 And names("tail") = 2
+    values = stdRegex.Create("(?<maybe>a){0}b").MatchAllArr("b", names)
+    Test.Assert "Names include never participating captures", names("maybe") = 1 And values(1, 1) = ""
+    values = stdRegex.Create("^(?<word>a.b)$", "ism").MatchAllArr("A" & vbLf & "B", names)
+    Test.Assert "MatchAllArr flags", values(1, names("word")) = "A" & vbLf & "B"
+    values = stdRegex.Create("(?<x>a)").MatchAllArr(String$(130, "a"), names)
+    Test.Assert "MatchAllArr buffer growth", UBound(values, 1) = 130 And values(130, 1) = "a"
+
+    values = stdRegex.Create("[(](?<letter>[a-z])[)]").MatchAllArr("(a)", names)
+    Test.Assert "Capture layout skips parentheses in classes", UBound(values, 2) = 1 And names("letter") = 1 And values(1, 1) = "a"
+    values = stdRegex.Create("\((?<letter>a)\)").MatchAllArr("(a)", names)
+    Test.Assert "Capture layout skips escaped parentheses", UBound(values, 2) = 1 And names("letter") = 1
+    values = stdRegex.Create("(?<ignored>a){0}(?<live>b)").MatchAllArr("b", names)
+    Test.Assert "Capture layout keeps removed group numbers", UBound(values, 2) = 2 And names("ignored") = 1 And names("live") = 2 And values(1, 1) = "" And values(1, 2) = "b"
+    values = stdRegex.Create("(a){0}").MatchAllArr("", names)
+    Test.Assert "Capture layout keeps unnamed removed groups", UBound(values, 2) = 1 And values(1, 1) = "" And names.Count = 0
+    values = stdRegex.Create("(?<first>a) (?<second>b) # comment", "xc").MatchAllArr("ab", names)
+    Test.Assert "Capture layout uses prepared pattern", names("first") = 1 And names("second") = 2 And values(1, 2) = "b"
+    values = stdRegex.Create("(?i:(?<letter>a))").MatchAllArr("A", names)
+    Test.Assert "Capture layout skips modifier groups", UBound(values, 2) = 1 And names("letter") = 1 And values(1, 1) = "A"
+
+    formats = Array("$&", "$0", "$1", "$2", "$first", "$second", "$unknown", "$<first>", _
+        "\$first", "\\$first", "\r\n", "$$first", "$first/$second/$1/$2/$0", "")
+    AssertLegacyLists stdRegex.Create("(?<first>a)(?<second>b)?"), "a ab a", formats
+    AssertLegacyLists stdRegex.Create("(?<first>a)(?<second>b)?"), "z", formats
+    AssertLegacyLists stdRegex.Create("(?<first>\$second)(?<second>a)"), "$seconda", formats
+    AssertLegacyLists stdRegex.Create("(?<first>\\r)(?<second>\$1)"), "\r$1", formats
+    AssertLegacyLists stdRegex.Create("(?<a>x)(?<ab>y)"), "xy xy", Array("$a/$ab", "$&", "$0", "\$ab")
+    AssertLegacyLists stdRegex.Create("(a)(b)(c)(d)(e)(f)(g)(h)(i)(j)"), "abcdefghij", Array("$10", "$1/$10", "$0")
+    AssertLegacyLists stdRegex.Create("(?<same>a)|(?<same>b)"), "ab", Array("$same/$1/$2")
+    AssertLegacyLists stdRegex.Create("(?=a)"), "aa", Array("[$&]", "$0", "$unknown")
+    AssertLegacyLists stdRegex.Create(""), "a", Array("[$&]", "$0", "\r\n")
+    AssertLegacyLists stdRegex.Create("^(?<word>a.b)$", "ism"), "A" & vbLf & "B", Array("$word", "$1", "$&")
+    otherFormats(3) = "$0": otherFormats(4) = "$1"
+    AssertLegacyLists stdRegex.Create("(a)"), "aa", otherFormats
+    values = stdRegex.Create("(a)").ListArr(String$(130, "a"), Array("$1", "$0"))
+    Test.Assert "ListArr buffer growth", UBound(values, 1) = 130 And values(130, 2) = "a"
+    Test.Assert "List handles large output", Len(stdRegex.Create("a").List(String$(40000, "a"), "xx")) = 80000
+    values = stdRegex.Create("a+", "", 1000000).ListArr(String$(40000, "a"), Array("$&", "$0"))
+    Test.Assert "ListArr handles long cells", Len(values(1, 1)) = 40000 And Len(values(1, 2)) = 40000
+    Test.Assert "List budget exhaustion raises", stepLimitRaises("List")
+    Test.Assert "ListArr budget exhaustion raises", stepLimitRaises("ListArr")
+    Test.Assert "MatchAllArr budget exhaustion raises", stepLimitRaises("MatchAllArr")
+End Sub
+
+Private Sub AssertLegacyLists(ByVal rx As stdRegex, ByVal text As String, ByVal formats As Variant)
+    Dim matches As Collection, values As Variant, match As Variant, expected As String
+    Dim row As Long, col As Long, format As Variant, flags As String
+    flags = rx.flags
+    Set matches = rx.MatchAll(text)
+    values = rx.ListArr(text, formats)
+    If matches.Count = 0 Then
+        Test.Assert "ListArr empty legacy parity", UBound(values) = -1
+    Else
+        Test.Assert "ListArr legacy bounds", LBound(values, 1) = 1 And UBound(values, 1) = matches.Count And LBound(values, 2) = 1
+    End If
+    For Each format In formats
+        col = col + 1
+        expected = ""
+        row = 0
+        For Each match In matches
+            row = row + 1
+            expected = expected & LegacyListFormat(match, CStr(format))
+            Test.Assert "ListArr legacy formatter parity", values(row, col) = LegacyListFormat(match, CStr(format))
+        Next
+        Test.Assert "List legacy formatter parity", rx.List(text, CStr(format)) = expected
+    Next
+    Test.Assert "List methods preserve flags", rx.flags = flags
+End Sub
+
+Private Function LegacyListFormat(ByVal match As Object, ByVal format As String) As String
+    'The pre-optimization formatter is an independent oracle for compatibility.
+    Dim keys As Variant, j As Long
+    keys = match.keys()
+    format = VBA.Replace(format, "$&", match(0))
+    format = VBA.Replace(format, "\\", "f934b47b-b799-4f52-9b4c-f170a82b52fe")
+    format = VBA.Replace(format, "\$", "bfde0637-8207-418d-9d34-68ba974e8110")
+    format = VBA.Replace(format, "\r", Chr(13))
+    format = VBA.Replace(format, "\n", Chr(10))
+    format = VBA.Replace(format, "f934b47b-b799-4f52-9b4c-f170a82b52fe", "\")
+    For j = 1 To UBound(keys)
+        Select Case keys(j)
+            Case "$RAW", "$COUNT"
+            Case Else: format = VBA.Replace(format, "$" & keys(j), match(keys(j)))
+        End Select
+    Next
+    LegacyListFormat = VBA.Replace(format, "bfde0637-8207-418d-9d34-68ba974e8110", "$")
+End Function
