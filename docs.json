@@ -2870,6 +2870,839 @@
     "implements": []
   },
   {
+    "name": "stdCOM",
+    "fileName": "stdCOM.cls",
+    "description": "A class which wraps a COM object. All objects in VBA are COM objects, and this class allows \r\nyou to access low level COM functionality. As such this class is recommended only to advanced users.",
+    "remarks": [],
+    "examples": [
+      "```vb\r\n'Print all methods of the Application object\r\nDim app ase stdCOM: set app = stdCOM.create(Application)\r\nDim member\r\nFor each member in app.Methods\r\n  Debug.Print member(\"name\")\r\nnext\r\n```",
+      "```vb\r\n'Bind all methods of a class to a stdLambda object as stdCallbacks\r\nPublic Function CreateBoundLambda(ByVal expression as string) as stdLambda\r\n  'Create lambda from expression string\r\n  set CreateBoundLambda = stdLambda.Create(expression)\r\n\r\n  'Loop over all methods and bind to lambda\r\n  Dim refl as stdCOM: set refl = stdCOM.Create(Me)\r\n  Dim method: For each method in refl.Methods\r\n    Dim cb as stdCallback: set cb = stdCallback.CreateFromObjectMethod(Me, method(\"name\"))\r\n    Call CreateBoundLambda.BindGlobal(method(\"name\"), cb)\r\n  next\r\nEnd Function\r\n```",
+      "Setting the `track id` of a mp3 file:\r\n```vb\r\nDim file as string: file = \"C:\\Users\\sancarn\\Music\\HelloThere - Copy (2).mp3\"\r\nDim mp3 As stdCOM: Set mp3 = stdCOM.CreatePropertyStoreFromFile(file)\r\nConst PKEY_TrackFormatID As String = \"{56A3372E-CE9C-11D2-9F0E-006097C686F6}\"\r\nConst PKEY_TrackPropID as Long = 7\r\nCall mp3.PropertyStore_SetValue(PKEY_TrackFormatID, PKEY_TrackPropID, 1)\r\nCall mp3.PropertyStore_Commit()\r\n```",
+      "Show an indefinitely scrolling progress bar for an Application\r\n```vb\r\nPrivate Enum EITaskbarList3\r\n    SetProgressValue = 9\r\n    SetProgressState = 10\r\n    SetOverlayIcon = 11\r\nEnd Enum\r\nEnum TBPF\r\n    TBPF_NOPROGRESS = &H0      ' Stops displaying progress.\r\n    TBPF_INDETERMINATE = &H1   ' Marquee-style progress.\r\n    TBPF_NORMAL = &H2          ' Normal determinate progress.\r\n    TBPF_ERROR = &H4           ' Red progress bar, indicating an error.\r\n    TBPF_PAUSED = &H8          ' Yellow progress bar, indicating paused state.\r\nEnd Enum\r\n\r\n'Run this sub to make the excel task bar icon scroll indefinitely. Then click play again to stop it.\r\nSub Main()\r\n  Const CLSID_TaskbarList As String = \"{56FDF344-FD6D-11d0-958A-006097C9A090}\"\r\n  Const IID_ITaskbarList3 As String = \"{ea1afb91-9e28-4b86-90e9-9e9f8a5eefaf}\"\r\n  Dim TaskbarList As stdCOM: Set TaskbarList = stdCOM.CreateFromClassAndIID(CLSID_TaskbarList, IID_ITaskbarList3)\r\n  If Not TaskbarList Is Nothing Then\r\n    Call TaskbarList.CallVT(EITaskbarList3.SetProgressState, vbLong, Application.hwnd, TBPF_INDETERMINATE)\r\n    \r\n    Stop\r\n\r\n    Call TaskbarList.CallVT(EITaskbarList3.SetProgressState, vbLong, Application.hwnd, TBPF_NOPROGRESS)\r\n  End If\r\nEnd Sub\r\n```"
+    ],
+    "devNotes": [],
+    "todos": [
+      "Analyse and add anything missing from:"
+    ],
+    "requires": [],
+    "methods": [
+      {
+        "name": "unkQueryInterface",
+        "description": "Call `IUnknown::QueryInterface` on the object",
+        "remarks": [],
+        "examples": [
+          "```vb\r\n  'Get ITypeInfo\r\n  set typeInfo = com.unkQueryInterface(\"00020401-0000-0000-C000-000000000046\")\r\n```"
+        ],
+        "params": [
+          {
+            "name": "sIID",
+            "type": "String",
+            "description": "Interface Identifier as string",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "stdCOM",
+          "description": "`stdCOM` object for interface"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [
+          {
+            "errNumber": null
+          },
+          {
+            "errNumber": null
+          },
+          {
+            "errNumber": null
+          }
+        ],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "unkAddRef",
+        "description": "Call `IUnknown::AddRef()`",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "unkRelease",
+        "description": "Call IUnknown::Release()",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "QueryKnownInterface",
+        "description": "Query the object for a known interface.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "interface",
+            "type": "EKnownInterfaces",
+            "description": "Known interface to query for",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "stdCOM",
+          "description": "interface queried."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [
+          {
+            "errNumber": null
+          }
+        ],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "RegisterActiveObject",
+        "description": "Register the object held in stdCOM to the ROT as a CLSID or ProgID",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "sCLSID",
+            "type": "String",
+            "description": "CLSID if required. If this arg isn't provided, a ProgID must be provided.",
+            "optional": true,
+            "defaultValue": "\"\"",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "ProgID",
+            "type": "String",
+            "description": "ProgID if required. If this arg isn't provided, a CLSID must be provided.",
+            "optional": true,
+            "defaultValue": "\"\"",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "RevokeActiveObject",
+        "description": "Revoke the previously registered object",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "PropertyStore_GetCount",
+        "description": "Get the number of properties in the property store",
+        "remarks": [
+          "- `IPropertyStore` helper method."
+        ],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Long",
+          "description": "The number of properties"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "PropertyStore_GetAt",
+        "description": "Get a property at a given index",
+        "remarks": [
+          "- `IPropertyStore` helper method."
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "index",
+            "type": "Long",
+            "description": "The index of the property to get",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "LongPtr",
+          "description": "The property at the given index. Use `CopyMemory` to copy the data."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "PropertyStore_GetValue",
+        "description": "Get a property value",
+        "remarks": [
+          "- `IPropertyStore` helper method."
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "formatID",
+            "type": "string",
+            "description": "The format ID of the property to get",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "propID",
+            "type": "long",
+            "description": "The property ID of the property to get",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "Variant",
+          "description": "The property value."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "PropertyStore_SetValue",
+        "description": "Set a property value",
+        "remarks": [
+          "- `IPropertyStore` helper method."
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "formatID",
+            "type": "string",
+            "description": "The format ID of the property to get",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "propID",
+            "type": "long",
+            "description": "The property ID of the property to get",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "value",
+            "type": "variant",
+            "description": "The value to set the property to",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "PropertyStore_Commit",
+        "description": "Commit the changes to the property store",
+        "remarks": [
+          "- `IPropertyStore` helper method."
+        ],
+        "examples": [],
+        "params": [],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "CallVT",
+        "description": "Call a function in the VTable of the object at a specified offset",
+        "remarks": [],
+        "examples": [
+          "```vb\r\n  Dim pITypeInfo As IUnknown\r\n  Dim hResult As Long: hResult = com.CallVT(EIUnknown.QueryInterface, vbLong, VarPtr(tGUID.Data1), VarPtr(pITypeInfo))\r\n  If hResult <> S_OK Then Err.Raise hResult, \"InterfaceInfo\", \"stdCOM::InterfaceInfo\"\r\n```"
+        ],
+        "params": [
+          {
+            "name": "VTableOffset",
+            "type": "Long",
+            "description": "The offset of the method to call. IUnknown::QueryInterface=0; IUnknown::AddRef=1; IUnknown::Release=2; IDispatch::Invoke=6",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "ReturnType",
+            "type": "VbVarType",
+            "description": "Return value of function, typically Long (HResult) for COM Object calls",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "FunctionParameters",
+            "type": "Array<Variant>",
+            "description": "Arguments to send to function.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByRef"
+          }
+        ],
+        "returns": {
+          "type": "Variant",
+          "description": "Return value of function"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [
+          {
+            "errNumber": null
+          }
+        ],
+        "requires": [],
+        "isStatic": false
+      }
+    ],
+    "properties": [
+      {
+        "name": "Object",
+        "access": "ReadOnly",
+        "description": "Obtain raw object from stdCOM wrapper",
+        "remarks": [],
+        "examples": [
+          "```vb\r\nstdCOM.Create(Application).Object.Name\r\n```",
+          "```vb\r\nstdCOM.CreateFromPtr(ObjPtr(Application)).Object.Name\r\n```"
+        ],
+        "params": [],
+        "returns": {
+          "type": "IUnknown",
+          "description": "Raw object"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "AsObject",
+        "access": "ReadOnly",
+        "description": "Obtain raw object from stdCOM wrapper",
+        "remarks": [],
+        "examples": [
+          "```vb\r\nstdCOM.Create(Application).Object.Name\r\n```",
+          "```vb\r\nstdCOM.CreateFromPtr(ObjPtr(Application)).Object.Name\r\n```"
+        ],
+        "params": [],
+        "returns": {
+          "type": "Object",
+          "description": "`IDispatch` for object"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [
+          {
+            "errNumber": null
+          }
+        ],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "Pointer",
+        "access": "ReadOnly",
+        "description": "Obtain pointer as LongPtr (VBA)/Long (VB6)",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "LongPtr",
+          "description": "Pointer to object"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "TypeInfo",
+        "access": "ReadOnly",
+        "description": "Obtain Type Information from object",
+        "remarks": [],
+        "examples": [
+          "```vb\r\nmyCom.TypeInfo.CallVT(EITypeInfo.GetTypeAttr, vbLong, VarPtr(lPtr))\r\n```"
+        ],
+        "params": [],
+        "returns": {
+          "type": "stdCOM<ITypeInfo>",
+          "description": "TypeInfo structure for this object"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "InterfaceInfo",
+        "access": "ReadOnly",
+        "description": "Obtain all properties and methods of an object via it's TypeInfo",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Collection<Array<string, vbCallType, long, long>>",
+          "description": "Collection of arrays containing Method/Property name, CallType, Index in type info and DispID"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "Methods",
+        "access": "ReadOnly",
+        "description": "Obtain a collection of all method names on an object",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Collection<string>",
+          "description": "Collection of method names"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "Properties",
+        "access": "ReadOnly",
+        "description": "Obtain a collection of all property names on an object",
+        "remarks": [],
+        "examples": [
+          "```vb\r\n  for each vProp in stdCOM.Create(Application).Properties\r\n    Debug.Print vProp\r\n  next\r\n```"
+        ],
+        "params": [
+          {
+            "name": "bIncludeReadWriteType",
+            "type": "Boolean",
+            "description": "Include GET/LET/SET/UNK prefixes representing call conv",
+            "optional": true,
+            "defaultValue": "False",
+            "paramArray": false,
+            "referenceType": "ByRef"
+          }
+        ],
+        "returns": {
+          "type": "Collection<string>",
+          "description": "Collection of property names"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      }
+    ],
+    "constructors": [
+      {
+        "name": "Create",
+        "description": "Create from an object",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "obj",
+            "type": "IUnknown",
+            "description": "Object to create raw COM object from",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByRef"
+          }
+        ],
+        "returns": {
+          "type": "stdCOM",
+          "description": "A wrapper around a raw COM object"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "CreateFromPtr",
+        "description": "Create from a pointer",
+        "remarks": [
+          "Specifically this function reuires a `*Interface` pointer. E.G. `*IUnknown`/`*IDispatch`/`*ITypeInfo`. If your DLL function provides a `[out] **Interface` object the\r\ntypical method is to pass in a varptr to the dll function as follows `Call SomeDLLCall(VarPtr(myPointer)): ... later ...: stdCOM.CreateFromPtr(myPointer)`"
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "ptr",
+            "type": "LongPtr",
+            "description": "Object pointer to wrap in a raw COM object",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "bAddRef",
+            "type": "Boolean",
+            "description": "Whether to call `AddRef` on the object",
+            "optional": true,
+            "defaultValue": "True",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "stdCOM",
+          "description": "A wrapper around a raw COM object"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "CreateFromActiveObjects",
+        "description": "Create `stdCOM` objects from existing objects in the RunningObjectTable (ROT)",
+        "remarks": [
+          "This function is heavily inspired off code provided by `Jaafar Tribak`"
+        ],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Collection",
+          "description": "A collection of `stdCOM` objects"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [
+          "stdCOM objects will auto-release when not needed"
+        ],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "CreateFromWinRTClassID",
+        "description": "Create `stdCOM` object from WinRT Activatable ClassID.",
+        "remarks": [],
+        "examples": [
+          "```vb\r\nstdCOM.CreateFromWinRTClassID(\"Windows.Storage.Pickers.FolderPicker\")\r\n```"
+        ],
+        "params": [
+          {
+            "name": "sActivatableClassId",
+            "type": "String",
+            "description": "An activatable WinRT class ID.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "stdCOM",
+          "description": "A COM wrapper for the object."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "CreateFromClassAndIID",
+        "description": "Create `stdCOM` object from a CLSID and IID.",
+        "remarks": [],
+        "examples": [
+          "```vb\r\n  stdCOM.CreateFromClassAndIID(\"{FF48DBA4-60EF-4201-AA87-54103EEF594E}\",\"{30CBE57D-D9D0-452A-AB13-7AC5AC4825EE}\") 'IUIAutomation\r\n```"
+        ],
+        "params": [
+          {
+            "name": "sClassID",
+            "type": "String",
+            "description": "A CLSID as a string.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "sIID",
+            "type": "String",
+            "description": "An IID as a string. Default is `IDispatch`.",
+            "optional": true,
+            "defaultValue": "\"{00020400-0000-0000-C000-000000000046}\"",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "stdCOM",
+          "description": "A COM wrapper for the object."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "CreatePropertyStoreFromFile",
+        "description": "Create a `stdCOM` object from a property store path",
+        "remarks": [],
+        "examples": [
+          "```vb\r\nDim p as stdCOM: set p = stdCOM.CreatePropertyStoreFromFile(\"C:\\my\\files\\song.mp3\", EPropertyStoreFlags.GPS_READWRITE Or EPropertyStoreFlags.GPS_OPENSLOWITEM)\r\n```"
+        ],
+        "params": [
+          {
+            "name": "sPath",
+            "type": "String",
+            "description": "Path to property store",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "flags",
+            "type": "EPropertyStoreFlags",
+            "description": "Flags to use when opening the property store",
+            "optional": true,
+            "defaultValue": "GPS_READWRITE Or GPS_OPENSLOWITEM",
+            "paramArray": false,
+            "referenceType": "ByRef"
+          }
+        ],
+        "returns": {
+          "type": "stdCOM",
+          "description": "`stdCOM` object representing the property store"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      }
+    ],
+    "events": [],
+    "implements": []
+  },
+  {
     "name": "stdCallback",
     "fileName": "stdCallback.cls",
     "description": "A class which implements a callback object. Use this class to create a \r\ncallback object which can be called at a later stage. These callbacks are used extensively\r\nacross the stdVBA library.\r\n\r\nWithin a class we can create a simple callback object like so:\r\n```vb\r\nDim cb as stdCallback: set cb = stdCallback.CreateFromObjectMethod(Me, \"myFunction\")\r\n```\r\nWith an example function declaration as follows:\r\n```vb\r\nPublic Function myFunction(ByVal x as long, ByVal y as long, ByVal z as long) as long\r\n  myFunction = x + y + z\r\nEnd Function\r\n```\r\n\r\n> Note it's important to note that the function must be public.\r\n\r\nThe callback can then be called as follows:\r\n```vb\r\nDebug.Print cb(1,2,3)   '=> 6\r\n```\r\nOr with an array of parameters:\r\n```vb\r\nDebug.Print cb.Run(Array(1,2,3))   '=> 6\r\n```\r\nYou can also bind arguments to the callback. This is useful when you want to prepare a callback with some\r\narguments before final execution. For example:\r\n```vb\r\nDim cb as stdCallback: set cb = stdCallback.CreateFromObjectMethod(Me, \"myFunction\").Bind(1,2,3)\r\n'...later...\r\nDebug.Print cb() '=> 6\r\n```",
@@ -3983,839 +4816,6 @@
       }
     ],
     "constructors": [],
-    "events": [],
-    "implements": []
-  },
-  {
-    "name": "stdCOM",
-    "fileName": "stdCOM.cls",
-    "description": "A class which wraps a COM object. All objects in VBA are COM objects, and this class allows \r\nyou to access low level COM functionality. As such this class is recommended only to advanced users.",
-    "remarks": [],
-    "examples": [
-      "```vb\r\n'Print all methods of the Application object\r\nDim app ase stdCOM: set app = stdCOM.create(Application)\r\nDim member\r\nFor each member in app.Methods\r\n  Debug.Print member(\"name\")\r\nnext\r\n```",
-      "```vb\r\n'Bind all methods of a class to a stdLambda object as stdCallbacks\r\nPublic Function CreateBoundLambda(ByVal expression as string) as stdLambda\r\n  'Create lambda from expression string\r\n  set CreateBoundLambda = stdLambda.Create(expression)\r\n\r\n  'Loop over all methods and bind to lambda\r\n  Dim refl as stdCOM: set refl = stdCOM.Create(Me)\r\n  Dim method: For each method in refl.Methods\r\n    Dim cb as stdCallback: set cb = stdCallback.CreateFromObjectMethod(Me, method(\"name\"))\r\n    Call CreateBoundLambda.BindGlobal(method(\"name\"), cb)\r\n  next\r\nEnd Function\r\n```",
-      "Setting the `track id` of a mp3 file:\r\n```vb\r\nDim file as string: file = \"C:\\Users\\sancarn\\Music\\HelloThere - Copy (2).mp3\"\r\nDim mp3 As stdCOM: Set mp3 = stdCOM.CreatePropertyStoreFromFile(file)\r\nConst PKEY_TrackFormatID As String = \"{56A3372E-CE9C-11D2-9F0E-006097C686F6}\"\r\nConst PKEY_TrackPropID as Long = 7\r\nCall mp3.PropertyStore_SetValue(PKEY_TrackFormatID, PKEY_TrackPropID, 1)\r\nCall mp3.PropertyStore_Commit()\r\n```",
-      "Show an indefinitely scrolling progress bar for an Application\r\n```vb\r\nPrivate Enum EITaskbarList3\r\n    SetProgressValue = 9\r\n    SetProgressState = 10\r\n    SetOverlayIcon = 11\r\nEnd Enum\r\nEnum TBPF\r\n    TBPF_NOPROGRESS = &H0      ' Stops displaying progress.\r\n    TBPF_INDETERMINATE = &H1   ' Marquee-style progress.\r\n    TBPF_NORMAL = &H2          ' Normal determinate progress.\r\n    TBPF_ERROR = &H4           ' Red progress bar, indicating an error.\r\n    TBPF_PAUSED = &H8          ' Yellow progress bar, indicating paused state.\r\nEnd Enum\r\n\r\n'Run this sub to make the excel task bar icon scroll indefinitely. Then click play again to stop it.\r\nSub Main()\r\n  Const CLSID_TaskbarList As String = \"{56FDF344-FD6D-11d0-958A-006097C9A090}\"\r\n  Const IID_ITaskbarList3 As String = \"{ea1afb91-9e28-4b86-90e9-9e9f8a5eefaf}\"\r\n  Dim TaskbarList As stdCOM: Set TaskbarList = stdCOM.CreateFromClassAndIID(CLSID_TaskbarList, IID_ITaskbarList3)\r\n  If Not TaskbarList Is Nothing Then\r\n    Call TaskbarList.CallVT(EITaskbarList3.SetProgressState, vbLong, Application.hwnd, TBPF_INDETERMINATE)\r\n    \r\n    Stop\r\n\r\n    Call TaskbarList.CallVT(EITaskbarList3.SetProgressState, vbLong, Application.hwnd, TBPF_NOPROGRESS)\r\n  End If\r\nEnd Sub\r\n```"
-    ],
-    "devNotes": [],
-    "todos": [
-      "Analyse and add anything missing from:"
-    ],
-    "requires": [],
-    "methods": [
-      {
-        "name": "unkQueryInterface",
-        "description": "Call `IUnknown::QueryInterface` on the object",
-        "remarks": [],
-        "examples": [
-          "```vb\r\n  'Get ITypeInfo\r\n  set typeInfo = com.unkQueryInterface(\"00020401-0000-0000-C000-000000000046\")\r\n```"
-        ],
-        "params": [
-          {
-            "name": "sIID",
-            "type": "String",
-            "description": "Interface Identifier as string",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          }
-        ],
-        "returns": {
-          "type": "stdCOM",
-          "description": "`stdCOM` object for interface"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [
-          {
-            "errNumber": null
-          },
-          {
-            "errNumber": null
-          },
-          {
-            "errNumber": null
-          }
-        ],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "unkAddRef",
-        "description": "Call `IUnknown::AddRef()`",
-        "remarks": [],
-        "examples": [],
-        "params": [],
-        "returns": null,
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "unkRelease",
-        "description": "Call IUnknown::Release()",
-        "remarks": [],
-        "examples": [],
-        "params": [],
-        "returns": null,
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "QueryKnownInterface",
-        "description": "Query the object for a known interface.",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "interface",
-            "type": "EKnownInterfaces",
-            "description": "Known interface to query for",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          }
-        ],
-        "returns": {
-          "type": "stdCOM",
-          "description": "interface queried."
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [
-          {
-            "errNumber": null
-          }
-        ],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "RegisterActiveObject",
-        "description": "Register the object held in stdCOM to the ROT as a CLSID or ProgID",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "sCLSID",
-            "type": "String",
-            "description": "CLSID if required. If this arg isn't provided, a ProgID must be provided.",
-            "optional": true,
-            "defaultValue": "\"\"",
-            "paramArray": false,
-            "referenceType": "ByVal"
-          },
-          {
-            "name": "ProgID",
-            "type": "String",
-            "description": "ProgID if required. If this arg isn't provided, a CLSID must be provided.",
-            "optional": true,
-            "defaultValue": "\"\"",
-            "paramArray": false,
-            "referenceType": "ByVal"
-          }
-        ],
-        "returns": null,
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "RevokeActiveObject",
-        "description": "Revoke the previously registered object",
-        "remarks": [],
-        "examples": [],
-        "params": [],
-        "returns": null,
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "PropertyStore_GetCount",
-        "description": "Get the number of properties in the property store",
-        "remarks": [
-          "- `IPropertyStore` helper method."
-        ],
-        "examples": [],
-        "params": [],
-        "returns": {
-          "type": "Long",
-          "description": "The number of properties"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "PropertyStore_GetAt",
-        "description": "Get a property at a given index",
-        "remarks": [
-          "- `IPropertyStore` helper method."
-        ],
-        "examples": [],
-        "params": [
-          {
-            "name": "index",
-            "type": "Long",
-            "description": "The index of the property to get",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          }
-        ],
-        "returns": {
-          "type": "LongPtr",
-          "description": "The property at the given index. Use `CopyMemory` to copy the data."
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "PropertyStore_GetValue",
-        "description": "Get a property value",
-        "remarks": [
-          "- `IPropertyStore` helper method."
-        ],
-        "examples": [],
-        "params": [
-          {
-            "name": "formatID",
-            "type": "string",
-            "description": "The format ID of the property to get",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          },
-          {
-            "name": "propID",
-            "type": "long",
-            "description": "The property ID of the property to get",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          }
-        ],
-        "returns": {
-          "type": "Variant",
-          "description": "The property value."
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "PropertyStore_SetValue",
-        "description": "Set a property value",
-        "remarks": [
-          "- `IPropertyStore` helper method."
-        ],
-        "examples": [],
-        "params": [
-          {
-            "name": "formatID",
-            "type": "string",
-            "description": "The format ID of the property to get",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          },
-          {
-            "name": "propID",
-            "type": "long",
-            "description": "The property ID of the property to get",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          },
-          {
-            "name": "value",
-            "type": "variant",
-            "description": "The value to set the property to",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          }
-        ],
-        "returns": null,
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "PropertyStore_Commit",
-        "description": "Commit the changes to the property store",
-        "remarks": [
-          "- `IPropertyStore` helper method."
-        ],
-        "examples": [],
-        "params": [],
-        "returns": null,
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "CallVT",
-        "description": "Call a function in the VTable of the object at a specified offset",
-        "remarks": [],
-        "examples": [
-          "```vb\r\n  Dim pITypeInfo As IUnknown\r\n  Dim hResult As Long: hResult = com.CallVT(EIUnknown.QueryInterface, vbLong, VarPtr(tGUID.Data1), VarPtr(pITypeInfo))\r\n  If hResult <> S_OK Then Err.Raise hResult, \"InterfaceInfo\", \"stdCOM::InterfaceInfo\"\r\n```"
-        ],
-        "params": [
-          {
-            "name": "VTableOffset",
-            "type": "Long",
-            "description": "The offset of the method to call. IUnknown::QueryInterface=0; IUnknown::AddRef=1; IUnknown::Release=2; IDispatch::Invoke=6",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          },
-          {
-            "name": "ReturnType",
-            "type": "VbVarType",
-            "description": "Return value of function, typically Long (HResult) for COM Object calls",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          },
-          {
-            "name": "FunctionParameters",
-            "type": "Array<Variant>",
-            "description": "Arguments to send to function.",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByRef"
-          }
-        ],
-        "returns": {
-          "type": "Variant",
-          "description": "Return value of function"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [
-          {
-            "errNumber": null
-          }
-        ],
-        "requires": [],
-        "isStatic": false
-      }
-    ],
-    "properties": [
-      {
-        "name": "Object",
-        "access": "ReadOnly",
-        "description": "Obtain raw object from stdCOM wrapper",
-        "remarks": [],
-        "examples": [
-          "```vb\r\nstdCOM.Create(Application).Object.Name\r\n```",
-          "```vb\r\nstdCOM.CreateFromPtr(ObjPtr(Application)).Object.Name\r\n```"
-        ],
-        "params": [],
-        "returns": {
-          "type": "IUnknown",
-          "description": "Raw object"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "AsObject",
-        "access": "ReadOnly",
-        "description": "Obtain raw object from stdCOM wrapper",
-        "remarks": [],
-        "examples": [
-          "```vb\r\nstdCOM.Create(Application).Object.Name\r\n```",
-          "```vb\r\nstdCOM.CreateFromPtr(ObjPtr(Application)).Object.Name\r\n```"
-        ],
-        "params": [],
-        "returns": {
-          "type": "Object",
-          "description": "`IDispatch` for object"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [
-          {
-            "errNumber": null
-          }
-        ],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "Pointer",
-        "access": "ReadOnly",
-        "description": "Obtain pointer as LongPtr (VBA)/Long (VB6)",
-        "remarks": [],
-        "examples": [],
-        "params": [],
-        "returns": {
-          "type": "LongPtr",
-          "description": "Pointer to object"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "TypeInfo",
-        "access": "ReadOnly",
-        "description": "Obtain Type Information from object",
-        "remarks": [],
-        "examples": [
-          "```vb\r\nmyCom.TypeInfo.CallVT(EITypeInfo.GetTypeAttr, vbLong, VarPtr(lPtr))\r\n```"
-        ],
-        "params": [],
-        "returns": {
-          "type": "stdCOM<ITypeInfo>",
-          "description": "TypeInfo structure for this object"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "InterfaceInfo",
-        "access": "ReadOnly",
-        "description": "Obtain all properties and methods of an object via it's TypeInfo",
-        "remarks": [],
-        "examples": [],
-        "params": [],
-        "returns": {
-          "type": "Collection<Array<string, vbCallType, long, long>>",
-          "description": "Collection of arrays containing Method/Property name, CallType, Index in type info and DispID"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "Methods",
-        "access": "ReadOnly",
-        "description": "Obtain a collection of all method names on an object",
-        "remarks": [],
-        "examples": [],
-        "params": [],
-        "returns": {
-          "type": "Collection<string>",
-          "description": "Collection of method names"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "Properties",
-        "access": "ReadOnly",
-        "description": "Obtain a collection of all property names on an object",
-        "remarks": [],
-        "examples": [
-          "```vb\r\n  for each vProp in stdCOM.Create(Application).Properties\r\n    Debug.Print vProp\r\n  next\r\n```"
-        ],
-        "params": [
-          {
-            "name": "bIncludeReadWriteType",
-            "type": "Boolean",
-            "description": "Include GET/LET/SET/UNK prefixes representing call conv",
-            "optional": true,
-            "defaultValue": "False",
-            "paramArray": false,
-            "referenceType": "ByRef"
-          }
-        ],
-        "returns": {
-          "type": "Collection<string>",
-          "description": "Collection of property names"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      }
-    ],
-    "constructors": [
-      {
-        "name": "Create",
-        "description": "Create from an object",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "obj",
-            "type": "IUnknown",
-            "description": "Object to create raw COM object from",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByRef"
-          }
-        ],
-        "returns": {
-          "type": "stdCOM",
-          "description": "A wrapper around a raw COM object"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "CreateFromPtr",
-        "description": "Create from a pointer",
-        "remarks": [
-          "Specifically this function reuires a `*Interface` pointer. E.G. `*IUnknown`/`*IDispatch`/`*ITypeInfo`. If your DLL function provides a `[out] **Interface` object the\r\ntypical method is to pass in a varptr to the dll function as follows `Call SomeDLLCall(VarPtr(myPointer)): ... later ...: stdCOM.CreateFromPtr(myPointer)`"
-        ],
-        "examples": [],
-        "params": [
-          {
-            "name": "ptr",
-            "type": "LongPtr",
-            "description": "Object pointer to wrap in a raw COM object",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          },
-          {
-            "name": "bAddRef",
-            "type": "Boolean",
-            "description": "Whether to call `AddRef` on the object",
-            "optional": true,
-            "defaultValue": "True",
-            "paramArray": false,
-            "referenceType": "ByVal"
-          }
-        ],
-        "returns": {
-          "type": "stdCOM",
-          "description": "A wrapper around a raw COM object"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "CreateFromActiveObjects",
-        "description": "Create `stdCOM` objects from existing objects in the RunningObjectTable (ROT)",
-        "remarks": [
-          "This function is heavily inspired off code provided by `Jaafar Tribak`"
-        ],
-        "examples": [],
-        "params": [],
-        "returns": {
-          "type": "Collection",
-          "description": "A collection of `stdCOM` objects"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [
-          "stdCOM objects will auto-release when not needed"
-        ],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "CreateFromWinRTClassID",
-        "description": "Create `stdCOM` object from WinRT Activatable ClassID.",
-        "remarks": [],
-        "examples": [
-          "```vb\r\nstdCOM.CreateFromWinRTClassID(\"Windows.Storage.Pickers.FolderPicker\")\r\n```"
-        ],
-        "params": [
-          {
-            "name": "sActivatableClassId",
-            "type": "String",
-            "description": "An activatable WinRT class ID.",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          }
-        ],
-        "returns": {
-          "type": "stdCOM",
-          "description": "A COM wrapper for the object."
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "CreateFromClassAndIID",
-        "description": "Create `stdCOM` object from a CLSID and IID.",
-        "remarks": [],
-        "examples": [
-          "```vb\r\n  stdCOM.CreateFromClassAndIID(\"{FF48DBA4-60EF-4201-AA87-54103EEF594E}\",\"{30CBE57D-D9D0-452A-AB13-7AC5AC4825EE}\") 'IUIAutomation\r\n```"
-        ],
-        "params": [
-          {
-            "name": "sClassID",
-            "type": "String",
-            "description": "A CLSID as a string.",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          },
-          {
-            "name": "sIID",
-            "type": "String",
-            "description": "An IID as a string. Default is `IDispatch`.",
-            "optional": true,
-            "defaultValue": "\"{00020400-0000-0000-C000-000000000046}\"",
-            "paramArray": false,
-            "referenceType": "ByVal"
-          }
-        ],
-        "returns": {
-          "type": "stdCOM",
-          "description": "A COM wrapper for the object."
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "CreatePropertyStoreFromFile",
-        "description": "Create a `stdCOM` object from a property store path",
-        "remarks": [],
-        "examples": [
-          "```vb\r\nDim p as stdCOM: set p = stdCOM.CreatePropertyStoreFromFile(\"C:\\my\\files\\song.mp3\", EPropertyStoreFlags.GPS_READWRITE Or EPropertyStoreFlags.GPS_OPENSLOWITEM)\r\n```"
-        ],
-        "params": [
-          {
-            "name": "sPath",
-            "type": "String",
-            "description": "Path to property store",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          },
-          {
-            "name": "flags",
-            "type": "EPropertyStoreFlags",
-            "description": "Flags to use when opening the property store",
-            "optional": true,
-            "defaultValue": "GPS_READWRITE Or GPS_OPENSLOWITEM",
-            "paramArray": false,
-            "referenceType": "ByRef"
-          }
-        ],
-        "returns": {
-          "type": "stdCOM",
-          "description": "`stdCOM` object representing the property store"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      }
-    ],
     "events": [],
     "implements": []
   },
