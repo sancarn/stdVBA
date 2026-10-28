@@ -88,6 +88,8 @@ Private Type SortStruct
 End Type
 
 Private Type TThis
+  DefaultBase As Variant
+  Base As Long
   BaseArray() As Variant
   Length As Long
   ProxyLength As Long
@@ -168,20 +170,21 @@ End Function
 '@param iChunking - The number of items the private array is increased by when required.
 '@param params - The items of the array
 '@returns stdArray<variant> - A `stdArray` from the parameters.
-Public Function CreateWithOptions(ByVal iInitialLength As Long, ByVal iChunking As Long, ParamArray params() As Variant) As stdArray
+'@param iBase - First index; Empty uses stdArray.DefaultBase. This precedes the initial items.
+Public Function CreateWithOptions(ByVal iInitialLength As Long, ByVal iChunking As Long, ByVal iBase As Variant, ParamArray params() As Variant) As stdArray
     Set CreateWithOptions = New stdArray
     
     Dim i As Long
     Dim lb As Long: lb = LBound(params)
     Dim ub As Long: ub = UBound(params)
     
-    Call CreateWithOptions.protInit(iInitialLength, iChunking)
+    Call CreateWithOptions.protInit(iInitialLength, iChunking, iBase)
     For i = lb To ub
         Call CreateWithOptions.Push(params(i))
     Next
 
     'Raise AfterCreate event
-    RaiseEvent AfterCreate(Create)
+    RaiseEvent AfterCreate(CreateWithOptions)
 End Function
 
 'Create a `stdArray` object from a VBA array
@@ -209,7 +212,7 @@ End Function
 '@param col - Collection to create a `stdArray` object from.
 '@returns stdArray<variant> - Returns `stdArray` of variants.
 Public Function CreateFromCollection(ByVal col As Collection) As stdArray
-  Set CreateFromCollection = CreateWithOptions(col.Count, 10)
+  Set CreateFromCollection = CreateWithOptions(col.Count, 10, Empty)
   Dim item: For Each item In col
     Call CreateFromCollection.Push(item)
   Next
@@ -231,15 +234,43 @@ End Function
 '@protected
 '@param iInitialLength - The length of the initial private array created
 '@param iChunking      - The number of items the private array is increased by when required.
-Public Sub protInit(ByVal iInitialLength As Long, ByVal iChunking As Long)
+Public Sub protInit(ByVal iInitialLength As Long, ByVal iChunking As Long, Optional ByVal iBase As Variant = Empty)
   If iChunking > iInitialLength Then iInitialLength = iChunking
   If Not This.Initialised Then
+    If IsEmpty(iBase) Then iBase = stdArray.DefaultBase
+    This.Base = CLng(iBase)
     This.ProxyLength = iInitialLength
     ReDim This.BaseArray(1 To iInitialLength) As Variant
     This.Chunking = iChunking
     This.Initialised = True
   End If
 End Sub
+
+'Global default index base for newly created arrays. Existing arrays retain their base.
+'@returns - The default base, initially 1.
+Public Property Get DefaultBase() As Long
+  If Me Is stdArray Then
+    If IsEmpty(This.DefaultBase) Then
+      DefaultBase = 1
+    Else
+      DefaultBase = This.DefaultBase
+    End If
+  Else
+    DefaultBase = stdArray.DefaultBase
+  End If
+End Property
+Public Property Let DefaultBase(ByVal value As Long)
+  If Me Is stdArray Then
+    This.DefaultBase = value
+  Else
+    stdArray.DefaultBase = value
+  End If
+End Property
+
+'The index of the first element in this instance (read-only).
+Public Property Get Base() As Long
+  Base = This.Base
+End Property
 
 'Obtain a collection from the data contained within the array. Primarily used for NewEnum() method.
 '@returns Collection - Collection from Array
@@ -400,10 +431,10 @@ Public Property Get arr() As Variant
     arr = Array()
   Else
     Dim vRet() As Variant
-    ReDim vRet(1 To This.Length) As Variant
+    ReDim vRet(This.Base To This.Base + (This.Length - 1)) As Variant
     Dim i As Long
     For i = 1 To This.Length
-      Call CopyVariant(vRet(i), This.BaseArray(i))
+      Call CopyVariant(vRet(This.Base + (i - 1)), This.BaseArray(i))
     Next
     arr = vRet
   End If
@@ -431,7 +462,7 @@ Public Function Push(ByVal el As Variant) As stdArray
   If This.Initialised Then
     'Before Add event
     Dim bCancel As Boolean
-    RaiseEvent BeforeAdd(Me, This.Length + 1, el, bCancel)
+    RaiseEvent BeforeAdd(Me, This.Base + This.Length, el, bCancel)
     If bCancel Then Exit Function
 
     If This.Length = This.ProxyLength Then
@@ -443,7 +474,7 @@ Public Function Push(ByVal el As Variant) As stdArray
     CopyVariant This.BaseArray(This.Length), el
 
     'After add event
-    RaiseEvent AfterAdd(Me, This.Length, This.BaseArray(This.Length))
+    RaiseEvent AfterAdd(Me, This.Base + (This.Length - 1), This.BaseArray(This.Length))
 
     Set Push = Me
   Else
@@ -458,14 +489,14 @@ Public Function Pop() As Variant
     If This.Length > 0 Then
       'Raise BeforeRemove event and optionally cancel
       Dim bCancel As Boolean
-      RaiseEvent BeforeRemove(Me, This.Length, This.BaseArray(This.Length), bCancel)
+      RaiseEvent BeforeRemove(Me, This.Base + (This.Length - 1), This.BaseArray(This.Length), bCancel)
       If bCancel Then Exit Function
 
       CopyVariant Pop, This.BaseArray(This.Length)
       This.Length = This.Length - 1
 
       'Raise AfterRemove event
-      RaiseEvent AfterRemove(Me, This.Length)
+      RaiseEvent AfterRemove(Me, This.Base + This.Length)
     Else
         Pop = Empty
     End If
@@ -478,15 +509,16 @@ End Function
 '@param index - Index of the element to remove
 '@returns - The element removed
 Public Function Remove(ByVal index As Long) As Variant
+  index = index - This.Base + 1
   'Ensure initialised
   If This.Initialised Then
     'Ensure length > 0
     If This.Length > 0 Then
       'Ensure index < length
-      If index <= This.Length Then
+      If index >= 1 And index <= This.Length Then
         'Raise BeforeRemove event and optionally cancel
         Dim bCancel As Boolean
-        RaiseEvent BeforeRemove(Me, index, This.BaseArray(index), bCancel)
+        RaiseEvent BeforeRemove(Me, This.Base + (index - 1), This.BaseArray(index), bCancel)
         If bCancel Then Exit Function
 
         'Copy party we are removing to return variable
@@ -495,7 +527,7 @@ Public Function Remove(ByVal index As Long) As Variant
         'Loop through array from removal, set i-1th element to ith element
         Dim i As Long
         For i = index + 1 To This.Length
-            This.BaseArray(i - 1) = This.BaseArray(i)
+            Call CopyVariant(This.BaseArray(i - 1), This.BaseArray(i))
         Next
 
         'Set last element length and subtract total length by 1
@@ -503,7 +535,7 @@ Public Function Remove(ByVal index As Long) As Variant
         This.Length = This.Length - 1
 
         'Raise after remove event
-        RaiseEvent AfterRemove(Me, index)
+        RaiseEvent AfterRemove(Me, This.Base + (index - 1))
       Else
         'Error
       End If
@@ -536,7 +568,7 @@ Public Function Unshift(val As Variant) As stdArray
   
   'Before Add event
   Dim bCancel As Boolean
-  RaiseEvent BeforeAdd(Me, 1, val, bCancel)
+  RaiseEvent BeforeAdd(Me, This.Base, val, bCancel)
   If bCancel Then Exit Function
 
   'Ensure array is big enough and increase Length
@@ -549,12 +581,12 @@ Public Function Unshift(val As Variant) As stdArray
   'Unshift
   Dim i As Long
   For i = This.Length - 1 To 1 Step -1
-    This.BaseArray(i + 1) = This.BaseArray(i)
+    Call CopyVariant(This.BaseArray(i + 1), This.BaseArray(i))
   Next
-  This.BaseArray(1) = val
+  Call CopyVariant(This.BaseArray(1), val)
   
   'After Add event
-  RaiseEvent AfterAdd(Me, 1, val)
+  RaiseEvent AfterAdd(Me, This.Base, val)
 
   Set Unshift = Me
 End Function
@@ -564,12 +596,15 @@ End Function
 '@param iEnd   - End index of the slice
 '@returns - A slice of the array
 Public Function Slice(ByVal iStart As Long, ByVal iEnd As Long) As stdArray
+  iStart = iStart - This.Base + 1
+  iEnd = iEnd - This.Base + 1
+  If iStart < 1 Then Err.Raise 9, "stdArray.Slice", "Index out of range"
   If This.Initialised Then
     If iStart <= This.Length Then
       If iEnd > This.Length Then iEnd = This.Length
       If iStart <= iEnd Then
         Dim ret As stdArray
-        Set ret = stdArray.CreateWithOptions(iEnd - iStart + 1, This.Chunking)
+        Set ret = stdArray.CreateWithOptions(iEnd - iStart + 1, This.Chunking, This.Base)
         
         Dim i As Long
         For i = iStart To iEnd
@@ -597,10 +632,10 @@ End Function
 '```
 Public Function SplitToChunks(ByVal Size As Long) As stdArray
   Dim iNumArrays As Long: iNumArrays = Ceil(This.Length / Size)
-  Set SplitToChunks = stdArray.CreateWithOptions(iNumArrays, 10)
+  Set SplitToChunks = stdArray.CreateWithOptions(iNumArrays, 10, This.Base)
   Dim i As Long
   For i = 0 To iNumArrays - 1
-    Call SplitToChunks.Push(Slice(i * Size + 1, i * Size + Size))
+    Call SplitToChunks.Push(Slice(This.Base + i * Size, This.Base + (i * Size + Size - 1)))
   Next
 End Function
 
@@ -610,44 +645,37 @@ End Function
 '@param newElements - Elements to add to the array
 '@returns - An array containing the deleted elements
 Public Function Splice(ByVal iStart As Long, ByVal iDeleteCount As Long, ByVal newElements As stdArray) As stdArray
-  If This.Initialised Then
-    If iStart <= This.Length Then
-      If iStart + iDeleteCount <= This.Length Then
-        Dim ret As stdArray
-        Set ret = stdArray.CreateWithOptions(iDeleteCount, This.Chunking)
-        
-        Dim i As Long
-        For i = 1 To iDeleteCount
-          Call ret.Push(This.BaseArray(iStart + i - 1))
-        Next
-        
-        Dim iNewLength As Long
-        iNewLength = This.Length - iDeleteCount + newElements.Length
-        If iNewLength > This.ProxyLength Then
-          This.ProxyLength = iNewLength + This.Chunking
-          ReDim Preserve This.BaseArray(1 To This.ProxyLength) As Variant
-        End If
-        
-        For i = This.Length To iStart + iDeleteCount Step -1
-          This.BaseArray(i + newElements.Length - iDeleteCount) = This.BaseArray(i)
-        Next
-        
-        For i = 1 To This.Length
-          This.BaseArray(iStart + i - 1) = newElements(i)
-        Next
-        
-        This.Length = iNewLength
-        
-        Set Splice = ret
-      Else
-        'Error
-      End If
-    Else
-      'Error
-    End If
-  Else
-    'Error
+  Dim position As Long: position = iStart - This.Base + 1
+  If position < 1 Or position > This.Length + 1 Or iDeleteCount < 0 Then Err.Raise 9, "stdArray.Splice", "Index out of range"
+  If iDeleteCount > This.Length - position + 1 Then iDeleteCount = This.Length - position + 1
+  Dim inserted As Variant: inserted = newElements.arr
+  Dim insertCount As Long: insertCount = newElements.Length
+  Set Splice = stdArray.CreateWithOptions(iDeleteCount, This.Chunking, This.Base)
+  Dim i As Long
+  For i = position To position + iDeleteCount - 1
+    Splice.Push This.BaseArray(i)
+  Next
+  Dim newLength As Long: newLength = This.Length - iDeleteCount + insertCount
+  If newLength > This.ProxyLength Then
+    This.ProxyLength = newLength + This.Chunking
+    ReDim Preserve This.BaseArray(1 To This.ProxyLength)
   End If
+  If insertCount > iDeleteCount Then
+    For i = This.Length To position + iDeleteCount Step -1
+      Call CopyVariant(This.BaseArray(i + insertCount - iDeleteCount), This.BaseArray(i))
+    Next
+  Else
+    For i = position + iDeleteCount To This.Length
+      Call CopyVariant(This.BaseArray(i + insertCount - iDeleteCount), This.BaseArray(i))
+    Next
+  End If
+  For i = 0 To insertCount - 1
+    Call CopyVariant(This.BaseArray(position + i), inserted(LBound(inserted) + i))
+  Next
+  For i = newLength + 1 To This.Length
+    This.BaseArray(i) = Empty
+  Next
+  This.Length = newLength
 End Function
 
 'Creates a new instance of the same array
@@ -658,7 +686,7 @@ Public Function Clone() As stdArray
         'Similar to CreateFromArray() but passing length through also:
         Set Clone = New stdArray
         
-        Call Clone.protInit(This.Length, 10)
+        Call Clone.protInit(This.Length, This.Chunking, This.Base)
         
         Dim i As Long
         For i = 1 To This.Length
@@ -679,7 +707,7 @@ End Function
 Public Function Reverse() As stdArray
   'TODO: Need to find a better more low level approach to creating arrays from existing arrays/preventing redim for methods like this
   Dim ret As stdArray
-  Set ret = stdArray.Create()
+  Set ret = stdArray.CreateWithOptions(This.Length, This.Chunking, This.Base)
   Dim i As Long
   For i = This.Length To 1 Step -1
     Call ret.Push(This.BaseArray(i))
@@ -697,7 +725,7 @@ Public Function Concat(ByVal arr As stdArray) As stdArray
   If Not arr Is Nothing Then
     Dim i As Long
     For i = 1 To arr.Length
-      Call x.Push(arr.item(i))
+      Call x.Push(arr.item(arr.Base + (i - 1)))
     Next
   End If
   
@@ -731,101 +759,64 @@ End Function
 '@returns - The item at the location
 Public Property Get item(ByVal i As Long) As Variant
 Attribute item.VB_UserMemId = 0
-  CopyVariant item, This.BaseArray(i)
+  CopyVariant item, This.BaseArray(i - This.Base + 1)
 End Property
 Public Property Set item(ByVal i As Long, ByVal item As Object)
-  Set This.BaseArray(i) = item
+  Set This.BaseArray(i - This.Base + 1) = item
 End Property
 Public Property Let item(ByVal i As Long, ByVal item As Variant)
-  This.BaseArray(i) = item
+  This.BaseArray(i - This.Base + 1) = item
 End Property
 
 'Copy a variant into the array's ith element. This saves from having to test the item and call the correct `set` keyword
 '@param i    - The index at which the item's data should be set
 '@param item - Item to set at the index
 Public Sub PutItem(ByVal i As Long, ByRef item As Variant)
-  CopyVariant This.BaseArray(i), item
+  CopyVariant This.BaseArray(i - This.Base + 1), item
 End Sub
 
 'Obtain the index of an element
 '@param el - Element to find
 '@param start - Location to start search for element.
 '@returns - Index of element
-Public Function indexOf(ByVal el As Variant, Optional ByVal start As Long = 1) As Long
-  Dim elIsObj As Boolean, i As Long, item As Variant, itemIsObj As Boolean
-  
-  'Is element an object?
-  elIsObj = IsObject(el)
-  
-  'Loop over contents starting from start
-  For i = start To This.Length
-    'Get item data
-    CopyVariant item, This.BaseArray(i)
-    
-    'Is item an object?
-    itemIsObj = IsObject(item)
-    
-    'If both item and el are objects     (must be the same type in order to be the same data)
-    If itemIsObj And elIsObj Then
-      If item Is el Then 'check items equal
-        indexOf = i 'return item index
-        Exit Function
-      End If
-    'If both item and el are not objects (must be the same type in order to be the same data)
-    ElseIf Not itemIsObj And Not elIsObj Then
-      If item = el Then 'check items equal
-        indexOf = i 'return item index
-        Exit Function
-      End If
-    End If
-  Next
-
-  'Return -1 i.e. no match found
+Public Function indexOf(ByVal el As Variant, Optional ByVal start As Variant = Empty) As Long
+  Dim position As Long: position = FindPosition(el, start, False)
   indexOf = -1
+  If position > 0 Then indexOf = This.Base + (position - 1)
 End Function
 
-'Obtain the last index of an element
-'@param el - Element to find
-'@returns - Last index of element
+'Obtain the last matching index, or -1 when absent.
 Public Function lastIndexOf(ByVal el As Variant) As Long
-  Dim elIsObj As Boolean, i As Long, item As Variant, itemIsObj As Boolean
-  
-  'Is element an object?
-  elIsObj = IsObject(el)
-  
-  'Loop over contents starting from start
-  For i = This.Length To 1 Step -1
-    'Get item data
-    CopyVariant item, This.BaseArray(i)
-    
-    'Is item an object?
-    itemIsObj = IsObject(item)
-    
-    'If both item and el are objects     (must be the same type in order to be the same data)
-    If itemIsObj And elIsObj Then
-      If item Is el Then 'check items equal
-        lastIndexOf = i 'return item index
-        Exit Function
-      End If
-    'If both item and el are not objects (must be the same type in order to be the same data)
-    ElseIf Not itemIsObj And Not elIsObj Then
-      If item = el Then 'check items equal
-        lastIndexOf = i 'return item index
-        Exit Function
-      End If
+  Dim position As Long: position = FindPosition(el, Empty, True)
+  lastIndexOf = -1
+  If position > 0 Then lastIndexOf = This.Base + (position - 1)
+End Function
+
+'Check membership, including arrays whose valid indices include the -1 sentinel.
+Public Function includes(ByVal el As Variant, Optional ByVal startFrom As Variant = Empty) As Boolean
+  includes = FindPosition(el, startFrom, False) > 0
+End Function
+
+'Return a one-based storage position, or zero if absent.
+Private Function FindPosition(ByVal el As Variant, ByVal start As Variant, ByVal backwards As Boolean) As Long
+  Dim first As Long, last As Long, stride As Long
+  If backwards Then
+    first = This.Length: last = 1: stride = -1
+  Else
+    first = 1: last = This.Length: stride = 1
+    If Not IsEmpty(start) Then
+      If CLng(start) > This.Base Then first = CLng(start) - This.Base + 1
+    End If
+  End If
+  Dim i As Long, value As Variant
+  For i = first To last Step stride
+    Call CopyVariant(value, This.BaseArray(i))
+    If IsObject(value) And IsObject(el) Then
+      If value Is el Then FindPosition = i: Exit Function
+    ElseIf Not IsObject(value) And Not IsObject(el) Then
+      If value = el Then FindPosition = i: Exit Function
     End If
   Next
-
-  'Return -1 i.e. no match found
-  lastIndexOf = -1
-End Function
-
-'Returns true if the array contains an item
-'@param el        - Item to find
-'@param startFrom - Index to start search for item at. (Internally uses indexOf())
-'@returns - True if the array contains the item
-Public Function includes(ByVal el As Variant, Optional ByVal startFrom As Long = 1) As Boolean
-  includes = indexOf(el, startFrom) >= startFrom
 End Function
 
 '**************************************************
@@ -912,10 +903,10 @@ Public Function Map(ByVal cb As stdICallable) As stdArray
     For i = 1 To This.Length
       'BUGFIX: Sometimes required, not sure when
       Dim v As Variant
-      CopyVariant v, item(i)
+      CopyVariant v, This.BaseArray(i)
       
       'Call callback
-      Call pMap.PutItem(i, cb.Run(v))
+      Call pMap.PutItem(This.Base + (i - 1), cb.Run(v))
     Next
     
     Set Map = pMap
@@ -932,8 +923,8 @@ End Function
 '```
 '@TODO: Needs optimisation. Currently very sub-optimal
 Public Function Unique(Optional ByVal cb As stdICallable = Nothing) As stdArray
-  Dim ret As stdArray: Set ret = stdArray.CreateWithOptions(This.Length, This.Chunking)
-  Dim retL As stdArray: Set retL = CreateWithOptions(This.Length, This.Chunking)
+  Dim ret As stdArray: Set ret = stdArray.CreateWithOptions(This.Length, This.Chunking, This.Base)
+  Dim retL As stdArray: Set retL = CreateWithOptions(This.Length, This.Chunking, This.Base)
   
   'Collect keys
   Dim vKeys As stdArray
@@ -946,8 +937,8 @@ Public Function Unique(Optional ByVal cb As stdICallable = Nothing) As stdArray
   'Unique by key
   Dim i As Long
   For i = 1 To This.Length
-    If Not retL.includes(vKeys.item(i)) Then
-      Call retL.Push(vKeys.item(i))
+    If Not retL.includes(vKeys.item(This.Base + (i - 1))) Then
+      Call retL.Push(vKeys.item(This.Base + (i - 1)))
       Call ret.Push(This.BaseArray(i))
     End If
   Next
@@ -1005,7 +996,7 @@ End Function
 '@returns - A new array containing only the elements which passed the filter
 Public Function Filter(ByVal cb As stdICallable) As stdArray
   Dim ret As stdArray
-  Set ret = stdArray.CreateWithOptions(This.Length, This.Chunking)
+  Set ret = stdArray.CreateWithOptions(This.Length, This.Chunking, This.Base)
   Set Filter = ret
 
   'If initialised...
@@ -1057,7 +1048,7 @@ Public Function GroupBy(ByVal cb As stdICallable) As Object
     key = cb.Run(This.BaseArray(i))
 
     'If key is not set then set it
-    If Not result.Exists(key) Then Set result(key) = stdArray.Create()
+    If Not result.Exists(key) Then Set result(key) = stdArray.CreateWithOptions(0, This.Chunking, This.Base)
 
     'Push item to key
     result(key).Push This.BaseArray(i)

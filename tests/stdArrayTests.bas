@@ -53,6 +53,7 @@ Sub testAll()
         Test.Assert "Property Arr 4 item 3 equal", vArr(3) = arr.item(3)
     end if
 
+    Call testDefaultBase
     Call testArrLet
     
     'Remove
@@ -191,7 +192,7 @@ Public Sub testArrLet()
     Test.Assert "Arr Let copies typed arrays with negative bounds", arr.Join() = "13,14"
 
     'Replacing a large allocation with a smaller one must also update capacity.
-    Set arr = stdArray.CreateWithOptions(40, 4, 7, 8)
+    Set arr = stdArray.CreateWithOptions(40, 4, 1, 7, 8)
     arr.arr = oneBased
     Dim capacity As Long: capacity = arr.zProxyLength
     Dim i As Long
@@ -253,3 +254,103 @@ Private Function CD(Paramarray v() as variant) as object
     next
     Set CD = o
 End Function
+
+Private Sub testDefaultBase()
+  Dim originalBase As Long: originalBase = stdArray.DefaultBase
+  Dim arr As stdArray, derived As stdArray, values As Variant, chunks As stdArray
+  Dim failure As Long, description As String
+  On Error GoTo Failed
+  Test.Assert "Default base starts at one", originalBase = 1
+  stdArray.DefaultBase = 0
+  Set arr = stdArray.Create(10, 20, 30)
+  Test.Assert "Default base applies to Create", arr.Base = 0 And arr(0) = 10 And arr(2) = 30
+  stdArray.DefaultBase = 5
+  Test.Assert "Existing instance retains base", arr.Base = 0 And arr(0) = 10
+  Set derived = stdArray.CreateFromArray(Array(1, 2))
+  Test.Assert "CreateFromArray uses default", derived.Base = 5 And derived(5) = 1
+  Set derived = stdArray.CreateFromCollection(arr.AsCollection)
+  Test.Assert "Collection constructor uses default", derived.Base = 5 And derived(5) = 10
+  Set derived = stdArray.CreateFromString("a,b")
+  Test.Assert "String constructor uses default", derived.Base = 5 And derived(6) = "b"
+  Set derived = stdArray.CreateWithOptions(10, 10, 1, 7, 8)
+  Test.Assert "CreateWithOptions overrides default", derived.Base = 1 And derived(1) = 7 And derived(2) = 8
+  Set derived = stdArray.CreateWithOptions(10, 10, Empty)
+  derived.Push 42
+  Test.Assert "CreateWithOptions omitted base", derived.Base = 5 And derived(5) = 42
+  Set derived = New stdArray
+  derived.protInit 10, 10, -2
+  derived.Push 7
+  Test.Assert "protInit accepts explicit base", derived.Base = -2 And derived(-2) = 7
+  Set derived = New stdArray
+  derived.protInit 10, 10
+  derived.Push 8
+  Test.Assert "protInit uses default", derived.Base = 5 And derived(5) = 8
+  arr(1) = 22
+  values = arr.arr
+  Test.Assert "Export uses instance bounds", LBound(values) = 0 And UBound(values) = 2 And values(1) = 22
+  arr.arr = Array(10, 20, 30)
+  Test.Assert "Assignment retains base", arr.Base = 0 And arr(0) = 10
+  Test.Assert "Search indices use base", arr.indexOf(10) = 0 And arr.lastIndexOf(30) = 2
+  Test.Assert "Search start uses base", arr.indexOf(10, 1) = -1 And Not arr.includes(10, 1)
+  Test.Assert "Membership works at zero", arr.includes(10) And Not arr.includes(99)
+  Set derived = stdArray.CreateWithOptions(10, 10, -2, 10, 20, 30)
+  Test.Assert "Membership works at negative one", derived.indexOf(20) = -1 And derived.includes(20) And Not derived.includes(99)
+  Set derived = arr.Clone
+  Test.Assert "Clone preserves base", derived.Base = 0 And derived.Join = "10,20,30"
+  Set derived = arr.Reverse
+  Test.Assert "Reverse preserves base", derived.Base = 0 And derived.Join = "30,20,10"
+  Set derived = arr.Map(stdLambda.Create("$1*2"))
+  Test.Assert "Map preserves base", derived.Base = 0 And derived(0) = 20 And derived(2) = 60
+  Set derived = arr.Filter(stdLambda.Create("$1>10"))
+  Test.Assert "Filter preserves base", derived.Base = 0 And derived.Join = "20,30"
+  Set derived = arr.Unique()
+  Test.Assert "Unique preserves base", derived.Base = 0 And derived.Join = "10,20,30"
+  Set derived = arr.Sort()
+  Test.Assert "Sort preserves base", derived.Base = 0 And derived.Join = "10,20,30"
+  Set derived = arr.Concat(stdArray.CreateWithOptions(10, 10, 9, 40))
+  Test.Assert "Concat accepts different bases", derived.Base = 0 And derived.Join = "10,20,30,40"
+  Set derived = arr.Slice(0, 1)
+  Test.Assert "Slice uses instance indices", derived.Base = 0 And derived.Join = "10,20"
+  Set chunks = arr.SplitToChunks(2)
+  Set derived = chunks(0)
+  Test.Assert "Chunks preserve base", chunks.Base = 0 And derived.Base = 0 And derived.Join = "10,20"
+  Dim groups As Object: Set groups = arr.GroupBy(stdLambda.Create("$1>10"))
+  Set derived = groups(True)
+  Test.Assert "Groups preserve base", derived.Base = 0 And derived.Join = "20,30"
+  Set derived = arr.Splice(1, 1, stdArray.CreateWithOptions(10, 10, 5, 40, 50))
+  Test.Assert "Splice uses mixed bases", derived.Base = 0 And derived.Join = "20" And arr.Join = "10,40,50,30"
+  Test.Assert "Remove uses base", arr.Remove(0) = 10 And arr.Join = "40,50,30"
+  Test.Assert "Shift and pop use order", arr.Shift = 40 And arr.Pop = 30
+  arr.Unshift 70
+  arr.Push 80
+  Test.Assert "Push/unshift retain base", arr(0) = 70 And arr.Join = "70,50,80"
+  Dim obj As Collection: Set obj = New Collection
+  Set arr(0) = obj
+  Test.Assert "Object assignment uses base", arr(0) Is obj
+  arr.PutItem 1, obj
+  Test.Assert "PutItem uses base", arr(1) Is obj
+  Set arr = stdArray.CreateWithOptions(2, 2, 0, 1, 2, 3)
+  Set derived = arr.Splice(1, 2, stdArray.Create())
+  Test.Assert "Splice deletes through end", arr.Join = "1" And derived.Join = "2,3"
+  Set derived = arr.Splice(1, 0, arr)
+  Test.Assert "Splice snapshots self insertion", arr.Join = "1,1" And derived.Length = 0
+  Set arr = stdArray.CreateWithOptions(2, 2, -3, 1, 2, 3, 4)
+  Set derived = arr.Splice(-2, 2, stdArray.CreateWithOptions(1, 1, 7, 9))
+  Test.Assert "Splice shrinks and shifts tail", arr.Join = "1,9,4" And derived.Join = "2,3"
+  Dim events As stdArrayBaseEvents: Set events = New stdArrayBaseEvents
+  Set events.Values = arr
+  arr.Push 8
+  Test.Assert "Push events use instance index", events.BeforeIndex = 0 And events.AfterIndex = 0
+  arr.Pop
+  Test.Assert "Pop events use removed index", events.BeforeIndex = 0 And events.AfterIndex = 0
+  arr.Unshift 0
+  Test.Assert "Unshift events use base", events.BeforeIndex = -3 And events.AfterIndex = -3
+  arr.Remove -2
+  Test.Assert "Remove events use instance index", events.BeforeIndex = -2 And events.AfterIndex = -2
+  stdArray.DefaultBase = originalBase
+  Exit Sub
+Failed:
+  failure = Err.Number: description = Err.Description
+  stdArray.DefaultBase = originalBase
+  Err.Raise failure, "stdArrayTests.testDefaultBase", description
+End Sub
