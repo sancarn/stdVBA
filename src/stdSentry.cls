@@ -96,8 +96,44 @@ End Type
 Private Type TThis
   Factory as TFactory
   Instance as TInstance
+  UnlockedSheet As Object
+  SheetPassword As String
+  SheetProtection As Variant
 End Type
 Private This as TThis
+
+'Temporarily unprotect an Excel worksheet and restore its original protection options.
+'@param sheet - Worksheet to unlock; an already unprotected worksheet is left unprotected.
+'@param password - Existing protection password; wrong passwords are raised during creation.
+'@returns - An active sentry. Nested sentries restore protection only at the outermost scope.
+'@example With stdSentry.CreateSheetUnlocker(Sheet1, "password"): Sheet1.Range("A1") = 1: End With
+Public Function CreateSheetUnlocker(ByVal sheet As Object, Optional ByVal password As String = "") As stdSentry
+  Set CreateSheetUnlocker = New stdSentry
+  Call CreateSheetUnlocker.protInitSheetUnlocker(sheet, password)
+End Function
+
+'Alias matching the original sheet-unlocker example.
+Public Function CreateUnlocker(ByVal sheet As Object, Optional ByVal password As String = "") As stdSentry
+  Set CreateUnlocker = CreateSheetUnlocker(sheet, password)
+End Function
+
+'@protected
+Public Sub protInitSheetUnlocker(ByVal sheet As Object, ByVal password As String)
+  If sheet Is Nothing Then Err.Raise 5, "stdSentry.CreateSheetUnlocker", "A worksheet is required"
+  If Not (sheet.ProtectContents Or sheet.ProtectDrawingObjects Or sheet.ProtectScenarios) Then Exit Sub
+  Dim options As Variant
+  With sheet.Protection
+    options = Array(sheet.ProtectDrawingObjects, sheet.ProtectContents, sheet.ProtectScenarios, _
+      sheet.ProtectionMode, .AllowFormattingCells, .AllowFormattingColumns, .AllowFormattingRows, _
+      .AllowInsertingColumns, .AllowInsertingRows, .AllowInsertingHyperlinks, .AllowDeletingColumns, _
+      .AllowDeletingRows, .AllowSorting, .AllowFiltering, .AllowUsingPivotTables, sheet.EnableSelection)
+  End With
+  'Arm cleanup only after Unprotect succeeds, so a wrong password cannot change protection.
+  Call sheet.Unprotect(password)
+  This.SheetProtection = options
+  This.SheetPassword = password
+  Set This.UnlockedSheet = sheet
+End Sub
 
 'Create a sentry factory
 '@constructor
@@ -329,6 +365,13 @@ End Function
 
 
 Private Sub Class_Terminate()
+  If Not This.UnlockedSheet Is Nothing Then
+    Dim options As Variant: options = This.SheetProtection
+    Call This.UnlockedSheet.Protect(This.SheetPassword, options(0), options(1), options(2), options(3), _
+      options(4), options(5), options(6), options(7), options(8), options(9), options(10), options(11), _
+      options(12), options(13), options(14))
+    This.UnlockedSheet.EnableSelection = options(15)
+  End If
   With This.Instance
     if not .OnDestroy is nothing then
       if this.Instance.passVars then
