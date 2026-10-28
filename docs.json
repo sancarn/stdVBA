@@ -12954,9 +12954,7 @@
       "A simple example of using the class:\r\n```vb\r\nDim rx as stdRegex: set rx = stdRegex.Create(\"(?<Site>\\d{5})-(\\w{2}\\d)\")\r\nDebug.Print rx.Test(\"12345-AA1\")  '=> True\r\nDebug.Print rx.Match(\"12345-AA1\").Site  '=> 12345-AA1\r\nDebug.Print rx.MatchAll(\"12345-AA1,12345-AB1,15233-AC3,63234-ZD2\")  '=> 12345-AA1,12345-AB1,15233-AC3,63234-ZD2\r\nDebug.Print rx.Replace(\"12345-AA1,12345-AB1,15233-AC3,63234-ZD2\", \"<Redacted>\")  '=> \"<Redacted>,<Redacted>,<Redacted>,<Redacted>\"\r\nDebug.Print rx.List(\"12345-AA1,12345-AB1,15233-AC3,63234-ZD2\", \"$site\\r\\n\")  '=> \"12345\\r\\n12345\\r\\n15233\\r\\n63234\\r\\n\"\r\n```"
     ],
     "devNotes": [],
-    "todos": [
-      "Make this more efficient, ideally we'd only loop through the format once"
-    ],
+    "todos": [],
     "requires": [],
     "methods": [
       {
@@ -13175,6 +13173,47 @@
         "returns": {
           "type": "Variant<Array[2d]<String>>",
           "description": "All matches as a 2d array. Useful especially for dumping matches to Excel."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "MatchAllArr",
+        "description": "Return all matches as a 2D Variant array: rows 1..count, columns 0..capture count.\r\nColumn 0 contains the entire match; columns 1..n contain numbered captures.\r\nUnmatched captures are empty strings. With no matches, returns Array().",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "sHaystack",
+            "type": "String",
+            "description": "Text to search. All matches are returned, regardless of the g flag.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "captureNames",
+            "type": "Object",
+            "description": "Output: a new case-sensitive dictionary mapping names to capture columns.\r\nThe map includes unmatched groups and is populated even when there are no matches.\r\nDuplicate names map to the first declared capture group.",
+            "optional": true,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByRef"
+          }
+        ],
+        "returns": {
+          "type": "Variant",
+          "description": ""
         },
         "deprecation": {
           "status": false,
