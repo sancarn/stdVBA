@@ -12483,6 +12483,79 @@
     "requires": [],
     "methods": [
       {
+        "name": "addKey",
+        "description": "Create or open a relative subkey without changing its existing values.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "name",
+            "type": "String",
+            "description": "Nonempty relative subkey path; missing intermediate keys are created.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "stdReg",
+          "description": "A stdReg key with the same access and registry view as its parent."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "addItem",
+        "description": "Create an empty named item, or open an existing item without overwriting it.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "name",
+            "type": "String",
+            "description": "Value name; empty or (Default) selects the unnamed value. Backslashes are not supported by the path-based API.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "iType",
+            "type": "ERegistryValueType",
+            "description": "Registry type for a newly created item; existing values retain their data and type.",
+            "optional": true,
+            "defaultValue": "Value_String",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "stdReg",
+          "description": "A stdReg item ready for value assignment."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
         "name": "SetValue",
         "description": "Set value and change type",
         "remarks": [],
@@ -12762,7 +12835,7 @@
         "params": [],
         "returns": {
           "type": "Variant",
-          "description": "Value of stdReg Item"
+          "description": "Value of a stdReg item, or the unnamed value when called on a key."
         },
         "deprecation": {
           "status": false,
@@ -12780,10 +12853,6 @@
           {
             "errNumber": 2,
             "errText": "\"stdReg\", \"ERROR: Cannot get value (0x\" & Hex(iStatus) & \")\""
-          },
-          {
-            "errNumber": 3,
-            "errText": "\"\", \"ERROR: Only stdReg items have values\""
           }
         ],
         "requires": [],
