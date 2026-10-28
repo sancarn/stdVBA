@@ -168,9 +168,9 @@ End Function
 '@constructor
 '@param iInitialLength - The length of the initial private array created
 '@param iChunking - The number of items the private array is increased by when required.
+'@param iBase - First index; Empty uses stdArray.DefaultBase. This precedes the initial items.
 '@param params - The items of the array
 '@returns stdArray<variant> - A `stdArray` from the parameters.
-'@param iBase - First index; Empty uses stdArray.DefaultBase. This precedes the initial items.
 Public Function CreateWithOptions(ByVal iInitialLength As Long, ByVal iChunking As Long, ByVal iBase As Variant, ParamArray params() As Variant) As stdArray
     Set CreateWithOptions = New stdArray
     
@@ -234,6 +234,7 @@ End Function
 '@protected
 '@param iInitialLength - The length of the initial private array created
 '@param iChunking      - The number of items the private array is increased by when required.
+'@param iBase          - First index; omitted or Empty uses stdArray.DefaultBase.
 Public Sub protInit(ByVal iInitialLength As Long, ByVal iChunking As Long, Optional ByVal iBase As Variant = Empty)
   If iChunking > iInitialLength Then iInitialLength = iChunking
   If Not This.Initialised Then
@@ -777,8 +778,9 @@ End Sub
 
 'Obtain the index of an element
 '@param el - Element to find
-'@param start - Location to start search for element.
-'@returns - Index of element
+'@param start - Index to start searching at; Empty starts at this array's Base.
+'@returns - Matching index in this array's base, or -1 if absent.
+'@remark - With negative bases, -1 may be a valid index. Use includes for an unambiguous membership check.
 Public Function indexOf(ByVal el As Variant, Optional ByVal start As Variant = Empty) As Long
   Dim position As Long: position = FindPosition(el, start, False)
   indexOf = -1
@@ -786,6 +788,9 @@ Public Function indexOf(ByVal el As Variant, Optional ByVal start As Variant = E
 End Function
 
 'Obtain the last matching index, or -1 when absent.
+'@param el - Element to find.
+'@returns - Last matching index in this array's base, or -1 if absent.
+'@remark - With negative bases, -1 may be a valid index. Use includes for an unambiguous membership check.
 Public Function lastIndexOf(ByVal el As Variant) As Long
   Dim position As Long: position = FindPosition(el, Empty, True)
   lastIndexOf = -1
@@ -793,6 +798,9 @@ Public Function lastIndexOf(ByVal el As Variant) As Long
 End Function
 
 'Check membership, including arrays whose valid indices include the -1 sentinel.
+'@param el - Element to find.
+'@param startFrom - Index to start searching at; Empty starts at this array's Base.
+'@returns - True if the array contains the element at or after startFrom; otherwise False.
 Public Function includes(ByVal el As Variant, Optional ByVal startFrom As Variant = Empty) As Boolean
   includes = FindPosition(el, startFrom, False) > 0
 End Function
