@@ -388,3 +388,5 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 
 - 2026-10-28 `stdRegex` BUILD - Rename integration tooling to `Tools/stdRegex-build`, add explicit engine-ref/version-record updates, and add a manual GitHub Actions build with latest, recorded, and specific-ref engine selection.
 - 2026-10-28 `stdRegex` BENCHMARK - Add reproducible before/after List and ListArr benchmarks and MatchAll/MatchAllArr comparisons, including raw timings, environment, and output parity checks.
+
+- 2026-10-28 stdReg FEATURE - Add addKey/addItem and key-default value access, preserving existing data and registry views. Fix ANSI string writes, refresh value types, support empty binary data and release write handles.
