@@ -404,3 +404,7 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2026-10-31 `stdRefArray` FIX - Borrow owned Variant array pointer slots as well as VT_BYREF typed arrays; document alias lifetime and ownership restrictions (#145).
 
 - 2026-10-31 `stdPerformance` FIX - High-resolution Windows and modern Mac timers, fractional measurement averaging, and fallback rollover handling (#57).
+
+- 2026-10-31 `stdImage` FEATURE - Implement in-memory image encoding and Base64 Data URL export; support default PNG output, strict Base64 image input, and WMF/EMF file loading (#98). WebP decoding is tracked separately in #178.
+- 2026-10-31 `stdImage` FIX - Replace worksheet clipboard workarounds with native bitmap copies; keep picture/clipboard ownership independent, release GDI+ resources on failures and BMP export, correct JPEG/TIFF encoder parameters and pixel DC cleanup, and remove helper-created temporary files.
+- 2026-10-31 `stdImage` BREAKING - ToSheet now accepts a late-bound Object worksheet and Long compression value so stdImage imports without an Excel reference. Existing worksheet and MsoPictureCompress arguments remain accepted. Binary/Data URL/temporary output defaults to PNG; Data URL input now requires a supported image MIME type and valid Base64. The hBitmap getter is borrowed and must not be freed; ToStdPicture returns an independent owned copy.

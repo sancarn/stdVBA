@@ -151,11 +151,14 @@ End Enum
 
 'Clipboard Management
 #If VBA7 Then
-  Private Declare PtrSafe Function IsClipboardFormatAvailable Lib "user32" (ByVal wFormat As Integer) As Long
+  Private Declare PtrSafe Function IsClipboardFormatAvailable Lib "user32" (ByVal wFormat As Long) As Long
   Private Declare PtrSafe Function OpenClipboard Lib "user32" (Optional ByVal hwnd As LongPtr = NULL_PTR) As Long
   Private Declare PtrSafe Function CloseClipboard Lib "user32" () As Long
   Private Declare PtrSafe Function EmptyClipboard Lib "user32" () As Long
-  Private Declare PtrSafe Function GetClipboardData Lib "user32" (ByVal wFormat As Integer) As LongPtr
+  Private Declare PtrSafe Function GetClipboardData Lib "user32" (ByVal wFormat As Long) As LongPtr
+  Private Declare PtrSafe Function SetClipboardData Lib "user32" (ByVal wFormat As Long, ByVal hMem As LongPtr) As LongPtr
+  Private Declare PtrSafe Function CopyImage Lib "user32" (ByVal hImage As LongPtr, ByVal imageType As Long, ByVal cx As Long, ByVal cy As Long, ByVal flags As Long) As LongPtr
+  Private Declare PtrSafe Function GetActiveWindow Lib "user32" () As LongPtr
 
   Private Declare PtrSafe Function GlobalAlloc Lib "kernel32" (ByVal wFlags As Long, ByVal dwBytes As Long) As LongPtr
   Private Declare PtrSafe Function GlobalLock Lib "kernel32" (ByVal hMem As LongPtr) As LongPtr
@@ -184,6 +187,15 @@ End Enum
 
   Private Declare PtrSafe Function GdiplusStartup Lib "gdiplus" (token As LongPtr, inputbuf As GdiplusStartupInput, Optional ByVal outputbuf As LongPtr = 0) As Long
   Private Declare PtrSafe Function GdipCreateBitmapFromFile Lib "gdiplus" (ByVal FileName As LongPtr, BITMAP As LongPtr) As Long
+  Private Declare PtrSafe Function GdipLoadImageFromFile Lib "gdiplus" (ByVal FileName As LongPtr, ByRef image As LongPtr) As Long
+  Private Declare PtrSafe Function GdipLoadImageFromStream Lib "gdiplus" (ByVal stream As stdole.IUnknown, ByRef image As LongPtr) As Long
+  Private Declare PtrSafe Function GdipGetImageWidth Lib "gdiplus" (ByVal image As LongPtr, ByRef width As Long) As Long
+  Private Declare PtrSafe Function GdipGetImageHeight Lib "gdiplus" (ByVal image As LongPtr, ByRef height As Long) As Long
+  Private Declare PtrSafe Function GdipCreateBitmapFromScan0 Lib "gdiplus" (ByVal width As Long, ByVal height As Long, ByVal stride As Long, ByVal pixelFormat As Long, ByVal scan0 As LongPtr, ByRef bitmap As LongPtr) As Long
+  Private Declare PtrSafe Function GdipGetImageGraphicsContext Lib "gdiplus" (ByVal image As LongPtr, ByRef graphics As LongPtr) As Long
+  Private Declare PtrSafe Function GdipGraphicsClear Lib "gdiplus" (ByVal graphics As LongPtr, ByVal color As Long) As Long
+  Private Declare PtrSafe Function GdipDrawImageRectI Lib "gdiplus" (ByVal graphics As LongPtr, ByVal image As LongPtr, ByVal x As Long, ByVal y As Long, ByVal width As Long, ByVal height As Long) As Long
+  Private Declare PtrSafe Function GdipDeleteGraphics Lib "gdiplus" (ByVal graphics As LongPtr) As Long
   Private Declare PtrSafe Function GdipCreateHBITMAPFromBitmap Lib "gdiplus" (ByVal BITMAP As LongPtr, hbmReturn As LongPtr, ByVal background As LongPtr) As Long
   Private Declare PtrSafe Function GdipCreateBitmapFromHBITMAP Lib "gdiplus" (ByVal hBitmap As LongPtr, ByVal hPalette As LongPtr, gdipBitmap As LongPtr) As Long
   Private Declare PtrSafe Function GdipDisposeImage Lib "gdiplus" (ByVal Image As LongPtr) As Long
@@ -206,6 +218,10 @@ End Enum
   'Create from binary
   Private Declare PtrSafe Function GdipCreateBitmapFromStream Lib "gdiplus" (ByVal stream As stdole.IUnknown, ByRef BITMAP As LongPtr) As Long
   Private Declare PtrSafe Function CreateStreamOnHGlobal Lib "ole32.dll" (ByVal hGlobal As LongPtr, ByVal fDeleteOnRelease As Long, ByRef ppstm As Any) As Long
+  Private Declare PtrSafe Function GetHGlobalFromStream Lib "ole32" (ByVal stream As stdole.IUnknown, ByRef hGlobal As LongPtr) As Long
+  Private Declare PtrSafe Function IStream_Size Lib "shlwapi" (ByVal stream As stdole.IUnknown, ByRef size As Currency) As Long
+  Private Declare PtrSafe Function GdipSaveImageToStream Lib "gdiplus" (ByVal Image As LongPtr, ByVal stream As stdole.IUnknown, ByRef clsidEncoder As GUID, ByVal encoderParams As LongPtr) As Long
+  Private Declare PtrSafe Function CryptBinaryToStringA Lib "crypt32" (ByRef pbBinary As Byte, ByVal cbBinary As Long, ByVal dwFlags As Long, ByVal pszString As String, ByRef pcchString As Long) As Long
 
   'Create from DataURL
   Private Declare PtrSafe Function CryptStringToBinaryA Lib "crypt32.dll" (ByVal pszString As String, ByVal cchString As Long, ByVal dwFlags As Long, ByRef pbBinary As Byte, ByRef pcbBinary As Long, ByVal pdwSkip As LongPtr, ByVal pdwFlags As LongPtr) As Long
@@ -217,11 +233,14 @@ End Enum
     [_]
   End Enum
 
-  Private Declare Function IsClipboardFormatAvailable Lib "user32" (ByVal wFormat As Integer) As Long
+  Private Declare Function IsClipboardFormatAvailable Lib "user32" (ByVal wFormat As Long) As Long
   Private Declare Function OpenClipboard Lib "user32" (Optional ByVal hwnd As LongPtr = NULL_PTR) As Long
   Private Declare Function CloseClipboard Lib "user32" () As Long
   Private Declare Function EmptyClipboard Lib "user32" () As Long
-  Private Declare Function GetClipboardData Lib "user32" (ByVal wFormat As Integer) As LongPtr
+  Private Declare Function GetClipboardData Lib "user32" (ByVal wFormat As Long) As LongPtr
+  Private Declare Function SetClipboardData Lib "user32" (ByVal wFormat As Long, ByVal hMem As LongPtr) As LongPtr
+  Private Declare Function CopyImage Lib "user32" (ByVal hImage As LongPtr, ByVal imageType As Long, ByVal cx As Long, ByVal cy As Long, ByVal flags As Long) As LongPtr
+  Private Declare Function GetActiveWindow Lib "user32" () As LongPtr
 
   Private Declare Function GlobalAlloc Lib "kernel32" (ByVal wFlags As Long, ByVal dwBytes As Long) As LongPtr
   Private Declare Function GlobalLock Lib "kernel32" (ByVal hMem As LongPtr) As LongPtr
@@ -251,6 +270,15 @@ End Enum
 
   Private Declare Function GdiplusStartup Lib "gdiplus" (token As LongPtr, inputbuf As GdiplusStartupInput, Optional ByVal outputbuf As LongPtr = 0) As Long
   Private Declare Function GdipCreateBitmapFromFile Lib "gdiplus" (ByVal FILENAME As LongPtr, BITMAP As LongPtr) As Long
+  Private Declare Function GdipLoadImageFromFile Lib "gdiplus" (ByVal FileName As LongPtr, ByRef image As LongPtr) As Long
+  Private Declare Function GdipLoadImageFromStream Lib "gdiplus" (ByVal stream As stdole.IUnknown, ByRef image As LongPtr) As Long
+  Private Declare Function GdipGetImageWidth Lib "gdiplus" (ByVal image As LongPtr, ByRef width As Long) As Long
+  Private Declare Function GdipGetImageHeight Lib "gdiplus" (ByVal image As LongPtr, ByRef height As Long) As Long
+  Private Declare Function GdipCreateBitmapFromScan0 Lib "gdiplus" (ByVal width As Long, ByVal height As Long, ByVal stride As Long, ByVal pixelFormat As Long, ByVal scan0 As LongPtr, ByRef bitmap As LongPtr) As Long
+  Private Declare Function GdipGetImageGraphicsContext Lib "gdiplus" (ByVal image As LongPtr, ByRef graphics As LongPtr) As Long
+  Private Declare Function GdipGraphicsClear Lib "gdiplus" (ByVal graphics As LongPtr, ByVal color As Long) As Long
+  Private Declare Function GdipDrawImageRectI Lib "gdiplus" (ByVal graphics As LongPtr, ByVal image As LongPtr, ByVal x As Long, ByVal y As Long, ByVal width As Long, ByVal height As Long) As Long
+  Private Declare Function GdipDeleteGraphics Lib "gdiplus" (ByVal graphics As LongPtr) As Long
   Private Declare Function GdipCreateHBITMAPFromBitmap Lib "gdiplus" (ByVal BITMAP As LongPtr, hbmReturn As LongPtr, ByVal background As LongPtr) As Long
   Private Declare Function GdipCreateBitmapFromHBITMAP Lib "gdiplus" (ByVal hBitmap as LongPtr, ByVal hPalette as LongPtr, gdipBitmap as LongPtr) As Long
   Private Declare Function GdipDisposeImage Lib "gdiplus" (ByVal Image As LongPtr) As Long
@@ -259,7 +287,6 @@ End Enum
   Private Declare Function OleCreatePictureIndirect Lib "oleaut32" (PicDesc As PICTDESC, RefIID As GUID, ByVal fPictureOwnsHandle As Long, iPic As IPicture) As Long
   Private Declare Function OleTranslateColor Lib "oleAut32.dll" (ByVal clr As OLE_COLOR, ByVal palet As LongPtr, Col As Long) As Long
   Private Declare Function IIDFromString Lib "ole32" (ByVal lpsz As LongPtr, ByRef lpiid As GUID) As Long
-  Private Declare Function GetSystemMetrics Lib "user32" (ByVal nIndex As Long) As Long
 
   'Screenshot
   Private Declare Function GetDesktopWindow Lib "user32" () As LongPtr
@@ -274,6 +301,10 @@ End Enum
   'Create from binary
   Private Declare Function GdipCreateBitmapFromStream Lib "gdiplus" (ByVal stream As stdole.IUnknown, ByRef BITMAP As LongPtr) As Long
   Private Declare Function CreateStreamOnHGlobal Lib "ole32.dll" (ByVal hGlobal As LongPtr, ByVal fDeleteOnRelease As Long, ByRef ppstm As Any) As Long
+  Private Declare Function GetHGlobalFromStream Lib "ole32" (ByVal stream As stdole.IUnknown, ByRef hGlobal As LongPtr) As Long
+  Private Declare Function IStream_Size Lib "shlwapi" (ByVal stream As stdole.IUnknown, ByRef size As Currency) As Long
+  Private Declare Function GdipSaveImageToStream Lib "gdiplus" (ByVal Image As LongPtr, ByVal stream As stdole.IUnknown, ByRef clsidEncoder As GUID, ByVal encoderParams As LongPtr) As Long
+  Private Declare Function CryptBinaryToStringA Lib "crypt32" (ByRef pbBinary As Byte, ByVal cbBinary As Long, ByVal dwFlags As Long, ByVal pszString As String, ByRef pcchString As Long) As Long
 
   'Create from DataURL
   Private Declare Function CryptStringToBinaryA Lib "crypt32.dll" (ByVal pszString As String, ByVal cchString As Long, ByVal dwFlags As Long, ByRef pbBinary As Byte, ByRef pcbBinary As Long, ByVal pdwSkip As LongPtr, ByVal pdwFlags As LongPtr) As Long
@@ -360,7 +391,10 @@ End Type
 
 Private Type EncoderParameters
   count As Long
-  Parameter() As EncoderParameter
+#If Win64 Then
+  Reserved As Long
+#End If
+  Parameter(0 To 1) As EncoderParameter
 End Type
 
 'Before:
@@ -414,207 +448,122 @@ Private This As TThis
 
 'Creates a stdImage object from a byte array
 '@constructor
-'@TODO: Awaiting implementation
-'@param b - Bytes of Bitmap/Jpeg/Png/... image
-'@param format - The format of the image
+'@param b - Non-empty encoded image bytes; any array lower bound is supported.
+'@remark The first frame is rasterised against black; animation, vector data, metadata, and alpha are not retained.
+'@param format - Supported format hint retained for compatibility. GDI+ detects the actual encoded format from the data.
 '@returns - Picture object representing data
 '@example ```vb
-'  Dim b() as Byte: Redim b(1 to 100)
-'  Call stdImage.CreateFromBinary(b).ToFile("H:\test1.png")
+'  Dim b() As Byte: b = stdImage.CreateFromFile("H:\source.png").ToBinary(stdImgFormatPNG)
+'  Call stdImage.CreateFromBinary(b).ToFile("H:\copy.png")
 '```
 Public Function CreateFromBinary(ByRef b() As Byte, Optional ByVal format As stdImgFormat = stdImgFormatDefault) As stdImage
-  Const GMEM_MOVEABLE As Long = &H2
-  Const S_OK As Long = &H0
-
-  'The 'format' parameter is not used because GDI+ will infer the format from the data.
-  
-  If (Not b) = -1 Then Err.Raise 5, "stdImage.CreateFromBinary", "Byte array is empty."
-
-  Dim hMem As LongPtr
-  hMem = GlobalAlloc(GMEM_MOVEABLE, UBound(b) - LBound(b) + 1)
-  If hMem = 0 Then Err.Raise 7, "stdImage.CreateFromBinary", "Failed to allocate global memory."
-
-  Dim ptrMem As LongPtr
-  ptrMem = GlobalLock(hMem)
-  If ptrMem = 0 Then
-      GlobalFree hMem
-      Err.Raise 7, "stdImage.CreateFromBinary", "Failed to lock global memory."
-  End If
-  
-  'Copy the byte array into the allocated memory
-  CopyMemory ptrMem, VarPtr(b(LBound(b))), UBound(b) - LBound(b) + 1
-  GlobalUnlock hMem
-
-  Dim oStream As stdole.IUnknown
-  If CreateStreamOnHGlobal(hMem, 1, oStream) <> S_OK Then
-      GlobalFree hMem
-      Err.Raise 7, "stdImage.CreateFromBinary", "Failed to create IStream on HGLOBAL."
-  End If
-
-  '--- GDI+ Initialization ---
-  Dim uGdiInput As GdiplusStartupInput
-  uGdiInput.GdiplusVersion = 1
-  Dim hGDIPlus As LongPtr
-  Dim lResult As Long
-  
-  lResult = GdiplusStartup(hGDIPlus, uGdiInput)
-  If lResult = 0 Then
-      Dim hGDIImage As LongPtr
-      'Create GDI+ bitmap from the memory stream. GDI+ auto-detects the format.
-      lResult = GdipCreateBitmapFromStream(oStream, hGDIImage)
-      
-      If lResult = 0 Then
-          Dim hBitmap As LongPtr
-          'Create a GDI hBitmap from the GDI+ bitmap
-          lResult = GdipCreateHBITMAPFromBitmap(hGDIImage, hBitmap, 0)
-          
-          If lResult = 0 Then
-              Set CreateFromBinary = CreateFromHBitmap(hBitmap)
-          Else
-              Err.Raise 1, "stdImage::CreateFromBinary", "Could not convert GDI+ image to HBITMAP (Error: " & lResult & ")"
-          End If
-          
-          GdipDisposeImage hGDIImage
-      Else
-          Err.Raise 1, "stdImage::CreateFromBinary", "Could not load image from stream (Error: " & lResult & ")"
-      End If
-      
-      GdiplusShutdown hGDIPlus
-  Else
-      Err.Raise 1, "stdImage::CreateFromBinary", "Could not start GDI+ (Error: " & lResult & ")"
-  End If
+  On Error GoTo Catch
+  Call validateInputFormat(format)
+  Dim byteCount As Long
+  byteCount = UBound(b) - LBound(b) + 1
+  If byteCount <= 0 Then Err.Raise 5, "stdImage::CreateFromBinary", "Byte array is empty"
+  Dim hMem As LongPtr, pMem As LongPtr, stream As stdole.IUnknown
+  hMem = GlobalAlloc(&H2, byteCount)
+  If hMem = 0 Then Err.Raise 7, "stdImage::CreateFromBinary", "Could not allocate stream memory"
+  pMem = GlobalLock(hMem)
+  If pMem = 0 Then Err.Raise 7, "stdImage::CreateFromBinary", "Could not lock stream memory"
+  Call CopyMemory(pMem, VarPtr(b(LBound(b))), byteCount)
+  Call GlobalUnlock(hMem)
+  pMem = 0
+  If CreateStreamOnHGlobal(hMem, 1, stream) <> 0 Then Err.Raise 7, "stdImage::CreateFromBinary", "Could not create input stream"
+  hMem = 0 'The stream owns the allocation from this point.
+  Set CreateFromBinary = loadImage(vbNullString, stream, 0)
+  Exit Function
+Catch:
+  Dim errorNumber As Long, errorSource As String, errorDescription As String
+  errorNumber = Err.Number: errorSource = Err.Source: errorDescription = Err.Description
+  If pMem <> 0 Then Call GlobalUnlock(hMem)
+  If hMem <> 0 Then Call GlobalFree(hMem)
+  Set stream = Nothing
+  If errorNumber = 9 Then Err.Raise 5, "stdImage::CreateFromBinary", "Byte array is empty"
+  Err.Raise errorNumber, errorSource, errorDescription
 End Function
 
 'Creates a stdImage object from a Data URL string
 '@constructor
-'@param sDataURL - The Data URL string (e.g., "data:image/png;base64,iVBORw0KGgo...")
-'@returns - A new stdImage object.
+'@param sDataURL - A supported image MIME type with a Base64 payload (e.g., "data:image/png;base64,iVBORw0KGgo...")
+'@returns - A new stdImage object with transparency flattened against black.
+'@remark Non-Base64 Data URLs and unsupported MIME types are rejected.
 '@example ```vb
 '  Dim dataUrl as String
 '  dataUrl = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
 '  stdImage.CreateFromDataURL(dataUrl).ToFile "C:\Temp\FromDataUrl.png"
 '```
 Public Function CreateFromDataURL(ByVal sDataURL As String) As stdImage
-  Const CRYPT_STRING_BASE64 As Long = 1
-
-  ' 1. Find the comma that separates the metadata from the Base64 data
-  Dim commaPos As Long
-  commaPos = InStr(1, sDataURL, ",")
-  If commaPos = 0 Then
-    Err.Raise 5, "stdImage.CreateFromDataURL", "Invalid Data URL format: missing comma separator."
-  End If
-  
-  ' 2. Extract the Base64 encoded string part
-  Dim b64String As String
-  b64String = Mid$(sDataURL, commaPos + 1)
-  
-  ' 3. Decode the Base64 string into a byte array using the Crypto API
-  Dim decodedBytes() As Byte
-  Dim nBytes As Long
-  
-  ' First call: get the required size for the output byte array
-  Dim lResult As Long: lResult = CryptStringToBinaryA(b64String, Len(b64String), CRYPT_STRING_BASE64, ByVal 0&, nBytes, 0, 0)
-  If lResult = 0 Then
-    Err.Raise 5, "stdImage.CreateFromDataURL", "Failed to get required buffer size for decoding."
-  End If
-  
-  ' Size the byte array appropriately
-  ReDim decodedBytes(0 To nBytes - 1)
-  
-  ' Second call: perform the actual decoding
-  lResult = CryptStringToBinaryA(b64String, Len(b64String), CRYPT_STRING_BASE64, decodedBytes(0), nBytes, 0, 0)
-  If lResult = 0 Then
-    Err.Raise 5, "stdImage.CreateFromDataURL", "Failed to decode Base64 string."
-  End If
-
-  ' 4. Create the image from the resulting byte array
-  Set CreateFromDataURL = stdImage.CreateFromBinary(decodedBytes)
+  If LCase$(Left$(sDataURL, 5)) <> "data:" Then Err.Raise 5, "stdImage::CreateFromDataURL", "Expected a data: URL"
+  Dim comma As Long: comma = InStr(1, sDataURL, ",")
+  If comma = 0 Then Err.Raise 5, "stdImage::CreateFromDataURL", "Missing comma separator"
+  Dim header As String: header = LCase$(Mid$(sDataURL, 6, comma - 6))
+  If Right$(header, 7) <> ";base64" Then Err.Raise 5, "stdImage::CreateFromDataURL", "Only Base64 image Data URLs are supported"
+  Dim headerParts As Variant: headerParts = Split(header, ";")
+  Dim mime As String: mime = headerParts(0)
+  Select Case mime
+    Case "image/bmp", "image/x-ms-bmp", "image/png", "image/gif", "image/jpeg", "image/tiff", "image/wmf", "image/x-wmf", "image/emf", "image/x-emf", "image/x-icon", "image/vnd.microsoft.icon"
+    Case "image/webp": Err.Raise 5, "stdImage::CreateFromDataURL", "WEBP format is not currently supported (see issue #178)"
+    Case Else: Err.Raise 5, "stdImage::CreateFromDataURL", "Unsupported image MIME type"
+  End Select
+  Dim encoded As String: encoded = Mid$(sDataURL, comma + 1)
+  'Allow folded Base64, but reject empty payloads and invalid padding.
+  encoded = Replace(Replace(Replace(Replace(encoded, vbCr, ""), vbLf, ""), vbTab, ""), " ", "")
+  If Len(encoded) = 0 Or Len(encoded) Mod 4 <> 0 Then Err.Raise 5, "stdImage::CreateFromDataURL", "Invalid Base64 payload"
+  Const CRYPT_STRING_BASE64_STRICT As Long = &H20000001
+  Dim byteCount As Long, data() As Byte
+  If CryptStringToBinaryA(encoded, Len(encoded), CRYPT_STRING_BASE64_STRICT, ByVal 0&, byteCount, 0, 0) = 0 Then Err.Raise 5, "stdImage::CreateFromDataURL", "Invalid Base64 payload"
+  If byteCount <= 0 Then Err.Raise 5, "stdImage::CreateFromDataURL", "Empty Base64 payload"
+  ReDim data(0 To byteCount - 1)
+  If CryptStringToBinaryA(encoded, Len(encoded), CRYPT_STRING_BASE64_STRICT, data(0), byteCount, 0, 0) = 0 Then Err.Raise 5, "stdImage::CreateFromDataURL", "Invalid Base64 payload"
+  Set CreateFromDataURL = CreateFromBinary(data)
 End Function
 
 'Creates a stdImage object from a file
 '@constructor
-'@param sPath - Path of file
-'@param format - The format of the image
+'@param sPath - Path of a BMP, PNG, GIF, JPEG, TIFF, WMF, EMF, or ICO file.
+'@param format - Supported format hint retained for compatibility. GDI+ detects the actual encoded format from the data.
+'@param transparentColor - Background colour used to flatten transparency. The default is black.
+'@remark The first frame is rasterised; animation, vector data, metadata, and alpha are not retained.
 '@returns - Picture object representing data
 '@example ```vb
 'stdImage.CreateFromFile("H:\test1.bmp").ToFile("H:\test1.png")
 '```
 Public Function CreateFromFile(ByVal sPath As String, Optional ByVal format As stdImgFormat = stdImgFormatDefault, Optional ByVal transparentColor As Long = 0) As stdImage
+  Call validateInputFormat(format)
   If format = stdImgFormatDefault Then
-    Dim pathParts: pathParts = Split(sPath, ".")
-    Dim ext As String: ext = pathParts(UBound(pathParts))
-    Select Case LCase(ext)
-      Case "png": format = stdImgFormat.stdImgFormatPNG
-      Case "bmp": format = stdImgFormat.stdImgFormatBMP
-      Case "gif": format = stdImgFormat.stdImgFormatGIF
-      Case "jpeg", "jpg": format = stdImgFormat.stdImgFormatJPEG
-      Case "tiff": format = stdImgFormat.stdImgFormatTIFF
-      Case "webp": Err.Raise 5, "stdImage::CreateFromFile", "WEBP format is not currently supported"
-      Case "svg": Err.Raise 5, "stdImage::CreateFromFile", "SVG format is not currently supported"
+    Select Case LCase$(Mid$(sPath, InStrRev(sPath, ".") + 1))
+      Case "wmf", "emf", "ico" 'These input-only formats are rasterised by GDI+.
       Case Else
-        Err.Raise 1, "stdImage::CreateFromFile", "Could not determine format from file extension"
+        Dim inferred As stdImgFormat: inferred = formatFromExtension(sPath)
     End Select
   End If
-  Select Case format
-    'TODO: Case webp
-    Case Else 'BMP, GIF, JPEG, PNG, TIFF, Exif, WMF, and EMF - Load using GDI+
-      Dim uGdiInput As GdiplusStartupInput
-      uGdiInput.GdiplusVersion = 1
-      Dim hGDIPlus As LongPtr
-      Dim lResult As Long: lResult = GdiplusStartup(hGDIPlus, uGdiInput)
-      If lResult = 0 Then
-        Dim hGDIImage As LongPtr
-        lResult = GdipCreateBitmapFromFile(StrPtr(sPath), hGDIImage)
-        If lResult = 0 Then
-          Dim hBitmap As LongPtr
-          lResult = GdipCreateHBITMAPFromBitmap(hGDIImage, hBitmap, BGR(transparentColor))
-          If lResult = 0 Then
-            Set CreateFromFile = CreateFromHBitmap(hBitmap)
-          Else
-            Err.Raise 1, "stdImage::CreateFromFile", "Could not convert GDI+ image to HBITMAP (Error Result: " & lResult & ")"
-          End If
-
-          Call GdipDisposeImage(hGDIImage)
-        Else
-          Err.Raise 1, "stdImage::CreateFromFile", "Could not load image (Error Result: " & lResult & ")"
-        End If
-
-        Call GdiplusShutdown(hGDIPlus)
-      Else
-        Err.Raise 1, "stdImage::CreateFromFile", "Could not start GDI+ (Error Result: " & lResult & ")"
-      End If
-  End Select
+  Set CreateFromFile = loadImage(sPath, Nothing, transparentColor)
 End Function
 
 'Creates a stdImage object from a url
 '@constructor
 '@param sUrl - Url of file
-'@param format - The format of the image
+'@param format - Supported format hint retained for compatibility. GDI+ detects the actual encoded format from the data.
 '@returns - Picture object representing data
 '@example ```vb
 'stdImage.CreateFromURL("https://raw.githubusercontent.com/sancarn/awesome-vba/main/resources/VBALogo.png").ToFile("H:\test.png", stdImgFormatPNG)
 '```
-'@remark - TODO: consider removing
+'@remark Uses the default WinHTTP proxy configuration. For custom proxy, authentication, or timeout handling, use stdHTTP and pass its response bytes to CreateFromBinary.
 Public Function CreateFromUrl(ByVal sURL As String, Optional ByVal format As stdImgFormat = stdImgFormatDefault) As stdImage
-  Set CreateFromUrl = New stdImage
+  Call validateInputFormat(format)
   Dim HTTP As Object: Set HTTP = CreateObject("WinHttp.WinHttpRequest.5.1")
   HTTP.Open "GET", sURL, False
-  'TODO: AutoProxy?
   HTTP.send
-  If HTTP.status = 200 Then
-    Dim body() As Byte: body = HTTP.responseBody
-    If format = stdImgFormatDefault Then
-      'TODO: Detect format
-    End If
-    Set CreateFromUrl = CreateFromBinary(body, format)
-  Else
-    Err.Raise 1, "", "Could not get file (HTTP Status: " & HTTP.status & ")"
-  End If
+  If HTTP.status <> 200 Then Err.Raise 1, "stdImage::CreateFromUrl", "Could not get image (HTTP status: " & HTTP.status & ")"
+  Dim data() As Byte: data = HTTP.responseBody
+  Set CreateFromUrl = CreateFromBinary(data, format)
 End Function
 
 'Creates a stdImage object from a file
 '@constructor
-'@param hBitmap - hBitmap (handle to Bitmap)
+'@param hBitmap - Valid bitmap handle. Ownership transfers to the returned stdImage; do not free it or pass a borrowed handle.
 '@returns - Picture object representing data
 '@example ```vb
 '  stdImage.CreateFromHBitmap(Image1.Picture.Handle).ToFile("H:\test.png", stdImgFormatPNG)
@@ -636,29 +585,40 @@ End Function
 'stdImage.CreateFromClipboard().ToFile("H:\test.png", stdImgFormatPNG)
 '```
 Public Function CreateFromClipboard() As stdImage
-  'Open clipboard
-  If Not CBool(OpenClipboardTimeout(getAppHwnd())) Then Call Err.Raise(1, "Value [GET]", "Unable to open clipboard (DllError: " & Err.LastDllError & ")")
-  
-  'Check image in clipboard
-  If CBool(IsClipboardFormatAvailable(CF_BITMAP)) Then
-    Dim hBitmap As LongPtr: hBitmap = GetClipboardData(CF_BITMAP)  'Obtain image handle
-    Set CreateFromClipboard = CreateFromHBitmap(hBitmap)
-  Else
-    Dim sErrorText As String: sErrorText = "No bitmap format in clipboard"
-  End If
-  
-  'Close clipboard
-  If Not CBool(CloseClipboard()) Then Call Err.Raise(1, "Value [GET]", "Unable to close clipboard (DllError: " & Err.LastDllError & ")")
-  If sErrorText <> "" Then Call Err.Raise(1, "Value [GET]", sErrorText)
+  On Error GoTo Catch
+  Dim isOpen As Boolean, copy As LongPtr
+  If Not OpenClipboardTimeout(getAppHwnd()) Then Err.Raise 1, "stdImage::CreateFromClipboard", "Unable to open clipboard"
+  isOpen = True
+  If IsClipboardFormatAvailable(CF_BITMAP) = 0 Then Err.Raise 5, "stdImage::CreateFromClipboard", "No bitmap format in clipboard"
+  copy = copyBitmap(GetClipboardData(CF_BITMAP))
+  Set CreateFromClipboard = CreateFromHBitmap(copy)
+  copy = 0
+  If CloseClipboard() = 0 Then Err.Raise 1, "stdImage::CreateFromClipboard", "Unable to close clipboard"
+  isOpen = False
+  Exit Function
+Catch:
+  Dim errorNumber As Long, errorSource As String, errorDescription As String
+  errorNumber = Err.Number: errorSource = Err.Source: errorDescription = Err.Description
+  If isOpen Then Call CloseClipboard
+  If copy <> 0 Then Call DeleteObject(copy)
+  Err.Raise errorNumber, errorSource, errorDescription
 End Function
 
 'Creates a stdImage object from a stdole.IPictureDisp object
 '@constructor
 '@param picture - Object to create picture from
 '@returns - Picture object representing data
-'@example TODO:
+'@example `Dim picture As stdole.IPictureDisp: Set picture = LoadPicture("C:\Temp\photo.bmp"): Dim img As stdImage: Set img = stdImage.CreateFromIPictureDisp(picture)`
 Public Function CreateFromIPictureDisp(ByVal picture As stdole.IPictureDisp) As stdImage
-  Set CreateFromIPictureDisp = CreateFromHBitmap(picture.handle)
+  If picture Is Nothing Then Err.Raise 5, "stdImage::CreateFromIPictureDisp", "Picture is Nothing"
+  Select Case picture.Type
+    Case 1
+      Set CreateFromIPictureDisp = imageFromBitmapCopy(picture.handle)
+    Case 3
+      Set CreateFromIPictureDisp = CreateFromHICON(picture.handle)
+    Case Else
+      Err.Raise 5, "stdImage::CreateFromIPictureDisp", "Only bitmap and icon pictures are supported"
+  End Select
 End Function
 
 'Creates a stdImage object from a stdole.stdPicture object
@@ -669,31 +629,47 @@ End Function
 'stdImage.CreateFromStdPicture(Userform1.Picture).ToFile("H:\test.png", stdImgFormatPNG)
 '```
 Public Function CreateFromStdPicture(ByVal picture As stdole.StdPicture) As stdImage
-  Set CreateFromStdPicture = CreateFromHBitmap(picture.handle)
+  If picture Is Nothing Then Err.Raise 5, "stdImage::CreateFromStdPicture", "Picture is Nothing"
+  Select Case picture.Type
+    Case 1
+      Set CreateFromStdPicture = imageFromBitmapCopy(picture.handle)
+    Case 3
+      Set CreateFromStdPicture = CreateFromHICON(picture.handle)
+    Case Else
+      Err.Raise 5, "stdImage::CreateFromStdPicture", "Only bitmap and icon pictures are supported"
+  End Select
 End Function
 
 'Creates a stdImage object from a stdole.IPicture object
 '@constructor
 '@param picture - Object to create picture from
 '@returns - Picture object representing data
-'@example TODO:
+'@example `Dim picture As stdole.IPicture: Set picture = LoadPicture("C:\Temp\photo.bmp"): Dim img As stdImage: Set img = stdImage.CreateFromIPicture(picture)`
 Public Function CreateFromIPicture(ByVal picture As stdole.IPicture) As stdImage
-  Set CreateFromIPicture = CreateFromHBitmap(picture.handle)
+  If picture Is Nothing Then Err.Raise 5, "stdImage::CreateFromIPicture", "Picture is Nothing"
+  Select Case picture.Type
+    Case 1
+      Set CreateFromIPicture = imageFromBitmapCopy(picture.handle)
+    Case 3
+      Set CreateFromIPicture = CreateFromHICON(picture.handle)
+    Case Else
+      Err.Raise 5, "stdImage::CreateFromIPicture", "Only bitmap and icon pictures are supported"
+  End Select
 End Function
 
 'Creates a stdImage object from a Excel.IPicture object
 '@constructor
-'@param picture as Object<Excel.IPicture> - Object to create picture from
+'@param picture as Object<Excel.Picture> - Object to create picture from
 '@returns - Picture object representing data
-'@example TODO:
+'@example `Dim img As stdImage: Set img = stdImage.CreateFromExcelIPicture(ActiveSheet.Pictures(1))`
 Public Function CreateFromExcelIPicture(ByVal picture As Object) As stdImage
-  Call picture.CopyPicture(, xlBitmap)
+  Call picture.CopyPicture(, 2)
   Set CreateFromExcelIPicture = CreateFromClipboard()
 End Function
 
 'Creates a stdImage object from a Shape object
 '@constructor
-'@param shp as Object<(Excel|Word|PowerPoint).Shape> - Object to create picture from
+'@param shp as Object<Excel.Shape> - Object to create picture from
 '@returns - Picture object representing data
 '@example ```vb
 'stdImage.CreateFromShape(Sheet1.Shapes("Picture 2")).ToFile("H:\test.png")
@@ -701,15 +677,15 @@ End Function
 Public Function CreateFromShape(ByVal shp As Object) As stdImage
   Select Case Application.Name
     Case "Microsoft Excel"
-      Dim xlShp As excel.Shape: Set xlShp = shp
-      Call xlShp.CopyPicture(, XlCopyPictureFormat.xlBitmap)
+      Dim xlShp As Object: Set xlShp = shp
+      Call xlShp.CopyPicture(, 2)
       Set CreateFromShape = stdImage.CreateFromClipboard()
   End Select
 End Function
 
 'Creates a stdImage object from a Chart object
 '@constructor
-'@param chart as Object<(Excel|Word|PowerPoint).Chart> - Object to create picture from
+'@param chart as Object<Excel.Chart> - Object to create picture from
 '@returns - Picture object representing data
 '@example ```vb
 'stdImage.CreateFromChart(Sheet1.ChartObjects(1).Chart).ToFile("H:\test.png")
@@ -717,8 +693,8 @@ End Function
 Public Function CreateFromChart(ByVal chart As Object) As stdImage
   Select Case Application.Name
     Case "Microsoft Excel"
-      Dim xlChart As excel.chart: Set xlChart = chart
-      Call xlChart.CopyPicture(, XlCopyPictureFormat.xlBitmap)
+      Dim xlChart As Object: Set xlChart = chart
+      Call xlChart.CopyPicture(, 2)
       Set CreateFromChart = stdImage.CreateFromClipboard()
   End Select
 End Function
@@ -924,8 +900,8 @@ Public Sub protInit(ByVal hBitmap As LongPtr)
 End Sub
 
 'Obtain a HBitmap
-'@returns stdole.StdPicture - Obtain the image as a stdole.StdPicture
-'@remark You are in charge of freeing this pointer.
+'@returns - Borrowed bitmap handle, valid for the lifetime of this image.
+'@remark Do not delete this handle. stdImage owns it and frees it on termination.
 Public Property Get hBitmap() As LongPtr
   hBitmap = This.hBitmap
 End Property
@@ -956,7 +932,7 @@ Public Property Get Colors() As Long()
     Dim hDC As LongPtr: hDC = GetDC(NULL_PTR)
     Dim lBitsPerPixel As Long: lBitsPerPixel = 32
     Dim lWidthBytes As Long: lWidthBytes = (((.bmWidth * lBitsPerPixel) + 31) \ 32) * 4
-    Dim lImageSikze As Long: lImageSize = lWidthBytes * Abs(.bmHeight) \ 8
+    Dim lImageSize As Long: lImageSize = lWidthBytes * Abs(.bmHeight)
     
     Dim tBmpInf As BITMAPINFO
     With tBmpInf.bmiheader
@@ -970,10 +946,11 @@ Public Property Get Colors() As Long()
     End With
     
     If GetDIBits(hDC, hBitmap, 0, .bmHeight, ret(1, 1), tBmpInf, 0&) = 0 Then
+      Call ReleaseDC(NULL_PTR, hDC)
       Err.Raise 1, "", "Could not get pixels?"
     End If
     
-    Call DeleteDC(hDC)
+    Call ReleaseDC(NULL_PTR, hDC)
     
     Colors = ret
   End With
@@ -990,150 +967,102 @@ Public Property Get Bits() As LongPtr: Bits = This.HBITMAPTYPE.bmBits: End Prope
 
 
 'Obtain binary data of the image in any format required
-'@param eFormat - The format the data should be in.
+'@param eFormat - Output format. The default is PNG.
 '@returns - Binary data of image, ready to load into a file
 Public Function ToBinary(Optional ByVal eFormat As stdImgFormat = stdImgFormatDefault) As Byte()
-  'HACK: This is a hack to get the image data as a byte array. It is not the most efficient way to do this.
-  'TODO: Implement a more efficient way to do this.
-  Dim sPath As String: sPath = ToTempFile()
-  Dim ff As Long: ff = FreeFile()
-  Open sPath For Binary As #ff
-    ToBinary = InputB(LOF(ff), 1)
-  Close #ff
+  On Error GoTo Catch
+  eFormat = resolveOutputFormat(eFormat)
+  Dim stream As stdole.IUnknown
+  If CreateStreamOnHGlobal(0, 1, stream) <> 0 Then Err.Raise 7, "stdImage::ToBinary", "Could not create output stream"
+  Call saveImage(eFormat, vbNullString, stream, 80, 24, 6)
+
+  'GlobalSize can include allocation padding; use the logical stream length.
+  Dim streamSize As Currency, byteCount As Long
+  If IStream_Size(stream, streamSize) <> 0 Then Err.Raise 1, "stdImage::ToBinary", "Could not obtain stream size"
+  If streamSize <= 0 Or streamSize > 214748.3647@ Then Err.Raise 6, "stdImage::ToBinary", "Image data exceeds supported array size"
+  byteCount = CLng(streamSize * 10000@)
+  Dim hMem As LongPtr, pMem As LongPtr
+  If GetHGlobalFromStream(stream, hMem) <> 0 Then Err.Raise 1, "stdImage::ToBinary", "Could not obtain stream memory"
+  pMem = GlobalLock(hMem)
+  If pMem = 0 Then Err.Raise 7, "stdImage::ToBinary", "Could not lock stream memory"
+  Dim result() As Byte: ReDim result(0 To byteCount - 1)
+  Call CopyMemory(VarPtr(result(0)), pMem, byteCount)
+  Call GlobalUnlock(hMem)
+  pMem = 0
+  ToBinary = result
+  Exit Function
+Catch:
+  Dim errorNumber As Long, errorSource As String, errorDescription As String
+  errorNumber = Err.Number: errorSource = Err.Source: errorDescription = Err.Description
+  If pMem <> 0 Then Call GlobalUnlock(hMem)
+  Set stream = Nothing
+  Err.Raise errorNumber, errorSource, errorDescription
 End Function
 
 'Save image as file
-'@param sSaveAsFile - Path to new file
-'@param eFormat - The required format of the file. Default is the current assosciated format.
+'@param FileName - Path of the output file.
+'@param format - Output format. The default infers BMP, PNG, GIF, JPEG, or TIFF from the filename extension.
+'@param Quality - JPEG quality from 0 to 100.
+'@param TIFF_ColorDepth - TIFF colour depth passed to the encoder.
+'@param TIFF_Compression - TIFF compression value passed to the encoder.
 Public Sub ToFile(ByVal FileName As String, Optional format As stdImgFormat = stdImgFormatDefault, Optional ByVal Quality As Byte = 80, Optional ByVal TIFF_ColorDepth As Long = 24, Optional ByVal TIFF_Compression As Long = 6)
-  If format = stdImgFormatDefault Then
-    Dim pathParts: pathParts = Split(FileName, ".")
-    Dim ext As String: ext = pathParts(UBound(pathParts))
-    Select Case LCase(ext)
-      Case "png": format = stdImgFormat.stdImgFormatPNG
-      Case "bmp": format = stdImgFormat.stdImgFormatBMP
-      Case "gif": format = stdImgFormat.stdImgFormatGIF
-      Case "jpeg", "jpg": format = stdImgFormat.stdImgFormatJPEG
-      Case "tiff": format = stdImgFormat.stdImgFormatTIFF
-      Case "webp": Err.Raise 1, "stdImage::CreateFromFile", "WEBP format is not currently supported"
-      Case Else
-        Err.Raise 1, "stdImage::CreateFromFile", "Could not determine format from file extension"
-    End Select
-  End If
-  
-  Dim tSI As GdiplusStartupInput
-  tSI.GdiplusVersion = 1
-  
-  Dim lRes As Long, lGDIP As LongPtr
-  lRes = GdiplusStartup(lGDIP, tSI)
-  If lRes = 0 Then
-    Dim gdipBitmap As LongPtr
-    lRes = GdipCreateBitmapFromHBITMAP(This.hBitmap, 0, gdipBitmap)
-    If lRes = 0 Then
-      Dim EncoderGUID As GUID, tParams As EncoderParameters
-      Select Case format
-        Case stdImgFormatJPEG
-          Call IIDFromString(StrPtr("{557CF401-1A04-11D3-9A73-0000F81EF32E}"), EncoderGUID)
-          tParams.count = 1
-          ReDim tParams.Parameter(1 To 1)
-          With tParams.Parameter(1)
-            Call IIDFromString(StrPtr("{1D5BE4B5-FA4A-452D-9CDD-5DB35105E7EB}"), .GUID)
-            .NumberOfValues = 1
-            .type = 4
-            .Value = VarPtr(Quality)
-          End With
-          
-
-        Case stdImgFormatPNG
-          Call IIDFromString(StrPtr("{557CF406-1A04-11D3-9A73-0000F81EF32E}"), EncoderGUID)
-
-        Case stdImgFormatGIF
-          Call IIDFromString(StrPtr("{557CF402-1A04-11D3-9A73-0000F81EF32E}"), EncoderGUID)
-
-        Case stdImgFormatTIFF
-          Call IIDFromString(StrPtr("{557CF405-1A04-11D3-9A73-0000F81EF32E}"), EncoderGUID)
-          tParams.count = 2
-          ReDim tParams.Parameter(1 To 2)
-          With tParams.Parameter(1)
-            .NumberOfValues = 1
-            .type = 4
-            Call IIDFromString(StrPtr("{E09D739D-CCD4-44EE-8EBA-3FBF8BE4FC58}"), .GUID)
-            .Value = VarPtr(TIFF_Compression)
-          End With
-          With tParams.Parameter(2)
-            .NumberOfValues = 1
-            .type = 4
-            Call IIDFromString(StrPtr("{66087055-AD66-4C7C-9A18-38A2310B8337}"), .GUID)
-            .Value = VarPtr(TIFF_ColorDepth)
-          End With
-
-        Case stdImgFormatBMP
-          Call SavePicture(ToStdPicture(), FileName)
-          Exit Sub
-      End Select
-
-      'Save the image. It seems that encoderParams should be NULL if there are no parameters.
-      If tParams.count = 0 Then
-        lRes = GdipSaveImageToFile(gdipBitmap, StrPtr(FileName), EncoderGUID, ByVal 0)
-      Else
-        lRes = GdipSaveImageToFile(gdipBitmap, StrPtr(FileName), EncoderGUID, tParams)
-      End If
-      If lRes <> 0 Then Err.Raise 1, "stdImage::ToFile", "Could not save image to file (Error Result: " & lRes & ")"
-
-      GdipDisposeImage gdipBitmap
-    Else
-      Err.Raise 1, "stdImage::ToFile", "Could not convert HBITMAP to GDI+ image (Error Result: " & lRes & ")"
-    End If
-    GdiplusShutdown lGDIP
-  End If
+  If format = stdImgFormatDefault Then format = formatFromExtension(FileName)
+  Call saveImage(resolveOutputFormat(format), FileName, Nothing, CLng(Quality), TIFF_ColorDepth, TIFF_Compression)
 End Sub
 
 'Copy the image to the clipboard
 '@example `stdImage.CreateFromFile("H:\test1.bmp").ToClipboard()
 Public Sub ToClipboard()
-  Dim oHtml As Object
-  Set oHtml = CreateObject("htmlfile")
-  If VarType(Clipboard) = vbObject Then
-    Call oHtml.parentWindow.clipboardData.SetData(ToStdPicture())
-  Else
-    'Hack: This is a hack; better approach would be to get the image data as a byte array and use clipboard directly.
-    'TODO: A less hacky method can be found here:  http://access.mvps.org/access/api/api0042.htm
-    With ActiveSheet.OLEObjects.add(ClassType:="Forms.Image.1", Link:=False, DisplayAsIcon:=False, Left:=330, Top:=215)
-      .Activate
-      Set .picture = ToStdPicture()
-      .AutoSize = True
-      .CopyPicture
-      .Delete
-    End With
-  End If
+  On Error GoTo Catch
+  Dim copy As LongPtr, isOpen As Boolean
+  copy = copyBitmap(This.hBitmap)
+  If Not OpenClipboardTimeout(getAppHwnd()) Then Err.Raise 1, "stdImage::ToClipboard", "Unable to open clipboard"
+  isOpen = True
+  If EmptyClipboard() = 0 Then Err.Raise 1, "stdImage::ToClipboard", "Unable to empty clipboard"
+  If SetClipboardData(CF_BITMAP, copy) = 0 Then Err.Raise 1, "stdImage::ToClipboard", "Unable to set clipboard bitmap"
+  copy = 0 'The clipboard owns this copy after SetClipboardData succeeds.
+  If CloseClipboard() = 0 Then Err.Raise 1, "stdImage::ToClipboard", "Unable to close clipboard"
+  isOpen = False
+  Exit Sub
+Catch:
+  Dim errorNumber As Long, errorSource As String, errorDescription As String
+  errorNumber = Err.Number: errorSource = Err.Source: errorDescription = Err.Description
+  If isOpen Then Call CloseClipboard
+  If copy <> 0 Then Call DeleteObject(copy)
+  Err.Raise errorNumber, errorSource, errorDescription
 End Sub
 
 
 'Save a copy in a temporary file and return the path of this file
-'@param eFormat - The format the data should be in.
-'@returns - The path to the temporary file.
+'@param eFormat - Output format. The default is PNG.
+'@returns - The path to the temporary file. The caller is responsible for deleting it.
 Public Function ToTempFile(Optional ByVal eFormat As stdImgFormat = stdImgFormatDefault) As String
-  Dim sExt As String
-  Select Case eFormat
-    Case stdImgFormatBMP:  sExt = "bmp"
-    Case stdImgFormatPNG:  sExt = "png"
-    Case stdImgFormatGIF:  sExt = "gif"
-    Case stdImgFormatJPEG: sExt = "jpeg"
-    Case stdImgFormatTIFF: sExt = "tiff"
-  End Select
-  Dim sPath As String: sPath = Environ("Temp") & "\" & getGUID() & "." & sExt
+  eFormat = resolveOutputFormat(eFormat)
+  Dim extensions As Variant: extensions = Array("", "bmp", "png", "gif", "jpeg", "tiff")
+  Dim sPath As String: sPath = Environ("Temp") & "\" & getGUID() & "." & extensions(eFormat)
   Call ToFile(sPath, eFormat)
   ToTempFile = sPath
 End Function
 
 'Adds the picture to the sheet
-'@param ws - Worksheet to add image to
+'@param ws as Object<Excel.Worksheet> - Worksheet to add image to. Late bound so other Office hosts do not require an Excel reference.
 '@param Top - Top coord of the newly placed image
 '@param Left - Left coord of the newly placed image
-'@param compress - Whether to compress the image on import.
+'@param compress - Excel MsoPictureCompress value; 0 disables compression (msoPictureCompressFalse).
 '@returns Object<Picture> - Picture object
-Public Function ToSheet(ByVal ws As Worksheet, Optional ByVal Top As Double = 0, Optional ByVal Left As Double = 0, Optional ByVal compress As MsoPictureCompress) As Object
-  Set ToSheet = ws.Shapes.AddPicture2(ToTempFile(), False, 0, Top, Left, -1, -1, compress)
+Public Function ToSheet(ByVal ws As Object, Optional ByVal Top As Double = 0, Optional ByVal Left As Double = 0, Optional ByVal compress As Long = 0) As Object
+  On Error GoTo Catch
+  Dim path As String: path = ToTempFile()
+  Set ToSheet = ws.Shapes.AddPicture2(path, False, True, Left, Top, -1, -1, compress)
+  Kill path
+  Exit Function
+Catch:
+  Dim errorNumber As Long, errorSource As String, errorDescription As String
+  errorNumber = Err.Number: errorSource = Err.Source: errorDescription = Err.Description
+  On Error Resume Next
+  If Len(path) > 0 Then Kill path
+  On Error GoTo 0
+  Err.Raise errorNumber, errorSource, errorDescription
 End Function
 
 'Update a UI control's background picture
@@ -1146,11 +1075,19 @@ Public Sub ToUIControl(ByVal oControl As Object)
 End Sub
 
 'Obtain a data URL of the image
-'@param eFormat - The format of the image
-'@returns - Data URL of the image
+'@param eFormat - Output format. The default is PNG.
+'@returns - A data:image/...;base64 URL without line breaks.
+'@example `Debug.Print stdImage.CreateFromFile("C:\Temp\photo.jpg").ToDataUrl()`
 Public Function ToDataUrl(Optional ByVal eFormat As stdImgFormat = stdImgFormatDefault) As String
-  'TODO:
-  Err.Raise 1, , "Not implemented"
+  eFormat = resolveOutputFormat(eFormat)
+  Dim mimeTypes As Variant: mimeTypes = Array("", "image/bmp", "image/png", "image/gif", "image/jpeg", "image/tiff")
+  Dim data() As Byte: data = ToBinary(eFormat)
+  Const CRYPT_STRING_BASE64_NOCRLF As Long = &H40000001
+  Dim charCount As Long
+  If CryptBinaryToStringA(data(0), UBound(data) + 1, CRYPT_STRING_BASE64_NOCRLF, vbNullString, charCount) = 0 Then Err.Raise 1, "stdImage::ToDataUrl", "Could not size Base64 output"
+  Dim encoded As String: encoded = String$(charCount, vbNullChar)
+  If CryptBinaryToStringA(data(0), UBound(data) + 1, CRYPT_STRING_BASE64_NOCRLF, encoded, charCount) = 0 Then Err.Raise 1, "stdImage::ToDataUrl", "Could not encode Base64 data"
+  ToDataUrl = "data:" & mimeTypes(eFormat) & ";base64," & Left$(encoded, charCount)
 End Function
 
 'Output the image to a shape's fill
@@ -1159,31 +1096,39 @@ End Function
 'stdImage.CreateFromFile("H:\test1.bmp").ToShapeFill(ActiveSheet.Shapes(1))
 '```
 Public Sub ToShapeFill(ByVal shp As Object)
-  Select Case Application.Name
-    Case "Microsoft Excel"
-      Dim xlShp As excel.Shape: Set xlShp = shp
-      Call xlShp.Fill.UserPicture(ToTempFile())
-  End Select
+  On Error GoTo Catch
+  If Application.Name <> "Microsoft Excel" Then Err.Raise 5, "stdImage::ToShapeFill", "Only Excel shapes are supported"
+  Dim path As String: path = ToTempFile()
+  Call shp.Fill.UserPicture(path)
+  Kill path
+  Exit Sub
+Catch:
+  Dim errorNumber As Long, errorSource As String, errorDescription As String
+  errorNumber = Err.Number: errorSource = Err.Source: errorDescription = Err.Description
+  On Error Resume Next
+  If Len(path) > 0 Then Kill path
+  On Error GoTo 0
+  Err.Raise errorNumber, errorSource, errorDescription
 End Sub
 
 'Obtain a stdole.StdPicture
-'@returns - Obtain the image as a stdole.StdPicture
+'@returns - An independent stdole.StdPicture which remains valid after this image is released.
 Public Function ToStdPicture() As stdole.StdPicture
-  Const PICTYPE_BITMAP = 1
-
-  Dim IID_IDispatch As GUID
-  If IIDFromString(StrPtr("{7BF80980-BF32-101A-8BBB-00AA00300CAB}"), IID_IDispatch) <> 0 Then Err.Raise 1, , "Could not convert IID_IDispatch to GUID"
-
-  Dim uPicinfo As PICTDESC
-  With uPicinfo
-    .Size = Len(uPicinfo)
-    .type = PICTYPE_BITMAP
-    .hPic = This.hBitmap
-    .hPal = 0
-  End With
-
-  Dim lResult As Long: lResult = OleCreatePictureIndirect(uPicinfo, IID_IDispatch, 0, ToStdPicture)
-  If lResult <> 0 Then Call Err.Raise(1, "Value [GET]", "Could not create StdPicture (Error Result: " & lResult & ")")
+  On Error GoTo Catch
+  Dim iid As GUID, descriptor As PICTDESC, copy As LongPtr
+  If IIDFromString(StrPtr("{7BF80980-BF32-101A-8BBB-00AA00300CAB}"), iid) <> 0 Then Err.Raise 1, "stdImage::ToStdPicture", "Invalid picture interface identifier"
+  copy = copyBitmap(This.hBitmap)
+  descriptor.Size = LenB(descriptor)
+  descriptor.type = 1
+  descriptor.hPic = copy
+  If OleCreatePictureIndirect(descriptor, iid, 1, ToStdPicture) <> 0 Then Err.Raise 1, "stdImage::ToStdPicture", "Could not create StdPicture"
+  copy = 0 'The returned picture owns its independent bitmap.
+  Exit Function
+Catch:
+  Dim errorNumber As Long, errorSource As String, errorDescription As String
+  errorNumber = Err.Number: errorSource = Err.Source: errorDescription = Err.Description
+  If copy <> 0 Then Call DeleteObject(copy)
+  Err.Raise errorNumber, errorSource, errorDescription
 End Function
 
 Private Sub Class_Terminate()
@@ -1297,27 +1242,17 @@ Private Function getAppHwnd() As LongPtr
 #Else
 Private Function getAppHwnd() As Long
 #End If
-Static hwnd As LongPtr
-If hwnd = 0 Then
-    Dim oApp As Object: Set oApp = Application
-    Select Case oApp.Name
-    Case "Microsoft Excel"
-        hwnd = oApp.hwnd
-    Case "Microsoft Word"
-        hwnd = oApp.ActiveWindow.hwnd
-    Case "Microsoft Access"
-        hwnd = oApp.hWndAccessApp.hwnd
-    Case "Microsoft PowerPoint"
-        hwnd = oApp.CommandBars("Status Bar").hwnd
-    Case "Outlook"
-        hwnd = oApp.ActiveWindow.CommandBars("Status Bar").hwnd
-    Case "Microsoft Publisher"
-        hwnd = oApp.CommandBars("Status Bar").hwnd
-    Case Else
-        Err.Raise 1, "stdAcc::CreateFromApplication()", "No implementation for getting application window of " & oApp.Name
-    End Select
-End If
-getAppHwnd = hwnd
+  'Late bind host-specific members so the class imports without an Excel reference.
+  Dim oApp As Object: Set oApp = Application
+  Dim hwnd As LongPtr
+  On Error Resume Next
+  hwnd = oApp.hwnd
+  If hwnd = 0 Then hwnd = oApp.ActiveWindow.hwnd
+  If hwnd = 0 Then hwnd = oApp.hWndAccessApp
+  If hwnd = 0 Then hwnd = GetActiveWindow()
+  On Error GoTo 0
+  If hwnd = 0 Then Err.Raise 1, "stdImage", "Could not obtain an Office window for clipboard ownership"
+  getAppHwnd = hwnd
 End Function
 
 
@@ -1441,4 +1376,146 @@ Private Function ColorsMatch(ByVal c1 As Long, ByVal c2 As Long, ByVal tolerance
   r1 = (c1 And &HFF): g1 = (c1 \ &H100) And &HFF: b1 = (c1 \ &H10000) And &HFF
   r2 = (c2 And &HFF): g2 = (c2 \ &H100) And &HFF: b2 = (c2 \ &H10000) And &HFF
   ColorsMatch = Abs(r1 - r2) <= tolerance And Abs(g1 - g2) <= tolerance And Abs(b1 - b2) <= tolerance
+End Function
+'Validate an output format, resolving the default to PNG.
+Private Function resolveOutputFormat(ByVal format As stdImgFormat) As stdImgFormat
+  If format = stdImgFormatDefault Then format = stdImgFormatPNG
+  If format < stdImgFormatBMP Or format > stdImgFormatTIFF Then Err.Raise 5, "stdImage", "Unsupported output format"
+  resolveOutputFormat = format
+End Function
+
+'Infer a format from a file extension; preserve the public enum values.
+Private Function formatFromExtension(ByVal FileName As String) As stdImgFormat
+  Select Case LCase$(Mid$(FileName, InStrRev(FileName, ".") + 1))
+    Case "bmp": formatFromExtension = stdImgFormatBMP
+    Case "png": formatFromExtension = stdImgFormatPNG
+    Case "gif": formatFromExtension = stdImgFormatGIF
+    Case "jpg", "jpeg": formatFromExtension = stdImgFormatJPEG
+    Case "tif", "tiff": formatFromExtension = stdImgFormatTIFF
+    Case "webp": Err.Raise 5, "stdImage", "WEBP format is not currently supported (see issue #178)"
+    Case Else: Err.Raise 5, "stdImage", "Could not determine format from file extension"
+  End Select
+End Function
+
+'Encode a bitmap to either a file or an independent memory stream.
+Private Sub saveImage(ByVal format As stdImgFormat, ByVal FileName As String, ByVal stream As stdole.IUnknown, ByVal Quality As Long, ByVal TIFF_ColorDepth As Long, ByVal TIFF_Compression As Long)
+  On Error GoTo Catch
+  format = resolveOutputFormat(format)
+  If This.hBitmap = 0 Then Err.Raise 5, "stdImage::saveImage", "Image is not initialised"
+  If format = stdImgFormatJPEG And (Quality < 0 Or Quality > 100) Then Err.Raise 5, "stdImage::saveImage", "JPEG quality must be between 0 and 100"
+  Dim startup As GdiplusStartupInput, token As LongPtr, image As LongPtr
+  startup.GdiplusVersion = 1
+  Call checkGdip(GdiplusStartup(token, startup), "start GDI+")
+  Call checkGdip(GdipCreateBitmapFromHBITMAP(This.hBitmap, 0, image), "create encoder bitmap")
+  Dim encoder As GUID, parameters As EncoderParameters, pParameters As LongPtr
+  Dim encoderIDs As Variant
+  encoderIDs = Array("", "{557CF400-1A04-11D3-9A73-0000F81EF32E}", "{557CF406-1A04-11D3-9A73-0000F81EF32E}", "{557CF402-1A04-11D3-9A73-0000F81EF32E}", "{557CF401-1A04-11D3-9A73-0000F81EF32E}", "{557CF405-1A04-11D3-9A73-0000F81EF32E}")
+  Dim encoderID As String: encoderID = encoderIDs(format)
+  If IIDFromString(StrPtr(encoderID), encoder) <> 0 Then Err.Raise 1, "stdImage::saveImage", "Invalid encoder identifier"
+  Select Case format
+    Case stdImgFormatJPEG
+      parameters.count = 1
+      With parameters.Parameter(0)
+        Call IIDFromString(StrPtr("{1D5BE4B5-FA4A-452D-9CDD-5DB35105E7EB}"), .GUID)
+        .NumberOfValues = 1: .type = 4: .Value = VarPtr(Quality)
+      End With
+    Case stdImgFormatTIFF
+      parameters.count = 2
+      With parameters.Parameter(0)
+        Call IIDFromString(StrPtr("{E09D739D-CCD4-44EE-8EBA-3FBF8BE4FC58}"), .GUID)
+        .NumberOfValues = 1: .type = 4: .Value = VarPtr(TIFF_Compression)
+      End With
+      With parameters.Parameter(1)
+        Call IIDFromString(StrPtr("{66087055-AD66-4C7C-9A18-38A2310B8337}"), .GUID)
+        .NumberOfValues = 1: .type = 4: .Value = VarPtr(TIFF_ColorDepth)
+      End With
+  End Select
+  If parameters.count > 0 Then pParameters = VarPtr(parameters)
+  If stream Is Nothing Then
+    Call checkGdip(GdipSaveImageToFile(image, StrPtr(FileName), encoder, ByVal pParameters), "save image to file")
+  Else
+    Call checkGdip(GdipSaveImageToStream(image, stream, encoder, pParameters), "save image to stream")
+  End If
+  Call GdipDisposeImage(image)
+  Call GdiplusShutdown(token)
+  Exit Sub
+Catch:
+  Dim errorNumber As Long, errorSource As String, errorDescription As String
+  errorNumber = Err.Number: errorSource = Err.Source: errorDescription = Err.Description
+  If image <> 0 Then Call GdipDisposeImage(image)
+  If token <> 0 Then Call GdiplusShutdown(token)
+  Err.Raise errorNumber, errorSource, errorDescription
+End Sub
+
+'Raise on a GDI+ failure so callers can share their cleanup path.
+Private Sub checkGdip(ByVal status As Long, ByVal operation As String)
+  If status <> 0 Then Err.Raise 1, "stdImage", "Could not " & operation & " (GDI+ status: " & status & ")"
+End Sub
+
+'Copy a borrowed bitmap into independently owned storage.
+Private Function copyBitmap(ByVal hBitmap As LongPtr) As LongPtr
+  If hBitmap = 0 Then Err.Raise 5, "stdImage", "Bitmap handle is empty"
+  Const IMAGE_BITMAP As Long = 0, LR_CREATEDIBSECTION As Long = &H2000
+  copyBitmap = CopyImage(hBitmap, IMAGE_BITMAP, 0, 0, LR_CREATEDIBSECTION)
+  If copyBitmap = 0 Then Err.Raise 1, "stdImage", "Could not copy bitmap"
+End Function
+
+'Validate compatibility format hints; decoding itself uses image signatures.
+Private Sub validateInputFormat(ByVal format As stdImgFormat)
+  If format < stdImgFormatDefault Or format > stdImgFormatTIFF Then Err.Raise 5, "stdImage", "Unsupported input format"
+End Sub
+
+'Decode and rasterise the first frame, keeping the source stream alive until disposal.
+Private Function loadImage(ByVal FileName As String, ByVal stream As stdole.IUnknown, ByVal background As Long) As stdImage
+  On Error GoTo Catch
+  Dim startup As GdiplusStartupInput, token As LongPtr
+  Dim image As LongPtr, bitmap As LongPtr, graphics As LongPtr, hBitmap As LongPtr
+  startup.GdiplusVersion = 1
+  Call checkGdip(GdiplusStartup(token, startup), "start GDI+")
+  If stream Is Nothing Then
+    Call checkGdip(GdipLoadImageFromFile(StrPtr(FileName), image), "load image file")
+  Else
+    Call checkGdip(GdipLoadImageFromStream(stream, image), "load image stream")
+  End If
+  Dim width As Long, height As Long
+  Call checkGdip(GdipGetImageWidth(image, width), "get image width")
+  Call checkGdip(GdipGetImageHeight(image, height), "get image height")
+  If width <= 0 Or height <= 0 Then Err.Raise 5, "stdImage", "Image dimensions are empty"
+  Const PixelFormat32bppARGB As Long = &H26200A
+  Call checkGdip(GdipCreateBitmapFromScan0(width, height, 0, PixelFormat32bppARGB, 0, bitmap), "create raster bitmap")
+  Call checkGdip(GdipGetImageGraphicsContext(bitmap, graphics), "create raster graphics")
+  Dim argbBackground As Long: argbBackground = &HFF000000 Or BGR(background)
+  Call checkGdip(GdipGraphicsClear(graphics, argbBackground), "set image background")
+  Call checkGdip(GdipDrawImageRectI(graphics, image, 0, 0, width, height), "rasterise image")
+  Call GdipDeleteGraphics(graphics)
+  graphics = 0
+  Call checkGdip(GdipCreateHBITMAPFromBitmap(bitmap, hBitmap, argbBackground), "create bitmap handle")
+  Set loadImage = CreateFromHBitmap(hBitmap)
+  hBitmap = 0
+  Call GdipDisposeImage(bitmap)
+  Call GdipDisposeImage(image)
+  Call GdiplusShutdown(token)
+  Exit Function
+Catch:
+  Dim errorNumber As Long, errorSource As String, errorDescription As String
+  errorNumber = Err.Number: errorSource = Err.Source: errorDescription = Err.Description
+  If graphics <> 0 Then Call GdipDeleteGraphics(graphics)
+  If hBitmap <> 0 Then Call DeleteObject(hBitmap)
+  If bitmap <> 0 Then Call GdipDisposeImage(bitmap)
+  If image <> 0 Then Call GdipDisposeImage(image)
+  If token <> 0 Then Call GdiplusShutdown(token)
+  Err.Raise errorNumber, errorSource, errorDescription
+End Function
+
+'Wrap a copied bitmap, including cleanup if initialisation fails.
+Private Function imageFromBitmapCopy(ByVal hBitmap As LongPtr) As stdImage
+  On Error GoTo Catch
+  Dim copy As LongPtr: copy = copyBitmap(hBitmap)
+  Set imageFromBitmapCopy = CreateFromHBitmap(copy)
+  Exit Function
+Catch:
+  Dim errorNumber As Long, errorSource As String, errorDescription As String
+  errorNumber = Err.Number: errorSource = Err.Source: errorDescription = Err.Description
+  If copy <> 0 Then Call DeleteObject(copy)
+  Err.Raise errorNumber, errorSource, errorDescription
 End Function

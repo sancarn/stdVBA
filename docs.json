@@ -8957,13 +8957,7 @@
       "Finding the \"Record a macro\" button in the status window of Excel\r\n```vb\r\nDim excel As stdImage: Set excel = stdImage.CreateFromWindow(Application.hwnd)\r\nDim button As stdImage: Set button = stdImage.CreateFromDataURL(\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAANCAIAAAAWvsgoAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAACUSURBVChTlZBRDcAgDEQnZgYwgAAUYAADyEAGLrCBA0Twv0dKWCDLxu7jcr2WK3Cc22ijdQN99BHGGGst3OvfqaIEMcZSSghBa00Jo3Hw11Rcljrncs6UMBoHf0qlQQY9GUopyQEc/DWVjbSBUooWLCX+ncp7RcDkIQRo8f+nDnzcdcB7//YDLWoGLhls5DCMxqm1XpNsMy38F0JSAAAAAElFTkSuQmCC\")\r\nDim pos: pos = excel.FindFirst(button)\r\nDebug.Print pos(0), pos(1)\r\n```"
     ],
     "devNotes": [],
-    "todos": [
-      "Case webp",
-      "AutoProxy?",
-      "Detect format",
-      "Implement a more efficient way to do this.",
-      "A less hacky method can be found here:  http://access.mvps.org/access/api/api0042.htm"
-    ],
+    "todos": [],
     "requires": [],
     "methods": [
       {
@@ -9054,7 +9048,7 @@
           {
             "name": "eFormat",
             "type": "stdImgFormat",
-            "description": "The format the data should be in.",
+            "description": "Output format. The default is PNG.",
             "optional": true,
             "defaultValue": "stdImgFormatDefault",
             "paramArray": false,
@@ -9082,7 +9076,53 @@
         "description": "Save image as file",
         "remarks": [],
         "examples": [],
-        "params": [],
+        "params": [
+          {
+            "name": "FileName",
+            "type": "String",
+            "description": "Path of the output file.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "format",
+            "type": "stdImgFormat",
+            "description": "Output format. The default infers BMP, PNG, GIF, JPEG, or TIFF from the filename extension.",
+            "optional": true,
+            "defaultValue": "stdImgFormatDefault",
+            "paramArray": false,
+            "referenceType": "ByRef"
+          },
+          {
+            "name": "Quality",
+            "type": "Byte",
+            "description": "JPEG quality from 0 to 100.",
+            "optional": true,
+            "defaultValue": "80",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "TIFF_ColorDepth",
+            "type": "Long",
+            "description": "TIFF colour depth passed to the encoder.",
+            "optional": true,
+            "defaultValue": "24",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "TIFF_Compression",
+            "type": "Long",
+            "description": "TIFF compression value passed to the encoder.",
+            "optional": true,
+            "defaultValue": "6",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
         "returns": null,
         "deprecation": {
           "status": false,
@@ -9126,7 +9166,7 @@
           {
             "name": "eFormat",
             "type": "stdImgFormat",
-            "description": "The format the data should be in.",
+            "description": "Output format. The default is PNG.",
             "optional": true,
             "defaultValue": "stdImgFormatDefault",
             "paramArray": false,
@@ -9135,7 +9175,7 @@
         ],
         "returns": {
           "type": "String",
-          "description": "The path to the temporary file."
+          "description": "The path to the temporary file. The caller is responsible for deleting it."
         },
         "deprecation": {
           "status": false,
@@ -9157,8 +9197,8 @@
         "params": [
           {
             "name": "ws",
-            "type": "Worksheet",
-            "description": "Worksheet to add image to",
+            "type": "Object<Excel.Worksheet>",
+            "description": "Worksheet to add image to. Late bound so other Office hosts do not require an Excel reference.",
             "optional": false,
             "defaultValue": null,
             "paramArray": false,
@@ -9184,10 +9224,10 @@
           },
           {
             "name": "compress",
-            "type": "MsoPictureCompress",
-            "description": "Whether to compress the image on import.",
+            "type": "Long",
+            "description": "Excel MsoPictureCompress value; 0 disables compression (msoPictureCompressFalse).",
             "optional": true,
-            "defaultValue": null,
+            "defaultValue": "0",
             "paramArray": false,
             "referenceType": "ByVal"
           }
@@ -9243,12 +9283,14 @@
         "name": "ToDataUrl",
         "description": "Obtain a data URL of the image",
         "remarks": [],
-        "examples": [],
+        "examples": [
+          "`Debug.Print stdImage.CreateFromFile(\"C:\\Temp\\photo.jpg\").ToDataUrl()`"
+        ],
         "params": [
           {
             "name": "eFormat",
             "type": "stdImgFormat",
-            "description": "The format of the image",
+            "description": "Output format. The default is PNG.",
             "optional": true,
             "defaultValue": "stdImgFormatDefault",
             "paramArray": false,
@@ -9257,7 +9299,7 @@
         ],
         "returns": {
           "type": "String",
-          "description": "Data URL of the image"
+          "description": "A data:image/...;base64 URL without line breaks."
         },
         "deprecation": {
           "status": false,
@@ -9310,7 +9352,7 @@
         "params": [],
         "returns": {
           "type": "stdole.StdPicture",
-          "description": "Obtain the image as a stdole.StdPicture"
+          "description": "An independent stdole.StdPicture which remains valid after this image is released."
         },
         "deprecation": {
           "status": false,
@@ -9453,13 +9495,13 @@
         "access": "ReadOnly",
         "description": "Obtain a HBitmap",
         "remarks": [
-          "You are in charge of freeing this pointer."
+          "Do not delete this handle. stdImage owns it and frees it on termination."
         ],
         "examples": [],
         "params": [],
         "returns": {
-          "type": "stdole.StdPicture",
-          "description": "Obtain the image as a stdole.StdPicture"
+          "type": "LongPtr",
+          "description": "Borrowed bitmap handle, valid for the lifetime of this image."
         },
         "deprecation": {
           "status": false,
@@ -9685,15 +9727,17 @@
       {
         "name": "CreateFromBinary",
         "description": "Creates a stdImage object from a byte array",
-        "remarks": [],
+        "remarks": [
+          "The first frame is rasterised against black; animation, vector data, metadata, and alpha are not retained."
+        ],
         "examples": [
-          "```vb\r\n  Dim b() as Byte: Redim b(1 to 100)\r\n  Call stdImage.CreateFromBinary(b).ToFile(\"H:\\test1.png\")\r\n```"
+          "```vb\r\n  Dim b() As Byte: b = stdImage.CreateFromFile(\"H:\\source.png\").ToBinary(stdImgFormatPNG)\r\n  Call stdImage.CreateFromBinary(b).ToFile(\"H:\\copy.png\")\r\n```"
         ],
         "params": [
           {
             "name": "b",
             "type": "Variant",
-            "description": "Bytes of Bitmap/Jpeg/Png/... image",
+            "description": "Non-empty encoded image bytes; any array lower bound is supported.",
             "optional": false,
             "defaultValue": null,
             "paramArray": false,
@@ -9719,7 +9763,9 @@
       {
         "name": "CreateFromDataURL",
         "description": "Creates a stdImage object from a Data URL string",
-        "remarks": [],
+        "remarks": [
+          "Non-Base64 Data URLs and unsupported MIME types are rejected."
+        ],
         "examples": [
           "```vb\r\n  Dim dataUrl as String\r\n  dataUrl = \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==\"\r\n  stdImage.CreateFromDataURL(dataUrl).ToFile \"C:\\Temp\\FromDataUrl.png\"\r\n```"
         ],
@@ -9727,7 +9773,7 @@
           {
             "name": "sDataURL",
             "type": "String",
-            "description": "The Data URL string (e.g., \"data:image/png;base64,iVBORw0KGgo...\")",
+            "description": "A supported image MIME type with a Base64 payload (e.g., \"data:image/png;base64,iVBORw0KGgo...\")",
             "optional": false,
             "defaultValue": null,
             "paramArray": false,
@@ -9736,7 +9782,7 @@
         ],
         "returns": {
           "type": "stdImage",
-          "description": "A new stdImage object."
+          "description": "A new stdImage object with transparency flattened against black."
         },
         "deprecation": {
           "status": false,
@@ -9753,7 +9799,9 @@
       {
         "name": "CreateFromFile",
         "description": "Creates a stdImage object from a file",
-        "remarks": [],
+        "remarks": [
+          "The first frame is rasterised; animation, vector data, metadata, and alpha are not retained."
+        ],
         "examples": [
           "```vb\r\nstdImage.CreateFromFile(\"H:\\test1.bmp\").ToFile(\"H:\\test1.png\")\r\n```"
         ],
@@ -9761,7 +9809,7 @@
           {
             "name": "sPath",
             "type": "String",
-            "description": "Path of file",
+            "description": "Path of a BMP, PNG, GIF, JPEG, TIFF, WMF, EMF, or ICO file.",
             "optional": false,
             "defaultValue": null,
             "paramArray": false,
@@ -9770,9 +9818,18 @@
           {
             "name": "format",
             "type": "stdImgFormat",
-            "description": "The format of the image",
+            "description": "Supported format hint retained for compatibility. GDI+ detects the actual encoded format from the data.",
             "optional": true,
             "defaultValue": "stdImgFormatDefault",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "transparentColor",
+            "type": "Long",
+            "description": "Background colour used to flatten transparency. The default is black.",
+            "optional": true,
+            "defaultValue": "0",
             "paramArray": false,
             "referenceType": "ByVal"
           }
@@ -9797,7 +9854,7 @@
         "name": "CreateFromUrl",
         "description": "Creates a stdImage object from a url",
         "remarks": [
-          "- TODO: consider removing"
+          "Uses the default WinHTTP proxy configuration. For custom proxy, authentication, or timeout handling, use stdHTTP and pass its response bytes to CreateFromBinary."
         ],
         "examples": [
           "```vb\r\nstdImage.CreateFromURL(\"https://raw.githubusercontent.com/sancarn/awesome-vba/main/resources/VBALogo.png\").ToFile(\"H:\\test.png\", stdImgFormatPNG)\r\n```"
@@ -9815,7 +9872,7 @@
           {
             "name": "format",
             "type": "stdImgFormat",
-            "description": "The format of the image",
+            "description": "Supported format hint retained for compatibility. GDI+ detects the actual encoded format from the data.",
             "optional": true,
             "defaultValue": "stdImgFormatDefault",
             "paramArray": false,
@@ -9849,7 +9906,7 @@
           {
             "name": "hBitmap",
             "type": "LongPtr",
-            "description": "hBitmap (handle to Bitmap)",
+            "description": "Valid bitmap handle. Ownership transfers to the returned stdImage; do not free it or pass a borrowed handle.",
             "optional": false,
             "defaultValue": null,
             "paramArray": false,
@@ -9901,7 +9958,7 @@
         "description": "Creates a stdImage object from a stdole.IPictureDisp object",
         "remarks": [],
         "examples": [
-          "TODO:"
+          "`Dim picture As stdole.IPictureDisp: Set picture = LoadPicture(\"C:\\Temp\\photo.bmp\"): Dim img As stdImage: Set img = stdImage.CreateFromIPictureDisp(picture)`"
         ],
         "params": [
           {
@@ -9969,7 +10026,7 @@
         "description": "Creates a stdImage object from a stdole.IPicture object",
         "remarks": [],
         "examples": [
-          "TODO:"
+          "`Dim picture As stdole.IPicture: Set picture = LoadPicture(\"C:\\Temp\\photo.bmp\"): Dim img As stdImage: Set img = stdImage.CreateFromIPicture(picture)`"
         ],
         "params": [
           {
@@ -10003,12 +10060,12 @@
         "description": "Creates a stdImage object from a Excel.IPicture object",
         "remarks": [],
         "examples": [
-          "TODO:"
+          "`Dim img As stdImage: Set img = stdImage.CreateFromExcelIPicture(ActiveSheet.Pictures(1))`"
         ],
         "params": [
           {
             "name": "picture",
-            "type": "Object<Excel.IPicture>",
+            "type": "Object<Excel.Picture>",
             "description": "Object to create picture from",
             "optional": false,
             "defaultValue": null,
@@ -10042,7 +10099,7 @@
         "params": [
           {
             "name": "shp",
-            "type": "Object<(Excel|Word|PowerPoint).Shape>",
+            "type": "Object<Excel.Shape>",
             "description": "Object to create picture from",
             "optional": false,
             "defaultValue": null,
@@ -10076,7 +10133,7 @@
         "params": [
           {
             "name": "chart",
-            "type": "Object<(Excel|Word|PowerPoint).Chart>",
+            "type": "Object<Excel.Chart>",
             "description": "Object to create picture from",
             "optional": false,
             "defaultValue": null,
