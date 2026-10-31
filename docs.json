@@ -11256,8 +11256,7 @@
     ],
     "devNotes": [],
     "todos": [
-      "Need to make this more application agnostic",
-      "Make this more application agnostic"
+      "Extend scoped optimiser support beyond Excel, Word, and Access."
     ],
     "requires": [],
     "methods": [
@@ -11287,6 +11286,79 @@
           }
         ],
         "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "protRegisterAccessEcho",
+        "description": "Register an Access repainting scope. Called on the singleton only.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "echoOn",
+            "type": "Boolean",
+            "description": "Repainting state requested by this scope.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "echoOnExit",
+            "type": "Boolean",
+            "description": "State to restore once the outermost scope ends.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "Long",
+          "description": "Identifier used to unregister the scope."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "protUnregisterAccessEcho",
+        "description": "Remove a scope and return the repainting state of the newest remaining scope.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "index",
+            "type": "Long",
+            "description": "Identifier returned by protRegisterAccessEcho.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "Boolean",
+          "description": "Repainting state to apply after removing this scope."
+        },
         "deprecation": {
           "status": false,
           "message": ""
@@ -11477,7 +11549,9 @@
         "name": "CreateOptimiser",
         "description": "Optimise",
         "remarks": [
-          "Calculation is defined as long instead of xlCalculation so the function continues to work without compile error in Word, Powerpoint etc."
+          "Calculation is defined as long instead of xlCalculation so the function continues to work without compile error in Word, Powerpoint etc.",
+          "In Access, ScreenUpdating controls Echo. EnableEvents and Calculation apply only to Excel.",
+          "Nested Access scopes retain the latest active scope, even when objects are released out of order."
         ],
         "examples": [
           "```vb\r\nWith stdPerformance.CreateOptimiser()\r\n  'some heavy code here\r\nEnd With\r\n```"
@@ -11507,6 +11581,15 @@
             "description": "Calculation set value",
             "optional": true,
             "defaultValue": "-4135",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "AccessEchoOnExit",
+            "type": "Boolean",
+            "description": "Access has no Echo getter. State to restore after the outermost Access scope; defaults to True.",
+            "optional": true,
+            "defaultValue": "True",
             "paramArray": false,
             "referenceType": "ByVal"
           }
