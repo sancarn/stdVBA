@@ -6,7 +6,16 @@ These instructions apply throughout this repository. Read [contribution.md](cont
 
 - Keep classes usable by importing a single class wherever possible. Avoid introducing dependencies that force users to import a chain of additional classes or modules. The contribution guide permits shared generic interfaces such as `stdICallable`; keep other dependencies optional where possible.
 - Follow the contribution guide's class-first design, `std`/`stdI` naming, predeclared instances, `Create` constructors, `protInit` initialisers, and `TThis` state conventions. Keep code usable across Office applications where feasible.
-- Record breaking changes in `changelog.md`; also document relevant features and bug fixes as described in the contribution guide.
+- Keep `changelog.md` current for every PR as required below.
+
+## Changelog required for every PR
+
+- Every PR submitted to this repository must include an update to `changelog.md` in the same PR covering what changed. Add or revise entries before opening the PR, and update them if the PR scope changes. This requirement also applies to small changes and documentation, tests, tooling, CI, or maintenance-only PRs; use `DEV` or `NOTE` for those where appropriate.
+- Review the full diff against the PR base, not just the latest commit or commit titles. Record each distinct user-visible feature and bug fix; group related implementation/follow-up commits rather than listing merges, generated outputs, or formatting commits separately.
+- Follow the changelog's dated bullet format, identify the affected class/module/tool, use its documented tags (`BREAKING`, `FIX`, `FEATURE`, `WIP`, `DEV`, `DEPRECATED`, `NOTE`), and include the PR/issue reference when available. Keep entries in chronological order and avoid duplicating existing entries.
+- Explicitly check compatibility: removed/renamed members and parameters (including named arguments), required arguments and argument order, return types/array bounds, enum values, defaults, key comparison, callback contracts, error behavior, and platform/dependency changes. A bug fix can also be breaking; add a separate `BREAKING` entry when existing callers must change.
+- Every `BREAKING` entry must describe the old and new behavior, who is affected, and the required migration, with a short before/after example where useful. Mark experimental additions as `WIP`; do not present incomplete platform support or experimental APIs as fully supported features.
+- Before submitting the PR, verify the changelog against the final diff, preserve historical entries, and check CRLF bytes and encoding. Summarize breaking changes in the PR description (or explicitly state that none were identified). Do not treat changelog coverage as optional because contribution.md says features and fixes are ideally logged.
 
 ## Line endings: check before importing
 

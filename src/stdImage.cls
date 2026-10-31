@@ -566,7 +566,10 @@ End Function
 '@param hBitmap - Valid bitmap handle. Ownership transfers to the returned stdImage; do not free it or pass a borrowed handle.
 '@returns - Picture object representing data
 '@example ```vb
-'  stdImage.CreateFromHBitmap(Image1.Picture.Handle).ToFile("H:\test.png", stdImgFormatPNG)
+'  'ownedBitmap must be a new bitmap, e.g. returned by CreateCompatibleBitmap.
+'  'For a control's borrowed Picture.Handle, use CreateFromStdPicture(control.Picture) instead.
+'  Dim img As stdImage: Set img = stdImage.CreateFromHBitmap(ownedBitmap)
+'  img.ToFile "H:\test.png", stdImgFormatPNG
 '```
 Public Function CreateFromHBitmap(ByVal hBitmap As LongPtr) As stdImage
   Dim bmp As BITMAP
@@ -968,7 +971,7 @@ Public Property Get Bits() As LongPtr: Bits = This.HBITMAPTYPE.bmBits: End Prope
 
 'Obtain binary data of the image in any format required
 '@param eFormat - Output format. The default is PNG.
-'@returns - Binary data of image, ready to load into a file
+'@returns - A zero-based Byte array containing encoded image data, ready to write to a file.
 Public Function ToBinary(Optional ByVal eFormat As stdImgFormat = stdImgFormatDefault) As Byte()
   On Error GoTo Catch
   eFormat = resolveOutputFormat(eFormat)
@@ -1011,6 +1014,7 @@ Public Sub ToFile(ByVal FileName As String, Optional format As stdImgFormat = st
 End Sub
 
 'Copy the image to the clipboard
+'@remark Replaces clipboard contents with an independent CF_BITMAP copy; stdImage retains ownership of its source bitmap.
 '@example `stdImage.CreateFromFile("H:\test1.bmp").ToClipboard()
 Public Sub ToClipboard()
   On Error GoTo Catch

@@ -1,11 +1,9 @@
 # Changelog
 
-* 2026-10-31 FIX - stdHTTP async completion accepts empty responses and propagates terminal transport errors and bounded timeouts (#121).
-
 Change log shall be a bullet point list. All changes will be of the format:
 
 ```
-* yyyy-mm-dd <TAG> - <Short description>
+- yyyy-mm-dd `<Class/module/tool>` <TAG> - <Short description>
 
 <BODY>
 ```
@@ -25,9 +23,9 @@ Where:
 
 Before `08/07/2021` a change log was not kept. We have retrospectively gone back and populated a change log to `04/05/2020`. Any changes before this date will be missing from the change log, however they will still be identifiable from decent commit comments in `github history`. If interested use `git log --all`
 
-# Change log since `2020-05-04`
+The 2025-2026 entries were audited retrospectively against commits through `1bcbfc5` (2026-10-31). Related follow-up commits are grouped where appropriate; generated documentation commits, merges, and line-ending-only changes do not each receive a separate entry. Dates for these entries follow the source commit dates. Experimental APIs are marked WIP and remain under `src/WIP`.
 
-- 2026-10-31 `stdTimer` FIX - Clean up owned Excel hosts on startup failure and shutdown; add idempotent StopTimer, defer active-loop cleanup until callbacks return, and preserve existing AccessVBOM settings (#144).
+# Change log since `2020-05-04`
 
 - ...
 - 2020-05-04 `stdAcc` WIP - `stdAcc` added + first commit.
@@ -327,26 +325,37 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2024-10-08 `stdCOM` FEATURE - Added `ProgID` to `CreateFromActiveObjects`.
 - 2024-10-08 `stdCOM` FIX - Fixed bug where `CreateFromActiveObjects` queried endless objects.
 - 2024-12-13 `stdFiber` FEATURE - Added `Cancel` method.
-- 2025-01-29 `stdClipboard` FIX - Fixed incorrect declare for `RegisterClipboardFormatA`
-- 2025-02-20 `stdFiber` FEATURE - Added `addStepChangeHandler` and `stepName`, for better tracking through a set of processes.
+- 2025-01-23 `stdImage` FIX - Replaced the undeclared clipboard setter target in `ToClipboard` with an HTML clipboard object (#116; `acf5507`).
+- 2025-01-30 `stdClipboard` FIX - Fixed incorrect declare for `RegisterClipboardFormatA`
+- 2025-02-20 `stdFiber` FEATURE - Added `addStepChangeHandler`, `StepName`, and `TotalDuration` for tracking progress and elapsed time (`b24658c`).
 - 2025-02-26 `stdUIElement` FIX - Fix where value not supplied to combobox element on element creation throwing error.
 - 2025-03-08 `stdWindow` FEATURE - Added `AsNativeObject` and `AsIAccessible`.
 - 2025-03-08 `stdFiber` FEATURE - Added `agentInitCB`, `agentDestroyCB` and `runtimeUpdateCB` to `stdFiber.runFibers` for better management of fiber runtime.
+- 2025-03-08 `stdFiber` BREAKING - `runFibers` renames its second parameter from `numFibers` to `numAgents`. Update calls using the named argument `numFibers:=`; positional calls are unchanged (`16e87c4`).
+- 2025-03-13 `stdDate` WIP - Added the `Quarter` property in `src/WIP/stdDate.cls` (`2c9fa34`).
 - 2025-04-14 `stdLambda` FEATURE - Added `FunctionExtension` chaining for lambdas.
 - 2025-04-14 `stdHTTP` FEATURE - Added `ResponseMapper` and `ResponseMapped`, great for libraries.
-- 2025-04-15 `stdJSON` FEATURE - Added `ToSelf` to `stdJSON`
+- 2025-04-14 `stdJSON` FEATURE - Added `ToSelf` to `stdJSON` (`47f9db7`).
 - 2025-04-14 `stdHTTP` FIX - `ResponseMapped` will now work for literals as well as objects.
 - 2025-04-15 `stdArray` FIX - `Splice` changed to act more like JavaScript. Will no longer error when `iEnd <= Length`, will return an array of elements up to length. E.G. `[1,2,3].splice(3,3)` will return `[3]`.
 - 2025-04-15 `stdArray` FEATURE - Added `SplitToChunks` function, to split an array into sub arrays of a fixed size.
 - 2025-04-15 `stdJSON` FEATURE - Added `CreateFromParams` to quickly create JSON objects on the fly.
+- 2025-04-15 `stdMath` WIP - Added `Ceiling` and `Floor` to the experimental math class (`b6b4efe`).
 - 2025-05-10 `stdAcc` FIX - `Proxy` implementation for `accLocation`
 - 2025-05-10 `stdArray` FEATURE - `CreateFromCollection` added.
+- 2025-05-20 `stdHTTP` FIX - Ignore an empty auto-detected proxy server instead of attempting to configure it (`8fa30c2`).
+- 2025-06-01 `stdCanvas` WIP - Added a GDI+ drawing canvas for controls, Frames, UserForms, and HWNDs, with shape drawing, redraws, and double buffering. Rectangle geometry uses left/top/width/height (`33682b7` through `1590921`).
 - 2025-06-06 `stdImage` FIX - Typo in CreateFromURL
 - 2025-06-06 `stdQuadTree` FIX - Typo in queryRangeBounds
 - 2025-06-06 `stdCallback` FIX - Missing constant declaration added for CC_STDCALL
 - 2025-06-06 `stdAcc` FEATURE - Changed to application independent.
+- 2025-06-07 `stdLambda` FEATURE - Optimized the bytecode VM with dedicated instructions and added VM regression checks (#130; `dc5ef58`).
+- 2025-06-09 `ALL` FIX - Corrected compilation/runtime issues found during the twinBASIC port, including missing declarations, `stdEnumerator` property exits, `stdWindow` descendant traversal, and `stdJSON` local object declarations (`81c5ef9`).
+- 2025-06-09 `stdFiber` FIX - Store step-change callbacks in the correct field and return the correct `Step` and `TotalDuration` values (`81c5ef9`).
+- 2025-06-09 `stdClipboard` FIX - Resolve host window handles across Office applications instead of assuming Excel's `Application.hwnd`; use pointer-sized clipboard handles. Applied related host-handle changes to `stdImage` (`81c5ef9`).
 - 2025-06-11 `stdCOM` FEATURE - Added `CreatePropertyStoreFromFile` to create a `stdCOM` object from a file path with required access
 - 2025-06-11 `stdCOM` FEATURE - Added `PropertyStore_GetCount`, `PropertyStore_GetAt`, `PropertyStore_GetValue`, `PropertyStore_SetValue` and `PropertyStore_Commit` to work with `IPropertyStore`
+- 2025-06-11 `VBDocsGen` DEV - Migrated the documentation generator to TypeScript and improved detection of constructors, protected/static members, interfaces, parameter reference types, exceptions, dependencies, examples, and remarks (`a181687` through `54f803d`).
 - 2025-06-23 `stdImage` FEATURE - Added `FindImage` to allow for automation through image searching. Thanks @KallunWillock!
 - 2025-06-24 `stdImage` FEATURE - Added `Typee`, `Width`, `Height`, `WidthBytes`, `Planes`, `BitsPixel` and `Bits` properties from `HBITMAP`. Thanks @Almesi!
 - 2025-06-25 `stdAcc` FIX - Fixed issue with `BFS` option in `FindFirst` and `FindAll`. Ultimately if the control is not present in the Accessibility group currently stdAcc can return a "Subscript out of range" error. This fix ensures that instead they simply return `nothing` (or an empty collection)
@@ -356,55 +365,108 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2025-07-05 `stdHTTP` FIX - Fixed timeout bug where `TimeoutMS` was not being respected due to issues in XMLHTTP object. Now we record and check for `TimeoutMS` in `await()` mitigating this.
 - 2025-07-05 `stdLambda` FEATURE - Added `SendMessage("equation")` to `stdLambda` which returns the equation used to create the lambda.
 - 2025-07-05 `stdAcc` FIX - `stdAcc#Children` now has an number of guards in place. Added a guard for isProxy. Additionally added a guard for  `accChildCount==0`. Finally added a guard for `accChildCount` errors. If any guard triggers, an empty collection is returned. 
+- 2025-07-05 `stdError` DEV - Improved the stack-trace wrapper and experimental error class: skip procedure-like text in comments, correct argument/UDT handling, and avoid recursive sentry dependencies (#135, #136; `ef2e488` through `ad46f9a`).
 - 2025-07-12 `stdImage` FIX - Fixed `CreateFromWindow()` this sometimes wasn't working on some windows including the Excel Application window. The method still doesn't work for all windows unfortunately - e.g. chrome windows, but a workaround has been included in the module examples document.
 - 2025-07-12 `stdImage` FEATURE - Added `Crop()` function which creates a cropped image from another image.
 - 2025-07-12 `stdImage` FEATURE - Added `CreateFromDataURL` and `CreateFromBinary`
-- 2025-07-12 `stdImage` BREAKING - Renamed `FindImage` to `FindFirst`. This is to standardise it compared to `stdAcc`, `stdWindow` and `stdProcess`.
+- 2025-07-12 `stdImage` BREAKING - Renamed `FindImage` to `FindFirst`; update existing calls. `CreateFromDataURL` also renames its parameter from `sURL` to `sDataURL`; update named arguments (`e67da24`).
 - 2025-07-12 `stdImage` FEATURE - Added a `FindAll()` function which returns a collection of all found images.
 - 2025-08-08 `stdRibbon` FEATURE - Added `stdRibbon` which allows for the ribbon to be hidden or shown.
 - 2025-08-18 `stdRibbon` FEATURE - `stdRibbon` now supports Word. Additionally state detection is more robust.
+- 2025-08-28 `stdCallback` FIX - Define the missing `vbLongLong` constant for Mac builds (`efe3dee`).
+- 2025-09-14 `stdRibbon` FEATURE - Detect Protected View and add `RibbonNullState`; transitions out of Protected View use the active protected document's Edit method (`ea31b2b`).
+- 2025-09-14 `stdRibbon` BREAKING - Inserting `RibbonNullState` and `RibbonProtectedViewMode` changes the numeric values of existing `ERibbonState` members. Use symbolic enum names and migrate saved numeric states (`ea31b2b`).
+- 2025-09-22 `stdShell` WIP - Expanded file/folder/root operations and virtual-item handling; added `stdIShellExtension` for shell extensions and an experimental `stdShellMTP` portable-device browser (`bb5eb26` through `6578a2d`).
+- 2025-09-22 `stdShell` BREAKING - Experimental API changes: replace `CreateDir` with `CreateFolder`, `Path` with `FullPath`, `StdShellType` with `stdShellKind`, and public `iType` reads with `Kind`/`FileType`. Constructor named arguments change from `sPath` to `path`; `CreateFile` no longer accepts `sContents`, so create/ensure the file and write contents separately (`bb5eb26`).
 - 2025-09-25 `stdRibbon` FIX - Fix infinite recursion issue, now we error when state hasn't changed.
-- 2025-09-30 `stdRibbon` FIX - Mac compatibility layer for stdRibbon. Also fixed a bug related to the above change.3
+- 2025-09-25 `stdDLLFunc` WIP - Added an experimental DLL-call wrapper implementing `stdICallable`, with stdcall/cdecl and ANSI/Unicode constructor variants; remains an incomplete prototype under `src/WIP/stdDLL` (`a211caf`).
+- 2025-09-28 `stdShell` WIP - Added extended Shell property lookup and EXIF metadata access/editing (`9f709c2`, `7905af7`, `90cc203`).
+- 2025-09-30 `stdRibbon` FIX - Added a Mac compatibility layer and corrected state transitions (`e6ee952`).
 - 2025-10-01 `stdCallback` FIX - Added `macCallByName` for Mac compatibility.
 - 2025-10-14 `stdCallback` FIX - Optimisation for `RunEx` function
 - 2025-10-14 `stdJSON` FIX - Fix for negative number serialization.
+- 2025-10-14 `stdCallableScheduler` WIP - Added delayed callable scheduling; callbacks can return a positive number of seconds to schedule themselves again (`ea31b2b`, `9b30f3b`).
+- 2025-11-18 `stdShell` WIP - Expanded hashing (MD2/MD4) and corrected file creation, read/write, and child enumeration behavior (`58bf87f`).
+- 2025-11-18 `stdShell` BREAKING - Renamed the experimental EXIF enum from `EShellExifProperties` to `stdShellExifProperties`; update declarations and qualified references. `PropertyFromEnum` also corrects its parameter type from `EShellProperties` to the existing `stdShellExtendedProps` (`58bf87f`).
+- 2025-11-21 `stdShell` WIP - Added asynchronous copying and completion polling (`24252df`).
 - 2025-11-21 `stdCallback` FIX - Fixing typos. See #146.
-- 2026-01-02 `stdHTTP` BREAKING - Mac compatibility
+- 2025-11-21 `stdRefArray` FEATURE - Added `GetData` as the default member, exposing the borrowed array alias (`cbface4`).
+- 2025-12-09 `stdLambda` FEATURE - Added `For ... To ... [Step ...] ... Next` and `Do ... Loop` with While/Until conditions. Loop keywords are now reserved; `Exit` is recognized but not implemented (#148; `c861788`).
+- 2025-12-09 `stdLambda` BREAKING - Loop syntax reserves `do`, `until`, `while`, `loop`, `for`, `to`, `step`, `next`, and `exit`. Rename variables/functions in existing lambda equations that use these identifiers (#148; `c861788`).
+- 2025-12-15 `stdArray` FIX - Select the `PtrSafe` CopyMemory declaration using `VBA7` instead of `VBA6` (#149; `466e3d2`).
+- 2026-01-02 `stdHTTP` BREAKING - `CreateHeaders`, `CreateOptions`, and `CreateProxy` return Variant arrays instead of Dictionaries; headers/cookies are alternating key/value arrays, options use `stdHTTPOptions` indices, and proxies use `stdHTTPProxy` indices. Declare these values as Variant, assign without `Set`, replace string-key option/proxy lookups with enum indices, and use `GetHeader`/`SetHeader` for header arrays. Authenticator callbacks now receive array options and must be updated too (`7ccf7c5`).
+- 2026-01-02 `stdHTTP` BREAKING - `ResponseHeaders` changes from an Object return type to a JSON String. Assign without `Set`; parse the JSON if a header map is required, or use `ResponseHeader(name)` for individual values (`7ccf7c5`).
+- 2026-01-02 `stdHTTP` FEATURE - Added a curl-based Mac transport plus `GetHeader`/`SetHeader` helpers. The Mac authenticator callback is not implemented; it does not have Windows authenticator parity (`7ccf7c5`).
+- 2026-01-02 `stdCSV` WIP - Added the experimental `stdCSV`/`CSVinterface` implementation for file/string/array input, dialect/encoding detection, chunked parsing, and CSV export (`7ccf7c5`).
+- 2026-01-02 `ShapeHook` WIP - Added an experimental PowerPoint hook for shape addition, removal, movement, and resizing events (`7ccf7c5`).
+- 2026-01-18 `CI` DEV - Updated Enforce-CRLF to v1.2.1 (#151; `78a6cb9`).
+- 2026-02-06 `stdArray` FIX - When `Reduce` has no initial value, call the reducer for the first element with an Empty accumulator instead of using the first element directly as the accumulator (#153; `96dd264`).
+- 2026-02-06 `stdArray` BREAKING - `Reduce(cb)` now passes every element through `cb`, including the first. Code relying on the first element becoming the accumulator without a callback must supply an explicit initial value and adjust the input/callback as needed; `Reduce(cb, initialValue)` keeps its existing call sequence (#153; `96dd264`).
 - 2026-03-23 `stdWebView` FEATURE - Added `AddHostObject(name, hostObject)` and `RemoveHostObject(name)` to inject/remove VBA `IDispatch` objects in JavaScript via `chrome.webview.hostObjects`.
+- 2026-03-23 `stdWebView` FEATURE - Added a standalone Windows WebView2 host with HWND/Frame constructors, navigation/history, HTML access, and synchronous/asynchronous JavaScript execution. Requires WebView2 Runtime and `WebView2Loader.dll` (#154; `c996881`).
+- 2026-03-23 `stdWebView` FEATURE - Added `CreateFromUserform` and `Resize` to host a browser directly in a UserForm and resize it with its parent (`fbd15c0`, `8718f66`).
 - 2026-03-25 `stdWebView` FEATURE - Added `SetVirtualHostNameToFolderMapping` and `ClearVirtualHostNameToFolderMapping`.
 - 2026-03-25 `stdWebView` FEATURE - Added `AddWebResourceRequestedFilter(filterString, callback, context)` with mutable Dictionary envelopes for request interception, request header injection, and custom short-circuit responses.
-- 2026-03-25 `stdWebView` FEATURE - Added deferred async web-resource completion with `requestId` + `defer` envelope keys and public `WebResourceRequest_Complete` / `WebResourceRequest_Fail` APIs.
+- 2026-03-25 `stdWebView` FIX - Corrected WebView2 vtable offsets and HRESULT checking for virtual-host mappings and request interception (`9b07159`).
+- 2026-04-02 `stdWebView` FEATURE - Added deferred async web-resource completion with `requestId` + `defer` envelope keys and public `WebResourceRequest_Complete` / `WebResourceRequest_Fail` APIs (`8a44620`).
+- 2026-04-02 `stdWebView` FIX - Restricted the `LongPtr` compatibility enum to pre-VBA7 hosts, fixing 32-bit VBA7 compilation (`5e2fc09`).
+- 2026-04-03 `stdHTTPServer` WIP - Added nonblocking socket setup and `getRequestDataNB` to the experimental server (`b17b114`).
 - 2026-04-07 `stdHTML` FEATURE - Added `stdHTML` - allows for building, parsing and analysing `html` documents. Includes query selectors, with-block building mechanisms like with JSON, a full parser, and document editing tools too.
-- 2026-04-07 `stdHTML` FEATURE - `stdHTML::Create()` has optional tag name
+- 2026-04-07 `stdHTML` FEATURE - `Create` accepts optional tag name, attributes, and self-closing options; `CreateChild` makes attributes optional (`dd68c2a`).
 - 2026-04-07 `stdHTML` FEATURE - `stdHTML#Self` added to return current object
-- 2026-04-13 `stdWebView` FEATURE - Added `Get` and `Let` for Cookie information.
+- 2026-04-07 `stdHTML` BREAKING - Renamed `AddClasses` to `ClassesAdd`, `RemoveClasses` to `ClassesRemove`, and `AppendChild` to `ChildAppend`; update calls using the initial API (`dd68c2a`).
+- 2026-04-08 `stdWebView` FEATURE - Added `Source`, read/write `Address`, and `WaitForDocumentReady` with URL-prefix, timeout, stable-duration, and polling controls (`d3c9546`).
+- 2026-04-09 `stdJSON` FIX - Copy `Add` arguments into local Variants before storing them, preserving object values and preventing pointer-valued entries. Grouped the April 8 and April 9 fixes (`6449e2b`, `8f81174`).
+- 2026-04-09 `stdWebView` FIX - `JavaScriptRunSync` now waits for Promise results via a web-message bridge, propagates JavaScript failures, and raises on a 120-second timeout (`ec8352a`).
+- 2026-04-13 `stdWebView` FEATURE - Added `Cookie` Get/Let, `CookieDelete`, `CookieDeleteAll`, and `CookiesForRequest`, with domain/path, expiry, security, HTTP-only, and SameSite options (`b1e69ff`).
 - 2026-04-13 `stdHTTP` FIX - Fix options leftover from when we used dictionary objects.
 - 2026-04-13 `stdJSON` FIX - `Typeof item is stdJSON` will fail if `item` is `nothing`.
 - 2026-04-13 `stdWebView` FIX - Fix compile error in `Cookie` `Get` property
-- 2026-10-20 `stdWindow` FIX - Use `NULL_PTR` for context-menu window lookup and return `Nothing` when the descendant traversal stack is empty (#156).
+- 2026-04-18 `stdWebView` FIX - `WaitForDocumentReady` normalizes http/https and one leading www. for URL-prefix comparison. Initialization now waits for its completion callback instead of stopping after a fixed iteration count (`064e638`, `e8ba6ba`).
+- 2026-04-18 `stdJSON` BREAKING - JSON object keys now use binary, case-sensitive comparison, allowing `Id` and `ID` to coexist. Update lookups to use the exact key casing; code relying on case-insensitive access must normalize keys explicitly (`e837820`).
+- 2026-04-24 `stdHTTP` FIX - Recognize HTTP 204 as No Content instead of incorrectly special-casing 202, and wait for response readiness before reading body bytes (`34ed327`).
+- 2026-05-15 `stdWebView` FIX - Release retained host objects during class termination before quitting the browser (`7e063cf`).
+- 2026-10-02 `stdJSON` FIX - Avoid Long overflow when serializing Single/Double values whose integer part exceeds the Long range (`ca0c6eb`).
+- 2026-10-22 `stdWindow` FIX - Use `NULL_PTR` for context-menu window lookup and return `Nothing` when the descendant traversal stack is empty (#156, #159; `abf14dd`).
 - 2026-10-27 `stdArray` FIX - Fixed `arr` assignment losing values and retaining the previous length; synchronised internal capacity so subsequent appends work (#160).
 - 2026-10-27 `stdRegex` FIX - Bundle sihlfall's pure VBA regex engine to avoid the Office/VBScript regex failure in #141 and the dot-all flag error in #162; preserve existing methods, flags, and legacy replacement formats.
-- 2026-10-27 `stdRegex` BREAKING - Remove the COM-specific `$RAW` match entry. Patterns use the bundled engine's syntax and are validated at construction; processing-budget exhaustion raises `vbObjectError + 3051`. `Create` accepts an optional third `stepsLimit` argument (default 10000). Empty `ListArr` results return `Array()`.
-
-- 2026-10-27 `stdRegex` PERFORMANCE - Format `List` and `ListArr` directly from engine captures without per-match dictionaries, preserving legacy formats and array bounds.
-- 2026-10-27 `stdRegex` FEATURE - Add `MatchAllArr`, returning a 2D match/capture array with optional name-to-column dictionary. Match rows are 1-based, capture columns are 0-based, unmatched groups contain empty strings, and no matches returns `Array()`. Duplicate names map to the first declared group. `MatchAll` retains its Collection of Dictionaries contract.
-- 2026-10-27 `stdRegex` BUILD - Maintain the stdVBA wrapper and pinned upstream engine packaging in `Tools/stdRegex-build`; generate the standalone `src/stdRegex.cls` from one wrapper template.
-
-- 2026-10-28 `stdRegex` BUILD - Rename integration tooling to `Tools/stdRegex-build`, add explicit engine-ref/version-record updates, and add a manual GitHub Actions build with latest, recorded, and specific-ref engine selection.
-- 2026-10-28 `stdRegex` BENCHMARK - Add reproducible before/after List and ListArr benchmarks and MatchAll/MatchAllArr comparisons, including raw timings, environment, and output parity checks.
-
-- 2026-10-28 stdPerformance FIX - Support Access Echo and Word repainting without Excel-only properties. Restore captured host settings, track nested Access scopes and allow an explicit AccessEchoOnExit baseline.
-- 2026-10-28 stdSentry FEATURE - Add CreateSheetUnlocker/CreateUnlocker sentries that restore original worksheet protection settings after scoped edits.
-- 2026-10-28 stdArray FEATURE - Add global DefaultBase, per-instance Base, and base overrides in CreateWithOptions/protInit. Derived arrays preserve their source base.
-- 2026-10-28 stdArray BREAKING - CreateWithOptions now takes iBase before its initial items. Migrate CreateWithOptions(n, chunk, a, b) to CreateWithOptions(n, chunk, Empty, a, b) to use the global default, or supply an explicit base. indexOf/lastIndexOf retain -1 for missing items; use includes to distinguish a valid -1 index.
-- 2026-10-28 stdReg FEATURE - Add addKey/addItem and key-default value access, preserving existing data and registry views. Fix ANSI string writes, refresh value types, support empty binary data and release write handles.
-
+- 2026-10-27 `stdRegex` BREAKING - Removed the COM-specific `$RAW` match entry; migrate code reading the raw COM match object to the returned capture dictionary. Patterns now use the bundled engine's syntax and are validated at construction, so review existing patterns and handle invalid-pattern errors when calling `Create`. Processing-budget exhaustion raises `vbObjectError + 3051`; set the optional third `Create` argument, `stepsLimit` (default 10000), for larger workloads. Empty `ListArr` results return `Array()`; check for no matches before indexing (#164; `c02d86f`).
+- 2026-10-27 `stdRegex` DEV - Maintain the stdVBA wrapper and pinned upstream engine packaging in `Tools/stdRegex-build`; generate the standalone `src/stdRegex.cls` from one wrapper template.
+- 2026-10-28 `stdRegex` FEATURE - Format `List` and `ListArr` directly from engine captures without per-match dictionaries, preserving legacy formats and array bounds.
+- 2026-10-28 `stdRegex` FEATURE - Add `MatchAllArr`, returning a 2D match/capture array with optional name-to-column dictionary. Match rows are 1-based, capture columns are 0-based, unmatched groups contain empty strings, and no matches returns `Array()`. Duplicate names map to the first declared group. `MatchAll` retains its Collection of Dictionaries contract.
+- 2026-10-28 `stdRegex` DEV - Rename integration tooling to `Tools/stdRegex-build`, add explicit engine-ref/version-record updates, and add a manual GitHub Actions build with latest, recorded, and specific-ref engine selection.
+- 2026-10-28 `stdRegex` DEV - Add reproducible before/after List and ListArr benchmarks and MatchAll/MatchAllArr comparisons, including raw timings, environment, and output parity checks.
+- 2026-10-30 `stdReg` FEATURE - Added `addKey`/`addItem` and key-default value access, preserving existing data and registry views (#168; `cec9a68`).
+- 2026-10-30 `stdReg` FIX - Correct ANSI string writes, refresh value types after writes, support empty binary data, and release registry write handles (#168; `cec9a68`).
+- 2026-10-31 `stdPerformance` FIX - Support Access Echo and Word repainting without Excel-only properties. Restore captured host settings, track nested Access scopes and allow an explicit `AccessEchoOnExit` baseline (#167; `aec7548`).
+- 2026-10-31 `stdSentry` FEATURE - Added `CreateSheetUnlocker`/`CreateUnlocker` sentries that restore original worksheet protection settings after scoped edits (#166; `2297705`).
+- 2026-10-31 `stdArray` FEATURE - Added global `DefaultBase` (default 1), per-instance `Base`, and base overrides in `CreateWithOptions`/`protInit`. Derived arrays preserve their source base; nonempty `arr` results use that base and add/remove events report public indices (#165; `67ac6ae`).
+- 2026-10-31 `stdArray` BREAKING - `CreateWithOptions` now requires `iBase` before its initial items, including when creating an empty array. Migrate `CreateWithOptions(n, chunk, a, b)` to `CreateWithOptions(n, chunk, Empty, a, b)` to use the global default, or supply an explicit base. `indexOf`/`lastIndexOf` retain -1 for missing items; use `includes` to distinguish a valid -1 index (#165; `67ac6ae`).
 - 2026-10-31 `stdLambda` FIX - Preserve object identity when accessing local variables across stack growth (#68).
-* 2026-10-31 FIX - stdDate weekday names return String, explicit first days override Country defaults, and RegexMatch honors options with consistent cache keys and retains no malformed patterns (#169, #170, #171).
+- 2026-10-31 `stdDate` FIX - In `src/WIP/stdDate.cls`, corrected localized weekday names and explicit first-day handling; `RegexMatch` now honors options, uses consistent cache keys, and does not cache malformed patterns (#169, #170, #171; `803077f`).
 - 2026-10-31 `stdRefArray` FIX - Borrow owned Variant array pointer slots as well as VT_BYREF typed arrays; document alias lifetime and ownership restrictions (#145).
-
 - 2026-10-31 `stdPerformance` FIX - High-resolution Windows and modern Mac timers, fractional measurement averaging, and fallback rollover handling (#57).
+- 2026-10-31 `stdDate` BREAKING - In `src/WIP/stdDate.cls`, `WeekdayName` now returns String rather than Long. Store its localized text in a String; use `Weekday` for a numeric weekday (#169; `803077f`).
+- 2026-10-31 `stdCallback` NOTE - Documented `CreateFromPointer` calling conventions: pass objects normally for ByVal Object, but pass `VarPtr(objectVariable)` with inferred types for ByRef Object. The target declaration cannot be inferred from a function pointer; this is documentation of the existing contract (`f19a764`).
+- 2026-10-31 `stdTimer` FIX - Clean up owned Excel hosts on startup failure and shutdown; add idempotent StopTimer, defer active-loop cleanup until callbacks return, and preserve existing AccessVBOM settings (#144).
+- 2026-10-31 `stdJSON` FEATURE - Added optional `stdICallable` pre-processing to `CreateFromVariant` (recursively for values) and object/array post-processing to `CreateFromString`/`CreateFromFile` (#137; `1bcbfc5`).
+- 2026-10-31 `stdHTTP` FIX - Async completion accepts empty responses (including HEAD and bodyless statuses), propagates terminal transport errors, and uses bounded timeouts (#121, #173; `84e7266`).
+- 2026-10-31 `stdTimer` FEATURE - Added idempotent `StopTimer` for explicitly stopping a timer; calls from inside callbacks defer host cleanup until the callback returns (#144, #176; `f9d500b`).
+- 2026-10-31 `AGENTS.md` DEV - Require a changelog update in every PR, review compatibility against the full PR diff, and document migrations for breaking changes. Backfilled missing 2025-2026 features, fixes, and experimental work from source history.
+- 2026-10-31 `stdWebSocket` BREAKING - Replace the Internet Explorer stdWebSocket transport with native WinHTTP WebSockets (#139, #35). Keep Create, Send, CloseSocket, Disconnect, url, all five events and Listeners; deliver Open/Message via explicit blocking Pump/Receive calls rather than background browser callbacks. Event payloads are dictionaries (data, code, reason, message, type). Create now completes the handshake before returning. Requires Windows 8+ and a matching Office-bitness stdWebSocketNative.dll, built from the supplied C source, to provide bounded asynchronous native I/O without callbacks into VBA. Add ws/wss URL handling, certificate validation, exact binary lengths, fragmented messages, UTF8 including empty/embedded-null data, operation/message deadlines, and deterministic cleanup. Uses WinHTTP's client WebSocket API rather than the lower-level websocket.dll protocol component proposed in #35; server support is outside this client's scope.
+- 2026-10-31 `stdWebSocket` FEATURE - Add `stdWebSocket.StartListening(stdICallable)`, StopListening, Listening and LastListenerError. A bounded native receive queue and message-only window deliver Open/Message/Close/Error on the Office owner thread without explicit Pump; callbacks defer while that thread is busy. Preserve synchronous Receive when no listener owns reads and synchronous Send completion/backpressure. Stop/replacement, callback errors, peer/local close and ordinary owner release invalidate stale notifications and release COM references. stdWebSocket is now non-exposed, matching stdWebView/stdArray, so its public methods can use the non-exposed stdICallable interface. VBE Reset/End with live subscriptions remains unsupported; disconnect first.
+- 2026-10-31 `stdWindow` FEATURE - Add taskbar visibility and stdICallable-based window subclassing with x86/x64 native thunks, callback chaining, error reporting, and destruction cleanup (#86, #182).
+- 2026-10-31 `stdWindow` FEATURE - Guard subclass callbacks natively in break/design mode and discover internal EbMode through validated VBE engine templates without VBOM access. The optional enableIDEsafety flag defaults to True; set it to False for modeless callbacks between macros and explicitly remove subclasses before break/reset/End/code edits (#86, #182).
+- 2026-10-31 `stdWindow` FIX - Refresh changed window frames and preserve pointer-sized message arguments, results, and icon handles (#86, #182).
+- 2026-10-31 `stdWindow` BREAKING - owner now returns Nothing for unowned windows instead of a wrapper for handle zero; check `If window.owner Is Nothing Then` before accessing owner members. Assigning Nothing clears the owner. setOwnerHandle now rejects child windows; callers must use parent for child-window relationships (#86, #182).
 
-- 2026-10-31 `stdImage` FEATURE - Implement in-memory image encoding and Base64 Data URL export; support default PNG output, strict Base64 image input, and WMF/EMF file loading (#98). WebP decoding is tracked separately in #178.
-- 2026-10-31 `stdImage` FIX - Replace worksheet clipboard workarounds with native bitmap copies; keep picture/clipboard ownership independent, release GDI+ resources on failures and BMP export, correct JPEG/TIFF encoder parameters and pixel DC cleanup, and remove helper-created temporary files.
-- 2026-10-31 `stdImage` BREAKING - ToSheet now accepts a late-bound Object worksheet and Long compression value so stdImage imports without an Excel reference. Existing worksheet and MsoPictureCompress arguments remain accepted. Binary/Data URL/temporary output defaults to PNG; Data URL input now requires a supported image MIME type and valid Base64. The hBitmap getter is borrowed and must not be freed; ToStdPicture returns an independent owned copy.
+- 2026-10-31 `stdImage` FEATURE - Encode BMP/PNG/GIF/JPEG/TIFF directly to memory, implement Base64 Data URL export, and load WMF/EMF and bitmap-backed ICO files plus .tif extensions. Binary/Data URL/temporary output defaults to PNG; request an explicit stdImgFormat when another encoding is needed. WebP decoding is tracked separately in #178 (#98).
+- 2026-10-31 `stdImage` FIX - Honour ToBinary's format without temporary files or hardcoded file handles; correct native JPEG/TIFF encoder parameters, release GDI+ resources on successful BMP export and failures, and correct Colors' byte count and screen-DC cleanup (#98).
+- 2026-10-31 `stdImage` FIX - Replace worksheet clipboard workarounds with native bitmap copies; clipboard and picture conversions no longer delete borrowed bitmaps. Keep returned pictures and imported clipboard images valid after their source is released or replaced; support icon-backed stdole pictures (#98).
+- 2026-10-31 `stdImage` FIX - Embed worksheet images with the requested Left/Top coordinates and save them with the workbook; delete temporary files created by ToSheet and ToShapeFill (#98).
+- 2026-10-31 `stdImage` BREAKING - CreateFromDataURL previously ignored the header before the comma and accepted permissively decoded payloads; it now requires a supported image MIME type and valid, padded Base64. Callers using placeholder headers must change e.g. CreateFromDataURL("ignored," & payload) to CreateFromDataURL("data:image/png;base64," & payload), selecting the actual MIME type. Re-encode malformed or unpadded payloads before calling (#98).
+- 2026-10-31 `stdImage` BREAKING - Picture constructors and ToStdPicture previously shared bitmap handles; they now return independent copies. Callers relying on shared handle identity or edits through the original picture must recreate the image after editing, e.g. Set img = stdImage.CreateFromStdPicture(picture). Do not delete the borrowed hBitmap getter or pass it to another adopting CreateFromHBitmap call; retain its owning image and use picture-copy constructors instead. CreateFromHBitmap still adopts a newly owned handle (#98).
+- 2026-10-31 `stdImage` BREAKING - Invalid format hints that were previously ignored, JPEG quality outside 0-100 that was unchecked, and ToShapeFill calls outside Excel that silently did nothing now raise error 5. Validation/error sources are also more explicit, including error 5 for a clipboard without a bitmap instead of the previous error 1. Callers must use valid enum values and quality, limit shape-fill calls to Excel, and update handlers that match the former error numbers or source strings (#98).
+- 2026-10-31 `stdImage` BREAKING - ToSheet now honours its named Top and Left arguments; the old implementation passed them to Excel in reverse order. Callers that swapped coordinates to compensate must remove that workaround, e.g. change Top:=40, Left:=20 to Top:=20, Left:=40 when the intended position is top 20, left 40 (#98).
+- 2026-10-31 `stdImage` NOTE - Remove mandatory Excel type references from the core class: ToSheet's ws and compress parameters are now Object and Long rather than Worksheet and MsoPictureCompress. Existing worksheet/enum arguments, parameter names/order, and compression default 0 remain accepted; no call-site migration is needed. Existing enum values and return types are retained; ToBinary returns a zero-based Byte array. URL loading keeps default WinHTTP proxy behaviour; use stdHTTP response bytes for custom proxy/authentication/timeout handling. Loading rasterises the first frame against the selected background (black by default); animation, alpha, vector content and metadata are not retained (#98).
+- 2026-10-31 `stdImage-tests` DEV - Add disposable Excel/Word fixtures and regression coverage for format/MIME round-trips, malformed input, nonzero byte-array bounds, transparency, encoder settings, picture/clipboard lifetimes, worksheet placement, temporary files and GDI resource stability. The runner checks CRLF before import, monitors owned Office dialogs, and restores registry settings and clipboard contents. Verified on 64-bit Office; 32-bit/legacy VBA runtime coverage remains unverified (#98).
