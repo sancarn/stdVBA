@@ -16649,6 +16649,74 @@
         "isStatic": false
       },
       {
+        "name": "Subclass",
+        "description": "Install or replace this wrapper's subclass callback on its owning thread.",
+        "remarks": [
+          "Keep this stdWindow instance alive while receiving messages. A native EbMode guard forwards in break mode and detaches when design/reset mode is observed, without entering VBA.",
+          "When EbMode is not exported, its pointer is discovered from a validated VBE call-engine template. No VBProject access, symbols, downloads or external helper classes are required; unsupported layouts fail installation when IDE safety is enabled.",
+          "Use Unsubclass for deterministic cleanup. The guard cannot protect an already executing callback or infer an unobserved reset; avoid End/Reset inside callbacks. Abrupt reset may retain guard memory until Office exits.",
+          "Multiple wrappers can independently subclass the same window. WM_NCDESTROY always detaches and forwards, even if the callback returns a value.",
+          "Callback errors are recorded in SubclassErrorNumber/Description and the message is forwarded. Installation clears the recorded error.",
+          "The callback receives a zero-based VBA-owned array through RunEx and may resize or retain its arguments."
+        ],
+        "examples": [
+          "```vb\r\nDim wnd As stdWindow: Set wnd = stdWindow.CreateFromIUnknown(MyForm)\r\nwnd.Subclass stdCallback.CreateFromModule(\"MyModule\", \"OnWindowMessage\")\r\n'OnWindowMessage returns Empty for messages it does not handle.\r\n'For deterministic cleanup before closing the form:\r\nwnd.Unsubclass\r\n```"
+        ],
+        "params": [
+          {
+            "name": "callback",
+            "type": "stdICallable<(hwnd: LongPtr, message: Long, wParam: LongPtr, lParam: LongPtr)=>Variant>",
+            "description": "Return Empty to forward, or a pointer-sized integer (including zero) to handle the message.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "enableIDEsafety",
+            "type": "Boolean",
+            "description": "Check EbMode before entering VBA. False permits callbacks between macros, including modeless forms, but requires explicit Unsubclass before break/reset/End.",
+            "optional": true,
+            "defaultValue": "True",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "Unsubclass",
+        "description": "Remove only this wrapper's subclass. Repeated calls are harmless.",
+        "remarks": [
+          "Safe to call from the callback. Also called when this wrapper terminates and on WM_NCDESTROY."
+        ],
+        "examples": [],
+        "params": [],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
         "name": "Redraw",
         "description": "Redraw the window",
         "remarks": [],
@@ -16670,7 +16738,9 @@
       {
         "name": "SendMessage",
         "description": "Sends a message to the window",
-        "remarks": [],
+        "remarks": [
+          "VBA7 preserves pointer-sized parameters and results, including on 64-bit Office."
+        ],
         "examples": [],
         "params": [
           {
@@ -16684,7 +16754,7 @@
           },
           {
             "name": "wParam",
-            "type": "Long",
+            "type": "LongPtr",
             "description": "wParam to send",
             "optional": false,
             "defaultValue": null,
@@ -16693,7 +16763,7 @@
           },
           {
             "name": "lParam",
-            "type": "Long",
+            "type": "LongPtr",
             "description": "lParam to send",
             "optional": false,
             "defaultValue": null,
@@ -16702,7 +16772,7 @@
           }
         ],
         "returns": {
-          "type": "Long",
+          "type": "LongPtr",
           "description": "Result of SendMessage"
         },
         "deprecation": {
@@ -16720,7 +16790,9 @@
       {
         "name": "PostMessage",
         "description": "Posts a message to the window",
-        "remarks": [],
+        "remarks": [
+          "VBA7 preserves pointer-sized parameters, including on 64-bit Office."
+        ],
         "examples": [],
         "params": [
           {
@@ -16734,7 +16806,7 @@
           },
           {
             "name": "wParam",
-            "type": "Long",
+            "type": "LongPtr",
             "description": "wParam to post",
             "optional": false,
             "defaultValue": null,
@@ -16743,7 +16815,7 @@
           },
           {
             "name": "lParam",
-            "type": "Long",
+            "type": "LongPtr",
             "description": "lParam to post",
             "optional": false,
             "defaultValue": null,
@@ -17595,7 +17667,7 @@
         "params": [],
         "returns": {
           "type": "stdWindow",
-          "description": ""
+          "description": "Owner window, or Nothing when unowned. Assign Nothing to remove the owner."
         },
         "deprecation": {
           "status": false,
@@ -17661,7 +17733,9 @@
         "name": "Style",
         "access": "ReadWrite",
         "description": "Get/Set the style of the window",
-        "remarks": [],
+        "remarks": [
+          "Changes refresh the window's non-client frame immediately."
+        ],
         "examples": [],
         "params": [],
         "returns": {
@@ -17707,7 +17781,9 @@
         "name": "StyleEx",
         "access": "ReadWrite",
         "description": "Get/Set the extended style of the window",
-        "remarks": [],
+        "remarks": [
+          "Changes refresh the window's non-client frame immediately."
+        ],
         "examples": [],
         "params": [],
         "returns": {
@@ -18084,6 +18160,33 @@
         "isStatic": false
       },
       {
+        "name": "isTaskbarVisible",
+        "access": "ReadWrite",
+        "description": "Get/Set whether the window is eligible for a taskbar button.",
+        "remarks": [
+          "Hidden windows still return their configured eligibility. Child windows always return False.",
+          "The setter hides a visible window, changes APPWINDOW/TOOLWINDOW, and shows it without activation. The owner is preserved.",
+          "Hiding the taskbar button also removes the window from Alt+Tab. This does not query Explorer or pinned/grouped buttons."
+        ],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Boolean",
+          "description": "True when a visible top-level window would have a taskbar button according to its styles and owner."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
         "name": "isToolWindow",
         "access": "ReadWrite",
         "description": "Get/Set whether the window is a tool window",
@@ -18285,6 +18388,75 @@
         "returns": {
           "type": "Object<Shell.IWebBrowser2|Nothing>",
           "description": "Shell Window COM object"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "isSubclassed",
+        "access": "ReadOnly",
+        "description": "Whether this wrapper currently has a subclass installed.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Boolean",
+          "description": "True while this wrapper's native subclass is installed, including during break mode. Design/reset detachment and window destruction return False."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "SubclassErrorNumber",
+        "access": "ReadOnly",
+        "description": "Last callback error number, or zero if no callback error has occurred since installation.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Long",
+          "description": "Last callback or result-conversion error number, or zero when none has occurred."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "SubclassErrorDescription",
+        "access": "ReadOnly",
+        "description": "Description of the last callback error since installation.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "String",
+          "description": "Last callback or result-conversion error description, or an empty string when none has occurred."
         },
         "deprecation": {
           "status": false,

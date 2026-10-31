@@ -1,5 +1,11 @@
 # Changelog
 
+* 2026-10-31 FEATURE - stdWindow guards subclass callbacks natively in break/design mode and discovers internal EbMode through validated VBE engine templates without VBOM access; the enableIDEsafety opt-out supports modeless callbacks between macros with explicit lifecycle cleanup (#86).
+
+* 2026-10-31 FEATURE - stdWindow adds taskbar visibility and stdICallable-based window subclassing with x86/x64 native thunks, callback chaining, error reporting, and destruction cleanup (#86).
+* 2026-10-31 FIX - stdWindow refreshes changed window frames and preserves pointer-sized message arguments, results, and icon handles (#86).
+* 2026-10-31 BREAKING - stdWindow.owner now returns Nothing for unowned windows rather than a wrapper for handle zero; assigning Nothing clears the owner, and setOwnerHandle rejects child windows (#86).
+
 * 2026-10-31 FIX - stdHTTP async completion accepts empty responses and propagates terminal transport errors and bounded timeouts (#121).
 
 Change log shall be a bullet point list. All changes will be of the format:

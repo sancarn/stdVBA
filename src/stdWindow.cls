@@ -7,6 +7,7 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+Implements stdICallable
  
 '@class stdWindow
 '@description A class for managing windows
@@ -65,6 +66,8 @@ Attribute VB_Exposed = False
 '   [X] Get/Let isTopmost() as Boolean   'AlwaysOnTop
 '
 ' INSTANCE METHODS
+'   [X] Subclass(callback as stdICallable, enableIDEsafety? as Boolean = True)
+'   [X] Unsubclass()
 '   [ ] SetHook(idHook, hook, hInstance, dwThreadID) as LongPtr
 '   [X] Redraw()
 '   [X] SendMessage(wMsg, wParam, lParam)
@@ -401,6 +404,27 @@ Private Type tGUID
 End Type
 
 #If VBA7 Then
+  Private Declare PtrSafe Function SetWindowSubclass Lib "comctl32" (ByVal hwnd As LongPtr, ByVal pfnSubclass As LongPtr, ByVal uIdSubclass As LongPtr, ByVal dwRefData As LongPtr) As Long
+  Private Declare PtrSafe Function RemoveWindowSubclass Lib "comctl32" (ByVal hwnd As LongPtr, ByVal pfnSubclass As LongPtr, ByVal uIdSubclass As LongPtr) As Long
+  Private Declare PtrSafe Function GetWindowSubclass Lib "comctl32" (ByVal hwnd As LongPtr, ByVal pfnSubclass As LongPtr, ByVal uIdSubclass As LongPtr, ByRef dwRefData As LongPtr) As Long
+  Private Declare PtrSafe Function DefSubclassProc Lib "comctl32" (ByVal hwnd As LongPtr, ByVal uMsg As Long, ByVal wParam As LongPtr, ByVal lParam As LongPtr) As LongPtr
+  Private Declare PtrSafe Function VirtualAlloc Lib "kernel32" (ByVal address As LongPtr, ByVal size As LongPtr, ByVal allocationType As Long, ByVal protect As Long) As LongPtr
+  Private Declare PtrSafe Function VirtualProtect Lib "kernel32" (ByVal address As LongPtr, ByVal size As LongPtr, ByVal protect As Long, ByRef oldProtect As Long) As Long
+  Private Declare PtrSafe Function VirtualFree Lib "kernel32" (ByVal address As LongPtr, ByVal size As LongPtr, ByVal freeType As Long) As Long
+  Private Declare PtrSafe Function VirtualQuery Lib "kernel32" (ByVal address As LongPtr, buffer As Any, ByVal size As LongPtr) As LongPtr
+  Private Declare PtrSafe Function ReadProcessMemory Lib "kernel32" (ByVal process As LongPtr, ByVal address As LongPtr, ByVal buffer As LongPtr, ByVal size As LongPtr, ByRef bytesRead As LongPtr) As Long
+  Private Declare PtrSafe Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (destination As Any, source As Any, ByVal size As LongPtr)
+  Private Declare PtrSafe Function LoadLibraryA Lib "kernel32" (ByVal name As String) As LongPtr
+  Private Declare PtrSafe Function FreeLibrary Lib "kernel32" (ByVal handle As LongPtr) As Long
+  Private Declare PtrSafe Function GetProcAddress Lib "kernel32" (ByVal handle As LongPtr, ByVal name As String) As LongPtr
+  Private Declare PtrSafe Function GetModuleHandleA Lib "kernel32" (ByVal name As String) As LongPtr
+  Private Declare PtrSafe Function GetCurrentProcess Lib "kernel32" () As LongPtr
+  Private Declare PtrSafe Function FlushInstructionCache Lib "kernel32" (ByVal process As LongPtr, ByVal address As LongPtr, ByVal size As LongPtr) As Long
+  Private Declare PtrSafe Sub SetLastError Lib "kernel32" (ByVal code As Long)
+  #If Win64 Then
+    Private Declare PtrSafe Function RtlAddFunctionTable Lib "kernel32" (ByVal table As LongPtr, ByVal count As Long, ByVal base As LongLong) As Long
+    Private Declare PtrSafe Function RtlDeleteFunctionTable Lib "kernel32" (ByVal table As LongPtr) As Long
+  #End If
   'Constructors
   Private Declare PtrSafe Function GetDesktopWindow Lib "user32" () As LongPtr
   Private Declare PtrSafe Function IUnknown_GetWindow Lib "shlwapi" Alias "#172" (ByVal pIUnk As IUnknown, ByVal hwnd As LongPtr) As Long
@@ -423,10 +447,22 @@ End Type
   Private Declare PtrSafe Function SetParent Lib "user32" (ByVal hwnd As LongPtr, ByVal hWndParent As LongPtr) As LongPtr
   Private Declare PtrSafe Function GetWindowDC Lib "user32" (ByVal hwnd As LongPtr) As LongPtr
   Private Declare PtrSafe Function GetWindowLongA Lib "user32" (ByVal hwnd As LongPtr, ByVal nIndex As apiWindowLongType) As Long
+  #If Win64 Then
   Private Declare PtrSafe Function GetWindowLongPtrA Lib "user32" (ByVal hwnd As LongPtr, ByVal nIndex As apiWindowLongType) As LongPtr
+  #Else
+  Private Declare PtrSafe Function GetWindowLongPtrA Lib "user32" Alias "GetWindowLongA" (ByVal hwnd As LongPtr, ByVal nIndex As apiWindowLongType) As LongPtr
+  #End If
   Private Declare PtrSafe Function SetWindowLongA Lib "user32" (ByVal hwnd As LongPtr, ByVal nIndex As apiWindowLongType, ByVal dwNewLong As Long) As Long
-  Private Declare PtrSafe Function SetWindowLongPtrA Lib "user32" (ByVal hwnd As LongPtr, ByVal nIndex As apiWindowLongType, ByVal dwNewPtr As LongPtr) As Long
+  #If Win64 Then
+  Private Declare PtrSafe Function SetWindowLongPtrA Lib "user32" (ByVal hwnd As LongPtr, ByVal nIndex As apiWindowLongType, ByVal dwNewPtr As LongPtr) As LongPtr
+  #Else
+  Private Declare PtrSafe Function SetWindowLongPtrA Lib "user32" Alias "SetWindowLongA" (ByVal hwnd As LongPtr, ByVal nIndex As apiWindowLongType, ByVal dwNewPtr As LongPtr) As LongPtr
+  #End If
+  #If Win64 Then
   Private Declare PtrSafe Function GetClassLongPtrA Lib "user32" (ByVal hwnd As LongPtr, ByVal nIndex As apiClassLongType) As LongPtr
+  #Else
+  Private Declare PtrSafe Function GetClassLongPtrA Lib "user32" Alias "GetClassLongA" (ByVal hwnd As LongPtr, ByVal nIndex As apiClassLongType) As LongPtr
+  #End If
   Private Declare PtrSafe Function GetAncestor Lib "user32" (ByVal hwnd As LongPtr, ByVal nIndex As apiWindowAncestorType) As LongPtr
   Private Declare PtrSafe Function FindWindowExA Lib "user32" (ByVal hwnd As LongPtr, ByVal hwndChildAfter As LongPtr, ByVal lpszClass As String, ByVal lpszWindow As String) As LongPtr
   Private Declare PtrSafe Function SetWindowPos Lib "user32" (ByVal hwnd As LongPtr, ByVal hwndInsertAfter As LongPtr, ByVal x As Long, ByVal y As Long, ByVal width As Long, ByVal height As Long, ByVal flags As Long) As Long
@@ -453,7 +489,7 @@ End Type
   Private Declare PtrSafe Function SetLayeredWindowAttributes Lib "user32" (ByVal hwnd As LongPtr, ByVal crKey As Long, ByVal bAlpha As Byte, ByVal dwFlags As Long) As Long
 
   'Automating windows
-  Private Declare PtrSafe Function SendMessageA Lib "user32" (ByVal hwnd As LongPtr, ByVal wMsg As Long, ByVal wParam As Any, ByVal lParam As Any) As Long
+  Private Declare PtrSafe Function SendMessageA Lib "user32" (ByVal hwnd As LongPtr, ByVal wMsg As Long, ByVal wParam As Any, ByVal lParam As Any) As LongPtr
   Private Declare PtrSafe Function PostMessageA Lib "user32" (ByVal hwnd As LongPtr, ByVal wMsg As Long, ByVal wParam As Any, ByVal lParam As Any) As Long
   Private Declare PtrSafe Function ShowWindow Lib "user32" (ByVal hwnd As LongPtr, ByVal nCmdShow As EWndShowStyle) As Long
   Private Declare PtrSafe Function BringWindowToTop Lib "user32" (ByVal hwnd As LongPtr) As Long
@@ -479,6 +515,23 @@ End Type
   Private Enum LongPtr
     [_]
   End Enum
+  Private Declare Function SetWindowSubclass Lib "comctl32" (ByVal hwnd As Long, ByVal pfnSubclass As Long, ByVal uIdSubclass As Long, ByVal dwRefData As Long) As Long
+  Private Declare Function RemoveWindowSubclass Lib "comctl32" (ByVal hwnd As Long, ByVal pfnSubclass As Long, ByVal uIdSubclass As Long) As Long
+  Private Declare Function GetWindowSubclass Lib "comctl32" (ByVal hwnd As Long, ByVal pfnSubclass As Long, ByVal uIdSubclass As Long, ByRef dwRefData As Long) As Long
+  Private Declare Function DefSubclassProc Lib "comctl32" (ByVal hwnd As Long, ByVal uMsg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
+  Private Declare Function VirtualAlloc Lib "kernel32" (ByVal address As Long, ByVal size As Long, ByVal allocationType As Long, ByVal protect As Long) As Long
+  Private Declare Function VirtualProtect Lib "kernel32" (ByVal address As Long, ByVal size As Long, ByVal protect As Long, ByRef oldProtect As Long) As Long
+  Private Declare Function VirtualFree Lib "kernel32" (ByVal address As Long, ByVal size As Long, ByVal freeType As Long) As Long
+  Private Declare Function VirtualQuery Lib "kernel32" (ByVal address As Long, buffer As Any, ByVal size As Long) As Long
+  Private Declare Function ReadProcessMemory Lib "kernel32" (ByVal process As Long, ByVal address As Long, ByVal buffer As Long, ByVal size As Long, ByRef bytesRead As Long) As Long
+  Private Declare Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (destination As Any, source As Any, ByVal size As Long)
+  Private Declare Function LoadLibraryA Lib "kernel32" (ByVal name As String) As Long
+  Private Declare Function FreeLibrary Lib "kernel32" (ByVal handle As Long) As Long
+  Private Declare Function GetProcAddress Lib "kernel32" (ByVal handle As Long, ByVal name As String) As Long
+  Private Declare Function GetModuleHandleA Lib "kernel32" (ByVal name As String) As Long
+  Private Declare Function GetCurrentProcess Lib "kernel32" () As Long
+  Private Declare Function FlushInstructionCache Lib "kernel32" (ByVal process As Long, ByVal address As Long, ByVal size As Long) As Long
+  Private Declare Sub SetLastError Lib "kernel32" (ByVal code As Long)
   'Constructors
   Private Declare Function GetDesktopWindow Lib "user32" () As LongPtr
   Private Declare Function IUnknown_GetWindow Lib "shlwapi" Alias "#172" (ByVal pIUnk As IUnknown, ByVal hwnd As LongPtr) As Long
@@ -501,10 +554,10 @@ End Type
   Private Declare Function SetParent Lib "user32" (ByVal hwnd As LongPtr, ByVal hWndParent As LongPtr) As LongPtr
   Private Declare Function GetWindowDC Lib "user32" (ByVal hwnd As LongPtr) As LongPtr
   Private Declare Function GetWindowLongA Lib "user32" (ByVal hwnd As LongPtr, ByVal nIndex As apiWindowLongType) As Long
-  Private Declare Function GetWindowLongPtrA Lib "user32" (ByVal hwnd As LongPtr, ByVal nIndex As apiWindowLongType) As LongPtr
+  Private Declare Function GetWindowLongPtrA Lib "user32" Alias "GetWindowLongA" (ByVal hwnd As LongPtr, ByVal nIndex As apiWindowLongType) As LongPtr
   Private Declare Function SetWindowLongA Lib "user32" (ByVal hwnd As LongPtr, ByVal nIndex As apiWindowLongType, ByVal dwNewLong As Long) As Long
-  Private Declare Function SetWindowLongPtrA Lib "user32" (ByVal hwnd As LongPtr, ByVal nIndex As apiWindowLongType, ByVal dwNewPtr As LongPtr) As Long
-  Private Declare Function GetClassLongPtrA Lib "user32" (ByVal hwnd As LongPtr, ByVal nIndex As apiClassLongType) As LongPtr
+  Private Declare Function SetWindowLongPtrA Lib "user32" Alias "SetWindowLongA" (ByVal hwnd As LongPtr, ByVal nIndex As apiWindowLongType, ByVal dwNewPtr As LongPtr) As Long
+  Private Declare Function GetClassLongPtrA Lib "user32" Alias "GetClassLongA" (ByVal hwnd As LongPtr, ByVal nIndex As apiClassLongType) As LongPtr
   Private Declare Function GetAncestor Lib "user32" (ByVal hwnd As LongPtr, ByVal nIndex As apiWindowAncestorType) As LongPtr
   Private Declare Function FindWindowExA Lib "user32" (ByVal hwnd As LongPtr, ByVal hwndChildAfter As LongPtr, ByVal lpszClass As String, ByVal lpszWindow As String) As LongPtr
   Private Declare Function SetWindowPos Lib "user32" (ByVal hwnd As LongPtr, ByVal hwndInsertAfter As LongPtr, ByVal x As Long, ByVal y As Long, ByVal width As Long, ByVal height As Long, ByVal flags As Long) As Long
@@ -561,12 +614,24 @@ Private Type TLayeredWindowInfo
   bAlpha As Byte
 End Type
 
+Private Type TSingleton
+  SubclassThunk As LongPtr
+  EbMode As LongPtr
+  SubclassLibrary As LongPtr
+  SubclassUnwindRegistered As Boolean
+End Type
+
 Private Type TThis
   Handle As LongPtr
   Initialized As Boolean
   LayeredWindowInfo As TLayeredWindowInfo
   Lookups As Object
   isCreatedByVBA As Boolean
+  SubclassCallback As stdICallable
+  SubclassInstalled As Boolean
+  SubclassErrorNumber As Long
+  SubclassErrorDescription As String
+  Singleton As TSingleton
 End Type
 Private This As TThis
 
@@ -631,6 +696,9 @@ End Function
 
 'Whenever object is destroyed, destroy window if it was created by VBA
 Private Sub Class_Terminate()
+  On Error Resume Next
+  If This.SubclassInstalled Then Call Unsubclass
+  If This.Singleton.SubclassThunk <> 0 Then Call protReleaseSubclassThunk(False)
   If This.isCreatedByVBA Then
     If This.Handle <> 0 Then Call DestroyWindow(This.Handle)
   End If
@@ -1213,18 +1281,22 @@ Public Property Set parent(ByVal win As stdWindow)
 End Property
 
 'Get/Set the owner of the window.
+'@returns - Owner window, or Nothing when unowned. Assign Nothing to remove the owner.
 '@remark - The owner is not the same as the parent. See: Raymond Chen's article: https://devblogs.microsoft.com/oldnewthing/20100315-00/?p=14613
 Public Property Get owner() As stdWindow
-  Dim tOwner As LongPtr: tOwner = GetWindowLongPtrA(This.Handle, apiWindowLongType.GWL_HWNDPARENT)
-  Set owner = stdWindow.CreateFromHwnd(tOwner)
+  If Not Exists Then Err.Raise 1, "owner", "Window does not exist."
+  Dim tOwner As LongPtr: tOwner = GetWindow(This.Handle, apiWindowRelationship.GW_OWNER)
+  If tOwner <> 0 Then Set owner = stdWindow.CreateFromHwnd(tOwner)
 End Property
 Public Property Set owner(ByVal win As stdWindow)
   If Not Exists Then
     Err.Raise 1, "Owner [Set]", "Window does not exist."
+  ElseIf win Is Nothing Then
+    Call setOwnerHandle(0)
   ElseIf Not win.Exists Then
     Err.Raise 1, "Owner [Set]", "New owner window no longer exists."
   Else
-    Call SetWindowLongPtrA(This.Handle, apiWindowLongType.GWL_HWNDPARENT, win.handle)
+    Call setOwnerHandle(win.handle)
   End If
 End Property
 
@@ -1233,7 +1305,14 @@ End Property
 '@remark - The owner is not the same as the parent. See: Raymond Chen's article: https://devblogs.microsoft.com/oldnewthing/20100315-00/?p=14613.
 'Calling `stdWindow.CreateFromIUnknown(Me).setOwnerHandle(0)` is especially useful, as it raises the Excel Userform to a top level window.
 Public Sub setOwnerHandle(ByVal hwnd As LongPtr)
-  Call SetWindowLongPtrA(This.Handle, apiWindowLongType.GWL_HWNDPARENT, hwnd)
+  If Not Exists Then Err.Raise 1, "setOwnerHandle", "Window does not exist."
+  If isChildWindow Then Err.Raise 5, "setOwnerHandle", "Child windows have a parent, not an owner."
+  If hwnd <> 0 Then
+    If IsWindow(hwnd) = 0 Then Err.Raise 5, "setOwnerHandle", "Owner window does not exist."
+  End If
+  Call SetLastError(0)
+  Dim previous As LongPtr: previous = SetWindowLongPtrA(This.Handle, apiWindowLongType.GWL_HWNDPARENT, hwnd)
+  If previous = 0 And Err.LastDllError <> 0 Then Err.Raise 1, "setOwnerHandle", "Could not change owner."
 End Sub
 
 'Get/Set a handle to the icon of the window
@@ -1253,8 +1332,8 @@ Public Property Get HICON() As LongPtr
 End Property
 Public Property Let HICON(ByVal v As LongPtr)
   If Exists Then
-    Call SendMessage(apiWindowMessage.WM_SETICON, apiWindowIconType.ICON_BIG, CLng(v))
-    Call SendMessage(apiWindowMessage.WM_SETICON, apiWindowIconType.ICON_SMALL, CLng(v))
+    Call SendMessage(apiWindowMessage.WM_SETICON, apiWindowIconType.ICON_BIG, v)
+    Call SendMessage(apiWindowMessage.WM_SETICON, apiWindowIconType.ICON_SMALL, v)
   Else
     Err.Raise 1, "HICON [Let]", "Window does not exist."
   End If
@@ -1272,6 +1351,7 @@ End Property
 
 'Get/Set the style of the window
 '@returns - Window style
+'@remark Changes refresh the window's non-client frame immediately.
 Public Property Get Style() As Long
   If Exists Then
     Style = GetWindowLongA(This.Handle, apiWindowLongType.GWL_STYLE)
@@ -1283,12 +1363,14 @@ Public Property Let Style(ByVal newStyle As Long)
   If Exists Then
     'Clear Error. See return value at https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowlonga
     Err.Clear
+    Call SetLastError(0)
 
     'Set window long
     Dim hResult As Long: hResult = SetWindowLongA(This.Handle, apiWindowLongType.GWL_STYLE, newStyle)
 
     'Check for errors
     If hResult = 0 And Err.LastDllError <> 0 Then Err.Raise 1, "Style [Let]", "Unexpected error in SetWindowLongA", Err.LastDllError
+    Call RefreshFrame
   Else
     Err.Raise 1, "Style [Let]", "Window does not exist."
   End If
@@ -1310,6 +1392,7 @@ End Property
 
 'Get/Set the extended style of the window
 '@returns - Window extended style
+'@remark Changes refresh the window's non-client frame immediately.
 Public Property Get StyleEx() As Long
   If Exists Then
     StyleEx = GetWindowLongA(This.Handle, apiWindowLongType.GWL_EXSTYLE)
@@ -1321,12 +1404,14 @@ Public Property Let StyleEx(ByVal newStyle As Long)
   If Exists Then
     'Clear Error. See return value at https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowlonga
     Err.Clear
+    Call SetLastError(0)
 
     'Set window long
     Dim hResult As Long: hResult = SetWindowLongA(This.Handle, apiWindowLongType.GWL_EXSTYLE, newStyle)
 
     'Check for errors
     If hResult = 0 And Err.LastDllError <> 0 Then Err.Raise 1, "StyleEx [Let]", "Unexpected error in SetWindowLongA", Err.LastDllError
+    Call RefreshFrame
   Else
     Err.Raise 1, "StyleEx [Let]", "Window does not exist."
   End If
@@ -1531,6 +1616,36 @@ Public Property Get isAppWindow() As Boolean
 End Property
 Public Property Let isAppWindow(ByVal v As Boolean)
   StyleEx = bitFlagSet(StyleEx, EWndExStyles.WS_EX_APPWINDOW, v)
+End Property
+
+'Get/Set whether the window is eligible for a taskbar button.
+'@returns - True when a visible top-level window would have a taskbar button according to its styles and owner.
+'@remark Hidden windows still return their configured eligibility. Child windows always return False.
+'@remark The setter hides a visible window, changes APPWINDOW/TOOLWINDOW, and shows it without activation. The owner is preserved.
+'@remark Hiding the taskbar button also removes the window from Alt+Tab. This does not query Explorer or pinned/grouped buttons.
+Public Property Get isTaskbarVisible() As Boolean
+  If isChildWindow Then Exit Property
+  If isAppWindow Then
+    isTaskbarVisible = True
+  ElseIf Not isToolWindow Then
+    isTaskbarVisible = (GetWindow(This.Handle, apiWindowRelationship.GW_OWNER) = 0)
+  End If
+End Property
+Public Property Let isTaskbarVisible(ByVal v As Boolean)
+  If isChildWindow Then Err.Raise 5, "isTaskbarVisible", "Taskbar buttons require a top-level window."
+  Dim newStyle As Long: newStyle = bitFlagSet(StyleEx, WS_EX_APPWINDOW, v)
+  newStyle = bitFlagSet(newStyle, WS_EX_TOOLWINDOW, Not v)
+  Dim wasVisible As Boolean: wasVisible = Visible
+  On Error GoTo Failed
+  If wasVisible Then Call ShowWindow(This.Handle, SW_HIDE)
+  StyleEx = newStyle
+  If wasVisible Then Call ShowWindow(This.Handle, SW_SHOWNA)
+  Exit Property
+Failed:
+  Dim number As Long: number = Err.Number
+  Dim description As String: description = Err.Description
+  If wasVisible Then Call ShowWindow(This.Handle, SW_SHOWNA)
+  Err.Raise number, "isTaskbarVisible", description
 End Property
 
 'Get/Set whether the window is a tool window
@@ -1920,6 +2035,421 @@ Public Function GetDescendents() As Collection
   Set GetDescendents = c
 End Function
 
+'Install or replace this wrapper's subclass callback on its owning thread.
+'@param callback as stdICallable<(hwnd: LongPtr, message: Long, wParam: LongPtr, lParam: LongPtr)=>Variant> - Return Empty to forward, or a pointer-sized integer (including zero) to handle the message.
+'@param enableIDEsafety - Check EbMode before entering VBA. False permits callbacks between macros, including modeless forms, but requires explicit Unsubclass before break/reset/End.
+'@remark Keep this stdWindow instance alive while receiving messages. A native EbMode guard forwards in break mode and detaches when design/reset mode is observed, without entering VBA.
+'@remark When EbMode is not exported, its pointer is discovered from a validated VBE call-engine template. No VBProject access, symbols, downloads or external helper classes are required; unsupported layouts fail installation when IDE safety is enabled.
+'@remark Use Unsubclass for deterministic cleanup. The guard cannot protect an already executing callback or infer an unobserved reset; avoid End/Reset inside callbacks. Abrupt reset may retain guard memory until Office exits.
+'@remark Multiple wrappers can independently subclass the same window. WM_NCDESTROY always detaches and forwards, even if the callback returns a value.
+'@remark Callback errors are recorded in SubclassErrorNumber/Description and the message is forwarded. Installation clears the recorded error.
+'@remark The callback receives a zero-based VBA-owned array through RunEx and may resize or retain its arguments.
+'@example ```vb
+'Dim wnd As stdWindow: Set wnd = stdWindow.CreateFromIUnknown(MyForm)
+'wnd.Subclass stdCallback.CreateFromModule("MyModule", "OnWindowMessage")
+''OnWindowMessage returns Empty for messages it does not handle.
+''For deterministic cleanup before closing the form:
+'wnd.Unsubclass
+'```
+Public Sub Subclass(ByVal callback As stdICallable, Optional ByVal enableIDEsafety As Boolean = True)
+  If callback Is Nothing Then Err.Raise 5, "Subclass", "A callback is required."
+  If Not Exists Then Err.Raise 5, "Subclass", "Window does not exist."
+  Dim process As Long
+  If GetWindowThreadProcessId(This.Handle, process) <> GetCurrentThreadId() Then
+    Err.Raise 5, "Subclass", "Only windows on the current thread can be subclassed."
+  End If
+  Dim installed As Boolean: installed = isSubclassed
+  Dim bridge As stdICallable: Set bridge = Me
+  Dim thunk As LongPtr: thunk = stdWindow.protGetSubclassThunk(enableIDEsafety)
+  'COM interface pointers are pointer-aligned. The low reference-data bit is
+  'used only as the per-registration opt-out flag and cleared before COM calls.
+  Dim referenceData As LongPtr: referenceData = ObjPtr(bridge)
+  If Not enableIDEsafety Then referenceData = referenceData Or 1
+  If SetWindowSubclass(This.Handle, thunk, ObjPtr(Me), referenceData) = 0 Then
+    Call stdWindow.protReleaseSubclassThunk(False)
+    Err.Raise 1, "Subclass", "SetWindowSubclass failed."
+  End If
+  If Not installed Then
+    This.SubclassInstalled = True
+    Call stdWindow.protRetainSubclassThunk
+  End If
+  Set This.SubclassCallback = callback
+  This.SubclassErrorNumber = 0
+  This.SubclassErrorDescription = vbNullString
+End Sub
+
+'Remove only this wrapper's subclass. Repeated calls are harmless.
+'@remark Safe to call from the callback. Also called when this wrapper terminates and on WM_NCDESTROY.
+Public Sub Unsubclass()
+  If isSubclassed Then
+    If RemoveWindowSubclass(This.Handle, stdWindow.protGetSubclassThunk(), ObjPtr(Me)) = 0 Then
+      Err.Raise 1, "Unsubclass", "RemoveWindowSubclass failed."
+    End If
+    This.SubclassInstalled = False
+    Set This.SubclassCallback = Nothing
+    Call stdWindow.protReleaseSubclassThunk(True)
+  Else
+    Call stdWindow.protReleaseSubclassThunk(False)
+  End If
+End Sub
+
+'Whether this wrapper currently has a subclass installed.
+'@returns - True while this wrapper's native subclass is installed, including during break mode. Design/reset detachment and window destruction return False.
+Public Property Get isSubclassed() As Boolean
+  If Not This.SubclassInstalled Then Exit Property
+  Dim referenceData As LongPtr
+  isSubclassed = (GetWindowSubclass(This.Handle, stdWindow.protGetSubclassThunk(), ObjPtr(Me), referenceData) <> 0)
+  If Not isSubclassed Then
+    This.SubclassInstalled = False
+    Set This.SubclassCallback = Nothing
+  End If
+End Property
+
+'Last callback error number, or zero if no callback error has occurred since installation.
+'@returns - Last callback or result-conversion error number, or zero when none has occurred.
+Public Property Get SubclassErrorNumber() As Long
+  SubclassErrorNumber = This.SubclassErrorNumber
+End Property
+
+'Description of the last callback error since installation.
+'@returns - Last callback or result-conversion error description, or an empty string when none has occurred.
+Public Property Get SubclassErrorDescription() As String
+  SubclassErrorDescription = This.SubclassErrorDescription
+End Property
+
+'The native bridge calls the typed interface, avoiding IDispatch and Application.Run.
+Private Function stdICallable_Run(ParamArray params() As Variant) As Variant
+  stdICallable_Run = stdICallable_RunEx(params)
+End Function
+
+Private Function stdICallable_RunEx(ByVal params As Variant) As Variant
+  Const WM_NCDESTROY = &H82
+  'Retain the callback across replacement or removal; the thunk retains Me.
+  Dim callback As stdICallable: Set callback = This.SubclassCallback
+  Dim hwnd As LongPtr: hwnd = params(0)
+  Dim message As Long: message = params(1)
+  Dim wParam As LongPtr: wParam = params(2)
+  Dim lParam As LongPtr: lParam = params(3)
+  On Error GoTo Failed
+  If message = WM_NCDESTROY Then Call Unsubclass
+  Dim result As Variant
+  'Callables may resize or retain their argument array (e.g. stdCallback modules).
+  'Keep their owned VBA array separate from the thunk's stack descriptor.
+  If Not callback Is Nothing Then result = callback.RunEx(Array(hwnd, message, wParam, lParam))
+  If message = WM_NCDESTROY Or IsEmpty(result) Then GoTo Forward
+  #If VBA7 Then
+    stdICallable_RunEx = CLngPtr(result)
+  #Else
+    stdICallable_RunEx = CLng(result)
+  #End If
+  Exit Function
+Failed:
+  This.SubclassErrorNumber = Err.Number
+  This.SubclassErrorDescription = Err.Description
+  'Resume clears the active VBA error handler before the next procedure runs.
+  Resume Forward
+Forward:
+  stdICallable_RunEx = DefSubclassProc(hwnd, message, wParam, lParam)
+End Function
+
+Private Function stdICallable_Bind(ParamArray params() As Variant) As stdICallable
+  Err.Raise 5, "stdWindow.Bind", "The internal subclass bridge cannot be bound."
+End Function
+
+Private Function stdICallable_SendMessage(ByVal sMessage As String, ByRef success As Boolean, ByVal params As Variant) As Variant
+  success = False
+End Function
+
+Friend Sub protRetainSubclassThunk()
+  Dim registrations As Long
+  Call CopyMemory(registrations, ByVal This.Singleton.SubclassThunk + 4100, 4)
+  registrations = registrations + 1
+  Call CopyMemory(ByVal This.Singleton.SubclassThunk + 4100, registrations, 4)
+End Sub
+
+Friend Sub protReleaseSubclassThunk(ByVal releaseRegistration As Boolean)
+  If This.Singleton.SubclassThunk = 0 Then
+    If This.Singleton.SubclassLibrary <> 0 Then Call FreeLibrary(This.Singleton.SubclassLibrary)
+    This.Singleton.SubclassLibrary = 0
+    Exit Sub
+  End If
+  Dim registrations As Long
+  Call CopyMemory(registrations, ByVal This.Singleton.SubclassThunk + 4100, 4)
+  If releaseRegistration Then
+    registrations = registrations - 1
+    Call CopyMemory(ByVal This.Singleton.SubclassThunk + 4100, registrations, 4)
+  End If
+  If registrations <> 0 Then Exit Sub
+  Dim active As Long
+  Call CopyMemory(active, ByVal This.Singleton.SubclassThunk + 4096, 4)
+  'The last wrapper may terminate inside Run. Its native frame must return first.
+  'An idle shared thunk is reclaimed by the next removal or singleton termination.
+  If active <> 0 Then Exit Sub
+  #If Win64 Then
+    If This.Singleton.SubclassUnwindRegistered Then
+      If RtlDeleteFunctionTable(This.Singleton.SubclassThunk + 3072) = 0 Then Exit Sub
+      This.Singleton.SubclassUnwindRegistered = False
+    End If
+  #End If
+  Call VirtualFree(This.Singleton.SubclassThunk, 0, &H8000&)
+  This.Singleton.SubclassThunk = 0
+  If This.Singleton.SubclassLibrary <> 0 Then Call FreeLibrary(This.Singleton.SubclassLibrary)
+  This.Singleton.SubclassLibrary = 0
+End Sub
+
+'Resolve a non-exported EbMode from the VBE Proc/MethCallEngine template.
+'@protected
+'@param runtime - Base address of the loaded VBE module.
+'@returns - A single validated executable function pointer, or zero for unsupported/ambiguous images.
+'@devRemark The call-engine discovery technique is described by The trick in https://github.com/thetrik/VbTrickTimer/blob/master/Class/CTrickTimer.cls (SearchEbMode). This implementation copies readable image data and validates all matching targets instead of aliasing a SAFEARRAY onto executable memory.
+Friend Function protFindEbMode(ByVal runtime As LongPtr) As LongPtr
+  If runtime = 0 Then Exit Function
+  Dim headers(0 To 4095) As Byte
+  Dim read As LongPtr
+  Dim process As LongPtr: process = GetCurrentProcess()
+  If ReadProcessMemory(process, runtime, VarPtr(headers(0)), 4096, read) = 0 Then Exit Function
+  If read <> 4096 Then Exit Function
+  If (ReadImageLong(headers, 0) And &HFFFF&) <> &H5A4D& Then Exit Function
+  Dim pe As Long: pe = ReadImageLong(headers, &H3C)
+  If pe < 64 Or pe > 1024 Then Exit Function
+  If ReadImageLong(headers, pe) <> &H4550& Then Exit Function
+  #If Win64 Then
+    If (ReadImageLong(headers, pe + 4) And &HFFFF&) <> &H8664& Then Exit Function
+    Const magic = &H20B&
+  #Else
+    If (ReadImageLong(headers, pe + 4) And &HFFFF&) <> &H14C& Then Exit Function
+    Const magic = &H10B&
+  #End If
+  Dim sections As Long: sections = ReadImageLong(headers, pe + 6) And &HFFFF&
+  Dim optionalSize As Long: optionalSize = ReadImageLong(headers, pe + 20) And &HFFFF&
+  If sections < 1 Or sections > 96 Or optionalSize < 64 Or optionalSize > 1024 Then Exit Function
+  If (ReadImageLong(headers, pe + 24) And &HFFFF&) <> magic Then Exit Function
+  Dim imageSize As Long: imageSize = ReadImageLong(headers, pe + 80)
+  If imageSize < 4096 Or imageSize > &H20000000 Then Exit Function
+  Dim table As Long: table = pe + 24 + optionalSize
+  If table + sections * 40 > 4096 Then Exit Function
+
+  Dim patternHex As String, pointerOffset As Long, anchorOffset As Long, anchorSize As Long
+  #If Win64 Then
+    patternHex = "48894C240848895424104C894424184C894C242048B81111111111111111480BC0743248B80000000000000000FFD04883F802742048B81111111111111111488B4C2408488B5424104C8B4424184C8B4C2420FFE04833C0C21111"
+    pointerOffset = 37: anchorOffset = 0: anchorSize = 20
+  #Else
+    patternHex = "A1000000000BC07413B800000000FFD083F8027407B811111111FFE033C0C21111"
+    pointerOffset = 10: anchorOffset = 14: anchorSize = 16
+  #End If
+  Dim pattern() As Byte: ReDim pattern(0 To Len(patternHex) / 2 - 1)
+  Dim i As Long
+  For i = 0 To UBound(pattern)
+    pattern(i) = CByte("&H" & Mid$(patternHex, i * 2 + 1, 2))
+  Next
+  Dim anchor As String: anchor = String$(anchorSize / 2, vbNullChar)
+  Call CopyMemory(ByVal StrPtr(anchor), pattern(anchorOffset), anchorSize)
+
+  Dim section As Long, start As Long, size As Long, code As String
+  Dim candidate As LongPtr, found As LongPtr
+  For section = 0 To sections - 1
+    Dim entry As Long: entry = table + section * 40
+    If (ReadImageLong(headers, entry + 36) And &H20000000) <> 0 Then
+      start = ReadImageLong(headers, entry + 12)
+      size = ReadImageLong(headers, entry + 8)
+      If start < 4096 Or size <= 0 Or start >= imageSize Then Exit Function
+      If size > imageSize - start Or size > &H4000000 Then Exit Function
+      code = String$((size + 1) \ 2, vbNullChar)
+      If ReadProcessMemory(process, runtime + start, StrPtr(code), size, read) = 0 Then Exit Function
+      If read <> size Then Exit Function
+      Dim position As Long: position = InStrB(1, code, anchor, vbBinaryCompare)
+      Do While position <> 0
+        Dim offset As Long: offset = position - 1 - anchorOffset
+        If offset >= 0 And offset <= size - UBound(pattern) - 1 Then
+          Dim matches As Boolean: matches = True
+          For i = 0 To UBound(pattern)
+            Dim masked As Boolean: masked = (i >= pointerOffset And i < pointerOffset + LenB(candidate))
+            #If Not Win64 Then
+              masked = masked Or (i >= 1 And i <= 4)
+            #End If
+            If Not masked Then
+              If AscB(MidB$(code, offset + i + 1, 1)) <> pattern(i) Then
+                matches = False
+                Exit For
+              End If
+            End If
+          Next
+          If matches Then
+            Call CopyMemory(candidate, ByVal StrPtr(code) + offset + pointerOffset, LenB(candidate))
+            If Not IsImageExecutableAddress(runtime, headers, table, sections, imageSize, candidate) Then Exit Function
+            If found <> 0 And candidate <> found Then Exit Function
+            found = candidate
+          End If
+        End If
+        position = InStrB(position + 1, code, anchor, vbBinaryCompare)
+      Loop
+    End If
+  Next
+  protFindEbMode = found
+End Function
+
+Private Function ReadImageLong(ByRef bytes() As Byte, ByVal offset As Long) As Long
+  Call CopyMemory(ReadImageLong, bytes(offset), 4)
+End Function
+
+Private Function IsImageExecutableAddress(ByVal runtime As LongPtr, ByRef headers() As Byte, ByVal table As Long, ByVal sections As Long, ByVal imageSize As Long, ByVal address As LongPtr) As Boolean
+  If address < runtime Or address >= runtime + imageSize Then Exit Function
+  Dim rva As Long: rva = CLng(address - runtime)
+  Dim i As Long, start As Long, size As Long
+  For i = 0 To sections - 1
+    Dim entry As Long: entry = table + i * 40
+    If (ReadImageLong(headers, entry + 36) And &H20000000) <> 0 Then
+      start = ReadImageLong(headers, entry + 12)
+      size = ReadImageLong(headers, entry + 8)
+      If start >= 4096 And size > 0 And start < imageSize Then
+        If size <= imageSize - start Then
+          If rva >= start And rva - start < size Then
+            Dim info(0 To 47) As Byte
+            #If Win64 Then
+              Const infoSize = 48, stateOffset = 32, protectOffset = 36
+            #Else
+              Const infoSize = 28, stateOffset = 16, protectOffset = 20
+            #End If
+            If VirtualQuery(address, info(0), infoSize) = 0 Then Exit Function
+            If ReadImageLong(info, stateOffset) <> &H1000& Then Exit Function
+            Dim protection As Long: protection = ReadImageLong(info, protectOffset)
+            If (protection And &H100&) <> 0 Then Exit Function
+            Select Case protection And &HFF&
+              Case &H10, &H20, &H40, &H80: IsImageExecutableAddress = True
+            End Select
+            Exit Function
+          End If
+        End If
+      End If
+    End If
+  Next
+End Function
+
+'Obtain the shared native SUBCLASSPROC bridge.
+'@protected
+'@param requireIDEsafety - Reject a runtime whose EbMode pointer cannot be validated.
+'@returns - Address of the shared native bridge.
+Friend Function protGetSubclassThunk(Optional ByVal requireIDEsafety As Boolean = False) As LongPtr
+  If This.Singleton.SubclassThunk <> 0 Then
+    If requireIDEsafety And This.Singleton.EbMode = 0 Then Err.Raise 1, "stdWindow.Subclass", "Could not validate the VBE EbMode function for this runtime."
+    protGetSubclassThunk = This.Singleton.SubclassThunk
+    Exit Function
+  End If
+  Dim sCode As String
+  'BEGIN GENERATED SUBCLASS THUNKS
+#If Win64 Then
+  sCode = "4881ECD800000048894C2478899424900000004C898424A80000004C898C24C000000031C04889442420488944242848"
+  sCode = sCode & "894424304889442440488944244848894424504889442458488944247048898424800000004889842488000000488984"
+  sCode = sCode & "249800000048898424A000000048898424B000000048898424B800000048898424C800000066C7442470140066C78424"
+  sCode = sCode & "88000000030066C78424A0000000140066C78424B80000001400C744244001001208C744244418000000C74424480100"
+  sCode = sCode & "0000488D4424704889442450C744245804000000488D442440488944246049BA887766554433221141FF02F684240801"
+  sCode = sCode & "000001756548B8AA99887766554433FFD083F801745483F802751181BC2490000000820000000F858E000000488B4C24"
+  sCode = sCode & "7848BA88776655443322114881EA001000004C8B84240001000048B8BBAA998877665544FFD085C0746049BA88776655"
+  sCode = sCode & "4433221141FF4A04EB50488B8C24080100004883E1FE48894C2468488B01FF5008488B4C2468488B01488D5424604C8D"
+  sCode = sCode & "442420FF5038898424D0000000488B4C2468488B01FF50108B8424D000000085C07807488B442428EB28488B4C24788B"
+  sCode = sCode & "9424900000004C8B8424A80000004C8B8C24C000000048B89988776655443322FFD049BA887766554433221141FF0A48"
+  sCode = sCode & "81C4D8000000C3"
+#Else
+  sCode = "5589E581EC8000000031C08945F08945F48945F88945FC8945D88945DC8945E08945E48945E88945EC89459489459889"
+  sCode = sCode & "459C8945A08945A48945A88945AC8945B08945B48945B88945BC8945C08945C48945C88945CC8945D0C7459403000000"
+  sCode = sCode & "C745A403000000C745B403000000C745C4030000008B450889459C8B450C8945AC8B45108945BC8B45148945CCC745D8"
+  sCode = sCode & "01001208C745DC10000000C745E0010000008D45948945E4C745E8040000008D45D88945D4B844332211FF00F6451C01"
+  sCode = sCode & "7540B866554433FFD083F801743483F8027509817D0C820000007561FF7518B8443322112D0010000050FF7508B87766"
+  sCode = sCode & "5544FFD085C07445B844332211FF4804EB3B8B451C83E0FE508B00FF50048D45F0508D45D4508B451C83E0FE508B00FF"
+  sCode = sCode & "501C89458C8B451C83E0FE508B00FF50088B458C85C078058B45F8EB13FF7514FF7510FF750CFF7508B855443322FFD0"
+  sCode = sCode & "BA44332211FF0A89EC5DC21800"
+#End If
+  'END GENERATED SUBCLASS THUNKS
+  Dim code() As Byte: ReDim code(0 To Len(sCode) / 2 - 1)
+  Dim i As Long
+  For i = 0 To UBound(code)
+    code(i) = CByte("&H" & Mid$(sCode, i * 2 + 1, 2))
+  Next
+  On Error GoTo Failed
+  'Use only the runtime already loaded by this host; never load a second VBE.
+  Dim runtime As LongPtr
+  #If VBA7 Then
+    runtime = GetModuleHandleA("vbe7.dll")
+  #Else
+    runtime = GetModuleHandleA("vbe6.dll")
+    If runtime = 0 Then runtime = GetModuleHandleA("vba6.dll")
+  #End If
+  Dim mode As LongPtr
+  mode = This.Singleton.EbMode
+  If mode = 0 And runtime <> 0 Then
+    mode = GetProcAddress(runtime, "EbMode")
+    If mode = 0 Then mode = protFindEbMode(runtime)
+  End If
+  If mode = 0 And requireIDEsafety Then Err.Raise 1, , "Could not validate the VBE EbMode function for this runtime."
+  This.Singleton.EbMode = mode
+  This.Singleton.SubclassLibrary = LoadLibraryA("comctl32.dll")
+  If This.Singleton.SubclassLibrary = 0 Then Err.Raise 1, , "Could not load comctl32."
+  Dim forward As LongPtr: forward = GetProcAddress(This.Singleton.SubclassLibrary, "DefSubclassProc")
+  If forward = 0 Then Err.Raise 1, , "DefSubclassProc is unavailable."
+  Dim remove As LongPtr: remove = GetProcAddress(This.Singleton.SubclassLibrary, "RemoveWindowSubclass")
+  If remove = 0 Then Err.Raise 1, , "RemoveWindowSubclass is unavailable."
+  'One executable page and separate native counters. Native
+  'registration bookkeeping survives the VBA globals being cleared by End.
+  This.Singleton.SubclassThunk = VirtualAlloc(0, 8192, &H3000, &H4)
+  If This.Singleton.SubclassThunk = 0 Then Err.Raise 7, , "Could not allocate the subclass thunk."
+  Dim counter As LongPtr: counter = This.Singleton.SubclassThunk + 4096
+  #If Win64 Then
+    Const pointerSize = 8
+    Dim counterMarker As LongLong: counterMarker = &H1122334455667788^
+    Dim forwardMarker As LongLong: forwardMarker = &H2233445566778899^
+    Dim modeMarker As LongLong: modeMarker = &H33445566778899AA^
+    Dim removeMarker As LongLong: removeMarker = &H445566778899AABB^
+  #Else
+    Const pointerSize = 4
+    Dim counterMarker As Long: counterMarker = &H11223344
+    Dim forwardMarker As Long: forwardMarker = &H22334455
+    Dim modeMarker As Long: modeMarker = &H33445566
+    Dim removeMarker As Long: removeMarker = &H44556677
+  #End If
+  Dim marker As LongPtr
+  For i = 0 To UBound(code) - pointerSize + 1
+    Call CopyMemory(marker, code(i), pointerSize)
+    If marker = counterMarker Then Call CopyMemory(code(i), counter, pointerSize)
+    If marker = forwardMarker Then Call CopyMemory(code(i), forward, pointerSize)
+    If marker = modeMarker Then Call CopyMemory(code(i), mode, pointerSize)
+    If marker = removeMarker Then Call CopyMemory(code(i), remove, pointerSize)
+  Next
+  Call CopyMemory(ByVal This.Singleton.SubclassThunk, code(0), UBound(code) + 1)
+  #If Win64 Then
+    'RUNTIME_FUNCTION and UNWIND_INFO: alloc_large(216), seven-byte prologue.
+    Dim table(0 To 2) As Long
+    table(1) = UBound(code) + 1
+    table(2) = 3100
+    Call CopyMemory(ByVal This.Singleton.SubclassThunk + 3072, table(0), 12)
+    Dim unwind(0 To 7) As Byte
+    unwind(0) = 1: unwind(1) = 7: unwind(2) = 2
+    unwind(4) = 7: unwind(5) = 1: unwind(6) = 27
+    Call CopyMemory(ByVal This.Singleton.SubclassThunk + 3100, unwind(0), 8)
+  #End If
+  Dim oldProtect As Long
+  If VirtualProtect(This.Singleton.SubclassThunk, 4096, &H20, oldProtect) = 0 Then Err.Raise 1, , "Could not protect the subclass thunk."
+  If FlushInstructionCache(GetCurrentProcess(), This.Singleton.SubclassThunk, UBound(code) + 1) = 0 Then Err.Raise 1, , "Could not flush the instruction cache."
+  #If Win64 Then
+    If RtlAddFunctionTable(This.Singleton.SubclassThunk + 3072, 1, This.Singleton.SubclassThunk) = 0 Then Err.Raise 1, , "Could not register thunk unwind information."
+    This.Singleton.SubclassUnwindRegistered = True
+  #End If
+  protGetSubclassThunk = This.Singleton.SubclassThunk
+  Exit Function
+Failed:
+  Dim number As Long: number = Err.Number
+  Dim description As String: description = Err.Description
+  Call protReleaseSubclassThunk(False)
+  Err.Raise number, "stdWindow.Subclass", description
+End Function
+
+Private Sub RefreshFrame()
+  Const SWP_FRAMECHANGED = &H20, SWP_NOMOVE = &H2, SWP_NOSIZE = &H1
+  Const SWP_NOZORDER = &H4, SWP_NOACTIVATE = &H10
+  If SetWindowPos(This.Handle, 0, 0, 0, 0, 0, SWP_FRAMECHANGED Or SWP_NOMOVE Or SWP_NOSIZE Or SWP_NOZORDER Or SWP_NOACTIVATE) = 0 Then
+    Err.Raise 1, "RefreshFrame", "Could not refresh window frame."
+  End If
+End Sub
+
 'Redraw the window
 Public Sub Redraw()
   Const RDW_INVALIDATE = &H1
@@ -1931,7 +2461,12 @@ End Sub
 '@param wParam - wParam to send
 '@param lParam - lParam to send
 '@returns - Result of SendMessage
+'@remark VBA7 preserves pointer-sized parameters and results, including on 64-bit Office.
+#If VBA7 Then
+Public Function SendMessage(ByVal wMsg As Long, ByVal wParam As LongPtr, ByVal lParam As LongPtr) As LongPtr
+#Else
 Public Function SendMessage(ByVal wMsg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
+#End If
   If Exists Then
     SendMessage = SendMessageA(This.Handle, wMsg, wParam, lParam)
   Else
@@ -1943,7 +2478,12 @@ End Function
 '@param wMsg - Message to post
 '@param wParam - wParam to post
 '@param lParam - lParam to post
+'@remark VBA7 preserves pointer-sized parameters, including on 64-bit Office.
+#If VBA7 Then
+Public Sub PostMessage(ByVal wMsg As Long, ByVal wParam As LongPtr, ByVal lParam As LongPtr)
+#Else
 Public Sub PostMessage(ByVal wMsg As Long, ByVal wParam As Long, ByVal lParam As Long)
+#End If
   If Exists Then
     'If desktop then broadcasts
     Dim hwnd As LongPtr: hwnd = This.Handle
