@@ -12540,10 +12540,10 @@
   {
     "name": "stdRefArray",
     "fileName": "stdRefArray.cls",
-    "description": "A class which wraps a VBA array by reference. Use this class to\nefficiently pass large arrays around without copying them.\nBorrowed storage: the source variable must outlive this wrapper and every alias\nreturned by GetData. Temporaries, expired locals and object owners released while\nan alias survives are unsupported. Do not Erase, ReDim or replace the source, or\nassign to public Data, while aliases exist. No ownership is transferred.",
+    "description": "A class which wraps a VBA array by reference. Use this class to\r\nefficiently pass large arrays around without copying them.\r\nBorrowed storage: the source variable must outlive this wrapper and every alias\r\nreturned by GetData. Temporaries, expired locals and object owners released while\r\nan alias survives are unsupported. Do not Erase, ReDim or replace the source, or\r\nassign to public Data, while aliases exist. No ownership is transferred.",
     "remarks": [],
     "examples": [
-      "A simple example of passing an array by reference:\n```vb\nDim arr as Variant: arr = Array(1,2,3,4,5,6,7,8,9,10)\nDim rarr as stdRefArray: set rarr = stdRefArray.Create(arr)\nDebug.Print rarr.Data(1)  '=> 1\nDebug.Print rarr.Data(2)  '=> 2\n```"
+      "A simple example of passing an array by reference:\r\n```vb\r\nDim arr as Variant: arr = Array(1,2,3,4,5,6,7,8,9,10)\r\nDim rarr as stdRefArray: set rarr = stdRefArray.Create(arr)\r\nDebug.Print rarr.Data(1)  '=> 1\r\nDebug.Print rarr.Data(2)  '=> 2\r\n```"
     ],
     "devNotes": [],
     "todos": [],
