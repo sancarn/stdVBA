@@ -304,6 +304,10 @@ Private Type TThis
   HTTP As Object
   ResponseMapper As stdICallable
   Created as Date
+  Started As Double
+  Complete As Boolean
+  FailureNumber As Long
+  FailureDescription As String
   TimeoutMS as Long
   #If Mac Then
     #If VBA7 Then
@@ -408,21 +412,24 @@ End Function
 
 'Await for the request to finish. This is only necessary for asynchronous requests.
 '@returns - The request/response object
+'@remark On Windows, raises the original transport error or error 10000 on the overall timeout.
 Public Function Await() As stdHTTP
   Set Await = Me
   While Not isFinished
-    if This.TimeoutMS > 0 Then
-      If DateDiff("s", This.Created, Now()) > This.TimeoutMS / 1000 Then
-        Err.Raise 10000, "stdHTTP", "Timeout"
-        Exit Function
+    #If Mac Then
+      If This.TimeoutMS > 0 Then
+        If DateDiff("s", This.Created, Now()) > This.TimeoutMS / 1000 Then
+          Err.Raise 10000, "stdHTTP", "Timeout"
+        End If
       End If
-    End If
+    #End If
     VBA.DoEvents
   Wend
 End Function
 
 'Get whether the request has finished. This is only necessary for asynchronous requests.
-'@returns - `True` if the request has finished, `False` otherwise.
+'@returns - True on complete response (including empty bodies), False while pending.
+'@remark On Windows, terminal transport failures and timeouts raise an error; repeated calls raise the same error.
 Public Property Get isFinished() As Boolean
   #If Mac Then
     If Not This.Response.isComplete And This.CurlProcess <> 0 Then
@@ -434,21 +441,29 @@ Public Property Get isFinished() As Boolean
     End If
     isFinished = This.Response.isComplete
   #Else
-    On Error GoTo Skip 'Sometimes `responseBody` and `status` isn't ready yet. So will skip if so
-    If This.HTTP.status = 204 Then 'No content
+    If This.FailureNumber <> 0 Then Err.Raise This.FailureNumber, "stdHTTP", This.FailureDescription
+    If This.Complete Then
       isFinished = True
-    Else
-      Dim testFinished as boolean: testFinished = This.HTTP.WaitForResponse(0.001)
-      if testFinished then
-        Dim bytes: bytes = This.HTTP.ResponseBody()
-        isFinished = bytes(0) >= 0
-      end if
+      Exit Property
     End If
+    On Error GoTo Failed
+    This.Complete = This.HTTP.WaitForResponse(0.001)
+    If Not This.Complete And This.TimeoutMS > 0 Then
+      Dim elapsed As Double: elapsed = Timer - This.Started
+      If elapsed < 0 Then elapsed = elapsed + 86400
+      If elapsed * 1000 >= This.TimeoutMS Then
+        Err.Raise 10000, "stdHTTP", "Request timed out"
+      End If
+    End If
+    isFinished = This.Complete
     Exit Property
-Skip:
-    If Err.Description Like "The data necessary to complete this operation is not yet available*" Then Exit Property
-    
-    Debug.Print "Error in stdHTTP#isFinished: '" & Err.Description & "'"
+Failed:
+    This.FailureNumber = Err.Number
+    This.FailureDescription = Err.Description
+    On Error Resume Next
+    This.HTTP.Abort
+    On Error GoTo 0
+    Err.Raise This.FailureNumber, "stdHTTP", This.FailureDescription
   #End If
 End Property
 
@@ -670,6 +685,7 @@ Friend Sub protInit(ByVal sURL As String, Optional ByVal RequestMethod As String
     If Not Authenticator Is Nothing Then Call Authenticator.Run(This.HTTP, RequestMethod, sURL, ThreadingStyle, options)
     
     'Execute request
+    This.Started = Timer
     This.Created = Now()
     This.TimeoutMS = timeoutMS
     This.HTTP.Send options(stdHTTPOptionBody)
@@ -846,6 +862,7 @@ End Function
     End If
     
     'Execute curl command
+    This.Started = Timer
     This.Created = Now()
     This.TimeoutMS = timeoutMS
     #If VBA7 Then
