@@ -103,6 +103,7 @@ End Type
 Private This as TThis
 
 'Temporarily unprotect an Excel worksheet and restore its original protection options.
+'@constructor
 '@param sheet - Worksheet to unlock; an already unprotected worksheet is left unprotected.
 '@param password - Existing protection password; wrong passwords are raised during creation.
 '@returns - An active sentry. Nested sentries restore protection only at the outermost scope.
@@ -113,11 +114,18 @@ Public Function CreateSheetUnlocker(ByVal sheet As Object, Optional ByVal passwo
 End Function
 
 'Alias matching the original sheet-unlocker example.
+'@constructor
+'@param sheet - Worksheet to unlock; an already unprotected worksheet is left unprotected.
+'@param password - Existing protection password; wrong passwords are raised during creation.
+'@returns - An active sentry with the same restoration behavior as CreateSheetUnlocker.
 Public Function CreateUnlocker(ByVal sheet As Object, Optional ByVal password As String = "") As stdSentry
   Set CreateUnlocker = CreateSheetUnlocker(sheet, password)
 End Function
 
+'Capture worksheet protection options and unlock the worksheet for this sentry.
 '@protected
+'@param sheet - Worksheet whose original protection options will be restored.
+'@param password - Existing protection password, also used when restoring protection.
 Public Sub protInitSheetUnlocker(ByVal sheet As Object, ByVal password As String)
   If sheet Is Nothing Then Err.Raise 5, "stdSentry.CreateSheetUnlocker", "A worksheet is required"
   If Not (sheet.ProtectContents Or sheet.ProtectDrawingObjects Or sheet.ProtectScenarios) Then Exit Sub
