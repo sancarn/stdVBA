@@ -3,6 +3,7 @@ Attribute VB_Name = "stdLambdaTests"
 
 Sub testAll()
     test.Topic "stdLambda"
+    Call TestObjectLocalStackGrowth
     
     On Error Resume Next
     Test.Assert "Arithmetic operations", stdLambda.Create("(3*(2+5)+5*8/2^(2+1))/26").Run()=1
@@ -183,4 +184,26 @@ Sub testAll()
         
         test.assert "Performance cache faster than without", TimeB < TimeA
     end if
+End Sub
+
+'Object locals must survive pushes past the initial stack bounds (5, 10, 20, 40).
+'No error suppression: a default-member or locked-array error must fail the test.
+Public Sub TestObjectLocalStackGrowth()
+    Dim source As String: source = "let original = $1: "
+    Dim i As Long
+    For i = 1 To 64
+        source = source & "let local" & i & " = original: "
+    Next
+    source = source & "local64"
+    Dim lambda As stdLambda: Set lambda = stdLambda.Create(source)
+    Dim objects(0 To 1) As Object
+    Set objects(0) = New Collection 'Item requires an argument.
+    Set objects(1) = stdLambda.Create("1") 'No default member.
+    Dim result As Object, pass As Long, kind As Long
+    For pass = 1 To 5
+        For kind = 0 To 1
+            Set result = lambda.Run(objects(kind))
+            Test.Assert "Object local stack growth identity", result Is objects(kind)
+        Next
+    Next
 End Sub
