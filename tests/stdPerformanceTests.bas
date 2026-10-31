@@ -5,6 +5,30 @@ Const C_MAX as long = 1000
 Sub testAll()
     Test.Topic "stdPerformance"
     
+    stdPerformance.MeasuresClear
+    stdPerformance.AddMeasurement "Fractional", 0.25, 1
+    stdPerformance.AddMeasurement "Fractional", 0.75, 1
+    Test.Assert "Fractional mean", Abs(stdPerformance.Measurement("Fractional") - 0.5) < 0.0000001
+    stdPerformance.AddMeasurement "Fractional", 0.125, 1
+    Test.Assert "Fractional running mean", Abs(stdPerformance.Measurement("Fractional") - 0.375) < 0.0000001
+    stdPerformance.AddMeasurement "Total", 12.5, 5
+    Test.Assert "Operation count preserves total milliseconds", stdPerformance.Measurement("Total") = 12.5
+    stdPerformance.MeasuresClear
+
+#If Not Mac Then
+    'Short scopes should retain fractions rather than whole GetTickCount intervals.
+    Dim sample As Long, elapsed As Double, hasFraction As Boolean
+    For sample = 1 To 100
+        With stdPerformance.CreateMeasure("Resolution" & sample)
+        End With
+        elapsed = stdPerformance.Measurement("Resolution" & sample)
+        Test.Assert "Nonnegative duration", elapsed >= 0
+        If elapsed <> Fix(elapsed) Then hasFraction = True
+    Next
+    Test.Assert "Sub-millisecond timer precision", hasFraction
+    stdPerformance.MeasuresClear
+#End If
+
     'Measurement keys 1
     With stdPerformance.CreateMeasure("Test1")
     End With
