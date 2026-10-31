@@ -1286,7 +1286,7 @@ End Function
 'Evaluates the given list of operations
 '@param ops as Array<Operation> - operations  The operations to evaluate
 '@param vLastArgs as Array<Variant> - The last arguments passed to the function
-'@returns - The result of the operations
+'@returns - The result of the operations; object-valued locals preserve object identity.
 Private Function evaluate(ByRef ops() As Operation, ByVal vLastArgs As Variant) As Variant
     Dim stack() As Variant
     ReDim stack(0 To 5)
@@ -1362,7 +1362,8 @@ lblMerge:
 
 lblAccess_General:
         Dim vAccessVar As Variant: Call CopyVariant(vAccessVar, stack(stackPtr - op.value))
-        tempItemToPush = vAccessVar ' Assign value to temp variable for push
+        'Finish copying before StackPush can resize the source array (#68).
+        Call CopyVariant(tempItemToPush, vAccessVar)
         GoSub StackPush
         GoTo lblEndLoop
 
