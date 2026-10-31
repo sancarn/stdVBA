@@ -390,3 +390,4 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2026-10-28 `stdRegex` BENCHMARK - Add reproducible before/after List and ListArr benchmarks and MatchAll/MatchAllArr comparisons, including raw timings, environment, and output parity checks.
 
 - 2026-10-28 stdSentry FEATURE - Add CreateSheetUnlocker/CreateUnlocker sentries that restore original worksheet protection settings after scoped edits.
+- 2026-10-28 stdReg FEATURE - Add addKey/addItem and key-default value access, preserving existing data and registry views. Fix ANSI string writes, refresh value types, support empty binary data and release write handles.
