@@ -25,6 +25,8 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 
 # Change log since `2020-05-04`
 
+- 2026-10-31 `stdTimer` FIX - Clean up owned Excel hosts on startup failure and shutdown; add idempotent StopTimer, defer active-loop cleanup until callbacks return, and preserve existing AccessVBOM settings (#144).
+
 - ...
 - 2020-05-04 `stdAcc` WIP - `stdAcc` added + first commit.
 - 2020-05-15 `stdDate` BREAKING - `stdDate::Create2` renamed to `stdDate::CreateFromUnits()`
