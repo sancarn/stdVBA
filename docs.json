@@ -1170,6 +1170,15 @@
             "defaultValue": null,
             "paramArray": false,
             "referenceType": "ByVal"
+          },
+          {
+            "name": "iBase",
+            "type": "Variant",
+            "description": "First index; omitted or Empty uses stdArray.DefaultBase.",
+            "optional": true,
+            "defaultValue": "Empty",
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": null,
@@ -1728,7 +1737,9 @@
       {
         "name": "indexOf",
         "description": "Obtain the index of an element",
-        "remarks": [],
+        "remarks": [
+          "- With negative bases, -1 may be a valid index. Use includes for an unambiguous membership check."
+        ],
         "examples": [],
         "params": [
           {
@@ -1742,17 +1753,17 @@
           },
           {
             "name": "start",
-            "type": "Long",
-            "description": "Location to start search for element.",
+            "type": "Variant",
+            "description": "Index to start searching at; Empty starts at this array's Base.",
             "optional": true,
-            "defaultValue": "1",
+            "defaultValue": "Empty",
             "paramArray": false,
             "referenceType": "ByVal"
           }
         ],
         "returns": {
           "type": "Long",
-          "description": "Index of element"
+          "description": "Matching index in this array's base, or -1 if absent."
         },
         "deprecation": {
           "status": false,
@@ -1768,14 +1779,16 @@
       },
       {
         "name": "lastIndexOf",
-        "description": "Obtain the last index of an element",
-        "remarks": [],
+        "description": "Obtain the last matching index, or -1 when absent.",
+        "remarks": [
+          "- With negative bases, -1 may be a valid index. Use includes for an unambiguous membership check."
+        ],
         "examples": [],
         "params": [
           {
             "name": "el",
             "type": "Variant",
-            "description": "Element to find",
+            "description": "Element to find.",
             "optional": false,
             "defaultValue": null,
             "paramArray": false,
@@ -1784,7 +1797,7 @@
         ],
         "returns": {
           "type": "Long",
-          "description": "Last index of element"
+          "description": "Last matching index in this array's base, or -1 if absent."
         },
         "deprecation": {
           "status": false,
@@ -1800,14 +1813,14 @@
       },
       {
         "name": "includes",
-        "description": "Returns true if the array contains an item",
+        "description": "Check membership, including arrays whose valid indices include the -1 sentinel.",
         "remarks": [],
         "examples": [],
         "params": [
           {
             "name": "el",
             "type": "Variant",
-            "description": "Item to find",
+            "description": "Element to find.",
             "optional": false,
             "defaultValue": null,
             "paramArray": false,
@@ -1815,17 +1828,17 @@
           },
           {
             "name": "startFrom",
-            "type": "Long",
-            "description": "Index to start search for item at. (Internally uses indexOf())",
+            "type": "Variant",
+            "description": "Index to start searching at; Empty starts at this array's Base.",
             "optional": true,
-            "defaultValue": "1",
+            "defaultValue": "Empty",
             "paramArray": false,
             "referenceType": "ByVal"
           }
         ],
         "returns": {
           "type": "Boolean",
-          "description": "True if the array contains the item"
+          "description": "True if the array contains the element at or after startFrom; otherwise False."
         },
         "deprecation": {
           "status": false,
@@ -2230,6 +2243,52 @@
     ],
     "properties": [
       {
+        "name": "DefaultBase",
+        "access": "ReadWrite",
+        "description": "Global default index base for newly created arrays. Existing arrays retain their base.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Long",
+          "description": "The default base, initially 1."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "Base",
+        "access": "ReadOnly",
+        "description": "The index of the first element in this instance (read-only).",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Long",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
         "name": "NewEnum",
         "access": "ReadOnly",
         "description": "For-each compatibility",
@@ -2409,6 +2468,15 @@
             "name": "iChunking",
             "type": "Long",
             "description": "The number of items the private array is increased by when required.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "iBase",
+            "type": "Variant",
+            "description": "First index; Empty uses stdArray.DefaultBase. This precedes the initial items.",
             "optional": false,
             "defaultValue": null,
             "paramArray": false,
