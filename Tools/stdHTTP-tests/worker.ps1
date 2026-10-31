@@ -25,6 +25,13 @@ try {
   $book = $excel.Workbooks.Add()
   $project = $book.GetType().InvokeMember('VBProject', [System.Reflection.BindingFlags]::GetProperty, $null, $book, $null)
   if ($null -eq $project) { throw 'VBA project access unavailable; security settings were not changed.' }
+  $vbeVersion = [version]$excel.VBE.Version
+  $vbeKey = "HKCU:\Software\Microsoft\VBA\$($vbeVersion.Major).$($vbeVersion.Minor)\Common"
+  $trapping = Get-ItemProperty -LiteralPath $vbeKey
+  Write-Output "VBE error trapping: BreakOnAllErrors=$($trapping.BreakOnAllErrors), BreakOnServerErrors=$($trapping.BreakOnServerErrors)"
+  if ($trapping.BreakOnAllErrors -ne 0 -or $trapping.BreakOnServerErrors -ne 0) {
+    throw 'Tests require Break on Unhandled Errors. Debugging preferences were not changed.'
+  }
   foreach ($file in @('src/stdICallable.cls','src/stdHTTP.cls','tests/stdHTTPLocalTests.bas')) {
     $null = $project.VBComponents.Import((Join-Path $root $file))
   }

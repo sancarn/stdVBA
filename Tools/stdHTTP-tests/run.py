@@ -24,6 +24,7 @@ for name in ('src/stdICallable.cls', 'src/stdHTTP.cls', 'tests/stdHTTPLocalTests
 user = ctypes.WinDLL('user32', use_last_error=True)
 callback_type = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
 user.GetWindowThreadProcessId.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.DWORD)]
+user.GetWindowTextW.argtypes = [wintypes.HWND, wintypes.LPWSTR, ctypes.c_int]
 user.GetClassNameW.argtypes = [wintypes.HWND, wintypes.LPWSTR, ctypes.c_int]
 user.PostMessageW.argtypes = [wintypes.HWND, wintypes.UINT, wintypes.WPARAM, wintypes.LPARAM]
 user.ShowWindow.argtypes = [wintypes.HWND, ctypes.c_int]
@@ -55,6 +56,9 @@ with ThreadingHTTPServer(('127.0.0.1', 0), Handler) as server, socket.socket() a
                     user.GetClassNameW(hwnd, name, 256)
                     if name.value == '#32770':
                         dialog = True
+                        title = ctypes.create_unicode_buffer(1024)
+                        user.GetWindowTextW(hwnd, title, 1024)
+                        print('Office dialog (test failed):', title.value, flush=True)
                         user.PostMessageW(hwnd, 0x0010, 0, 0)
                     user.ShowWindow(hwnd, 6)
                 return True
