@@ -36,7 +36,6 @@ Attribute VB_Exposed = True
 '|  |- stdReg<Item>
 '|  |- stdReg<Item>
 '```
-'@TODO: Add support for `stdReg#addKey()` and `stdReg#addItem()`.
 '@example Test for VBE Extensibility (VBE Object Model) access:
 '```vb
 'Function isVBEOMAllowed() as Boolean
@@ -129,6 +128,7 @@ End Enum
 
 
 #If VBA7 Then
+    Private Declare PtrSafe Function RegCreateKeyExA Lib "advapi32.dll" (ByVal hKey As LongPtr, ByVal lpSubKey As String, ByVal Reserved As Long, ByVal lpClass As LongPtr, ByVal dwOptions As Long, ByVal samDesired As Long, ByVal lpSecurityAttributes As LongPtr, ByRef phkResult As LongPtr, ByRef lpdwDisposition As Long) As Long
     Private Declare PtrSafe Function RegOpenKeyExA Lib "advapi32.dll" (ByVal key As ERegistryRoot, ByVal lpSubKey As String, ByVal ulOptions As Long, ByVal samDesired As Long, ByRef phkResult As LongPtr) As Long
     Private Declare PtrSafe Function RegQueryValueExA Lib "advapi32.dll" (ByVal hKey As LongPtr, ByVal sValueName As String, ByVal lpReserved As LongPtr, ByVal lpType As LongPtr, ByVal lpData As LongPtr, ByRef lpcbData As Long) As Long
     Private Declare PtrSafe Function RegEnumKeyExA Lib "advapi32" (ByVal hKey As LongPtr, ByVal dwIndex As Long, ByVal lpName As String, ByRef lpcbName As Long, ByVal lpReserved As LongPtr, ByVal lpClass As LongPtr, ByVal lpsbClass As LongPtr, ByVal lpftLastWriteTime As LongPtr) As Long
@@ -139,6 +139,7 @@ End Enum
     Private Enum LongPtr
       [_]
     End Enum
+    Private Declare Function RegCreateKeyExA Lib "advapi32.dll" (ByVal hKey As LongPtr, ByVal lpSubKey As String, ByVal Reserved As Long, ByVal lpClass As LongPtr, ByVal dwOptions As Long, ByVal samDesired As Long, ByVal lpSecurityAttributes As LongPtr, ByRef phkResult As LongPtr, ByRef lpdwDisposition As Long) As Long
     Private Declare Function RegOpenKeyExA Lib "advapi32.dll" (ByVal key As ERegistryRoot, ByVal lpSubKey As String, ByVal ulOptions As Long, ByVal samDesired As Long, ByRef phkResult As LongPtr) As Long
     Private Declare Function RegQueryValueExA Lib "advapi32.dll" (ByVal hKey As LongPtr, ByVal sValueName As String, ByVal lpReserved As LongPtr, ByVal lpType As LongPtr, ByVal lpData As LongPtr, ByRef lpcbData As Long) As Long
     Private Declare Function RegEnumKeyExA Lib "advapi32" (ByVal hKey As LongPtr, ByVal dwIndex As Long, ByVal lpName As String, ByRef lpcbName As Long, ByVal lpReserved As LongPtr, ByVal lpClass As LongPtr, ByVal lpsbClass As LongPtr, ByVal lpftLastWriteTime As LongPtr) As Long
@@ -245,6 +246,7 @@ Friend Sub protInit(ByVal path As String, Optional ByVal iType As ERegistryType 
       Case ERROR_SUCCESS
         This.Type = iKey
         Call RegCloseKey(This.queryHandle)
+        This.queryHandle = NULL_PTR
       Case Else
         This.Type = iItem
     End Select
@@ -334,13 +336,60 @@ Public Property Get Parent() As stdReg
   Else
     Dim iLastSlash As Long: iLastSlash = InStrRev(This.path, "\")
     Dim sPath As String: sPath = left(This.path, iLastSlash - 1)
-    Set Parent = stdReg.CreateFromKey(sPath)
+    Set Parent = stdReg.CreateFromKey(sPath, This.access)
   End If
 End Property
 
 '***************
 '* KEY METHODS *
 '***************
+
+'Create or open a relative subkey without changing its existing values.
+'@param name - Nonempty relative subkey path; missing intermediate keys are created.
+'@returns - A stdReg key with the same access and registry view as its parent.
+Public Function addKey(ByVal name As String) As stdReg
+  If This.Type <> iKey Then Err.Raise 3, "stdReg.addKey", "Only registry keys can contain subkeys"
+  If Len(name) = 0 Or InStr(name, vbNullChar) > 0 Then Err.Raise 5, "stdReg.addKey", "A nonempty subkey name is required"
+  If left(name, 1) = "\" Then Err.Raise 5, "stdReg.addKey", "A relative subkey path is required"
+  Dim query As String: query = name
+  If Len(This.query) > 0 Then query = This.query & "\" & name
+  Dim handle As LongPtr, disposition As Long, status As Long
+  status = RegCreateKeyExA(This.root, query, 0, 0, 0, This.access, 0, handle, disposition)
+  If status <> ERROR_SUCCESS Then Err.Raise vbObjectError + status, "stdReg.addKey", "Cannot create registry key (0x" & Hex(status) & ")"
+  Call RegCloseKey(handle)
+  Set addKey = CreateFromKey(This.path & "\" & name, This.access, False)
+End Function
+
+'Create an empty named item, or open an existing item without overwriting it.
+'@param name - Value name; empty or (Default) selects the unnamed value. Backslashes are not supported by the path-based API.
+'@param iType - Registry type for a newly created item; existing values retain their data and type.
+'@returns - A stdReg item ready for value assignment.
+Public Function addItem(ByVal name As String, Optional ByVal iType As ERegistryValueType = Value_String) As stdReg
+  If This.Type <> iKey Then Err.Raise 3, "stdReg.addItem", "Only registry keys can contain items"
+  If InStr(name, vbNullChar) > 0 Or InStr(name, "\") > 0 Then Err.Raise 5, "stdReg.addItem", "Invalid value name"
+  If name = "(Default)" Then name = ""
+  Dim status As Long, existingType As Long, size As Long
+  status = RegQueryValueExA(This.queryHandle, name, 0, VarPtr(existingType), 0, size)
+  If status = ERROR_FILE_NOT_FOUND Then
+    Dim initial As String, zero As Currency, data As LongPtr, byteCount As Long
+    Select Case iType
+      Case Value_String, Value_String_WithEnvVars
+        initial = vbNullChar: data = StrPtr(initial): byteCount = 1
+      Case Value_DWORD
+        data = VarPtr(zero): byteCount = 4
+      Case Value_Binary, Value_None
+        data = 0: byteCount = 0
+      Case Else
+        Err.Raise 5, "stdReg.addItem", "Unsupported registry value type"
+    End Select
+    Call pRegistryInitWriteHandle
+    status = RegSetValueExA(This.writeHandle, name, 0, iType, data, byteCount)
+  End If
+  If status <> ERROR_SUCCESS Then Err.Raise vbObjectError + status, "stdReg.addItem", "Cannot create or query registry item (0x" & Hex(status) & ")"
+  Dim itemName As String: itemName = name
+  If Len(itemName) = 0 Then itemName = "(Default)"
+  Set addItem = CreateFromItem(This.path & "\" & itemName, This.access)
+End Function
 
 'Get all keys and items
 '@returns Collection<stdReg> - Collection of stdReg keys and items
@@ -370,7 +419,7 @@ Public Property Get Keys() As Collection
         Dim sName As String: sName = Space(iSize)
         Dim result As Long: result = RegEnumKeyExA(This.queryHandle, i, sName, iSize, 0, 0, 0, 0)
         If result = ERROR_SUCCESS Then
-          Call Keys.Add(CreateFromKey(This.path & "\" & left(sName, iSize)))
+          Call Keys.Add(CreateFromKey(This.path & "\" & left(sName, iSize), This.access))
         End If
       Loop While result = ERROR_SUCCESS
     Case Else
@@ -393,7 +442,7 @@ Public Property Get Items() As Collection
         Dim sName As String: sName = Space(iSize)
         Dim result As Long: result = RegEnumValueA(This.queryHandle, i, sName, iSize, 0, 0, 0, 0)
         If result = ERROR_SUCCESS Then
-          Call Items.Add(CreateFromItem(This.path & "\" & left(sName, iSize)))
+          Call Items.Add(CreateFromItem(This.path & "\" & left(sName, iSize), This.access))
         End If
       Loop While result = ERROR_SUCCESS
     case else
@@ -417,17 +466,25 @@ Public Property Get ItemType() As ERegistryValueType
 End Property
 
 'Get / Set value
-'@returns - Value of stdReg Item
+'@returns - Value of a stdReg item, or the unnamed value when called on a key.
 '@throws 1, "stdReg", "ERROR: Unknown value type"
 '@throws 2, "stdReg", "ERROR: Cannot get value (0x" & Hex(iStatus) & ")"
-'@throws 3, "", "ERROR: Only stdReg items have values"
 Public Property Get value() As Variant
+  If This.Type = iKey Then
+    value = CreateFromItem(This.path & "\(Default)", This.access).value
+    Exit Property
+  End If
   If This.Type <> ERegistryType.iItem Then Err.Raise 3, "", "ERROR: Only stdReg items have values"
   Dim iSize As Long: iSize = pRegistryQueryValueSize()
   Dim vRet As Variant, iStatus As Long
   Select Case This.valtype
     Case ERegistryValueType.Value_Binary
       Dim binary() As Byte
+      If iSize = 0 Then
+        binary = vbNullString
+        value = binary
+        Exit Property
+      End If
       ReDim binary(1 To iSize)
       iStatus = RegQueryValueExA(This.queryHandle, This.name, 0, 0, VarPtr(binary(1)), iSize)
       value = binary
@@ -491,6 +548,11 @@ Public Property Get value() As Variant
   If iStatus <> 0 Then Err.Raise 2, "stdReg", "ERROR: Cannot get value (0x" & Hex(iStatus) & ")"
 End Property
 Public Property Let value(vNew As Variant)
+  If This.Type = iKey Then
+    Dim defaultItem As stdReg: Set defaultItem = addItem("")
+    defaultItem.value = vNew
+    Exit Property
+  End If
   Call SetValue(vNew, This.valtype)
 End Property
 
@@ -498,6 +560,11 @@ End Property
 '@param vNew  - Value to set item to
 '@param iType - Type of value to set
 Public Sub SetValue(ByVal vNew As Variant, ByVal iType As ERegistryValueType)
+  If This.Type = iKey Then
+    Dim defaultItem As stdReg: Set defaultItem = addItem("", iType)
+    Call defaultItem.SetValue(vNew, iType)
+    Exit Sub
+  End If
   If This.Type <> ERegistryType.iItem Then Err.Raise 3, "", "ERROR: Only stdReg items have values"
   Call pRegistryInitWriteHandle
   
@@ -505,9 +572,12 @@ Public Sub SetValue(ByVal vNew As Variant, ByVal iType As ERegistryValueType)
   Select Case iType
     Case ERegistryValueType.Value_Binary
       Dim bNew() As Byte: bNew = vNew
-      Dim lb As Long: lb = LBound(bNew)
-      Dim ub As Long: ub = UBound(bNew)
-      iStatus = RegSetValueExA(This.writeHandle, This.name, 0, iType, VarPtr(bNew(lb)), ub - lb + 1)
+      Dim count As Long, pointer As LongPtr
+      On Error Resume Next
+      count = UBound(bNew) - LBound(bNew) + 1
+      On Error GoTo 0
+      If count > 0 Then pointer = VarPtr(bNew(LBound(bNew)))
+      iStatus = RegSetValueExA(This.writeHandle, This.name, 0, iType, pointer, count)
     Case ERegistryValueType.Value_DWORD
       Dim DWORD As Long: DWORD =  vNew
       iStatus = RegSetValueExA(This.writeHandle, This.name, 0, iType, VarPtr(DWORD), LenB(DWORD))
@@ -522,7 +592,8 @@ Public Sub SetValue(ByVal vNew As Variant, ByVal iType As ERegistryValueType)
       Dim QWORD As Currency: QWORD = vNew
       iStatus = RegSetValueExA(This.writeHandle, This.name, 0, iType, VarPtr(QWORD), LenB(QWORD))
     Case ERegistryValueType.Value_String, ERegistryValueType.Value_String_WithEnvVars, ERegistryValueType.Value_Link
-      Dim bSZ() As Byte: bSZ = vNew
+      'The A API expects ANSI bytes, including the trailing null, not VBA UTF-16 bytes.
+      Dim bSZ() As Byte: bSZ = StrConv(CStr(vNew) & vbNullChar, vbFromUnicode)
       Dim ilb As Long: ilb = LBound(bSZ)
       Dim iub As Long: iub = UBound(bSZ)
       iStatus = RegSetValueExA(This.writeHandle, This.name, 0, iType, VarPtr(bSZ(ilb)), iub-ilb+1)
@@ -534,6 +605,7 @@ Public Sub SetValue(ByVal vNew As Variant, ByVal iType As ERegistryValueType)
   End Select
   
   If iStatus <> 0 Then Err.Raise 2, "stdReg", "ERROR: Cannot set value (0x" & Hex(iStatus) & ")"
+  This.valtype = iType
 End Sub
 
 
@@ -545,7 +617,8 @@ End Sub
 '@private
 Private Sub pRegistryInitWriteHandle()
   If This.writeHandle = NULL_PTR Then
-    If RegOpenKeyExA(This.root, This.query, 0, ERegistryAccess.PERM_WRITE, This.writeHandle) <> ERROR_SUCCESS Then
+    Dim view As Long: view = This.access And (PERM_WOW64_32KEY Or PERM_WOW64_64KEY)
+    If RegOpenKeyExA(This.root, This.query, 0, ERegistryAccess.PERM_WRITE Or view, This.writeHandle) <> ERROR_SUCCESS Then
       Err.Raise 1, "stdReg", "ERROR: Insufficient permissions to write to this registry key."
     End If
   End If
@@ -571,5 +644,6 @@ End Function
 '@destructor
 '@private
 Private Sub Class_Terminate()
-  Call RegCloseKey(This.queryHandle)
+  If This.writeHandle <> NULL_PTR Then Call RegCloseKey(This.writeHandle)
+  If This.queryHandle <> NULL_PTR Then Call RegCloseKey(This.queryHandle)
 End Sub
