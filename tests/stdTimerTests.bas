@@ -39,4 +39,3 @@ Public Function testInvalidResolution() As Boolean
 Expected:
   testInvalidResolution = (Err.Number = 5)
 End Function
-

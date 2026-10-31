@@ -11,4 +11,3 @@ Public Sub Run()
   TimerInstance.StopTimer
   Set TimerInstance = Nothing
 End Sub
-
