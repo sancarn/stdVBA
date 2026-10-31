@@ -57,8 +57,16 @@ Private pStopped As Boolean
 '@remarks - Requires user-enabled AccessVBOM; never modifies trust settings.
 '@returns - The frequency isn't guaranteed but it will be as close as humanly possible.
 Public Function Create(ByVal iMilliseconds As Long, Optional ByVal callback As Object = Nothing) As stdTimer
-  Set Create = New stdTimer
-  Call Create.protInit(iMilliseconds, callback)
+  With stdError.getSentry("stdTimer#Create", "iMilliseconds", iMilliseconds, "callback", callback)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Set Create = New stdTimer
+      Call Create.protInit(iMilliseconds, callback)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Initialise module
@@ -66,46 +74,62 @@ End Function
 '@param iTimerResolution - Number of milliseconds to raise Tick Event between
 '@param callback as stdICallable<()=>void> -  Optional Listener
 Public Sub protInit(ByVal iTimerResolution As Long, callback As Object)
-  If Not xlOwnedApplication Is Nothing Or pStopped Then Err.Raise 5, "stdTimer", "Timer already initialised or stopped"
-  If iTimerResolution < 1 Then Err.Raise 5, "stdTimer", "Timer resolution must be positive"
-  On Error GoTo Failed
-  Set pCallback = callback
-  Set xlRemoteWorkbook = createRemoteWorkbook()
-  Call injectCode(xlRemoteWorkbook, "TimerMain", getTimerCode(iTimerResolution))
-  Call xlRemoteWorkbook.Application.Run("TimerMain.StartTimer")
-  Exit Sub
-Failed:
-  Dim errorNumber As Long, errorSource As String, errorDescription As String
-  errorNumber = Err.Number: errorSource = Err.Source: errorDescription = Err.Description
-  On Error Resume Next
-  If Not xlRemoteWorkbook Is Nothing Then xlRemoteWorkbook.Close False
-  If Not xlOwnedApplication Is Nothing Then
-    If xlOwnedApplication.Workbooks.Count = 0 Then xlOwnedApplication.Quit
-  End If
-  Set xlRemoteWorkbook = Nothing
-  Set xlOwnedApplication = Nothing
-  Set pCallback = Nothing
-  pStopped = True
-  On Error GoTo 0
-  Err.Raise errorNumber, errorSource, errorDescription
+  With stdError.getSentry("stdTimer#protInit", "iTimerResolution", iTimerResolution, "callback", callback)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Not xlOwnedApplication Is Nothing Or pStopped Then Err_Raise 5, "stdTimer", "Timer already initialised or stopped"
+      If iTimerResolution < 1 Then Err_Raise 5, "stdTimer", "Timer resolution must be positive"
+      On Error GoTo Failed
+      Set pCallback = callback
+      Set xlRemoteWorkbook = createRemoteWorkbook()
+      Call injectCode(xlRemoteWorkbook, "TimerMain", getTimerCode(iTimerResolution))
+      Call xlRemoteWorkbook.Application.Run("TimerMain.StartTimer")
+      Exit Sub
+    Failed:
+      Dim errorNumber As Long, errorSource As String, errorDescription As String
+      errorNumber = Err.Number: errorSource = Err.Source: errorDescription = Err.Description
+      On Error Resume Next
+      If Not xlRemoteWorkbook Is Nothing Then xlRemoteWorkbook.Close False
+      If Not xlOwnedApplication Is Nothing Then
+        If xlOwnedApplication.Workbooks.Count = 0 Then xlOwnedApplication.Quit
+      End If
+      Set xlRemoteWorkbook = Nothing
+      Set xlOwnedApplication = Nothing
+      Set pCallback = Nothing
+      pStopped = True
+      On Error GoTo stdErrorWrapper_ErrorOccurred
+      Err_Raise errorNumber, errorSource, errorDescription
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Create and return a remote workbook, close equivalent of generating a new thread, however these threads will be in sync (due to usage of COM events)
 '@returns - Remote Workbook object.
 Private Function createRemoteWorkbook(Optional ByVal withWorkbook As Boolean = True) As Workbook
-  'Do not create app with `new Application`. If this is used VBOM Extensibility will revert upon creation.
-  Set xlOwnedApplication = CreateObject("Excel.Application")
-  With xlOwnedApplication
-    #If Not DEBUG_MODE Then
-      .Visible = False
-      .ScreenUpdating = False
-    #Else
-      .Visible = True
-    #End If
-    .PrintCommunication = False
-    .DisplayAlerts = False
+  With stdError.getSentry("stdTimer#createRemoteWorkbook", "withWorkbook", withWorkbook)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      'Do not create app with `new Application`. If this is used VBOM Extensibility will revert upon creation.
+      Set xlOwnedApplication = CreateObject("Excel.Application")
+      With xlOwnedApplication
+        #If Not DEBUG_MODE Then
+          .Visible = False
+          .ScreenUpdating = False
+        #Else
+          .Visible = True
+        #End If
+        .PrintCommunication = False
+        .DisplayAlerts = False
+      End With
+      Set createRemoteWorkbook = xlOwnedApplication.Workbooks.Add
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
   End With
-  Set createRemoteWorkbook = xlOwnedApplication.Workbooks.Add
 End Function
 
 'Inject VBA code into a workbook
@@ -114,10 +138,18 @@ End Function
 '@param sCode       - The code to insert into the module
 '@param iModuleType - The type of code module to create (Module=1, Class=2)
 Public Sub injectCode(ByVal wb As Workbook, ByVal sModuleName As String, ByRef sCode As String, Optional ByVal iModuleType As Long = 1)
-  With wb.VBProject.VBComponents.Add(iModuleType).CodeModule
-    If .CountOfLines > 0 Then .DeleteLines 1, .CountOfLines
-    .AddFromString sCode
-    .Parent.Name = sModuleName
+  With stdError.getSentry("stdTimer#injectCode", "wb", wb, "sModuleName", sModuleName, "sCode", sCode, "iModuleType", iModuleType)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      With wb.VBProject.VBComponents.Add(iModuleType).CodeModule
+        If .CountOfLines > 0 Then .DeleteLines 1, .CountOfLines
+        .AddFromString sCode
+        .Parent.Name = sModuleName
+      End With
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
   End With
 End Sub
 
@@ -125,41 +157,49 @@ End Sub
 '@param iTimerResolution - Number of milliseconds to raise Tick Event between
 '@returns - VBA code to insert into a module
 Private Function getTimerCode(ByVal iTimerResolution As Long) As String
-  Dim s As String: s = "'Code generated by stdTimer"
-  s = s & vbCrLf & "#If Mac Then"
-  s = s & vbCrLf & "  #If VBA7 Then"
-  s = s & vbCrLf & "    Private Declare PtrSafe Sub USleep Lib ""/usr/lib/libc.dylib"" Alias ""usleep"" (ByVal dwMicroseconds As Long)"
-  s = s & vbCrLf & "  #Else"
-  s = s & vbCrLf & "    Private Declare Sub USleep Lib ""/usr/lib/libc.dylib"" Alias ""usleep"" (ByVal dwMicroseconds As Long)"
-  s = s & vbCrLf & "  #End If"
-  s = s & vbCrLf & "#Else 'Windows"
-  s = s & vbCrLf & "  #If VBA7 Then"
-  s = s & vbCrLf & "    Public Declare PtrSafe Sub Sleep Lib ""kernel32"" (ByVal dwMilliseconds As Long)"
-  s = s & vbCrLf & "  #Else"
-  s = s & vbCrLf & "    Public Declare  Sub Sleep Lib ""kernel32"" Alias ""Sleep"" (ByVal dwMilliseconds As Long)"
-  s = s & vbCrLf & "  #End If"
-  s = s & vbCrLf & "#End If"
-  s = s & vbCrLf & "Private bRunning As Boolean"
-  s = s & vbCrLf & "Private bInLoop As Boolean"
-  s = s & vbCrLf & "Private nextTick As Date"
-  s = s & vbCrLf & "Private timerMacro As String"
-  s = s & vbCrLf & "Sub MainLoop()"
-  s = s & vbCrLf & "  bInLoop = True"
-  s = s & vbCrLf & "  On Error GoTo Finished"
-  s = s & vbCrLf & "  While bRunning"
-  s = s & vbCrLf & "    ThisWorkbook.Sheets(1).Range(""A1"").Value = ""Tick"""
-  s = s & vbCrLf & "#If Mac Then"
-  s = s & vbCrLf & "    USleep " & CDbl(iTimerResolution) * 1000
-  s = s & vbCrLf & "#Else"
-  s = s & vbCrLf & "    Sleep " & iTimerResolution
-  s = s & vbCrLf & "#End If"
-  s = s & vbCrLf & "    DoEvents"
-  s = s & vbCrLf & "  Wend"
-  s = s & vbCrLf & "Finished:"
-  s = s & vbCrLf & "  bRunning = False"
-  s = s & vbCrLf & "  bInLoop = False"
-  s = s & vbCrLf & "  Application.OnTime Now(), ""'"" & ThisWorkbook.Name & ""'!TimerMain.Cleanup"""
-  s = s & vbCrLf & "End Sub"
+  With stdError.getSentry("stdTimer#getTimerCode", "iTimerResolution", iTimerResolution)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim s As String: s = "'Code generated by stdTimer"
+      s = s & vbCrLf & "#If Mac Then"
+      s = s & vbCrLf & "  #If VBA7 Then"
+      s = s & vbCrLf & "    Private Declare PtrSafe Sub USleep Lib ""/usr/lib/libc.dylib"" Alias ""usleep"" (ByVal dwMicroseconds As Long)"
+      s = s & vbCrLf & "  #Else"
+      s = s & vbCrLf & "    Private Declare Sub USleep Lib ""/usr/lib/libc.dylib"" Alias ""usleep"" (ByVal dwMicroseconds As Long)"
+      s = s & vbCrLf & "  #End If"
+      s = s & vbCrLf & "#Else 'Windows"
+      s = s & vbCrLf & "  #If VBA7 Then"
+      s = s & vbCrLf & "    Public Declare PtrSafe Sub Sleep Lib ""kernel32"" (ByVal dwMilliseconds As Long)"
+      s = s & vbCrLf & "  #Else"
+      s = s & vbCrLf & "    Public Declare  Sub Sleep Lib ""kernel32"" Alias ""Sleep"" (ByVal dwMilliseconds As Long)"
+      s = s & vbCrLf & "  #End If"
+      s = s & vbCrLf & "#End If"
+      s = s & vbCrLf & "Private bRunning As Boolean"
+      s = s & vbCrLf & "Private bInLoop As Boolean"
+      s = s & vbCrLf & "Private nextTick As Date"
+      s = s & vbCrLf & "Private timerMacro As String"
+      s = s & vbCrLf & "Sub MainLoop()"
+      s = s & vbCrLf & "  bInLoop = True"
+      s = s & vbCrLf & "  On Error GoTo Finished"
+      s = s & vbCrLf & "  While bRunning"
+      s = s & vbCrLf & "    ThisWorkbook.Sheets(1).Range(""A1"").Value = ""Tick"""
+      s = s & vbCrLf & "#If Mac Then"
+      s = s & vbCrLf & "    USleep " & CDbl(iTimerResolution) * 1000
+      s = s & vbCrLf & "#Else"
+      s = s & vbCrLf & "    Sleep " & iTimerResolution
+      s = s & vbCrLf & "#End If"
+      s = s & vbCrLf & "    DoEvents"
+      s = s & vbCrLf & "  Wend"
+      s = s & vbCrLf & "Finished:"
+      s = s & vbCrLf & "  bRunning = False"
+      s = s & vbCrLf & "  bInLoop = False"
+      s = s & vbCrLf & "  Application.OnTime Now(), ""'"" & ThisWorkbook.Name & ""'!TimerMain.Cleanup"""
+      s = s & vbCrLf & "
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
+End Sub"
   s = s & vbCrLf & "Sub StartTimer()"
   s = s & vbCrLf & "  bRunning = True"
   s = s & vbCrLf & "  nextTick = Now()"
@@ -188,25 +228,55 @@ End Function
 'Stop and release the timer. Safe to call repeatedly or from Tick.
 '@remarks - Active remote loops unwind before closing their workbook and host.
 Public Sub StopTimer()
-  If pStopped Then Exit Sub
-  pStopped = True
-  On Error Resume Next
-  If Not xlOwnedApplication Is Nothing Then xlOwnedApplication.Run "TimerMain.StopTimer"
-  Set xlRemoteWorkbook = Nothing
-  Set xlOwnedApplication = Nothing
-  Set pCallback = Nothing
+  With stdError.getSentry("stdTimer#StopTimer")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If pStopped Then Exit Sub
+      pStopped = True
+      On Error Resume Next
+      If Not xlOwnedApplication Is Nothing Then xlOwnedApplication.Run "TimerMain.StopTimer"
+      Set xlRemoteWorkbook = Nothing
+      Set xlOwnedApplication = Nothing
+      Set pCallback = Nothing
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Sub Class_Terminate()
-  StopTimer
+  With stdError.getSentry("stdTimer#Class_Terminate")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      StopTimer
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'SheetChange event hook
 '@param Sh     - The sheet that changed
 '@param Target - The range that changed
 Private Sub xlRemoteWorkbook_SheetChange(ByVal Sh As Object, ByVal Target As Range)
-  If pStopped Then Exit Sub
-  Dim keepAlive As stdTimer: Set keepAlive = Me
-  RaiseEvent Tick
-  If Not pStopped And Not pCallback Is Nothing Then pCallback.Run
+  With stdError.getSentry("stdTimer#xlRemoteWorkbook_SheetChange", "Sh", Sh, "Target", Target)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If pStopped Then Exit Sub
+      Dim keepAlive As stdTimer: Set keepAlive = Me
+      RaiseEvent Tick
+      If Not pStopped And Not pCallback Is Nothing Then pCallback.Run
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
+End Sub
+
+
+
+Private Sub Err_Raise(ByVal number as Long, Optional ByVal source as string = "", Optional ByVal description as string = "")
+  Call stdError.Raise(description)
 End Sub

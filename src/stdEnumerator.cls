@@ -261,8 +261,16 @@ Private Const VT_UNKNOWN = &Hd
 '       Used in order to prevent runaway processes.
 '@returns - Enumerator created from callback function
 Public Function CreateFromCallable(ByVal cb As stdICallable, Optional ByVal iMaxLength As Long = 1000000) As stdEnumerator
-    Set CreateFromCallable = New stdEnumerator
-    Call CreateFromCallable.protInit(EnumeratorType.FromCallable, iMaxLength, cb)
+  With stdError.getSentry("stdEnumerator#CreateFromCallable", "cb", cb, "iMaxLength", iMaxLength)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Set CreateFromCallable = New stdEnumerator
+        Call CreateFromCallable.protInit(EnumeratorType.FromCallable, iMaxLength, cb)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Creates an enumerator from a callable. This is more complex than non-verbose callable, however offers full flexibility of the loop.
@@ -272,8 +280,16 @@ End Function
 '@param iMaxLength - Maximum length of enumerator. The enumerator will refuse to go beyond this number of items. Used in order to prevent runaway processes.
 '@returns - Enumerator created from callback function
 Public Function CreateFromCallableVerbose(ByVal cb As stdICallable, Optional ByVal iMaxLength As Long = 1000000) As stdEnumerator
-    Set CreateFromCallableVerbose = New stdEnumerator
-    Call CreateFromCallableVerbose.protInit(EnumeratorType.FromCallableVerbose, iMaxLength, cb)
+  With stdError.getSentry("stdEnumerator#CreateFromCallableVerbose", "cb", cb, "iMaxLength", iMaxLength)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Set CreateFromCallableVerbose = New stdEnumerator
+        Call CreateFromCallableVerbose.protInit(EnumeratorType.FromCallableVerbose, iMaxLength, cb)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Create an enumerator from an array
@@ -282,8 +298,16 @@ End Function
 '@param iMaxLength - Maximum length of enumerator. The enumerator will refuse to go beyond this number of items. Used in order to prevent runaway processes.
 '@returns - An enumerator representing data in array
 Public Function CreateFromArray(ByVal v As Variant, Optional ByVal iMaxLength As Long = 1000000) As stdEnumerator
-    Set CreateFromArray = New stdEnumerator
-    Call CreateFromArray.protInit(EnumeratorType.FromArray, iMaxLength, v)
+  With stdError.getSentry("stdEnumerator#CreateFromArray", "v", v, "iMaxLength", iMaxLength)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Set CreateFromArray = New stdEnumerator
+        Call CreateFromArray.protInit(EnumeratorType.FromArray, iMaxLength, v)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Create an enumerator from an object which supports IEnumVARIANT.
@@ -292,8 +316,16 @@ End Function
 '@param iMaxLength - Maximum length of enumerator. The enumerator will refuse to go beyond this number of items. Used in order to prevent runaway processes.
 '@returns - An enumerator representing variants in the IEnumVARIANT
 Public Function CreateFromIEnumVariant(ByVal o As Object, Optional ByVal iMaxLength As Long = 1000000) As stdEnumerator
-    Set CreateFromIEnumVariant = New stdEnumerator
-    Call CreateFromIEnumVariant.protInit(EnumeratorType.FromIEnumVariant, iMaxLength, o)
+  With stdError.getSentry("stdEnumerator#CreateFromIEnumVariant", "o", o, "iMaxLength", iMaxLength)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Set CreateFromIEnumVariant = New stdEnumerator
+        Call CreateFromIEnumVariant.protInit(EnumeratorType.FromIEnumVariant, iMaxLength, o)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 
@@ -302,8 +334,16 @@ End Function
 '@param iMaxLength - Maximum length of enumerator. The enumerator will refuse to go beyond this number of items. Used in order to prevent runaway processes.
 '@returns - An empty enumerator
 Public Function CreateEmpty(Optional ByVal iMaxLength As Long = 1000000) As stdEnumerator
-    Set CreateEmpty = New stdEnumerator
-    Call CreateEmpty.protInit(EnumeratorType.FromIEnumVariant, iMaxLength, New Collection)
+  With stdError.getSentry("stdEnumerator#CreateEmpty", "iMaxLength", iMaxLength)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Set CreateEmpty = New stdEnumerator
+        Call CreateEmpty.protInit(EnumeratorType.FromIEnumVariant, iMaxLength, New Collection)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Create an enumerator from an Excel ListObject. Dictionaries are created for each ListRow with Header values as keys.
@@ -312,41 +352,49 @@ End Function
 '@param iMaxLength - Maximum length of enumerator. The enumerator will refuse to go beyond this number of items. Used in order to prevent runaway processes.
 '@returns - Enumerator representing ListObject data
 Public Function CreateFromListObject(ByVal lo As ListObject, Optional ByVal iMaxLength As Long = 1000000, Optional ByVal dictCompare As Long = vbTextCompare) As stdEnumerator
-    Dim c As Collection: Set c = New Collection
-    If Not lo.DataBodyRange Is Nothing Then
-        'Get header and body data
-        Dim oRow As Object
-        Dim vHeader: vHeader = lo.HeaderRowRange.Value
-        Dim vData: vData = lo.DataBodyRange.Value
-
-        If TypeName(vData) = "Variant()" Then
-            'Create rows for all rows
-            Dim i As Long
-            For i = 1 To UBound(vData, 1)
-                Set oRow = CreateObject("Scripting.Dictionary")
-                oRow.CompareMode = dictCompare
-                Dim j As Long
-                For j = 1 To UBound(vData, 2)
-                    oRow(vHeader(1, j)) = vData(i, j)
+  With stdError.getSentry("stdEnumerator#CreateFromListObject", "lo", lo, "iMaxLength", iMaxLength, "dictCompare", dictCompare)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim c As Collection: Set c = New Collection
+        If Not lo.DataBodyRange Is Nothing Then
+            'Get header and body data
+            Dim oRow As Object
+            Dim vHeader: vHeader = lo.HeaderRowRange.Value
+            Dim vData: vData = lo.DataBodyRange.Value
+    
+            If TypeName(vData) = "Variant()" Then
+                'Create rows for all rows
+                Dim i As Long
+                For i = 1 To UBound(vData, 1)
+                    Set oRow = CreateObject("Scripting.Dictionary")
+                    oRow.CompareMode = dictCompare
+                    Dim j As Long
+                    For j = 1 To UBound(vData, 2)
+                        oRow(vHeader(1, j)) = vData(i, j)
+                    Next
+                    Set oRow("=ListRow") = lo.ListRows(i)
+                    Set oRow("=ListObject") = lo
+                    Set oRow("=ListColumns") = lo.ListColumns
+                    Call c.Add(oRow)
                 Next
-                Set oRow("=ListRow") = lo.ListRows(i)
-                Set oRow("=ListObject") = lo
-                Set oRow("=ListColumns") = lo.ListColumns
-                Call c.Add(oRow)
-            Next
+            Else
+                'Create row for single value
+                Set oRow = CreateObject("Scripting.Dictionary")
+                oRow(vHeader) = vData
+                c.Add oRow
+            End If
+            
+            'Create from collection
+            Set CreateFromListObject = CreateFromIEnumVariant(c)
         Else
-            'Create row for single value
-            Set oRow = CreateObject("Scripting.Dictionary")
-            oRow(vHeader) = vData
-            c.Add oRow
+            'No rows, so return empty enumerator
+            Set CreateFromListObject = CreateEmpty()
         End If
-        
-        'Create from collection
-        Set CreateFromListObject = CreateFromIEnumVariant(c)
-    Else
-        'No rows, so return empty enumerator
-        Set CreateFromListObject = CreateEmpty()
-    End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Create a stdEnumerator from a tree of objects
@@ -355,21 +403,29 @@ End Function
 '@param getChildren - A callback which returns the children of each individual node.
 '@returns - Flat enumerator of all objects in the tree.
 Public Function CreateFromTree(ByVal oRoot As Object, ByVal getChildren As stdICallable) As stdEnumerator
-    Dim cRet As Collection: Set cRet = New Collection
-    cRet.Add oRoot
+  With stdError.getSentry("stdEnumerator#CreateFromTree", "oRoot", oRoot, "getChildren", getChildren)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    'Obtain flat collection from tree
-    Dim iObj As Long, oObj As Object
-    While iObj < cRet.Count
-        iObj = iObj + 1
-        Set oObj = cRet(iObj)
-        Dim child As Variant
-        For Each child In getChildren.Run(oObj)
-            cRet.Add child
-        Next
-    Wend
-
-    Set CreateFromTree = stdEnumerator.CreateFromIEnumVariant(cRet)
+        Dim cRet As Collection: Set cRet = New Collection
+        cRet.Add oRoot
+        
+        'Obtain flat collection from tree
+        Dim iObj As Long, oObj As Object
+        While iObj < cRet.Count
+            iObj = iObj + 1
+            Set oObj = cRet(iObj)
+            Dim child As Variant
+            For Each child In getChildren.Run(oObj)
+                cRet.Add child
+            Next
+        Wend
+    
+        Set CreateFromTree = stdEnumerator.CreateFromIEnumVariant(cRet)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Create a stdEnumerator from a dictionary
@@ -380,7 +436,15 @@ End Function
 '@TODO: Finish function - requires key handling. Might be a bit of a pain as it requires refactoring to work with collection keys among other things.
 'may not be needed given we have `CreateFromDictionaryEx`, but it would be far more performant.
 Private Function CreateFromDictionary(ByVal dictionary As Object, Optional ByVal iMaxLength As Long = 1000000) As stdEnumerator
+  With stdError.getSentry("stdEnumerator#CreateFromDictionary", "dictionary", dictionary, "iMaxLength", iMaxLength)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
+        
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Translates a dictionary to a Enumerator of dictionaries with key and value properties.
@@ -393,18 +457,26 @@ End Function
 'set dictEx = stdEnumerator.CreateFromDictionaryEx(dict).forEach(stdLambda.Create("let $1.value = $1.value.count")).sort(stdLambda.Create("$1.count")).last
 '```
 Public Function CreateFromDictionaryEx(ByVal dictionary As Object) As stdEnumerator
-    Dim keys As Variant: keys = dictionary.keys()
-    Dim items As Variant: items = dictionary.items()
-    Dim rows As Collection: Set rows = New Collection
-    Dim i As Long
-    For i = 0 To UBound(keys)
-        Dim row As Object: Set row = CreateObject("Scripting.Dictionary")
-        row.CompareMode = vbTextCompare
-        row.add "key", keys(i)
-        row.add "value", items(i)
-        rows.Add row
-    Next
-    Set CreateFromDictionaryEx = stdEnumerator.CreateFromIEnumVariant(rows)
+  With stdError.getSentry("stdEnumerator#CreateFromDictionaryEx", "dictionary", dictionary)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim keys As Variant: keys = dictionary.keys()
+        Dim items As Variant: items = dictionary.items()
+        Dim rows As Collection: Set rows = New Collection
+        Dim i As Long
+        For i = 0 To UBound(keys)
+            Dim row As Object: Set row = CreateObject("Scripting.Dictionary")
+            row.CompareMode = vbTextCompare
+            row.add "key", keys(i)
+            row.add "value", items(i)
+            rows.Add row
+        Next
+        Set CreateFromDictionaryEx = stdEnumerator.CreateFromIEnumVariant(rows)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Initialse the stdEnumerator
@@ -413,46 +485,54 @@ End Function
 '@param iMaxLength - Maximum length of enumerator. The enumerator will refuse to go beyond this number of items. Used in order to prevent runaway processes.
 '@param v - The data to create the enumerator from. This is either an array, a callable, or an IEnumVARIANT object.
 Public Sub protInit(ByVal iEnumeratorType As Long, ByVal iMaxLength As Long, ParamArray v() As Variant)
-    This.mode = iEnumeratorType
-    This.MaxLength = iMaxLength
-    Select Case This.mode
-        Case EnumeratorType.FromIEnumVariant
-            'HACK: This is a real work around for the fact that we can't access IEnumVARIANT methods (getNewEnum,getNextVariant,skipNextVariant,cloneEnumVariant,resetEnumVariant)
-            'directly. Realistically this may sometimes not even work. A more long term solution would be to call getNewEnum() and then getNextVariant() until we reach the end of the
-            'object. This may be implementable after stdCOM is fully implemented.
-
-            Set This.EnumObject = v(0)
-            
-            'Calculate total length
-            Dim iLength As Long: iLength = 0
-            Dim obj As Variant
-            For Each obj In This.EnumObject
-                iLength = iLength + 1
-            Next
-            
-            'Define array
-            If iLength > 0 Then
-                Dim vArr()
-                ReDim Preserve vArr(1 To iLength)
+  With stdError.getSentry("stdEnumerator#protInit", "iEnumeratorType", iEnumeratorType, "iMaxLength", iMaxLength)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        This.mode = iEnumeratorType
+        This.MaxLength = iMaxLength
+        Select Case This.mode
+            Case EnumeratorType.FromIEnumVariant
+                'HACK: This is a real work around for the fact that we can't access IEnumVARIANT methods (getNewEnum,getNextVariant,skipNextVariant,cloneEnumVariant,resetEnumVariant)
+                'directly. Realistically this may sometimes not even work. A more long term solution would be to call getNewEnum() and then getNextVariant() until we reach the end of the
+                'object. This may be implementable after stdCOM is fully implemented.
+    
+                Set This.EnumObject = v(0)
                 
-                'Copy IEnumVARIANT into array
-                Dim i As Long: i = 0
+                'Calculate total length
+                Dim iLength As Long: iLength = 0
+                Dim obj As Variant
                 For Each obj In This.EnumObject
-                    i = i + 1
-                    Call CopyVariant(vArr(i), obj)
+                    iLength = iLength + 1
                 Next
-
-                This.BaseArray = vArr
-            Else
-                This.BaseArray = Array()
-            End If
-        Case EnumeratorType.FromArray
-            This.BaseArray = v(0)
-        Case EnumeratorType.FromCallable
-            Set This.Callback = v(0)
-        Case EnumeratorType.FromCallableVerbose
-            Set This.Callback = v(0)
-    End Select
+                
+                'Define array
+                If iLength > 0 Then
+                    Dim vArr()
+                    ReDim Preserve vArr(1 To iLength)
+                    
+                    'Copy IEnumVARIANT into array
+                    Dim i As Long: i = 0
+                    For Each obj In This.EnumObject
+                        i = i + 1
+                        Call CopyVariant(vArr(i), obj)
+                    Next
+    
+                    This.BaseArray = vArr
+                Else
+                    This.BaseArray = Array()
+                End If
+            Case EnumeratorType.FromArray
+                This.BaseArray = v(0)
+            Case EnumeratorType.FromCallable
+                Set This.Callback = v(0)
+            Case EnumeratorType.FromCallableVerbose
+                Set This.Callback = v(0)
+        End Select
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 ' IEnumVariant methods
@@ -468,9 +548,17 @@ End Sub
 '```
 '@TODO: Use custom IEnumVARIANT instead of casting to Collection
 Public Property Get NewEnum() As IUnknown
-Attribute NewEnum.VB_UserMemId = -4
-    Static oEnumCol As Collection: If oEnumCol Is Nothing Then Set oEnumCol = AsCollection()
-    Set NewEnum = oEnumCol.[_NewEnum]
+  With stdError.getSentry("stdEnumerator#NewEnum[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+    Attribute NewEnum.VB_UserMemId = -4
+        Static oEnumCol As Collection: If oEnumCol Is Nothing Then Set oEnumCol = AsCollection()
+        Set NewEnum = oEnumCol.[_NewEnum]
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 
@@ -485,538 +573,706 @@ End Property
 'Wend
 '```
 Public Function enumNext(ByRef nextValue As Variant) As Boolean
-    With This.Current
-        If NextItem(.Key, .Value, .Index) Then
-            If IsObject(.Value) Then
-                Set nextValue = .Value
+  With stdError.getSentry("stdEnumerator#enumNext", "nextValue", nextValue)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        With This.Current
+            If NextItem(.Key, .Value, .Index) Then
+                If IsObject(.Value) Then
+                    Set nextValue = .Value
+                Else
+                    Let nextValue = .Value
+                End If
+                enumNext = True
             Else
-                Let nextValue = .Value
+                enumNext = False
             End If
-            enumNext = True
-        Else
-            enumNext = False
-        End If
-    End With
+        End With
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Refresh the dataset to the beginning
 Public Sub enumRefresh()
-    With This.Current
-        .Value = Null
-        .Index = 0
-        .Key = Null
-    End With
+  With stdError.getSentry("stdEnumerator#enumRefresh")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        With This.Current
+            .Value = Null
+            .Index = 0
+            .Key = Null
+        End With
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Get this enumerator as a collection
 '@returns - The enumerator's data as a collection
 Public Function AsCollection() As Collection
-    Dim i As Long: i = 0
-    Dim v As Variant: v = Null
-    Dim kv As String: kv = ""
-    Dim retCol As Collection: Set retCol = New Collection
-    While NextItem(kv, v, i)
-        retCol.Add v, kv
-    Wend
-
-    Set AsCollection = retCol
+  With stdError.getSentry("stdEnumerator#AsCollection")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim i As Long: i = 0
+        Dim v As Variant: v = Null
+        Dim kv As String: kv = ""
+        Dim retCol As Collection: Set retCol = New Collection
+        While NextItem(kv, v, i)
+            retCol.Add v, kv
+        Wend
+    
+        Set AsCollection = retCol
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Get this enumerator as an array
 '@param iType - The vartype of the array generated 
 '@returns Array<T> - The enumerator's data as an array
 Public Function AsArray(Optional ByVal iType As VbVarType = vbVarType.vbVariant) As Variant
-    Dim arrLen As Long: arrLen = Length()
-    If arrLen = 0 Then
-        AsArray = CreateEmptyVBArray(iType)
-        Exit Function
-    End If
-    Dim vRet As Variant
-    Select Case iType
-        Case VbVarType.vbBoolean
-            Dim a1() As Boolean
-            ReDim a1(1 To arrLen)
-            vRet = a1
-        Case VbVarType.vbByte
-            Dim a2() As Byte
-            ReDim a2(1 To arrLen)
-            vRet = a2
-        Case VbVarType.vbCurrency
-            Dim a3() As Currency
-            ReDim a3(1 To arrLen)
-            vRet = a3
-        Case VbVarType.vbDate
-            Dim a4() As Date
-            ReDim a4(1 To arrLen)
-            vRet = a4
-        Case VbVarType.vbDouble
-            Dim a5() As Double
-            ReDim a5(1 To arrLen)
-            vRet = a5
-        Case VbVarType.vbLong
-            Dim a6() As Long
-            ReDim a6(1 To arrLen)
-            vRet = a6
-        Case VbVarType.vbObject
-            Dim a7() As Object
-            ReDim a7(1 To arrLen)
-            vRet = a7
-        Case VbVarType.vbString
-            Dim a8() As String
-            ReDim a8(1 To arrLen)
-            vRet = a8
-        Case VbVarType.vbVariant
-            Dim a9() As Variant
-            ReDim a9(1 To arrLen)
-            vRet = a9
-    End Select
-
-    Dim v As Variant: v = Null
-    Dim kv As Variant: kv = Null
-    Dim i As Long: i = 0
-    Select Case iType
-        Case VbVarType.vbObject
-            While NextItem(kv, v, i)
-                Set vRet(i) = v
-            Wend
-        Case VbVarType.vbVariant
-            While NextItem(kv, v, i)
-                If IsObject(v) Then
-                    Set vRet(i) = v
-                Else
-                    vRet(i) = v
-                End If
-            Wend
-        Case Else
-            While NextItem(kv, v, i)
-                vRet(i) = v
-            Wend
-    End Select
+  With stdError.getSentry("stdEnumerator#AsArray", "iType", iType)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    AsArray = vRet
+        Dim arrLen As Long: arrLen = Length()
+        If arrLen = 0 Then
+            AsArray = CreateEmptyVBArray(iType)
+            Exit Function
+        End If
+        Dim vRet As Variant
+        Select Case iType
+            Case VbVarType.vbBoolean
+                Dim a1() As Boolean
+                ReDim a1(1 To arrLen)
+                vRet = a1
+            Case VbVarType.vbByte
+                Dim a2() As Byte
+                ReDim a2(1 To arrLen)
+                vRet = a2
+            Case VbVarType.vbCurrency
+                Dim a3() As Currency
+                ReDim a3(1 To arrLen)
+                vRet = a3
+            Case VbVarType.vbDate
+                Dim a4() As Date
+                ReDim a4(1 To arrLen)
+                vRet = a4
+            Case VbVarType.vbDouble
+                Dim a5() As Double
+                ReDim a5(1 To arrLen)
+                vRet = a5
+            Case VbVarType.vbLong
+                Dim a6() As Long
+                ReDim a6(1 To arrLen)
+                vRet = a6
+            Case VbVarType.vbObject
+                Dim a7() As Object
+                ReDim a7(1 To arrLen)
+                vRet = a7
+            Case VbVarType.vbString
+                Dim a8() As String
+                ReDim a8(1 To arrLen)
+                vRet = a8
+            Case VbVarType.vbVariant
+                Dim a9() As Variant
+                ReDim a9(1 To arrLen)
+                vRet = a9
+        End Select
+    
+        Dim v As Variant: v = Null
+        Dim kv As Variant: kv = Null
+        Dim i As Long: i = 0
+        Select Case iType
+            Case VbVarType.vbObject
+                While NextItem(kv, v, i)
+                    Set vRet(i) = v
+                Wend
+            Case VbVarType.vbVariant
+                While NextItem(kv, v, i)
+                    If IsObject(v) Then
+                        Set vRet(i) = v
+                    Else
+                        vRet(i) = v
+                    End If
+                Wend
+            Case Else
+                While NextItem(kv, v, i)
+                    vRet(i) = v
+                Wend
+        End Select
+        
+        AsArray = vRet
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Converts an enumerator of dictionaries to a 2D array
 '@returns Array2d<Variant> - 2D Array of data including headers. Number of rows is equal to the length of the enumerator, number of columns is equal to the number of keys in the first item.
 Public Function AsArray2D(Optional ByVal includeObjects As Boolean = True)
-    Dim vItem
-    Call CopyVariant(vItem, Item(1, True))
-
-    Dim vRet() As Variant
-
-    Dim vKeys As Variant
-    If TypeName(vItem) = "Dictionary" Then
-        vKeys = vItem.keys()
-        Dim iKeysLb As Long: iKeysLb = LBound(vKeys)
-        Dim iKeysUb As Long: iKeysUb = UBound(vKeys)
-        ReDim vRet(0 To Length, iKeysLb To iKeysUb)
-
-        'Create keys
-        Dim i As Long
-        For i = iKeysLb To iKeysUb
-            vRet(0, i) = vKeys(i)
-        Next
-
-        'Populate values
-        Dim v As Variant: v = Null
-        Dim kv As Variant: kv = Null
-        i = 0
-        While NextItem(kv, v, i)
-            Dim j As Long
-            For j = iKeysLb To iKeysUb
-                If IsObject(v(vKeys(j))) Then
-                    If includeObjects Then
-                        Set vRet(i, j) = v(vKeys(j))
-                    Else
-                        vRet(i, j) = "[Object]"
-                    End If
-                Else
-                    vRet(i, j) = v(vKeys(j))
-                End If
+  With stdError.getSentry("stdEnumerator#AsArray2D", "includeObjects", includeObjects)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim vItem
+        Call CopyVariant(vItem, Item(1, True))
+    
+        Dim vRet() As Variant
+    
+        Dim vKeys As Variant
+        If TypeName(vItem) = "Dictionary" Then
+            vKeys = vItem.keys()
+            Dim iKeysLb As Long: iKeysLb = LBound(vKeys)
+            Dim iKeysUb As Long: iKeysUb = UBound(vKeys)
+            ReDim vRet(0 To Length, iKeysLb To iKeysUb)
+    
+            'Create keys
+            Dim i As Long
+            For i = iKeysLb To iKeysUb
+                vRet(0, i) = vKeys(i)
             Next
-        Wend
-    Else
-        Err.Raise 1, "stdEnumerator#As2DArray", "Type conversion not defined"
-    End If
-
-    'Return data
-    AsArray2D = vRet
+    
+            'Populate values
+            Dim v As Variant: v = Null
+            Dim kv As Variant: kv = Null
+            i = 0
+            While NextItem(kv, v, i)
+                Dim j As Long
+                For j = iKeysLb To iKeysUb
+                    If IsObject(v(vKeys(j))) Then
+                        If includeObjects Then
+                            Set vRet(i, j) = v(vKeys(j))
+                        Else
+                            vRet(i, j) = "[Object]"
+                        End If
+                    Else
+                        vRet(i, j) = v(vKeys(j))
+                    End If
+                Next
+            Wend
+        Else
+            Err_Raise 1, "stdEnumerator#As2DArray", "Type conversion not defined"
+        End If
+    
+        'Return data
+        AsArray2D = vRet
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Returns the stored enumerator as a dictionary
 '@returns Object<Dictionary> - Dictionary containing enumerator data
 Public Function AsDictionary() As Object
-  Dim oRet As Object
-  Set oRet = CreateObject("Scripting.Dictionary")
-  
-  Dim v As Variant: v = Null
-  Dim kv As Variant: kv = Null
-  Dim i As Long: i = 0
-  While NextItem(kv, v, i)
-    If IsObject(v) Then
-      Set oRet(kv) = v
-    Else
-      Let oRet(kv) = v
-    End If
-  Wend
-
-  Set AsDictionary = oRet
+  With stdError.getSentry("stdEnumerator#AsDictionary")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim oRet As Object
+      Set oRet = CreateObject("Scripting.Dictionary")
+      
+      Dim v As Variant: v = Null
+      Dim kv As Variant: kv = Null
+      Dim i As Long: i = 0
+      While NextItem(kv, v, i)
+        If IsObject(v) Then
+          Set oRet(kv) = v
+        Else
+          Let oRet(kv) = v
+        End If
+      Wend
+    
+      Set AsDictionary = oRet
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Calls the callback on each item of the enumerator
 '@param cb as stdICallable<(element: Variant)=>Void> - Callback to call for each item
 '@returns - This is the enumerator itself for chaining
 Public Function ForEach(ByVal cb As stdICallable) As stdEnumerator
-  Dim v As Variant: v = Null
-  Dim i As Long: i = 0
-  Dim kv As Variant: kv = Null
-  While NextItem(kv, v, i)
-    Call cb.Run(v, kv)
-  Wend
-  Set ForEach = Me
+  With stdError.getSentry("stdEnumerator#ForEach", "cb", cb)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim v As Variant: v = Null
+      Dim i As Long: i = 0
+      Dim kv As Variant: kv = Null
+      While NextItem(kv, v, i)
+        Call cb.Run(v, kv)
+      Wend
+      Set ForEach = Me
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Call callback `cb` on each item in the enumerator. Creates a new enumerator from each value returned from `cb`.
 '@param cb as stdICallable<(element: Variant)=>Variant> - Callback to map values to.
 '@returns - Enumerator containing mapped values
 Public Function Map(ByVal cb As stdICallable) As stdEnumerator
-  Dim oRet As Collection: Set oRet = New Collection
-  Dim v As Variant: v = Null
-  Dim i As Long: i = 0
-  Dim kv As Variant: kv = Null
-  While NextItem(kv, v, i)
-    Call oRet.Add(cb.Run(v, kv))
-  Wend
-
-  Set Map = stdEnumerator.CreateFromIEnumVariant(oRet)
+  With stdError.getSentry("stdEnumerator#Map", "cb", cb)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim oRet As Collection: Set oRet = New Collection
+      Dim v As Variant: v = Null
+      Dim i As Long: i = 0
+      Dim kv As Variant: kv = Null
+      While NextItem(kv, v, i)
+        Call oRet.Add(cb.Run(v, kv))
+      Wend
+    
+      Set Map = stdEnumerator.CreateFromIEnumVariant(oRet)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Returns a new enumerator containing all elements of `Me` for which the given callback returns `true`.
 '@param cb as stdICallable<(element: Variant)=>Boolean> - callback to test condition for
 '@returns - Enumerator containing all elements of `Me` for which the given callback returns `true`.
 Public Function Filter(ByVal cb As stdICallable) As stdEnumerator
-  Dim oRet As Collection: Set oRet = New Collection
-  Dim v As Variant: v = Null
-  Dim i As Long: i = 0
-  Dim kv As Variant: kv = Null
-
-  While NextItem(kv, v, i)
-    If cb.Run(v, kv) Then Call oRet.Add(v)
-  Wend
-
-  Set Filter = stdEnumerator.CreateFromIEnumVariant(oRet)
+  With stdError.getSentry("stdEnumerator#Filter", "cb", cb)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim oRet As Collection: Set oRet = New Collection
+      Dim v As Variant: v = Null
+      Dim i As Long: i = 0
+      Dim kv As Variant: kv = Null
+    
+      While NextItem(kv, v, i)
+        If cb.Run(v, kv) Then Call oRet.Add(v)
+      Wend
+    
+      Set Filter = stdEnumerator.CreateFromIEnumVariant(oRet)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Sort the enumerator contents by the value retrieved by either the values in the enumerator or the values returned by `cb`.
 '@param cb as stdICallable<(element: Variant)=>Variant> - If a callback provided, sorts items based on values returned by the callback. Otherwise sorts items based on values in enumerator
 '@returns - enumerator of sorted values
 Public Function Sort(Optional ByVal cb As stdICallable = Nothing) As stdEnumerator
-    If Length > 0 Then
-        Dim arr() As SortStruct
-        Dim iIndex As Long: iIndex = 0
-        Dim iFirstItem As Long: iFirstItem = 1
-        Dim val As Variant: val = Null
-        Dim keyVal As Variant: keyVal = Null
-        While NextItem(keyVal, val, iIndex)
-            'Increment index
-            ReDim Preserve arr(1 To iIndex)
-
-            'Bind to SortStruct
-            If iIndex > 1 Then
-                'Initialise sorting struct
-                Call CopyVariant(arr(iIndex).value, val)
-                arr(iIndex).iIndex = iIndex
-                If cb Is Nothing Then
-                arr(iIndex).sortValue = arr(iIndex).value
-                Else
-                arr(iIndex).sortValue = cb.Run(arr(iIndex).value, keyVal)
-                End If
-
-                'Sort/Compare
-                Dim iCompareIndex As Long: iCompareIndex = iFirstItem
-
-                Do While iCompareIndex <> 0
-                    'If sort value at current index is less than at compare index then but this index to compare index via next
-                    If arr(iIndex).sortValue < arr(iCompareIndex).sortValue Then
-                        'Bind this index to compare index via iNext property
-                        arr(iIndex).iNext = arr(iCompareIndex).iIndex
-
-                        'Rebind previous element if required
-                        If arr(iCompareIndex).iPrev <> 0 Then
-                            'My new previous index is the previous elements previous index
-                            arr(iIndex).iPrev = arr(iCompareIndex).iPrev
-                            
-                            'The previous elements iNext should bind to me
-                            arr(arr(iIndex).iPrev).iNext = iIndex
-                            
-                            'The compare indexes iPrev should bind to me
-                            arr(iCompareIndex).iPrev = iIndex
-                        Else
-                            'There is no previous element i.e. this is the first element, change iFirstItem, and link current index to iPrev of comparee
-                            arr(iCompareIndex).iPrev = iIndex
-                            iFirstItem = iIndex
-                        End If
-                        
-                        'No need to carry on searching for where item should go, exit do loop
-                        Exit Do
+  With stdError.getSentry("stdEnumerator#Sort", "cb", cb)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        If Length > 0 Then
+            Dim arr() As SortStruct
+            Dim iIndex As Long: iIndex = 0
+            Dim iFirstItem As Long: iFirstItem = 1
+            Dim val As Variant: val = Null
+            Dim keyVal As Variant: keyVal = Null
+            While NextItem(keyVal, val, iIndex)
+                'Increment index
+                ReDim Preserve arr(1 To iIndex)
+    
+                'Bind to SortStruct
+                If iIndex > 1 Then
+                    'Initialise sorting struct
+                    Call CopyVariant(arr(iIndex).value, val)
+                    arr(iIndex).iIndex = iIndex
+                    If cb Is Nothing Then
+                    arr(iIndex).sortValue = arr(iIndex).value
                     Else
-                        'Ensure next element defined, if not then we have a new next element
-                        If arr(iCompareIndex).iNext <> 0 Then
-                            'Schedule next sorting check and keep searching
-                            iCompareIndex = arr(iCompareIndex).iNext
-                        Else
-                            'Next element is not defined, therefore this is max
-                            'in this case set next of arr(iCompareIndex) to this
-                            'set prev of this to iCompareIndex
-                            arr(iCompareIndex).iNext = iIndex
-                            arr(iIndex).iPrev = iCompareIndex
+                    arr(iIndex).sortValue = cb.Run(arr(iIndex).value, keyVal)
+                    End If
+    
+                    'Sort/Compare
+                    Dim iCompareIndex As Long: iCompareIndex = iFirstItem
+    
+                    Do While iCompareIndex <> 0
+                        'If sort value at current index is less than at compare index then but this index to compare index via next
+                        If arr(iIndex).sortValue < arr(iCompareIndex).sortValue Then
+                            'Bind this index to compare index via iNext property
+                            arr(iIndex).iNext = arr(iCompareIndex).iIndex
+    
+                            'Rebind previous element if required
+                            If arr(iCompareIndex).iPrev <> 0 Then
+                                'My new previous index is the previous elements previous index
+                                arr(iIndex).iPrev = arr(iCompareIndex).iPrev
+                                
+                                'The previous elements iNext should bind to me
+                                arr(arr(iIndex).iPrev).iNext = iIndex
+                                
+                                'The compare indexes iPrev should bind to me
+                                arr(iCompareIndex).iPrev = iIndex
+                            Else
+                                'There is no previous element i.e. this is the first element, change iFirstItem, and link current index to iPrev of comparee
+                                arr(iCompareIndex).iPrev = iIndex
+                                iFirstItem = iIndex
+                            End If
                             
                             'No need to carry on searching for where item should go, exit do loop
                             Exit Do
+                        Else
+                            'Ensure next element defined, if not then we have a new next element
+                            If arr(iCompareIndex).iNext <> 0 Then
+                                'Schedule next sorting check and keep searching
+                                iCompareIndex = arr(iCompareIndex).iNext
+                            Else
+                                'Next element is not defined, therefore this is max
+                                'in this case set next of arr(iCompareIndex) to this
+                                'set prev of this to iCompareIndex
+                                arr(iCompareIndex).iNext = iIndex
+                                arr(iIndex).iPrev = iCompareIndex
+                                
+                                'No need to carry on searching for where item should go, exit do loop
+                                Exit Do
+                            End If
                         End If
-                    End If
-                Loop
-            Else
-                'Initialise sorting struct
-                Call CopyVariant(arr(1).value, val)
-                If cb Is Nothing Then
-                  arr(1).sortValue = arr(1).value
+                    Loop
                 Else
-                  arr(1).sortValue = cb.Run(arr(1).value, keyVal)
+                    'Initialise sorting struct
+                    Call CopyVariant(arr(1).value, val)
+                    If cb Is Nothing Then
+                      arr(1).sortValue = arr(1).value
+                    Else
+                      arr(1).sortValue = cb.Run(arr(1).value, keyVal)
+                    End If
+                    arr(1).iIndex = 1
+                    arr(1).iNext = 0
+                    arr(1).iPrev = 0
                 End If
-                arr(1).iIndex = 1
-                arr(1).iNext = 0
-                arr(1).iPrev = 0
-            End If
-        Wend
-
-        'Collect sorted elements
-        Dim ret As Collection
-        Set ret = New Collection
-        Dim i As Long: i = iFirstItem
-        While i <> 0
-            Call ret.Add(arr(i).value)
-            i = arr(i).iNext
-        Wend
-
-        'Return sorted collection as stdEnumerator
-        Set Sort = stdEnumerator.CreateFromIEnumVariant(ret)
-    Else
-        Set Sort = Me
-    End If
+            Wend
+    
+            'Collect sorted elements
+            Dim ret As Collection
+            Set ret = New Collection
+            Dim i As Long: i = iFirstItem
+            While i <> 0
+                Call ret.Add(arr(i).value)
+                i = arr(i).iNext
+            Wend
+    
+            'Return sorted collection as stdEnumerator
+            Set Sort = stdEnumerator.CreateFromIEnumVariant(ret)
+        Else
+            Set Sort = Me
+        End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Returns a new enumerator by removing duplicate values from `Me`.
 '@param cb as stdICallable<(element: Variant)=>Variant> - If a callback provided, filters out duplicate items based on values returned by the callback. Otherwise filters duplicate item based on their value.
 '@returns - enumerator of unique values
 Public Function Unique(Optional ByVal cb As stdICallable = Nothing) As stdEnumerator
-  Dim oRet As Collection: Set oRet = New Collection
-  Dim v As Variant: v = Null
-  Dim i As Long: i = 0
-  Dim kv As Variant: kv = Null
-  Dim comp1 As Variant, comp2 As Variant
-
-  While NextItem(kv, v, i)
-    Dim tv As Variant: tv = Null
-    Dim ktv As Variant: ktv = Null
-    Dim ti As Long: ti = i
-    Dim matchFound As Boolean: matchFound = False
+  With stdError.getSentry("stdEnumerator#Unique", "cb", cb)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    'Obtain comparison token
-    If cb Is Nothing Then
-      Call CopyVariant(comp1, v)
-    Else
-      Call CopyVariant(comp1, cb.Run(v, kv))
-    End If
-
-    Do While NextItem(ktv, tv, ti)
-        'Obtain 2nd comparison token
-        If cb Is Nothing Then
-          Call CopyVariant(comp2, tv)
-        Else
-          Call CopyVariant(comp2, cb.Run(tv, ktv))
-        End If
+      Dim oRet As Collection: Set oRet = New Collection
+      Dim v As Variant: v = Null
+      Dim i As Long: i = 0
+      Dim kv As Variant: kv = Null
+      Dim comp1 As Variant, comp2 As Variant
+    
+      While NextItem(kv, v, i)
+        Dim tv As Variant: tv = Null
+        Dim ktv As Variant: ktv = Null
+        Dim ti As Long: ti = i
+        Dim matchFound As Boolean: matchFound = False
         
-        matchFound = areVariantsEqual(comp1, comp2)
-        If matchFound Then Exit Do
-    Loop
+        'Obtain comparison token
+        If cb Is Nothing Then
+          Call CopyVariant(comp1, v)
+        Else
+          Call CopyVariant(comp1, cb.Run(v, kv))
+        End If
     
-    'If a match isn't found return v
-    If Not matchFound Then Call oRet.Add(v)
-  Wend
-
-  Set Unique = stdEnumerator.CreateFromIEnumVariant(oRet)
+        Do While NextItem(ktv, tv, ti)
+            'Obtain 2nd comparison token
+            If cb Is Nothing Then
+              Call CopyVariant(comp2, tv)
+            Else
+              Call CopyVariant(comp2, cb.Run(tv, ktv))
+            End If
+            
+            matchFound = areVariantsEqual(comp1, comp2)
+            If matchFound Then Exit Do
+        Loop
+        
+        'If a match isn't found return v
+        If Not matchFound Then Call oRet.Add(v)
+      Wend
+    
+      Set Unique = stdEnumerator.CreateFromIEnumVariant(oRet)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Returns a new enumerator containing the reverse of the existing items in stdEnumerator.
 '@returns - enumerator of values in reverse order
 Public Function Reverse() As stdEnumerator
-  Dim oRet As Collection: Set oRet = New Collection
-  Dim v: v = AsArray()
-  Dim i As Long:
-  For i = UBound(v) To LBound(v) Step -1
-    oRet.Add v(i)
-  Next
-
-  Set Reverse = stdEnumerator.CreateFromIEnumVariant(oRet)
+  With stdError.getSentry("stdEnumerator#Reverse")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim oRet As Collection: Set oRet = New Collection
+      Dim v: v = AsArray()
+      Dim i As Long:
+      For i = UBound(v) To LBound(v) Step -1
+        oRet.Add v(i)
+      Next
+    
+      Set Reverse = stdEnumerator.CreateFromIEnumVariant(oRet)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Concatenates to enumerators of values.
 '@param obj - Enumerator to concat with that of `me`.
 '@returns - A concatenated array of values.
 Public Function Concat(ByVal obj As stdEnumerator) As stdEnumerator
-    Dim oRet As Collection: Set oRet = New Collection
-    Dim v As Variant: v = Null
-    Dim i As Long: i = 0
-    Dim kv As Variant: v = Null
-    While NextItem(kv, v, i)
-        Call oRet.Add(v)
-    Wend
-    For Each v In obj.AsCollection
-        Call oRet.Add(v)
-    Next
-
-    Set Concat = stdEnumerator.CreateFromIEnumVariant(oRet)
+  With stdError.getSentry("stdEnumerator#Concat", "obj", obj)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim oRet As Collection: Set oRet = New Collection
+        Dim v As Variant: v = Null
+        Dim i As Long: i = 0
+        Dim kv As Variant: v = Null
+        While NextItem(kv, v, i)
+            Call oRet.Add(v)
+        Wend
+        For Each v In obj.AsCollection
+            Call oRet.Add(v)
+        Next
+    
+        Set Concat = stdEnumerator.CreateFromIEnumVariant(oRet)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Join the elements of the enumerator joint with a delimeter
 '@param sDelimiter - Enumerator to concat with that of `me`.
 '@returns - A concatenated array of values.
 Public Function Join(Optional ByVal sDelimiter As String = ",") As String
-    Dim sRet As String
-    sRet = ""
-
-    Dim oRet As Collection: Set oRet = New Collection
-    Dim v As Variant: v = Null
-    Dim i As Long: i = 0
-    Dim kv As Variant: kv = Null
+  With stdError.getSentry("stdEnumerator#Join", "sDelimiter", sDelimiter)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    While NextItem(kv, v, i)
-        sRet = sRet & sDelimiter & v
-    Wend
-
-    Join = Mid(sRet, Len(sDelimiter) + 1)
+        Dim sRet As String
+        sRet = ""
+    
+        Dim oRet As Collection: Set oRet = New Collection
+        Dim v As Variant: v = Null
+        Dim i As Long: i = 0
+        Dim kv As Variant: kv = Null
+        
+        While NextItem(kv, v, i)
+            sRet = sRet & sDelimiter & v
+        Wend
+    
+        Join = Mid(sRet, Len(sDelimiter) + 1)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Find the index of an element
 '@param tv - Element to find.
 '@returns - Index of element.
 Public Function indexOf(ByVal tv As Variant) As Long
-    Dim oRet As Collection: Set oRet = New Collection
-    Dim v As Variant: v = Null
-    Dim i As Long: i = 0
-    Dim kv As Variant: kv = Null
+  With stdError.getSentry("stdEnumerator#indexOf", "tv", tv)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    While NextItem(kv, v, i)
-        If areVariantsEqual(tv, v) Then
-            indexOf = i
-            Exit Function
-        End If
-    Wend
-
-    indexOf = 0
+        Dim oRet As Collection: Set oRet = New Collection
+        Dim v As Variant: v = Null
+        Dim i As Long: i = 0
+        Dim kv As Variant: kv = Null
+        
+        While NextItem(kv, v, i)
+            If areVariantsEqual(tv, v) Then
+                indexOf = i
+                Exit Function
+            End If
+        Wend
+    
+        indexOf = 0
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Find the last index of an element in the enumerator
 '@param tv - Element to find
 '@returns - Last index of element.
 Public Function lastIndexOf(ByVal tv As Variant) As Long
-    Dim oRet As Collection: Set oRet = New Collection
-    Dim v As Variant: v = Null
-    Dim i As Long: i = 0
-    Dim kv As Variant: kv = Null
+  With stdError.getSentry("stdEnumerator#lastIndexOf", "tv", tv)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    While NextItem(kv, v, i)
-        If areVariantsEqual(tv, v) Then
-            lastIndexOf = i
-        End If
-    Wend
+        Dim oRet As Collection: Set oRet = New Collection
+        Dim v As Variant: v = Null
+        Dim i As Long: i = 0
+        Dim kv As Variant: kv = Null
+        
+        While NextItem(kv, v, i)
+            If areVariantsEqual(tv, v) Then
+                lastIndexOf = i
+            End If
+        Wend
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Find whether an element is included in the enumerator
 '@param tv - Element to find
 '@returns - `True` if element is found, else `false`.
 Public Function includes(ByVal tv As Variant) As Boolean
-    includes = indexOf(tv) > 0
+  With stdError.getSentry("stdEnumerator#includes", "tv", tv)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        includes = indexOf(tv) > 0
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Ensure that all elements in an enumerator satisfy a condition.
 '@param cb as stdICallable<(element: Variant)=>Boolean> - condition to check.
 '@returns - `True` if all elements satisfy the condition, else `false`.
 Public Function checkAll(ByVal cb As stdICallable) As Boolean
-    Dim oRet As Collection: Set oRet = New Collection
-    Dim v As Variant: v = Null
-    Dim i As Long: i = 0
-    Dim kv As Variant: kv = Null
-
-    checkAll = True
-    While NextItem(kv, v, i)
-        If Not cb.Run(v, kv) Then
-            checkAll = False
-            Exit Function
-        End If
-    Wend
+  With stdError.getSentry("stdEnumerator#checkAll", "cb", cb)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim oRet As Collection: Set oRet = New Collection
+        Dim v As Variant: v = Null
+        Dim i As Long: i = 0
+        Dim kv As Variant: kv = Null
+    
+        checkAll = True
+        While NextItem(kv, v, i)
+            If Not cb.Run(v, kv) Then
+                checkAll = False
+                Exit Function
+            End If
+        Wend
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Ensure that any of the elements in an enumerator satisfy a condition.
 '@param cb as stdICallable<(element: Variant)=>Boolean> - condition to check.
 '@returns - `True` if any element satisfies the condition, else `false`.
 Public Function checkAny(ByVal cb As stdICallable) As Boolean
-    Dim oRet As Collection: Set oRet = New Collection
-    Dim v As Variant: v = Null
-    Dim i As Long: i = 0
-    Dim kv As Variant: kv = Null
+  With stdError.getSentry("stdEnumerator#checkAny", "cb", cb)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    While NextItem(kv, v, i)
-        If cb.Run(v, kv) Then
-            checkAny = True
-            Exit Function
-        End If
-    Wend
-    checkAny = False
+        Dim oRet As Collection: Set oRet = New Collection
+        Dim v As Variant: v = Null
+        Dim i As Long: i = 0
+        Dim kv As Variant: kv = Null
+        
+        While NextItem(kv, v, i)
+            If cb.Run(v, kv) Then
+                checkAny = True
+                Exit Function
+            End If
+        Wend
+        checkAny = False
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Ensure that none of the elements in an enumerator satisfy a condition.
 '@param cb as stdICallable<(element: Variant)=>Boolean> - condition to check.
 '@returns - `True` if none of the elements satisfy the condition, else `false`.
 Public Function checkNone(ByVal cb As stdICallable) As Boolean
-    Dim oRet As Collection: Set oRet = New Collection
-    Dim v As Variant: v = Null
-    Dim i As Long: i = 0
-    Dim kv As Variant: kv = Null
-
-    While NextItem(kv, v, i)
-        If cb.Run(v, kv) Then
-            checkNone = False
-            Exit Function
-        End If
-    Wend
-    checkNone = True
+  With stdError.getSentry("stdEnumerator#checkNone", "cb", cb)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim oRet As Collection: Set oRet = New Collection
+        Dim v As Variant: v = Null
+        Dim i As Long: i = 0
+        Dim kv As Variant: kv = Null
+    
+        While NextItem(kv, v, i)
+            If cb.Run(v, kv) Then
+                checkNone = False
+                Exit Function
+            End If
+        Wend
+        checkNone = True
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Ensure that only one of the elements in an enumerator satisfy a condition.
 '@param cb as stdICallable<(element: Variant)=>Boolean> - condition to check.
 '@returns - `True` if only one of the elements satisfy the condition, else `false`.
 Public Function checkOnlyOne(ByVal cb As stdICallable) As Boolean
-    Dim oRet As Collection: Set oRet = New Collection
-    Dim v As Variant: v = Null
-    Dim i As Long: i = 0
-    Dim kv As Variant: kv = Null
-    Dim iMatched As Long: iMatched = 0
-    While NextItem(kv, v, i)
-        If cb.Run(v, kv) Then
-            iMatched = iMatched + 1
-            If iMatched > 1 Then
-                checkOnlyOne = False
-                Exit Function
+  With stdError.getSentry("stdEnumerator#checkOnlyOne", "cb", cb)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim oRet As Collection: Set oRet = New Collection
+        Dim v As Variant: v = Null
+        Dim i As Long: i = 0
+        Dim kv As Variant: kv = Null
+        Dim iMatched As Long: iMatched = 0
+        While NextItem(kv, v, i)
+            If cb.Run(v, kv) Then
+                iMatched = iMatched + 1
+                If iMatched > 1 Then
+                    checkOnlyOne = False
+                    Exit Function
+                End If
             End If
+        Wend
+        If iMatched = 0 Then
+            checkOnlyOne = False
+            Exit Function
         End If
-    Wend
-    If iMatched = 0 Then
-        checkOnlyOne = False
-        Exit Function
-    End If
-    checkOnlyOne = True
+        checkOnlyOne = True
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'The reduce() method executes a reducer function (that you provide) on each element of the array, resulting in single output value.
@@ -1032,63 +1288,87 @@ End Function
 '@param vInitialValue - initial value to use in reducer.
 '@returns - The reduced value.
 Public Function reduce(ByVal cb As stdICallable, Optional ByVal initialValue As Variant = 0) As Variant
-    Dim v As Variant: v = Null
-    Dim i As Long: i = 0
-    Dim kv As Variant: kv = Null
+  With stdError.getSentry("stdEnumerator#reduce", "cb", cb, "initialValue", initialValue)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    'Obtain initial value
-    Dim vRet As Variant
-    If IsMissing(initialValue) Then
-        Call NextItem(kv, v, i)
-        Call CopyVariant(vRet, v)
-    Else
-        Call CopyVariant(vRet, initialValue)
-    End If
+        Dim v As Variant: v = Null
+        Dim i As Long: i = 0
+        Dim kv As Variant: kv = Null
+        
+        'Obtain initial value
+        Dim vRet As Variant
+        If IsMissing(initialValue) Then
+            Call NextItem(kv, v, i)
+            Call CopyVariant(vRet, v)
+        Else
+            Call CopyVariant(vRet, initialValue)
+        End If
+        
+        'Reduce
+        While NextItem(kv, v, i)
+            Call CopyVariant(vRet, cb.Run(vRet, v, kv))
+        Wend
+        Call CopyVariant(reduce, vRet)
     
-    'Reduce
-    While NextItem(kv, v, i)
-        Call CopyVariant(vRet, cb.Run(vRet, v, kv))
-    Wend
-    Call CopyVariant(reduce, vRet)
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Count the number of times a condition is met
 '@param cb as stdICallable<(element: Variant)=>Boolean> - The callable to test for
 '@returns - The number of times a condition is met
 Public Function countBy(ByVal cb As stdICallable) As Long
-    Dim iRet As Long: iRet = 0
-    Dim v As Variant: v = Null
-    Dim i As Long: i = 0
-    Dim kv As Variant: kv = Null
-
-    While NextItem(kv, v, i)
-        If cb.Run(v, kv) Then iRet = iRet + 1
-    Wend
-    countBy = iRet
+  With stdError.getSentry("stdEnumerator#countBy", "cb", cb)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim iRet As Long: iRet = 0
+        Dim v As Variant: v = Null
+        Dim i As Long: i = 0
+        Dim kv As Variant: kv = Null
+    
+        While NextItem(kv, v, i)
+            If cb.Run(v, kv) Then iRet = iRet + 1
+        Wend
+        countBy = iRet
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Group elements in stdEnumerator based on the value return by a callback
 '@param cb as stdICallable<(element: Variant)=>Boolean> - The callable which when run on an element returns the key to group by
 '@returns - Creates a dictionary, who's keys lead to `stdEnumerator`'s of elements matching that grouping.
 Public Function groupBy(ByVal cb As stdICallable) As Object
-    Dim oRet As Object: Set oRet = CreateObject("Scripting.Dictionary")
-    Dim key As Variant
+  With stdError.getSentry("stdEnumerator#groupBy", "cb", cb)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    Dim v As Variant: v = Null
-    Dim i As Long: i = 0
-    Dim kv As Variant: kv = Null
+        Dim oRet As Object: Set oRet = CreateObject("Scripting.Dictionary")
+        Dim key As Variant
+        
+        Dim v As Variant: v = Null
+        Dim i As Long: i = 0
+        Dim kv As Variant: kv = Null
+        
+        While NextItem(kv, v, i)
+            Call CopyVariant(key, cb.Run(v, kv))
+            If Not oRet.exists(key) Then Set oRet(key) = New Collection
+            Call oRet(key).add(v)
+        Wend
+                
+        Dim keys As Variant: keys = oRet.keys()
+        For i = 0 To UBound(keys)
+            Set oRet(keys(i)) = stdEnumerator.CreateFromIEnumVariant(oRet(keys(i)))
+        Next
+        Set groupBy = oRet
     
-    While NextItem(kv, v, i)
-        Call CopyVariant(key, cb.Run(v, kv))
-        If Not oRet.exists(key) Then Set oRet(key) = New Collection
-        Call oRet(key).add(v)
-    Wend
-            
-    Dim keys As Variant: keys = oRet.keys()
-    For i = 0 To UBound(keys)
-        Set oRet(keys(i)) = stdEnumerator.CreateFromIEnumVariant(oRet(keys(i)))
-    Next
-    Set groupBy = oRet
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Returns a new enumerator containing groups from groupBy, with the key and item properties added
@@ -1104,102 +1384,142 @@ End Function
 'Debug.Print e.groupByEx(stdLambda.Create("$1")).Sort(stdLambda.Create("-1 * $1.value.length")).Item(1)("key")
 '```
 Public Function groupByEx(ByVal cb As stdICallable) As stdEnumerator
-    Dim groups As Object: Set groups = groupBy(cb)
-    Set groupByEx = CreateFromDictionaryEx(groups)
+  With stdError.getSentry("stdEnumerator#groupByEx", "cb", cb)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim groups As Object: Set groups = groupBy(cb)
+        Set groupByEx = CreateFromDictionaryEx(groups)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Obtains the maximum value from the enumerator. If a callback is given the item which returns the largest value from the callback is returned.
 '@param cb as stdICallable<(element: Variant)=>Variant> - If callback given, callback to obtain max value of. Else max of the elements values are found.
 '@returns - Value containing max data
 Public Function max(Optional ByVal cb As stdICallable = Nothing) As Variant
-    Dim vRet As Variant
-    Dim vMaxValue As Variant
-    Dim v As Variant: v = Null
-    Dim i As Long: i = 0
-    Dim kv As Variant: kv = Null
-
-    While NextItem(kv, v, i)
-        'Get value to test
-        Dim vtValue As Variant
-        If cb Is Nothing Then
-            Call CopyVariant(vtValue, v)
-        Else
-            Call CopyVariant(vtValue, cb.Run(v, kv))
-        End If
-
-        'Compare values and return 
-        If IsEmpty(vRet) Then
-            Call CopyVariant(vRet, v)
-            Call CopyVariant(vMaxValue, vtValue)
-        ElseIf vMaxValue < vtValue Then
-            Call CopyVariant(vRet, v)
-            Call CopyVariant(vMaxValue, vtValue)
-        End If
-    Wend
-            
-    Call CopyVariant(max, vRet)
+  With stdError.getSentry("stdEnumerator#max", "cb", cb)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim vRet As Variant
+        Dim vMaxValue As Variant
+        Dim v As Variant: v = Null
+        Dim i As Long: i = 0
+        Dim kv As Variant: kv = Null
+    
+        While NextItem(kv, v, i)
+            'Get value to test
+            Dim vtValue As Variant
+            If cb Is Nothing Then
+                Call CopyVariant(vtValue, v)
+            Else
+                Call CopyVariant(vtValue, cb.Run(v, kv))
+            End If
+    
+            'Compare values and return 
+            If IsEmpty(vRet) Then
+                Call CopyVariant(vRet, v)
+                Call CopyVariant(vMaxValue, vtValue)
+            ElseIf vMaxValue < vtValue Then
+                Call CopyVariant(vRet, v)
+                Call CopyVariant(vMaxValue, vtValue)
+            End If
+        Wend
+                
+        Call CopyVariant(max, vRet)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Obtains the minimum value from the enumerator. If a callback is given the item which returns the largest value from the callback is returned.
 '@param cb as stdICallable<(element: Variant)=>Variant> -  If callback given, callback to obtain min value of. Else min of the elements values are found.
 '@returns - Value containing min data
 Public Function min(Optional ByVal cb As stdICallable = Nothing) As Variant
-    Dim vRet As Variant
-    Dim vMaxValue As Variant
-    Dim v As Variant: v = Null
-    Dim i As Long: i = 0
-    Dim kv As Variant: kv = Null
-
-    While NextItem(kv, v, i)
-        'Get value to test
-        Dim vtValue As Variant
-        If cb Is Nothing Then
-            Call CopyVariant(vtValue, v)
-        Else
-            Call CopyVariant(vtValue, cb.Run(v, kv))
-        End If
-
-        'Compare values and return
-        If IsEmpty(vRet) Then
-            Call CopyVariant(vRet, v)
-            Call CopyVariant(vMaxValue, vtValue)
-        ElseIf vMaxValue > vtValue Then
-            Call CopyVariant(vRet, v)
-            Call CopyVariant(vMaxValue, vtValue)
-        End If
-    Wend
-            
-    Call CopyVariant(min, vRet)
+  With stdError.getSentry("stdEnumerator#min", "cb", cb)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim vRet As Variant
+        Dim vMaxValue As Variant
+        Dim v As Variant: v = Null
+        Dim i As Long: i = 0
+        Dim kv As Variant: kv = Null
+    
+        While NextItem(kv, v, i)
+            'Get value to test
+            Dim vtValue As Variant
+            If cb Is Nothing Then
+                Call CopyVariant(vtValue, v)
+            Else
+                Call CopyVariant(vtValue, cb.Run(v, kv))
+            End If
+    
+            'Compare values and return
+            If IsEmpty(vRet) Then
+                Call CopyVariant(vRet, v)
+                Call CopyVariant(vMaxValue, vtValue)
+            ElseIf vMaxValue > vtValue Then
+                Call CopyVariant(vRet, v)
+                Call CopyVariant(vMaxValue, vtValue)
+            End If
+        Wend
+                
+        Call CopyVariant(min, vRet)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Obtains the sum of the elements in an enumerator, or of the values returned by the callback.
 '@param cb as stdICallable<(element: Variant)=>Variant> -  A callback returning an item to sum. If no callback supplied then the elements themselves will be summed
 '@returns - The sum value
 Public Function sum(Optional ByVal cb As stdICallable = Nothing) As Variant
-    Dim vRet As Variant
-    Dim oRet As Collection: Set oRet = New Collection
-    Dim v As Variant: v = Null
-    Dim i As Long: i = 0
-    Dim kv As Variant: kv = Null
+  With stdError.getSentry("stdEnumerator#sum", "cb", cb)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    While NextItem(kv, v, i)
-        'Get value to test
-        Dim vtValue As Variant
-        If cb Is Nothing Then
-            Call CopyVariant(vtValue, v)
-        Else
-            Call CopyVariant(vtValue, cb.Run(v, kv))
-        End If
-        vRet = vRet + vtValue
-    Wend
-            
-    Call CopyVariant(sum, vRet)
+        Dim vRet As Variant
+        Dim oRet As Collection: Set oRet = New Collection
+        Dim v As Variant: v = Null
+        Dim i As Long: i = 0
+        Dim kv As Variant: kv = Null
+        
+        While NextItem(kv, v, i)
+            'Get value to test
+            Dim vtValue As Variant
+            If cb Is Nothing Then
+                Call CopyVariant(vtValue, v)
+            Else
+                Call CopyVariant(vtValue, cb.Run(v, kv))
+            End If
+            vRet = vRet + vtValue
+        Wend
+                
+        Call CopyVariant(sum, vRet)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Flatten an enumerator of enumerators
 '@returns - A flattened enumerator (depth = 1)
 Public Function Flatten() As stdEnumerator
-    Set Flatten = stdEnumerator.CreateFromIEnumVariant(flattenChildrenRecurse(Me))
+  With stdError.getSentry("stdEnumerator#Flatten")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Set Flatten = stdEnumerator.CreateFromIEnumVariant(flattenChildrenRecurse(Me))
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Run the callback on an all of the items i times.
@@ -1207,18 +1527,26 @@ End Function
 '@param cb as stdICallable<(element: variant, key: variant)=>Void> - Callback to execute on each item
 '@returns  - This object.
 Public Function Cycle(ByVal iTimes As Long, ByVal cb As stdICallable) As stdEnumerator
-    Dim i As Long
-    For i = 1 To iTimes
-        Dim oRet As Collection: Set oRet = New Collection
-        Dim v As Variant: v = Null
-        Dim ti As Long: ti = 0
-        Dim kv As Variant: kv = Null
-        
-        While NextItem(kv, v, ti)
-            Call cb.Run(v, kv)
-        Wend
-    Next
-    Set Cycle = Me
+  With stdError.getSentry("stdEnumerator#Cycle", "iTimes", iTimes, "cb", cb)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim i As Long
+        For i = 1 To iTimes
+            Dim oRet As Collection: Set oRet = New Collection
+            Dim v As Variant: v = Null
+            Dim ti As Long: ti = 0
+            Dim kv As Variant: kv = Null
+            
+            While NextItem(kv, v, ti)
+                Call cb.Run(v, kv)
+            Wend
+        Next
+        Set Cycle = Me
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Finds the first item which matches a certain condition
@@ -1226,19 +1554,27 @@ End Function
 '@param ifMissing - Value to return if missing
 '@returns - Value found or value of isMissing if missing
 Public Function FindFirst(ByVal cb As stdICallable, Optional ByVal ifMissing As Variant = Null) As Variant
-    Dim oRet As Collection: Set oRet = New Collection
-    Dim v As Variant: v = Null
-    Dim i As Long: i = 0
-    Dim kv As Variant: kv = Null
-
-    While NextItem(kv, v, i)
-        If cb.Run(v, kv) Then
-            Call CopyVariant(FindFirst, v)
-            Exit Function
-        End If
-    Wend
-
-    Call CopyVariant(FindFirst, ifMissing)
+  With stdError.getSentry("stdEnumerator#FindFirst", "cb", cb, "ifMissing", ifMissing)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim oRet As Collection: Set oRet = New Collection
+        Dim v As Variant: v = Null
+        Dim i As Long: i = 0
+        Dim kv As Variant: kv = Null
+    
+        While NextItem(kv, v, i)
+            If cb.Run(v, kv) Then
+                Call CopyVariant(FindFirst, v)
+                Exit Function
+            End If
+        Wend
+    
+        Call CopyVariant(FindFirst, ifMissing)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Get the item at an index / key
@@ -1246,48 +1582,64 @@ End Function
 '@param byIndex - If true, then index of item is used, instead of potentially key.
 '@returns       - Item returned at index/key
 Public Property Get Item(ByVal index As Variant, Optional ByVal byIndex As Boolean = False) As Variant
-    Dim oRet As Collection: Set oRet = New Collection
-    Dim v As Variant: v = Null
-    Dim ti As Long: ti = 0
-    Dim kv As Variant: kv = Null
-
-    'Loop through items until 
-    While NextItem(kv, v, ti)
-        Dim bMeetsRequirements As Boolean
-        If byIndex Then
-          bMeetsRequirements = ti = index
-        Else
-          bMeetsRequirements = areVariantsEqual(kv, index)
-        End If
-        
-        If bMeetsRequirements Then
-            Call CopyVariant(Item, v)
-            Exit Property
-        End If
-    Wend
+  With stdError.getSentry("stdEnumerator#Item[Get]", "index", index, "byIndex", byIndex)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    Err.Raise 1, "stdEnumerator", "Error: No such item " & index & " in stdEnumerator."
+        Dim oRet As Collection: Set oRet = New Collection
+        Dim v As Variant: v = Null
+        Dim ti As Long: ti = 0
+        Dim kv As Variant: kv = Null
+    
+        'Loop through items until 
+        While NextItem(kv, v, ti)
+            Dim bMeetsRequirements As Boolean
+            If byIndex Then
+              bMeetsRequirements = ti = index
+            Else
+              bMeetsRequirements = areVariantsEqual(kv, index)
+            End If
+            
+            If bMeetsRequirements Then
+                Call CopyVariant(Item, v)
+                Exit Property
+            End If
+        Wend
+        
+        Err_Raise 1, "stdEnumerator", "Error: No such item " & index & " in stdEnumerator."
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get the length of the enumerator
 '@returns - Length of enumerator.
 Public Property Get Length() As Long
-    Dim oRet As Collection: Set oRet = New Collection
-    Dim v As Variant: v = Null
-    Dim i As Long: i = 0
-    Dim iMaxLength As Long: iMaxLength = This.MaxLength
-    If This.mode = FromArray Then
-        Length = UBound(This.BaseArray) - LBound(This.BaseArray) + 1
-    Else
-        Dim kv As Variant: kv = Null
-        While NextItem(kv, v, i)
-            If i > iMaxLength Then
-                Err.Raise 1, "stdEnumerator", "Error: In order to prevent freezes stdEnumerator's Length() has a maxLength parameter. If the length of your collection is greater than this figure the program will error. Either Potential freeze detected."
-            End If
-            If i Mod 1000 = 0 Then DoEvents
-        Wend
-        Length = i - 1
-    End If
+  With stdError.getSentry("stdEnumerator#Length[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim oRet As Collection: Set oRet = New Collection
+        Dim v As Variant: v = Null
+        Dim i As Long: i = 0
+        Dim iMaxLength As Long: iMaxLength = This.MaxLength
+        If This.mode = FromArray Then
+            Length = UBound(This.BaseArray) - LBound(This.BaseArray) + 1
+        Else
+            Dim kv As Variant: kv = Null
+            While NextItem(kv, v, i)
+                If i > iMaxLength Then
+                    Err_Raise 1, "stdEnumerator", "Error: In order to prevent freezes stdEnumerator's Length() has a maxLength parameter. If the length of your collection is greater than this figure the program will error. Either Potential freeze detected."
+                End If
+                If i Mod 1000 = 0 Then DoEvents
+            Wend
+            Length = i - 1
+        End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get the first `iCount` elements of the collection. Useful for testing
@@ -1297,21 +1649,29 @@ End Property
 'stdEnumerator.CreateFromArray(Array(1,2,3,4,5,6,7,8,9)).First(3).Join(",") '=>1,2,3
 '```
 Public Function First(ByVal iCount As Long) As stdEnumerator
-    Dim oRet As Collection: Set oRet = New Collection
-    Dim v As Variant: v = Null
-    Dim ti As Long: ti = 0
-    Dim kv As Variant: kv = Null
+  With stdError.getSentry("stdEnumerator#First", "iCount", iCount)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
-    While NextItem(kv, v, ti)
-        oRet.Add v
+        Dim oRet As Collection: Set oRet = New Collection
+        Dim v As Variant: v = Null
+        Dim ti As Long: ti = 0
+        Dim kv As Variant: kv = Null
         
-        'Reduce and check counter
-        iCount = iCount - 1
-        If iCount = 0 Then GoTo Jump
-    Wend
-
-Jump:
-    Set First = stdEnumerator.CreateFromIEnumVariant(oRet)
+        While NextItem(kv, v, ti)
+            oRet.Add v
+            
+            'Reduce and check counter
+            iCount = iCount - 1
+            If iCount = 0 Then GoTo Jump
+        Wend
+    
+    Jump:
+        Set First = stdEnumerator.CreateFromIEnumVariant(oRet)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 
@@ -1321,70 +1681,102 @@ End Function
 '@param v2 - Variable 2
 '@returns - True if the variables are equal, false otherwise.
 Private Function areVariantsEqual(ByVal v1 As Variant, ByVal v2 As Variant) As Boolean
-    If IsObject(v1) And IsObject(v2) Then
-        areVariantsEqual = v1 Is v2
-    ElseIf (Not IsObject(v1)) And (Not IsObject(v2)) Then
-        areVariantsEqual = v1 = v2
-    End If
+  With stdError.getSentry("stdEnumerator#areVariantsEqual", "v1", v1, "v2", v2)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        If IsObject(v1) And IsObject(v2) Then
+            areVariantsEqual = v1 Is v2
+        ElseIf (Not IsObject(v1)) And (Not IsObject(v2)) Then
+            areVariantsEqual = v1 = v2
+        End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Copy the value from vSrc into vDest
 '@param vDest - Destination value
 '@param vSrc  - Source value
 Private Sub CopyVariant(ByRef vDest As Variant, ByVal vSrc As Variant)
-    If IsObject(vSrc) Or VarType(vSrc) = VT_UNKNOWN Then
-        Set vDest = vSrc
-    Else
-        Let vDest = vSrc
-    End If
+  With stdError.getSentry("stdEnumerator#CopyVariant", "vDest", vDest, "vSrc", vSrc)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        If IsObject(vSrc) Or VarType(vSrc) = VT_UNKNOWN Then
+            Set vDest = vSrc
+        Else
+            Let vDest = vSrc
+        End If
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Check whether an object implements `IEnumVARIANT`
 '@param o - Value to check
 '@returns - `True` if it implements `IEnumVARIANT`, `false` otherwise
 Private Function implementsIEnumVariant(ByVal o As Variant) As Boolean
-    On Error GoTo ErrorOccurred
-        If IsObject(o) Or VarType(o) = VT_UNKNOWN Then
-            Dim x As Variant
-            For Each x In o
-                Exit For
-            Next
-            implementsIEnumVariant = True
-            Exit Function
-        End If
-    On Error GoTo 0
-
-ErrorOccurred:
-    implementsIEnumVariant = False
+  With stdError.getSentry("stdEnumerator#implementsIEnumVariant", "o", o)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        On Error GoTo ErrorOccurred
+            If IsObject(o) Or VarType(o) = VT_UNKNOWN Then
+                Dim x As Variant
+                For Each x In o
+                    Exit For
+                Next
+                implementsIEnumVariant = True
+                Exit Function
+            End If
+        On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+    ErrorOccurred:
+        implementsIEnumVariant = False
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Recursively identify children based on iEnumVariant
 '@param parent - `Object`/`Array` or whatever to flatten
 '@returns - Flattened collection of items
 Private Function flattenChildrenRecurse(ByVal parent As Variant) As Collection
-    Dim oRet As Collection: Set oRet = New Collection
-    Dim child As Variant, t As Variant
-    If TypeName(parent) = "stdEnumerator" Then
-        'Loop through children
-        For Each child In parent.AsCollection
-            'Recursive add to oRet
-            For Each t In flattenChildrenRecurse(child)
-                oRet.Add t
+  With stdError.getSentry("stdEnumerator#flattenChildrenRecurse", "parent", parent)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim oRet As Collection: Set oRet = New Collection
+        Dim child As Variant, t As Variant
+        If TypeName(parent) = "stdEnumerator" Then
+            'Loop through children
+            For Each child In parent.AsCollection
+                'Recursive add to oRet
+                For Each t In flattenChildrenRecurse(child)
+                    oRet.Add t
+                Next
             Next
-        Next
-    ElseIf implementsIEnumVariant(parent) Then
-        'Loop through children
-        For Each child In parent
-            'Recursive add to oRet
-            For Each t In flattenChildrenRecurse(child)
-                oRet.Add t
+        ElseIf implementsIEnumVariant(parent) Then
+            'Loop through children
+            For Each child In parent
+                'Recursive add to oRet
+                For Each t In flattenChildrenRecurse(child)
+                    oRet.Add t
+                Next
             Next
-        Next
-    Else
-        'Parent is flat already
-        oRet.Add parent
-    End If
-    Set flattenChildrenRecurse = oRet
+        Else
+            'Parent is flat already
+            oRet.Add parent
+        End If
+        Set flattenChildrenRecurse = oRet
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Given previous item and index, obtain the next item and index
@@ -1394,110 +1786,172 @@ End Function
 '@returns             - Whether a new item was succesfully obtained or not.
 '@TODO: Use DispCallFunc to call IEnumVariant::Next instead of converting to array
 Private Function NextItem(ByRef vNextKey As Variant, ByRef vNextItem As Variant, ByRef iCurrentIndex As Long) As Boolean
-  iCurrentIndex = iCurrentIndex + 1
-  Select Case This.mode
-    Case FromIEnumVariant, FromArray
-      Dim lb As Long: lb = LBound(This.BaseArray, 1)
-      Dim ub As Long: ub = UBound(This.BaseArray, 1)
-      Dim l As Long: l = ub - lb + 1
-
-      If l > 0 Then
-        Dim iIndex As Long: iIndex = lb + iCurrentIndex - 1
-        If iIndex <= ub Then
-          Call CopyVariant(vNextItem, This.BaseArray(iIndex))
-          vNextKey = IIf(This.mode = FromIEnumVariant, iCurrentIndex, iIndex)
-          
-          NextItem = True
-        Else
-          NextItem = False
-        End If
-      Else
-        NextItem = False
-      End If
-    Case FromCallable
-      Dim vTmpItem As Variant
-      Call CopyVariant(vNextItem, This.Callback.Run(vNextItem, iCurrentIndex))
-      vNextKey = iCurrentIndex
-      NextItem = Not IsNull(vNextItem)
-    Case FromCallableVerbose
-      Dim vVerboseReturn As Variant
-      Call CopyVariant(vVerboseReturn, This.Callback.Run(vNextItem, iCurrentIndex))
-      If IsArray(vVerboseReturn) Then
-        Dim iArrLength As Long: iArrLength = UBound(vVerboseReturn) - LBound(vVerboseReturn) + 1
-        If iArrLength > 0 And iArrLength <= 4 Then
-          vNextItem = Null
-          vNextKey = Null
-          NextItem = True
-          
-          Dim iArrLb As Long: iArrLb = LBound(vVerboseReturn)
-          If iArrLength >= 1 Then NextItem = vVerboseReturn(iArrLb + 0)
-          If iArrLength >= 2 Then iCurrentIndex = vVerboseReturn(iArrLb + 1)
-          If iArrLength >= 3 Then Call CopyVariant(vNextItem, vVerboseReturn(iArrLb + 2))
-          If iArrLength >= 4 Then Call CopyVariant(vNextKey, vVerboseReturn(iArrLb + 3))
-        Else
-          Err.Raise 1, "stdEnumerator", "Incorrect return value length"
-        End If
-      Else
-        If IsNull(vVerboseReturn) Then
-          NextItem = False
-        Else
-          Err.Raise 1, "stdEnumerator", "Verbose callable should return an array of options: Continue?, nextIndex, nextValue, nextKey"
-        End If
-      End If
-  End Select
+  With stdError.getSentry("stdEnumerator#NextItem", "vNextKey", vNextKey, "vNextItem", vNextItem, "iCurrentIndex", iCurrentIndex)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      iCurrentIndex = iCurrentIndex + 1
+      Select Case This.mode
+        Case FromIEnumVariant, FromArray
+          Dim lb As Long: lb = LBound(This.BaseArray, 1)
+          Dim ub As Long: ub = UBound(This.BaseArray, 1)
+          Dim l As Long: l = ub - lb + 1
+    
+          If l > 0 Then
+            Dim iIndex As Long: iIndex = lb + iCurrentIndex - 1
+            If iIndex <= ub Then
+              Call CopyVariant(vNextItem, This.BaseArray(iIndex))
+              vNextKey = IIf(This.mode = FromIEnumVariant, iCurrentIndex, iIndex)
+              
+              NextItem = True
+            Else
+              NextItem = False
+            End If
+          Else
+            NextItem = False
+          End If
+        Case FromCallable
+          Dim vTmpItem As Variant
+          Call CopyVariant(vNextItem, This.Callback.Run(vNextItem, iCurrentIndex))
+          vNextKey = iCurrentIndex
+          NextItem = Not IsNull(vNextItem)
+        Case FromCallableVerbose
+          Dim vVerboseReturn As Variant
+          Call CopyVariant(vVerboseReturn, This.Callback.Run(vNextItem, iCurrentIndex))
+          If IsArray(vVerboseReturn) Then
+            Dim iArrLength As Long: iArrLength = UBound(vVerboseReturn) - LBound(vVerboseReturn) + 1
+            If iArrLength > 0 And iArrLength <= 4 Then
+              vNextItem = Null
+              vNextKey = Null
+              NextItem = True
+              
+              Dim iArrLb As Long: iArrLb = LBound(vVerboseReturn)
+              If iArrLength >= 1 Then NextItem = vVerboseReturn(iArrLb + 0)
+              If iArrLength >= 2 Then iCurrentIndex = vVerboseReturn(iArrLb + 1)
+              If iArrLength >= 3 Then Call CopyVariant(vNextItem, vVerboseReturn(iArrLb + 2))
+              If iArrLength >= 4 Then Call CopyVariant(vNextKey, vVerboseReturn(iArrLb + 3))
+            Else
+              Err_Raise 1, "stdEnumerator", "Incorrect return value length"
+            End If
+          Else
+            If IsNull(vVerboseReturn) Then
+              NextItem = False
+            Else
+              Err_Raise 1, "stdEnumerator", "Verbose callable should return an array of options: Continue?, nextIndex, nextValue, nextKey"
+            End If
+          End If
+      End Select
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Create an enumerator from an array
 '@param varType - The type of array to create
 '@returns - An enumerator containing the array
 Private Function CreateEmptyVBArray(Optional ByVal varType As VbVarType = vbVariant) As Variant
-    #If Mac Then
-        select case varType
-            case vbVariant:   CreateEmptyVBArray = Array()
-            case vbString:    CreateEmptyVBArray = Split("",",")
-            case vbByte
-                Dim b() as Byte
-                b = ""
-                CreateEmptyVBArray = b
-            case else
-                Err.Raise 1, "stdEnumerator#CreateEmpty()", "Creating Empty arrays of this type is currently unsupported on Mac"
-        end select
-    #Else
-        'TODO: LongPtr?
-        Select Case varType
-            Case vbVariant:   CreateEmptyVBArray = createEmptyArrayVariant()
-            Case vbString:    CreateEmptyVBArray = createEmptyArrayString()
-            Case vbByte:      CreateEmptyVBArray = createEmptyArrayByte()
-            Case vbBoolean:   CreateEmptyVBArray = createEmptyArrayBoolean()
-            Case vbCurrency:  CreateEmptyVBArray = createEmptyArrayCurrency()
-            Case vbDate:      CreateEmptyVBArray = createEmptyArrayDate()
-            Case vbDouble:    CreateEmptyVBArray = createEmptyArrayDouble()
-            Case vbLong:      CreateEmptyVBArray = createEmptyArrayLong()
-            Case vbObject:    CreateEmptyVBArray = createEmptyArrayObject()
-            #If Win64 Then
-            Case vbLongLong:  CreateEmptyVBArray = createEmptyArrayLongLong()
-            #End If
-            Case Else
-                Err.Raise 1, "stdEnumerator#CreateEmpty()", "Invalid vb vartype"
-        End Select
-    #End If
+  With stdError.getSentry("stdEnumerator#CreateEmptyVBArray", "varType", varType)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        #If Mac Then
+            select case varType
+                case vbVariant:   CreateEmptyVBArray = Array()
+                case vbString:    CreateEmptyVBArray = Split("",",")
+                case vbByte
+                    Dim b() as Byte
+                    b = ""
+                    CreateEmptyVBArray = b
+                case else
+                    Err_Raise 1, "stdEnumerator#CreateEmpty()", "Creating Empty arrays of this type is currently unsupported on Mac"
+            end select
+        #Else
+            'TODO: LongPtr?
+            Select Case varType
+                Case vbVariant:   CreateEmptyVBArray = createEmptyArrayVariant()
+                Case vbString:    CreateEmptyVBArray = createEmptyArrayString()
+                Case vbByte:      CreateEmptyVBArray = createEmptyArrayByte()
+                Case vbBoolean:   CreateEmptyVBArray = createEmptyArrayBoolean()
+                Case vbCurrency:  CreateEmptyVBArray = createEmptyArrayCurrency()
+                Case vbDate:      CreateEmptyVBArray = createEmptyArrayDate()
+                Case vbDouble:    CreateEmptyVBArray = createEmptyArrayDouble()
+                Case vbLong:      CreateEmptyVBArray = createEmptyArrayLong()
+                Case vbObject:    CreateEmptyVBArray = createEmptyArrayObject()
+                #If Win64 Then
+                Case vbLongLong:  CreateEmptyVBArray = createEmptyArrayLongLong()
+                #End If
+                Case Else
+                    Err_Raise 1, "stdEnumerator#CreateEmpty()", "Invalid vb vartype"
+            End Select
+        #End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 
 'TODO: Implement raw API for working with IEnumVARIANT:
 Private Function getNewEnum(ByRef o As Object) As IEnumVARIANT
-
+  With stdError.getSentry("stdEnumerator#getNewEnum", "o", o)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+    
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 Private Function getNextVariant(ByRef o As IEnumVARIANT) As Variant
-
+  With stdError.getSentry("stdEnumerator#getNextVariant", "o", o)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+    
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 Private Sub skipNextVariant(ByRef o As IEnumVARIANT)
-
+  With stdError.getSentry("stdEnumerator#skipNextVariant", "o", o)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+    
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 Private Function cloneEnumVariant(ByRef o As IEnumVARIANT) As IEnumVARIANT
-
+  With stdError.getSentry("stdEnumerator#cloneEnumVariant", "o", o)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+    
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 Private Sub resetEnumVariant(ByRef o As IEnumVARIANT)
+  With stdError.getSentry("stdEnumerator#resetEnumVariant", "o", o)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
     
+        
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
+
+
+
+Private Sub Err_Raise(ByVal number as Long, Optional ByVal source as string = "", Optional ByVal description as string = "")
+  Call stdError.Raise(description)
+End Sub
