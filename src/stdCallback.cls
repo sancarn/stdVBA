@@ -247,8 +247,26 @@ End Function
 '@constructor
 '@param MethodPointer                     - The address of the function to create the callback from.
 '@param iRetType                          - The return type of the function to create the callback from.
-'@param vParamTypes as Array<VbVarType>   - The parameter types of the function to create the callback from.
+'@param vParamTypes as Array<VbVarType>   - The argument types passed to the function. If omitted, types are inferred from the supplied values, not from the target procedure's declaration.
 '@returns                                 - A 1st class callback function object
+'@remark A function pointer does not provide parameter declarations to stdCallback. Callers must match the target procedure's types and ByVal/ByRef calling convention. VBA parameters default to ByRef; type inference and specifying vbObject do not detect or supply a ByRef object argument.
+'@remark For a ByVal Object parameter, pass the object normally. For a ByRef Object parameter, pass VarPtr(objectVariable), leaving parameter types inferred so the address is passed as a pointer-sized integer. Keep the object variable alive during the call. ObjPtr(objectVariable) is the object pointer, not the address of the variable, and is not a substitute. An incorrect calling convention can terminate the Office process.
+'@example ```vb
+'Private Sub ReceiveValue(ByVal value As Object)
+'  Debug.Print TypeName(value)
+'End Sub
+'Private Sub ReceiveReference(ByRef value As Object)
+'  Debug.Print TypeName(value)
+'End Sub
+'Public Sub ExampleObjectArguments()
+'  Dim value As Object: Set value = New Collection
+'  Dim cb As stdCallback
+'  Set cb = stdCallback.CreateFromPointer(AddressOf ReceiveValue)
+'  cb.Run value
+'  Set cb = stdCallback.CreateFromPointer(AddressOf ReceiveReference)
+'  cb.Run VarPtr(value)
+'End Sub
+'```
 #If VBA7 Then
   Public Function CreateFromPointer(ByVal MethodPointer As LongPtr, Optional ByVal iRetType As VbVarType = 0, Optional vParamTypes = Null) As stdCallback
 #Else

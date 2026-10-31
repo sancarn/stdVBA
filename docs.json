@@ -4094,8 +4094,13 @@
       {
         "name": "CreateFromPointer",
         "description": "Create callback from function pointer",
-        "remarks": [],
-        "examples": [],
+        "remarks": [
+          "A function pointer does not provide parameter declarations to stdCallback. Callers must match the target procedure's types and ByVal/ByRef calling convention. VBA parameters default to ByRef; type inference and specifying vbObject do not detect or supply a ByRef object argument.",
+          "For a ByVal Object parameter, pass the object normally. For a ByRef Object parameter, pass VarPtr(objectVariable), leaving parameter types inferred so the address is passed as a pointer-sized integer. Keep the object variable alive during the call. ObjPtr(objectVariable) is the object pointer, not the address of the variable, and is not a substitute. An incorrect calling convention can terminate the Office process."
+        ],
+        "examples": [
+          "```vb\r\nPrivate Sub ReceiveValue(ByVal value As Object)\r\n  Debug.Print TypeName(value)\r\nEnd Sub\r\nPrivate Sub ReceiveReference(ByRef value As Object)\r\n  Debug.Print TypeName(value)\r\nEnd Sub\r\nPublic Sub ExampleObjectArguments()\r\n  Dim value As Object: Set value = New Collection\r\n  Dim cb As stdCallback\r\n  Set cb = stdCallback.CreateFromPointer(AddressOf ReceiveValue)\r\n  cb.Run value\r\n  Set cb = stdCallback.CreateFromPointer(AddressOf ReceiveReference)\r\n  cb.Run VarPtr(value)\r\nEnd Sub\r\n```"
+        ],
         "params": [
           {
             "name": "MethodPointer",
@@ -4118,7 +4123,7 @@
           {
             "name": "vParamTypes",
             "type": "Array<VbVarType>",
-            "description": "The parameter types of the function to create the callback from.",
+            "description": "The argument types passed to the function. If omitted, types are inferred from the supplied values, not from the target procedure's declaration.",
             "optional": true,
             "defaultValue": "Null",
             "paramArray": false,
