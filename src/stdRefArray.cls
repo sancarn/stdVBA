@@ -11,6 +11,10 @@ Attribute VB_Exposed = False
 '@module
 '@description A class which wraps a VBA array by reference. Use this class to
 'efficiently pass large arrays around without copying them.
+'Borrowed storage: the source variable must outlive this wrapper and every alias
+'returned by GetData. Temporaries, expired locals and object owners released while
+'an alias survives are unsupported. Do not Erase, ReDim or replace the source, or
+'assign to public Data, while aliases exist. No ownership is transferred.
 '@example A simple example of passing an array by reference:
 '```vb
 'Dim arr as Variant: arr = Array(1,2,3,4,5,6,7,8,9,10)
@@ -48,7 +52,8 @@ Private Const VT_BYREF As Long = &H4000
 'The data within the array
 Public Data As Variant
 
-Property Get GetData() as Variant
+'@returns Borrowed array alias; the source variable must remain alive.
+Public Property Get GetData() As Variant
 Attribute GetData.VB_UserMemId = 0
   #If Win64 Then
     Call CopyMemory(GetData, data, 24)
@@ -58,7 +63,7 @@ Attribute GetData.VB_UserMemId = 0
 End Property
 
 '@constructor
-'@param Data - Array to wrap
+'@param Data - Array variable to borrow; keep its storage alive until all aliases are released
 '@returns - The array by reference
 Public Function Create(ByRef Data As Variant) As stdRefArray
     Set Create = New stdRefArray
@@ -82,7 +87,8 @@ Public Sub protInit(ByRef DataIn As Variant)
 End Sub
 
 '@param arr - Array to get the pointer of
-'@returns - Pointer to the array
+'@returns - Pointer to the SAFEARRAY* slot (SAFEARRAY**), never the descriptor.
+'@devRemark Pointer arithmetic uses the native-width VarPtr return type.
 '@devRemark see implementation by Cristian https://stackoverflow.com/a/71081452/6302131
 #If Win64 Then
 Private Function VarPtrArr(ByRef arr As Variant) As LongLong
@@ -95,6 +101,9 @@ Private Function VarPtrArr(ByRef arr As Variant) As Long
     If (vt And vtArrByRef) = vtArrByRef Then
         Const pArrayOffset As Long = 8
         Call CopyMemory(VarPtrArr, ByVal VarPtr(arr) + pArrayOffset, PTR_SIZE)
+    ElseIf (vt And vbArray) = vbArray Then
+        'Owned array VARIANT: borrow the SAFEARRAY* slot itself, not its value.
+        VarPtrArr = VarPtr(arr) + 8
     Else
         Err.Raise 5, "stdRefArray~VarPtrArr", "Array required"
     End If
