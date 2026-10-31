@@ -52,9 +52,19 @@ End Enum
 
 'For Performance Optimisation sentries
 Private Type TOptimiser
+  App As Object
+  HasScreenUpdating As Boolean
+  HasEnableEvents As Boolean
+  HasCalculation As Boolean
+  AccessEchoScope As Long
   EnableEvents As Boolean
   ScreenUpdating As Boolean
   Calculation As Long
+End Type
+
+Private Type TAccessEchoScope
+  Active As Boolean
+  EchoOn As Boolean
 End Type
 
 'For Performance Measurement
@@ -72,6 +82,9 @@ End Type
 
 Private Type TSingleton
   FakeDict() As FakeDictItem   'was Private FakeDict() as FakeDictItem
+  AccessEchoScopes() As TAccessEchoScope
+  AccessEchoBaseline As Boolean
+  AccessEchoCount As Long
 End Type
 
 Private Type TThis
@@ -112,22 +125,31 @@ Public Sub protInit(ByVal objType As EPerfObjType, ByVal params As Variant)
       This.Measure.Divider = params(1)
       This.Measure.StartTime = GetTickCount()
     Case iOptimiser
-      'TODO: Need to make this more application agnostic
       Dim oApp As Object: Set oApp = Application
-      
-      'Store vals
-      This.Optimiser.ScreenUpdating = oApp.ScreenUpdating
-      This.Optimiser.EnableEvents = oApp.EnableEvents
-      
-      'Set vals
-      oApp.ScreenUpdating = params(0)
-      oApp.EnableEvents = params(1)
-      
-      'Different options for different applications
+      Set This.Optimiser.App = oApp
+      'TODO: Extend scoped optimiser support beyond Excel, Word, and Access.
       Select Case oApp.Name
+        Case "Microsoft Access"
+          Dim echoOnExit As Boolean: echoOnExit = True
+          If UBound(params) >= 3 Then echoOnExit = params(3)
+          This.Optimiser.AccessEchoScope = stdPerformance.protRegisterAccessEcho(params(0), echoOnExit)
+          Call oApp.Echo(params(0))
+        Case "Microsoft Word"
+          This.Optimiser.ScreenUpdating = oApp.ScreenUpdating
+          This.Optimiser.HasScreenUpdating = True
+          oApp.ScreenUpdating = params(0)
         Case "Microsoft Excel"
+          This.Optimiser.ScreenUpdating = oApp.ScreenUpdating
+          This.Optimiser.HasScreenUpdating = True
+          This.Optimiser.EnableEvents = oApp.EnableEvents
+          This.Optimiser.HasEnableEvents = True
           This.Optimiser.Calculation = oApp.Calculation
+          This.Optimiser.HasCalculation = True
+          oApp.ScreenUpdating = params(0)
+          oApp.EnableEvents = params(1)
           oApp.Calculation = params(2)
+        Case Else
+          Err.Raise 5, "stdPerformance.CreateOptimiser", "Unsupported application: " & oApp.Name
       End Select
   End Select
 End Sub
@@ -172,8 +194,48 @@ End Function
 '  'some heavy code here
 'End With
 '```
-Public Function CreateOptimiser(Optional ByVal ScreenUpdating As Boolean = False, Optional ByVal EnableEvents As Boolean = False, Optional ByVal Calculation As Long = -4135) As stdPerformance
-  Set CreateOptimiser = Create(iOptimiser, Array(ScreenUpdating, EnableEvents, Calculation))
+'@param AccessEchoOnExit - Access has no Echo getter. State to restore after the outermost Access scope; defaults to True.
+'@remark In Access, ScreenUpdating controls Echo. EnableEvents and Calculation apply only to Excel.
+'@remark Nested Access scopes retain the latest active scope, even when objects are released out of order.
+Public Function CreateOptimiser(Optional ByVal ScreenUpdating As Boolean = False, Optional ByVal EnableEvents As Boolean = False, Optional ByVal Calculation As Long = -4135, Optional ByVal AccessEchoOnExit As Boolean = True) As stdPerformance
+  Set CreateOptimiser = Create(iOptimiser, Array(ScreenUpdating, EnableEvents, Calculation, AccessEchoOnExit))
+End Function
+
+'Register an Access repainting scope. Called on the singleton only.
+'@protected
+'@param echoOn - Repainting state requested by this scope.
+'@param echoOnExit - State to restore once the outermost scope ends.
+'@returns - Identifier used to unregister the scope.
+Public Function protRegisterAccessEcho(ByVal echoOn As Boolean, ByVal echoOnExit As Boolean) As Long
+  If This.Singleton.AccessEchoCount = 0 Then
+    ReDim This.Singleton.AccessEchoScopes(0 To 0)
+    This.Singleton.AccessEchoBaseline = echoOnExit
+  End If
+  Dim index As Long: index = UBound(This.Singleton.AccessEchoScopes) + 1
+  ReDim Preserve This.Singleton.AccessEchoScopes(0 To index)
+  This.Singleton.AccessEchoScopes(index).Active = True
+  This.Singleton.AccessEchoScopes(index).EchoOn = echoOn
+  This.Singleton.AccessEchoCount = This.Singleton.AccessEchoCount + 1
+  protRegisterAccessEcho = index
+End Function
+
+'Remove a scope and return the repainting state of the newest remaining scope.
+'@protected
+'@param index - Identifier returned by protRegisterAccessEcho.
+'@returns - Repainting state to apply after removing this scope.
+Public Function protUnregisterAccessEcho(ByVal index As Long) As Boolean
+  If This.Singleton.AccessEchoScopes(index).Active Then
+    This.Singleton.AccessEchoScopes(index).Active = False
+    This.Singleton.AccessEchoCount = This.Singleton.AccessEchoCount - 1
+  End If
+  protUnregisterAccessEcho = This.Singleton.AccessEchoBaseline
+  Dim i As Long
+  For i = UBound(This.Singleton.AccessEchoScopes) To 1 Step -1
+    If This.Singleton.AccessEchoScopes(i).Active Then
+      protUnregisterAccessEcho = This.Singleton.AccessEchoScopes(i).EchoOn
+      Exit Function
+    End If
+  Next
 End Function
 
 
@@ -271,18 +333,14 @@ Private Sub Class_Terminate()
         Dim pEndTime As Long: pEndTime = GetTickCount()
         Call stdPerformance.AddMeasurement(This.Measure.KeyName, Abs(pEndTime - This.Measure.StartTime), This.Measure.Divider)
       Case iOptimiser
-        'TODO: Make this more application agnostic
-        
-        Dim oApp As Object: Set oApp = Application
-        'Store vals
-        oApp.ScreenUpdating = This.Optimiser.ScreenUpdating
-        oApp.EnableEvents = This.Optimiser.EnableEvents
-        
-        'Different options for different applications
-        Select Case oApp.Name
-          Case "Microsoft Excel"
-            oApp.Calculation = This.Optimiser.Calculation
-        End Select
+        'Attempt every captured restoration, including after partially failed initialisation.
+        On Error Resume Next
+        With This.Optimiser
+          If .AccessEchoScope <> 0 Then Call .App.Echo(stdPerformance.protUnregisterAccessEcho(.AccessEchoScope))
+          If .HasCalculation Then .App.Calculation = .Calculation
+          If .HasEnableEvents Then .App.EnableEvents = .EnableEvents
+          If .HasScreenUpdating Then .App.ScreenUpdating = .ScreenUpdating
+        End With
     End Select
   End If
 End Sub
