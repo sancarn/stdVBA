@@ -127,6 +127,7 @@ Public Sub protInit(ByVal objType As EPerfObjType, ByVal params As Variant)
     Case iOptimiser
       Dim oApp As Object: Set oApp = Application
       Set This.Optimiser.App = oApp
+      'TODO: Extend scoped optimiser support beyond Excel, Word, and Access.
       Select Case oApp.Name
         Case "Microsoft Access"
           Dim echoOnExit As Boolean: echoOnExit = True

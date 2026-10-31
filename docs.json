@@ -11255,7 +11255,9 @@
       "Simple example of optimising performance:\r\n```vb\r\nWith stdPerformance.CreateOptimiser()\r\n  'some heavy code here\r\nEnd With\r\n```"
     ],
     "devNotes": [],
-    "todos": [],
+    "todos": [
+      "Extend scoped optimiser support beyond Excel, Word, and Access."
+    ],
     "requires": [],
     "methods": [
       {
@@ -13603,6 +13605,44 @@
     "requires": [],
     "methods": [
       {
+        "name": "protInitSheetUnlocker",
+        "description": "Capture worksheet protection options and unlock the worksheet for this sentry.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "sheet",
+            "type": "Object",
+            "description": "Worksheet whose original protection options will be restored.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "password",
+            "type": "String",
+            "description": "Existing protection password, also used when restoring protection.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
         "name": "protInitFactory",
         "description": "Initialise the sentry factory",
         "remarks": [],
@@ -13868,6 +13908,90 @@
     ],
     "properties": [],
     "constructors": [
+      {
+        "name": "CreateSheetUnlocker",
+        "description": "Temporarily unprotect an Excel worksheet and restore its original protection options.",
+        "remarks": [],
+        "examples": [
+          "With stdSentry.CreateSheetUnlocker(Sheet1, \"password\"): Sheet1.Range(\"A1\") = 1: End With"
+        ],
+        "params": [
+          {
+            "name": "sheet",
+            "type": "Object",
+            "description": "Worksheet to unlock; an already unprotected worksheet is left unprotected.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "password",
+            "type": "String",
+            "description": "Existing protection password; wrong passwords are raised during creation.",
+            "optional": true,
+            "defaultValue": "\"\"",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "stdSentry",
+          "description": "An active sentry. Nested sentries restore protection only at the outermost scope."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "CreateUnlocker",
+        "description": "Alias matching the original sheet-unlocker example.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "sheet",
+            "type": "Object",
+            "description": "Worksheet to unlock; an already unprotected worksheet is left unprotected.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "password",
+            "type": "String",
+            "description": "Existing protection password; wrong passwords are raised during creation.",
+            "optional": true,
+            "defaultValue": "\"\"",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "stdSentry",
+          "description": "An active sentry with the same restoration behavior as CreateSheetUnlocker."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
       {
         "name": "Create",
         "description": "Create a sentry factory",
