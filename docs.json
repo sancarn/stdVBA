@@ -10668,8 +10668,11 @@
       {
         "name": "CreateFromString",
         "description": "Create a JSON object from string",
-        "remarks": [],
+        "remarks": [
+          "Pass postProcessor by name to leave the existing parser options at their defaults. Callback errors propagate to the caller."
+        ],
         "examples": [
+          "Set json = stdJSON.CreateFromString(jsonText, postProcessor:=stdCallback.CreateFromModule(\"MyModule\", \"ProcessJSON\"))",
           "```vb\r\n  Dim o as stdJSON: set o = stdJSON.CreateFromString(\"{\"\"a\"\":1,\"\"b\"\":\"\"hello\"\"}\")\r\n  Debug.Print o.ToString()\r\n```",
           "```vb\r\n  Dim o as stdJSON: set o = stdJSON.CreateFromString(\"{a: 1, b: 'hello'}\", AllowUnquotedKeys:=true, AllowSingleQuoteStrings:=true)\r\n  Debug.Print o.ToString()\r\n```"
         ],
@@ -10709,6 +10712,15 @@
             "defaultValue": "False",
             "paramArray": false,
             "referenceType": "ByVal"
+          },
+          {
+            "name": "postProcessor",
+            "type": "stdICallable<(value: stdJSON)=>stdJSON>",
+            "description": "Optional callback on every parsed object and array, after its children, including the root. Return the input unchanged or a replacement stdJSON; Nothing is invalid. Primitive values and keys are not passed to this callback.",
+            "optional": true,
+            "defaultValue": "Nothing",
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -10741,6 +10753,15 @@
             "defaultValue": null,
             "paramArray": false,
             "referenceType": "ByVal"
+          },
+          {
+            "name": "postProcessor",
+            "type": "stdICallable<(value: stdJSON)=>stdJSON>",
+            "description": "Optional callback on every parsed object and array, after its children, including the root. Return the input unchanged or a replacement stdJSON; Nothing is invalid. Primitive values and keys are not passed to this callback.",
+            "optional": true,
+            "defaultValue": "Nothing",
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -10762,8 +10783,12 @@
       {
         "name": "CreateFromVariant",
         "description": "Create a JSON object from VB variant",
-        "remarks": [],
-        "examples": [],
+        "remarks": [
+          "The root must convert to a Collection, Dictionary, array or stdJSON. A returned stdJSON is used directly without traversing its children. Callback errors propagate to the caller."
+        ],
+        "examples": [
+          "Set json = stdJSON.CreateFromVariant(values, stdCallback.CreateFromModule(\"MyModule\", \"ProcessValue\"))"
+        ],
         "params": [
           {
             "name": "vData",
@@ -10771,6 +10796,15 @@
             "description": "Variant to convert to JSON, e.g. Collection, Dictionary or Array",
             "optional": false,
             "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "preProcessor",
+            "type": "stdICallable<(value: Variant)=>Variant>",
+            "description": "Optional callback before converting each value, including the root and primitives. Return the input unchanged or a replacement value. Children of replacements are processed recursively; the replacement itself is not processed again. Dictionary keys are unchanged.",
+            "optional": true,
+            "defaultValue": "Nothing",
             "paramArray": false,
             "referenceType": "ByVal"
           }
