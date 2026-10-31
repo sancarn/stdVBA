@@ -25,6 +25,8 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 
 # Change log since `2020-05-04`
 
+- 2026-10-31 `stdTimer` FIX - Clean up owned Excel hosts on startup failure and shutdown; add idempotent StopTimer, defer active-loop cleanup until callbacks return, and preserve existing AccessVBOM settings (#144).
+
 - ...
 - 2020-05-04 `stdAcc` WIP - `stdAcc` added + first commit.
 - 2020-05-15 `stdDate` BREAKING - `stdDate::Create2` renamed to `stdDate::CreateFromUnits()`
@@ -396,4 +398,5 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2026-10-28 stdReg FEATURE - Add addKey/addItem and key-default value access, preserving existing data and registry views. Fix ANSI string writes, refresh value types, support empty binary data and release write handles.
 
 - 2026-10-31 `stdLambda` FIX - Preserve object identity when accessing local variables across stack growth (#68).
+* 2026-10-31 FIX - stdDate weekday names return String, explicit first days override Country defaults, and RegexMatch honors options with consistent cache keys and retains no malformed patterns (#169, #170, #171).
 - 2026-10-31 `stdRefArray` FIX - Borrow owned Variant array pointer slots as well as VT_BYREF typed arrays; document alias lifetime and ownership restrictions (#145).
