@@ -7940,7 +7940,9 @@
       {
         "name": "Await",
         "description": "Await for the request to finish. This is only necessary for asynchronous requests.",
-        "remarks": [],
+        "remarks": [
+          "On Windows, raises the original transport error or error 10000 on the overall timeout."
+        ],
         "examples": [],
         "params": [],
         "returns": {
@@ -8140,12 +8142,14 @@
         "name": "isFinished",
         "access": "ReadOnly",
         "description": "Get whether the request has finished. This is only necessary for asynchronous requests.",
-        "remarks": [],
+        "remarks": [
+          "On Windows, terminal transport failures and timeouts raise an error; repeated calls raise the same error."
+        ],
         "examples": [],
         "params": [],
         "returns": {
           "type": "Boolean",
-          "description": "`True` if the request has finished, `False` otherwise."
+          "description": "True on complete response (including empty bodies), False while pending."
         },
         "deprecation": {
           "status": false,
