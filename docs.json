@@ -2870,6 +2870,1128 @@
     "implements": []
   },
   {
+    "name": "stdCallback",
+    "fileName": "stdCallback.cls",
+    "description": "A class which implements a callback object. Use this class to create a \r\ncallback object which can be called at a later stage. These callbacks are used extensively\r\nacross the stdVBA library.\r\n\r\nWithin a class we can create a simple callback object like so:\r\n```vb\r\nDim cb as stdCallback: set cb = stdCallback.CreateFromObjectMethod(Me, \"myFunction\")\r\n```\r\nWith an example function declaration as follows:\r\n```vb\r\nPublic Function myFunction(ByVal x as long, ByVal y as long, ByVal z as long) as long\r\n  myFunction = x + y + z\r\nEnd Function\r\n```\r\n\r\n> Note it's important to note that the function must be public.\r\n\r\nThe callback can then be called as follows:\r\n```vb\r\nDebug.Print cb(1,2,3)   '=> 6\r\n```\r\nOr with an array of parameters:\r\n```vb\r\nDebug.Print cb.Run(Array(1,2,3))   '=> 6\r\n```\r\nYou can also bind arguments to the callback. This is useful when you want to prepare a callback with some\r\narguments before final execution. For example:\r\n```vb\r\nDim cb as stdCallback: set cb = stdCallback.CreateFromObjectMethod(Me, \"myFunction\").Bind(1,2,3)\r\n'...later...\r\nDebug.Print cb() '=> 6\r\n```",
+    "remarks": [],
+    "examples": [
+      "```vb\r\n'A simple class based callback:\r\nPublic Function myFunction(ByVal x as long, ByVal y as long, ByVal z as long) as long\r\n  myFunction = x + y + z\r\nEnd Function\r\nPublic Sub mySub()\r\n  Dim cb as stdCallback: set cb = stdCallback.CreateFromObjectMethod(Me, \"myFunction\")\r\n  Debug.Print cb(1,2,3)   '=> 6\r\nEnd Sub\r\n```",
+      "```vb\r\n'A simple module based callback. The module in this example is named \"MyModule\":\r\nPublic Function myFunction(ByVal x as long, ByVal y as long, ByVal z as long) as long\r\n  myFunction = x + y + z\r\nEnd Function\r\nPublic Sub mySub()\r\n  Dim cb as stdCallback: set cb = stdCallback.CreateFromModule(\"MyModule\", \"myFunction\")\r\n  Debug.Print cb(1,2,3)   '=> 6\r\nEnd Sub\r\n```",
+      "```vb\r\n'Create a callback from a module in another workbook:\r\nPublic Sub mySub()\r\n  Dim cb as stdCallback: set cb = stdCallback.CreateFromWorkbookModule( _\r\n    \"C:\\Temp\\workbooks\\MyWorkbook.xlsm\", \"MyModule\", \"myFunction\")\r\n  Debug.Print cb(1,2,3)   '=> 6\r\nEnd Sub\r\n```",
+      "```vb\r\n'Create a callback from a pointer to a function in a public module.\r\n'Note: this is the only instance where the function can be private!\r\nPrivate Function myFunction(ByVal x as long, ByVal y as long, ByVal z as long) as long\r\n  myFunction = x + y + z\r\nEnd Function\r\nPublic Sub mySub()\r\n  Dim cb as stdCallback: set cb = stdCallback.CreateFromPointer(AddressOf myFunction, vbLong, Array(vbLong, vbLong, vbLong))\r\n  Debug.Print cb(1,2,3)   '=> 6\r\nEnd Sub\r\n```"
+    ],
+    "devNotes": [],
+    "todos": [
+      "Use fancy accessor mechanism https://codereview.stackexchange.com/questions/274532/low-level-vba-hacking-making-private-functions-public "
+    ],
+    "requires": [],
+    "methods": [
+      {
+        "name": "Bind",
+        "description": "Bind a parameter to the function. Bound parameters are bound to the left of the passed parameters.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "params",
+            "type": "Array<Variant>",
+            "description": "The parameters to bind to the function",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByRef"
+          }
+        ],
+        "returns": {
+          "type": "Variant",
+          "description": "A new callback with the parameters bound"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "BindEx",
+        "description": "Bind a parameter to the function. Bound parameters are bound to the left of the passed parameters.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "params",
+            "type": "Variant<Array<Variant>>",
+            "description": "The parameters to bind to the function",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "stdCallback",
+          "description": "A new callback with the parameters bound"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "Run",
+        "description": "Run the function",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "params",
+            "type": "Variant",
+            "description": "The parameters to run the function with",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByRef"
+          }
+        ],
+        "returns": {
+          "type": "Variant",
+          "description": "The result of the function"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "RunEx",
+        "description": "Run the function with a array of parameters",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "vArr",
+            "type": "Variant<Array<Variant>>",
+            "description": "The parameters to run the function with",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "Variant",
+          "description": "The result of the function"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      }
+    ],
+    "properties": [],
+    "constructors": [
+      {
+        "name": "Create",
+        "description": "Create a callback object from module type string, translate to enum and initialise callback",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "mType",
+            "type": "String",
+            "description": "The type of module to create the callback from. Can be either \"Module\" or \"Object\"",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByRef"
+          },
+          {
+            "name": "Parent",
+            "type": "Variant<String|Object>",
+            "description": "The parent object to create the callback from. If mType is \"Module\" then this should be a string, otherwise it should be an object.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByRef"
+          },
+          {
+            "name": "name",
+            "type": "String",
+            "description": "The name of the method to create the callback from.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByRef"
+          },
+          {
+            "name": "cType",
+            "type": "Integer",
+            "description": "The call type to use when calling the method. Defaults to VbCallType.VbMethod",
+            "optional": true,
+            "defaultValue": "VbCallType.VbMethod",
+            "paramArray": false,
+            "referenceType": "ByRef"
+          }
+        ],
+        "returns": {
+          "type": "stdCallback",
+          "description": "A 1st class callback function object"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "CreateFromModule",
+        "description": "Create callback from Module function directly",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "sParentName",
+            "type": "String",
+            "description": "The name of the module to create the callback from.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "sMethodName",
+            "type": "String",
+            "description": "The name of the method to create the callback from.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "stdCallback",
+          "description": "A 1st class callback function object"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "CreateFromWorkbookModule",
+        "description": "Create callback from Workbook module function directly",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "sWorkbookPath",
+            "type": "String",
+            "description": "The path of the workbook to create the callback from.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "sModuleName",
+            "type": "String",
+            "description": "The name of the module to create the callback from.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "sMethodName",
+            "type": "String",
+            "description": "The name of the method to create the callback from.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "stdCallback",
+          "description": "A 1st class callback function object"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "CreateFromObjectMethod",
+        "description": "Create callback from object and method name",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "object",
+            "type": "Object",
+            "description": "The object to create the callback from.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByRef"
+          },
+          {
+            "name": "sMethodName",
+            "type": "String",
+            "description": "The name of the method to create the callback from.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "stdCallback",
+          "description": "A 1st class callback function object"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "CreateFromObjectProperty",
+        "description": "Create callback from object and property name",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "object",
+            "type": "Object",
+            "description": "The object to create the callback from.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByRef"
+          },
+          {
+            "name": "sPropName",
+            "type": "String",
+            "description": "The name of the property to create the callback from.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "cType",
+            "type": "VbCallType",
+            "description": "The call type to use when calling the method. Defaults to VbCallType.VbGet",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "stdCallback",
+          "description": "A 1st class callback function object"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "CreateFromPointer",
+        "description": "Create callback from function pointer",
+        "remarks": [
+          "A function pointer does not provide parameter declarations to stdCallback. Callers must match the target procedure's types and ByVal/ByRef calling convention. VBA parameters default to ByRef; type inference and specifying vbObject do not detect or supply a ByRef object argument.",
+          "For a ByVal Object parameter, pass the object normally. For a ByRef Object parameter, pass VarPtr(objectVariable), leaving parameter types inferred so the address is passed as a pointer-sized integer. Keep the object variable alive during the call. ObjPtr(objectVariable) is the object pointer, not the address of the variable, and is not a substitute. An incorrect calling convention can terminate the Office process."
+        ],
+        "examples": [
+          "```vb\r\nPrivate Sub ReceiveValue(ByVal value As Object)\r\n  Debug.Print TypeName(value)\r\nEnd Sub\r\nPrivate Sub ReceiveReference(ByRef value As Object)\r\n  Debug.Print TypeName(value)\r\nEnd Sub\r\nPublic Sub ExampleObjectArguments()\r\n  Dim value As Object: Set value = New Collection\r\n  Dim cb As stdCallback\r\n  Set cb = stdCallback.CreateFromPointer(AddressOf ReceiveValue)\r\n  cb.Run value\r\n  Set cb = stdCallback.CreateFromPointer(AddressOf ReceiveReference)\r\n  cb.Run VarPtr(value)\r\nEnd Sub\r\n```"
+        ],
+        "params": [
+          {
+            "name": "MethodPointer",
+            "type": "LongPtr",
+            "description": "The address of the function to create the callback from.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "iRetType",
+            "type": "VbVarType",
+            "description": "The return type of the function to create the callback from.",
+            "optional": true,
+            "defaultValue": "0",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "vParamTypes",
+            "type": "Array<VbVarType>",
+            "description": "The argument types passed to the function. If omitted, types are inferred from the supplied values, not from the target procedure's declaration.",
+            "optional": true,
+            "defaultValue": "Null",
+            "paramArray": false,
+            "referenceType": "ByRef"
+          }
+        ],
+        "returns": {
+          "type": "stdCallback",
+          "description": "A 1st class callback function object"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      }
+    ],
+    "events": [
+      {
+        "name": "BeforeRun",
+        "description": "",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "callback",
+            "type": "stdCallback",
+            "description": "The callback object that is about to be run",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByRef"
+          },
+          {
+            "name": "args",
+            "type": "Variant",
+            "description": "The arguments that will be passed to the callback. This can be modified by listeners.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByRef"
+          }
+        ],
+        "devNotes": [],
+        "todos": []
+      },
+      {
+        "name": "AfterRun",
+        "description": "",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "callback",
+            "type": "stdCallback",
+            "description": "The callback object that has just been run",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByRef"
+          },
+          {
+            "name": "result",
+            "type": "Variant",
+            "description": "The result of the callback. This can be modified by listeners.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByRef"
+          }
+        ],
+        "devNotes": [],
+        "todos": []
+      }
+    ],
+    "implements": []
+  },
+  {
+    "name": "stdClipboard",
+    "fileName": "stdClipboard.cls",
+    "description": "A class which implements a clipboard object. Use this class to\r\nread from and write data to the clipboard.",
+    "remarks": [],
+    "examples": [
+      "```vb\r\n'Read from clipboard:\r\n'Note: Use `await` to ensure the clipboard is ready before reading.\r\nDebug.Print stdClipboard.await.text\r\n```",
+      "```vb\r\n'Write text to clipboard:\r\nstdClipboard.await.text = \"Hello World\"\r\n```",
+      "```vb\r\n'Write text to clipboard with a custom format:\r\nCF_RTF = stdClipboard.registerFormat(\"Rich Text Format\")\r\nstdClipboard.value(CF_RTF) = \"{\\rtf1\\ansi{\\fonttbl\\f0\\fswiss Helvetica;}\\f0\\pard\" & _\r\n  \"This is some {\\b bold} text.\\par\" & _\r\n\"}\"\r\n```"
+    ],
+    "devNotes": [],
+    "todos": [
+      "File is not fully complete, even though it has reached a stable state. Remaining tasks:",
+      "Elsewhere not here:",
+      "refactor away from using Excel specific functionality"
+    ],
+    "requires": [],
+    "methods": [
+      {
+        "name": "Await",
+        "description": "Waits for the clipboard to be available",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "Clear",
+        "description": "Clears the clipboard",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "IsFormatAvailable",
+        "description": "Check whether a given format is available based on the clipboards current data.",
+        "remarks": [
+          "- Formats which are technically \"available\" but have 0 bytes in size will return false."
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "iFormat",
+            "type": "CLIPFORMAT",
+            "description": "The format to check support for.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "Boolean",
+          "description": "`True` if the format is allowed, `false` otherwise"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "FormatSize",
+        "description": "Get the size in bytes of a particular format",
+        "remarks": [
+          "- CF_BITMAP and CF_ENHMETAFILE may be different due to the nature of obtaining their value via stdPicture"
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "format",
+            "type": "CLIPFORMAT",
+            "description": "The format to retrieve",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "Long",
+          "description": "The number of bytes being the size of the format."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "RegisterFormat",
+        "description": "Register a clipboard format and/or return it's identifier if already present.",
+        "remarks": [],
+        "examples": [
+          "```vb\r\nCF_RTF = stdClipboard.registerFormat(\"Rich Text Format\")\r\nstdClipboard.value(CF_RTF) = \"{\\rtf1\\ansi{\\fonttbl\\f0\\fswiss Helvetica;}\\f0\\pard\" & _\r\n  \"This is some {\\b bold} text.\\par\" & _\r\n\"}\"\r\n```",
+          "```vb\r\nCF_HTML = stdClipboard.registerFormat(\"HTML Format\")\r\nstdClipboard.value(CF_HTML) = _\r\n  \"Version:0.9\" & vbCrLf & _\r\n  \"StartHTML:00000000\" & vbCrLf & _\r\n  \"EndHTML:00000000\" & vbCrLf & _\r\n  \"StartFragment:00000000\" & vbCrLf & _\r\n  \"EndFragment:00000000\" & vbCrLf & _\r\n  \"<html><body>\" & vbCrLf & _\r\n  \"<!--StartFragment -->\" & vbCrLf & _\r\n  \"  hello <b>world</b>\" & vbCrLf & _\r\n  \"<!--EndFragment-->\\r\\n\" & vbCrLf & _\r\n  \"</body>\\r\\n\" & vbCrLf & _\r\n  \"</html>\"\r\n```"
+        ],
+        "params": [
+          {
+            "name": "sFormatName",
+            "type": "String",
+            "description": "Name of format to obtain",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "Long",
+          "description": "Clipboard format identifier"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "SetFilesArr",
+        "description": "Set the clipboard to a selection of Files passed in as an array",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "vFiles",
+            "type": "Variant<Array<Variant>>",
+            "description": "A set of files as an array",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "protSetFilesText",
+        "description": "Internal method for setting the clipboard to a selection of Files passed in as a raw file string\r\nRealistically it might be better for this method to use Value LET directly.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "sFiles",
+            "type": "String",
+            "description": "Files string delimited by vbNullChar and ending in 2x vbNullChar",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "protGetFilesArr",
+        "description": "Get the file paths of files stored on the clipboard",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Array<String>",
+          "description": "The array of file paths stored in the clipboard"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "SendPaste",
+        "description": "Raise a paste event to a window with handle hWnd",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "hwnd",
+            "type": "LongPtr",
+            "description": "Window to send paste event to",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "SendCopy",
+        "description": "Raise a copy event to a window with handle hWnd",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "hwnd",
+            "type": "LongPtr",
+            "description": "Window to send copy event to",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "GetClipFormatFromCopyPictureFormat",
+        "description": "Converts xlCopyPictureFormat to CLIPFORMAT\r\nPublic Enum XlCopyPictureFormat\r\n  xlBitmap = 2\r\n  xlPicture = -4147\r\nEnd Enum",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "CopyPictureFormat",
+            "type": "Long",
+            "description": "The xlCopyPictureFormat to convert",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "CLIPFORMAT",
+          "description": "The CLIPFORMAT to use"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      }
+    ],
+    "properties": [
+      {
+        "name": "ClipboardID",
+        "access": "ReadOnly",
+        "description": "Get the ID of the current clipboard value",
+        "remarks": [
+          "- This is incremented every time the clipboard changes. It can be used to track and identify when the clipboard has changed."
+        ],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Long",
+          "description": "The latest clipboard ID / sequence number"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "value",
+        "access": "ReadWrite",
+        "description": "Get or set the value of the current",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "iFormat",
+            "type": "CLIPFORMAT",
+            "description": "The format to get/set the value of",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "Variant",
+          "description": "The value stored in the clipboard"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "text",
+        "access": "ReadWrite",
+        "description": "Get or set the clipboard as/to a string",
+        "remarks": [],
+        "examples": [
+          "```vb\r\nstdClipboard.text = \"Hello World\"\r\n```"
+        ],
+        "params": [],
+        "returns": {
+          "type": "String",
+          "description": "The string stored on the clipboard"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "formats",
+        "access": "ReadOnly",
+        "description": "Obtain the available formats as a Collection of strings",
+        "remarks": [
+          "see `stdClipboard::formatIDs()` to get ids used in Value() from these data."
+        ],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Collection<String>",
+          "description": "The format names you can use for the current clipboard data."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "formatIDs",
+        "access": "ReadOnly",
+        "description": "Obtain the available format IDs which can be used with value() function",
+        "remarks": [
+          "See `stdClipboard::formats()` to get the corresponding names from these data."
+        ],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Collection<Long>",
+          "description": "Formats allowed. We use Collection for easy enumeration with stdEnumerator."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "Picture",
+        "access": "ReadWrite",
+        "description": "Get/Set the clipboard as/to an IPicture object",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "stdole.IPicture",
+          "description": "The picture stored on the clipboard"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "XLPicture",
+        "access": "WriteOnly",
+        "description": "Set the clipboard to an Excel picture object, and then proceeds to wait until the format is available.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "iAppearance",
+            "type": "XlPictureAppearance",
+            "description": "xlPrint or xlScreen",
+            "optional": true,
+            "defaultValue": "xlScreen",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "iFormat",
+            "type": "XlCopyPictureFormat",
+            "description": "xlBitmap or xlPicture",
+            "optional": true,
+            "defaultValue": "xlBitmap",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "xlPic",
+            "type": "Excel.IPicture",
+            "description": "The picture to copy",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "Void",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "XLShapeAsPicture",
+        "access": "WriteOnly",
+        "description": "Copies a Excel shape as a picture, and then proceeds to wait until the format is available.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "iAppearance",
+            "type": "XlPictureAppearance",
+            "description": "xlPrint or xlScreen",
+            "optional": true,
+            "defaultValue": "xlScreen",
+            "paramArray": false,
+            "referenceType": "ByRef"
+          },
+          {
+            "name": "iFormat",
+            "type": "XlCopyPictureFormat",
+            "description": "xlBitmap or xlPicture",
+            "optional": true,
+            "defaultValue": "XlCopyPictureFormat.xlBitmap",
+            "paramArray": false,
+            "referenceType": "ByRef"
+          },
+          {
+            "name": "xlShp",
+            "type": "Excel.Shape",
+            "description": "The shape to turn into an image",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "Void",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "files",
+        "access": "ReadWrite",
+        "description": "Get or Set the clipboard to a selection of files paths. Paths provided as a collection for easy stdEnumerator wrapping.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Collection<String>",
+          "description": "The collection of file paths stored in the clipboard"
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      }
+    ],
+    "constructors": [],
+    "events": [],
+    "implements": []
+  },
+  {
     "name": "stdCOM",
     "fileName": "stdCOM.cls",
     "description": "A class which wraps a COM object. All objects in VBA are COM objects, and this class allows \r\nyou to access low level COM functionality. As such this class is recommended only to advanced users.",
@@ -3699,1123 +4821,6 @@
         "isStatic": false
       }
     ],
-    "events": [],
-    "implements": []
-  },
-  {
-    "name": "stdCallback",
-    "fileName": "stdCallback.cls",
-    "description": "A class which implements a callback object. Use this class to create a \r\ncallback object which can be called at a later stage. These callbacks are used extensively\r\nacross the stdVBA library.\r\n\r\nWithin a class we can create a simple callback object like so:\r\n```vb\r\nDim cb as stdCallback: set cb = stdCallback.CreateFromObjectMethod(Me, \"myFunction\")\r\n```\r\nWith an example function declaration as follows:\r\n```vb\r\nPublic Function myFunction(ByVal x as long, ByVal y as long, ByVal z as long) as long\r\n  myFunction = x + y + z\r\nEnd Function\r\n```\r\n\r\n> Note it's important to note that the function must be public.\r\n\r\nThe callback can then be called as follows:\r\n```vb\r\nDebug.Print cb(1,2,3)   '=> 6\r\n```\r\nOr with an array of parameters:\r\n```vb\r\nDebug.Print cb.Run(Array(1,2,3))   '=> 6\r\n```\r\nYou can also bind arguments to the callback. This is useful when you want to prepare a callback with some\r\narguments before final execution. For example:\r\n```vb\r\nDim cb as stdCallback: set cb = stdCallback.CreateFromObjectMethod(Me, \"myFunction\").Bind(1,2,3)\r\n'...later...\r\nDebug.Print cb() '=> 6\r\n```",
-    "remarks": [],
-    "examples": [
-      "```vb\r\n'A simple class based callback:\r\nPublic Function myFunction(ByVal x as long, ByVal y as long, ByVal z as long) as long\r\n  myFunction = x + y + z\r\nEnd Function\r\nPublic Sub mySub()\r\n  Dim cb as stdCallback: set cb = stdCallback.CreateFromObjectMethod(Me, \"myFunction\")\r\n  Debug.Print cb(1,2,3)   '=> 6\r\nEnd Sub\r\n```",
-      "```vb\r\n'A simple module based callback. The module in this example is named \"MyModule\":\r\nPublic Function myFunction(ByVal x as long, ByVal y as long, ByVal z as long) as long\r\n  myFunction = x + y + z\r\nEnd Function\r\nPublic Sub mySub()\r\n  Dim cb as stdCallback: set cb = stdCallback.CreateFromModule(\"MyModule\", \"myFunction\")\r\n  Debug.Print cb(1,2,3)   '=> 6\r\nEnd Sub\r\n```",
-      "```vb\r\n'Create a callback from a module in another workbook:\r\nPublic Sub mySub()\r\n  Dim cb as stdCallback: set cb = stdCallback.CreateFromWorkbookModule( _\r\n    \"C:\\Temp\\workbooks\\MyWorkbook.xlsm\", \"MyModule\", \"myFunction\")\r\n  Debug.Print cb(1,2,3)   '=> 6\r\nEnd Sub\r\n```",
-      "```vb\r\n'Create a callback from a pointer to a function in a public module.\r\n'Note: this is the only instance where the function can be private!\r\nPrivate Function myFunction(ByVal x as long, ByVal y as long, ByVal z as long) as long\r\n  myFunction = x + y + z\r\nEnd Function\r\nPublic Sub mySub()\r\n  Dim cb as stdCallback: set cb = stdCallback.CreateFromPointer(AddressOf myFunction, vbLong, Array(vbLong, vbLong, vbLong))\r\n  Debug.Print cb(1,2,3)   '=> 6\r\nEnd Sub\r\n```"
-    ],
-    "devNotes": [],
-    "todos": [
-      "Use fancy accessor mechanism https://codereview.stackexchange.com/questions/274532/low-level-vba-hacking-making-private-functions-public "
-    ],
-    "requires": [],
-    "methods": [
-      {
-        "name": "Bind",
-        "description": "Bind a parameter to the function. Bound parameters are bound to the left of the passed parameters.",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "params",
-            "type": "Array<Variant>",
-            "description": "The parameters to bind to the function",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByRef"
-          }
-        ],
-        "returns": {
-          "type": "Variant",
-          "description": "A new callback with the parameters bound"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "BindEx",
-        "description": "Bind a parameter to the function. Bound parameters are bound to the left of the passed parameters.",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "params",
-            "type": "Variant<Array<Variant>>",
-            "description": "The parameters to bind to the function",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          }
-        ],
-        "returns": {
-          "type": "stdCallback",
-          "description": "A new callback with the parameters bound"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "Run",
-        "description": "Run the function",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "params",
-            "type": "Variant",
-            "description": "The parameters to run the function with",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByRef"
-          }
-        ],
-        "returns": {
-          "type": "Variant",
-          "description": "The result of the function"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "RunEx",
-        "description": "Run the function with a array of parameters",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "vArr",
-            "type": "Variant<Array<Variant>>",
-            "description": "The parameters to run the function with",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          }
-        ],
-        "returns": {
-          "type": "Variant",
-          "description": "The result of the function"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      }
-    ],
-    "properties": [],
-    "constructors": [
-      {
-        "name": "Create",
-        "description": "Create a callback object from module type string, translate to enum and initialise callback",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "mType",
-            "type": "String",
-            "description": "The type of module to create the callback from. Can be either \"Module\" or \"Object\"",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByRef"
-          },
-          {
-            "name": "Parent",
-            "type": "Variant<String|Object>",
-            "description": "The parent object to create the callback from. If mType is \"Module\" then this should be a string, otherwise it should be an object.",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByRef"
-          },
-          {
-            "name": "name",
-            "type": "String",
-            "description": "The name of the method to create the callback from.",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByRef"
-          },
-          {
-            "name": "cType",
-            "type": "Integer",
-            "description": "The call type to use when calling the method. Defaults to VbCallType.VbMethod",
-            "optional": true,
-            "defaultValue": "VbCallType.VbMethod",
-            "paramArray": false,
-            "referenceType": "ByRef"
-          }
-        ],
-        "returns": {
-          "type": "stdCallback",
-          "description": "A 1st class callback function object"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "CreateFromModule",
-        "description": "Create callback from Module function directly",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "sParentName",
-            "type": "String",
-            "description": "The name of the module to create the callback from.",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          },
-          {
-            "name": "sMethodName",
-            "type": "String",
-            "description": "The name of the method to create the callback from.",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          }
-        ],
-        "returns": {
-          "type": "stdCallback",
-          "description": "A 1st class callback function object"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "CreateFromWorkbookModule",
-        "description": "Create callback from Workbook module function directly",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "sWorkbookPath",
-            "type": "String",
-            "description": "The path of the workbook to create the callback from.",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          },
-          {
-            "name": "sModuleName",
-            "type": "String",
-            "description": "The name of the module to create the callback from.",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          },
-          {
-            "name": "sMethodName",
-            "type": "String",
-            "description": "The name of the method to create the callback from.",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          }
-        ],
-        "returns": {
-          "type": "stdCallback",
-          "description": "A 1st class callback function object"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "CreateFromObjectMethod",
-        "description": "Create callback from object and method name",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "object",
-            "type": "Object",
-            "description": "The object to create the callback from.",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByRef"
-          },
-          {
-            "name": "sMethodName",
-            "type": "String",
-            "description": "The name of the method to create the callback from.",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          }
-        ],
-        "returns": {
-          "type": "stdCallback",
-          "description": "A 1st class callback function object"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "CreateFromObjectProperty",
-        "description": "Create callback from object and property name",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "object",
-            "type": "Object",
-            "description": "The object to create the callback from.",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByRef"
-          },
-          {
-            "name": "sPropName",
-            "type": "String",
-            "description": "The name of the property to create the callback from.",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          },
-          {
-            "name": "cType",
-            "type": "VbCallType",
-            "description": "The call type to use when calling the method. Defaults to VbCallType.VbGet",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          }
-        ],
-        "returns": {
-          "type": "stdCallback",
-          "description": "A 1st class callback function object"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "CreateFromPointer",
-        "description": "Create callback from function pointer",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "MethodPointer",
-            "type": "LongPtr",
-            "description": "The address of the function to create the callback from.",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          },
-          {
-            "name": "iRetType",
-            "type": "VbVarType",
-            "description": "The return type of the function to create the callback from.",
-            "optional": true,
-            "defaultValue": "0",
-            "paramArray": false,
-            "referenceType": "ByVal"
-          },
-          {
-            "name": "vParamTypes",
-            "type": "Array<VbVarType>",
-            "description": "The parameter types of the function to create the callback from.",
-            "optional": true,
-            "defaultValue": "Null",
-            "paramArray": false,
-            "referenceType": "ByRef"
-          }
-        ],
-        "returns": {
-          "type": "stdCallback",
-          "description": "A 1st class callback function object"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      }
-    ],
-    "events": [
-      {
-        "name": "BeforeRun",
-        "description": "",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "callback",
-            "type": "stdCallback",
-            "description": "The callback object that is about to be run",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByRef"
-          },
-          {
-            "name": "args",
-            "type": "Variant",
-            "description": "The arguments that will be passed to the callback. This can be modified by listeners.",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByRef"
-          }
-        ],
-        "devNotes": [],
-        "todos": []
-      },
-      {
-        "name": "AfterRun",
-        "description": "",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "callback",
-            "type": "stdCallback",
-            "description": "The callback object that has just been run",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByRef"
-          },
-          {
-            "name": "result",
-            "type": "Variant",
-            "description": "The result of the callback. This can be modified by listeners.",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByRef"
-          }
-        ],
-        "devNotes": [],
-        "todos": []
-      }
-    ],
-    "implements": []
-  },
-  {
-    "name": "stdClipboard",
-    "fileName": "stdClipboard.cls",
-    "description": "A class which implements a clipboard object. Use this class to\r\nread from and write data to the clipboard.",
-    "remarks": [],
-    "examples": [
-      "```vb\r\n'Read from clipboard:\r\n'Note: Use `await` to ensure the clipboard is ready before reading.\r\nDebug.Print stdClipboard.await.text\r\n```",
-      "```vb\r\n'Write text to clipboard:\r\nstdClipboard.await.text = \"Hello World\"\r\n```",
-      "```vb\r\n'Write text to clipboard with a custom format:\r\nCF_RTF = stdClipboard.registerFormat(\"Rich Text Format\")\r\nstdClipboard.value(CF_RTF) = \"{\\rtf1\\ansi{\\fonttbl\\f0\\fswiss Helvetica;}\\f0\\pard\" & _\r\n  \"This is some {\\b bold} text.\\par\" & _\r\n\"}\"\r\n```"
-    ],
-    "devNotes": [],
-    "todos": [
-      "File is not fully complete, even though it has reached a stable state. Remaining tasks:",
-      "Elsewhere not here:",
-      "refactor away from using Excel specific functionality"
-    ],
-    "requires": [],
-    "methods": [
-      {
-        "name": "Await",
-        "description": "Waits for the clipboard to be available",
-        "remarks": [],
-        "examples": [],
-        "params": [],
-        "returns": null,
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "Clear",
-        "description": "Clears the clipboard",
-        "remarks": [],
-        "examples": [],
-        "params": [],
-        "returns": null,
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "IsFormatAvailable",
-        "description": "Check whether a given format is available based on the clipboards current data.",
-        "remarks": [
-          "- Formats which are technically \"available\" but have 0 bytes in size will return false."
-        ],
-        "examples": [],
-        "params": [
-          {
-            "name": "iFormat",
-            "type": "CLIPFORMAT",
-            "description": "The format to check support for.",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          }
-        ],
-        "returns": {
-          "type": "Boolean",
-          "description": "`True` if the format is allowed, `false` otherwise"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "FormatSize",
-        "description": "Get the size in bytes of a particular format",
-        "remarks": [
-          "- CF_BITMAP and CF_ENHMETAFILE may be different due to the nature of obtaining their value via stdPicture"
-        ],
-        "examples": [],
-        "params": [
-          {
-            "name": "format",
-            "type": "CLIPFORMAT",
-            "description": "The format to retrieve",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          }
-        ],
-        "returns": {
-          "type": "Long",
-          "description": "The number of bytes being the size of the format."
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "RegisterFormat",
-        "description": "Register a clipboard format and/or return it's identifier if already present.",
-        "remarks": [],
-        "examples": [
-          "```vb\r\nCF_RTF = stdClipboard.registerFormat(\"Rich Text Format\")\r\nstdClipboard.value(CF_RTF) = \"{\\rtf1\\ansi{\\fonttbl\\f0\\fswiss Helvetica;}\\f0\\pard\" & _\r\n  \"This is some {\\b bold} text.\\par\" & _\r\n\"}\"\r\n```",
-          "```vb\r\nCF_HTML = stdClipboard.registerFormat(\"HTML Format\")\r\nstdClipboard.value(CF_HTML) = _\r\n  \"Version:0.9\" & vbCrLf & _\r\n  \"StartHTML:00000000\" & vbCrLf & _\r\n  \"EndHTML:00000000\" & vbCrLf & _\r\n  \"StartFragment:00000000\" & vbCrLf & _\r\n  \"EndFragment:00000000\" & vbCrLf & _\r\n  \"<html><body>\" & vbCrLf & _\r\n  \"<!--StartFragment -->\" & vbCrLf & _\r\n  \"  hello <b>world</b>\" & vbCrLf & _\r\n  \"<!--EndFragment-->\\r\\n\" & vbCrLf & _\r\n  \"</body>\\r\\n\" & vbCrLf & _\r\n  \"</html>\"\r\n```"
-        ],
-        "params": [
-          {
-            "name": "sFormatName",
-            "type": "String",
-            "description": "Name of format to obtain",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          }
-        ],
-        "returns": {
-          "type": "Long",
-          "description": "Clipboard format identifier"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "SetFilesArr",
-        "description": "Set the clipboard to a selection of Files passed in as an array",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "vFiles",
-            "type": "Variant<Array<Variant>>",
-            "description": "A set of files as an array",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          }
-        ],
-        "returns": null,
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "protSetFilesText",
-        "description": "Internal method for setting the clipboard to a selection of Files passed in as a raw file string\r\nRealistically it might be better for this method to use Value LET directly.",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "sFiles",
-            "type": "String",
-            "description": "Files string delimited by vbNullChar and ending in 2x vbNullChar",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          }
-        ],
-        "returns": null,
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": true,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "protGetFilesArr",
-        "description": "Get the file paths of files stored on the clipboard",
-        "remarks": [],
-        "examples": [],
-        "params": [],
-        "returns": {
-          "type": "Array<String>",
-          "description": "The array of file paths stored in the clipboard"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": true,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "SendPaste",
-        "description": "Raise a paste event to a window with handle hWnd",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "hwnd",
-            "type": "LongPtr",
-            "description": "Window to send paste event to",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          }
-        ],
-        "returns": null,
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "SendCopy",
-        "description": "Raise a copy event to a window with handle hWnd",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "hwnd",
-            "type": "LongPtr",
-            "description": "Window to send copy event to",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          }
-        ],
-        "returns": null,
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "GetClipFormatFromCopyPictureFormat",
-        "description": "Converts xlCopyPictureFormat to CLIPFORMAT\r\nPublic Enum XlCopyPictureFormat\r\n  xlBitmap = 2\r\n  xlPicture = -4147\r\nEnd Enum",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "CopyPictureFormat",
-            "type": "Long",
-            "description": "The xlCopyPictureFormat to convert",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          }
-        ],
-        "returns": {
-          "type": "CLIPFORMAT",
-          "description": "The CLIPFORMAT to use"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      }
-    ],
-    "properties": [
-      {
-        "name": "ClipboardID",
-        "access": "ReadOnly",
-        "description": "Get the ID of the current clipboard value",
-        "remarks": [
-          "- This is incremented every time the clipboard changes. It can be used to track and identify when the clipboard has changed."
-        ],
-        "examples": [],
-        "params": [],
-        "returns": {
-          "type": "Long",
-          "description": "The latest clipboard ID / sequence number"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "value",
-        "access": "ReadWrite",
-        "description": "Get or set the value of the current",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "iFormat",
-            "type": "CLIPFORMAT",
-            "description": "The format to get/set the value of",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          }
-        ],
-        "returns": {
-          "type": "Variant",
-          "description": "The value stored in the clipboard"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "text",
-        "access": "ReadWrite",
-        "description": "Get or set the clipboard as/to a string",
-        "remarks": [],
-        "examples": [
-          "```vb\r\nstdClipboard.text = \"Hello World\"\r\n```"
-        ],
-        "params": [],
-        "returns": {
-          "type": "String",
-          "description": "The string stored on the clipboard"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "formats",
-        "access": "ReadOnly",
-        "description": "Obtain the available formats as a Collection of strings",
-        "remarks": [
-          "see `stdClipboard::formatIDs()` to get ids used in Value() from these data."
-        ],
-        "examples": [],
-        "params": [],
-        "returns": {
-          "type": "Collection<String>",
-          "description": "The format names you can use for the current clipboard data."
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "formatIDs",
-        "access": "ReadOnly",
-        "description": "Obtain the available format IDs which can be used with value() function",
-        "remarks": [
-          "See `stdClipboard::formats()` to get the corresponding names from these data."
-        ],
-        "examples": [],
-        "params": [],
-        "returns": {
-          "type": "Collection<Long>",
-          "description": "Formats allowed. We use Collection for easy enumeration with stdEnumerator."
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "Picture",
-        "access": "ReadWrite",
-        "description": "Get/Set the clipboard as/to an IPicture object",
-        "remarks": [],
-        "examples": [],
-        "params": [],
-        "returns": {
-          "type": "stdole.IPicture",
-          "description": "The picture stored on the clipboard"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "XLPicture",
-        "access": "WriteOnly",
-        "description": "Set the clipboard to an Excel picture object, and then proceeds to wait until the format is available.",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "iAppearance",
-            "type": "XlPictureAppearance",
-            "description": "xlPrint or xlScreen",
-            "optional": true,
-            "defaultValue": "xlScreen",
-            "paramArray": false,
-            "referenceType": "ByVal"
-          },
-          {
-            "name": "iFormat",
-            "type": "XlCopyPictureFormat",
-            "description": "xlBitmap or xlPicture",
-            "optional": true,
-            "defaultValue": "xlBitmap",
-            "paramArray": false,
-            "referenceType": "ByVal"
-          },
-          {
-            "name": "xlPic",
-            "type": "Excel.IPicture",
-            "description": "The picture to copy",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          }
-        ],
-        "returns": {
-          "type": "Void",
-          "description": ""
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "XLShapeAsPicture",
-        "access": "WriteOnly",
-        "description": "Copies a Excel shape as a picture, and then proceeds to wait until the format is available.",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "iAppearance",
-            "type": "XlPictureAppearance",
-            "description": "xlPrint or xlScreen",
-            "optional": true,
-            "defaultValue": "xlScreen",
-            "paramArray": false,
-            "referenceType": "ByRef"
-          },
-          {
-            "name": "iFormat",
-            "type": "XlCopyPictureFormat",
-            "description": "xlBitmap or xlPicture",
-            "optional": true,
-            "defaultValue": "XlCopyPictureFormat.xlBitmap",
-            "paramArray": false,
-            "referenceType": "ByRef"
-          },
-          {
-            "name": "xlShp",
-            "type": "Excel.Shape",
-            "description": "The shape to turn into an image",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          }
-        ],
-        "returns": {
-          "type": "Void",
-          "description": ""
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "files",
-        "access": "ReadWrite",
-        "description": "Get or Set the clipboard to a selection of files paths. Paths provided as a collection for easy stdEnumerator wrapping.",
-        "remarks": [],
-        "examples": [],
-        "params": [],
-        "returns": {
-          "type": "Collection<String>",
-          "description": "The collection of file paths stored in the clipboard"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      }
-    ],
-    "constructors": [],
     "events": [],
     "implements": []
   },
@@ -10663,8 +10668,11 @@
       {
         "name": "CreateFromString",
         "description": "Create a JSON object from string",
-        "remarks": [],
+        "remarks": [
+          "Pass postProcessor by name to leave the existing parser options at their defaults. Callback errors propagate to the caller."
+        ],
         "examples": [
+          "Set json = stdJSON.CreateFromString(jsonText, postProcessor:=stdCallback.CreateFromModule(\"MyModule\", \"ProcessJSON\"))",
           "```vb\r\n  Dim o as stdJSON: set o = stdJSON.CreateFromString(\"{\"\"a\"\":1,\"\"b\"\":\"\"hello\"\"}\")\r\n  Debug.Print o.ToString()\r\n```",
           "```vb\r\n  Dim o as stdJSON: set o = stdJSON.CreateFromString(\"{a: 1, b: 'hello'}\", AllowUnquotedKeys:=true, AllowSingleQuoteStrings:=true)\r\n  Debug.Print o.ToString()\r\n```"
         ],
@@ -10704,6 +10712,15 @@
             "defaultValue": "False",
             "paramArray": false,
             "referenceType": "ByVal"
+          },
+          {
+            "name": "postProcessor",
+            "type": "stdICallable<(value: stdJSON)=>stdJSON>",
+            "description": "Optional callback on every parsed object and array, after its children, including the root. Return the input unchanged or a replacement stdJSON; Nothing is invalid. Primitive values and keys are not passed to this callback.",
+            "optional": true,
+            "defaultValue": "Nothing",
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -10736,6 +10753,15 @@
             "defaultValue": null,
             "paramArray": false,
             "referenceType": "ByVal"
+          },
+          {
+            "name": "postProcessor",
+            "type": "stdICallable<(value: stdJSON)=>stdJSON>",
+            "description": "Optional callback on every parsed object and array, after its children, including the root. Return the input unchanged or a replacement stdJSON; Nothing is invalid. Primitive values and keys are not passed to this callback.",
+            "optional": true,
+            "defaultValue": "Nothing",
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {
@@ -10757,8 +10783,12 @@
       {
         "name": "CreateFromVariant",
         "description": "Create a JSON object from VB variant",
-        "remarks": [],
-        "examples": [],
+        "remarks": [
+          "The root must convert to a Collection, Dictionary, array or stdJSON. A returned stdJSON is used directly without traversing its children. Callback errors propagate to the caller."
+        ],
+        "examples": [
+          "Set json = stdJSON.CreateFromVariant(values, stdCallback.CreateFromModule(\"MyModule\", \"ProcessValue\"))"
+        ],
         "params": [
           {
             "name": "vData",
@@ -10766,6 +10796,15 @@
             "description": "Variant to convert to JSON, e.g. Collection, Dictionary or Array",
             "optional": false,
             "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "preProcessor",
+            "type": "stdICallable<(value: Variant)=>Variant>",
+            "description": "Optional callback before converting each value, including the root and primitives. Return the input unchanged or a replacement value. Children of replacements are processed recursively; the replacement itself is not processed again. Dictionary keys are unchanged.",
+            "optional": true,
+            "defaultValue": "Nothing",
             "paramArray": false,
             "referenceType": "ByVal"
           }
@@ -11466,7 +11505,7 @@
         ],
         "returns": {
           "type": "Double",
-          "description": "Average measurement time"
+          "description": "Mean total block milliseconds across recorded runs, retaining fractional milliseconds."
         },
         "deprecation": {
           "status": false,
@@ -11508,7 +11547,10 @@
       {
         "name": "CreateMeasure",
         "description": "Create a measure object",
-        "remarks": [],
+        "remarks": [
+          "Uses Windows performance counters or Mach absolute time on Office 16+ for Mac; older Mac hosts use Timer. Results include scope-release overhead.",
+          "Mach time excludes sleep. API failure uses the fallback clock captured at entry; fallback intervals must be shorter than 49.7 days on Windows or one day on Mac."
+        ],
         "examples": [
           "```vb\r\nWith stdPerformance.CreateMeasure(\"Some test expression\")\r\n  Dim v\r\n  For i = 1 to 1000\r\n    v = expressionToTest()\r\n  next\r\nEnd With\r\n```",
           "```vb\r\nConst C_MAX as Long = 1000\r\nWith stdPerformance.CreateMeasure(\"Some test expression\", C_MAX)\r\n  Dim v\r\n  For i = 1 to C_MAX\r\n    v = expressionToTest()\r\n  next\r\nEnd With\r\n```"
@@ -11526,7 +11568,7 @@
           {
             "name": "nCount",
             "type": "Double",
-            "description": "Number of times the block will be ran (used to calculate average time), default = 1.",
+            "description": "Operation count for printed per-operation time; stored measurements remain total milliseconds. Default = 1.",
             "optional": true,
             "defaultValue": "1",
             "paramArray": false,

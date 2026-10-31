@@ -30,16 +30,23 @@ Attribute VB_Exposed = False
 
 'Declares for performance counters
 #If Mac Then
-   #If MAC_OFFICE_VERSION >= 15 Then
-      Private Declare Function GetTickCount Lib "/Applications/Microsoft Excel.app/Contents/Frameworks/MicrosoftOffice.framework/MicrosoftOffice" () As Long
-   #Else
-      Private Declare Function GetTickCount Lib "Applications:Microsoft Office 2011:Office:MicrosoftOffice.framework:MicrosoftOffice" () As Long
+   #If MAC_OFFICE_VERSION >= 16 Then
+      Private Type TMachTimebase
+        Numer As Long
+        Denom As Long
+      End Type
+      Private Declare PtrSafe Function mach_absolute_time Lib "/usr/lib/libSystem.dylib" () As LongLong
+      Private Declare PtrSafe Function mach_timebase_info Lib "/usr/lib/libSystem.dylib" (ByRef info As TMachTimebase) As Long
    #End If
 #Else ' Win32 or Win64
    #If VBA7 Then
       Private Declare PtrSafe Function GetTickCount Lib "kernel32" () As Long
+      Private Declare PtrSafe Function QueryPerformanceCounter Lib "kernel32" (ByRef counter As Currency) As Long
+      Private Declare PtrSafe Function QueryPerformanceFrequency Lib "kernel32" (ByRef frequency As Currency) As Long
    #Else
       Private Declare Function GetTickCount Lib "kernel32" () As Long
+      Private Declare Function QueryPerformanceCounter Lib "kernel32" (ByRef counter As Currency) As Long
+      Private Declare Function QueryPerformanceFrequency Lib "kernel32" (ByRef frequency As Currency) As Long
    #End If
 #End If
 
@@ -69,7 +76,14 @@ End Type
 
 'For Performance Measurement
 Private Type TMeasure
-  StartTime As Long
+  StartTime As Double
+  HighResolution As Boolean
+  Counter As Currency
+  Frequency As Currency
+#If Mac And MAC_OFFICE_VERSION >= 16 Then
+  MachStart As LongLong
+  MillisecondsPerTick As Double
+#End If
   KeyName As String
   Divider As Double
 End Type
@@ -123,7 +137,7 @@ Public Sub protInit(ByVal objType As EPerfObjType, ByVal params As Variant)
     Case iMeasure
       This.Measure.KeyName = params(0)
       This.Measure.Divider = params(1)
-      This.Measure.StartTime = GetTickCount()
+      Call startMeasure
     Case iOptimiser
       Dim oApp As Object: Set oApp = Application
       Set This.Optimiser.App = oApp
@@ -157,7 +171,7 @@ End Sub
 'Create a measure object
 '@constructor
 '@param sProc   - Name of method or block to measure
-'@param nCount  - Number of times the block will be ran (used to calculate average time), default = 1.
+'@param nCount - Operation count for printed per-operation time; stored measurements remain total milliseconds. Default = 1.
 '@returns stdPerformance<iMeasure> - Object which upon termination, adds measurement of block to global cache
 '@example ```vb
 'With stdPerformance.CreateMeasure("Some test expression")
@@ -177,6 +191,8 @@ End Sub
 '  next
 'End With
 '```
+'@remark Uses Windows performance counters or Mach absolute time on Office 16+ for Mac; older Mac hosts use Timer. Results include scope-release overhead.
+'@remark Mach time excludes sleep. API failure uses the fallback clock captured at entry; fallback intervals must be shorter than 49.7 days on Windows or one day on Mac.
 Public Function CreateMeasure(ByVal sProc As String, Optional ByVal nCount As Double = 1) As stdPerformance
   Set CreateMeasure = Create(iMeasure, Array(sProc, nCount))
 End Function
@@ -242,7 +258,7 @@ End Function
 'Obtain a measurement
 '@static
 '@param sKey - Name of measurement to get
-'@returns - Average measurement time
+'@returns - Mean total block milliseconds across recorded runs, retaining fractional milliseconds.
 '@example Get a measurement
 '```vb
 'Const C_MAX as Long = 1000
@@ -280,7 +296,7 @@ Public Sub AddMeasurement(ByVal sKey As String, ByVal time As Double, ByVal nCou
       Call setDictItem(sKey, Array(time, 1))
     Else
       Dim vItem: vItem = getDictItem(sKey)
-      Dim average As Long: average = vItem(0)
+      Dim average As Double: average = vItem(0)
       Dim count As Long: count = vItem(1) + 1
       average = average + (time - average) / count
       Call setDictItem(sKey, Array(average, count))
@@ -317,6 +333,71 @@ Public Property Get MeasuresKeys() As String()
   End If
 End Property
 
+'Capture a fallback baseline as well, so API failure never mixes clock origins.
+Private Sub startMeasure()
+  This.Measure.StartTime = fallbackMilliseconds()
+  On Error GoTo Unavailable
+#If Mac Then
+  #If MAC_OFFICE_VERSION >= 16 Then
+    Static info As TMachTimebase
+    If info.Denom = 0 Then
+      If mach_timebase_info(info) <> 0 Then Exit Sub
+    End If
+    If info.Denom = 0 Then Exit Sub
+    This.Measure.MillisecondsPerTick = CDbl(info.Numer) / CDbl(info.Denom) / 1000000#
+    This.Measure.MachStart = mach_absolute_time()
+    This.Measure.HighResolution = True
+  #End If
+#Else
+  Static frequency As Currency
+  If frequency = 0 Then
+    If QueryPerformanceFrequency(frequency) = 0 Then Exit Sub
+  End If
+  If frequency <= 0 Then Exit Sub
+  This.Measure.Frequency = frequency
+  This.Measure.HighResolution = QueryPerformanceCounter(This.Measure.Counter) <> 0
+#End If
+Unavailable:
+End Sub
+
+'Subtract raw counter values before conversion to retain precision.
+Private Function elapsedMilliseconds() As Double
+  On Error GoTo Fallback
+  If This.Measure.HighResolution Then
+#If Mac Then
+  #If MAC_OFFICE_VERSION >= 16 Then
+    elapsedMilliseconds = CDbl(mach_absolute_time() - This.Measure.MachStart) * This.Measure.MillisecondsPerTick
+    Exit Function
+  #End If
+#Else
+    Dim counter As Currency
+    If QueryPerformanceCounter(counter) <> 0 Then
+      elapsedMilliseconds = CDbl(counter - This.Measure.Counter) / This.Measure.Frequency * 1000#
+      Exit Function
+    End If
+#End If
+  End If
+Fallback:
+  elapsedMilliseconds = fallbackMilliseconds() - This.Measure.StartTime
+  If elapsedMilliseconds < 0 Then
+#If Mac Then
+    elapsedMilliseconds = elapsedMilliseconds + 86400000#
+#Else
+    elapsedMilliseconds = elapsedMilliseconds + 4294967296#
+#End If
+  End If
+End Function
+
+'Unsigned Windows ticks, or host-independent Mac seconds since midnight.
+Private Function fallbackMilliseconds() As Double
+#If Mac Then
+  fallbackMilliseconds = CDbl(Timer) * 1000#
+#Else
+  fallbackMilliseconds = CDbl(GetTickCount())
+  If fallbackMilliseconds < 0 Then fallbackMilliseconds = fallbackMilliseconds + 4294967296#
+#End If
+End Function
+
 'Used by static class only
 Private Sub Class_Initialize()
   If Me Is stdPerformance Then
@@ -330,8 +411,7 @@ Private Sub Class_Terminate()
   If Not Me Is stdPerformance Then
     Select Case This.ObjectType
       Case iMeasure
-        Dim pEndTime As Long: pEndTime = GetTickCount()
-        Call stdPerformance.AddMeasurement(This.Measure.KeyName, Abs(pEndTime - This.Measure.StartTime), This.Measure.Divider)
+        Call stdPerformance.AddMeasurement(This.Measure.KeyName, elapsedMilliseconds(), This.Measure.Divider)
       Case iOptimiser
         'Attempt every captured restoration, including after partially failed initialisation.
         On Error Resume Next
