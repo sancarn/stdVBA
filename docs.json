@@ -11471,7 +11471,7 @@
         ],
         "returns": {
           "type": "Double",
-          "description": "Average measurement time"
+          "description": "Mean total block milliseconds across recorded runs, retaining fractional milliseconds."
         },
         "deprecation": {
           "status": false,
@@ -11513,7 +11513,10 @@
       {
         "name": "CreateMeasure",
         "description": "Create a measure object",
-        "remarks": [],
+        "remarks": [
+          "Uses Windows performance counters or Mach absolute time on Office 16+ for Mac; older Mac hosts use Timer. Results include scope-release overhead.",
+          "Mach time excludes sleep. API failure uses the fallback clock captured at entry; fallback intervals must be shorter than 49.7 days on Windows or one day on Mac."
+        ],
         "examples": [
           "```vb\r\nWith stdPerformance.CreateMeasure(\"Some test expression\")\r\n  Dim v\r\n  For i = 1 to 1000\r\n    v = expressionToTest()\r\n  next\r\nEnd With\r\n```",
           "```vb\r\nConst C_MAX as Long = 1000\r\nWith stdPerformance.CreateMeasure(\"Some test expression\", C_MAX)\r\n  Dim v\r\n  For i = 1 to C_MAX\r\n    v = expressionToTest()\r\n  next\r\nEnd With\r\n```"
@@ -11531,7 +11534,7 @@
           {
             "name": "nCount",
             "type": "Double",
-            "description": "Number of times the block will be ran (used to calculate average time), default = 1.",
+            "description": "Operation count for printed per-operation time; stored measurements remain total milliseconds. Default = 1.",
             "optional": true,
             "defaultValue": "1",
             "paramArray": false,

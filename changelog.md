@@ -402,3 +402,5 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2026-10-31 `stdLambda` FIX - Preserve object identity when accessing local variables across stack growth (#68).
 * 2026-10-31 FIX - stdDate weekday names return String, explicit first days override Country defaults, and RegexMatch honors options with consistent cache keys and retains no malformed patterns (#169, #170, #171).
 - 2026-10-31 `stdRefArray` FIX - Borrow owned Variant array pointer slots as well as VT_BYREF typed arrays; document alias lifetime and ownership restrictions (#145).
+
+- 2026-10-31 `stdPerformance` FIX - High-resolution Windows and modern Mac timers, fractional measurement averaging, and fallback rollover handling (#57).
