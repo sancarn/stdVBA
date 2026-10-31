@@ -1,5 +1,9 @@
 # Changelog
 
+* 2026-10-31 FEATURE - Add stdWebSocket.StartListening(stdICallable), StopListening, Listening and LastListenerError. A bounded native receive queue and message-only window deliver Open/Message/Close/Error on the Office owner thread without explicit Pump; callbacks defer while that thread is busy. Preserve synchronous Receive when no listener owns reads and synchronous Send completion/backpressure. Stop/replacement, callback errors, peer/local close and ordinary owner release invalidate stale notifications and release COM references. stdWebSocket is now non-exposed, matching stdWebView/stdArray, so its public methods can use the non-exposed stdICallable interface. VBE Reset/End with live subscriptions remains unsupported; disconnect first.
+
+* 2026-10-31 BREAKING - Replace the Internet Explorer stdWebSocket transport with native WinHTTP WebSockets (#139, #35). Keep Create, Send, CloseSocket, Disconnect, url, all five events and Listeners; deliver Open/Message via explicit blocking Pump/Receive calls rather than background browser callbacks. Event payloads are dictionaries (data, code, reason, message, type). Create now completes the handshake before returning. Requires Windows 8+ and a matching Office-bitness stdWebSocketNative.dll, built from the supplied C source, to provide bounded asynchronous native I/O without callbacks into VBA. Add ws/wss URL handling, certificate validation, exact binary lengths, fragmented messages, UTF8 including empty/embedded-null data, operation/message deadlines, and deterministic cleanup. Uses WinHTTP's client WebSocket API rather than the lower-level websocket.dll protocol component proposed in #35; server support is outside this client's scope.
+
 * 2026-10-31 FIX - stdHTTP async completion accepts empty responses and propagates terminal transport errors and bounded timeouts (#121).
 
 Change log shall be a bullet point list. All changes will be of the format:

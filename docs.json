@@ -14894,25 +14894,211 @@
   {
     "name": "stdWebSocket",
     "fileName": "stdWebSocket.cls",
-    "description": "",
-    "remarks": [],
+    "description": "Native Windows WebSocket client using WinHTTP, replacing Internet Explorer (#139, #35).",
+    "remarks": [
+      "StartListening delivers to a typed callable through an owner-thread message window. Pump/Receive provide synchronous events when no async listener owns reads. No VBA runs on WinHTTP or receive worker threads."
+    ],
     "examples": [],
-    "devNotes": [],
+    "devNotes": [
+      "WinHTTP supplies HTTP upgrade, framing and TLS. Wasabi was reviewed as a design reference: https://github.com/vbacollective/wasabi/blob/main/package/Wasabi.bas"
+    ],
     "todos": [],
-    "requires": [],
+    "requires": [
+      "Windows 8 or later, stdICallable, and stdWebSocketNative.dll built for the Office process architecture."
+    ],
     "methods": [
       {
         "name": "protInit",
-        "description": "Initializes the object",
+        "description": "Initializes the object and completes the upgrade with normal TLS certificate validation.",
         "remarks": [],
         "examples": [
-          "```vb\r\nws.protInit(\"wss://echo.websocket.org/\")\r\n```"
+          "```vb\r\nDim ws As New stdWebSocket\r\nws.protInit \"ws://127.0.0.1:8080/echo\", 5000, \"C:\\libs\\stdWebSocketNative.dll\"\r\n```"
         ],
         "params": [
           {
             "name": "url",
             "type": "String",
-            "description": "The websocket url to track.",
+            "description": "WebSocket URL.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "timeoutMs",
+            "type": "Long",
+            "description": "Positive per-operation network timeout in milliseconds.",
+            "optional": true,
+            "defaultValue": "5000",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "nativeLibraryPath",
+            "type": "String",
+            "description": "Path to the matching Office-bitness stdWebSocketNative.dll; see native/build.ps1.",
+            "optional": true,
+            "defaultValue": "\"stdWebSocketNative.dll\"",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "StartListening",
+        "description": "Registers an asynchronous receive listener, returning without waiting for data.",
+        "remarks": [
+          "Delivery requires the Office thread to pump Windows messages; it never interrupts a busy macro. This listener exclusively owns reads until StopListening. Each registration receives a deferred Open. Legacy events/Listeners remain the synchronous API. The class is non-exposed, matching stdWebView, so it can publish the non-exposed stdICallable type.",
+          "StopListening or Disconnect before VBE Reset, End, project unload or forced Office shutdown. Those paths can skip VBA destructors and are unsupported with a live subscription. Ordinary owner release is supported unless the supplied callable itself retains the socket, creating a user-owned cycle.",
+          "Queue limits are 32 messages and 16 MiB queued data, with up to one additional 16 MiB message under assembly/backpressure. Send remains synchronous and can block up to its deadline.",
+          "A stopped listener can be replaced to drain buffered messages and a pending terminal notification after peer close; registration is rejected after the terminal queue has been fully consumed."
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "listener",
+            "type": "stdICallable<(name as String, eventData as Dictionary)=>Variant>",
+            "description": "Receives Open, Message, Close and Error on the registering Office thread.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "StopListening",
+        "description": "Stops asynchronous delivery without discarding unread messages or closing the socket.",
+        "remarks": [
+          "A pending native read continues into the bounded queue. Subsequent Receive consumes that same queue, avoiding competing reads or duplicate delivery. Safe inside a listener; queued notifications from old registrations are invalidated."
+        ],
+        "examples": [],
+        "params": [],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "protInitReceiver",
+        "description": "Initializes a separate receiver that does not retain the socket owner.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "listener",
+            "type": "stdICallable",
+            "description": "Typed callable retained for this registration.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "protClearListener",
+        "description": "Releases the typed listener reference after delivery is stopped.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "protAsyncDispatch",
+        "description": "Native message-window entry point, invoked through retained IDispatch on its owner thread.",
+        "remarks": [
+          "Dispatches at most one queued message. The native adapter prevents nested dispatch even when user code runs DoEvents. No WinHTTP worker invokes this member."
+        ],
+        "examples": [],
+        "params": [],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "protLocalClose",
+        "description": "Delivers a local close after cleanup, deferring it until the active user callback returns.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "code",
+            "type": "Long",
+            "description": "Local close status.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "reason",
+            "type": "String",
+            "description": "Local close reason.",
             "optional": false,
             "defaultValue": null,
             "paramArray": false,
@@ -14934,16 +15120,36 @@
       },
       {
         "name": "Send",
-        "description": "Sends data through the WebSocket",
-        "remarks": [],
+        "description": "Sends text or binary data, optionally as a message fragment.",
+        "remarks": [
+          "Send always waits for native completion, including when an async reader is active. Network backpressure can block the caller until the configured deadline; write failures raise a synchronous VBA error."
+        ],
         "examples": [],
         "params": [
           {
             "name": "data",
             "type": "Variant",
-            "description": "The data to send",
+            "description": "String for Utf8 or Byte() for Binary; empty and embedded nulls are preserved.",
             "optional": false,
             "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "iType",
+            "type": "EMessageType",
+            "description": "Utf8 or Binary.",
+            "optional": true,
+            "defaultValue": "Utf8",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "bPartialSend",
+            "type": "Boolean",
+            "description": "True until the final fragment. Fragment types must match.",
+            "optional": true,
+            "defaultValue": "False",
             "paramArray": false,
             "referenceType": "ByVal"
           }
@@ -14962,15 +15168,74 @@
         "isStatic": false
       },
       {
+        "name": "Receive",
+        "description": "Receives one complete message and delivers Open/Message/Close events and Listeners synchronously.",
+        "remarks": [
+          "Rejected while Listening is True. After StopListening it consumes the same bounded native queue, preserving unread messages and exclusive ownership.",
+          "A native deadline cancels a stalled receive; a total message deadline and 16 MiB limit apply. Timeout/transport errors disconnect and raise Error then a VBA error. No background VBA callbacks or DoEvents are used."
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "iType",
+            "type": "EMessageType",
+            "description": "Receives the message type.",
+            "optional": true,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByRef"
+          }
+        ],
+        "returns": {
+          "type": "Variant",
+          "description": "String, Byte(), or Empty when the peer closes. Empty binary is a zero-length Byte()."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "Pump",
+        "description": "Pumps one complete message through the existing events and Listeners.",
+        "remarks": [
+          "This is a bounded blocking pump, not a readiness poll. Open is delivered before waiting for a message."
+        ],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Boolean",
+          "description": "True for a message (including empty messages), False for peer close."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
         "name": "CloseSocket",
-        "description": "Closes the WebSocket connection",
+        "description": "Closes the WebSocket and releases all handles even if the handshake fails.",
         "remarks": [],
         "examples": [],
         "params": [
           {
             "name": "Code",
             "type": "Long",
-            "description": "A numeric value indicating the status code explaining why the connection is being closed. If this parameter is not specified, a default value of 1005 is assumed. See the [list of status](https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent#status_codes) code of CloseEvent for permitted values.",
+            "description": "1000 or application close status 3000 through 4999.",
             "optional": true,
             "defaultValue": "1000",
             "paramArray": false,
@@ -14979,7 +15244,7 @@
           {
             "name": "reason",
             "type": "String",
-            "description": "A human-readable string explaining why the connection is closing.",
+            "description": "UTF8 reason, at most 123 bytes.",
             "optional": true,
             "defaultValue": "\"\"",
             "paramArray": false,
@@ -15001,7 +15266,7 @@
       },
       {
         "name": "Disconnect",
-        "description": "Closes and deletes the WebSocket, removing references so the object can be garbage collected",
+        "description": "Releases the connection immediately without waiting for a close handshake. Safe to repeat.",
         "remarks": [],
         "examples": [],
         "params": [],
@@ -15020,14 +15285,14 @@
       },
       {
         "name": "handleEvent",
-        "description": "Handles socket events",
+        "description": "Handles an event on the calling VBA thread, forwarding the same data to events and Listeners.",
         "remarks": [],
         "examples": [],
         "params": [
           {
             "name": "sEventName",
             "type": "String",
-            "description": "The name of the event (\"Open\", \"Close\", \"Error\" or \"Message\")",
+            "description": "Open, Close, Error or Message.",
             "optional": false,
             "defaultValue": null,
             "paramArray": false,
@@ -15036,7 +15301,7 @@
           {
             "name": "oEventData",
             "type": "Object",
-            "description": "Data to forward to event handler.",
+            "description": "Dictionary event object; Message has data, Close has code/reason, Error has message.",
             "optional": false,
             "defaultValue": null,
             "paramArray": false,
@@ -15061,13 +15326,13 @@
       {
         "name": "url",
         "access": "ReadOnly",
-        "description": "Gets the url of the websocket",
+        "description": "Gets the original WebSocket URL.",
         "remarks": [],
         "examples": [],
         "params": [],
         "returns": {
           "type": "String",
-          "description": "The url of the websocket"
+          "description": "The URL supplied to Create."
         },
         "deprecation": {
           "status": false,
@@ -15080,23 +15345,168 @@
         "throws": [],
         "requires": [],
         "isStatic": false
+      },
+      {
+        "name": "State",
+        "access": "ReadOnly",
+        "description": "Gets the current connection state.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "EWebSocketState",
+          "description": "Connection state, including a terminal state detected by the async reader before the notification is delivered."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "Listening",
+        "access": "ReadOnly",
+        "description": "Gets whether the asynchronous listener currently owns reads.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Boolean",
+          "description": "True while a listener is registered."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "LastListenerError",
+        "access": "ReadOnly",
+        "description": "Gets the last VBA error raised by the asynchronous listener or its decoder.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "String",
+          "description": "Error description, or an empty string. A callback error stops delivery and leaves unread messages available to Receive."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "protContext",
+        "access": "WriteOnly",
+        "description": "Sets the borrowed native context of the bridge receiver. Never call directly.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "value",
+            "type": "LongPtr",
+            "description": "Native context, valid only while the adapter retains this receiver.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "Void",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "protListenerError",
+        "access": "ReadOnly",
+        "description": "Gets a bridge receiver error for its owning socket.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "String",
+          "description": "Last callback/decoding error."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
       }
     ],
     "constructors": [
       {
         "name": "Create",
-        "description": "Creates and returns a new WebSocket object",
-        "remarks": [],
+        "description": "Creates a connected native Windows WebSocket (Windows 8 or later).",
+        "remarks": [
+          "Use StartListening for deferred owner-thread delivery, or Pump/Receive for synchronous reads and events. Open is deferred so handlers can be attached after Create."
+        ],
         "examples": [
-          "stdWebSocket.Create(\"wss://echo.websocket.org/\")"
+          "```vb\r\nDim ws As stdWebSocket\r\nSet ws = stdWebSocket.Create(\"ws://127.0.0.1:8080/echo\", 5000, \"C:\\libs\\stdWebSocketNative.dll\")\r\nws.Send \"hello\"\r\nDebug.Print ws.Receive()\r\nws.CloseSocket\r\n```"
         ],
         "params": [
           {
             "name": "url",
             "type": "String",
-            "description": "The websocket url to track.",
+            "description": "ws:// or wss:// URL; ASCII/Punycode host, optional port and path/query.",
             "optional": false,
             "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "timeoutMs",
+            "type": "Long",
+            "description": "Positive network timeout in milliseconds.",
+            "optional": true,
+            "defaultValue": "5000",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "nativeLibraryPath",
+            "type": "String",
+            "description": "Path to the matching Office-bitness stdWebSocketNative.dll; see native/build.ps1.",
+            "optional": true,
+            "defaultValue": "\"stdWebSocketNative.dll\"",
             "paramArray": false,
             "referenceType": "ByVal"
           }
