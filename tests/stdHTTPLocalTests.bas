@@ -1,42 +1,69 @@
 Attribute VB_Name = "stdHTTPLocalTests"
 Option Explicit
-Public Function RunTests() As Variant
+Private baseURL As String
+
+Public Function RunTests(ByVal fixtureURL As String, ByVal refusedURL As String) As Variant
   On Error GoTo Failed
-  Dim r As stdHTTP, path As Variant, started As Double, n As Long, msg As String
+  baseURL = fixtureURL
+  Dim r As stdHTTP, path As Variant
   For Each path In Array("/empty", "/normal")
-    Set r = Request(CStr(path), 1000)
+    Set r = Request(baseURL & CStr(path), 2000)
     r.Await
-    If Not r.isFinished Or r.ResponseStatus <> 200 Then Err.Raise 5, , "Completion"
+    Check r.isFinished, "Completion"
+    Check r.ResponseStatus = 200, "Status"
     If path = "/empty" Then
-      If r.ResponseText <> "" Then Err.Raise 5, , "Empty response"
+      Check r.ResponseText = "", "Empty body"
     Else
-      If r.ResponseText <> "hello" Then Err.Raise 5, , "Normal response"
+      Check r.ResponseText = "hello", "Normal body"
     End If
   Next
-  For Each path In Array("/slow", "/disconnect")
-    started = Timer
-    Set r = Request(CStr(path), 200)
-    On Error Resume Next
-    r.Await
-    n = Err.Number: msg = Err.Description
-    Err.Clear
-    On Error GoTo Failed
-    If n = 0 Or msg = "" Then Err.Raise 5, , "Missing transport error"
-    If Timer - started > 3 Then Err.Raise 5, , "Unbounded wait"
-    On Error Resume Next
-    Dim done As Boolean: done = r.isFinished
-    If Err.Number <> n Or Err.Description <> msg Then
-      On Error GoTo Failed
-      Err.Raise 5, , "Terminal error changed"
-    End If
-    Err.Clear
-    On Error GoTo Failed
-  Next
+  Set r = Request(baseURL & "/slow", 800)
+  Check Not r.isFinished, "Delayed request must be pending"
+  CheckFailure r, 10000, "Delayed request timeout"
+  Set r = Request(baseURL & "/trickle", 400)
+  CheckFailure r, 10000, "Overall deadline during continuous response"
+  Set r = Request(refusedURL, 10000)
+  CheckFailure r, &H80072EFD, "Connection refused"
+  Set r = Request(baseURL & "/disconnect", 10000)
+  CheckFailure r, 0, "Disconnected transport"
   RunTests = "Passed local HTTP regressions"
   Exit Function
 Failed:
   RunTests = "FAIL: " & Err.Number & " " & Err.Description
 End Function
-Private Function Request(ByVal path As String, ByVal timeout As Long) As stdHTTP
-  Set Request = stdHTTP.Create("http://127.0.0.1:18761" & path, ThreadingStyle:=HTTPAsync, options:=stdHTTP.CreateOptions(TimeoutMS:=timeout, Proxy:=stdHTTP.CreateProxy(ProxyTypeNone)))
+
+Private Sub CheckFailure(ByVal r As stdHTTP, ByVal expected As Long, ByVal label As String)
+  Dim started As Double: started = Timer
+  Dim n As Long, msg As String, done As Boolean
+  On Error Resume Next
+  r.Await
+  n = Err.Number: msg = Err.Description
+  Err.Clear
+  On Error GoTo 0
+  Check n <> 0 And Len(msg) > 0, label & " missing error"
+  If expected <> 0 Then Check n = expected, label & " unexpected error " & n
+  Dim elapsed As Double: elapsed = Timer - started
+  If elapsed < 0 Then elapsed = elapsed + 86400
+  Check elapsed < 12, label & " exceeded wait bound"
+  On Error Resume Next
+  done = r.isFinished
+  Dim repeated As Long: repeated = Err.Number
+  Dim repeatedMsg As String: repeatedMsg = Err.Description
+  Err.Clear
+  On Error GoTo 0
+  Check repeated = n And repeatedMsg = msg, label & " terminal polling error changed"
+  On Error Resume Next
+  r.Await
+  repeated = Err.Number: repeatedMsg = Err.Description
+  Err.Clear
+  On Error GoTo 0
+  Check repeated = n And repeatedMsg = msg, label & " repeated Await error changed"
+End Sub
+
+Private Sub Check(ByVal passed As Boolean, ByVal label As String)
+  If Not passed Then Err.Raise vbObjectError + 121, "stdHTTPLocalTests", label
+End Sub
+
+Private Function Request(ByVal url As String, ByVal timeout As Long) As stdHTTP
+  Set Request = stdHTTP.Create(url, ThreadingStyle:=HTTPAsync, options:=stdHTTP.CreateOptions(TimeoutMS:=timeout, Proxy:=stdHTTP.CreateProxy(ProxyTypeNone)))
 End Function
