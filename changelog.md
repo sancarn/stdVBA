@@ -1,5 +1,7 @@
 # Changelog
 
+* 2026-10-31 FIX - stdHTTP async completion accepts empty responses and propagates terminal transport errors and bounded timeouts (#121).
+
 Change log shall be a bullet point list. All changes will be of the format:
 
 ```
