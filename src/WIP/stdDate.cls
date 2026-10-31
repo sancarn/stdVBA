@@ -314,19 +314,23 @@ Public Property Get Years() as Long
   End if
 End Property
 
+'@param FirstDayOfWeek Zero uses the Country default; explicit values 1-7 override it.
+'@returns {Long} One-based weekday relative to the resolved first day.
 'Get integer position of day within week. E.G. 1-Monday, 2-Tuesday, 3-Wednesday, ...
 Public Property Get Weekday(Optional ByVal FirstDayOfWeek as VbDayOfWeek) as Long
   If pInitialised then
-    If Not FirstDayOfWeek then FirstDayOfWeek = pFirstDayOfWeek
+    If FirstDayOfWeek = vbUseSystemDayOfWeek then FirstDayOfWeek = pFirstDayOfWeek
     Weekday = VBA.Weekday(pValue,FirstDayOfWeek)
   Else
     'Call STD.Errors.Raise("STD.Class",4)
   End If
 End Property
-Public Property Get WeekdayName(Optional ByVal Abbreviate as Boolean = false,Optional ByVal FirstDayOfWeek as VbDayOfWeek) as Long
+'@param FirstDayOfWeek Zero uses the Country default; explicit values 1-7 override it.
+'@returns {String} Localized full or abbreviated weekday name.
+Public Property Get WeekdayName(Optional ByVal Abbreviate as Boolean = false,Optional ByVal FirstDayOfWeek as VbDayOfWeek) as String
   If pInitialised then
-    If Not FirstDayOfWeek then FirstDayOfWeek = pFirstDayOfWeek
-    WeekdayName = VBA.WeekdayName(Weekday,Abbreviate,FirstDayOfWeek)
+    If FirstDayOfWeek = vbUseSystemDayOfWeek then FirstDayOfWeek = pFirstDayOfWeek
+    WeekdayName = VBA.WeekdayName(Weekday(FirstDayOfWeek),Abbreviate,FirstDayOfWeek)
   Else
     'Call STD.Errors.Raise("STD.Class",4)
   End If
@@ -905,6 +909,9 @@ Private Sub iniTimezones()
   end if
 End Sub
 
+'@param options Regex options i/g/x/s/m.
+'@returns {Object} First match dictionary; existing regex and no-match errors propagate.
+'@remark Cache entries are published only after successful Execute.
 '?stdDate.RegexMatch("asdf","(?<a>.)(.)((?<b>.)(.))")
 Function RegexMatch(ByVal haystack As String, ByVal pattern As String, Optional ByVal options As String) As Object
   'Cache regexes for optimisation
@@ -929,7 +936,8 @@ Function RegexMatch(ByVal haystack As String, ByVal pattern As String, Optional 
   End If
   
   'If cached pattern doesn't exist, create it
-  If Not CachedRegex(pattern) Then
+  Dim key As String: key = options & ")" & pattern
+  If Not CachedRegex.Exists(key) Then
     
     
     'Create names/capture group object
@@ -939,7 +947,7 @@ Function RegexMatch(ByVal haystack As String, ByVal pattern As String, Optional 
     testPattern = Replace(testPattern, "\(", "asdasd")
     
     'Store names for optimisation
-    Set CachedNames(options & ")" & pattern) = NamedRegexp.Execute(testPattern)
+    Set oNames = NamedRegexp.Execute(testPattern)
     
     'Create new VBA valid pattern
     Dim newPattern As String
@@ -951,8 +959,8 @@ Function RegexMatch(ByVal haystack As String, ByVal pattern As String, Optional 
     
     'Set regex options
     Dim i As Integer
-    For i = 1 To Len(flags)
-        Select Case Mid(flags, i, 1)
+    For i = 1 To Len(options)
+        Select Case Mid(options, i, 1)
             Case "i"
                 oRegexp.ignoreCase = True
             Case "g"
@@ -975,16 +983,19 @@ Function RegexMatch(ByVal haystack As String, ByVal pattern As String, Optional 
     
     'Store regex for optimisation
     
-    Set CachedRegex(options & ")" & pattern) = oRegexp
+    Dim oMatches As Object
+    Set oMatches = oRegexp.Execute(haystack)
+    Set CachedNames(key) = oNames
+    Set CachedRegex(key) = oRegexp
+  Else
+    Set oMatches = CachedRegex(key).Execute(haystack)
   End If
   
   'Get matches object
-  Dim oMatches As Object
-  Set oMatches = CachedRegex(options & ")" & pattern).Execute(haystack)
   
   'Get names object
   Dim CName As Object
-  Set CName = CachedNames(options & ")" & pattern)
+  Set CName = CachedNames(key)
   
   'Create dictionary to return
   Dim oRet As Object
