@@ -114,6 +114,9 @@ End Function
 '@param AllowUnquotedKeys       - Allow unquoted keys? E.G. "{a:""hello""}"
 '@param AllowSingleQuoteStrings - Allow single quoted strings? E.G. "{'a':'hello'}"
 '@param StoreLargeNumsAsString  - Store Large numbers >16 chars as string instead of doubles. This may be useful if precision is important.
+'@param postProcessor as stdICallable<(value: stdJSON)=>stdJSON> - Optional callback on every parsed object and array, after its children, including the root. Return the input unchanged or a replacement stdJSON; Nothing is invalid. Primitive values and keys are not passed to this callback.
+'@example Set json = stdJSON.CreateFromString(jsonText, postProcessor:=stdCallback.CreateFromModule("MyModule", "ProcessJSON"))
+'@remark Pass postProcessor by name to leave the existing parser options at their defaults. Callback errors propagate to the caller.
 '@returns - `stdJSON` object from string.
 '@example ```vb
 '  Dim o as stdJSON: set o = stdJSON.CreateFromString("{""a"":1,""b"":""hello""}")
@@ -123,18 +126,29 @@ End Function
 '  Dim o as stdJSON: set o = stdJSON.CreateFromString("{a: 1, b: 'hello'}", AllowUnquotedKeys:=true, AllowSingleQuoteStrings:=true)
 '  Debug.Print o.ToString()
 '```
-Public Function CreateFromString(ByVal sJSON As String, Optional ByVal AllowUnquotedKeys As Boolean = False, Optional ByVal AllowSingleQuoteStrings As Boolean = False, Optional ByVal StoreLargeNumsAsString As Boolean = False) As stdJSON
-  'Save parser props...
-  This.parserProps.AllowUnquotedKeys = AllowUnquotedKeys
-  This.parserProps.StoreLargeNumsAsString = StoreLargeNumsAsString
-  This.parserProps.AllowSingleQuoteStrings = AllowSingleQuoteStrings
+Public Function CreateFromString(ByVal sJSON As String, Optional ByVal AllowUnquotedKeys As Boolean = False, Optional ByVal AllowSingleQuoteStrings As Boolean = False, Optional ByVal StoreLargeNumsAsString As Boolean = False, Optional ByVal postProcessor As stdICallable = Nothing) As stdJSON
+  Dim parser As stdJSON: Set parser = New stdJSON
+  Set CreateFromString = parser.protParseString(sJSON, AllowUnquotedKeys, AllowSingleQuoteStrings, StoreLargeNumsAsString, postProcessor)
+End Function
 
+'Parse with options isolated from reentrant constructor calls.
+'@protected
+'@param sJSON - JSON text to parse.
+'@param AllowUnquotedKeys - Allow unquoted keys.
+'@param AllowSingleQuoteStrings - Allow single quoted strings.
+'@param StoreLargeNumsAsString - Preserve large numbers as strings.
+'@param postProcessor as stdICallable<(value: stdJSON)=>stdJSON> - Callback on completed objects and arrays, including the root.
+'@returns - Parsed root after post-processing.
+Friend Function protParseString(ByVal sJSON As String, ByVal AllowUnquotedKeys As Boolean, ByVal AllowSingleQuoteStrings As Boolean, ByVal StoreLargeNumsAsString As Boolean, ByVal postProcessor As stdICallable) As stdJSON
+  This.parserProps.AllowUnquotedKeys = AllowUnquotedKeys
+  This.parserProps.AllowSingleQuoteStrings = AllowSingleQuoteStrings
+  This.parserProps.StoreLargeNumsAsString = StoreLargeNumsAsString
   sJSON = VBA.Replace(VBA.Replace(VBA.Replace(sJSON, VBA.vbCr, ""), VBA.vbLf, ""), VBA.vbTab, "")
   Select Case Mid(sJSON, 1, 1)
     Case "{"
-      Set CreateFromString = parseJSONObject(sJSON)
+      Set protParseString = parseJSONObject(sJSON, 1, postProcessor)
     Case "["
-      Set CreateFromString = parseJSONArray(sJSON)
+      Set protParseString = parseJSONArray(sJSON, 1, postProcessor)
     Case Else
       Err.Raise 1, "stdJSON::CreateFromString()", "ERROR: Expecting '{' or '[' but found '" & Mid(sJSON, 1, 1) & "'"
   End Select
@@ -143,24 +157,33 @@ End Function
 'Create a JSON object from file
 '@constructor
 '@param sJSONFile - Path to file containing json data
+'@param postProcessor as stdICallable<(value: stdJSON)=>stdJSON> - Optional callback on every parsed object and array, after its children, including the root. Return the input unchanged or a replacement stdJSON; Nothing is invalid. Primitive values and keys are not passed to this callback.
 '@returns - stdJSON object from file data.
 '@TODO: consider parsing open file num to `parseJSONObject` instead
-Public Function CreateFromFile(ByVal sJSONFile As String) As stdJSON
+Public Function CreateFromFile(ByVal sJSONFile As String, Optional ByVal postProcessor As stdICallable = Nothing) As stdJSON
   Dim sJSON As String
   Dim ff As Long: ff = FreeFile
   Open sJSONFile For Input As #ff
       sJSON = Input(LOF(ff), #ff)
   Close #ff
-  Set CreateFromFile = CreateFromString(sJSON)
+  Set CreateFromFile = CreateFromString(sJSON, postProcessor:=postProcessor)
 End Function
 
 'Create a JSON object from VB variant
 '@constructor
 '@param vData - Variant to convert to JSON, e.g. Collection, Dictionary or Array
+'@param preProcessor as stdICallable<(value: Variant)=>Variant> - Optional callback before converting each value, including the root and primitives. Return the input unchanged or a replacement value. Children of replacements are processed recursively; the replacement itself is not processed again. Dictionary keys are unchanged.
+'@remark The root must convert to a Collection, Dictionary, array or stdJSON. A returned stdJSON is used directly without traversing its children. Callback errors propagate to the caller.
+'@example Set json = stdJSON.CreateFromVariant(values, stdCallback.CreateFromModule("MyModule", "ProcessValue"))
 '@returns - stdJSON object from variant data.
-Public Function CreateFromVariant(ByVal vData As Variant) As stdJSON
-  Set CreateFromVariant = New stdJSON
-  Call CreateFromVariant.protInitFromVariant(vData)
+Public Function CreateFromVariant(ByVal vData As Variant, Optional ByVal preProcessor As stdICallable = Nothing) As stdJSON
+  If Not preProcessor Is Nothing Then Call CopyVariant(vData, preProcessor.Run(vData))
+  If TypeName(vData) = "stdJSON" Then
+    Set CreateFromVariant = vData
+  Else
+    Set CreateFromVariant = New stdJSON
+    Call CreateFromVariant.protInitFromVariant(vData, preProcessor, False)
+  End If
 End Function
 
 'Create a JSON object from a set of params
@@ -201,7 +224,10 @@ End Sub
 '@protected
 '@constructor
 '@param vData - Variant to convert to JSON, e.g. `Collection`, `Dictionary` or `Array`
-Friend Sub protInitFromVariant(ByRef vData As Variant)
+'@param preProcessor as stdICallable<(value: Variant)=>Variant> - Optional callback before converting each value, including the root and primitives. Return the input unchanged or a replacement value. Children of replacements are processed recursively; the replacement itself is not processed again. Dictionary keys are unchanged.
+'@param processRoot - False when the root has already been processed by convertChild.
+Friend Sub protInitFromVariant(ByRef vData As Variant, Optional ByVal preProcessor As stdICallable = Nothing, Optional ByVal processRoot As Boolean = True)
+  If processRoot And Not preProcessor Is Nothing Then Call CopyVariant(vData, preProcessor.Run(vData))
   Dim i As Long: i = 0
   Dim vItem As Variant
   Select Case VarType(vData)
@@ -214,11 +240,7 @@ Friend Sub protInitFromVariant(ByRef vData As Variant)
           Dim oCollection As Collection: Set oCollection = vData
           With ChildrenCol
             For Each vItem In oCollection
-              If IsObject(vItem) Then
-                Call .Add(stdJSON.CreateFromVariant(vItem))
-              Else
-                Call .Add(vItem)
-              End If
+              Call .Add(convertChild(vItem, preProcessor))
             Next
           End With
         Case "Dictionary"
@@ -233,11 +255,7 @@ Friend Sub protInitFromVariant(ByRef vData As Variant)
 
           'Add to dict
           For i = 1 To vData.Count
-            If IsObject(vVals(i - 1)) Then
-              Call This.children.add(vKeys(i - 1), stdJSON.CreateFromVariant(vVals(i - 1)))
-            Else
-              Call This.children.add(vKeys(i - 1), vVals(i - 1))
-            End If
+            Call This.children.add(vKeys(i - 1), convertChild(vVals(i - 1), preProcessor))
           Next
       End Select
     Case Else
@@ -248,16 +266,29 @@ Friend Sub protInitFromVariant(ByRef vData As Variant)
         Set This.children = New Collection
         With ChildrenCol
           For i = iLB To iUB
-            If IsObject(vData(i)) Then
-              Call .Add(stdJSON.CreateFromVariant(vData(i)))
-            Else
-              Call .Add(vData(i))
-            End If
+            Call .Add(convertChild(vData(i), preProcessor))
           Next
         End With
       End If
   End Select
 End Sub
+
+'Convert each child once, including primitives and nested arrays.
+Private Function convertChild(ByVal value As Variant, ByVal preProcessor As stdICallable) As Variant
+  If Not preProcessor Is Nothing Then Call CopyVariant(value, preProcessor.Run(value))
+  If IsArray(value) Or IsObject(value) Then
+    If TypeName(value) = "stdJSON" Then
+      Set convertChild = value
+    Else
+      Dim json As stdJSON: Set json = New stdJSON
+      Call json.protInitFromVariant(value, preProcessor, False)
+      'Children still need the callback, but the replacement itself must not be processed twice.
+      Set convertChild = json
+    End If
+  Else
+    Call CopyVariant(convertChild, value)
+  End If
+End Function
 
 'Add a key and value to an object, or a value to an array
 '@param v - if This is an eJSONObject, the Key and Value to add. Else the value to add to the eJSONArray.
@@ -616,8 +647,9 @@ End Function
 'Parser: Parse a JSON object
 '@param sJSON - The JSON string to parse
 '@param index - The index to start parsing from
+'@param postProcessor as stdICallable<(value: stdJSON)=>stdJSON> - Callback on completed objects and arrays, including this node.
 '@returns - The parsed JSON object
-Private Function parseJSONObject(ByRef sJSON As String, Optional ByRef index As Long = 1) As stdJSON
+Private Function parseJSONObject(ByRef sJSON As String, Optional ByRef index As Long = 1, Optional ByVal postProcessor As stdICallable = Nothing) As stdJSON
   Dim json As stdJSON: Set json = stdJSON.Create(eJSONObject)
   Call parserConsume("{", sJSON, index)
   Call parserIgnoreSpaces(sJSON, index)
@@ -626,36 +658,46 @@ Private Function parseJSONObject(ByRef sJSON As String, Optional ByRef index As 
     Call parserIgnoreSpaces(sJSON, index)
     Call parserConsume(":", sJSON, index)
     Call parserIgnoreSpaces(sJSON, index)
-    Dim value: Call parseValue(value, sJSON, index)
+    Dim value: Call parseValue(value, sJSON, index, postProcessor)
     json.Add key, value
     Call parserIgnoreSpaces(sJSON, index)
     If parserOptConsume(",", sJSON, index) Then Call parserIgnoreSpaces(sJSON, index)
   Wend
   Call parserConsume("}", sJSON, index)
+  If Not postProcessor Is Nothing Then
+    Set json = postProcessor.Run(json)
+    If json Is Nothing Then Err.Raise 5, "stdJSON::parseJSONObject", "postProcessor must return a stdJSON object, not Nothing"
+  End If
   Set parseJSONObject = json
 End Function
 
 'Parser: Parse a JSON array
 '@param sJSON - The JSON string to parse
 '@param index - The index to start parsing from
+'@param postProcessor as stdICallable<(value: stdJSON)=>stdJSON> - Callback on completed objects and arrays, including this node.
 '@returns - The parsed JSON array
-Private Function parseJSONArray(ByRef sJSON As String, Optional ByRef index As Long = 1) As stdJSON
+Private Function parseJSONArray(ByRef sJSON As String, Optional ByRef index As Long = 1, Optional ByVal postProcessor As stdICallable = Nothing) As stdJSON
   Dim json As stdJSON: Set json = stdJSON.Create(eJSONArray)
   Call parserConsume("[", sJSON, index)
   Call parserIgnoreSpaces(sJSON, index)
   While Not parserPeek("]", sJSON, index)
-    Dim value: Call parseValue(value, sJSON, index)
+    Dim value: Call parseValue(value, sJSON, index, postProcessor)
     json.Add value
     Call parserIgnoreSpaces(sJSON, index)
     If parserOptConsume(",", sJSON, index) Then Call parserIgnoreSpaces(sJSON, index)
   Wend
   Call parserConsume("]", sJSON, index)
+  If Not postProcessor Is Nothing Then
+    Set json = postProcessor.Run(json)
+    If json Is Nothing Then Err.Raise 5, "stdJSON::parseJSONArray", "postProcessor must return a stdJSON object, not Nothing"
+  End If
   Set parseJSONArray = json
 End Function
 
 'Parser: Parse a JSON object key
 '@param sJSON - The JSON string to parse
 '@param index - The index to start parsing from
+'@param postProcessor as stdICallable<(value: stdJSON)=>stdJSON> - Callback on completed objects and arrays, including this node.
 '@returns - The parsed JSON object key
 Private Function parseJSONObjectKey(ByRef sJSON As String, ByRef index As Long) As String
   Dim char As String: char = parserPeekAny(sJSON, index)
@@ -720,13 +762,14 @@ End Function
 '@param value - The value to parse
 '@param sJSON - The JSON string to parse
 '@param index - The index to start parsing from
-Private Sub parseValue(ByRef value As Variant, ByRef sJSON As String, ByRef index As Long)
+'@param postProcessor as stdICallable<(value: stdJSON)=>stdJSON> - Callback for object and array values only.
+Private Sub parseValue(ByRef value As Variant, ByRef sJSON As String, ByRef index As Long, ByVal postProcessor As stdICallable)
   Dim char As String: char = parserPeekAny(sJSON, index)
   Select Case char
     Case "{"
-      Set value = parseJSONObject(sJSON, index)
+      Set value = parseJSONObject(sJSON, index, postProcessor)
     Case "["
-      Set value = parseJSONArray(sJSON, index)
+      Set value = parseJSONArray(sJSON, index, postProcessor)
     Case """", "'"
       value = parseString(sJSON, index)
     Case "t"
