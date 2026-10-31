@@ -393,3 +393,5 @@ Before `08/07/2021` a change log was not kept. We have retrospectively gone back
 - 2026-10-28 stdArray FEATURE - Add global DefaultBase, per-instance Base, and base overrides in CreateWithOptions/protInit. Derived arrays preserve their source base.
 - 2026-10-28 stdArray BREAKING - CreateWithOptions now takes iBase before its initial items. Migrate CreateWithOptions(n, chunk, a, b) to CreateWithOptions(n, chunk, Empty, a, b) to use the global default, or supply an explicit base. indexOf/lastIndexOf retain -1 for missing items; use includes to distinguish a valid -1 index.
 - 2026-10-28 stdReg FEATURE - Add addKey/addItem and key-default value access, preserving existing data and registry views. Fix ANSI string writes, refresh value types, support empty binary data and release write handles.
+
+* 2026-10-31 FIX - stdDate weekday names return String, explicit first days override Country defaults, and RegexMatch honors options with consistent cache keys and retains no malformed patterns (#169, #170, #171).
