@@ -472,3 +472,5 @@ The 2025-2026 entries were audited retrospectively against commits through `1bcb
 - 2026-10-31 `stdImage-tests` DEV - Add disposable Excel/Word fixtures and regression coverage for format/MIME round-trips, malformed input, nonzero byte-array bounds, transparency, encoder settings, picture/clipboard lifetimes, worksheet placement, temporary files and GDI resource stability. The runner checks CRLF before import, monitors owned Office dialogs, and restores registry settings and clipboard contents. Verified on 64-bit Office; 32-bit/legacy VBA runtime coverage remains unverified (#98).
 
 - 2026-11-01 `stdRegex` FEATURE - Added x86 and x64 regex matching using native code thunks. Use Create's `useNative` option to choose the engine: True (default) for native code, or False for VBA.
+
+- 2026-11-01 `stdRegex` FEATURE - Add `MatchAllCol` returning unkeyed nested VBA collections (full match at item 1, then numbered captures), with `Nothing` for no matches. Existing match APIs are unchanged.

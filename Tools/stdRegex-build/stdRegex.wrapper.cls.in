@@ -262,6 +262,35 @@ End Function
 
 
 
+
+'Return all matches as unkeyed collections, with the full match at item 1.
+'Numbered captures follow at items 2..n; unmatched captures are empty strings.
+'@param sHaystack - Text to search. All matches are returned regardless of the g flag.
+'@returns Collection<Collection<String>> - Matches in order, or Nothing when no match exists.
+'@remark Named captures occupy numbered positions; no names or metadata keys are added.
+'@example
+' Dim matches As Collection
+' Set matches = stdRegex.Create("(a)(b)?").MatchAllCol("a ab")
+' Debug.Print matches(1)(2) 'a
+Public Function MatchAllCol(ByVal sHaystack As String) As Collection
+  If Me Is stdRegex Then
+    CriticalRaise "Method called on class not object"
+    Exit Function
+  End If
+  Dim state As MatcherStateTy, results As New Collection
+  Dim capture As Collection, j As Long
+  state.multiline = This.isMultiline
+  state.dotAll = This.dotAll
+  Do While stdRegex.protStaticRegexMatchNext(state, This.regex, sHaystack, raiseOnLimit:=True)
+    Set capture = New Collection
+    For j = 0 To state.captures.nNumberedCaptures
+      capture.Add CaptureValue(state.captures, sHaystack, j)
+    Next
+    results.Add capture
+  Loop
+  If results.Count > 0 Then Set MatchAllCol = results
+End Function
+
 'Given a Haystack and a Replacer, Replace all matches with the source regex with the format given in the Replacer.
 '
 '@param sHaystack - Text to search for regex in.
