@@ -223,6 +223,21 @@ Private Declare PtrSafe Function DispCallFunc Lib "oleaut32" (ByVal instance As 
 Private Declare Function DispCallFunc Lib "oleaut32" (ByVal instance As Long, ByVal offset As Long, ByVal convention As Long, ByVal returnType As Integer, ByVal count As Long, ByVal types As Long, ByVal values As Long, ByRef result As Variant) As Long
 #End If
 #End If
+'Zero-based COM vtable slots, including the inherited IUnknown members.
+Private Enum EIUnknown
+    unkQueryInterface = 0
+    unkAddRef = 1
+    unkRelease = 2
+End Enum
+Private Enum EIDispatch
+    dispInvoke = 6
+End Enum
+Private Enum EIEnumVariant
+    evNext = 3
+    evSkip = 4
+    evReset = 5
+    evClone = 6
+End Enum
 Private Type TEnumGUID
     Data1 As Long
     Data2 As Long
@@ -1491,7 +1506,7 @@ Private Function NextItem(ByRef vNextKey As Variant, ByRef vNextItem As Variant,
             .Started = True
           End If
           Dim value As Variant, fetched As Long, hr As Long
-          hr = enumCall(ObjPtr(.Cursor), 3, 1&, VarPtr(value), VarPtr(fetched))
+          hr = enumCall(ObjPtr(.Cursor), EIEnumVariant.evNext, 1&, VarPtr(value), VarPtr(fetched))
           If hr < 0 Then
             .ErrorNumber = hr
             Set .Cursor = Nothing
@@ -1641,7 +1656,7 @@ Private Function getNewEnum(ByVal source As Object) As IUnknown
         Dim zero As Long
     #End If
     Dim result As Variant, hr As Long
-    hr = enumCall(ObjPtr(source), 6, -4&, VarPtr(iid), 0&, CInt(3), VarPtr(params(0)), VarPtr(result), zero, zero)
+    hr = enumCall(ObjPtr(source), EIDispatch.dispInvoke, -4&, VarPtr(iid), 0&, CInt(3), VarPtr(params(0)), VarPtr(result), zero, zero)
     If hr < 0 Then Err.Raise hr, "stdEnumerator", "Cannot obtain _NewEnum."
     stage = "Read _NewEnum result"
     Dim unknown As IUnknown
@@ -1652,7 +1667,7 @@ Private Function getNewEnum(ByVal source As Object) As IUnknown
     iid.Data4 = &H46000000
     stage = "Query IEnumVARIANT"
     Dim cursor As IUnknown
-    hr = enumCall(ObjPtr(unknown), 0, VarPtr(iid), VarPtr(cursor))
+    hr = enumCall(ObjPtr(unknown), EIUnknown.unkQueryInterface, VarPtr(iid), VarPtr(cursor))
     If hr < 0 Then Err.Raise hr, "stdEnumerator", "Source does not expose IEnumVARIANT."
     Set getNewEnum = cursor
     Exit Function
