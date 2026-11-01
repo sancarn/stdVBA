@@ -182,7 +182,6 @@ Attribute VB_Exposed = False
 '    [1,2].zip([2,3]).map(e=>e[0]*e[1]) ==> [2,6]
 
 'TODO: Things we can't do (yet)
-'    take <-- can't do this unless we implement IEnumVARIANT and call Next() method
 '    tally <-- Would like to do this but can't until we have stdDictionary     ["a","b","c","b","a","b"].tally ==> {a:2, b:3, c:1}
 '    to_dict <-- requires stdDictioanry                                        ["a",1,"b",2].to_dict ==> {a:1, b:2}
 '    groupBy <-- requires stdDictionary
@@ -216,6 +215,20 @@ Attribute VB_Exposed = False
         Private Declare Function createEmptyArrayVariant     Lib "oleaut32" Alias "SafeArrayCreateVector" (Optional ByVal vt As VbVarType = vbVariant  , Optional ByVal lLow As Long = 0, Optional ByVal lCount As Long = 0) as Variant()
     #End If
 #End If
+
+#If Not Mac Then
+#If VBA7 Then
+Private Declare PtrSafe Function DispCallFunc Lib "oleaut32" (ByVal instance As LongPtr, ByVal offset As LongPtr, ByVal convention As Long, ByVal returnType As Integer, ByVal count As Long, ByVal types As LongPtr, ByVal values As LongPtr, ByRef result As Variant) As Long
+#Else
+Private Declare Function DispCallFunc Lib "oleaut32" (ByVal instance As Long, ByVal offset As Long, ByVal convention As Long, ByVal returnType As Integer, ByVal count As Long, ByVal types As Long, ByVal values As Long, ByRef result As Variant) As Long
+#End If
+#End If
+Private Type TEnumGUID
+    Data1 As Long
+    Data2 As Long
+    Data3 As Long
+    Data4 As Long
+End Type
 Private Enum EnumeratorType
     FromCallable
     FromCallableVerbose
@@ -239,6 +252,10 @@ End Type
 Private Type TThis
     mode As EnumeratorType
     EnumObject As Object
+    SourceCursor As IUnknown
+    Cache As Collection
+    Exhausted As Boolean
+    SourceError As Long
     BaseArray As Variant
     Callback As stdICallable
     MaxLength As Long
@@ -287,6 +304,8 @@ Public Function CreateFromArray(ByVal v As Variant, Optional ByVal iMaxLength As
 End Function
 
 'Create an enumerator from an object which supports IEnumVARIANT.
+'@remark On Windows, values are fetched on demand and cached for repeatable traversal. Construction does not read items. Mac retains eager enumeration.
+'@remark Source changes can affect unread items and source errors occur when reading. For an immediate snapshot use CreateFromArray(CreateFromIEnumVariant(o).AsArray()). Length and native For Each consume the source.
 '@constructor
 '@param o - the object to create the enumerator from. This object should support IEnumVARIANT
 '@param iMaxLength - Maximum length of enumerator. The enumerator will refuse to go beyond this number of items. Used in order to prevent runaway processes.
@@ -413,14 +432,16 @@ End Function
 '@param iMaxLength - Maximum length of enumerator. The enumerator will refuse to go beyond this number of items. Used in order to prevent runaway processes.
 '@param v - The data to create the enumerator from. This is either an array, a callable, or an IEnumVARIANT object.
 Public Sub protInit(ByVal iEnumeratorType As Long, ByVal iMaxLength As Long, ParamArray v() As Variant)
+    Set This.SourceCursor = Nothing
+    Set This.Cache = Nothing
+    This.Exhausted = False
+    This.SourceError = 0
     This.mode = iEnumeratorType
     This.MaxLength = iMaxLength
     Select Case This.mode
         Case EnumeratorType.FromIEnumVariant
-            'HACK: This is a real work around for the fact that we can't access IEnumVARIANT methods (getNewEnum,getNextVariant,skipNextVariant,cloneEnumVariant,resetEnumVariant)
-            'directly. Realistically this may sometimes not even work. A more long term solution would be to call getNewEnum() and then getNextVariant() until we reach the end of the
-            'object. This may be implementable after stdCOM is fully implemented.
-
+            #If Mac Then
+            'Mac retains the eager fallback; the COM invocation path is Windows-only.
             Set This.EnumObject = v(0)
             
             'Calculate total length
@@ -446,6 +467,11 @@ Public Sub protInit(ByVal iEnumeratorType As Long, ByVal iMaxLength As Long, Par
             Else
                 This.BaseArray = Array()
             End If
+            #Else
+                Set This.EnumObject = v(0)
+                Set This.Cache = New Collection
+                Set This.SourceCursor = getNewEnum(This.EnumObject)
+            #End If
         Case EnumeratorType.FromArray
             This.BaseArray = v(0)
         Case EnumeratorType.FromCallable
@@ -1291,7 +1317,7 @@ Public Property Get Length() As Long
 End Property
 
 'Get the first `iCount` elements of the collection. Useful for testing
-'@param iCount - The number of elements to retrieve
+'@param iCount - The number of elements to retrieve. Non-positive counts return an empty enumerator.
 '@returns - Enumerator containing the first `iCount` elements.
 '@example ```vb
 'stdEnumerator.CreateFromArray(Array(1,2,3,4,5,6,7,8,9)).First(3).Join(",") '=>1,2,3
@@ -1302,6 +1328,7 @@ Public Function First(ByVal iCount As Long) As stdEnumerator
     Dim ti As Long: ti = 0
     Dim kv As Variant: kv = Null
     
+    If iCount <= 0 Then GoTo Jump
     While NextItem(kv, v, ti)
         oRet.Add v
         
@@ -1392,9 +1419,37 @@ End Function
 '@param vNextItem     - Previous/Next Item
 '@param iCurrentIndex - Previous/Next Index
 '@returns             - Whether a new item was succesfully obtained or not.
-'@TODO: Use DispCallFunc to call IEnumVariant::Next instead of converting to array
 Private Function NextItem(ByRef vNextKey As Variant, ByRef vNextItem As Variant, ByRef iCurrentIndex As Long) As Boolean
   iCurrentIndex = iCurrentIndex + 1
+  Select Case This.mode
+    Case FromIEnumVariant
+      #If Not Mac Then
+        Do While iCurrentIndex > This.Cache.Count And Not This.Exhausted
+          If This.SourceError <> 0 Then Err.Raise This.SourceError, "stdEnumerator", "Source enumeration failed."
+          Dim value As Variant
+          Dim fetched As Long
+          Dim hr As Long
+          CopyVariant value, Empty
+          fetched = 0
+          hr = enumCall(ObjPtr(This.SourceCursor), 3, 1&, VarPtr(value), VarPtr(fetched))
+          If hr < 0 Then
+            This.SourceError = hr
+            Err.Raise hr, "stdEnumerator", "IEnumVARIANT::Next failed."
+          End If
+          If fetched = 1 Then This.Cache.Add value
+          If hr = 1 Or fetched = 0 Then
+            This.Exhausted = True
+            Set This.SourceCursor = Nothing
+          End If
+        Loop
+        If iCurrentIndex <= This.Cache.Count Then
+          CopyVariant vNextItem, This.Cache(iCurrentIndex)
+          vNextKey = iCurrentIndex
+          NextItem = True
+        End If
+        Exit Function
+      #End If
+  End Select
   Select Case This.mode
     Case FromIEnumVariant, FromArray
       Dim lb As Long: lb = LBound(This.BaseArray, 1)
@@ -1484,20 +1539,64 @@ Private Function CreateEmptyVBArray(Optional ByVal varType As VbVarType = vbVari
 End Function
 
 
-'TODO: Implement raw API for working with IEnumVARIANT:
-Private Function getNewEnum(ByRef o As Object) As IEnumVARIANT
-
+#If Not Mac Then
+'Invoke a COM vtable member. The caller must retain the interface reference.
+#If VBA7 Then
+Private Function enumCall(ByVal target As LongPtr, ByVal slot As Long, ParamArray args() As Variant) As Long
+#Else
+Private Function enumCall(ByVal target As Long, ByVal slot As Long, ParamArray args() As Variant) As Long
+#End If
+    #If VBA7 Then
+        Dim pointers() As LongPtr
+    #Else
+        Dim pointers() As Long
+    #End If
+    Dim types() As Integer
+    Dim i As Long, result As Variant, hr As Long
+    ReDim pointers(0 To UBound(args))
+    ReDim types(0 To UBound(args))
+    For i = 0 To UBound(args)
+        types(i) = VarType(args(i))
+        pointers(i) = VarPtr(args(i))
+    Next
+    #If Win64 Then
+        hr = DispCallFunc(target, slot * 8, 4, vbLong, UBound(args) + 1, VarPtr(types(0)), VarPtr(pointers(0)), result)
+    #Else
+        hr = DispCallFunc(target, slot * 4, 4, vbLong, UBound(args) + 1, VarPtr(types(0)), VarPtr(pointers(0)), result)
+    #End If
+    If hr < 0 Then Err.Raise hr, "stdEnumerator", "COM invocation failed."
+    enumCall = result
 End Function
-Private Function getNextVariant(ByRef o As IEnumVARIANT) As Variant
 
+'Obtain DISPID_NEWENUM and query its result for IEnumVARIANT.
+Private Function getNewEnum(ByVal source As Object) As IUnknown
+    On Error GoTo Failed
+    Dim stage As String: stage = "Invoke _NewEnum"
+    Dim iid As TEnumGUID
+    #If VBA7 Then
+        Dim params(0 To 2) As LongPtr
+        Dim zero As LongPtr
+    #Else
+        Dim params(0 To 3) As Long
+        Dim zero As Long
+    #End If
+    Dim result As Variant, hr As Long
+    hr = enumCall(ObjPtr(source), 6, -4&, VarPtr(iid), 0&, CInt(3), VarPtr(params(0)), VarPtr(result), zero, zero)
+    If hr < 0 Then Err.Raise hr, "stdEnumerator", "Cannot obtain _NewEnum."
+    stage = "Read _NewEnum result"
+    Dim unknown As IUnknown
+    Set unknown = result
+    stage = "Build IID"
+    iid.Data1 = &H20404
+    iid.Data3 = &HC0
+    iid.Data4 = &H46000000
+    stage = "Query IEnumVARIANT"
+    Dim cursor As IUnknown
+    hr = enumCall(ObjPtr(unknown), 0, VarPtr(iid), VarPtr(cursor))
+    If hr < 0 Then Err.Raise hr, "stdEnumerator", "Source does not expose IEnumVARIANT."
+    Set getNewEnum = cursor
+    Exit Function
+Failed:
+    Err.Raise Err.Number, "stdEnumerator::getNewEnum", stage & ": " & Err.Description
 End Function
-Private Sub skipNextVariant(ByRef o As IEnumVARIANT)
-
-End Sub
-Private Function cloneEnumVariant(ByRef o As IEnumVARIANT) As IEnumVARIANT
-
-End Function
-Private Sub resetEnumVariant(ByRef o As IEnumVARIANT)
-    
-End Sub
-
+#End If
