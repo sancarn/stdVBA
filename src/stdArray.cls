@@ -207,6 +207,91 @@ Public Function CreateFromArray(ByVal arr As Variant) As stdArray
     RaiseEvent AfterCreate(Create)
 End Function
 
+'Create a stdArray by taking ownership of a dynamic one-dimensional Variant array.
+'@constructor
+'@param arr - Non-empty dynamic Variant array. Becomes unallocated on success.
+'@returns - A stdArray using the transferred storage and current DefaultBase.
+'@remark Experimental Windows API. Transfers ownership, rather than sharing storage. Existing copying APIs are unchanged.
+'@throws stdArray::CreateFromArrayByRef - Error 5 for fixed-size, locked, multidimensional, empty or unallocated arrays; source remains unchanged.
+'@example ```vb
+'Dim values() As Variant: ReDim values(0 To 2)
+'values(0) = "hello"
+'Dim list As stdArray: Set list = stdArray.CreateFromArrayByRef(values)
+''values is now unallocated; list.Item(list.Base) is "hello".
+'```
+Public Function CreateFromArrayByRef(ByRef arr As Variant) As stdArray
+  Set CreateFromArrayByRef = New stdArray
+  Call CreateFromArrayByRef.protInitFromArrayByRef(arr)
+  RaiseEvent AfterCreate(CreateFromArrayByRef)
+End Function
+
+'Take ownership of array storage without copying elements.
+'@protected
+'@param arr - Non-empty dynamic one-dimensional Variant array; consumed on success.
+Public Sub protInitFromArrayByRef(ByRef arr As Variant)
+#If Mac Then
+  Err.Raise 5, "stdArray::CreateFromArrayByRef", "Windows required"
+#Else
+  If This.Initialised Then Err.Raise 5, "stdArray::CreateFromArrayByRef", "Already initialised"
+  #If VBA7 Then
+    Dim sourceSlot As LongPtr, targetSlot As LongPtr, descriptor As LongPtr, nullPointer As LongPtr
+  #Else
+    Dim sourceSlot As Long, targetSlot As Long, descriptor As Long, nullPointer As Long
+  #End If
+  sourceSlot = ArrayPointerSlot(arr)
+  Call CopyMemory(VarPtr(descriptor), sourceSlot, LenB(descriptor))
+  If descriptor = 0 Then Err.Raise 5, "stdArray::CreateFromArrayByRef", "Allocated array required"
+  Dim dimensions As Integer, flags As Integer, locks As Long
+  Call CopyMemory(VarPtr(dimensions), descriptor, 2)
+  Call CopyMemory(VarPtr(flags), descriptor + 2, 2)
+  Call CopyMemory(VarPtr(locks), descriptor + 8, 4)
+  If dimensions <> 1 Or (flags And &H17) <> 0 Or locks <> 0 Then
+    Err.Raise 5, "stdArray::CreateFromArrayByRef", "Dynamic unlocked one-dimensional array required"
+  End If
+  Dim count As Long, firstIndex As Long, boundsOffset As Long
+  #If Win64 Then
+    boundsOffset = 24
+  #Else
+    boundsOffset = 16
+  #End If
+  Call CopyMemory(VarPtr(count), descriptor + boundsOffset, 4)
+  If count <= 0 Then Err.Raise 5, "stdArray::CreateFromArrayByRef", "Non-empty array required"
+  This.Base = stdArray.DefaultBase
+  This.Length = count
+  This.ProxyLength = count
+  This.Chunking = 10
+  targetSlot = ArrayPointerSlot(This.BaseArray)
+  firstIndex = 1
+  'Validation is complete; no callbacks run while ownership changes.
+  Call CopyMemory(descriptor + boundsOffset + 4, VarPtr(firstIndex), 4)
+  Call CopyMemory(sourceSlot, VarPtr(nullPointer), LenB(nullPointer))
+  Call CopyMemory(targetSlot, VarPtr(descriptor), LenB(descriptor))
+  This.Initialised = True
+#End If
+End Sub
+
+'Locate the SAFEARRAY pointer slot of a typed array passed through a Variant.
+#If VBA7 Then
+Private Function ArrayPointerSlot(ByRef value As Variant) As LongPtr
+#Else
+Private Function ArrayPointerSlot(ByRef value As Variant) As Long
+#End If
+#If Mac Then
+  Err.Raise 5, "stdArray::ArrayPointerSlot", "Windows required"
+#Else
+  Dim vt As Integer
+  Call CopyMemory(VarPtr(vt), VarPtr(value), 2)
+  If vt = (vbArray Or vbVariant) Then
+    ArrayPointerSlot = VarPtr(value) + 8
+    Exit Function
+  End If
+  If vt <> (vbArray Or vbVariant Or &H4000) Then
+    Err.Raise 5, "stdArray::ArrayPointerSlot", "Typed Variant array required"
+  End If
+  Call CopyMemory(VarPtr(ArrayPointerSlot), VarPtr(value) + 8, LenB(ArrayPointerSlot))
+#End If
+End Function
+
 'Create a `stdArray` object from a collection
 '@constructor
 '@param col - Collection to create a `stdArray` object from.

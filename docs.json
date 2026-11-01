@@ -1148,6 +1148,35 @@
     "requires": [],
     "methods": [
       {
+        "name": "protInitFromArrayByRef",
+        "description": "Take ownership of array storage without copying elements.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "arr",
+            "type": "Variant",
+            "description": "Non-empty dynamic one-dimensional Variant array; consumed on success.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByRef"
+          }
+        ],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
         "name": "protInit",
         "description": "Initialise array",
         "remarks": [],
@@ -2537,6 +2566,46 @@
         "todos": [],
         "isProtected": false,
         "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "CreateFromArrayByRef",
+        "description": "Create a stdArray by taking ownership of a dynamic one-dimensional Variant array.",
+        "remarks": [
+          "Experimental Windows API. Transfers ownership, rather than sharing storage. Existing copying APIs are unchanged."
+        ],
+        "examples": [
+          "```vb\r\nDim values() As Variant: ReDim values(0 To 2)\r\nvalues(0) = \"hello\"\r\nDim list As stdArray: Set list = stdArray.CreateFromArrayByRef(values)\r\n'values is now unallocated; list.Item(list.Base) is \"hello\".\r\n```"
+        ],
+        "params": [
+          {
+            "name": "arr",
+            "type": "Variant",
+            "description": "Non-empty dynamic Variant array. Becomes unallocated on success.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByRef"
+          }
+        ],
+        "returns": {
+          "type": "stdArray",
+          "description": "A stdArray using the transferred storage and current DefaultBase."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [
+          {
+            "errNumber": null
+          }
+        ],
         "requires": [],
         "isStatic": false
       },

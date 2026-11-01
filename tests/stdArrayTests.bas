@@ -53,6 +53,7 @@ Sub testAll()
         Test.Assert "Property Arr 4 item 3 equal", vArr(3) = arr.item(3)
     end if
 
+    Call testCreateFromArrayByRef
     Call testDefaultBase
     Call testArrLet
     
@@ -353,4 +354,73 @@ Failed:
   failure = Err.Number: description = Err.Description
   stdArray.DefaultBase = originalBase
   Err.Raise failure, "stdArrayTests.testDefaultBase", description
+End Sub
+
+Public Sub testCreateFromArrayByRef()
+  Test.Topic "stdArray ownership transfer"
+  Dim values() As Variant: ReDim values(-2 To 0)
+  values(-2) = "hello"
+  Dim obj As Collection: Set obj = New Collection
+  obj.Add "alive"
+  Set values(-1) = obj
+  values(0) = Array(3, 4)
+  Dim list As stdArray: Set list = stdArray.CreateFromArrayByRef(values)
+  Test.Assert "Moved length", list.Length = 3
+  Test.Assert "Moved string", list.Item(list.Base) = "hello"
+  Test.Assert "Moved object identity", list.Item(list.Base + 1) Is obj
+  Dim nested As Variant: nested = list.Item(list.Base + 2)
+  Test.Assert "Moved nested array", nested(1) = 4
+  Dim n As Long, failure As Long
+  On Error Resume Next
+  n = LBound(values)
+  failure = Err.Number
+  Err.Clear
+  On Error GoTo 0
+  Test.Assert "Source unallocated", failure = 9
+  ReDim values(0 To 1)
+  values(0) = "independent"
+  Test.Assert "Source reusable", list.Item(list.Base) = "hello"
+  list.Push 5
+  Test.Assert "Moved array grows", list.Length = 4
+  Test.Assert "Moved array clones", list.Clone.Length = 4
+  Set list = Nothing
+  Test.Assert "Object survives cleanup", obj.Item(1) = "alive"
+  Dim fixed(0 To 2) As Variant
+  fixed(0) = "retained"
+  On Error Resume Next
+  Set list = stdArray.CreateFromArrayByRef(fixed)
+  failure = Err.Number
+  Err.Clear
+  On Error GoTo 0
+  Test.Assert "Reject fixed", failure = 5
+  Test.Assert "Rejected source unchanged", fixed(0) = "retained"
+  Dim matrix() As Variant: ReDim matrix(0 To 1, 0 To 1)
+  On Error Resume Next
+  Set list = stdArray.CreateFromArrayByRef(matrix)
+  failure = Err.Number
+  Err.Clear
+  On Error GoTo 0
+  Test.Assert "Reject multidimensional", failure = 5
+  Dim unallocated() As Variant
+  On Error Resume Next
+  Set list = stdArray.CreateFromArrayByRef(unallocated)
+  failure = Err.Number
+  Err.Clear
+  On Error GoTo 0
+  Test.Assert "Reject unallocated", failure = 5
+  Dim v As Variant: v = Array(8, 9)
+  Set list = stdArray.CreateFromArrayByRef(v)
+  Test.Assert "Variant containing array", list.Join = "8,9"
+  v = Array(10)
+  Test.Assert "Variant source reusable", list.Join = "8,9"
+  Dim locked() As Variant: ReDim locked(0 To 1)
+  Dim element As Variant
+  For Each element In locked
+    On Error Resume Next
+    Set list = stdArray.CreateFromArrayByRef(locked)
+    failure = Err.Number
+    Err.Clear
+    On Error GoTo 0
+    Test.Assert "Reject locked array", failure = 5
+  Next
 End Sub
