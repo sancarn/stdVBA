@@ -111,5 +111,6 @@ Tools/stdRegex-thunk/test-native.c -luser32 -o <scratch>/test-x86.exe`, then pas
 Only 64-bit Office is installed on the development host. The generated class with both engines passed the existing 328 assertions and 2,248 differential cases in Word
 x64 (`python Tools/stdRegex-thunk/run.py --test-only`; results in
 `verification-x64`). Full 32-bit Office import/execution remains unverified;
-no 32-bit benchmark speedup is claimed. Historical benchmark files under `results` record the earlier standalone
-experimental class; `verification-x64` validates the current integrated class.
+no 32-bit benchmark speedup is claimed. Benchmark files under `results` record the integrated class before switching
+the constructor default to native; both engine selections were explicit in
+that paired run. `verification-x64` validates the final native-default class.
