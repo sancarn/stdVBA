@@ -1,6 +1,6 @@
 # Issue 85 object argument probes
 
-Run `python Tools/stdCallback-tests/run.py` from the repository root with Windows,
+Run `python tests/harnesses/stdCallback-tests/run.py` from the repository root with Windows,
 Excel, Python and pywin32 installed. Each scenario uses a separate disposable
 Excel instance. Do not combine the ByRef probes into the ordinary test suite:
 passing an object value where a pointer to an object variable is required can

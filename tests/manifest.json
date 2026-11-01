@@ -1,0 +1,647 @@
+{
+  "version": 1,
+  "suites": [
+    {
+      "id": "stdAcc",
+      "kind": "vba",
+      "files": [
+        "src/stdAcc.cls",
+        "src/stdICallable.cls",
+        "src/stdCallback.cls",
+        "src/stdLambda.cls",
+        "tests/stdAccTests.bas",
+        "tests/stdAccTestHelper.cls"
+      ],
+      "cases": {
+        "testAll": "stdAccTests.testAll"
+      },
+      "hosts": [
+        "Excel"
+      ],
+      "default": false,
+      "result": "assertions",
+      "requirements": "interactive desktop or external resources; opt in with --suite or --all"
+    },
+    {
+      "id": "stdArray",
+      "kind": "vba",
+      "files": [
+        "src/stdArray.cls",
+        "src/stdICallable.cls",
+        "src/stdCallback.cls",
+        "src/stdLambda.cls",
+        "src/stdEnumerator.cls",
+        "tests/stdArrayTests.bas",
+        "tests/stdArrayBaseEvents.cls"
+      ],
+      "cases": {
+        "testAll": "stdArrayTests.testAll"
+      },
+      "hosts": [
+        "Excel"
+      ],
+      "default": true,
+      "result": "assertions"
+    },
+    {
+      "id": "stdCallback",
+      "kind": "vba",
+      "files": [
+        "src/stdICallable.cls",
+        "src/stdCallback.cls",
+        "tests/stdCallbackTests.bas"
+      ],
+      "cases": {
+        "ModuleCalls": "stdCallbackTests.TestModuleCalls",
+        "Bind": "stdCallbackTests.TestBind",
+        "PointerCalls": "stdCallbackTests.TestPointerCalls"
+      },
+      "hosts": [
+        "Excel"
+      ],
+      "default": true,
+      "result": "assertions"
+    },
+    {
+      "id": "stdRegex",
+      "kind": "vba",
+      "files": [
+        "src/stdRegex.cls",
+        "tests/stdRegexTests.bas"
+      ],
+      "cases": {
+        "Contract": "stdRegexTests.testContract",
+        "NativeEngine": "stdRegexTests.testNativeEngine",
+        "CaptureArraysAndLists": "stdRegexTests.testCaptureArraysAndLists",
+        "MatchAllCol": "stdRegexTests.TestMatchAllCol"
+      },
+      "hosts": [
+        "Excel",
+        "Word"
+      ],
+      "default": true,
+      "result": "assertions"
+    },
+    {
+      "id": "stdEnumerator",
+      "kind": "vba",
+      "files": [
+        "src/stdEnumerator.cls",
+        "src/stdArray.cls",
+        "src/stdICallable.cls",
+        "src/stdCallback.cls",
+        "src/stdLambda.cls",
+        "tests/stdEnumeratorTests.bas"
+      ],
+      "cases": {
+        "testAll": "stdEnumeratorTests.testAll"
+      },
+      "hosts": [
+        "Excel"
+      ],
+      "default": false,
+      "result": "assertions"
+    },
+    {
+      "id": "stdLambda",
+      "kind": "vba",
+      "files": [
+        "src/stdICallable.cls",
+        "src/stdCallback.cls",
+        "src/stdLambda.cls",
+        "src/stdArray.cls",
+        "tests/stdLambdaTests.bas"
+      ],
+      "cases": {
+        "testAll": "stdLambdaTests.testAll"
+      },
+      "hosts": [
+        "Excel"
+      ],
+      "default": false,
+      "result": "assertions"
+    },
+    {
+      "id": "stdHTML",
+      "kind": "vba",
+      "files": [
+        "src/stdHTML.cls",
+        "src/stdICallable.cls",
+        "src/stdCallback.cls",
+        "src/stdLambda.cls",
+        "tests/stdHTMLTests.bas"
+      ],
+      "cases": {
+        "testAll": "stdHTMLTests.testAll"
+      },
+      "hosts": [
+        "Excel"
+      ],
+      "default": false,
+      "result": "assertions"
+    },
+    {
+      "id": "stdReg",
+      "kind": "vba",
+      "files": [
+        "src/stdReg.cls",
+        "tests/stdRegTests.bas"
+      ],
+      "cases": {
+        "testAll": "stdRegTests.testAll"
+      },
+      "hosts": [
+        "Excel"
+      ],
+      "default": true,
+      "result": "assertions"
+    },
+    {
+      "id": "stdPerformance",
+      "kind": "vba",
+      "files": [
+        "src/stdPerformance.cls",
+        "tests/stdPerformanceTests.bas"
+      ],
+      "cases": {
+        "testAll": "stdPerformanceTests.testAll"
+      },
+      "hosts": [
+        "Excel"
+      ],
+      "default": true,
+      "result": "assertions"
+    },
+    {
+      "id": "stdPerformanceHost",
+      "kind": "vba",
+      "files": [
+        "src/stdPerformance.cls",
+        "tests/stdPerformanceHostTests.bas"
+      ],
+      "cases": {
+        "testAll": "stdPerformanceHostTests.testAll"
+      },
+      "hosts": [
+        "Excel"
+      ],
+      "default": false,
+      "result": "assertions"
+    },
+    {
+      "id": "stdPerformanceAccess",
+      "kind": "vba",
+      "files": [
+        "src/stdPerformance.cls",
+        "tests/stdPerformanceAccessTests.bas"
+      ],
+      "cases": {
+        "testAll": "stdPerformanceAccessTests.testAll"
+      },
+      "hosts": [
+        "Access"
+      ],
+      "default": false,
+      "result": "assertions",
+      "unsupported": "Access automation is not implemented; run this module manually in a disposable Access database."
+    },
+    {
+      "id": "stdProcess",
+      "kind": "vba",
+      "files": [
+        "src/stdProcess.cls",
+        "src/stdICallable.cls",
+        "src/stdCallback.cls",
+        "src/stdLambda.cls",
+        "tests/stdProcessTests.bas"
+      ],
+      "cases": {
+        "testAll": "stdProcessTests.testAll"
+      },
+      "hosts": [
+        "Excel"
+      ],
+      "default": false,
+      "result": "assertions",
+      "requirements": "interactive desktop or external resources; opt in with --suite or --all"
+    },
+    {
+      "id": "stdSentry",
+      "kind": "vba",
+      "files": [
+        "src/stdSentry.cls",
+        "src/stdICallable.cls",
+        "src/stdCallback.cls",
+        "src/stdLambda.cls",
+        "tests/stdSentryTests.bas"
+      ],
+      "cases": {
+        "testAll": "stdSentryTests.testAll"
+      },
+      "hosts": [
+        "Excel"
+      ],
+      "default": true,
+      "result": "assertions",
+      "display_alerts": true
+    },
+    {
+      "id": "stdSentrySheetUnlocker",
+      "kind": "vba",
+      "files": [
+        "src/stdSentry.cls",
+        "src/stdICallable.cls",
+        "src/stdCallback.cls",
+        "tests/stdSentrySheetUnlockerTests.bas"
+      ],
+      "cases": {
+        "testAll": "stdSentrySheetUnlockerTests.testAll"
+      },
+      "hosts": [
+        "Excel"
+      ],
+      "default": false,
+      "result": "assertions"
+    },
+    {
+      "id": "stdStringBuilder",
+      "kind": "vba",
+      "files": [
+        "src/WIP/stdStringBuilder.cls",
+        "tests/stdStringBuilderTests.bas"
+      ],
+      "cases": {
+        "testAll": "stdStringBuilderTests.testAll"
+      },
+      "hosts": [
+        "Excel"
+      ],
+      "default": false,
+      "result": "assertions",
+      "requirements": "experimental WIP class"
+    },
+    {
+      "id": "stdWindow",
+      "kind": "vba",
+      "files": [
+        "src/stdWindow.cls",
+        "src/stdAcc.cls",
+        "src/stdICallable.cls",
+        "src/stdCallback.cls",
+        "src/stdLambda.cls",
+        "tests/stdWindowTests.bas"
+      ],
+      "cases": {
+        "testAll": "stdWindowTests.testAll"
+      },
+      "hosts": [
+        "Excel"
+      ],
+      "default": false,
+      "result": "assertions",
+      "requirements": "interactive desktop or external resources; opt in with --suite or --all"
+    },
+    {
+      "id": "stdJSON",
+      "kind": "vba",
+      "files": [
+        "src/stdJSON.cls",
+        "src/stdICallable.cls",
+        "src/stdCallback.cls",
+        "tests/stdJSONTests.bas"
+      ],
+      "cases": {
+        "RunTests": "stdJSONTests.RunTests"
+      },
+      "hosts": [
+        "Excel"
+      ],
+      "default": true,
+      "result": "pass"
+    },
+    {
+      "id": "stdRefArray",
+      "kind": "vba",
+      "files": [
+        "src/stdRefArray.cls",
+        "tests/stdRefArrayTests.bas"
+      ],
+      "cases": {
+        "RunTests": "stdRefArrayTests.RunTests"
+      },
+      "hosts": [
+        "Excel"
+      ],
+      "default": true,
+      "result": "count"
+    },
+    {
+      "id": "stdTimer",
+      "kind": "vba",
+      "files": [
+        "src/stdTimer.cls",
+        "tests/stdTimerTests.bas",
+        "tests/stdTimerProbe.cls"
+      ],
+      "cases": {
+        "testLifecycle": "stdTimerTests.testLifecycle",
+        "testInvalidResolution": "stdTimerTests.testInvalidResolution"
+      },
+      "hosts": [
+        "Excel"
+      ],
+      "default": false,
+      "result": "timer"
+    },
+    {
+      "id": "stdClipboard",
+      "kind": "vba",
+      "files": [
+        "src/stdClipboard.cls",
+        "src/stdICallable.cls",
+        "src/stdCallback.cls",
+        "src/stdLambda.cls",
+        "tests/stdClipboardTests.bas"
+      ],
+      "cases": {
+        "testAll": "stdClipboardTests.testAll"
+      },
+      "hosts": [
+        "Excel"
+      ],
+      "default": false,
+      "result": "assertions",
+      "unsupported": "Legacy suite requires the workbook-specific xlsProjectBuilder worksheet; migrate this fixture before automated execution."
+    },
+    {
+      "id": "stdHTTP",
+      "kind": "vba",
+      "files": [
+        "src/stdHTTP.cls",
+        "src/stdICallable.cls",
+        "tests/stdHTTPTests.bas"
+      ],
+      "cases": {
+        "TestMain": "stdHTTPTests.TestMain"
+      },
+      "hosts": [
+        "Excel"
+      ],
+      "default": false,
+      "result": "assertions",
+      "requirements": "interactive desktop or external resources; opt in with --suite or --all"
+    },
+    {
+      "id": "stdWebSocket",
+      "kind": "vba",
+      "files": [
+        "src/stdWebSocket.cls",
+        "src/stdICallable.cls",
+        "src/stdCallback.cls",
+        "tests/stdWebSocketTests.bas"
+      ],
+      "cases": {
+        "testAll": "stdWebSocketTests.testAll"
+      },
+      "hosts": [
+        "Excel"
+      ],
+      "default": false,
+      "result": "assertions",
+      "requirements": "interactive desktop or external resources; opt in with --suite or --all",
+      "unsupported": "Legacy placeholder contains no executable assertions; use stdWebSocket.local."
+    },
+    {
+      "id": "stdImage",
+      "kind": "adapter",
+      "command": "tests/harnesses/stdImage-tests/run.py",
+      "cases": {
+        "regressions": "regressions"
+      },
+      "hosts": [
+        "Excel",
+        "Word"
+      ],
+      "default": false,
+      "requirements": "Pillow; clipboard; local HTTP fixtures"
+    },
+    {
+      "id": "stdCallback.probes",
+      "kind": "adapter",
+      "command": "tests/harnesses/stdCallback-tests/run.py",
+      "cases": {
+        "regressions": "regressions"
+      },
+      "hosts": [
+        "Excel"
+      ],
+      "default": false,
+      "requirements": "characterization including deliberately invalid native calls; crashes fail the run"
+    },
+    {
+      "id": "stdDate",
+      "kind": "vba",
+      "command": "tests/harnesses/stdDate-test/run-tests.ps1",
+      "cases": {
+        "testAll": "stdDateTests.testAll"
+      },
+      "hosts": [
+        "Excel"
+      ],
+      "default": false,
+      "requirements": "experimental class; instrumented source",
+      "files": [
+        "src/WIP/stdDate.cls",
+        "tests/stdDateTests.bas",
+        "tests/harnesses/stdDate-test/TestRunner.bas"
+      ],
+      "result": "assertions",
+      "instrument": "date"
+    },
+    {
+      "id": "stdHTTP.local",
+      "kind": "adapter",
+      "command": "tests/harnesses/stdHTTP-tests/run.py",
+      "cases": {
+        "regressions": "regressions"
+      },
+      "hosts": [
+        "Excel"
+      ],
+      "default": true,
+      "requirements": "local HTTP fixtures"
+    },
+    {
+      "id": "stdWebSocket.local",
+      "kind": "adapter",
+      "command": "tests/harnesses/stdWebSocket-tests/run.py",
+      "cases": {
+        "regressions": "regressions"
+      },
+      "hosts": [
+        "Excel"
+      ],
+      "default": false,
+      "requirements": "local fixtures; native compiler; TLS"
+    },
+    {
+      "id": "stdWindow.subclass",
+      "kind": "adapter",
+      "command": "tests/harnesses/stdWindow-subclass/run.py",
+      "cases": {
+        "regressions": "regressions"
+      },
+      "hosts": [
+        "Excel"
+      ],
+      "default": false,
+      "requirements": "native callbacks and UI integration"
+    },
+    {
+      "id": "stdLambda.vm",
+      "kind": "vba",
+      "files": [
+        "src/stdICallable.cls",
+        "src/stdCallback.cls",
+        "src/stdLambda.cls"
+      ],
+      "cases": {
+        "Instructions": "stdLambda.protRunVMTests"
+      },
+      "hosts": [
+        "Excel"
+      ],
+      "default": false,
+      "result": "assertions",
+      "instrument": "lambda-vm"
+    },
+    {
+      "id": "tooling.regexBuild",
+      "kind": "python",
+      "command": "tests/tooling/test_regex_build.py",
+      "cases": {
+        "BuildSelectionTests.test_default_reproduces_recorded_commit_even_when_head_is_newer": "BuildSelectionTests.test_default_reproduces_recorded_commit_even_when_head_is_newer",
+        "BuildSelectionTests.test_ref_override_does_not_adopt_revision_implicitly": "BuildSelectionTests.test_ref_override_does_not_adopt_revision_implicitly",
+        "BuildSelectionTests.test_update_records_resolved_sha_and_matching_class": "BuildSelectionTests.test_update_records_resolved_sha_and_matching_class",
+        "BuildSelectionTests.test_update_requires_a_ref": "BuildSelectionTests.test_update_requires_a_ref",
+        "BuildSelectionTests.test_check_is_read_only": "BuildSelectionTests.test_check_is_read_only",
+        "BuildSelectionTests.test_check_cannot_update_manifest": "BuildSelectionTests.test_check_cannot_update_manifest",
+        "BuildSelectionTests.test_incompatible_engine_does_not_change_existing_files": "BuildSelectionTests.test_incompatible_engine_does_not_change_existing_files",
+        "BuildSelectionTests.test_missing_revision_does_not_change_existing_files": "BuildSelectionTests.test_missing_revision_does_not_change_existing_files"
+      },
+      "hosts": [
+        "Excel",
+        "Word",
+        "Access"
+      ],
+      "default": true
+    },
+    {
+      "id": "native.windowThunk",
+      "kind": "python",
+      "command": "tests/native/test_window_thunk.py",
+      "cases": {
+        "ThunkTests.test_x86_result": "ThunkTests.test_x86_result",
+        "ThunkTests.test_x86_fallback": "ThunkTests.test_x86_fallback",
+        "ThunkTests.test_x64_result": "ThunkTests.test_x64_result",
+        "ThunkTests.test_x64_fallback": "ThunkTests.test_x64_fallback",
+        "ThunkTests.test_x86_break": "ThunkTests.test_x86_break",
+        "ThunkTests.test_x64_break": "ThunkTests.test_x64_break",
+        "ThunkTests.test_x86_design": "ThunkTests.test_x86_design",
+        "ThunkTests.test_x64_design": "ThunkTests.test_x64_design",
+        "ThunkTests.test_x86_unknown_mode": "ThunkTests.test_x86_unknown_mode",
+        "ThunkTests.test_x64_unknown_mode": "ThunkTests.test_x64_unknown_mode",
+        "ThunkTests.test_x86_break_destroy": "ThunkTests.test_x86_break_destroy",
+        "ThunkTests.test_x64_break_destroy": "ThunkTests.test_x64_break_destroy",
+        "ThunkTests.test_x86_remove_failure": "ThunkTests.test_x86_remove_failure",
+        "ThunkTests.test_x64_remove_failure": "ThunkTests.test_x64_remove_failure",
+        "ThunkTests.test_x86_opt_out_design": "ThunkTests.test_x86_opt_out_design",
+        "ThunkTests.test_x64_opt_out_design": "ThunkTests.test_x64_opt_out_design",
+        "ThunkTests.test_x86_opt_out_break": "ThunkTests.test_x86_opt_out_break",
+        "ThunkTests.test_x64_opt_out_break": "ThunkTests.test_x64_opt_out_break"
+      },
+      "hosts": [
+        "Excel",
+        "Word",
+        "Access"
+      ],
+      "default": false
+    },
+    {
+      "id": "tooling.runner",
+      "kind": "python",
+      "command": "tests/tooling/test_runner.py",
+      "cases": {
+        "RunnerTests.test_every_root_test_module_registered": "RunnerTests.test_every_root_test_module_registered",
+        "RunnerTests.test_individual_case_does_not_select_siblings": "RunnerTests.test_individual_case_does_not_select_siblings",
+        "RunnerTests.test_unknown_selectors_fail": "RunnerTests.test_unknown_selectors_fail",
+        "RunnerTests.test_all_includes_opt_in_and_unavailable_suites": "RunnerTests.test_all_includes_opt_in_and_unavailable_suites",
+        "RunnerTests.test_bridge_checks_failures_and_zero_assertions": "RunnerTests.test_bridge_checks_failures_and_zero_assertions",
+        "RunnerTests.test_return_contracts_are_checked": "RunnerTests.test_return_contracts_are_checked"
+      },
+      "hosts": [
+        "Excel",
+        "Word",
+        "Access"
+      ],
+      "default": true
+    },
+    {
+      "id": "stdRegex.thunkComparison",
+      "kind": "adapter",
+      "command": "tests/harnesses/stdRegex-thunk/run.py",
+      "cases": {
+        "regressions": "regressions"
+      },
+      "hosts": [
+        "Word"
+      ],
+      "default": false,
+      "unsupported": "Historical experimental comparison requires removed CreateVBA/CreateNative APIs; use stdRegex cases for the current distribution."
+    },
+    {
+      "id": "native.regexThunk",
+      "kind": "command",
+      "command": "tests/harnesses/stdRegex-thunk/test-native.py",
+      "cases": {
+        "ABIs": "ABIs"
+      },
+      "hosts": [
+        "Excel",
+        "Word",
+        "Access"
+      ],
+      "default": false,
+      "compiler": true,
+      "requirements": "llvm-mingw clang targeting x86 and x64 Windows; select with --clang"
+    },
+    {
+      "id": "tooling.officeLifecycle",
+      "kind": "python",
+      "command": "tests/tooling/test_office_runner.py",
+      "cases": {
+        "OfficeLifecycleTests.test_suppressed_assertion_failure_is_not_a_pass": "OfficeLifecycleTests.test_suppressed_assertion_failure_is_not_a_pass",
+        "OfficeLifecycleTests.test_unexpected_error_is_not_a_pass": "OfficeLifecycleTests.test_unexpected_error_is_not_a_pass",
+        "OfficeLifecycleTests.test_empty_case_is_not_a_pass": "OfficeLifecycleTests.test_empty_case_is_not_a_pass"
+      },
+      "hosts": [
+        "Excel"
+      ],
+      "default": false,
+      "requirements": "Windows, Excel and pywin32; deliberately fails scratch cases to verify failure reporting"
+    },
+    {
+      "id": "stdEnumerator.local",
+      "kind": "adapter",
+      "command": "tests/harnesses/stdEnumerator-tests/run.py",
+      "cases": {
+        "regressions": "regressions"
+      },
+      "hosts": [
+        "Excel"
+      ],
+      "default": false,
+      "requirements": "Excel, pywin32; instrumented IEnumVARIANT source"
+    }
+  ]
+}

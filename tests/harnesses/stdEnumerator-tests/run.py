@@ -15,7 +15,7 @@ import time
 import winreg
 
 sys.dont_write_bytecode = True
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 USER = ctypes.WinDLL("user32", use_last_error=True)
 USER.GetWindowThreadProcessId.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.DWORD)]
 USER.ShowWindow.argtypes = [wintypes.HWND, ctypes.c_int]
@@ -89,7 +89,7 @@ def worker(host, scratch, phase, url):
             count = project.VBComponents.Count
             zone = doc.Worksheets(1)
             project.VBComponents(zone.CodeName).Name = "TestZone"
-            for relative in ("src/stdICallable.cls", "src/stdEnumerator.cls", "src/stdCallback.cls", "src/stdLambda.cls", "Tools/stdEnumerator-tests/Test.cls", "tests/stdEnumeratorTests.bas", "Tools/stdEnumerator-tests/Probe.bas"):
+            for relative in ("src/stdICallable.cls", "src/stdEnumerator.cls", "src/stdCallback.cls", "src/stdLambda.cls", "tests/harnesses/stdEnumerator-tests/Test.cls", "tests/stdEnumeratorTests.bas", "tests/harnesses/stdEnumerator-tests/Probe.bas"):
                 raw = (ROOT / relative).read_bytes()
                 if b"\n" in raw.replace(b"\r\n", b"") or b"\r" in raw.replace(b"\r\n", b""):
                     raise RuntimeError("CRLF required before import: " + relative)

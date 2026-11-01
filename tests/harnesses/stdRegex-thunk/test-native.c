@@ -5,7 +5,7 @@
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "matcher.c"
+#include "../../../Tools/stdRegex-thunk/matcher.c"
 _Static_assert(sizeof(I)==4, "VBA Long is 32 bits");
 _Static_assert(sizeof(Args)==(sizeof(void*)==8?72:52), "VBA NativeArgs layout");
 static I canon_table[65536], workspace[3*4096], captures[20];

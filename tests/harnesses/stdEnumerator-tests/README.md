@@ -1,6 +1,6 @@
 # stdEnumerator Excel regressions
 
-Run `python Tools/stdEnumerator-tests/run.py` on Windows with Excel and pywin32.
+Run `python tests/harnesses/stdEnumerator-tests/run.py` on Windows with Excel and pywin32.
 The runner uses a separate hidden Excel process and disposable workbook. It checks
 actual bytes for CRLF before every import, monitors only its own Office windows,
 dismisses dialogs as failures, and bounds worker execution. It discovers the

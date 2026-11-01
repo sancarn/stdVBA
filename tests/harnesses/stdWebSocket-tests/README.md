@@ -3,7 +3,7 @@
 Run from the repository root:
 
 ```powershell
-python Tools/stdWebSocket-tests/run.py
+python tests/harnesses/stdWebSocket-tests/run.py
 ```
 
 Requirements: Python with `websockets` (tested with the asyncio server API), Excel, Visual Studio C++ build tools with Windows SDK, and OpenSSL (PATH or Git for Windows' bundled executable). The runner builds x86/x64 native helpers in a temporary build directory and selects the DLL using a VBA `Win64` check in the actual Office process.
@@ -22,7 +22,7 @@ To run the same assertions against the WIP class identity:
 
 ```powershell
 $env:STDWEBSOCKET_WIP = '1'
-python Tools/stdWebSocket-tests/run.py
+python tests/harnesses/stdWebSocket-tests/run.py
 Remove-Item Env:STDWEBSOCKET_WIP
 ```
 

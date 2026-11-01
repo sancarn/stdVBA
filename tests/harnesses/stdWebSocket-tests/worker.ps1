@@ -1,6 +1,6 @@
 param([string]$PidFile)
 $ErrorActionPreference = 'Stop'
-$root = (Resolve-Path "$PSScriptRoot/../..").Path
+$root = (Resolve-Path "$PSScriptRoot/../../..").Path
 Add-Type @"
 using System;
 using System.Runtime.InteropServices;
@@ -48,7 +48,7 @@ try {
   $book = $excel.Workbooks.Add()
   $project = $book.GetType().InvokeMember('VBProject', [System.Reflection.BindingFlags]::GetProperty, $null, $book, $null)
   if ($null -eq $project) { throw 'VBA project access unavailable; security settings were not changed.' }
-  $files = @('src/stdWebSocket.cls','Tools/stdWebSocket-tests/WebSocketRecorder.cls','tests/stdWebSocketLocalTests.bas','src/stdICallable.cls','Tools/stdWebSocket-tests/WebSocketAsyncRecorder.cls','tests/stdWebSocketAsyncTests.bas') | ForEach-Object { Join-Path $root $_ }
+  $files = @('src/stdWebSocket.cls','tests/harnesses/stdWebSocket-tests/WebSocketRecorder.cls','tests/stdWebSocketLocalTests.bas','src/stdICallable.cls','tests/harnesses/stdWebSocket-tests/WebSocketAsyncRecorder.cls','tests/stdWebSocketAsyncTests.bas') | ForEach-Object { Join-Path $root $_ }
   if ($env:STDWEBSOCKET_WIP -eq '1') {
     $generated = Join-Path (Split-Path $PidFile) 'generated'
     $null = New-Item -ItemType Directory -Path $generated -Force
