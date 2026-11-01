@@ -101,24 +101,53 @@ def worker(host, scratch, phase, url):
             print("Running " + macro, flush=True)
             from win32com.server.util import wrap, ListEnumerator
             from win32com.server.exception import COMException
+            class Item:
+                _public_methods_ = ["Id"]
+                def __init__(self, value):
+                    self.value = value
+                    source.live += 1
+                    source.peak = max(source.peak, source.live)
+                def Id(self):
+                    return self.value
+                def __del__(self):
+                    source.live -= 1
             class Cursor(ListEnumerator):
+                def __init__(self, data):
+                    super().__init__(data)
+                    source.opens += 1
+                    source.active += 1
+                def __del__(self):
+                    source.active -= 1
                 def Next(self, count):
                     source.reads += 1
                     if source.fail_after and self.index >= source.fail_after:
                         raise COMException("Intentional source failure", scode=-2147467259)
-                    return super().Next(count)
+                    result = super().Next(count)
+                    return [wrap(Item(value)) for value in result] if source.objects else result
             class Source:
-                _public_methods_ = ["Reads", "Configure"]
+                _public_methods_ = ["Reads", "Configure", "Live", "Peak", "Opens", "Active"]
                 def __init__(self):
-                    self.reads = 0
-                    self.fail_after = 0
+                    self.live = self.peak = self.active = self.opens = 0
+                    self.Configure(0)
                 def _NewEnum(self):
-                    return wrap(Cursor(list(range(1, 1001))), pythoncom.IID_IEnumVARIANT)
+                    return wrap(Cursor(range(1, self.length + 1)), pythoncom.IID_IEnumVARIANT)
                 def Reads(self):
                     return self.reads
-                def Configure(self, fail_after):
+                def Live(self):
+                    return self.live
+                def Peak(self):
+                    return self.peak
+                def Opens(self):
+                    return self.opens
+                def Active(self):
+                    return self.active
+                def Configure(self, fail_after, length=1000, objects=False):
                     self.reads = 0
                     self.fail_after = fail_after
+                    self.length = length
+                    self.objects = objects
+                    self.peak = self.live
+                    self.opens = 0
             source = Source()
             suite_result = app.Run("'" + doc.Name + "'!EnumeratorProbe.RunSuite")
             print("Suite:", suite_result, flush=True)
