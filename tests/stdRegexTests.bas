@@ -2,6 +2,7 @@ Attribute VB_Name = "stdRegexTests"
 '@lang VBA
 
 Sub testAll()
+    TestMatchAllCol
     test.Topic "stdRegex"
     
     Dim sHaystack as string
@@ -183,6 +184,7 @@ Private Function stepLimitRaises(Optional ByVal operation As String = "Test") As
         Case "Test": result = rx.Test("aaaa")
         Case "Replace": rx.Replace "aaaa", "x"
         Case "MatchAll": rx.MatchAll "aaaa"
+        Case "MatchAllCol": rx.MatchAllCol "aaaa"
         Case "List": rx.List "aaaa", "$&"
         Case "ListArr": rx.ListArr "aaaa", Array("$&")
         Case "MatchAllArr": rx.MatchAllArr "aaaa"
@@ -336,3 +338,24 @@ Private Function LegacyListFormat(ByVal match As Object, ByVal format As String)
     Next
     LegacyListFormat = VBA.Replace(format, "bfde0637-8207-418d-9d34-68ba974e8110", "$")
 End Function
+
+Private Sub TestMatchAllCol()
+    Test.Assert "MatchAllCol budget exhaustion raises", stepLimitRaises("MatchAllCol")
+    Dim native As Variant, rx As stdRegex, matches As Collection, row As Collection
+    For Each native In Array(False, True)
+        Set rx = stdRegex.Create("(?<first>a)(b)?", "", 10000, CBool(native))
+        Set matches = rx.MatchAllCol("a ab")
+        Test.Assert "MatchAllCol ignores g flag", matches.Count = 2
+        Set row = matches(1)
+        Test.Assert "MatchAllCol collection type", TypeName(row) = "Collection"
+        Test.Assert "MatchAllCol optional captures", row.Count = 3 And row(1) = "a" And row(2) = "a" And row(3) = ""
+        Set row = matches(2)
+        Test.Assert "MatchAllCol numbered captures", row(1) = "ab" And row(2) = "a" And row(3) = "b"
+        Set matches = rx.MatchAllCol("z")
+        Test.Assert "MatchAllCol no matches", matches Is Nothing
+        Set matches = stdRegex.Create("(?=a)", "", 10000, CBool(native)).MatchAllCol("aa")
+        Test.Assert "MatchAllCol zero width progress", matches.Count = 2 And matches(1)(1) = "" And matches(2)(1) = ""
+        Set matches = stdRegex.Create("^(a.b)$", "ism", 10000, CBool(native)).MatchAllCol("A" & vbLf & "B")
+        Test.Assert "MatchAllCol matching flags", matches.Count = 1 And matches(1)(2) = "A" & vbLf & "B"
+    Next
+End Sub

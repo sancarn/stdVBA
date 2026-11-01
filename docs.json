@@ -13409,6 +13409,42 @@
         "isStatic": false
       },
       {
+        "name": "MatchAllCol",
+        "description": "Return all matches as unkeyed collections, with the full match at item 1.\r\nNumbered captures follow at items 2..n; unmatched captures are empty strings.",
+        "remarks": [
+          "Named captures occupy numbered positions; no names or metadata keys are added."
+        ],
+        "examples": [
+          "Dim matches As Collection\r\n Set matches = stdRegex.Create(\"(a)(b)?\").MatchAllCol(\"a ab\")\r\n Debug.Print matches(1)(2) 'a"
+        ],
+        "params": [
+          {
+            "name": "sHaystack",
+            "type": "String",
+            "description": "Text to search. All matches are returned regardless of the g flag.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "Collection<Collection<String>>",
+          "description": "Matches in order, or Nothing when no match exists."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
         "name": "Replace",
         "description": "Given a Haystack and a Replacer, Replace all matches with the source regex with the format given in the Replacer.",
         "remarks": [],
