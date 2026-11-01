@@ -72,7 +72,7 @@ API structure; a generated class is not proof of runtime compatibility.
 ### Manual GitHub Actions build
 
 The workflow is `.github/workflows/stdRegex_build.yml`, named **Build stdRegex**.
-Once it is on the repository's default branch, open **Actions → Build stdRegex →
+Once it is on the repository's default branch, open **Actions Ã¢â€ â€™ Build stdRegex Ã¢â€ â€™
 Run workflow** and choose:
 
 - **latest** (default): fetch the current upstream default branch, build it, and
@@ -181,3 +181,28 @@ The signature is `MatchAllArr(ByVal sHaystack As String, Optional ByRef captureN
 - The output argument may be omitted: `values = rx.MatchAllArr(text)`.
 
 The example uses `.*?` because `\w+` does not capture spaces.
+
+## Optional native matching (WIP)
+
+The generated class includes both the upstream VBA matcher and stdVBA's native
+x86/x64 port. Native is the default. Opt into the debuggable VBA matcher with:
+
+```vb
+Set rx = stdRegex.Create("\d+", useNative:=False)
+```
+
+`useNative` is the fourth optional constructor argument, after `stepsLimit`.
+The constructor cache distinguishes engine selection; changing Pattern or Flags
+preserves it. Native matching requires Windows VBA7, with automatic Office-bitness
+selection. Compilation and public result formatting remain VBA. Native memory
+is allocated only when native matching is first used.
+
+`../stdRegex-thunk/build.py --clang <path>` rebuilds the owned C matcher blobs.
+The normal class build embeds the checked-in blobs without requiring a compiler.
+It verifies blob hashes and the upstream matching interpreter fingerprint;
+upstream matcher changes require a reviewed native-port update before generation
+can continue. Neither this port nor its build changes are sent upstream.
+
+Run `python Tools/stdRegex-thunk/run.py --test-only` for both engines' public
+contract suites and differential comparisons in one disposable Word process.
+See `../stdRegex-thunk/README.md` for native ABI tests and platform limitations.

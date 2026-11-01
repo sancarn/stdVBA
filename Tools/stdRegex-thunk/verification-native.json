@@ -1,0 +1,10 @@
+{
+  "x86": {
+    "result": "32-bit: 18000 checks passed via CallWindowProcW",
+    "blob_sha256": "1c70987804c263f43d57edbf9ebaa5a0ad7bae57260664ff22be61ec9dab88eb"
+  },
+  "x64": {
+    "result": "64-bit: 18000 checks passed via CallWindowProcW",
+    "blob_sha256": "db4a382f8c4a428689ef3913a8f89afc77431f4e00c5bf136afc08076890e863"
+  }
+}

@@ -131,6 +131,11 @@ def generate(root, pin):
         if template.count(marker) != 1:
             raise ValueError(f"Expected exactly one {marker} marker")
         template = template.replace(marker, value.rstrip())
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("stdregex_native", Path(__file__).resolve().parent.parent / "stdRegex-thunk" / "integrate.py")
+    native = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(native)
+    template = native.integrate(template)
     template = "\n".join(line.rstrip() for line in template.splitlines())
     return re.sub(r"\n(?:[ \t]*\n){2,}", "\n\n", template).rstrip() + "\n"
 

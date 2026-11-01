@@ -1,0 +1,41 @@
+{
+  "baseline_sha256": "bcc3da41303909694dc238ff78848d2d91037148313ff3a4c6ac8747b30fee46",
+  "architectures": {
+    "x64": {
+      "native_bytes": 5383,
+      "native_sha256": "db4a382f8c4a428689ef3913a8f89afc77431f4e00c5bf136afc08076890e863",
+      "flags": [
+        "--target=x86_64-w64-windows-gnu",
+        "-O2",
+        "-c",
+        "-ffreestanding",
+        "-fno-builtin",
+        "-fno-stack-protector",
+        "-fno-jump-tables",
+        "-fno-vectorize",
+        "-fno-slp-vectorize",
+        "-fno-asynchronous-unwind-tables"
+      ],
+      "relocations": 0
+    },
+    "x86": {
+      "native_bytes": 5190,
+      "native_sha256": "1c70987804c263f43d57edbf9ebaa5a0ad7bae57260664ff22be61ec9dab88eb",
+      "flags": [
+        "--target=i686-w64-windows-gnu",
+        "-O2",
+        "-c",
+        "-ffreestanding",
+        "-fno-builtin",
+        "-fno-stack-protector",
+        "-fno-jump-tables",
+        "-fno-vectorize",
+        "-fno-slp-vectorize",
+        "-fno-asynchronous-unwind-tables"
+      ],
+      "relocations": 0
+    }
+  },
+  "compiler": "clang version 22.1.7 (https://github.com/llvm/llvm-project.git a255c1ed36a1d06f79bd2633ba9f8d900153007c)",
+  "engine_matcher_sha256": "41e3fd7238a2778832855892773d8d3a4711537104b29fb00455e16e77f4f2c9"
+}

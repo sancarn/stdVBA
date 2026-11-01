@@ -1,0 +1,8 @@
+{
+  "verified": [
+    "AccessVBOM",
+    "BreakOnAllErrors",
+    "BreakOnServerErrors"
+  ],
+  "cleanup_error": null
+}
