@@ -124,8 +124,16 @@ Public Listeners As Collection
 'ws.CloseSocket
 '```
 Public Function Create(ByVal url As String, Optional ByVal timeoutMs As Long = 5000, Optional ByVal nativeLibraryPath As String = "stdWebSocketNative.dll") As stdWebSocket
-  Set Create = New stdWebSocket
-  Create.protInit url, timeoutMs, nativeLibraryPath
+  With stdError.getSentry("stdWebSocket#Create", "url", url, "timeoutMs", timeoutMs, "nativeLibraryPath", nativeLibraryPath)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Set Create = New stdWebSocket
+      Create.protInit url, timeoutMs, nativeLibraryPath
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Initializes the object and completes the upgrade with normal TLS certificate validation.
@@ -138,40 +146,64 @@ End Function
 'ws.protInit "ws://127.0.0.1:8080/echo", 5000, "C:\libs\stdWebSocketNative.dll"
 '```
 Public Sub protInit(ByVal url As String, Optional ByVal timeoutMs As Long = 5000, Optional ByVal nativeLibraryPath As String = "stdWebSocketNative.dll")
-  If This.State <> NotConnected Then Err.Raise 5, "stdWebSocket", "Already connected"
-  If timeoutMs < 1 Then Err.Raise 5, "stdWebSocket", "Timeout must be positive"
-  Dim host As String, path As String, port As Long, flags As Long
-  ParseURL url, host, port, path, flags
-  If Listeners Is Nothing Then Set Listeners = New Collection
-  This.url = url
-  This.timeout = timeoutMs
-  This.State = Connecting
-  On Error GoTo failed
-  If This.library = 0 Then This.library = LoadLibraryW(StrPtr(nativeLibraryPath))
-  If This.library = 0 Then Err.Raise 53, "stdWebSocket", "Build/load stdWebSocketNative.dll for your Office architecture; pass its absolute path as nativeLibraryPath"
-  Dim result As Long
-  result = stdWebSocketConnect(StrPtr(host), port, StrPtr(path), flags, timeoutMs, This.hWebSocket)
-  If result <> 0 Then Err.Raise vbObjectError + 139, "stdWebSocket.protInit", "Connect failed: " & result
-  This.State = Connected
-  Exit Sub
-failed:
-  Dim description As String: description = Err.Description
-  ReleaseHandles
-  Err.Raise vbObjectError + 139, "stdWebSocket.protInit", description
+  With stdError.getSentry("stdWebSocket#protInit", "url", url, "timeoutMs", timeoutMs, "nativeLibraryPath", nativeLibraryPath)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If This.State <> NotConnected Then Err_Raise 5, "stdWebSocket", "Already connected"
+      If timeoutMs < 1 Then Err_Raise 5, "stdWebSocket", "Timeout must be positive"
+      Dim host As String, path As String, port As Long, flags As Long
+      ParseURL url, host, port, path, flags
+      If Listeners Is Nothing Then Set Listeners = New Collection
+      This.url = url
+      This.timeout = timeoutMs
+      This.State = Connecting
+      On Error GoTo failed
+      If This.library = 0 Then This.library = LoadLibraryW(StrPtr(nativeLibraryPath))
+      If This.library = 0 Then Err_Raise 53, "stdWebSocket", "Build/load stdWebSocketNative.dll for your Office architecture; pass its absolute path as nativeLibraryPath"
+      Dim result As Long
+      result = stdWebSocketConnect(StrPtr(host), port, StrPtr(path), flags, timeoutMs, This.hWebSocket)
+      If result <> 0 Then Err_Raise vbObjectError + 139, "stdWebSocket.protInit", "Connect failed: " & result
+      This.State = Connected
+      Exit Sub
+    failed:
+      Dim description As String: description = Err.Description
+      ReleaseHandles
+      Err_Raise vbObjectError + 139, "stdWebSocket.protInit", description
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Gets the original WebSocket URL.
 '@returns - The URL supplied to Create.
 Public Property Get url() As String
-  url = This.url
+  With stdError.getSentry("stdWebSocket#url[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      url = This.url
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 'Gets the current connection state.
 '@returns - Connection state, including a terminal state detected by the async reader before the notification is delivered.
 Public Property Get State() As EWebSocketState
-  State = This.State
-  If This.hWebSocket <> 0 And Not This.isReceiver Then
-    If stdWebSocketTerminal(This.hWebSocket) <> 0 Then State = NotConnected
-  End If
+  With stdError.getSentry("stdWebSocket#State[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      State = This.State
+      If This.hWebSocket <> 0 And Not This.isReceiver Then
+        If stdWebSocketTerminal(This.hWebSocket) <> 0 Then State = NotConnected
+      End If
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Registers an asynchronous receive listener, returning without waiting for data.
@@ -181,47 +213,87 @@ End Property
 '@remark Queue limits are 32 messages and 16 MiB queued data, with up to one additional 16 MiB message under assembly/backpressure. Send remains synchronous and can block up to its deadline.
 '@remark A stopped listener can be replaced to drain buffered messages and a pending terminal notification after peer close; registration is rejected after the terminal queue has been fully consumed.
 Public Sub StartListening(ByVal listener As stdICallable)
-  If listener Is Nothing Then Err.Raise 5, "stdWebSocket.StartListening", "Listener is Nothing"
-  If This.pumping Or This.isReceiver Then Err.Raise 5, , "Read operation in progress"
-  If This.State <> Connected Or This.hWebSocket = 0 Then Err.Raise 5, , "Not connected"
-  Dim receiver As New stdWebSocket
-  receiver.protInitReceiver listener
-  receiver.protContext = This.hWebSocket
-  Dim argument As Variant: Set argument = receiver
-  Dim result As Long: result = stdWebSocketListen(This.hWebSocket, argument)
-  If result <> 0 Then Err.Raise vbObjectError + 139, "stdWebSocket.StartListening", "Listener registration failed: " & result
-  Set This.receiver = receiver
+  With stdError.getSentry("stdWebSocket#StartListening", "listener", listener)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If listener Is Nothing Then Err_Raise 5, "stdWebSocket.StartListening", "Listener is Nothing"
+      If This.pumping Or This.isReceiver Then Err_Raise 5, , "Read operation in progress"
+      If This.State <> Connected Or This.hWebSocket = 0 Then Err_Raise 5, , "Not connected"
+      Dim receiver As New stdWebSocket
+      receiver.protInitReceiver listener
+      receiver.protContext = This.hWebSocket
+      Dim argument As Variant: Set argument = receiver
+      Dim result As Long: result = stdWebSocketListen(This.hWebSocket, argument)
+      If result <> 0 Then Err_Raise vbObjectError + 139, "stdWebSocket.StartListening", "Listener registration failed: " & result
+      Set This.receiver = receiver
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Stops asynchronous delivery without discarding unread messages or closing the socket.
 '@remark A pending native read continues into the bounded queue. Subsequent Receive consumes that same queue, avoiding competing reads or duplicate delivery. Safe inside a listener; queued notifications from old registrations are invalidated.
 Public Sub StopListening()
-  If This.hWebSocket <> 0 Then
-    Dim argument As Variant
-    Dim result As Long: result = stdWebSocketListen(This.hWebSocket, argument)
-    If result <> 0 Then Err.Raise vbObjectError + 139, , "StopListening failed: " & result
-  End If
-  If Not This.receiver Is Nothing Then This.receiver.protClearListener
+  With stdError.getSentry("stdWebSocket#StopListening")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If This.hWebSocket <> 0 Then
+        Dim argument As Variant
+        Dim result As Long: result = stdWebSocketListen(This.hWebSocket, argument)
+        If result <> 0 Then Err_Raise vbObjectError + 139, , "StopListening failed: " & result
+      End If
+      If Not This.receiver Is Nothing Then This.receiver.protClearListener
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Gets whether the asynchronous listener currently owns reads.
 '@returns - True while a listener is registered.
 Public Property Get Listening() As Boolean
-  If This.hWebSocket <> 0 Then Listening = stdWebSocketListening(This.hWebSocket) <> 0
+  With stdError.getSentry("stdWebSocket#Listening[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If This.hWebSocket <> 0 Then Listening = stdWebSocketListening(This.hWebSocket) <> 0
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Gets the last VBA error raised by the asynchronous listener or its decoder.
 '@returns - Error description, or an empty string. A callback error stops delivery and leaves unread messages available to Receive.
 Public Property Get LastListenerError() As String
-  If Not This.receiver Is Nothing Then LastListenerError = This.receiver.protListenerError
+  With stdError.getSentry("stdWebSocket#LastListenerError[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Not This.receiver Is Nothing Then LastListenerError = This.receiver.protListenerError
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Initializes a separate receiver that does not retain the socket owner.
 '@protected
 '@param listener - Typed callable retained for this registration.
 Public Sub protInitReceiver(ByVal listener As stdICallable)
-  This.isReceiver = True
-  Set This.listener = listener
+  With stdError.getSentry("stdWebSocket#protInitReceiver", "listener", listener)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      This.isReceiver = True
+      Set This.listener = listener
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Sets the borrowed native context of the bridge receiver. Never call directly.
@@ -232,86 +304,134 @@ Public Property Let protContext(ByVal value As LongPtr)
 #Else
 Public Property Let protContext(ByVal value As Long)
 #End If
-  This.hWebSocket = value
+  With stdError.getSentry("stdWebSocket#protContext[Let]", "value", value)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      This.hWebSocket = value
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Releases the typed listener reference after delivery is stopped.
 '@protected
 Public Sub protClearListener()
-  Set This.listener = Nothing
+  With stdError.getSentry("stdWebSocket#protClearListener")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Set This.listener = Nothing
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Gets a bridge receiver error for its owning socket.
 '@protected
 '@returns - Last callback/decoding error.
 Public Property Get protListenerError() As String
-  protListenerError = This.lastListenerError
+  With stdError.getSentry("stdWebSocket#protListenerError[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      protListenerError = This.lastListenerError
+    
+    Exit Property
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Native message-window entry point, invoked through retained IDispatch on its owner thread.
 '@protected
 '@remark Dispatches at most one queued message. The native adapter prevents nested dispatch even when user code runs DoEvents. No WinHTTP worker invokes this member.
 Public Sub protAsyncDispatch()
-  If Not This.isReceiver Or This.listener Is Nothing Then Exit Sub
-  On Error GoTo failed
-  If Not This.opened Then
-    This.opened = True
-    AsyncEmit "Open"
+  With stdError.getSentry("stdWebSocket#protAsyncDispatch")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Not This.isReceiver Or This.listener Is Nothing Then Exit Sub
+      On Error GoTo failed
+      If Not This.opened Then
+        This.opened = True
+        AsyncEmit "Open"
+        Exit Sub
+      End If
+      Dim data As Variant, kind As Long, code As Long, result As Long
+      result = stdWebSocketNext(This.hWebSocket, data, kind, code)
+      If result = 259 Then Exit Sub
+      If result <> 0 Then Err_Raise vbObjectError + 139, , "Queue read failed: " & result
+      Dim bytes() As Byte, value As Variant
+      Select Case kind
+        Case 0
+          AsyncEmit "Message", data
+        Case 2
+          bytes = data: value = Decode(bytes, ByteCount(bytes))
+          AsyncEmit "Message", value
+        Case 4
+          bytes = data
+          AsyncEmit "Close", Empty, code, Decode(bytes, ByteCount(bytes))
+          StopReceiver
+        Case 5
+          AsyncEmit "Error", "Receive failed: " & code
+          StopReceiver
+        Case Else
+          Err_Raise 5, , "Invalid queue message type"
+      End Select
+      Exit Sub
+    failed:
+      This.lastListenerError = Err.Description
+      On Error Resume Next
+      StopReceiver
+    
     Exit Sub
-  End If
-  Dim data As Variant, kind As Long, code As Long, result As Long
-  result = stdWebSocketNext(This.hWebSocket, data, kind, code)
-  If result = 259 Then Exit Sub
-  If result <> 0 Then Err.Raise vbObjectError + 139, , "Queue read failed: " & result
-  Dim bytes() As Byte, value As Variant
-  Select Case kind
-    Case 0
-      AsyncEmit "Message", data
-    Case 2
-      bytes = data: value = Decode(bytes, ByteCount(bytes))
-      AsyncEmit "Message", value
-    Case 4
-      bytes = data
-      AsyncEmit "Close", Empty, code, Decode(bytes, ByteCount(bytes))
-      StopReceiver
-    Case 5
-      AsyncEmit "Error", "Receive failed: " & code
-      StopReceiver
-    Case Else
-      Err.Raise 5, , "Invalid queue message type"
-  End Select
-  Exit Sub
-failed:
-  This.lastListenerError = Err.Description
-  On Error Resume Next
-  StopReceiver
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Sub StopReceiver()
-  Dim argument As Variant: Set argument = Me
-  Dim result As Long: result = stdWebSocketUnlisten(This.hWebSocket, argument)
-  Set This.listener = Nothing
+  With stdError.getSentry("stdWebSocket#StopReceiver")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim argument As Variant: Set argument = Me
+      Dim result As Long: result = stdWebSocketUnlisten(This.hWebSocket, argument)
+      Set This.listener = Nothing
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Sub AsyncEmit(ByVal name As String, Optional ByVal data As Variant, Optional ByVal code As Long, Optional ByVal reason As String)
-  Dim eventData As Object: Set eventData = CreateEventData(name, data, code, reason)
-  Dim listener As stdICallable: Set listener = This.listener
-  If Not listener Is Nothing Then
-    This.callbackActive = True
-    On Error GoTo failed
-    listener.Run name, eventData
-    This.callbackActive = False
-    If This.pendingClose Then
-      This.pendingClose = False
-      Set eventData = CreateEventData("Close", Empty, This.pendingCode, This.pendingReason)
-      listener.Run "Close", eventData
-      Set This.listener = Nothing
-    End If
-  End If
-  Exit Sub
-failed:
-  This.callbackActive = False
-  Err.Raise Err.Number, Err.Source, Err.Description
+  With stdError.getSentry("stdWebSocket#AsyncEmit", "name", name, "data", data, "code", code, "reason", reason)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim eventData As Object: Set eventData = CreateEventData(name, data, code, reason)
+      Dim listener As stdICallable: Set listener = This.listener
+      If Not listener Is Nothing Then
+        This.callbackActive = True
+        On Error GoTo failed
+        listener.Run name, eventData
+        This.callbackActive = False
+        If This.pendingClose Then
+          This.pendingClose = False
+          Set eventData = CreateEventData("Close", Empty, This.pendingCode, This.pendingReason)
+          listener.Run "Close", eventData
+          Set This.listener = Nothing
+        End If
+      End If
+      Exit Sub
+    failed:
+      This.callbackActive = False
+      Err_Raise Err.Number, Err.Source, Err.Description
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Delivers a local close after cleanup, deferring it until the active user callback returns.
@@ -319,17 +439,25 @@ End Sub
 '@param code - Local close status.
 '@param reason - Local close reason.
 Public Sub protLocalClose(ByVal code As Long, ByVal reason As String)
-  If This.callbackActive Then
-    This.pendingClose = True: This.pendingCode = code: This.pendingReason = reason
-  Else
-    On Error GoTo failed
-    AsyncEmit "Close", Empty, code, reason
-    Set This.listener = Nothing
-  End If
-  Exit Sub
-failed:
-  This.lastListenerError = Err.Description
-  Set This.listener = Nothing
+  With stdError.getSentry("stdWebSocket#protLocalClose", "code", code, "reason", reason)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If This.callbackActive Then
+        This.pendingClose = True: This.pendingCode = code: This.pendingReason = reason
+      Else
+        On Error GoTo failed
+        AsyncEmit "Close", Empty, code, reason
+        Set This.listener = Nothing
+      End If
+      Exit Sub
+    failed:
+      This.lastListenerError = Err.Description
+      Set This.listener = Nothing
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Sends text or binary data, optionally as a message fragment.
@@ -338,28 +466,36 @@ End Sub
 '@param bPartialSend - True until the final fragment. Fragment types must match.
 '@remark Send always waits for native completion, including when an async reader is active. Network backpressure can block the caller until the configured deadline; write failures raise a synchronous VBA error.
 Public Sub Send(ByVal data As Variant, Optional ByVal iType As EMessageType = Utf8, Optional ByVal bPartialSend As Boolean = False)
-  If This.State <> Connected Then Err.Raise 5, "stdWebSocket.Send", "Not connected"
-  If iType <> Binary And iType <> Utf8 Then Err.Raise 5, "stdWebSocket.Send", "Invalid message type"
-  If This.sendingFragment And iType <> This.sendingType Then Err.Raise 5, "stdWebSocket.Send", "Fragment type changed"
-  Dim bytes() As Byte, n As Long, kind As Long
-  If iType = Utf8 Then
-    bytes = Encode(CStr(data))
-    kind = 2
-  Else
-    If VarType(data) <> (vbArray Or vbByte) Then Err.Raise 5, "stdWebSocket.Send", "Expected Byte()"
-    bytes = data
-  End If
-  n = ByteCount(bytes)
-  If bPartialSend Then kind = kind + 1
-  Dim result As Long
-  If n = 0 Then
-    result = stdWebSocketOperation(This.hWebSocket, 1, 0, 0, n, kind, This.timeout, 0)
-  Else
-    result = stdWebSocketOperation(This.hWebSocket, 1, VarPtr(bytes(LBound(bytes))), n, n, kind, This.timeout, 0)
-  End If
-  If result <> 0 Then NativeFailure "Send", result
-  This.sendingFragment = bPartialSend
-  This.sendingType = iType
+  With stdError.getSentry("stdWebSocket#Send", "data", data, "iType", iType, "bPartialSend", bPartialSend)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If This.State <> Connected Then Err_Raise 5, "stdWebSocket.Send", "Not connected"
+      If iType <> Binary And iType <> Utf8 Then Err_Raise 5, "stdWebSocket.Send", "Invalid message type"
+      If This.sendingFragment And iType <> This.sendingType Then Err_Raise 5, "stdWebSocket.Send", "Fragment type changed"
+      Dim bytes() As Byte, n As Long, kind As Long
+      If iType = Utf8 Then
+        bytes = Encode(CStr(data))
+        kind = 2
+      Else
+        If VarType(data) <> (vbArray Or vbByte) Then Err_Raise 5, "stdWebSocket.Send", "Expected Byte()"
+        bytes = data
+      End If
+      n = ByteCount(bytes)
+      If bPartialSend Then kind = kind + 1
+      Dim result As Long
+      If n = 0 Then
+        result = stdWebSocketOperation(This.hWebSocket, 1, 0, 0, n, kind, This.timeout, 0)
+      Else
+        result = stdWebSocketOperation(This.hWebSocket, 1, VarPtr(bytes(LBound(bytes))), n, n, kind, This.timeout, 0)
+      End If
+      If result <> 0 Then NativeFailure "Send", result
+      This.sendingFragment = bPartialSend
+      This.sendingType = iType
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Receives one complete message and delivers Open/Message/Close events and Listeners synchronously.
@@ -368,114 +504,146 @@ End Sub
 '@returns - String, Byte(), or Empty when the peer closes. Empty binary is a zero-length Byte().
 '@remark A native deadline cancels a stalled receive; a total message deadline and 16 MiB limit apply. Timeout/transport errors disconnect and raise Error then a VBA error. No background VBA callbacks or DoEvents are used.
 Public Function Receive(Optional ByRef iType As EMessageType) As Variant
-  If Listening Then Err.Raise 5, "stdWebSocket.Receive", "Async listener owns reads; call StopListening first"
-  If This.pumping Then Err.Raise 5, "stdWebSocket.Receive", "Reentrant receive"
-  If This.State <> Connected Then Err.Raise 5, "stdWebSocket.Receive", "Not connected"
-  This.pumping = True
-  On Error GoTo failed
-  If Not This.opened Then
-    This.opened = True
-    Emit "Open"
-  End If
-  If This.State <> Connected Then GoTo done
-  Dim chunk(0 To 4095) As Byte, bytes() As Byte, n As Long, total As Long, capacity As Long
-  Dim kind As Long, firstKind As Long, result As Long, i As Long
-  Dim started As Double: started = Timer
-  firstKind = -1
-  Do
-    Dim elapsed As Double: elapsed = Timer - started
-    If elapsed < 0 Then elapsed = elapsed + 86400
-    Dim remaining As Long: remaining = This.timeout - CLng(elapsed * 1000)
-    If remaining < 1 Then Err.Raise 5, , "Message deadline exceeded"
-    result = stdWebSocketOperation(This.hWebSocket, 0, VarPtr(chunk(0)), 4096, n, kind, remaining, 0)
-    If result <> 0 Then Err.Raise vbObjectError + 139, "stdWebSocket.Receive", "Receive failed: " & result
-    If kind = 4 Then
-      Dim code As Long, reason(0 To 122) As Byte, reasonSize As Long
-      result = stdWebSocketOperation(This.hWebSocket, 3, VarPtr(reason(0)), 123, reasonSize, code, remaining, 0)
-      If result <> 0 Then Err.Raise vbObjectError + 139, , "Close status failed: " & result
-      Dim closeReason As String: closeReason = Decode(reason, reasonSize)
-      Dim closeType As Long
-      result = stdWebSocketOperation(This.hWebSocket, 2, 0, 0, n, closeType, remaining, CInt(code))
-      If result <> 0 Then Err.Raise vbObjectError + 139, , "Close acknowledgement failed: " & result
-      ReleaseHandles
-      Emit "Close", Empty, CLng(code), closeReason
-      GoTo done
-    End If
-    If kind < 0 Or kind > 3 Then Err.Raise 5, , "Invalid buffer type"
-    If firstKind = -1 Then firstKind = kind \ 2
-    If kind \ 2 <> firstKind Then Err.Raise 5, , "Fragment type changed"
-    If n < 0 Or n > 4096 Or total > 16777216 - n Then Err.Raise 5, , "Message exceeds 16 MiB"
-    If n > 0 Then
-      If total + n > capacity Then
-        If capacity = 0 Then capacity = 4096
-        Do While capacity < total + n: capacity = capacity * 2: Loop
-        ReDim Preserve bytes(0 To capacity - 1)
+  With stdError.getSentry("stdWebSocket#Receive", "iType", iType)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Listening Then Err_Raise 5, "stdWebSocket.Receive", "Async listener owns reads; call StopListening first"
+      If This.pumping Then Err_Raise 5, "stdWebSocket.Receive", "Reentrant receive"
+      If This.State <> Connected Then Err_Raise 5, "stdWebSocket.Receive", "Not connected"
+      This.pumping = True
+      On Error GoTo failed
+      If Not This.opened Then
+        This.opened = True
+        Emit "Open"
       End If
-      For i = 0 To n - 1: bytes(total + i) = chunk(i): Next
-      total = total + n
-    End If
-    If kind = 0 Or kind = 2 Then Exit Do
-  Loop
-  iType = IIf(firstKind = 0, Binary, Utf8)
-  If iType = Utf8 Then
-    Receive = Decode(bytes, total)
-  Else
-    If total = 0 Then
-      bytes = StrConv(vbNullString, vbFromUnicode)
-    Else
-      ReDim Preserve bytes(0 To total - 1)
-    End If
-    Receive = bytes
-  End If
-  Emit "Message", Receive
-done:
-  This.pumping = False
-  Exit Function
-failed:
-  Dim description As String: description = Err.Description
-  ReleaseHandles
-  This.pumping = False
-  Emit "Error", description
-  Err.Raise vbObjectError + 139, "stdWebSocket.Receive", description
+      If This.State <> Connected Then GoTo done
+      Dim chunk(0 To 4095) As Byte, bytes() As Byte, n As Long, total As Long, capacity As Long
+      Dim kind As Long, firstKind As Long, result As Long, i As Long
+      Dim started As Double: started = Timer
+      firstKind = -1
+      Do
+        Dim elapsed As Double: elapsed = Timer - started
+        If elapsed < 0 Then elapsed = elapsed + 86400
+        Dim remaining As Long: remaining = This.timeout - CLng(elapsed * 1000)
+        If remaining < 1 Then Err_Raise 5, , "Message deadline exceeded"
+        result = stdWebSocketOperation(This.hWebSocket, 0, VarPtr(chunk(0)), 4096, n, kind, remaining, 0)
+        If result <> 0 Then Err_Raise vbObjectError + 139, "stdWebSocket.Receive", "Receive failed: " & result
+        If kind = 4 Then
+          Dim code As Long, reason(0 To 122) As Byte, reasonSize As Long
+          result = stdWebSocketOperation(This.hWebSocket, 3, VarPtr(reason(0)), 123, reasonSize, code, remaining, 0)
+          If result <> 0 Then Err_Raise vbObjectError + 139, , "Close status failed: " & result
+          Dim closeReason As String: closeReason = Decode(reason, reasonSize)
+          Dim closeType As Long
+          result = stdWebSocketOperation(This.hWebSocket, 2, 0, 0, n, closeType, remaining, CInt(code))
+          If result <> 0 Then Err_Raise vbObjectError + 139, , "Close acknowledgement failed: " & result
+          ReleaseHandles
+          Emit "Close", Empty, CLng(code), closeReason
+          GoTo done
+        End If
+        If kind < 0 Or kind > 3 Then Err_Raise 5, , "Invalid buffer type"
+        If firstKind = -1 Then firstKind = kind \ 2
+        If kind \ 2 <> firstKind Then Err_Raise 5, , "Fragment type changed"
+        If n < 0 Or n > 4096 Or total > 16777216 - n Then Err_Raise 5, , "Message exceeds 16 MiB"
+        If n > 0 Then
+          If total + n > capacity Then
+            If capacity = 0 Then capacity = 4096
+            Do While capacity < total + n: capacity = capacity * 2: Loop
+            ReDim Preserve bytes(0 To capacity - 1)
+          End If
+          For i = 0 To n - 1: bytes(total + i) = chunk(i): Next
+          total = total + n
+        End If
+        If kind = 0 Or kind = 2 Then Exit Do
+      Loop
+      iType = IIf(firstKind = 0, Binary, Utf8)
+      If iType = Utf8 Then
+        Receive = Decode(bytes, total)
+      Else
+        If total = 0 Then
+          bytes = StrConv(vbNullString, vbFromUnicode)
+        Else
+          ReDim Preserve bytes(0 To total - 1)
+        End If
+        Receive = bytes
+      End If
+      Emit "Message", Receive
+    done:
+      This.pumping = False
+      Exit Function
+    failed:
+      Dim description As String: description = Err.Description
+      ReleaseHandles
+      This.pumping = False
+      Emit "Error", description
+      Err_Raise vbObjectError + 139, "stdWebSocket.Receive", description
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Pumps one complete message through the existing events and Listeners.
 '@returns - True for a message (including empty messages), False for peer close.
 '@remark This is a bounded blocking pump, not a readiness poll. Open is delivered before waiting for a message.
 Public Function Pump() As Boolean
-  Dim value As Variant: value = Receive()
-  Pump = Not IsEmpty(value)
+  With stdError.getSentry("stdWebSocket#Pump")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim value As Variant: value = Receive()
+      Pump = Not IsEmpty(value)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Closes the WebSocket and releases all handles even if the handshake fails.
 '@param Code - 1000 or application close status 3000 through 4999.
 '@param reason - UTF8 reason, at most 123 bytes.
 Public Sub CloseSocket(Optional ByVal Code As Long = 1000, Optional ByVal reason As String = "")
-  If Code <> 1000 And (Code < 3000 Or Code > 4999) Then Err.Raise 5, , "Invalid close code"
-  Dim bytes() As Byte, n As Long, result As Long, kind As Long
-  bytes = Encode(reason): n = ByteCount(bytes)
-  If n > 123 Then Err.Raise 5, , "Close reason exceeds 123 bytes"
-  If This.State = NotConnected Then Exit Sub
-  This.State = Disconnecting
-  If n = 0 Then
-    result = stdWebSocketOperation(This.hWebSocket, 2, 0, 0, n, kind, This.timeout, CInt(Code))
-  Else
-    result = stdWebSocketOperation(This.hWebSocket, 2, VarPtr(bytes(0)), n, n, kind, This.timeout, CInt(Code))
-  End If
-  Dim receiver As stdWebSocket: Set receiver = This.receiver
-  ReleaseHandles
-  If result <> 0 Then NativeFailure "Close", result
-  Emit "Close", Empty, Code, reason
-  If Not receiver Is Nothing Then receiver.protLocalClose Code, reason
+  With stdError.getSentry("stdWebSocket#CloseSocket", "Code", Code, "reason", reason)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Code <> 1000 And (Code < 3000 Or Code > 4999) Then Err_Raise 5, , "Invalid close code"
+      Dim bytes() As Byte, n As Long, result As Long, kind As Long
+      bytes = Encode(reason): n = ByteCount(bytes)
+      If n > 123 Then Err_Raise 5, , "Close reason exceeds 123 bytes"
+      If This.State = NotConnected Then Exit Sub
+      This.State = Disconnecting
+      If n = 0 Then
+        result = stdWebSocketOperation(This.hWebSocket, 2, 0, 0, n, kind, This.timeout, CInt(Code))
+      Else
+        result = stdWebSocketOperation(This.hWebSocket, 2, VarPtr(bytes(0)), n, n, kind, This.timeout, CInt(Code))
+      End If
+      Dim receiver As stdWebSocket: Set receiver = This.receiver
+      ReleaseHandles
+      If result <> 0 Then NativeFailure "Close", result
+      Emit "Close", Empty, Code, reason
+      If Not receiver Is Nothing Then receiver.protLocalClose Code, reason
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Releases the connection immediately without waiting for a close handshake. Safe to repeat.
 Public Sub Disconnect()
-  Dim active As Boolean: active = This.State <> NotConnected
-  Dim receiver As stdWebSocket: Set receiver = This.receiver
-  ReleaseHandles
-  If active Then Emit "Close", Empty, 1006, "Disconnected"
-  If active And Not receiver Is Nothing Then receiver.protLocalClose 1006, "Disconnected"
+  With stdError.getSentry("stdWebSocket#Disconnect")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim active As Boolean: active = This.State <> NotConnected
+      Dim receiver As stdWebSocket: Set receiver = This.receiver
+      ReleaseHandles
+      If active Then Emit "Close", Empty, 1006, "Disconnected"
+      If active And Not receiver Is Nothing Then receiver.protLocalClose 1006, "Disconnected"
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Handles an event on the calling VBA thread, forwarding the same data to events and Listeners.
@@ -483,132 +651,226 @@ End Sub
 '@param sEventName - Open, Close, Error or Message.
 '@param oEventData - Dictionary event object; Message has data, Close has code/reason, Error has message.
 Public Sub handleEvent(ByVal sEventName As String, ByVal oEventData As Object)
-  RaiseEvent EventRaised(sEventName, oEventData)
-  Select Case sEventName
-    Case "Open": RaiseEvent OnOpen(oEventData)
-    Case "Close": RaiseEvent OnClose(oEventData)
-    Case "Error": RaiseEvent OnError(oEventData)
-    Case "Message": RaiseEvent OnMessage(oEventData)
-  End Select
-  On Error Resume Next
-  Dim listener As Object
-  For Each listener In Listeners
-    listener.Run sEventName, oEventData
-  Next
-  On Error GoTo 0
+  With stdError.getSentry("stdWebSocket#handleEvent", "sEventName", sEventName, "oEventData", oEventData)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      RaiseEvent EventRaised(sEventName, oEventData)
+      Select Case sEventName
+        Case "Open": RaiseEvent OnOpen(oEventData)
+        Case "Close": RaiseEvent OnClose(oEventData)
+        Case "Error": RaiseEvent OnError(oEventData)
+        Case "Message": RaiseEvent OnMessage(oEventData)
+      End Select
+      On Error Resume Next
+      Dim listener As Object
+      For Each listener In Listeners
+        listener.Run sEventName, oEventData
+      Next
+      On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Sub Emit(ByVal name As String, Optional ByVal data As Variant, Optional ByVal code As Long, Optional ByVal reason As String)
-  Dim eventData As Object: Set eventData = CreateEventData(name, data, code, reason)
-  handleEvent name, eventData
+  With stdError.getSentry("stdWebSocket#Emit", "name", name, "data", data, "code", code, "reason", reason)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim eventData As Object: Set eventData = CreateEventData(name, data, code, reason)
+      handleEvent name, eventData
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 Private Function CreateEventData(ByVal name As String, ByVal data As Variant, ByVal code As Long, ByVal reason As String) As Object
-  Dim eventData As Object: Set eventData = CreateObject("Scripting.Dictionary")
-  eventData.Add "type", name
-  eventData.Add "data", data
-  eventData.Add "message", data
-  eventData.Add "code", code
-  eventData.Add "reason", reason
-  Set CreateEventData = eventData
+  With stdError.getSentry("stdWebSocket#CreateEventData", "name", name, "data", data, "code", code, "reason", reason)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim eventData As Object: Set eventData = CreateObject("Scripting.Dictionary")
+      eventData.Add "type", name
+      eventData.Add "data", data
+      eventData.Add "message", data
+      eventData.Add "code", code
+      eventData.Add "reason", reason
+      Set CreateEventData = eventData
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 Private Sub CheckHandle(ByVal success As Boolean)
-  If Not success Then Err.Raise vbObjectError + 139, "stdWebSocket", "Invalid UTF8/Unicode conversion"
+  With stdError.getSentry("stdWebSocket#CheckHandle", "success", success)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Not success Then Err_Raise vbObjectError + 139, "stdWebSocket", "Invalid UTF8/Unicode conversion"
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 Private Sub NativeFailure(ByVal operation As String, ByVal code As Long)
-  ReleaseHandles
-  Emit "Error", operation & " failed: " & code
-  Err.Raise vbObjectError + 139, "stdWebSocket", operation & " failed: " & code
+  With stdError.getSentry("stdWebSocket#NativeFailure", "operation", operation, "code", code)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      ReleaseHandles
+      Emit "Error", operation & " failed: " & code
+      Err_Raise vbObjectError + 139, "stdWebSocket", operation & " failed: " & code
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 Private Sub ReleaseHandles()
-  If This.hWebSocket <> 0 Then stdWebSocketDisconnect This.hWebSocket
-  Set This.receiver = Nothing
-  This.State = NotConnected
-  This.sendingFragment = False
-  This.opened = False
+  With stdError.getSentry("stdWebSocket#ReleaseHandles")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If This.hWebSocket <> 0 Then stdWebSocketDisconnect This.hWebSocket
+      Set This.receiver = Nothing
+      This.State = NotConnected
+      This.sendingFragment = False
+      This.opened = False
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 Private Sub Class_Terminate()
-  If This.isReceiver Then Exit Sub
-  ReleaseHandles
-  If This.library <> 0 Then FreeLibrary This.library
-  This.library = 0
+  With stdError.getSentry("stdWebSocket#Class_Terminate")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If This.isReceiver Then Exit Sub
+      ReleaseHandles
+      If This.library <> 0 Then FreeLibrary This.library
+      This.library = 0
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 Private Function ByteCount(ByRef bytes() As Byte) As Long
-  On Error GoTo emptyArray
-  ByteCount = UBound(bytes) - LBound(bytes) + 1
-emptyArray:
+  With stdError.getSentry("stdWebSocket#ByteCount")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      On Error GoTo emptyArray
+      ByteCount = UBound(bytes) - LBound(bytes) + 1
+    emptyArray:
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 Private Function Encode(ByVal value As String) As Byte()
-  Dim bytes() As Byte, n As Long
-  If Len(value) = 0 Then
-    bytes = StrConv(vbNullString, vbFromUnicode)
-  Else
-    n = WideCharToMultiByte(65001, &H80, StrPtr(value), Len(value), 0, 0, 0, 0)
-    CheckHandle n > 0
-    ReDim bytes(0 To n - 1)
-    CheckHandle WideCharToMultiByte(65001, &H80, StrPtr(value), Len(value), VarPtr(bytes(0)), n, 0, 0) = n
-  End If
-  Encode = bytes
+  With stdError.getSentry("stdWebSocket#Encode", "value", value)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim bytes() As Byte, n As Long
+      If Len(value) = 0 Then
+        bytes = StrConv(vbNullString, vbFromUnicode)
+      Else
+        n = WideCharToMultiByte(65001, &H80, StrPtr(value), Len(value), 0, 0, 0, 0)
+        CheckHandle n > 0
+        ReDim bytes(0 To n - 1)
+        CheckHandle WideCharToMultiByte(65001, &H80, StrPtr(value), Len(value), VarPtr(bytes(0)), n, 0, 0) = n
+      End If
+      Encode = bytes
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 Private Function Decode(ByRef bytes() As Byte, ByVal n As Long) As String
-  If n = 0 Then Exit Function
-  Dim chars As Long
-  chars = MultiByteToWideChar(65001, 8, VarPtr(bytes(LBound(bytes))), n, 0, 0)
-  CheckHandle chars > 0
-  Decode = String$(chars, vbNullChar)
-  CheckHandle MultiByteToWideChar(65001, 8, VarPtr(bytes(LBound(bytes))), n, StrPtr(Decode), chars) = chars
+  With stdError.getSentry("stdWebSocket#Decode", "n", n)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If n = 0 Then Exit Function
+      Dim chars As Long
+      chars = MultiByteToWideChar(65001, 8, VarPtr(bytes(LBound(bytes))), n, 0, 0)
+      CheckHandle chars > 0
+      Decode = String$(chars, vbNullChar)
+      CheckHandle MultiByteToWideChar(65001, 8, VarPtr(bytes(LBound(bytes))), n, StrPtr(Decode), chars) = chars
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 Private Sub ParseURL(ByVal value As String, ByRef host As String, ByRef port As Long, ByRef path As String, ByRef flags As Long)
-  Dim scheme As String, rest As String, authority As String, at As Long, i As Long, portText As String
-  at = InStr(value, "://")
-  If at = 0 Then GoTo invalid
-  scheme = LCase$(Left$(value, at - 1))
-  Select Case scheme
-    Case "ws": port = 80
-    Case "wss": port = 443: flags = &H800000
-    Case Else: GoTo invalid
-  End Select
-  rest = Mid$(value, at + 3)
-  If InStr(rest, "#") Or InStr(rest, "\") Then GoTo invalid
-  at = Len(rest) + 1
-  For i = 1 To Len(rest)
-    If Mid$(rest, i, 1) = "/" Or Mid$(rest, i, 1) = "?" Then
-      at = i: Exit For
-    End If
-  Next
-  authority = Left$(rest, at - 1): path = Mid$(rest, at)
-  If InStr(authority, "@") Then GoTo invalid
-  If path = "" Then path = "/"
-  If Left$(path, 1) = "?" Then path = "/" & path
-  If Left$(authority, 1) = "[" Then
-    at = InStr(authority, "]")
-    If at < 3 Then GoTo invalid
-    host = Mid$(authority, 2, at - 2)
-    If InStr(host, ":") = 0 Then GoTo invalid
-    If Len(authority) > at Then
-      If Mid$(authority, at + 1, 1) <> ":" Then GoTo invalid
-      portText = Mid$(authority, at + 2)
-      If portText = "" Then GoTo invalid
-    End If
-  Else
-    at = InStr(authority, ":")
-    If at Then
-      host = Left$(authority, at - 1): portText = Mid$(authority, at + 1)
-      If portText = "" Then GoTo invalid
-    Else
-      host = authority
-    End If
-  End If
-  If host = "" Then GoTo invalid
-  If InStr(host, "[") Or InStr(host, "]") Then GoTo invalid
-  If portText <> "" Then
-    If Len(portText) > 5 Or portText Like "*[!0-9]*" Then GoTo invalid
-    port = CLng(portText)
-    If port < 1 Or port > 65535 Then GoTo invalid
-  End If
-  For i = 1 To Len(value)
-    If AscW(Mid$(value, i, 1)) <= 32 Or AscW(Mid$(value, i, 1)) > 126 Then GoTo invalid
-  Next
-  Exit Sub
-invalid:
-  Err.Raise 5, "stdWebSocket.Create", "Invalid WebSocket URL (use ASCII/Punycode and percent-encoded path)"
+  With stdError.getSentry("stdWebSocket#ParseURL", "value", value, "host", host, "port", port, "path", path, "flags", flags)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim scheme As String, rest As String, authority As String, at As Long, i As Long, portText As String
+      at = InStr(value, "://")
+      If at = 0 Then GoTo invalid
+      scheme = LCase$(Left$(value, at - 1))
+      Select Case scheme
+        Case "ws": port = 80
+        Case "wss": port = 443: flags = &H800000
+        Case Else: GoTo invalid
+      End Select
+      rest = Mid$(value, at + 3)
+      If InStr(rest, "#") Or InStr(rest, "\") Then GoTo invalid
+      at = Len(rest) + 1
+      For i = 1 To Len(rest)
+        If Mid$(rest, i, 1) = "/" Or Mid$(rest, i, 1) = "?" Then
+          at = i: Exit For
+        End If
+      Next
+      authority = Left$(rest, at - 1): path = Mid$(rest, at)
+      If InStr(authority, "@") Then GoTo invalid
+      If path = "" Then path = "/"
+      If Left$(path, 1) = "?" Then path = "/" & path
+      If Left$(authority, 1) = "[" Then
+        at = InStr(authority, "]")
+        If at < 3 Then GoTo invalid
+        host = Mid$(authority, 2, at - 2)
+        If InStr(host, ":") = 0 Then GoTo invalid
+        If Len(authority) > at Then
+          If Mid$(authority, at + 1, 1) <> ":" Then GoTo invalid
+          portText = Mid$(authority, at + 2)
+          If portText = "" Then GoTo invalid
+        End If
+      Else
+        at = InStr(authority, ":")
+        If at Then
+          host = Left$(authority, at - 1): portText = Mid$(authority, at + 1)
+          If portText = "" Then GoTo invalid
+        Else
+          host = authority
+        End If
+      End If
+      If host = "" Then GoTo invalid
+      If InStr(host, "[") Or InStr(host, "]") Then GoTo invalid
+      If portText <> "" Then
+        If Len(portText) > 5 Or portText Like "*[!0-9]*" Then GoTo invalid
+        port = CLng(portText)
+        If port < 1 Or port > 65535 Then GoTo invalid
+      End If
+      For i = 1 To Len(value)
+        If AscW(Mid$(value, i, 1)) <= 32 Or AscW(Mid$(value, i, 1)) > 126 Then GoTo invalid
+      Next
+      Exit Sub
+    invalid:
+      Err_Raise 5, "stdWebSocket.Create", "Invalid WebSocket URL (use ASCII/Punycode and percent-encoded path)"
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
+End Sub
+
+
+
+Private Sub Err_Raise(ByVal number as Long, Optional ByVal source as string = "", Optional ByVal description as string = "")
+  Call stdError.Raise(description)
 End Sub

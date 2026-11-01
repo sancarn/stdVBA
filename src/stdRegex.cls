@@ -528,26 +528,34 @@ Private This As TThis
 'stdRegex.Create("A\d+","i")
 '```
 Public Function Create(ByVal pattern As String, Optional ByVal flags As String = "", Optional ByVal stepsLimit As Long = 10000, Optional ByVal useNative As Boolean = True) As stdRegex
-  If Not Me Is stdRegex Then
-    Call CriticalRaise("Constructor called on object not class")
+  With stdError.getSentry("stdRegex#Create", "pattern", pattern, "flags", flags, "stepsLimit", stepsLimit, "useNative", useNative)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Not Me Is stdRegex Then
+        Call CriticalRaise("Constructor called on object not class")
+        Exit Function
+      End If
+    
+      'Cache regex objects for faster speed
+      Static cache As Object: If cache Is Nothing Then Set cache = CreateObject("Scripting.Dictionary")
+      Dim sKey As String: sKey = Len(pattern) & ":" & pattern & Len(flags) & ":" & flags & ":" & stepsLimit & ":" & CStr(useNative)
+      If Not cache.exists(sKey) Then
+        'Call to [friend] init requires type information, can't use dict directly
+        Dim r As stdRegex
+        Set r = New stdRegex
+        Call r.protInit(pattern, flags, stepsLimit, useNative)
+    
+        'Set cache
+        Set cache(sKey) = r
+      End If
+    
+      'Return cached object
+      Set Create = cache(sKey)
+    
     Exit Function
-  End If
-
-  'Cache regex objects for faster speed
-  Static cache As Object: If cache Is Nothing Then Set cache = CreateObject("Scripting.Dictionary")
-  Dim sKey As String: sKey = Len(pattern) & ":" & pattern & Len(flags) & ":" & flags & ":" & stepsLimit & ":" & CStr(useNative)
-  If Not cache.exists(sKey) Then
-    'Call to [friend] init requires type information, can't use dict directly
-    Dim r As stdRegex
-    Set r = New stdRegex
-    Call r.protInit(pattern, flags, stepsLimit, useNative)
-
-    'Set cache
-    Set cache(sKey) = r
-  End If
-
-  'Return cached object
-  Set Create = cache(sKey)
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Initialises the class from within the static superclass. This method is meant for internal use only. Use at your own risk.
@@ -561,66 +569,106 @@ End Function
 'obj.protInit("A\d+","i")
 '```
 Friend Sub protInit(ByVal pattern As String, ByVal flags As String, Optional ByVal stepsLimit As Long = 10000, Optional ByVal useNative As Boolean = True)
-  If Me Is stdRegex Then
-    CriticalRaise "Cannot run init on class"
+  With stdError.getSentry("stdRegex#protInit", "pattern", pattern, "flags", flags, "stepsLimit", stepsLimit, "useNative", useNative)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Me Is stdRegex Then
+        CriticalRaise "Cannot run init on class"
+        Exit Sub
+      End If
+    #If Mac Or (VBA7 = 0) Then
+      If useNative Then Err_Raise 5, "stdRegex", "Native matching requires Windows VBA7"
+    #End If
+      If stepsLimit <= 0 Then Err_Raise 5, "stdRegex", "stepsLimit must be positive"
+    
+      'Compile before updating instance state, so a syntax error preserves the old regex.
+      Dim compiled As RegexTy, compiledPattern As String
+      compiledPattern = PreparePattern(pattern, flags)
+      stdRegex.protStaticRegexInitializeRegex compiled, compiledPattern, InStr(flags, "i") > 0
+      compiled.stepsLimit = stepsLimit
+      compiled.useNative = useNative
+      This.regex = compiled
+      This.pattern = pattern
+      This.flags = flags
+      This.isGlobal = InStr(flags, "g") > 0
+      This.isMultiline = InStr(flags, "m") > 0
+      This.dotAll = InStr(flags, "s") > 0
+      This.initialised = True
+    
     Exit Sub
-  End If
-#If Mac Or (VBA7 = 0) Then
-  If useNative Then Err.Raise 5, "stdRegex", "Native matching requires Windows VBA7"
-#End If
-  If stepsLimit <= 0 Then Err.Raise 5, "stdRegex", "stepsLimit must be positive"
-
-  'Compile before updating instance state, so a syntax error preserves the old regex.
-  Dim compiled As RegexTy, compiledPattern As String
-  compiledPattern = PreparePattern(pattern, flags)
-  stdRegex.protStaticRegexInitializeRegex compiled, compiledPattern, InStr(flags, "i") > 0
-  compiled.stepsLimit = stepsLimit
-  compiled.useNative = useNative
-  This.regex = compiled
-  This.pattern = pattern
-  This.flags = flags
-  This.isGlobal = InStr(flags, "g") > 0
-  This.isMultiline = InStr(flags, "m") > 0
-  This.dotAll = InStr(flags, "s") > 0
-  This.initialised = True
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 'Get/Set pattern for regex
 '@returns - Pattern for regex
 Public Property Get pattern() As String
-  If Me Is stdRegex Then
-    CriticalRaise ("Property called on class not object")
+  With stdError.getSentry("stdRegex#pattern[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Me Is stdRegex Then
+        CriticalRaise ("Property called on class not object")
+        Exit Property
+      End If
+    
+      pattern = This.pattern
+    
     Exit Property
-  End If
-
-  pattern = This.pattern
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 Public Property Let pattern(val As String)
-  If Me Is stdRegex Then
-    CriticalRaise ("Property called on class not object")
+  With stdError.getSentry("stdRegex#pattern[Let]", "val", val)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Me Is stdRegex Then
+        CriticalRaise ("Property called on class not object")
+        Exit Property
+      End If
+    
+      Call protInit(val, This.flags, This.regex.stepsLimit, This.regex.useNative)
+    
     Exit Property
-  End If
-
-  Call protInit(val, This.flags, This.regex.stepsLimit, This.regex.useNative)
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Get/Set Flags for regex
 '@returns - Flags for regex
 Public Property Get flags() As String
-  If Me Is stdRegex Then
-    CriticalRaise ("Property called on class not object")
+  With stdError.getSentry("stdRegex#flags[Get]")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Me Is stdRegex Then
+        CriticalRaise ("Property called on class not object")
+        Exit Property
+      End If
+    
+      flags = This.flags
+    
     Exit Property
-  End If
-
-  flags = This.flags
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 Public Property Let flags(val As String)
-  If Me Is stdRegex Then
-    CriticalRaise ("Property called on class not object")
+  With stdError.getSentry("stdRegex#flags[Let]", "val", val)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Me Is stdRegex Then
+        CriticalRaise ("Property called on class not object")
+        Exit Property
+      End If
+    
+      Call protInit(This.pattern, val, This.regex.stepsLimit, This.regex.useNative)
+    
     Exit Property
-  End If
-
-  Call protInit(This.pattern, val, This.regex.stepsLimit, This.regex.useNative)
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Property
 
 'Given a text string, return whether the source regex is present
@@ -634,14 +682,22 @@ End Property
 '```
 'The result is: `True`
 Public Function Test(ByVal sHaystack As String) As Boolean
-  If Me Is stdRegex Then
-    CriticalRaise "Method called on class not object"
+  With stdError.getSentry("stdRegex#Test", "sHaystack", sHaystack)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Me Is stdRegex Then
+        CriticalRaise "Method called on class not object"
+        Exit Function
+      End If
+      Dim state As MatcherStateTy
+      state.multiline = This.isMultiline
+      state.dotAll = This.dotAll
+      Test = stdRegex.protStaticRegexMatchNext(state, This.regex, sHaystack, raiseOnLimit:=True)
+    
     Exit Function
-  End If
-  Dim state As MatcherStateTy
-  state.multiline = This.isMultiline
-  state.dotAll = This.dotAll
-  Test = stdRegex.protStaticRegexMatchNext(state, This.regex, sHaystack, raiseOnLimit:=True)
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Given a text string, return the first match.
@@ -669,16 +725,24 @@ End Function
 '}
 '```
 Public Function Match(ByVal sHaystack As String) As Object
-  If Me Is stdRegex Then
-    CriticalRaise "Method called on class not object"
+  With stdError.getSentry("stdRegex#Match", "sHaystack", sHaystack)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Me Is stdRegex Then
+        CriticalRaise "Method called on class not object"
+        Exit Function
+      End If
+      Dim state As MatcherStateTy
+      state.multiline = This.isMultiline
+      state.dotAll = This.dotAll
+      If stdRegex.protStaticRegexMatchNext(state, This.regex, sHaystack, raiseOnLimit:=True) Then
+        Set Match = MakeCapturesDict(state.captures, sHaystack)
+      End If
+    
     Exit Function
-  End If
-  Dim state As MatcherStateTy
-  state.multiline = This.isMultiline
-  state.dotAll = This.dotAll
-  If stdRegex.protStaticRegexMatchNext(state, This.regex, sHaystack, raiseOnLimit:=True) Then
-    Set Match = MakeCapturesDict(state.captures, sHaystack)
-  End If
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Given a text string, return all strings which match the source regex pattern.
@@ -704,17 +768,25 @@ End Function
 ']
 '```
 Public Function MatchAll(ByVal sHaystack As String) As Collection
-  If Me Is stdRegex Then
-    CriticalRaise "Method called on class not object"
+  With stdError.getSentry("stdRegex#MatchAll", "sHaystack", sHaystack)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Me Is stdRegex Then
+        CriticalRaise "Method called on class not object"
+        Exit Function
+      End If
+      Dim state As MatcherStateTy, results As New Collection
+      state.multiline = This.isMultiline
+      state.dotAll = This.dotAll
+      Do While stdRegex.protStaticRegexMatchNext(state, This.regex, sHaystack, raiseOnLimit:=True)
+        results.Add MakeCapturesDict(state.captures, sHaystack)
+      Loop
+      Set MatchAll = results
+    
     Exit Function
-  End If
-  Dim state As MatcherStateTy, results As New Collection
-  state.multiline = This.isMultiline
-  state.dotAll = This.dotAll
-  Do While stdRegex.protStaticRegexMatchNext(state, This.regex, sHaystack, raiseOnLimit:=True)
-    results.Add MakeCapturesDict(state.captures, sHaystack)
-  Loop
-  Set MatchAll = results
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Return all matches as unkeyed collections, with the full match at item 1.
@@ -727,22 +799,30 @@ End Function
 ' Set matches = stdRegex.Create("(a)(b)?").MatchAllCol("a ab")
 ' Debug.Print matches(1)(2) 'a
 Public Function MatchAllCol(ByVal sHaystack As String) As Collection
-  If Me Is stdRegex Then
-    CriticalRaise "Method called on class not object"
+  With stdError.getSentry("stdRegex#MatchAllCol", "sHaystack", sHaystack)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Me Is stdRegex Then
+        CriticalRaise "Method called on class not object"
+        Exit Function
+      End If
+      Dim state As MatcherStateTy, results As New Collection
+      Dim capture As Collection, j As Long
+      state.multiline = This.isMultiline
+      state.dotAll = This.dotAll
+      Do While stdRegex.protStaticRegexMatchNext(state, This.regex, sHaystack, raiseOnLimit:=True)
+        Set capture = New Collection
+        For j = 0 To state.captures.nNumberedCaptures
+          capture.Add CaptureValue(state.captures, sHaystack, j)
+        Next
+        results.Add capture
+      Loop
+      If results.Count > 0 Then Set MatchAllCol = results
+    
     Exit Function
-  End If
-  Dim state As MatcherStateTy, results As New Collection
-  Dim capture As Collection, j As Long
-  state.multiline = This.isMultiline
-  state.dotAll = This.dotAll
-  Do While stdRegex.protStaticRegexMatchNext(state, This.regex, sHaystack, raiseOnLimit:=True)
-    Set capture = New Collection
-    For j = 0 To state.captures.nNumberedCaptures
-      capture.Add CaptureValue(state.captures, sHaystack, j)
-    Next
-    results.Add capture
-  Loop
-  If results.Count > 0 Then Set MatchAllCol = results
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Given a Haystack and a Replacer, Replace all matches with the source regex with the format given in the Replacer.
@@ -770,13 +850,21 @@ End Function
 '62346-STZ9,01/05/1932,5
 '```
 Public Function Replace(ByVal sHaystack As String, ByVal sReplacer As String) As String
-  If Me Is stdRegex Then
-    CriticalRaise "Method called on class not object"
+  With stdError.getSentry("stdRegex#Replace", "sHaystack", sHaystack, "sReplacer", sReplacer)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Me Is stdRegex Then
+        CriticalRaise "Method called on class not object"
+        Exit Function
+      End If
+      sReplacer = PrepareReplacement(sReplacer)
+      Replace = stdRegex.protStaticRegexReplace(This.regex, sReplacer, sHaystack, _
+        localMatch:=Not This.isGlobal, multiline:=This.isMultiline, dotAll:=This.dotAll)
+    
     Exit Function
-  End If
-  sReplacer = PrepareReplacement(sReplacer)
-  Replace = stdRegex.protStaticRegexReplace(This.regex, sReplacer, sHaystack, _
-    localMatch:=Not This.isGlobal, multiline:=This.isMultiline, dotAll:=This.dotAll)
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Given a Haystack and a Format, Generate a string containing all matches in the format provided.
@@ -800,20 +888,28 @@ End Function
 '62346-STZ9,01/05/1932,5
 '```
 Public Function List(ByVal sHaystack As String, ByVal sFormat As String) As String
-  If Me Is stdRegex Then
-    CriticalRaise "Method called on class not object"
+  With stdError.getSentry("stdRegex#List", "sHaystack", sHaystack, "sFormat", sFormat)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Me Is stdRegex Then
+        CriticalRaise "Method called on class not object"
+        Exit Function
+      End If
+    
+      Dim state As MatcherStateTy, result As StaticStringBuilder
+      Dim tokens() As ListCaptureToken, tokenCount As Long
+      InitializeListTokens tokens, tokenCount
+      state.multiline = This.isMultiline
+      state.dotAll = This.dotAll
+      Do While stdRegex.protStaticRegexMatchNext(state, This.regex, sHaystack, raiseOnLimit:=True)
+        AppendStr result, FormatFromCaptures(state.captures, sHaystack, sFormat, tokens, tokenCount)
+      Loop
+      List = GetStr(result)
+    
     Exit Function
-  End If
-
-  Dim state As MatcherStateTy, result As StaticStringBuilder
-  Dim tokens() As ListCaptureToken, tokenCount As Long
-  InitializeListTokens tokens, tokenCount
-  state.multiline = This.isMultiline
-  state.dotAll = This.dotAll
-  Do While stdRegex.protStaticRegexMatchNext(state, This.regex, sHaystack, raiseOnLimit:=True)
-    AppendStr result, FormatFromCaptures(state.captures, sHaystack, sFormat, tokens, tokenCount)
-  Loop
-  List = GetStr(result)
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Supplied with a haystack to search, ListArr will return a 2d array of data where the rows represent each match, and the columns represent the formats passed into vFormats parameter
@@ -821,29 +917,37 @@ End Function
 '@param vFormats as Variant<Array<String>> - Array of formats to print into seperate columns. E.G. `Array("$id-$date","$detail")`
 '@returns Variant<Array[2d]<String>> - All matches as a 2d array. Useful especially for dumping matches to Excel.
 Public Function ListArr(ByVal sHaystack As String, ByVal vFormats As Variant) As Variant
-  If Me Is stdRegex Then
-    CriticalRaise "Method called on class not object"
+  With stdError.getSentry("stdRegex#ListArr", "sHaystack", sHaystack, "vFormats", vFormats)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Me Is stdRegex Then
+        CriticalRaise "Method called on class not object"
+        Exit Function
+      End If
+    
+      Dim state As MatcherStateTy, tokens() As ListCaptureToken, tokenCount As Long
+      Dim cells() As Variant, capacity As Long, nRows As Long, nCols As Long
+      Dim j As Long, firstFormat As Long, lastFormat As Long, offset As Long
+      firstFormat = LBound(vFormats)
+      lastFormat = UBound(vFormats)
+      nCols = lastFormat - firstFormat + 1
+      InitializeListTokens tokens, tokenCount
+      state.multiline = This.isMultiline
+      state.dotAll = This.dotAll
+      Do While stdRegex.protStaticRegexMatchNext(state, This.regex, sHaystack, raiseOnLimit:=True)
+        nRows = nRows + 1
+        GrowMatchRows cells, capacity, nRows, nCols
+        offset = (nRows - 1) * nCols
+        For j = firstFormat To lastFormat
+          cells(offset + j - firstFormat) = FormatFromCaptures(state.captures, sHaystack, CStr(vFormats(j)), tokens, tokenCount)
+        Next
+      Loop
+      ListArr = MakeMatchRows(cells, nRows, nCols, 1)
+    
     Exit Function
-  End If
-
-  Dim state As MatcherStateTy, tokens() As ListCaptureToken, tokenCount As Long
-  Dim cells() As Variant, capacity As Long, nRows As Long, nCols As Long
-  Dim j As Long, firstFormat As Long, lastFormat As Long, offset As Long
-  firstFormat = LBound(vFormats)
-  lastFormat = UBound(vFormats)
-  nCols = lastFormat - firstFormat + 1
-  InitializeListTokens tokens, tokenCount
-  state.multiline = This.isMultiline
-  state.dotAll = This.dotAll
-  Do While stdRegex.protStaticRegexMatchNext(state, This.regex, sHaystack, raiseOnLimit:=True)
-    nRows = nRows + 1
-    GrowMatchRows cells, capacity, nRows, nCols
-    offset = (nRows - 1) * nCols
-    For j = firstFormat To lastFormat
-      cells(offset + j - firstFormat) = FormatFromCaptures(state.captures, sHaystack, CStr(vFormats(j)), tokens, tokenCount)
-    Next
-  Loop
-  ListArr = MakeMatchRows(cells, nRows, nCols, 1)
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Return all matches as a 2D Variant array: rows 1..count, columns 0..capture count.
@@ -854,26 +958,34 @@ End Function
 'The map includes unmatched groups and is populated even when there are no matches.
 'Duplicate names map to the first declared capture group.
 Public Function MatchAllArr(ByVal sHaystack As String, Optional ByRef captureNames As Object) As Variant
-  If Me Is stdRegex Then
-    CriticalRaise "Method called on class not object"
+  With stdError.getSentry("stdRegex#MatchAllArr", "sHaystack", sHaystack, "captureNames", captureNames)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Me Is stdRegex Then
+        CriticalRaise "Method called on class not object"
+        Exit Function
+      End If
+    
+      Dim state As MatcherStateTy, cells() As Variant
+      Dim capacity As Long, nRows As Long, nCols As Long, j As Long, offset As Long, nCaptures As Long
+      Set captureNames = stdRegex.protCaptureNames(This.regex.pattern, nCaptures)
+      nCols = nCaptures + 1
+      state.multiline = This.isMultiline
+      state.dotAll = This.dotAll
+      Do While stdRegex.protStaticRegexMatchNext(state, This.regex, sHaystack, raiseOnLimit:=True)
+        nRows = nRows + 1
+        GrowMatchRows cells, capacity, nRows, nCols
+        offset = (nRows - 1) * nCols
+        For j = 0 To nCols - 1
+          cells(offset + j) = CaptureValue(state.captures, sHaystack, j)
+        Next
+      Loop
+      MatchAllArr = MakeMatchRows(cells, nRows, nCols, 0)
+    
     Exit Function
-  End If
-
-  Dim state As MatcherStateTy, cells() As Variant
-  Dim capacity As Long, nRows As Long, nCols As Long, j As Long, offset As Long, nCaptures As Long
-  Set captureNames = stdRegex.protCaptureNames(This.regex.pattern, nCaptures)
-  nCols = nCaptures + 1
-  state.multiline = This.isMultiline
-  state.dotAll = This.dotAll
-  Do While stdRegex.protStaticRegexMatchNext(state, This.regex, sHaystack, raiseOnLimit:=True)
-    nRows = nRows + 1
-    GrowMatchRows cells, capacity, nRows, nCols
-    offset = (nRows - 1) * nCols
-    For j = 0 To nCols - 1
-      cells(offset + j) = CaptureValue(state.captures, sHaystack, j)
-    Next
-  Loop
-  MatchAllArr = MakeMatchRows(cells, nRows, nCols, 0)
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 '*******************
@@ -882,445 +994,677 @@ End Function
 
 'Build the legacy replacement order once per operation, without match dictionaries.
 Private Sub InitializeListTokens(ByRef tokens() As ListCaptureToken, ByRef count As Long)
-  Dim nNumbered As Long, nNamed As Long, i As Long, entry As Long
-  nNumbered = (This.regex.bytecode(BYTECODE_IDX_MAX_PROPER_CAPTURE_SLOT) + 1) \ 2 - 1
-  nNamed = This.regex.bytecode(BYTECODE_IDX_N_IDENTIFIERS)
-  count = nNumbered + nNamed + 1
-  ReDim tokens(1 To count) As ListCaptureToken
-  For i = 1 To nNumbered + 1
-    tokens(i).text = "$" & (i - 1)
-    tokens(i).number = i - 1
-    tokens(i).namedId = -1
-  Next
-  entry = BYTECODE_IDENTIFIER_MAP_BEGIN
-  For i = nNumbered + 2 To count
-    tokens(i).text = "$" & Mid$(This.regex.pattern, _
-      This.regex.bytecode(entry + BYTECODE_IDENTIFIER_MAP_ENTRY_START_IN_PATTERN), _
-      This.regex.bytecode(entry + BYTECODE_IDENTIFIER_MAP_ENTRY_LENGTH_IN_PATTERN))
-    tokens(i).namedId = This.regex.bytecode(entry + BYTECODE_IDENTIFIER_MAP_ENTRY_ID)
-    entry = entry + BYTECODE_IDENTIFIER_MAP_ENTRY_SIZE
-  Next
+  With stdError.getSentry("stdRegex#InitializeListTokens", "count", count)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim nNumbered As Long, nNamed As Long, i As Long, entry As Long
+      nNumbered = (This.regex.bytecode(BYTECODE_IDX_MAX_PROPER_CAPTURE_SLOT) + 1) \ 2 - 1
+      nNamed = This.regex.bytecode(BYTECODE_IDX_N_IDENTIFIERS)
+      count = nNumbered + nNamed + 1
+      ReDim tokens(1 To count) As ListCaptureToken
+      For i = 1 To nNumbered + 1
+        tokens(i).text = "$" & (i - 1)
+        tokens(i).number = i - 1
+        tokens(i).namedId = -1
+      Next
+      entry = BYTECODE_IDENTIFIER_MAP_BEGIN
+      For i = nNumbered + 2 To count
+        tokens(i).text = "$" & Mid$(This.regex.pattern, _
+          This.regex.bytecode(entry + BYTECODE_IDENTIFIER_MAP_ENTRY_START_IN_PATTERN), _
+          This.regex.bytecode(entry + BYTECODE_IDENTIFIER_MAP_ENTRY_LENGTH_IN_PATTERN))
+        tokens(i).namedId = This.regex.bytecode(entry + BYTECODE_IDENTIFIER_MAP_ENTRY_ID)
+        entry = entry + BYTECODE_IDENTIFIER_MAP_ENTRY_SIZE
+      Next
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Function CaptureValue(ByRef captures As CapturesTy, ByRef haystack As String, ByVal number As Long) As String
-  If number = 0 Then
-    With captures.entireMatch
-      If .start > 0 Then CaptureValue = Mid$(haystack, .start, .length)
-    End With
-  ElseIf number > 0 And number <= captures.nNumberedCaptures Then
-    With captures.numberedCaptures(number - 1)
-      If .start > 0 Then CaptureValue = Mid$(haystack, .start, .length)
-    End With
-  End If
+  With stdError.getSentry("stdRegex#CaptureValue", "haystack", haystack, "number", number)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If number = 0 Then
+        With captures.entireMatch
+          If .start > 0 Then CaptureValue = Mid$(haystack, .start, .length)
+        End With
+      ElseIf number > 0 And number <= captures.nNumberedCaptures Then
+        With captures.numberedCaptures(number - 1)
+          If .start > 0 Then CaptureValue = Mid$(haystack, .start, .length)
+        End With
+      End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 Private Function FormatFromCaptures(ByRef captures As CapturesTy, ByRef haystack As String, _
     ByVal format As String, ByRef tokens() As ListCaptureToken, ByVal count As Long) As String
-  'Retain FormatFromMatch's replacement order, including replacements within inserted text.
-  'The engine's replacement syntax differs from this legacy List/ListArr syntax.
-  format = VBA.Replace(format, "$&", CaptureValue(captures, haystack, 0))
-  format = VBA.Replace(format, "\\", "f934b47b-b799-4f52-9b4c-f170a82b52fe")
-  format = VBA.Replace(format, "\$", "bfde0637-8207-418d-9d34-68ba974e8110")
-  format = VBA.Replace(format, "\r", Chr(13))
-  format = VBA.Replace(format, "\n", Chr(10))
-  format = VBA.Replace(format, "f934b47b-b799-4f52-9b4c-f170a82b52fe", "\")
-
-  Dim i As Long, number As Long
-  For i = 1 To count
-    If InStr(1, format, tokens(i).text, vbBinaryCompare) > 0 Then
-      number = tokens(i).number
-      If tokens(i).namedId >= 0 Then number = captures.namedCaptures(tokens(i).namedId)
-      format = VBA.Replace(format, tokens(i).text, CaptureValue(captures, haystack, number))
-    End If
-  Next
-  FormatFromCaptures = VBA.Replace(format, "bfde0637-8207-418d-9d34-68ba974e8110", "$")
+  With stdError.getSentry("stdRegex#FormatFromCaptures", "haystack", haystack, "_", _, "count", count)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      'Retain FormatFromMatch's replacement order, including replacements within inserted text.
+      'The engine's replacement syntax differs from this legacy List/ListArr syntax.
+      format = VBA.Replace(format, "$&", CaptureValue(captures, haystack, 0))
+      format = VBA.Replace(format, "\\", "f934b47b-b799-4f52-9b4c-f170a82b52fe")
+      format = VBA.Replace(format, "\$", "bfde0637-8207-418d-9d34-68ba974e8110")
+      format = VBA.Replace(format, "\r", Chr(13))
+      format = VBA.Replace(format, "\n", Chr(10))
+      format = VBA.Replace(format, "f934b47b-b799-4f52-9b4c-f170a82b52fe", "\")
+    
+      Dim i As Long, number As Long
+      For i = 1 To count
+        If InStr(1, format, tokens(i).text, vbBinaryCompare) > 0 Then
+          number = tokens(i).number
+          If tokens(i).namedId >= 0 Then number = captures.namedCaptures(tokens(i).namedId)
+          format = VBA.Replace(format, tokens(i).text, CaptureValue(captures, haystack, number))
+        End If
+      Next
+      FormatFromCaptures = VBA.Replace(format, "bfde0637-8207-418d-9d34-68ba974e8110", "$")
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 Private Sub GrowMatchRows(ByRef cells() As Variant, ByRef capacity As Long, ByVal nRows As Long, ByVal nCols As Long)
-  If nRows <= capacity Then Exit Sub
-  If capacity = 0 Then capacity = 16 Else capacity = capacity * 2
-  ReDim Preserve cells(0 To capacity * nCols - 1) As Variant
+  With stdError.getSentry("stdRegex#GrowMatchRows", "capacity", capacity, "nRows", nRows, "nCols", nCols)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If nRows <= capacity Then Exit Sub
+      If capacity = 0 Then capacity = 16 Else capacity = capacity * 2
+      ReDim Preserve cells(0 To capacity * nCols - 1) As Variant
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Function MakeMatchRows(ByRef cells() As Variant, ByVal nRows As Long, ByVal nCols As Long, ByVal firstColumn As Long) As Variant
-  If nRows = 0 Then
-    MakeMatchRows = Array()
+  With stdError.getSentry("stdRegex#MakeMatchRows", "nRows", nRows, "nCols", nCols, "firstColumn", firstColumn)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If nRows = 0 Then
+        MakeMatchRows = Array()
+        Exit Function
+      End If
+      Dim result() As Variant, row As Long, col As Long, offset As Long
+      ReDim result(1 To nRows, firstColumn To firstColumn + nCols - 1) As Variant
+      For row = 1 To nRows
+        offset = (row - 1) * nCols
+        For col = 0 To nCols - 1
+          result(row, firstColumn + col) = cells(offset + col)
+        Next
+      Next
+      MakeMatchRows = result
+    
     Exit Function
-  End If
-  Dim result() As Variant, row As Long, col As Long, offset As Long
-  ReDim result(1 To nRows, firstColumn To firstColumn + nCols - 1) As Variant
-  For row = 1 To nRows
-    offset = (row - 1) * nCols
-    For col = 0 To nCols - 1
-      result(row, firstColumn + col) = cells(offset + col)
-    Next
-  Next
-  MakeMatchRows = result
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Read declarations with the engine lexer, including captures optimized out by {0}.
 'This runs on the predeclared class, which owns the lexer's shared range tables.
 Friend Function protCaptureNames(ByRef pattern As String, ByRef nCaptures As Long) As Object
-  If Not (Me Is stdRegex) Then
-    CriticalRaise "Method called on object not class"
+  With stdError.getSentry("stdRegex#protCaptureNames", "pattern", pattern, "nCaptures", nCaptures)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If Not (Me Is stdRegex) Then
+        CriticalRaise "Method called on object not class"
+        Exit Function
+      End If
+      Dim result As Object, lex As LexerContext, token As ReToken, ranges As ArrayBuffer
+      Dim nRanges As Long, name As String
+      Set result = CreateObject("Scripting.Dictionary")
+      nCaptures = 0
+      Initialize lex, pattern
+      Do
+        ParseReToken lex, token
+        Select Case token.t
+          Case RETOK_EOF
+            Exit Do
+          Case RETOK_ATOM_START_CAPTURE_GROUP
+            nCaptures = nCaptures + 1
+            If token.num >= 0 Then
+              With lex.identifierTree.Buffer(token.num).reference
+                name = Mid$(pattern, .start, .length)
+              End With
+              If Not result.Exists(name) Then result.Add name, nCaptures
+            End If
+          Case RETOK_ATOM_START_CHARCLASS, RETOK_ATOM_START_CHARCLASS_INVERTED
+            ranges.length = 0
+            ParseReRanges lex, ranges, nRanges, False
+        End Select
+      Loop
+      Set protCaptureNames = result
+    
     Exit Function
-  End If
-  Dim result As Object, lex As LexerContext, token As ReToken, ranges As ArrayBuffer
-  Dim nRanges As Long, name As String
-  Set result = CreateObject("Scripting.Dictionary")
-  nCaptures = 0
-  Initialize lex, pattern
-  Do
-    ParseReToken lex, token
-    Select Case token.t
-      Case RETOK_EOF
-        Exit Do
-      Case RETOK_ATOM_START_CAPTURE_GROUP
-        nCaptures = nCaptures + 1
-        If token.num >= 0 Then
-          With lex.identifierTree.Buffer(token.num).reference
-            name = Mid$(pattern, .start, .length)
-          End With
-          If Not result.Exists(name) Then result.Add name, nCaptures
-        End If
-      Case RETOK_ATOM_START_CHARCLASS, RETOK_ATOM_START_CHARCLASS_INVERTED
-        ranges.length = 0
-        ParseReRanges lex, ranges, nRanges, False
-    End Select
-  Loop
-  Set protCaptureNames = result
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Raise an error with the class name as the source
 '@param sMessage - Error message
 Private Sub CriticalRaise(ByVal sMessage As String)
-  Err.Raise 1, "stdRegex", sMessage
+  With stdError.getSentry("stdRegex#CriticalRaise", "sMessage", sMessage)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Err_Raise 1, "stdRegex", sMessage
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Function MakeCapturesDict(ByRef captures As CapturesTy, ByRef sHaystack As String) As Object
-    Dim j As Long, identifier As String, referenced As Long
-    Dim identifierMapEnd As Long, currentEntry As Long
-    Dim oRet As Object
-
-    Set oRet = CreateObject("Scripting.Dictionary")
-
-    With This
-        oRet("$COUNT") = captures.nNumberedCaptures
-
-        With captures.entireMatch
-            If .start > 0 Then oRet(0) = Mid$(sHaystack, .start, .length) Else oRet(0) = vbNullString
-        End With
-        For j = 1 To captures.nNumberedCaptures
-            With captures.numberedCaptures(j - 1)
-                If .start > 0 Then oRet(j) = Mid$(sHaystack, .start, .length) Else oRet(j) = vbNullString
+  With stdError.getSentry("stdRegex#MakeCapturesDict", "sHaystack", sHaystack)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim j As Long, identifier As String, referenced As Long
+        Dim identifierMapEnd As Long, currentEntry As Long
+        Dim oRet As Object
+    
+        Set oRet = CreateObject("Scripting.Dictionary")
+    
+        With This
+            oRet("$COUNT") = captures.nNumberedCaptures
+    
+            With captures.entireMatch
+                If .start > 0 Then oRet(0) = Mid$(sHaystack, .start, .length) Else oRet(0) = vbNullString
             End With
-        Next
-
-        identifierMapEnd = BYTECODE_IDENTIFIER_MAP_BEGIN + _
-            BYTECODE_IDENTIFIER_MAP_ENTRY_SIZE * .regex.bytecode(BYTECODE_IDX_N_IDENTIFIERS)
-        currentEntry = BYTECODE_IDENTIFIER_MAP_BEGIN
-        Do While currentEntry < identifierMapEnd
-            identifier = Mid$( _
-                .regex.pattern, _
-                .regex.bytecode(currentEntry + BYTECODE_IDENTIFIER_MAP_ENTRY_START_IN_PATTERN), _
-                .regex.bytecode(currentEntry + BYTECODE_IDENTIFIER_MAP_ENTRY_LENGTH_IN_PATTERN) _
-            )
-            referenced = captures.namedCaptures( _
-                .regex.bytecode(currentEntry + BYTECODE_IDENTIFIER_MAP_ENTRY_ID) _
-            )
-            If referenced <> -1 Then
-                oRet(identifier) = oRet(referenced)
-            Else
-                oRet(identifier) = vbNullString
-            End If
-            currentEntry = currentEntry + BYTECODE_IDENTIFIER_MAP_ENTRY_SIZE
-        Loop
-    End With
-
-    Set MakeCapturesDict = oRet
+            For j = 1 To captures.nNumberedCaptures
+                With captures.numberedCaptures(j - 1)
+                    If .start > 0 Then oRet(j) = Mid$(sHaystack, .start, .length) Else oRet(j) = vbNullString
+                End With
+            Next
+    
+            identifierMapEnd = BYTECODE_IDENTIFIER_MAP_BEGIN + _
+                BYTECODE_IDENTIFIER_MAP_ENTRY_SIZE * .regex.bytecode(BYTECODE_IDX_N_IDENTIFIERS)
+            currentEntry = BYTECODE_IDENTIFIER_MAP_BEGIN
+            Do While currentEntry < identifierMapEnd
+                identifier = Mid$( _
+                    .regex.pattern, _
+                    .regex.bytecode(currentEntry + BYTECODE_IDENTIFIER_MAP_ENTRY_START_IN_PATTERN), _
+                    .regex.bytecode(currentEntry + BYTECODE_IDENTIFIER_MAP_ENTRY_LENGTH_IN_PATTERN) _
+                )
+                referenced = captures.namedCaptures( _
+                    .regex.bytecode(currentEntry + BYTECODE_IDENTIFIER_MAP_ENTRY_ID) _
+                )
+                If referenced <> -1 Then
+                    oRet(identifier) = oRet(referenced)
+                Else
+                    oRet(identifier) = vbNullString
+                End If
+                currentEntry = currentEntry + BYTECODE_IDENTIFIER_MAP_ENTRY_SIZE
+            Loop
+        End With
+    
+        Set MakeCapturesDict = oRet
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Apply the legacy x (spaces) and c (line comments) flags without using regex COM.
 'Escaped characters and character classes are copied unchanged.
 Private Function PreparePattern(ByVal pattern As String, ByVal flags As String) As String
-  Dim i As Long, ch As String, inClass As Boolean, result As String
-  Dim ignoreSpaces As Boolean, ignoreComments As Boolean
-  ignoreSpaces = InStr(flags, "x") > 0
-  ignoreComments = InStr(flags, "c") > 0
-  i = 1
-  Do While i <= Len(pattern)
-    ch = Mid$(pattern, i, 1)
-    If ch = "\" Then
-      result = result & Mid$(pattern, i, 2)
-      i = i + 2
-    ElseIf ch = "#" And ignoreComments And Not inClass Then
+  With stdError.getSentry("stdRegex#PreparePattern", "pattern", pattern, "flags", flags)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim i As Long, ch As String, inClass As Boolean, result As String
+      Dim ignoreSpaces As Boolean, ignoreComments As Boolean
+      ignoreSpaces = InStr(flags, "x") > 0
+      ignoreComments = InStr(flags, "c") > 0
+      i = 1
       Do While i <= Len(pattern)
-        If Mid$(pattern, i, 1) = vbCr Or Mid$(pattern, i, 1) = vbLf Then Exit Do
-        i = i + 1
+        ch = Mid$(pattern, i, 1)
+        If ch = "\" Then
+          result = result & Mid$(pattern, i, 2)
+          i = i + 2
+        ElseIf ch = "#" And ignoreComments And Not inClass Then
+          Do While i <= Len(pattern)
+            If Mid$(pattern, i, 1) = vbCr Or Mid$(pattern, i, 1) = vbLf Then Exit Do
+            i = i + 1
+          Loop
+        Else
+          If ch = "[" Then inClass = True
+          If ch = "]" Then inClass = False
+          If Not (ch = " " And ignoreSpaces And Not inClass) Then result = result & ch
+          i = i + 1
+        End If
       Loop
-    Else
-      If ch = "[" Then inClass = True
-      If ch = "]" Then inClass = False
-      If Not (ch = " " And ignoreSpaces And Not inClass) Then result = result & ch
-      i = i + 1
-    End If
-  Loop
-  PreparePattern = result
+      PreparePattern = result
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 'Translate legacy $name references to the engine's $<name> syntax in one pass.
 'A doubled dollar is already escaped; literal dollar signs remain literal.
 Private Function PrepareReplacement(ByVal format As String) As String
-  Dim i As Long, j As Long, ch As String, name As String, result As String
-  i = 1
-  Do While i <= Len(format)
-    ch = Mid$(format, i, 1)
-    If ch <> "$" Then
-      result = result & ch
-      i = i + 1
-    Else
-      ch = Mid$(format, i + 1, 1)
-      Select Case ch
-        Case "$", "&", "`", "'", "<", "~", "0" To "9"
-          result = result & "$" & ch
-          i = i + 2
-        Case Else
-          j = i + 1
-          Do While j <= Len(format)
-            ch = Mid$(format, j, 1)
-            If Not (ch Like "[A-Za-z0-9_]") Then Exit Do
-            j = j + 1
-          Loop
-          name = Mid$(format, i + 1, j - i - 1)
-          If Len(name) > 0 Then
-            If GetIdentifierId(This.regex.bytecode, This.regex.pattern, name) >= 0 Then
-              result = result & "$<" & name & ">"
-            Else
-              result = result & "$$" & name
-            End If
-          Else
-            result = result & "$$"
-          End If
-          i = j
-      End Select
-    End If
-  Loop
-  PrepareReplacement = result
+  With stdError.getSentry("stdRegex#PrepareReplacement", "format", format)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim i As Long, j As Long, ch As String, name As String, result As String
+      i = 1
+      Do While i <= Len(format)
+        ch = Mid$(format, i, 1)
+        If ch <> "$" Then
+          result = result & ch
+          i = i + 1
+        Else
+          ch = Mid$(format, i + 1, 1)
+          Select Case ch
+            Case "$", "&", "`", "'", "<", "~", "0" To "9"
+              result = result & "$" & ch
+              i = i + 2
+            Case Else
+              j = i + 1
+              Do While j <= Len(format)
+                ch = Mid$(format, j, 1)
+                If Not (ch Like "[A-Za-z0-9_]") Then Exit Do
+                j = j + 1
+              Loop
+              name = Mid$(format, i + 1, j - i - 1)
+              If Len(name) > 0 Then
+                If GetIdentifierId(This.regex.bytecode, This.regex.pattern, name) >= 0 Then
+                  result = result & "$<" & name & ">"
+                Else
+                  result = result & "$$" & name
+                End If
+              Else
+                result = result & "$$"
+              End If
+              i = j
+          End Select
+        End If
+      Loop
+      PrepareReplacement = result
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 Private Sub AppendStr(ByRef sb As StaticStringBuilder, ByRef s As String)
-    Dim Length As Long, nRequired As Long
-    With sb
-        Length = Len(s)
-        If Length = 0 Then Exit Sub
-        nRequired = .Length + Length
-        If nRequired > .Capacity Then SwitchToLargerBuffer sb, nRequired
-        Mid$(.Buffer(.Active), .Length + 1, Length) = s
-        .Length = nRequired
-    End With
+  With stdError.getSentry("stdRegex#AppendStr", "s", s)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim Length As Long, nRequired As Long
+        With sb
+            Length = Len(s)
+            If Length = 0 Then Exit Sub
+            nRequired = .Length + Length
+            If nRequired > .Capacity Then SwitchToLargerBuffer sb, nRequired
+            Mid$(.Buffer(.Active), .Length + 1, Length) = s
+            .Length = nRequired
+        End With
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Sub Clear(ByRef sb As StaticStringBuilder)
-    With sb
-        .Active = 0
-        .Buffer(0) = vbNullString
-        .Buffer(1) = vbNullString
-        .Capacity = 0
-        .Length = 0
-    End With
+  With stdError.getSentry("stdRegex#Clear")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        With sb
+            .Active = 0
+            .Buffer(0) = vbNullString
+            .Buffer(1) = vbNullString
+            .Capacity = 0
+            .Length = 0
+        End With
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Function GetLength(ByRef sb As StaticStringBuilder) As Long
-    GetLength = sb.Length
+  With stdError.getSentry("stdRegex#GetLength")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        GetLength = sb.Length
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 Private Function GetStr(ByRef sb As StaticStringBuilder) As String
-    With sb
-        GetStr = Left$(.Buffer(.Active), .Length)
-    End With
+  With stdError.getSentry("stdRegex#GetStr")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        With sb
+            GetStr = Left$(.Buffer(.Active), .Length)
+        End With
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 Private Function GetSubstr(ByRef sb As StaticStringBuilder, ByVal start As Long, ByVal Length As Long) As String
-    Dim n As Long
-    With sb
-        n = .Length - start + 1
-        If n <= 0 Then
-            GetSubstr = vbNullString
-            Exit Function
-        End If
-        If Length <= n Then n = Length
-        GetSubstr = Mid$(.Buffer(.Active), start, n)
-    End With
+  With stdError.getSentry("stdRegex#GetSubstr", "start", start, "Length", Length)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim n As Long
+        With sb
+            n = .Length - start + 1
+            If n <= 0 Then
+                GetSubstr = vbNullString
+                Exit Function
+            End If
+            If Length <= n Then n = Length
+            GetSubstr = Mid$(.Buffer(.Active), start, n)
+        End With
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 Private Sub SetMinimumCapacity(ByRef sb As StaticStringBuilder, ByVal MinimumCapacity As Long)
-    If MinimumCapacity >= 2 Then sb.MinimumCapacity = MinimumCapacity Else sb.MinimumCapacity = 2
+  With stdError.getSentry("stdRegex#SetMinimumCapacity", "MinimumCapacity", MinimumCapacity)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        If MinimumCapacity >= 2 Then sb.MinimumCapacity = MinimumCapacity Else sb.MinimumCapacity = 2
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Sub SwitchToLargerBuffer(ByRef sb As StaticStringBuilder, ByVal nRequired As Long)
-    ' Allocate buffer that is able to hold nRequired characters.
-    ' The new buffer size is calculated by repeatedly growing the current size by 50%.
-    ' Copy string over to the new buffer.
-    ' Deallocate the old buffer.
-    With sb
-        If .MinimumCapacity <= 1 Then .MinimumCapacity = STATIC_STRING_BUILDER_DEFAULT_MINIMUM_CAPACITY
-        If .Capacity < .MinimumCapacity Then .Capacity = .MinimumCapacity
-        Do
-            If .Capacity >= nRequired Then Exit Do
-            .Capacity = .Capacity + .Capacity \ 2
-        Loop
-        .Buffer(1 - .Active) = String(.Capacity, 0)
-        Mid$(.Buffer(1 - .Active), 1, .Length) = .Buffer(.Active)
-        .Buffer(.Active) = vbNullString
-        .Active = 1 - .Active
-    End With
+  With stdError.getSentry("stdRegex#SwitchToLargerBuffer", "nRequired", nRequired)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        ' Allocate buffer that is able to hold nRequired characters.
+        ' The new buffer size is calculated by repeatedly growing the current size by 50%.
+        ' Copy string over to the new buffer.
+        ' Deallocate the old buffer.
+        With sb
+            If .MinimumCapacity <= 1 Then .MinimumCapacity = STATIC_STRING_BUILDER_DEFAULT_MINIMUM_CAPACITY
+            If .Capacity < .MinimumCapacity Then .Capacity = .MinimumCapacity
+            Do
+                If .Capacity >= nRequired Then Exit Do
+                .Capacity = .Capacity + .Capacity \ 2
+            Loop
+            .Buffer(1 - .Active) = String(.Capacity, 0)
+            Mid$(.Buffer(1 - .Active), 1, .Length) = .Buffer(.Active)
+            .Buffer(.Active) = vbNullString
+            .Active = 1 - .Active
+        End With
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Sub AppendLong(ByRef lab As ArrayBuffer, ByVal v As Long)
-    Dim requiredCapacity As Long
-    With lab
-        requiredCapacity = .Length + 1
-        If requiredCapacity > .Capacity Then IncreaseCapacity lab, requiredCapacity
-        .Buffer(.Length) = v
-        .Length = requiredCapacity
-    End With
+  With stdError.getSentry("stdRegex#AppendLong", "v", v)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim requiredCapacity As Long
+        With lab
+            requiredCapacity = .Length + 1
+            If requiredCapacity > .Capacity Then IncreaseCapacity lab, requiredCapacity
+            .Buffer(.Length) = v
+            .Length = requiredCapacity
+        End With
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Sub AppendTwo(ByRef lab As ArrayBuffer, ByVal v1 As Long, ByVal v2 As Long)
-    Dim requiredCapacity As Long
-    With lab
-        requiredCapacity = .Length + 2
-        If requiredCapacity > .Capacity Then IncreaseCapacity lab, requiredCapacity
-        .Buffer(.Length) = v1
-        .Buffer(.Length + 1) = v2
-        .Length = requiredCapacity
-    End With
+  With stdError.getSentry("stdRegex#AppendTwo", "v1", v1, "v2", v2)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim requiredCapacity As Long
+        With lab
+            requiredCapacity = .Length + 2
+            If requiredCapacity > .Capacity Then IncreaseCapacity lab, requiredCapacity
+            .Buffer(.Length) = v1
+            .Buffer(.Length + 1) = v2
+            .Length = requiredCapacity
+        End With
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Sub AppendThree(ByRef lab As ArrayBuffer, ByVal v1 As Long, ByVal v2 As Long, ByVal v3 As Long)
-    Dim requiredCapacity As Long
-    With lab
-        requiredCapacity = .Length + 3
-        If requiredCapacity > .Capacity Then IncreaseCapacity lab, requiredCapacity
-        .Buffer(.Length) = v1
-        .Buffer(.Length + 1) = v2
-        .Buffer(.Length + 2) = v3
-        .Length = requiredCapacity
-    End With
+  With stdError.getSentry("stdRegex#AppendThree", "v1", v1, "v2", v2, "v3", v3)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim requiredCapacity As Long
+        With lab
+            requiredCapacity = .Length + 3
+            If requiredCapacity > .Capacity Then IncreaseCapacity lab, requiredCapacity
+            .Buffer(.Length) = v1
+            .Buffer(.Length + 1) = v2
+            .Buffer(.Length + 2) = v3
+            .Length = requiredCapacity
+        End With
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Sub AppendFour(ByRef lab As ArrayBuffer, ByVal v1 As Long, ByVal v2 As Long, ByVal v3 As Long, ByVal v4 As Long)
-    Dim requiredCapacity As Long
-    With lab
-        requiredCapacity = .Length + 4
-        If requiredCapacity > .Capacity Then IncreaseCapacity lab, requiredCapacity
-        .Buffer(.Length) = v1
-        .Buffer(.Length + 1) = v2
-        .Buffer(.Length + 2) = v3
-        .Buffer(.Length + 3) = v4
-        .Length = requiredCapacity
-    End With
+  With stdError.getSentry("stdRegex#AppendFour", "v1", v1, "v2", v2, "v3", v3, "v4", v4)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim requiredCapacity As Long
+        With lab
+            requiredCapacity = .Length + 4
+            If requiredCapacity > .Capacity Then IncreaseCapacity lab, requiredCapacity
+            .Buffer(.Length) = v1
+            .Buffer(.Length + 1) = v2
+            .Buffer(.Length + 2) = v3
+            .Buffer(.Length + 3) = v4
+            .Length = requiredCapacity
+        End With
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Sub AppendFive(ByRef lab As ArrayBuffer, ByVal v1 As Long, ByVal v2 As Long, ByVal v3 As Long, ByVal v4 As Long, v5 As Long)
-    Dim requiredCapacity As Long
-    With lab
-        requiredCapacity = .Length + 5
-        If requiredCapacity > .Capacity Then IncreaseCapacity lab, requiredCapacity
-        .Buffer(.Length) = v1
-        .Buffer(.Length + 1) = v2
-        .Buffer(.Length + 2) = v3
-        .Buffer(.Length + 3) = v4
-        .Buffer(.Length + 4) = v5
-        .Length = requiredCapacity
-    End With
+  With stdError.getSentry("stdRegex#AppendFive", "v1", v1, "v2", v2, "v3", v3, "v4", v4, "v5", v5)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim requiredCapacity As Long
+        With lab
+            requiredCapacity = .Length + 5
+            If requiredCapacity > .Capacity Then IncreaseCapacity lab, requiredCapacity
+            .Buffer(.Length) = v1
+            .Buffer(.Length + 1) = v2
+            .Buffer(.Length + 2) = v3
+            .Buffer(.Length + 3) = v4
+            .Buffer(.Length + 4) = v5
+            .Length = requiredCapacity
+        End With
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Sub AppendEight(ByRef lab As ArrayBuffer, ByVal v1 As Long, ByVal v2 As Long, ByVal v3 As Long, ByVal v4 As Long, v5 As Long, v6 As Long, v7 As Long, v8 As Long)
-    Dim requiredCapacity As Long
-    With lab
-        requiredCapacity = .Length + 8
-        If requiredCapacity > .Capacity Then IncreaseCapacity lab, requiredCapacity
-        .Buffer(.Length) = v1
-        .Buffer(.Length + 1) = v2
-        .Buffer(.Length + 2) = v3
-        .Buffer(.Length + 3) = v4
-        .Buffer(.Length + 4) = v5
-        .Buffer(.Length + 5) = v6
-        .Buffer(.Length + 6) = v7
-        .Buffer(.Length + 7) = v8
-        .Length = requiredCapacity
-    End With
+  With stdError.getSentry("stdRegex#AppendEight", "v1", v1, "v2", v2, "v3", v3, "v4", v4, "v5", v5, "v6", v6, "v7", v7, "v8", v8)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim requiredCapacity As Long
+        With lab
+            requiredCapacity = .Length + 8
+            If requiredCapacity > .Capacity Then IncreaseCapacity lab, requiredCapacity
+            .Buffer(.Length) = v1
+            .Buffer(.Length + 1) = v2
+            .Buffer(.Length + 2) = v3
+            .Buffer(.Length + 3) = v4
+            .Buffer(.Length + 4) = v5
+            .Buffer(.Length + 5) = v6
+            .Buffer(.Length + 6) = v7
+            .Buffer(.Length + 7) = v8
+            .Length = requiredCapacity
+        End With
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Sub AppendFill(ByRef lab As ArrayBuffer, ByVal cnt As Long, ByVal v As Long)
-    Dim requiredCapacity As Long, i As Long
-    With lab
-        requiredCapacity = .Length + cnt
-        If requiredCapacity > .Capacity Then IncreaseCapacity lab, requiredCapacity
-        i = .Length
-        Do While i < requiredCapacity: .Buffer(i) = v: i = i + 1: Loop
-        .Length = requiredCapacity
-    End With
+  With stdError.getSentry("stdRegex#AppendFill", "cnt", cnt, "v", v)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim requiredCapacity As Long, i As Long
+        With lab
+            requiredCapacity = .Length + cnt
+            If requiredCapacity > .Capacity Then IncreaseCapacity lab, requiredCapacity
+            i = .Length
+            Do While i < requiredCapacity: .Buffer(i) = v: i = i + 1: Loop
+            .Length = requiredCapacity
+        End With
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Sub AppendSlice(ByRef lab As ArrayBuffer, ByVal offset As Long, ByVal Length As Long)
-    Dim requiredCapacity As Long, i As Long, j As Long, upper As Long
-    With lab
-        requiredCapacity = .Length + Length
-        If requiredCapacity > .Capacity Then IncreaseCapacity lab, requiredCapacity
-        upper = offset + Length: i = offset: j = .Length
-        Do While i < upper
-            .Buffer(j) = .Buffer(i)
-            i = i + 1: j = j + 1
-        Loop
-        .Length = requiredCapacity
-    End With
+  With stdError.getSentry("stdRegex#AppendSlice", "offset", offset, "Length", Length)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim requiredCapacity As Long, i As Long, j As Long, upper As Long
+        With lab
+            requiredCapacity = .Length + Length
+            If requiredCapacity > .Capacity Then IncreaseCapacity lab, requiredCapacity
+            upper = offset + Length: i = offset: j = .Length
+            Do While i < upper
+                .Buffer(j) = .Buffer(i)
+                i = i + 1: j = j + 1
+            Loop
+            .Length = requiredCapacity
+        End With
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Sub AppendUnspecified(ByRef lab As ArrayBuffer, ByVal n As Long)
-    Dim requiredCapacity As Long
-    With lab
-        .Length = .Length + n
-        requiredCapacity = .Length
-        If requiredCapacity > .Capacity Then IncreaseCapacity lab, requiredCapacity
-    End With
+  With stdError.getSentry("stdRegex#AppendUnspecified", "n", n)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim requiredCapacity As Long
+        With lab
+            .Length = .Length + n
+            requiredCapacity = .Length
+            If requiredCapacity > .Capacity Then IncreaseCapacity lab, requiredCapacity
+        End With
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Sub AppendPrefixedPairsArray(ByRef lab As ArrayBuffer, ByVal prefix As Long, ByRef ary() As Long, ByVal aryStart As Long, ByVal aryLength As Long)
-    ' prefix, number of pairs, pairs
-    Dim requiredCapacity As Long, ub As Long, i As Long, j As Long
-    With lab
-        i = .Length
-        .Length = .Length + aryLength + 2
-        requiredCapacity = .Length
-        If requiredCapacity > .Capacity Then IncreaseCapacity lab, requiredCapacity
-
-        .Buffer(i) = prefix: i = i + 1
-        .Buffer(i) = aryLength \ 2: i = i + 1
-        ub = aryStart + aryLength - 1
-        For j = aryStart To ub
-            .Buffer(i) = ary(j)
-            i = i + 1
-        Next
-    End With
+  With stdError.getSentry("stdRegex#AppendPrefixedPairsArray", "prefix", prefix, "aryStart", aryStart, "aryLength", aryLength)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        ' prefix, number of pairs, pairs
+        Dim requiredCapacity As Long, ub As Long, i As Long, j As Long
+        With lab
+            i = .Length
+            .Length = .Length + aryLength + 2
+            requiredCapacity = .Length
+            If requiredCapacity > .Capacity Then IncreaseCapacity lab, requiredCapacity
+    
+            .Buffer(i) = prefix: i = i + 1
+            .Buffer(i) = aryLength \ 2: i = i + 1
+            ub = aryStart + aryLength - 1
+            For j = aryStart To ub
+                .Buffer(i) = ary(j)
+                i = i + 1
+            Next
+        End With
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Sub IncreaseCapacity(ByRef lab As ArrayBuffer, requiredCapacity As Long)
-    Dim cap As Long
-    With lab
-        cap = .Capacity
-        If cap <= ArrayBufferConstant.ARRAY_BUFFER_MINIMUM_CAPACITY Then cap = ArrayBufferConstant.ARRAY_BUFFER_MINIMUM_CAPACITY
-        Do Until cap >= requiredCapacity
-            cap = cap + cap \ 2
-        Loop
-        ReDim Preserve .Buffer(0 To cap - 1) As Long
-        .Capacity = cap
-    End With
+  With stdError.getSentry("stdRegex#IncreaseCapacity", "requiredCapacity", requiredCapacity)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim cap As Long
+        With lab
+            cap = .Capacity
+            If cap <= ArrayBufferConstant.ARRAY_BUFFER_MINIMUM_CAPACITY Then cap = ArrayBufferConstant.ARRAY_BUFFER_MINIMUM_CAPACITY
+            Do Until cap >= requiredCapacity
+                cap = cap + cap \ 2
+            Loop
+            ReDim Preserve .Buffer(0 To cap - 1) As Long
+            .Capacity = cap
+        End With
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Function isCaseInsensitive(ByRef bytecode() As Long) As Boolean
-    isCaseInsensitive = bytecode(BYTECODE_IDX_CASE_INSENSITIVE_INDICATOR) <> 0
+  With stdError.getSentry("stdRegex#isCaseInsensitive")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        isCaseInsensitive = bytecode(BYTECODE_IDX_CASE_INSENSITIVE_INDICATOR) <> 0
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 Private Function GetIdentifierId( _
@@ -1328,1269 +1672,1381 @@ Private Function GetIdentifierId( _
     ByRef lake As String, _
     ByRef identifier As String _
 ) As Long
-    Dim aa As Long, bb As Long, mm As Long, compare As Long, identifierLength As Long
-
-    identifierLength = Len(identifier)
-
-    aa = BYTECODE_IDENTIFIER_MAP_BEGIN
-    bb = BYTECODE_IDENTIFIER_MAP_BEGIN + BYTECODE_IDENTIFIER_MAP_ENTRY_SIZE * bytecode(BYTECODE_IDX_N_IDENTIFIERS)
-
-    ' Find numeric id for identifier name.
-    ' We are doing a binary search here.
-    ' Invariant: Value we are looking for, if it exists, is always contained in the interval [aa;bb).
-    Do
-        If aa >= bb Then GetIdentifierId = -1: Exit Function ' identifier not found
-
-        mm = aa + 3 * ((bb - aa) \ 6)
-        If identifierLength < bytecode(mm + 1) Then
-            bb = mm
-        ElseIf identifierLength > bytecode(mm + 1) Then
-            aa = mm + 3
-        Else
-            compare = StrComp( _
-                identifier, _
-                Mid$(lake, bytecode(mm), bytecode(mm + 1)), _
-                vbBinaryCompare _
-            )
-            If compare < 0 Then
+  With stdError.getSentry("stdRegex#GetIdentifierId", "_", _, "_", _, "_", _)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim aa As Long, bb As Long, mm As Long, compare As Long, identifierLength As Long
+    
+        identifierLength = Len(identifier)
+    
+        aa = BYTECODE_IDENTIFIER_MAP_BEGIN
+        bb = BYTECODE_IDENTIFIER_MAP_BEGIN + BYTECODE_IDENTIFIER_MAP_ENTRY_SIZE * bytecode(BYTECODE_IDX_N_IDENTIFIERS)
+    
+        ' Find numeric id for identifier name.
+        ' We are doing a binary search here.
+        ' Invariant: Value we are looking for, if it exists, is always contained in the interval [aa;bb).
+        Do
+            If aa >= bb Then GetIdentifierId = -1: Exit Function ' identifier not found
+    
+            mm = aa + 3 * ((bb - aa) \ 6)
+            If identifierLength < bytecode(mm + 1) Then
                 bb = mm
-            ElseIf compare > 0 Then
+            ElseIf identifierLength > bytecode(mm + 1) Then
                 aa = mm + 3
             Else
-                ' found
-                GetIdentifierId = bytecode(mm + 2)
-                Exit Function
+                compare = StrComp( _
+                    identifier, _
+                    Mid$(lake, bytecode(mm), bytecode(mm + 1)), _
+                    vbBinaryCompare _
+                )
+                If compare < 0 Then
+                    bb = mm
+                ElseIf compare > 0 Then
+                    aa = mm + 3
+                Else
+                    ' found
+                    GetIdentifierId = bytecode(mm + 2)
+                    Exit Function
+                End If
             End If
-        End If
-    Loop
-
+        Loop
+    
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 Private Sub InitializeAstTable(ByRef t() As Long)
-    Const b As Long = AST_TABLE_START
-    Const nc As Long = b + AST_TABLE_OFFSET_NC
-    Const blen As Long = b + AST_TABLE_OFFSET_BLEN
-    Const esfs As Long = b + AST_TABLE_OFFSET_ESFS
-    Const e As Long = AST_TABLE_ENTRY_LENGTH
-
-    ' nc: number of children; negative values have special meaning
-    '   -2: is AST_STRING
-    '   -1: is AST_RANGES or AST_INVRANGES
-    ' blen: length of bytecode generated for this node (meaningful only if .nc >= 0)
-    ' esfs: extra stack space required when generating bytecode for this node
-    '   Only nodes with children are permitted to require extra stack space.
-    '   Hence .esfs > 0 must imply .nc >= 1.
-
-    ' ! When adding new entries, make sure to adjust BYTECODE_GENERATOR_INITIAL_STACK_CAPACITY below, if necessary!
-    ' ! See comment on BYTECODE_GENERATOR_INITIAL_STACK_CAPACITY below.
-
-    t(nc + e * AST_EMPTY) = 0:                    t(blen + e * AST_EMPTY) = 0:                        t(esfs + e * AST_EMPTY) = 0
-    t(nc + e * AST_STRING) = -2:                  t(blen + e * AST_STRING) = 2:                       t(esfs + e * AST_STRING) = 0
-    t(nc + e * AST_DISJ) = 2:                     t(blen + e * AST_DISJ) = 4:                         t(esfs + e * AST_DISJ) = 1
-    t(nc + e * AST_CONCAT) = 2:                   t(blen + e * AST_CONCAT) = 0:                       t(esfs + e * AST_CONCAT) = 0
-    t(nc + e * AST_CHAR) = 0:                     t(blen + e * AST_CHAR) = 2:                         t(esfs + e * AST_CHAR) = 0
-    t(nc + e * AST_CAPTURE) = 1:                  t(blen + e * AST_CAPTURE) = 4:                      t(esfs + e * AST_CAPTURE) = 0
-    t(nc + e * AST_REPEAT_EXACTLY) = 1:           t(blen + e * AST_REPEAT_EXACTLY) = 7:               t(esfs + e * AST_REPEAT_EXACTLY) = 1
-    t(nc + e * AST_PERIOD) = 0:                   t(blen + e * AST_PERIOD) = 1:                       t(esfs + e * AST_PERIOD) = 0
-    t(nc + e * AST_ASSERT_START) = 0:             t(blen + e * AST_ASSERT_START) = 1:                 t(esfs + e * AST_ASSERT_START) = 0
-    t(nc + e * AST_ASSERT_END) = 0:               t(blen + e * AST_ASSERT_END) = 1:                   t(esfs + e * AST_ASSERT_END) = 0
-    t(nc + e * AST_ASSERT_WORD_BOUNDARY) = 0:     t(blen + e * AST_ASSERT_WORD_BOUNDARY) = 1:         t(esfs + e * AST_ASSERT_WORD_BOUNDARY) = 0
-    t(nc + e * AST_ASSERT_NOT_WORD_BOUNDARY) = 0: t(blen + e * AST_ASSERT_NOT_WORD_BOUNDARY) = 1:     t(esfs + e * AST_ASSERT_NOT_WORD_BOUNDARY) = 0
-    t(nc + e * AST_MATCH) = 0:                    t(blen + e * AST_MATCH) = 1:                        t(esfs + e * AST_MATCH) = 0
-    t(nc + e * AST_ZEROONE_GREEDY) = 1:           t(blen + e * AST_ZEROONE_GREEDY) = 2:               t(esfs + e * AST_ZEROONE_GREEDY) = 1
-    t(nc + e * AST_ZEROONE_HUMBLE) = 1:           t(blen + e * AST_ZEROONE_HUMBLE) = 2:               t(esfs + e * AST_ZEROONE_HUMBLE) = 1
-    t(nc + e * AST_STAR_GREEDY) = 1:              t(blen + e * AST_STAR_GREEDY) = 4:                  t(esfs + e * AST_STAR_GREEDY) = 1
-    t(nc + e * AST_STAR_HUMBLE) = 1:              t(blen + e * AST_STAR_HUMBLE) = 4:                  t(esfs + e * AST_STAR_HUMBLE) = 1
-    t(nc + e * AST_REPEAT_MAX_GREEDY) = 1:        t(blen + e * AST_REPEAT_MAX_GREEDY) = 7:            t(esfs + e * AST_REPEAT_MAX_GREEDY) = 1
-    t(nc + e * AST_REPEAT_MAX_HUMBLE) = 1:        t(blen + e * AST_REPEAT_MAX_HUMBLE) = 7:            t(esfs + e * AST_REPEAT_MAX_HUMBLE) = 1
-    t(nc + e * AST_RANGES) = -1:                  t(blen + e * AST_RANGES) = 2:                       t(esfs + e * AST_RANGES) = 0
-    t(nc + e * AST_INVRANGES) = -1:               t(blen + e * AST_INVRANGES) = 2:                    t(esfs + e * AST_INVRANGES) = 0
-    t(nc + e * AST_ASSERT_POS_LOOKAHEAD) = 1:     t(blen + e * AST_ASSERT_POS_LOOKAHEAD) = 4:         t(esfs + e * AST_ASSERT_POS_LOOKAHEAD) = 2
-    t(nc + e * AST_ASSERT_NEG_LOOKAHEAD) = 1:     t(blen + e * AST_ASSERT_NEG_LOOKAHEAD) = 4:         t(esfs + e * AST_ASSERT_NEG_LOOKAHEAD) = 2
-    t(nc + e * AST_ASSERT_POS_LOOKBEHIND) = 1:    t(blen + e * AST_ASSERT_POS_LOOKBEHIND) = 4:        t(esfs + e * AST_ASSERT_POS_LOOKBEHIND) = 2
-    t(nc + e * AST_ASSERT_NEG_LOOKBEHIND) = 1:    t(blen + e * AST_ASSERT_NEG_LOOKBEHIND) = 4:        t(esfs + e * AST_ASSERT_NEG_LOOKBEHIND) = 2
-    t(nc + e * AST_FAIL) = 0:                     t(blen + e * AST_FAIL) = 1:                         t(esfs + e * AST_FAIL) = 0
-    t(nc + e * AST_BACKREFERENCE) = 0:            t(blen + e * AST_BACKREFERENCE) = 2:                t(esfs + e * AST_BACKREFERENCE) = 0
-    t(nc + e * AST_NAMED) = 1:                    t(blen + e * AST_NAMED) = 3:                        t(esfs + e * AST_NAMED) = 0
-    t(nc + e * AST_MODIFIER_SCOPE) = 1:           t(blen + e * AST_MODIFIER_SCOPE) = 0:               t(esfs + e * AST_MODIFIER_SCOPE) = 1
+  With stdError.getSentry("stdRegex#InitializeAstTable")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Const b As Long = AST_TABLE_START
+        Const nc As Long = b + AST_TABLE_OFFSET_NC
+        Const blen As Long = b + AST_TABLE_OFFSET_BLEN
+        Const esfs As Long = b + AST_TABLE_OFFSET_ESFS
+        Const e As Long = AST_TABLE_ENTRY_LENGTH
+    
+        ' nc: number of children; negative values have special meaning
+        '   -2: is AST_STRING
+        '   -1: is AST_RANGES or AST_INVRANGES
+        ' blen: length of bytecode generated for this node (meaningful only if .nc >= 0)
+        ' esfs: extra stack space required when generating bytecode for this node
+        '   Only nodes with children are permitted to require extra stack space.
+        '   Hence .esfs > 0 must imply .nc >= 1.
+    
+        ' ! When adding new entries, make sure to adjust BYTECODE_GENERATOR_INITIAL_STACK_CAPACITY below, if necessary!
+        ' ! See comment on BYTECODE_GENERATOR_INITIAL_STACK_CAPACITY below.
+    
+        t(nc + e * AST_EMPTY) = 0:                    t(blen + e * AST_EMPTY) = 0:                        t(esfs + e * AST_EMPTY) = 0
+        t(nc + e * AST_STRING) = -2:                  t(blen + e * AST_STRING) = 2:                       t(esfs + e * AST_STRING) = 0
+        t(nc + e * AST_DISJ) = 2:                     t(blen + e * AST_DISJ) = 4:                         t(esfs + e * AST_DISJ) = 1
+        t(nc + e * AST_CONCAT) = 2:                   t(blen + e * AST_CONCAT) = 0:                       t(esfs + e * AST_CONCAT) = 0
+        t(nc + e * AST_CHAR) = 0:                     t(blen + e * AST_CHAR) = 2:                         t(esfs + e * AST_CHAR) = 0
+        t(nc + e * AST_CAPTURE) = 1:                  t(blen + e * AST_CAPTURE) = 4:                      t(esfs + e * AST_CAPTURE) = 0
+        t(nc + e * AST_REPEAT_EXACTLY) = 1:           t(blen + e * AST_REPEAT_EXACTLY) = 7:               t(esfs + e * AST_REPEAT_EXACTLY) = 1
+        t(nc + e * AST_PERIOD) = 0:                   t(blen + e * AST_PERIOD) = 1:                       t(esfs + e * AST_PERIOD) = 0
+        t(nc + e * AST_ASSERT_START) = 0:             t(blen + e * AST_ASSERT_START) = 1:                 t(esfs + e * AST_ASSERT_START) = 0
+        t(nc + e * AST_ASSERT_END) = 0:               t(blen + e * AST_ASSERT_END) = 1:                   t(esfs + e * AST_ASSERT_END) = 0
+        t(nc + e * AST_ASSERT_WORD_BOUNDARY) = 0:     t(blen + e * AST_ASSERT_WORD_BOUNDARY) = 1:         t(esfs + e * AST_ASSERT_WORD_BOUNDARY) = 0
+        t(nc + e * AST_ASSERT_NOT_WORD_BOUNDARY) = 0: t(blen + e * AST_ASSERT_NOT_WORD_BOUNDARY) = 1:     t(esfs + e * AST_ASSERT_NOT_WORD_BOUNDARY) = 0
+        t(nc + e * AST_MATCH) = 0:                    t(blen + e * AST_MATCH) = 1:                        t(esfs + e * AST_MATCH) = 0
+        t(nc + e * AST_ZEROONE_GREEDY) = 1:           t(blen + e * AST_ZEROONE_GREEDY) = 2:               t(esfs + e * AST_ZEROONE_GREEDY) = 1
+        t(nc + e * AST_ZEROONE_HUMBLE) = 1:           t(blen + e * AST_ZEROONE_HUMBLE) = 2:               t(esfs + e * AST_ZEROONE_HUMBLE) = 1
+        t(nc + e * AST_STAR_GREEDY) = 1:              t(blen + e * AST_STAR_GREEDY) = 4:                  t(esfs + e * AST_STAR_GREEDY) = 1
+        t(nc + e * AST_STAR_HUMBLE) = 1:              t(blen + e * AST_STAR_HUMBLE) = 4:                  t(esfs + e * AST_STAR_HUMBLE) = 1
+        t(nc + e * AST_REPEAT_MAX_GREEDY) = 1:        t(blen + e * AST_REPEAT_MAX_GREEDY) = 7:            t(esfs + e * AST_REPEAT_MAX_GREEDY) = 1
+        t(nc + e * AST_REPEAT_MAX_HUMBLE) = 1:        t(blen + e * AST_REPEAT_MAX_HUMBLE) = 7:            t(esfs + e * AST_REPEAT_MAX_HUMBLE) = 1
+        t(nc + e * AST_RANGES) = -1:                  t(blen + e * AST_RANGES) = 2:                       t(esfs + e * AST_RANGES) = 0
+        t(nc + e * AST_INVRANGES) = -1:               t(blen + e * AST_INVRANGES) = 2:                    t(esfs + e * AST_INVRANGES) = 0
+        t(nc + e * AST_ASSERT_POS_LOOKAHEAD) = 1:     t(blen + e * AST_ASSERT_POS_LOOKAHEAD) = 4:         t(esfs + e * AST_ASSERT_POS_LOOKAHEAD) = 2
+        t(nc + e * AST_ASSERT_NEG_LOOKAHEAD) = 1:     t(blen + e * AST_ASSERT_NEG_LOOKAHEAD) = 4:         t(esfs + e * AST_ASSERT_NEG_LOOKAHEAD) = 2
+        t(nc + e * AST_ASSERT_POS_LOOKBEHIND) = 1:    t(blen + e * AST_ASSERT_POS_LOOKBEHIND) = 4:        t(esfs + e * AST_ASSERT_POS_LOOKBEHIND) = 2
+        t(nc + e * AST_ASSERT_NEG_LOOKBEHIND) = 1:    t(blen + e * AST_ASSERT_NEG_LOOKBEHIND) = 4:        t(esfs + e * AST_ASSERT_NEG_LOOKBEHIND) = 2
+        t(nc + e * AST_FAIL) = 0:                     t(blen + e * AST_FAIL) = 1:                         t(esfs + e * AST_FAIL) = 0
+        t(nc + e * AST_BACKREFERENCE) = 0:            t(blen + e * AST_BACKREFERENCE) = 2:                t(esfs + e * AST_BACKREFERENCE) = 0
+        t(nc + e * AST_NAMED) = 1:                    t(blen + e * AST_NAMED) = 3:                        t(esfs + e * AST_NAMED) = 0
+        t(nc + e * AST_MODIFIER_SCOPE) = 1:           t(blen + e * AST_MODIFIER_SCOPE) = 0:               t(esfs + e * AST_MODIFIER_SCOPE) = 1
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Sub AstToBytecode(ByRef ast() As Long, ByRef identifierTree As IdentifierTreeTy, ByVal caseInsensitive As Boolean, ByRef bytecode() As Long)
-    Dim bytecodePtr As Long
-    Dim curNode As Long, prevNode As Long
-    Dim stack() As Long, sp As Long
-    Dim direction As Long ' 0 = left before right, -1 = right before left
-    Dim returningFromFirstChild As Long ' 0 = no, LONG_FIRST_BIT = yes
-    Dim modifiers As Long
-
-    ' temporaries, do not survive over more than one iteration
-    Dim opcode1 As Long, opcode2 As Long, opcode3 As Long, tmp As Long, tmpCnt As Long, _
-        e As Long, j As Long, patchPos As Long, maxSave As Long
-
-    PrepareStackAndBytecodeBuffer ast, identifierTree, caseInsensitive, stack, bytecode
-
-    modifiers = caseInsensitive And MODIFIER_I_MASK
-    sp = 0
-
-    prevNode = -1
-    curNode = ast(0) ' first word contains index of root
-    bytecodePtr = 3 + 3 * bytecode(1)
-    maxSave = -1
-    direction = 0
-    returningFromFirstChild = 0
-
-ContinueLoop:
-        Select Case ast(curNode + NODE_TYPE)
-        Case AST_STRING
-            tmpCnt = ast(curNode + 1) ' assert(tmpCnt >= 1)
-            j = curNode + 2 + ((tmpCnt - 1) And direction)
-            e = curNode + 1 + tmpCnt - ((tmpCnt - 1) And direction)
-            tmp = 1 + 2 * direction
-            Do
+  With stdError.getSentry("stdRegex#AstToBytecode", "caseInsensitive", caseInsensitive)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim bytecodePtr As Long
+        Dim curNode As Long, prevNode As Long
+        Dim stack() As Long, sp As Long
+        Dim direction As Long ' 0 = left before right, -1 = right before left
+        Dim returningFromFirstChild As Long ' 0 = no, LONG_FIRST_BIT = yes
+        Dim modifiers As Long
+    
+        ' temporaries, do not survive over more than one iteration
+        Dim opcode1 As Long, opcode2 As Long, opcode3 As Long, tmp As Long, tmpCnt As Long, _
+            e As Long, j As Long, patchPos As Long, maxSave As Long
+    
+        PrepareStackAndBytecodeBuffer ast, identifierTree, caseInsensitive, stack, bytecode
+    
+        modifiers = caseInsensitive And MODIFIER_I_MASK
+        sp = 0
+    
+        prevNode = -1
+        curNode = ast(0) ' first word contains index of root
+        bytecodePtr = 3 + 3 * bytecode(1)
+        maxSave = -1
+        direction = 0
+        returningFromFirstChild = 0
+    
+    ContinueLoop:
+            Select Case ast(curNode + NODE_TYPE)
+            Case AST_STRING
+                tmpCnt = ast(curNode + 1) ' assert(tmpCnt >= 1)
+                j = curNode + 2 + ((tmpCnt - 1) And direction)
+                e = curNode + 1 + tmpCnt - ((tmpCnt - 1) And direction)
+                tmp = 1 + 2 * direction
+                Do
+                    bytecode(bytecodePtr) = REOP_CHAR Or modifiers And MODIFIER_I_ACTIVE
+                    bytecodePtr = bytecodePtr + 1
+                    bytecode(bytecodePtr) = ast(j)
+                    bytecodePtr = bytecodePtr + 1
+                    If j = e Then Exit Do
+                    j = j + tmp
+                Loop
+                GoTo TurnToParent
+            Case AST_RANGES
+                opcode1 = REOP_RANGES Or modifiers And MODIFIER_I_ACTIVE
+                GoTo HandleRanges
+            Case AST_INVRANGES
+                opcode1 = REOP_INVRANGES Or modifiers And MODIFIER_I_ACTIVE
+                GoTo HandleRanges
+            Case AST_CHAR
                 bytecode(bytecodePtr) = REOP_CHAR Or modifiers And MODIFIER_I_ACTIVE
                 bytecodePtr = bytecodePtr + 1
-                bytecode(bytecodePtr) = ast(j)
+                bytecode(bytecodePtr) = ast(curNode + 1)
                 bytecodePtr = bytecodePtr + 1
-                If j = e Then Exit Do
-                j = j + tmp
-            Loop
+                GoTo TurnToParent
+            Case AST_PERIOD
+                bytecode(bytecodePtr) = REOP_DOT Or modifiers And MODIFIER_S_MASK
+                bytecodePtr = bytecodePtr + 1
+                GoTo TurnToParent
+            Case AST_MATCH
+                bytecode(bytecodePtr) = REOP_MATCH: bytecodePtr = bytecodePtr + 1
+                GoTo TurnToParent
+            Case AST_ASSERT_START
+                bytecode(bytecodePtr) = REOP_ASSERT_START Or modifiers And MODIFIER_M_MASK
+                bytecodePtr = bytecodePtr + 1
+                GoTo TurnToParent
+            Case AST_ASSERT_END
+                bytecode(bytecodePtr) = REOP_ASSERT_END Or modifiers And MODIFIER_M_MASK
+                bytecodePtr = bytecodePtr + 1
+                GoTo TurnToParent
+            Case AST_ASSERT_WORD_BOUNDARY
+                bytecode(bytecodePtr) = REOP_ASSERT_WORD_BOUNDARY: bytecodePtr = bytecodePtr + 1
+                GoTo TurnToParent
+            Case AST_ASSERT_NOT_WORD_BOUNDARY
+                bytecode(bytecodePtr) = REOP_ASSERT_NOT_WORD_BOUNDARY: bytecodePtr = bytecodePtr + 1
+                GoTo TurnToParent
+            Case AST_DISJ
+                If returningFromFirstChild Then ' previous was left child
+                    sp = sp - 1: patchPos = stack(sp)
+                    bytecode(bytecodePtr) = REOP_JUMP: bytecodePtr = bytecodePtr + 1
+                    stack(sp) = bytecodePtr: sp = sp + 1: bytecodePtr = bytecodePtr + 1
+                    bytecode(patchPos) = bytecodePtr - patchPos - 1
+    
+                    GoTo TurnToRightChild
+                ElseIf prevNode = ast(curNode + NODE_RCHILD) Then ' previous was right child
+                    sp = sp - 1: patchPos = stack(sp)
+                    bytecode(patchPos) = bytecodePtr - patchPos - 1
+    
+                    GoTo TurnToParent
+                Else ' previous was parent
+                    bytecode(bytecodePtr) = REOP_SPLIT1: bytecodePtr = bytecodePtr + 1
+                    stack(sp) = bytecodePtr: sp = sp + 1: bytecodePtr = bytecodePtr + 1
+                    GoTo TurnToLeftChild
+                End If
+            Case AST_CONCAT
+                If returningFromFirstChild Then ' previous was first child
+                    GoTo TurnToSecondChild
+                ElseIf prevNode = ast(curNode + NODE_RCHILD + direction) Then ' previous was second child
+                    GoTo TurnToParent
+                Else ' previous was parent
+                    GoTo TurnToFirstChild
+                End If
+            Case AST_CAPTURE
+                If returningFromFirstChild Then
+                    bytecode(bytecodePtr) = REOP_SAVE: bytecodePtr = bytecodePtr + 1
+                    tmp = ast(curNode + 2) * 2 + 1
+                    If tmp > maxSave Then maxSave = tmp
+                    bytecode(bytecodePtr) = tmp + direction: bytecodePtr = bytecodePtr + 1
+                    GoTo TurnToParent
+                Else
+                    bytecode(bytecodePtr) = REOP_SAVE: bytecodePtr = bytecodePtr + 1
+                    bytecode(bytecodePtr) = ast(curNode + 2) * 2 - direction: bytecodePtr = bytecodePtr + 1
+                    GoTo TurnToLeftChild
+                End If
+            Case AST_REPEAT_EXACTLY
+                opcode1 = REOP_REPEAT_EXACTLY_INIT: opcode2 = REOP_REPEAT_EXACTLY_START: opcode3 = REOP_REPEAT_EXACTLY_END
+                GoTo HandleRepeatQuantified
+            Case AST_REPEAT_MAX_GREEDY
+                opcode1 = REOP_REPEAT_GREEDY_MAX_INIT: opcode2 = REOP_REPEAT_GREEDY_MAX_START: opcode3 = REOP_REPEAT_GREEDY_MAX_END
+                GoTo HandleRepeatQuantified
+            Case AST_REPEAT_MAX_HUMBLE
+                opcode1 = REOP_REPEAT_MAX_HUMBLE_INIT: opcode2 = REOP_REPEAT_MAX_HUMBLE_START: opcode3 = REOP_REPEAT_MAX_HUMBLE_END
+                GoTo HandleRepeatQuantified
+            Case AST_ZEROONE_GREEDY
+                opcode1 = REOP_SPLIT1
+                GoTo HandleZeroone
+            Case AST_ZEROONE_HUMBLE
+                opcode1 = REOP_SPLIT2
+                GoTo HandleZeroone
+            Case AST_STAR_GREEDY
+                opcode1 = REOP_SPLIT1
+                GoTo HandleStar
+            Case AST_STAR_HUMBLE
+                opcode1 = REOP_SPLIT2
+                GoTo HandleStar
+            Case AST_ASSERT_POS_LOOKAHEAD
+                opcode1 = REOP_LOOKPOS: opcode2 = REOP_END_LOOKPOS
+                GoTo HandleLookahead
+            Case AST_ASSERT_NEG_LOOKAHEAD
+                opcode1 = REOP_LOOKNEG: opcode2 = REOP_END_LOOKNEG
+                GoTo HandleLookahead
+            Case AST_ASSERT_POS_LOOKBEHIND
+                opcode1 = REOP_LOOKPOS: opcode2 = REOP_END_LOOKPOS
+                GoTo HandleLookbehind
+            Case AST_ASSERT_NEG_LOOKBEHIND
+                opcode1 = REOP_LOOKNEG: opcode2 = REOP_END_LOOKNEG
+                GoTo HandleLookbehind
+            Case AST_EMPTY
+                GoTo TurnToParent
+            Case AST_FAIL
+                bytecode(bytecodePtr) = REOP_FAIL: bytecodePtr = bytecodePtr + 1
+                GoTo TurnToParent
+            Case AST_BACKREFERENCE
+                bytecode(bytecodePtr) = REOP_BACKREFERENCE Or modifiers And MODIFIER_I_ACTIVE
+                bytecodePtr = bytecodePtr + 1
+                bytecode(bytecodePtr) = ast(curNode + 1): bytecodePtr = bytecodePtr + 1
+                GoTo TurnToParent
+            Case AST_NAMED
+                If returningFromFirstChild Then
+                    ' nothing to be done
+                    GoTo TurnToParent
+                Else
+                    bytecode(bytecodePtr) = REOP_SET_NAMED: bytecodePtr = bytecodePtr + 1
+                    bytecode(bytecodePtr) = ast(curNode + 2): bytecodePtr = bytecodePtr + 1
+                    bytecode(bytecodePtr) = ast(curNode + 3): bytecodePtr = bytecodePtr + 1
+                    GoTo TurnToLeftChild
+                End If
+            Case AST_MODIFIER_SCOPE
+                If returningFromFirstChild Then
+                    sp = sp - 1: modifiers = stack(sp)
+                    GoTo TurnToParent
+                Else
+                    stack(sp) = modifiers: sp = sp + 1
+                    tmp = ast(curNode + 2)
+                    modifiers = MODIFIER_WRITE_MASK And (modifiers Or tmp) Or _
+                        MODIFIER_ACTIVE_MASK And ( _
+                            modifiers Xor tmp * 2 And (tmp Xor modifiers) _
+                        )
+                    GoTo TurnToLeftChild
+                End If
+            End Select
+    
+            Err_Raise REGEX_ERR_INTERNAL_LOGIC_ERR ' unreachable
+    
+    HandleRanges: ' requires: opcode1
+            tmpCnt = ast(curNode + 1)
+            bytecode(bytecodePtr) = opcode1: bytecodePtr = bytecodePtr + 1
+            j = curNode
+            e = curNode + 1 + 2 * tmpCnt
+            Do ' copy everything, including first word, which is the length
+                j = j + 1
+                bytecode(bytecodePtr) = ast(j): bytecodePtr = bytecodePtr + 1
+            Loop Until j = e
             GoTo TurnToParent
-        Case AST_RANGES
-            opcode1 = REOP_RANGES Or modifiers And MODIFIER_I_ACTIVE
-            GoTo HandleRanges
-        Case AST_INVRANGES
-            opcode1 = REOP_INVRANGES Or modifiers And MODIFIER_I_ACTIVE
-            GoTo HandleRanges
-        Case AST_CHAR
-            bytecode(bytecodePtr) = REOP_CHAR Or modifiers And MODIFIER_I_ACTIVE
-            bytecodePtr = bytecodePtr + 1
-            bytecode(bytecodePtr) = ast(curNode + 1)
-            bytecodePtr = bytecodePtr + 1
-            GoTo TurnToParent
-        Case AST_PERIOD
-            bytecode(bytecodePtr) = REOP_DOT Or modifiers And MODIFIER_S_MASK
-            bytecodePtr = bytecodePtr + 1
-            GoTo TurnToParent
-        Case AST_MATCH
-            bytecode(bytecodePtr) = REOP_MATCH: bytecodePtr = bytecodePtr + 1
-            GoTo TurnToParent
-        Case AST_ASSERT_START
-            bytecode(bytecodePtr) = REOP_ASSERT_START Or modifiers And MODIFIER_M_MASK
-            bytecodePtr = bytecodePtr + 1
-            GoTo TurnToParent
-        Case AST_ASSERT_END
-            bytecode(bytecodePtr) = REOP_ASSERT_END Or modifiers And MODIFIER_M_MASK
-            bytecodePtr = bytecodePtr + 1
-            GoTo TurnToParent
-        Case AST_ASSERT_WORD_BOUNDARY
-            bytecode(bytecodePtr) = REOP_ASSERT_WORD_BOUNDARY: bytecodePtr = bytecodePtr + 1
-            GoTo TurnToParent
-        Case AST_ASSERT_NOT_WORD_BOUNDARY
-            bytecode(bytecodePtr) = REOP_ASSERT_NOT_WORD_BOUNDARY: bytecodePtr = bytecodePtr + 1
-            GoTo TurnToParent
-        Case AST_DISJ
-            If returningFromFirstChild Then ' previous was left child
+    
+    HandleRepeatQuantified: ' requires: opcode1, opcode2, opcode 3
+            tmpCnt = ast(curNode + 2)
+            If returningFromFirstChild Then
                 sp = sp - 1: patchPos = stack(sp)
-                bytecode(bytecodePtr) = REOP_JUMP: bytecodePtr = bytecodePtr + 1
-                stack(sp) = bytecodePtr: sp = sp + 1: bytecodePtr = bytecodePtr + 1
-                bytecode(patchPos) = bytecodePtr - patchPos - 1
-
-                GoTo TurnToRightChild
-            ElseIf prevNode = ast(curNode + NODE_RCHILD) Then ' previous was right child
-                sp = sp - 1: patchPos = stack(sp)
-                bytecode(patchPos) = bytecodePtr - patchPos - 1
-
+                bytecode(bytecodePtr) = opcode3: bytecodePtr = bytecodePtr + 1
+                bytecode(bytecodePtr) = tmpCnt: bytecodePtr = bytecodePtr + 1
+                tmp = bytecodePtr - patchPos
+                bytecode(bytecodePtr) = tmp: bytecodePtr = bytecodePtr + 1
+                bytecode(patchPos) = tmp
                 GoTo TurnToParent
-            Else ' previous was parent
-                bytecode(bytecodePtr) = REOP_SPLIT1: bytecodePtr = bytecodePtr + 1
+            Else
+                bytecode(bytecodePtr) = opcode1: bytecodePtr = bytecodePtr + 1
+                bytecode(bytecodePtr) = opcode2: bytecodePtr = bytecodePtr + 1
+                bytecode(bytecodePtr) = tmpCnt: bytecodePtr = bytecodePtr + 1
                 stack(sp) = bytecodePtr: sp = sp + 1: bytecodePtr = bytecodePtr + 1
                 GoTo TurnToLeftChild
             End If
-        Case AST_CONCAT
-            If returningFromFirstChild Then ' previous was first child
-                GoTo TurnToSecondChild
-            ElseIf prevNode = ast(curNode + NODE_RCHILD + direction) Then ' previous was second child
-                GoTo TurnToParent
-            Else ' previous was parent
-                GoTo TurnToFirstChild
-            End If
-        Case AST_CAPTURE
-            If returningFromFirstChild Then
-                bytecode(bytecodePtr) = REOP_SAVE: bytecodePtr = bytecodePtr + 1
-                tmp = ast(curNode + 2) * 2 + 1
-                If tmp > maxSave Then maxSave = tmp
-                bytecode(bytecodePtr) = tmp + direction: bytecodePtr = bytecodePtr + 1
-                GoTo TurnToParent
-            Else
-                bytecode(bytecodePtr) = REOP_SAVE: bytecodePtr = bytecodePtr + 1
-                bytecode(bytecodePtr) = ast(curNode + 2) * 2 - direction: bytecodePtr = bytecodePtr + 1
-                GoTo TurnToLeftChild
-            End If
-        Case AST_REPEAT_EXACTLY
-            opcode1 = REOP_REPEAT_EXACTLY_INIT: opcode2 = REOP_REPEAT_EXACTLY_START: opcode3 = REOP_REPEAT_EXACTLY_END
-            GoTo HandleRepeatQuantified
-        Case AST_REPEAT_MAX_GREEDY
-            opcode1 = REOP_REPEAT_GREEDY_MAX_INIT: opcode2 = REOP_REPEAT_GREEDY_MAX_START: opcode3 = REOP_REPEAT_GREEDY_MAX_END
-            GoTo HandleRepeatQuantified
-        Case AST_REPEAT_MAX_HUMBLE
-            opcode1 = REOP_REPEAT_MAX_HUMBLE_INIT: opcode2 = REOP_REPEAT_MAX_HUMBLE_START: opcode3 = REOP_REPEAT_MAX_HUMBLE_END
-            GoTo HandleRepeatQuantified
-        Case AST_ZEROONE_GREEDY
-            opcode1 = REOP_SPLIT1
-            GoTo HandleZeroone
-        Case AST_ZEROONE_HUMBLE
-            opcode1 = REOP_SPLIT2
-            GoTo HandleZeroone
-        Case AST_STAR_GREEDY
-            opcode1 = REOP_SPLIT1
-            GoTo HandleStar
-        Case AST_STAR_HUMBLE
-            opcode1 = REOP_SPLIT2
-            GoTo HandleStar
-        Case AST_ASSERT_POS_LOOKAHEAD
-            opcode1 = REOP_LOOKPOS: opcode2 = REOP_END_LOOKPOS
-            GoTo HandleLookahead
-        Case AST_ASSERT_NEG_LOOKAHEAD
-            opcode1 = REOP_LOOKNEG: opcode2 = REOP_END_LOOKNEG
-            GoTo HandleLookahead
-        Case AST_ASSERT_POS_LOOKBEHIND
-            opcode1 = REOP_LOOKPOS: opcode2 = REOP_END_LOOKPOS
-            GoTo HandleLookbehind
-        Case AST_ASSERT_NEG_LOOKBEHIND
-            opcode1 = REOP_LOOKNEG: opcode2 = REOP_END_LOOKNEG
-            GoTo HandleLookbehind
-        Case AST_EMPTY
-            GoTo TurnToParent
-        Case AST_FAIL
-            bytecode(bytecodePtr) = REOP_FAIL: bytecodePtr = bytecodePtr + 1
-            GoTo TurnToParent
-        Case AST_BACKREFERENCE
-            bytecode(bytecodePtr) = REOP_BACKREFERENCE Or modifiers And MODIFIER_I_ACTIVE
-            bytecodePtr = bytecodePtr + 1
-            bytecode(bytecodePtr) = ast(curNode + 1): bytecodePtr = bytecodePtr + 1
-            GoTo TurnToParent
-        Case AST_NAMED
-            If returningFromFirstChild Then
-                ' nothing to be done
-                GoTo TurnToParent
-            Else
-                bytecode(bytecodePtr) = REOP_SET_NAMED: bytecodePtr = bytecodePtr + 1
-                bytecode(bytecodePtr) = ast(curNode + 2): bytecodePtr = bytecodePtr + 1
-                bytecode(bytecodePtr) = ast(curNode + 3): bytecodePtr = bytecodePtr + 1
-                GoTo TurnToLeftChild
-            End If
-        Case AST_MODIFIER_SCOPE
-            If returningFromFirstChild Then
-                sp = sp - 1: modifiers = stack(sp)
-                GoTo TurnToParent
-            Else
-                stack(sp) = modifiers: sp = sp + 1
-                tmp = ast(curNode + 2)
-                modifiers = MODIFIER_WRITE_MASK And (modifiers Or tmp) Or _
-                    MODIFIER_ACTIVE_MASK And ( _
-                        modifiers Xor tmp * 2 And (tmp Xor modifiers) _
-                    )
-                GoTo TurnToLeftChild
-            End If
-        End Select
-
-        Err.Raise REGEX_ERR_INTERNAL_LOGIC_ERR ' unreachable
-
-HandleRanges: ' requires: opcode1
-        tmpCnt = ast(curNode + 1)
-        bytecode(bytecodePtr) = opcode1: bytecodePtr = bytecodePtr + 1
-        j = curNode
-        e = curNode + 1 + 2 * tmpCnt
-        Do ' copy everything, including first word, which is the length
-            j = j + 1
-            bytecode(bytecodePtr) = ast(j): bytecodePtr = bytecodePtr + 1
-        Loop Until j = e
-        GoTo TurnToParent
-
-HandleRepeatQuantified: ' requires: opcode1, opcode2, opcode 3
-        tmpCnt = ast(curNode + 2)
+    
+    HandleZeroone: ' requires: opcode1
         If returningFromFirstChild Then
             sp = sp - 1: patchPos = stack(sp)
-            bytecode(bytecodePtr) = opcode3: bytecodePtr = bytecodePtr + 1
-            bytecode(bytecodePtr) = tmpCnt: bytecodePtr = bytecodePtr + 1
-            tmp = bytecodePtr - patchPos
-            bytecode(bytecodePtr) = tmp: bytecodePtr = bytecodePtr + 1
+            bytecode(patchPos) = bytecodePtr - patchPos - 1
+            GoTo TurnToParent
+        Else
+            bytecode(bytecodePtr) = opcode1: bytecodePtr = bytecodePtr + 1
+            stack(sp) = bytecodePtr: sp = sp + 1: bytecodePtr = bytecodePtr + 1
+            GoTo TurnToLeftChild
+        End If
+    
+    HandleStar:
+        If returningFromFirstChild Then
+            sp = sp - 1: patchPos = stack(sp)
+            tmp = bytecodePtr - patchPos + 1
+            bytecode(bytecodePtr) = REOP_JUMP: bytecodePtr = bytecodePtr + 1
+            bytecode(bytecodePtr) = -(tmp + 2): bytecodePtr = bytecodePtr + 1
             bytecode(patchPos) = tmp
             GoTo TurnToParent
         Else
             bytecode(bytecodePtr) = opcode1: bytecodePtr = bytecodePtr + 1
-            bytecode(bytecodePtr) = opcode2: bytecodePtr = bytecodePtr + 1
-            bytecode(bytecodePtr) = tmpCnt: bytecodePtr = bytecodePtr + 1
             stack(sp) = bytecodePtr: sp = sp + 1: bytecodePtr = bytecodePtr + 1
             GoTo TurnToLeftChild
         End If
-
-HandleZeroone: ' requires: opcode1
-    If returningFromFirstChild Then
-        sp = sp - 1: patchPos = stack(sp)
-        bytecode(patchPos) = bytecodePtr - patchPos - 1
-        GoTo TurnToParent
-    Else
-        bytecode(bytecodePtr) = opcode1: bytecodePtr = bytecodePtr + 1
-        stack(sp) = bytecodePtr: sp = sp + 1: bytecodePtr = bytecodePtr + 1
-        GoTo TurnToLeftChild
-    End If
-
-HandleStar:
-    If returningFromFirstChild Then
-        sp = sp - 1: patchPos = stack(sp)
-        tmp = bytecodePtr - patchPos + 1
-        bytecode(bytecodePtr) = REOP_JUMP: bytecodePtr = bytecodePtr + 1
-        bytecode(bytecodePtr) = -(tmp + 2): bytecodePtr = bytecodePtr + 1
-        bytecode(patchPos) = tmp
-        GoTo TurnToParent
-    Else
-        bytecode(bytecodePtr) = opcode1: bytecodePtr = bytecodePtr + 1
-        stack(sp) = bytecodePtr: sp = sp + 1: bytecodePtr = bytecodePtr + 1
-        GoTo TurnToLeftChild
-    End If
-
-HandleLookahead: ' requires opcode1, opcode2
-    If returningFromFirstChild Then
-        sp = sp - 1: direction = stack(sp)
-        sp = sp - 1: patchPos = stack(sp)
-        bytecode(bytecodePtr) = opcode2: bytecodePtr = bytecodePtr + 1
-        bytecode(patchPos) = bytecodePtr - patchPos - 1
-        GoTo TurnToParent
-    Else
-        bytecode(bytecodePtr) = REOP_CHECK_LOOKAHEAD: bytecodePtr = bytecodePtr + 1
-        bytecode(bytecodePtr) = opcode1: bytecodePtr = bytecodePtr + 1
-        stack(sp) = bytecodePtr: sp = sp + 1: bytecodePtr = bytecodePtr + 1
-        stack(sp) = direction: sp = sp + 1
-        direction = 0
-        GoTo TurnToLeftChild
-    End If
-
-HandleLookbehind: ' requires opcode1, opcode2
-    If returningFromFirstChild Then
-        sp = sp - 1: direction = stack(sp)
-        sp = sp - 1: patchPos = stack(sp)
-        bytecode(bytecodePtr) = opcode2: bytecodePtr = bytecodePtr + 1
-        bytecode(patchPos) = bytecodePtr - patchPos - 1
-        GoTo TurnToParent
-    Else
-        bytecode(bytecodePtr) = REOP_CHECK_LOOKBEHIND: bytecodePtr = bytecodePtr + 1
-        bytecode(bytecodePtr) = opcode1: bytecodePtr = bytecodePtr + 1
-        stack(sp) = bytecodePtr: sp = sp + 1: bytecodePtr = bytecodePtr + 1
-        stack(sp) = direction: sp = sp + 1
-        direction = -1
-        GoTo TurnToLeftChild
-    End If
-
-TurnToParent:
-    prevNode = curNode
-    If sp = 0 Then GoTo BreakLoop
-    sp = sp - 1: tmp = stack(sp)
-    curNode = tmp And LONG_ALL_BUT_FIRST_BIT
-    returningFromFirstChild = tmp And LONG_FIRST_BIT
-    GoTo ContinueLoop
-TurnToLeftChild:
-    prevNode = curNode
-    stack(sp) = curNode Or LONG_FIRST_BIT: sp = sp + 1
-    curNode = ast(curNode + NODE_LCHILD)
-    returningFromFirstChild = 0
-    GoTo ContinueLoop
-TurnToRightChild:
-    prevNode = curNode
-    stack(sp) = curNode: sp = sp + 1
-    curNode = ast(curNode + NODE_RCHILD)
-    returningFromFirstChild = 0
-    GoTo ContinueLoop
-TurnToFirstChild:
-    prevNode = curNode
-    stack(sp) = curNode Or LONG_FIRST_BIT: sp = sp + 1
-    curNode = ast(curNode + NODE_LCHILD - direction)
-    returningFromFirstChild = 0
-    GoTo ContinueLoop
-TurnToSecondChild:
-    prevNode = curNode
-    stack(sp) = curNode: sp = sp + 1
-    curNode = ast(curNode + NODE_RCHILD + direction)
-    returningFromFirstChild = 0
-    GoTo ContinueLoop
-
-BreakLoop:
-    bytecode(0) = maxSave
-    bytecode(bytecodePtr) = REOP_MATCH
+    
+    HandleLookahead: ' requires opcode1, opcode2
+        If returningFromFirstChild Then
+            sp = sp - 1: direction = stack(sp)
+            sp = sp - 1: patchPos = stack(sp)
+            bytecode(bytecodePtr) = opcode2: bytecodePtr = bytecodePtr + 1
+            bytecode(patchPos) = bytecodePtr - patchPos - 1
+            GoTo TurnToParent
+        Else
+            bytecode(bytecodePtr) = REOP_CHECK_LOOKAHEAD: bytecodePtr = bytecodePtr + 1
+            bytecode(bytecodePtr) = opcode1: bytecodePtr = bytecodePtr + 1
+            stack(sp) = bytecodePtr: sp = sp + 1: bytecodePtr = bytecodePtr + 1
+            stack(sp) = direction: sp = sp + 1
+            direction = 0
+            GoTo TurnToLeftChild
+        End If
+    
+    HandleLookbehind: ' requires opcode1, opcode2
+        If returningFromFirstChild Then
+            sp = sp - 1: direction = stack(sp)
+            sp = sp - 1: patchPos = stack(sp)
+            bytecode(bytecodePtr) = opcode2: bytecodePtr = bytecodePtr + 1
+            bytecode(patchPos) = bytecodePtr - patchPos - 1
+            GoTo TurnToParent
+        Else
+            bytecode(bytecodePtr) = REOP_CHECK_LOOKBEHIND: bytecodePtr = bytecodePtr + 1
+            bytecode(bytecodePtr) = opcode1: bytecodePtr = bytecodePtr + 1
+            stack(sp) = bytecodePtr: sp = sp + 1: bytecodePtr = bytecodePtr + 1
+            stack(sp) = direction: sp = sp + 1
+            direction = -1
+            GoTo TurnToLeftChild
+        End If
+    
+    TurnToParent:
+        prevNode = curNode
+        If sp = 0 Then GoTo BreakLoop
+        sp = sp - 1: tmp = stack(sp)
+        curNode = tmp And LONG_ALL_BUT_FIRST_BIT
+        returningFromFirstChild = tmp And LONG_FIRST_BIT
+        GoTo ContinueLoop
+    TurnToLeftChild:
+        prevNode = curNode
+        stack(sp) = curNode Or LONG_FIRST_BIT: sp = sp + 1
+        curNode = ast(curNode + NODE_LCHILD)
+        returningFromFirstChild = 0
+        GoTo ContinueLoop
+    TurnToRightChild:
+        prevNode = curNode
+        stack(sp) = curNode: sp = sp + 1
+        curNode = ast(curNode + NODE_RCHILD)
+        returningFromFirstChild = 0
+        GoTo ContinueLoop
+    TurnToFirstChild:
+        prevNode = curNode
+        stack(sp) = curNode Or LONG_FIRST_BIT: sp = sp + 1
+        curNode = ast(curNode + NODE_LCHILD - direction)
+        returningFromFirstChild = 0
+        GoTo ContinueLoop
+    TurnToSecondChild:
+        prevNode = curNode
+        stack(sp) = curNode: sp = sp + 1
+        curNode = ast(curNode + NODE_RCHILD + direction)
+        returningFromFirstChild = 0
+        GoTo ContinueLoop
+    
+    BreakLoop:
+        bytecode(0) = maxSave
+        bytecode(bytecodePtr) = REOP_MATCH
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Sub PrepareStackAndBytecodeBuffer(ByRef ast() As Long, ByRef identifierTree As IdentifierTreeTy, ByVal caseInsensitive As Boolean, ByRef stack() As Long, ByRef bytecode() As Long)
-    Dim sp As Long, prevNode As Long, curNode As Long, esfs As Long, stackCapacity As Long
-    Dim tmp As Long, astTableIdx As Long
-    Dim bytecodeLength As Long
-    Dim returningFromFirstChild As Long ' 0 = no, LONG_FIRST_BIT = yes
-
-    ' The initial stack capacity must be >= 2 * max([1 + entry.esfs for entry in AST_TABLE]),
-    '   since when increasing the stack capacity, we increase by (current size \ 2) and
-    '   we assume that this will be sufficient for the next stack frame.
-    Const BYTECODE_GENERATOR_INITIAL_STACK_CAPACITY As Long = 8
-
-    stackCapacity = BYTECODE_GENERATOR_INITIAL_STACK_CAPACITY
-    ReDim stack(0 To BYTECODE_GENERATOR_INITIAL_STACK_CAPACITY - 1) As Long
-
-    sp = 0
-
-    prevNode = -1
-    curNode = ast(0) ' first word contains index of root
-    returningFromFirstChild = 0
-
-    bytecodeLength = 0
-
-ContinueLoop:
-        astTableIdx = ast(curNode + NODE_TYPE) * AST_TABLE_ENTRY_LENGTH
-        esfs = This.regex.bytecode(AST_TABLE_START + astTableIdx + AST_TABLE_OFFSET_ESFS)
-
-        Select Case This.regex.bytecode(AST_TABLE_START + astTableIdx + AST_TABLE_OFFSET_NC)
-        Case -2
-            bytecodeLength = bytecodeLength + 2 * ast(curNode + 1)
-            GoTo TurnToParent
-        Case -1
-            bytecodeLength = bytecodeLength + 2 + 2 * ast(curNode + 1)
-            GoTo TurnToParent
-        Case 0
-            bytecodeLength = bytecodeLength + This.regex.bytecode(AST_TABLE_START + astTableIdx + AST_TABLE_OFFSET_BLEN)
-            GoTo TurnToParent
-        Case 1
-            If returningFromFirstChild Then
+  With stdError.getSentry("stdRegex#PrepareStackAndBytecodeBuffer", "caseInsensitive", caseInsensitive)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim sp As Long, prevNode As Long, curNode As Long, esfs As Long, stackCapacity As Long
+        Dim tmp As Long, astTableIdx As Long
+        Dim bytecodeLength As Long
+        Dim returningFromFirstChild As Long ' 0 = no, LONG_FIRST_BIT = yes
+    
+        ' The initial stack capacity must be >= 2 * max([1 + entry.esfs for entry in AST_TABLE]),
+        '   since when increasing the stack capacity, we increase by (current size \ 2) and
+        '   we assume that this will be sufficient for the next stack frame.
+        Const BYTECODE_GENERATOR_INITIAL_STACK_CAPACITY As Long = 8
+    
+        stackCapacity = BYTECODE_GENERATOR_INITIAL_STACK_CAPACITY
+        ReDim stack(0 To BYTECODE_GENERATOR_INITIAL_STACK_CAPACITY - 1) As Long
+    
+        sp = 0
+    
+        prevNode = -1
+        curNode = ast(0) ' first word contains index of root
+        returningFromFirstChild = 0
+    
+        bytecodeLength = 0
+    
+    ContinueLoop:
+            astTableIdx = ast(curNode + NODE_TYPE) * AST_TABLE_ENTRY_LENGTH
+            esfs = This.regex.bytecode(AST_TABLE_START + astTableIdx + AST_TABLE_OFFSET_ESFS)
+    
+            Select Case This.regex.bytecode(AST_TABLE_START + astTableIdx + AST_TABLE_OFFSET_NC)
+            Case -2
+                bytecodeLength = bytecodeLength + 2 * ast(curNode + 1)
                 GoTo TurnToParent
-            Else
-                bytecodeLength = bytecodeLength + This.regex.bytecode(AST_TABLE_START + astTableIdx + AST_TABLE_OFFSET_BLEN)
-                GoTo TurnToLeftChild
-            End If
-        Case 2
-            If returningFromFirstChild Then ' previous was left child
-                GoTo TurnToRightChild
-            ElseIf prevNode = ast(curNode + NODE_RCHILD) Then ' previous was right child
+            Case -1
+                bytecodeLength = bytecodeLength + 2 + 2 * ast(curNode + 1)
                 GoTo TurnToParent
-            Else ' previous was parent
+            Case 0
                 bytecodeLength = bytecodeLength + This.regex.bytecode(AST_TABLE_START + astTableIdx + AST_TABLE_OFFSET_BLEN)
-                GoTo TurnToLeftChild
-            End If
-        End Select
-
-        Err.Raise REGEX_ERR_INTERNAL_LOGIC_ERR ' unreachable
-
-TurnToParent:
-    sp = sp - esfs
-    If sp = 0 Then GoTo BreakLoop
-    prevNode = curNode
-    sp = sp - 1: tmp = stack(sp)
-    returningFromFirstChild = tmp And LONG_FIRST_BIT: curNode = tmp And LONG_ALL_BUT_FIRST_BIT
-    GoTo ContinueLoop
-TurnToLeftChild:
-    If sp >= stackCapacity - esfs Then
-        stackCapacity = stackCapacity + stackCapacity \ 2
-        ReDim Preserve stack(0 To stackCapacity - 1) As Long
-    End If
-    prevNode = curNode
-    sp = sp + esfs: stack(sp) = curNode Or LONG_FIRST_BIT: sp = sp + 1
-    returningFromFirstChild = 0: curNode = ast(curNode + NODE_LCHILD)
-    GoTo ContinueLoop
-TurnToRightChild:
-    prevNode = curNode
-    stack(sp) = curNode: sp = sp + 1
-    returningFromFirstChild = 0: curNode = ast(curNode + NODE_RCHILD)
-    GoTo ContinueLoop
-
-BreakLoop:
-    ' Actual bytecode length is bytecodeLength + 4 + 3*identifierTree(N_NODES) due to intial nCaptures and final REOP_MATCH.
-    ReDim bytecode(0 To bytecodeLength + 3 + 3 * identifierTree.nEntries) As Long
-    bytecode(BYTECODE_IDX_N_IDENTIFIERS) = identifierTree.nEntries
-    bytecode(BYTECODE_IDX_CASE_INSENSITIVE_INDICATOR) = -caseInsensitive
-    RedBlackDumpTree bytecode, BYTECODE_IDENTIFIER_MAP_BEGIN, identifierTree
+                GoTo TurnToParent
+            Case 1
+                If returningFromFirstChild Then
+                    GoTo TurnToParent
+                Else
+                    bytecodeLength = bytecodeLength + This.regex.bytecode(AST_TABLE_START + astTableIdx + AST_TABLE_OFFSET_BLEN)
+                    GoTo TurnToLeftChild
+                End If
+            Case 2
+                If returningFromFirstChild Then ' previous was left child
+                    GoTo TurnToRightChild
+                ElseIf prevNode = ast(curNode + NODE_RCHILD) Then ' previous was right child
+                    GoTo TurnToParent
+                Else ' previous was parent
+                    bytecodeLength = bytecodeLength + This.regex.bytecode(AST_TABLE_START + astTableIdx + AST_TABLE_OFFSET_BLEN)
+                    GoTo TurnToLeftChild
+                End If
+            End Select
+    
+            Err_Raise REGEX_ERR_INTERNAL_LOGIC_ERR ' unreachable
+    
+    TurnToParent:
+        sp = sp - esfs
+        If sp = 0 Then GoTo BreakLoop
+        prevNode = curNode
+        sp = sp - 1: tmp = stack(sp)
+        returningFromFirstChild = tmp And LONG_FIRST_BIT: curNode = tmp And LONG_ALL_BUT_FIRST_BIT
+        GoTo ContinueLoop
+    TurnToLeftChild:
+        If sp >= stackCapacity - esfs Then
+            stackCapacity = stackCapacity + stackCapacity \ 2
+            ReDim Preserve stack(0 To stackCapacity - 1) As Long
+        End If
+        prevNode = curNode
+        sp = sp + esfs: stack(sp) = curNode Or LONG_FIRST_BIT: sp = sp + 1
+        returningFromFirstChild = 0: curNode = ast(curNode + NODE_LCHILD)
+        GoTo ContinueLoop
+    TurnToRightChild:
+        prevNode = curNode
+        stack(sp) = curNode: sp = sp + 1
+        returningFromFirstChild = 0: curNode = ast(curNode + NODE_RCHILD)
+        GoTo ContinueLoop
+    
+    BreakLoop:
+        ' Actual bytecode length is bytecodeLength + 4 + 3*identifierTree(N_NODES) due to intial nCaptures and final REOP_MATCH.
+        ReDim bytecode(0 To bytecodeLength + 3 + 3 * identifierTree.nEntries) As Long
+        bytecode(BYTECODE_IDX_N_IDENTIFIERS) = identifierTree.nEntries
+        bytecode(BYTECODE_IDX_CASE_INSENSITIVE_INDICATOR) = -caseInsensitive
+        RedBlackDumpTree bytecode, BYTECODE_IDENTIFIER_MAP_BEGIN, identifierTree
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Sub InitializeRangeTables(ByRef t() As Long)
-    t(RANGE_TABLE_DIGIT_START + 0) = &H30&
-    t(RANGE_TABLE_DIGIT_START + 1) = &H39&
-
-    '---------------------------------
-
-    t(RANGE_TABLE_WHITE_START + 0) = &H9&
-    t(RANGE_TABLE_WHITE_START + 1) = &HD&
-    t(RANGE_TABLE_WHITE_START + 2) = &H20&
-    t(RANGE_TABLE_WHITE_START + 3) = &H20&
-    t(RANGE_TABLE_WHITE_START + 4) = &HA0&
-    t(RANGE_TABLE_WHITE_START + 5) = &HA0&
-    t(RANGE_TABLE_WHITE_START + 6) = &H1680&
-    t(RANGE_TABLE_WHITE_START + 7) = &H1680&
-    t(RANGE_TABLE_WHITE_START + 8) = &H180E&
-    t(RANGE_TABLE_WHITE_START + 9) = &H180E&
-    t(RANGE_TABLE_WHITE_START + 10) = &H2000&
-    t(RANGE_TABLE_WHITE_START + 11) = &H200A
-    t(RANGE_TABLE_WHITE_START + 12) = &H2028&
-    t(RANGE_TABLE_WHITE_START + 13) = &H2029&
-    t(RANGE_TABLE_WHITE_START + 14) = &H202F
-    t(RANGE_TABLE_WHITE_START + 15) = &H202F
-    t(RANGE_TABLE_WHITE_START + 16) = &H205F&
-    t(RANGE_TABLE_WHITE_START + 17) = &H205F&
-    t(RANGE_TABLE_WHITE_START + 18) = &H3000&
-    t(RANGE_TABLE_WHITE_START + 19) = &H3000&
-    t(RANGE_TABLE_WHITE_START + 20) = &HFEFF&
-    t(RANGE_TABLE_WHITE_START + 21) = &HFEFF&
-
-    '---------------------------------
-
-    t(RANGE_TABLE_WORDCHAR_START + 0) = &H30&
-    t(RANGE_TABLE_WORDCHAR_START + 1) = &H39&
-    t(RANGE_TABLE_WORDCHAR_START + 2) = &H41&
-    t(RANGE_TABLE_WORDCHAR_START + 3) = &H5A&
-    t(RANGE_TABLE_WORDCHAR_START + 4) = &H5F&
-    t(RANGE_TABLE_WORDCHAR_START + 5) = &H5F&
-    t(RANGE_TABLE_WORDCHAR_START + 6) = &H61&
-    t(RANGE_TABLE_WORDCHAR_START + 7) = &H7A&
-
-    '---------------------------------
-
-    t(RANGE_TABLE_NOTDIGIT_START + 0) = LONG_MIN
-    t(RANGE_TABLE_NOTDIGIT_START + 1) = &H2F&
-    t(RANGE_TABLE_NOTDIGIT_START + 2) = &H3A&
-    t(RANGE_TABLE_NOTDIGIT_START + 3) = LONG_MAX
-
-    '---------------------------------
-
-    t(RANGE_TABLE_NOTWHITE_START + 0) = LONG_MIN
-    t(RANGE_TABLE_NOTWHITE_START + 1) = &H8&
-    t(RANGE_TABLE_NOTWHITE_START + 2) = &HE&
-    t(RANGE_TABLE_NOTWHITE_START + 3) = &H1F&
-    t(RANGE_TABLE_NOTWHITE_START + 4) = &H21&
-    t(RANGE_TABLE_NOTWHITE_START + 5) = &H9F&
-    t(RANGE_TABLE_NOTWHITE_START + 6) = &HA1&
-    t(RANGE_TABLE_NOTWHITE_START + 7) = &H167F&
-    t(RANGE_TABLE_NOTWHITE_START + 8) = &H1681&
-    t(RANGE_TABLE_NOTWHITE_START + 9) = &H180D&
-    t(RANGE_TABLE_NOTWHITE_START + 10) = &H180F&
-    t(RANGE_TABLE_NOTWHITE_START + 11) = &H1FFF&
-    t(RANGE_TABLE_NOTWHITE_START + 12) = &H200B&
-    t(RANGE_TABLE_NOTWHITE_START + 13) = &H2027&
-    t(RANGE_TABLE_NOTWHITE_START + 14) = &H202A&
-    t(RANGE_TABLE_NOTWHITE_START + 15) = &H202E&
-    t(RANGE_TABLE_NOTWHITE_START + 16) = &H2030&
-    t(RANGE_TABLE_NOTWHITE_START + 17) = &H205E&
-    t(RANGE_TABLE_NOTWHITE_START + 18) = &H2060&
-    t(RANGE_TABLE_NOTWHITE_START + 19) = &H2FFF&
-    t(RANGE_TABLE_NOTWHITE_START + 20) = &H3001&
-    t(RANGE_TABLE_NOTWHITE_START + 21) = &HFEFE&
-    t(RANGE_TABLE_NOTWHITE_START + 22) = &HFF00&
-    t(RANGE_TABLE_NOTWHITE_START + 23) = LONG_MAX
-
-    '---------------------------------
-
-    t(RANGE_TABLE_NOTWORDCHAR_START + 0) = LONG_MIN
-    t(RANGE_TABLE_NOTWORDCHAR_START + 1) = &H2F&
-    t(RANGE_TABLE_NOTWORDCHAR_START + 2) = &H3A&
-    t(RANGE_TABLE_NOTWORDCHAR_START + 3) = &H40&
-    t(RANGE_TABLE_NOTWORDCHAR_START + 4) = &H5B&
-    t(RANGE_TABLE_NOTWORDCHAR_START + 5) = &H5E&
-    t(RANGE_TABLE_NOTWORDCHAR_START + 6) = &H60&
-    t(RANGE_TABLE_NOTWORDCHAR_START + 7) = &H60&
-    t(RANGE_TABLE_NOTWORDCHAR_START + 8) = &H7B&
-    t(RANGE_TABLE_NOTWORDCHAR_START + 9) = LONG_MAX
-
-    '---------------------------------
+  With stdError.getSentry("stdRegex#InitializeRangeTables")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        t(RANGE_TABLE_DIGIT_START + 0) = &H30&
+        t(RANGE_TABLE_DIGIT_START + 1) = &H39&
+    
+        '---------------------------------
+    
+        t(RANGE_TABLE_WHITE_START + 0) = &H9&
+        t(RANGE_TABLE_WHITE_START + 1) = &HD&
+        t(RANGE_TABLE_WHITE_START + 2) = &H20&
+        t(RANGE_TABLE_WHITE_START + 3) = &H20&
+        t(RANGE_TABLE_WHITE_START + 4) = &HA0&
+        t(RANGE_TABLE_WHITE_START + 5) = &HA0&
+        t(RANGE_TABLE_WHITE_START + 6) = &H1680&
+        t(RANGE_TABLE_WHITE_START + 7) = &H1680&
+        t(RANGE_TABLE_WHITE_START + 8) = &H180E&
+        t(RANGE_TABLE_WHITE_START + 9) = &H180E&
+        t(RANGE_TABLE_WHITE_START + 10) = &H2000&
+        t(RANGE_TABLE_WHITE_START + 11) = &H200A
+        t(RANGE_TABLE_WHITE_START + 12) = &H2028&
+        t(RANGE_TABLE_WHITE_START + 13) = &H2029&
+        t(RANGE_TABLE_WHITE_START + 14) = &H202F
+        t(RANGE_TABLE_WHITE_START + 15) = &H202F
+        t(RANGE_TABLE_WHITE_START + 16) = &H205F&
+        t(RANGE_TABLE_WHITE_START + 17) = &H205F&
+        t(RANGE_TABLE_WHITE_START + 18) = &H3000&
+        t(RANGE_TABLE_WHITE_START + 19) = &H3000&
+        t(RANGE_TABLE_WHITE_START + 20) = &HFEFF&
+        t(RANGE_TABLE_WHITE_START + 21) = &HFEFF&
+    
+        '---------------------------------
+    
+        t(RANGE_TABLE_WORDCHAR_START + 0) = &H30&
+        t(RANGE_TABLE_WORDCHAR_START + 1) = &H39&
+        t(RANGE_TABLE_WORDCHAR_START + 2) = &H41&
+        t(RANGE_TABLE_WORDCHAR_START + 3) = &H5A&
+        t(RANGE_TABLE_WORDCHAR_START + 4) = &H5F&
+        t(RANGE_TABLE_WORDCHAR_START + 5) = &H5F&
+        t(RANGE_TABLE_WORDCHAR_START + 6) = &H61&
+        t(RANGE_TABLE_WORDCHAR_START + 7) = &H7A&
+    
+        '---------------------------------
+    
+        t(RANGE_TABLE_NOTDIGIT_START + 0) = LONG_MIN
+        t(RANGE_TABLE_NOTDIGIT_START + 1) = &H2F&
+        t(RANGE_TABLE_NOTDIGIT_START + 2) = &H3A&
+        t(RANGE_TABLE_NOTDIGIT_START + 3) = LONG_MAX
+    
+        '---------------------------------
+    
+        t(RANGE_TABLE_NOTWHITE_START + 0) = LONG_MIN
+        t(RANGE_TABLE_NOTWHITE_START + 1) = &H8&
+        t(RANGE_TABLE_NOTWHITE_START + 2) = &HE&
+        t(RANGE_TABLE_NOTWHITE_START + 3) = &H1F&
+        t(RANGE_TABLE_NOTWHITE_START + 4) = &H21&
+        t(RANGE_TABLE_NOTWHITE_START + 5) = &H9F&
+        t(RANGE_TABLE_NOTWHITE_START + 6) = &HA1&
+        t(RANGE_TABLE_NOTWHITE_START + 7) = &H167F&
+        t(RANGE_TABLE_NOTWHITE_START + 8) = &H1681&
+        t(RANGE_TABLE_NOTWHITE_START + 9) = &H180D&
+        t(RANGE_TABLE_NOTWHITE_START + 10) = &H180F&
+        t(RANGE_TABLE_NOTWHITE_START + 11) = &H1FFF&
+        t(RANGE_TABLE_NOTWHITE_START + 12) = &H200B&
+        t(RANGE_TABLE_NOTWHITE_START + 13) = &H2027&
+        t(RANGE_TABLE_NOTWHITE_START + 14) = &H202A&
+        t(RANGE_TABLE_NOTWHITE_START + 15) = &H202E&
+        t(RANGE_TABLE_NOTWHITE_START + 16) = &H2030&
+        t(RANGE_TABLE_NOTWHITE_START + 17) = &H205E&
+        t(RANGE_TABLE_NOTWHITE_START + 18) = &H2060&
+        t(RANGE_TABLE_NOTWHITE_START + 19) = &H2FFF&
+        t(RANGE_TABLE_NOTWHITE_START + 20) = &H3001&
+        t(RANGE_TABLE_NOTWHITE_START + 21) = &HFEFE&
+        t(RANGE_TABLE_NOTWHITE_START + 22) = &HFF00&
+        t(RANGE_TABLE_NOTWHITE_START + 23) = LONG_MAX
+    
+        '---------------------------------
+    
+        t(RANGE_TABLE_NOTWORDCHAR_START + 0) = LONG_MIN
+        t(RANGE_TABLE_NOTWORDCHAR_START + 1) = &H2F&
+        t(RANGE_TABLE_NOTWORDCHAR_START + 2) = &H3A&
+        t(RANGE_TABLE_NOTWORDCHAR_START + 3) = &H40&
+        t(RANGE_TABLE_NOTWORDCHAR_START + 4) = &H5B&
+        t(RANGE_TABLE_NOTWORDCHAR_START + 5) = &H5E&
+        t(RANGE_TABLE_NOTWORDCHAR_START + 6) = &H60&
+        t(RANGE_TABLE_NOTWORDCHAR_START + 7) = &H60&
+        t(RANGE_TABLE_NOTWORDCHAR_START + 8) = &H7B&
+        t(RANGE_TABLE_NOTWORDCHAR_START + 9) = LONG_MAX
+    
+        '---------------------------------
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Function ReCanonicalizeChar(ByVal codepoint As Long) As Long
-    ' ! This function must not alter codepoint if codepoint is negative, as ENDOFINPUT is represented by -1.
-    If codepoint And &HFFFF0000 Then ' Codepoint not in [0;&HFFFF&]
-        ReCanonicalizeChar = codepoint
-    Else
-        ReCanonicalizeChar = (codepoint + This.regex.bytecode(UNICODE_CANON_LOOKUP_TABLE_START + codepoint)) And &HFFFF&
-    End If
+  With stdError.getSentry("stdRegex#ReCanonicalizeChar", "codepoint", codepoint)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        ' ! This function must not alter codepoint if codepoint is negative, as ENDOFINPUT is represented by -1.
+        If codepoint And &HFFFF0000 Then ' Codepoint not in [0;&HFFFF&]
+            ReCanonicalizeChar = codepoint
+        Else
+            ReCanonicalizeChar = (codepoint + This.regex.bytecode(UNICODE_CANON_LOOKUP_TABLE_START + codepoint)) And &HFFFF&
+        End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 Private Function UnicodeIsLineTerminator(ByVal codepoint As Long) As Boolean
-    ' ! This function must return False for negative values of codepoint, as ENDOFINPUT is represented by -1.
-    If codepoint = &HA& Then
-        UnicodeIsLineTerminator = True
-    ElseIf codepoint = &HD& Then
-        UnicodeIsLineTerminator = True
-    ElseIf codepoint < &H2028& Then
-        UnicodeIsLineTerminator = False
-    ElseIf codepoint > &H2029& Then
-        UnicodeIsLineTerminator = False
-    Else
-        UnicodeIsLineTerminator = True
-    End If
+  With stdError.getSentry("stdRegex#UnicodeIsLineTerminator", "codepoint", codepoint)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        ' ! This function must return False for negative values of codepoint, as ENDOFINPUT is represented by -1.
+        If codepoint = &HA& Then
+            UnicodeIsLineTerminator = True
+        ElseIf codepoint = &HD& Then
+            UnicodeIsLineTerminator = True
+        ElseIf codepoint < &H2028& Then
+            UnicodeIsLineTerminator = False
+        ElseIf codepoint > &H2029& Then
+            UnicodeIsLineTerminator = False
+        Else
+            UnicodeIsLineTerminator = True
+        End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 Private Sub InitializeUnicodeCanonLookupTable(ByRef t() As Long)
-    ' Array of integers would be sufficient
-    Const b As Long = UNICODE_CANON_LOOKUP_TABLE_START
-
-    Dim i As Long
-
-    For i = b + 97 To b + 122: t(i) = -32: Next i
-    t(b + 181) = 743
-    For i = b + 224 To b + 246: t(i) = -32: Next i
-    For i = b + 248 To b + 254: t(i) = -32: Next i
-    t(b + 255) = 121
-    For i = b + 257 To b + 303 Step 2: t(i) = -1: Next i
-    t(b + 307) = -1
-    t(b + 309) = -1
-    t(b + 311) = -1
-    For i = b + 314 To b + 328 Step 2: t(i) = -1: Next i
-    For i = b + 331 To b + 375 Step 2: t(i) = -1: Next i
-    t(b + 378) = -1
-    t(b + 380) = -1
-    t(b + 382) = -1
-    t(b + 384) = 195
-    t(b + 387) = -1
-    t(b + 389) = -1
-    t(b + 392) = -1
-    t(b + 396) = -1
-    t(b + 402) = -1
-    t(b + 405) = 97
-    t(b + 409) = -1
-    t(b + 410) = 163
-    t(b + 414) = 130
-    t(b + 417) = -1
-    t(b + 419) = -1
-    t(b + 421) = -1
-    t(b + 424) = -1
-    t(b + 429) = -1
-    t(b + 432) = -1
-    t(b + 436) = -1
-    t(b + 438) = -1
-    t(b + 441) = -1
-    t(b + 445) = -1
-    t(b + 447) = 56
-    t(b + 453) = -1
-    t(b + 454) = -2
-    t(b + 456) = -1
-    t(b + 457) = -2
-    t(b + 459) = -1
-    t(b + 460) = -2
-    For i = b + 462 To b + 476 Step 2: t(i) = -1: Next i
-    t(b + 477) = -79
-    For i = b + 479 To b + 495 Step 2: t(i) = -1: Next i
-    t(b + 498) = -1
-    t(b + 499) = -2
-    t(b + 501) = -1
-    For i = b + 505 To b + 543 Step 2: t(i) = -1: Next i
-    For i = b + 547 To b + 563 Step 2: t(i) = -1: Next i
-    t(b + 572) = -1
-    t(b + 575) = 10815
-    t(b + 576) = 10815
-    t(b + 578) = -1
-    For i = b + 583 To b + 591 Step 2: t(i) = -1: Next i
-    t(b + 592) = 10783
-    t(b + 593) = 10780
-    t(b + 594) = 10782
-    t(b + 595) = -210
-    t(b + 596) = -206
-    t(b + 598) = -205
-    t(b + 599) = -205
-    t(b + 601) = -202
-    t(b + 603) = -203
-    t(b + 604) = -23217
-    t(b + 608) = -205
-    t(b + 609) = -23221
-    t(b + 611) = -207
-    t(b + 613) = -23256
-    t(b + 614) = -23228
-    t(b + 616) = -209
-    t(b + 617) = -211
-    t(b + 618) = -23228
-    t(b + 619) = 10743
-    t(b + 620) = -23231
-    t(b + 623) = -211
-    t(b + 625) = 10749
-    t(b + 626) = -213
-    t(b + 629) = -214
-    t(b + 637) = 10727
-    t(b + 640) = -218
-    t(b + 642) = -23229
-    t(b + 643) = -218
-    t(b + 647) = -23254
-    t(b + 648) = -218
-    t(b + 649) = -69
-    t(b + 650) = -217
-    t(b + 651) = -217
-    t(b + 652) = -71
-    t(b + 658) = -219
-    t(b + 669) = -23275
-    t(b + 670) = -23278
-    t(b + 837) = 84
-    t(b + 881) = -1
-    t(b + 883) = -1
-    t(b + 887) = -1
-    t(b + 891) = 130
-    t(b + 892) = 130
-    t(b + 893) = 130
-    t(b + 940) = -38
-    t(b + 941) = -37
-    t(b + 942) = -37
-    t(b + 943) = -37
-    For i = b + 945 To b + 961: t(i) = -32: Next i
-    t(b + 962) = -31
-    For i = b + 963 To b + 971: t(i) = -32: Next i
-    t(b + 972) = -64
-    t(b + 973) = -63
-    t(b + 974) = -63
-    t(b + 976) = -62
-    t(b + 977) = -57
-    t(b + 981) = -47
-    t(b + 982) = -54
-    t(b + 983) = -8
-    For i = b + 985 To b + 1007 Step 2: t(i) = -1: Next i
-    t(b + 1008) = -86
-    t(b + 1009) = -80
-    t(b + 1010) = 7
-    t(b + 1011) = -116
-    t(b + 1013) = -96
-    t(b + 1016) = -1
-    t(b + 1019) = -1
-    For i = b + 1072 To b + 1103: t(i) = -32: Next i
-    For i = b + 1104 To b + 1119: t(i) = -80: Next i
-    For i = b + 1121 To b + 1153 Step 2: t(i) = -1: Next i
-    For i = b + 1163 To b + 1215 Step 2: t(i) = -1: Next i
-    For i = b + 1218 To b + 1230 Step 2: t(i) = -1: Next i
-    t(b + 1231) = -15
-    For i = b + 1233 To b + 1327 Step 2: t(i) = -1: Next i
-    For i = b + 1377 To b + 1414: t(i) = -48: Next i
-    For i = b + 4304 To b + 4346: t(i) = 3008: Next i
-    t(b + 4349) = 3008
-    t(b + 4350) = 3008
-    t(b + 4351) = 3008
-    For i = b + 5112 To b + 5117: t(i) = -8: Next i
-    t(b + 7296) = -6254
-    t(b + 7297) = -6253
-    t(b + 7298) = -6244
-    t(b + 7299) = -6242
-    t(b + 7300) = -6242
-    t(b + 7301) = -6243
-    t(b + 7302) = -6236
-    t(b + 7303) = -6181
-    t(b + 7304) = -30270
-    t(b + 7545) = -30204
-    t(b + 7549) = 3814
-    t(b + 7566) = -30152
-    For i = b + 7681 To b + 7829 Step 2: t(i) = -1: Next i
-    t(b + 7835) = -59
-    For i = b + 7841 To b + 7935 Step 2: t(i) = -1: Next i
-    For i = b + 7936 To b + 7943: t(i) = 8: Next i
-    For i = b + 7952 To b + 7957: t(i) = 8: Next i
-    For i = b + 7968 To b + 7975: t(i) = 8: Next i
-    For i = b + 7984 To b + 7991: t(i) = 8: Next i
-    For i = b + 8000 To b + 8005: t(i) = 8: Next i
-    t(b + 8017) = 8
-    t(b + 8019) = 8
-    t(b + 8021) = 8
-    t(b + 8023) = 8
-    For i = b + 8032 To b + 8039: t(i) = 8: Next i
-    t(b + 8048) = 74
-    t(b + 8049) = 74
-    t(b + 8050) = 86
-    t(b + 8051) = 86
-    t(b + 8052) = 86
-    t(b + 8053) = 86
-    t(b + 8054) = 100
-    t(b + 8055) = 100
-    t(b + 8056) = 128
-    t(b + 8057) = 128
-    t(b + 8058) = 112
-    t(b + 8059) = 112
-    t(b + 8060) = 126
-    t(b + 8061) = 126
-    t(b + 8112) = 8
-    t(b + 8113) = 8
-    t(b + 8126) = -7205
-    t(b + 8144) = 8
-    t(b + 8145) = 8
-    t(b + 8160) = 8
-    t(b + 8161) = 8
-    t(b + 8165) = 7
-    t(b + 8526) = -28
-    For i = b + 8560 To b + 8575: t(i) = -16: Next i
-    t(b + 8580) = -1
-    For i = b + 9424 To b + 9449: t(i) = -26: Next i
-    For i = b + 11312 To b + 11358: t(i) = -48: Next i
-    t(b + 11361) = -1
-    t(b + 11365) = -10795
-    t(b + 11366) = -10792
-    t(b + 11368) = -1
-    t(b + 11370) = -1
-    t(b + 11372) = -1
-    t(b + 11379) = -1
-    t(b + 11382) = -1
-    For i = b + 11393 To b + 11491 Step 2: t(i) = -1: Next i
-    t(b + 11500) = -1
-    t(b + 11502) = -1
-    t(b + 11507) = -1
-    For i = b + 11520 To b + 11557: t(i) = -7264: Next i
-    t(b + 11559) = -7264
-    t(b + 11565) = -7264
-    For i = b + 42561 To b + 42605 Step 2: t(i) = -1: Next i
-    For i = b + 42625 To b + 42651 Step 2: t(i) = -1: Next i
-    For i = b + 42787 To b + 42799 Step 2: t(i) = -1: Next i
-    For i = b + 42803 To b + 42863 Step 2: t(i) = -1: Next i
-    t(b + 42874) = -1
-    t(b + 42876) = -1
-    For i = b + 42879 To b + 42887 Step 2: t(i) = -1: Next i
-    t(b + 42892) = -1
-    t(b + 42897) = -1
-    t(b + 42899) = -1
-    t(b + 42900) = 48
-    For i = b + 42903 To b + 42921 Step 2: t(i) = -1: Next i
-    For i = b + 42933 To b + 42943 Step 2: t(i) = -1: Next i
-    t(b + 42947) = -1
-    t(b + 43859) = -928
-    For i = b + 43888 To b + 43967: t(i) = 26672: Next i
-    For i = b + 65345 To b + 65370: t(i) = -32: Next i
+  With stdError.getSentry("stdRegex#InitializeUnicodeCanonLookupTable")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        ' Array of integers would be sufficient
+        Const b As Long = UNICODE_CANON_LOOKUP_TABLE_START
+    
+        Dim i As Long
+    
+        For i = b + 97 To b + 122: t(i) = -32: Next i
+        t(b + 181) = 743
+        For i = b + 224 To b + 246: t(i) = -32: Next i
+        For i = b + 248 To b + 254: t(i) = -32: Next i
+        t(b + 255) = 121
+        For i = b + 257 To b + 303 Step 2: t(i) = -1: Next i
+        t(b + 307) = -1
+        t(b + 309) = -1
+        t(b + 311) = -1
+        For i = b + 314 To b + 328 Step 2: t(i) = -1: Next i
+        For i = b + 331 To b + 375 Step 2: t(i) = -1: Next i
+        t(b + 378) = -1
+        t(b + 380) = -1
+        t(b + 382) = -1
+        t(b + 384) = 195
+        t(b + 387) = -1
+        t(b + 389) = -1
+        t(b + 392) = -1
+        t(b + 396) = -1
+        t(b + 402) = -1
+        t(b + 405) = 97
+        t(b + 409) = -1
+        t(b + 410) = 163
+        t(b + 414) = 130
+        t(b + 417) = -1
+        t(b + 419) = -1
+        t(b + 421) = -1
+        t(b + 424) = -1
+        t(b + 429) = -1
+        t(b + 432) = -1
+        t(b + 436) = -1
+        t(b + 438) = -1
+        t(b + 441) = -1
+        t(b + 445) = -1
+        t(b + 447) = 56
+        t(b + 453) = -1
+        t(b + 454) = -2
+        t(b + 456) = -1
+        t(b + 457) = -2
+        t(b + 459) = -1
+        t(b + 460) = -2
+        For i = b + 462 To b + 476 Step 2: t(i) = -1: Next i
+        t(b + 477) = -79
+        For i = b + 479 To b + 495 Step 2: t(i) = -1: Next i
+        t(b + 498) = -1
+        t(b + 499) = -2
+        t(b + 501) = -1
+        For i = b + 505 To b + 543 Step 2: t(i) = -1: Next i
+        For i = b + 547 To b + 563 Step 2: t(i) = -1: Next i
+        t(b + 572) = -1
+        t(b + 575) = 10815
+        t(b + 576) = 10815
+        t(b + 578) = -1
+        For i = b + 583 To b + 591 Step 2: t(i) = -1: Next i
+        t(b + 592) = 10783
+        t(b + 593) = 10780
+        t(b + 594) = 10782
+        t(b + 595) = -210
+        t(b + 596) = -206
+        t(b + 598) = -205
+        t(b + 599) = -205
+        t(b + 601) = -202
+        t(b + 603) = -203
+        t(b + 604) = -23217
+        t(b + 608) = -205
+        t(b + 609) = -23221
+        t(b + 611) = -207
+        t(b + 613) = -23256
+        t(b + 614) = -23228
+        t(b + 616) = -209
+        t(b + 617) = -211
+        t(b + 618) = -23228
+        t(b + 619) = 10743
+        t(b + 620) = -23231
+        t(b + 623) = -211
+        t(b + 625) = 10749
+        t(b + 626) = -213
+        t(b + 629) = -214
+        t(b + 637) = 10727
+        t(b + 640) = -218
+        t(b + 642) = -23229
+        t(b + 643) = -218
+        t(b + 647) = -23254
+        t(b + 648) = -218
+        t(b + 649) = -69
+        t(b + 650) = -217
+        t(b + 651) = -217
+        t(b + 652) = -71
+        t(b + 658) = -219
+        t(b + 669) = -23275
+        t(b + 670) = -23278
+        t(b + 837) = 84
+        t(b + 881) = -1
+        t(b + 883) = -1
+        t(b + 887) = -1
+        t(b + 891) = 130
+        t(b + 892) = 130
+        t(b + 893) = 130
+        t(b + 940) = -38
+        t(b + 941) = -37
+        t(b + 942) = -37
+        t(b + 943) = -37
+        For i = b + 945 To b + 961: t(i) = -32: Next i
+        t(b + 962) = -31
+        For i = b + 963 To b + 971: t(i) = -32: Next i
+        t(b + 972) = -64
+        t(b + 973) = -63
+        t(b + 974) = -63
+        t(b + 976) = -62
+        t(b + 977) = -57
+        t(b + 981) = -47
+        t(b + 982) = -54
+        t(b + 983) = -8
+        For i = b + 985 To b + 1007 Step 2: t(i) = -1: Next i
+        t(b + 1008) = -86
+        t(b + 1009) = -80
+        t(b + 1010) = 7
+        t(b + 1011) = -116
+        t(b + 1013) = -96
+        t(b + 1016) = -1
+        t(b + 1019) = -1
+        For i = b + 1072 To b + 1103: t(i) = -32: Next i
+        For i = b + 1104 To b + 1119: t(i) = -80: Next i
+        For i = b + 1121 To b + 1153 Step 2: t(i) = -1: Next i
+        For i = b + 1163 To b + 1215 Step 2: t(i) = -1: Next i
+        For i = b + 1218 To b + 1230 Step 2: t(i) = -1: Next i
+        t(b + 1231) = -15
+        For i = b + 1233 To b + 1327 Step 2: t(i) = -1: Next i
+        For i = b + 1377 To b + 1414: t(i) = -48: Next i
+        For i = b + 4304 To b + 4346: t(i) = 3008: Next i
+        t(b + 4349) = 3008
+        t(b + 4350) = 3008
+        t(b + 4351) = 3008
+        For i = b + 5112 To b + 5117: t(i) = -8: Next i
+        t(b + 7296) = -6254
+        t(b + 7297) = -6253
+        t(b + 7298) = -6244
+        t(b + 7299) = -6242
+        t(b + 7300) = -6242
+        t(b + 7301) = -6243
+        t(b + 7302) = -6236
+        t(b + 7303) = -6181
+        t(b + 7304) = -30270
+        t(b + 7545) = -30204
+        t(b + 7549) = 3814
+        t(b + 7566) = -30152
+        For i = b + 7681 To b + 7829 Step 2: t(i) = -1: Next i
+        t(b + 7835) = -59
+        For i = b + 7841 To b + 7935 Step 2: t(i) = -1: Next i
+        For i = b + 7936 To b + 7943: t(i) = 8: Next i
+        For i = b + 7952 To b + 7957: t(i) = 8: Next i
+        For i = b + 7968 To b + 7975: t(i) = 8: Next i
+        For i = b + 7984 To b + 7991: t(i) = 8: Next i
+        For i = b + 8000 To b + 8005: t(i) = 8: Next i
+        t(b + 8017) = 8
+        t(b + 8019) = 8
+        t(b + 8021) = 8
+        t(b + 8023) = 8
+        For i = b + 8032 To b + 8039: t(i) = 8: Next i
+        t(b + 8048) = 74
+        t(b + 8049) = 74
+        t(b + 8050) = 86
+        t(b + 8051) = 86
+        t(b + 8052) = 86
+        t(b + 8053) = 86
+        t(b + 8054) = 100
+        t(b + 8055) = 100
+        t(b + 8056) = 128
+        t(b + 8057) = 128
+        t(b + 8058) = 112
+        t(b + 8059) = 112
+        t(b + 8060) = 126
+        t(b + 8061) = 126
+        t(b + 8112) = 8
+        t(b + 8113) = 8
+        t(b + 8126) = -7205
+        t(b + 8144) = 8
+        t(b + 8145) = 8
+        t(b + 8160) = 8
+        t(b + 8161) = 8
+        t(b + 8165) = 7
+        t(b + 8526) = -28
+        For i = b + 8560 To b + 8575: t(i) = -16: Next i
+        t(b + 8580) = -1
+        For i = b + 9424 To b + 9449: t(i) = -26: Next i
+        For i = b + 11312 To b + 11358: t(i) = -48: Next i
+        t(b + 11361) = -1
+        t(b + 11365) = -10795
+        t(b + 11366) = -10792
+        t(b + 11368) = -1
+        t(b + 11370) = -1
+        t(b + 11372) = -1
+        t(b + 11379) = -1
+        t(b + 11382) = -1
+        For i = b + 11393 To b + 11491 Step 2: t(i) = -1: Next i
+        t(b + 11500) = -1
+        t(b + 11502) = -1
+        t(b + 11507) = -1
+        For i = b + 11520 To b + 11557: t(i) = -7264: Next i
+        t(b + 11559) = -7264
+        t(b + 11565) = -7264
+        For i = b + 42561 To b + 42605 Step 2: t(i) = -1: Next i
+        For i = b + 42625 To b + 42651 Step 2: t(i) = -1: Next i
+        For i = b + 42787 To b + 42799 Step 2: t(i) = -1: Next i
+        For i = b + 42803 To b + 42863 Step 2: t(i) = -1: Next i
+        t(b + 42874) = -1
+        t(b + 42876) = -1
+        For i = b + 42879 To b + 42887 Step 2: t(i) = -1: Next i
+        t(b + 42892) = -1
+        t(b + 42897) = -1
+        t(b + 42899) = -1
+        t(b + 42900) = 48
+        For i = b + 42903 To b + 42921 Step 2: t(i) = -1: Next i
+        For i = b + 42933 To b + 42943 Step 2: t(i) = -1: Next i
+        t(b + 42947) = -1
+        t(b + 43859) = -928
+        For i = b + 43888 To b + 43967: t(i) = 26672: Next i
+        For i = b + 65345 To b + 65370: t(i) = -32: Next i
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Sub InitializeUnicodeCanonRunsTable(ByRef t() As Long)
-    Const b As Long = UNICODE_CANON_RUNS_TABLE_START
-    t(b + 0) = 97
-    t(b + 1) = 123
-    t(b + 2) = 181
-    t(b + 3) = 182
-    t(b + 4) = 224
-    t(b + 5) = 247
-    t(b + 6) = 248
-    t(b + 7) = 255
-    t(b + 8) = 256
-    t(b + 9) = 257
-    t(b + 10) = 304
-    t(b + 11) = 307
-    t(b + 12) = 312
-    t(b + 13) = 314
-    t(b + 14) = 329
-    t(b + 15) = 331
-    t(b + 16) = 376
-    t(b + 17) = 378
-    t(b + 18) = 383
-    t(b + 19) = 384
-    t(b + 20) = 385
-    t(b + 21) = 387
-    t(b + 22) = 390
-    t(b + 23) = 392
-    t(b + 24) = 393
-    t(b + 25) = 396
-    t(b + 26) = 397
-    t(b + 27) = 402
-    t(b + 28) = 403
-    t(b + 29) = 405
-    t(b + 30) = 406
-    t(b + 31) = 409
-    t(b + 32) = 410
-    t(b + 33) = 411
-    t(b + 34) = 414
-    t(b + 35) = 415
-    t(b + 36) = 417
-    t(b + 37) = 422
-    t(b + 38) = 424
-    t(b + 39) = 425
-    t(b + 40) = 429
-    t(b + 41) = 430
-    t(b + 42) = 432
-    t(b + 43) = 433
-    t(b + 44) = 436
-    t(b + 45) = 439
-    t(b + 46) = 441
-    t(b + 47) = 442
-    t(b + 48) = 445
-    t(b + 49) = 446
-    t(b + 50) = 447
-    t(b + 51) = 448
-    t(b + 52) = 453
-    t(b + 53) = 454
-    t(b + 54) = 455
-    t(b + 55) = 456
-    t(b + 56) = 457
-    t(b + 57) = 458
-    t(b + 58) = 459
-    t(b + 59) = 460
-    t(b + 60) = 461
-    t(b + 61) = 462
-    t(b + 62) = 477
-    t(b + 63) = 478
-    t(b + 64) = 479
-    t(b + 65) = 496
-    t(b + 66) = 498
-    t(b + 67) = 499
-    t(b + 68) = 500
-    t(b + 69) = 501
-    t(b + 70) = 502
-    t(b + 71) = 505
-    t(b + 72) = 544
-    t(b + 73) = 547
-    t(b + 74) = 564
-    t(b + 75) = 572
-    t(b + 76) = 573
-    t(b + 77) = 575
-    t(b + 78) = 577
-    t(b + 79) = 578
-    t(b + 80) = 579
-    t(b + 81) = 583
-    t(b + 82) = 592
-    t(b + 83) = 593
-    t(b + 84) = 594
-    t(b + 85) = 595
-    t(b + 86) = 596
-    t(b + 87) = 597
-    t(b + 88) = 598
-    t(b + 89) = 600
-    t(b + 90) = 601
-    t(b + 91) = 602
-    t(b + 92) = 603
-    t(b + 93) = 604
-    t(b + 94) = 605
-    t(b + 95) = 608
-    t(b + 96) = 609
-    t(b + 97) = 610
-    t(b + 98) = 611
-    t(b + 99) = 612
-    t(b + 100) = 613
-    t(b + 101) = 614
-    t(b + 102) = 615
-    t(b + 103) = 616
-    t(b + 104) = 617
-    t(b + 105) = 618
-    t(b + 106) = 619
-    t(b + 107) = 620
-    t(b + 108) = 621
-    t(b + 109) = 623
-    t(b + 110) = 624
-    t(b + 111) = 625
-    t(b + 112) = 626
-    t(b + 113) = 627
-    t(b + 114) = 629
-    t(b + 115) = 630
-    t(b + 116) = 637
-    t(b + 117) = 638
-    t(b + 118) = 640
-    t(b + 119) = 641
-    t(b + 120) = 642
-    t(b + 121) = 643
-    t(b + 122) = 644
-    t(b + 123) = 647
-    t(b + 124) = 648
-    t(b + 125) = 649
-    t(b + 126) = 650
-    t(b + 127) = 652
-    t(b + 128) = 653
-    t(b + 129) = 658
-    t(b + 130) = 659
-    t(b + 131) = 669
-    t(b + 132) = 670
-    t(b + 133) = 671
-    t(b + 134) = 837
-    t(b + 135) = 838
-    t(b + 136) = 881
-    t(b + 137) = 884
-    t(b + 138) = 887
-    t(b + 139) = 888
-    t(b + 140) = 891
-    t(b + 141) = 894
-    t(b + 142) = 940
-    t(b + 143) = 941
-    t(b + 144) = 944
-    t(b + 145) = 945
-    t(b + 146) = 962
-    t(b + 147) = 963
-    t(b + 148) = 972
-    t(b + 149) = 973
-    t(b + 150) = 975
-    t(b + 151) = 976
-    t(b + 152) = 977
-    t(b + 153) = 978
-    t(b + 154) = 981
-    t(b + 155) = 982
-    t(b + 156) = 983
-    t(b + 157) = 984
-    t(b + 158) = 985
-    t(b + 159) = 1008
-    t(b + 160) = 1009
-    t(b + 161) = 1010
-    t(b + 162) = 1011
-    t(b + 163) = 1012
-    t(b + 164) = 1013
-    t(b + 165) = 1014
-    t(b + 166) = 1016
-    t(b + 167) = 1017
-    t(b + 168) = 1019
-    t(b + 169) = 1020
-    t(b + 170) = 1072
-    t(b + 171) = 1104
-    t(b + 172) = 1120
-    t(b + 173) = 1121
-    t(b + 174) = 1154
-    t(b + 175) = 1163
-    t(b + 176) = 1216
-    t(b + 177) = 1218
-    t(b + 178) = 1231
-    t(b + 179) = 1232
-    t(b + 180) = 1233
-    t(b + 181) = 1328
-    t(b + 182) = 1377
-    t(b + 183) = 1415
-    t(b + 184) = 4304
-    t(b + 185) = 4347
-    t(b + 186) = 4349
-    t(b + 187) = 4352
-    t(b + 188) = 5112
-    t(b + 189) = 5118
-    t(b + 190) = 7296
-    t(b + 191) = 7297
-    t(b + 192) = 7298
-    t(b + 193) = 7299
-    t(b + 194) = 7301
-    t(b + 195) = 7302
-    t(b + 196) = 7303
-    t(b + 197) = 7304
-    t(b + 198) = 7305
-    t(b + 199) = 7545
-    t(b + 200) = 7546
-    t(b + 201) = 7549
-    t(b + 202) = 7550
-    t(b + 203) = 7566
-    t(b + 204) = 7567
-    t(b + 205) = 7681
-    t(b + 206) = 7830
-    t(b + 207) = 7835
-    t(b + 208) = 7836
-    t(b + 209) = 7841
-    t(b + 210) = 7936
-    t(b + 211) = 7944
-    t(b + 212) = 7952
-    t(b + 213) = 7958
-    t(b + 214) = 7968
-    t(b + 215) = 7976
-    t(b + 216) = 7984
-    t(b + 217) = 7992
-    t(b + 218) = 8000
-    t(b + 219) = 8006
-    t(b + 220) = 8017
-    t(b + 221) = 8024
-    t(b + 222) = 8032
-    t(b + 223) = 8040
-    t(b + 224) = 8048
-    t(b + 225) = 8050
-    t(b + 226) = 8054
-    t(b + 227) = 8056
-    t(b + 228) = 8058
-    t(b + 229) = 8060
-    t(b + 230) = 8062
-    t(b + 231) = 8112
-    t(b + 232) = 8114
-    t(b + 233) = 8126
-    t(b + 234) = 8127
-    t(b + 235) = 8144
-    t(b + 236) = 8146
-    t(b + 237) = 8160
-    t(b + 238) = 8162
-    t(b + 239) = 8165
-    t(b + 240) = 8166
-    t(b + 241) = 8526
-    t(b + 242) = 8527
-    t(b + 243) = 8560
-    t(b + 244) = 8576
-    t(b + 245) = 8580
-    t(b + 246) = 8581
-    t(b + 247) = 9424
-    t(b + 248) = 9450
-    t(b + 249) = 11312
-    t(b + 250) = 11359
-    t(b + 251) = 11361
-    t(b + 252) = 11362
-    t(b + 253) = 11365
-    t(b + 254) = 11366
-    t(b + 255) = 11367
-    t(b + 256) = 11368
-    t(b + 257) = 11373
-    t(b + 258) = 11379
-    t(b + 259) = 11380
-    t(b + 260) = 11382
-    t(b + 261) = 11383
-    t(b + 262) = 11393
-    t(b + 263) = 11492
-    t(b + 264) = 11500
-    t(b + 265) = 11503
-    t(b + 266) = 11507
-    t(b + 267) = 11508
-    t(b + 268) = 11520
-    t(b + 269) = 11558
-    t(b + 270) = 11559
-    t(b + 271) = 11560
-    t(b + 272) = 11565
-    t(b + 273) = 11566
-    t(b + 274) = 42561
-    t(b + 275) = 42606
-    t(b + 276) = 42625
-    t(b + 277) = 42652
-    t(b + 278) = 42787
-    t(b + 279) = 42800
-    t(b + 280) = 42803
-    t(b + 281) = 42864
-    t(b + 282) = 42874
-    t(b + 283) = 42877
-    t(b + 284) = 42879
-    t(b + 285) = 42888
-    t(b + 286) = 42892
-    t(b + 287) = 42893
-    t(b + 288) = 42897
-    t(b + 289) = 42900
-    t(b + 290) = 42901
-    t(b + 291) = 42903
-    t(b + 292) = 42922
-    t(b + 293) = 42933
-    t(b + 294) = 42944
-    t(b + 295) = 42947
-    t(b + 296) = 42948
-    t(b + 297) = 43859
-    t(b + 298) = 43860
-    t(b + 299) = 43888
-    t(b + 300) = 43968
-    t(b + 301) = 65345
-    t(b + 302) = 65371
+  With stdError.getSentry("stdRegex#InitializeUnicodeCanonRunsTable")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Const b As Long = UNICODE_CANON_RUNS_TABLE_START
+        t(b + 0) = 97
+        t(b + 1) = 123
+        t(b + 2) = 181
+        t(b + 3) = 182
+        t(b + 4) = 224
+        t(b + 5) = 247
+        t(b + 6) = 248
+        t(b + 7) = 255
+        t(b + 8) = 256
+        t(b + 9) = 257
+        t(b + 10) = 304
+        t(b + 11) = 307
+        t(b + 12) = 312
+        t(b + 13) = 314
+        t(b + 14) = 329
+        t(b + 15) = 331
+        t(b + 16) = 376
+        t(b + 17) = 378
+        t(b + 18) = 383
+        t(b + 19) = 384
+        t(b + 20) = 385
+        t(b + 21) = 387
+        t(b + 22) = 390
+        t(b + 23) = 392
+        t(b + 24) = 393
+        t(b + 25) = 396
+        t(b + 26) = 397
+        t(b + 27) = 402
+        t(b + 28) = 403
+        t(b + 29) = 405
+        t(b + 30) = 406
+        t(b + 31) = 409
+        t(b + 32) = 410
+        t(b + 33) = 411
+        t(b + 34) = 414
+        t(b + 35) = 415
+        t(b + 36) = 417
+        t(b + 37) = 422
+        t(b + 38) = 424
+        t(b + 39) = 425
+        t(b + 40) = 429
+        t(b + 41) = 430
+        t(b + 42) = 432
+        t(b + 43) = 433
+        t(b + 44) = 436
+        t(b + 45) = 439
+        t(b + 46) = 441
+        t(b + 47) = 442
+        t(b + 48) = 445
+        t(b + 49) = 446
+        t(b + 50) = 447
+        t(b + 51) = 448
+        t(b + 52) = 453
+        t(b + 53) = 454
+        t(b + 54) = 455
+        t(b + 55) = 456
+        t(b + 56) = 457
+        t(b + 57) = 458
+        t(b + 58) = 459
+        t(b + 59) = 460
+        t(b + 60) = 461
+        t(b + 61) = 462
+        t(b + 62) = 477
+        t(b + 63) = 478
+        t(b + 64) = 479
+        t(b + 65) = 496
+        t(b + 66) = 498
+        t(b + 67) = 499
+        t(b + 68) = 500
+        t(b + 69) = 501
+        t(b + 70) = 502
+        t(b + 71) = 505
+        t(b + 72) = 544
+        t(b + 73) = 547
+        t(b + 74) = 564
+        t(b + 75) = 572
+        t(b + 76) = 573
+        t(b + 77) = 575
+        t(b + 78) = 577
+        t(b + 79) = 578
+        t(b + 80) = 579
+        t(b + 81) = 583
+        t(b + 82) = 592
+        t(b + 83) = 593
+        t(b + 84) = 594
+        t(b + 85) = 595
+        t(b + 86) = 596
+        t(b + 87) = 597
+        t(b + 88) = 598
+        t(b + 89) = 600
+        t(b + 90) = 601
+        t(b + 91) = 602
+        t(b + 92) = 603
+        t(b + 93) = 604
+        t(b + 94) = 605
+        t(b + 95) = 608
+        t(b + 96) = 609
+        t(b + 97) = 610
+        t(b + 98) = 611
+        t(b + 99) = 612
+        t(b + 100) = 613
+        t(b + 101) = 614
+        t(b + 102) = 615
+        t(b + 103) = 616
+        t(b + 104) = 617
+        t(b + 105) = 618
+        t(b + 106) = 619
+        t(b + 107) = 620
+        t(b + 108) = 621
+        t(b + 109) = 623
+        t(b + 110) = 624
+        t(b + 111) = 625
+        t(b + 112) = 626
+        t(b + 113) = 627
+        t(b + 114) = 629
+        t(b + 115) = 630
+        t(b + 116) = 637
+        t(b + 117) = 638
+        t(b + 118) = 640
+        t(b + 119) = 641
+        t(b + 120) = 642
+        t(b + 121) = 643
+        t(b + 122) = 644
+        t(b + 123) = 647
+        t(b + 124) = 648
+        t(b + 125) = 649
+        t(b + 126) = 650
+        t(b + 127) = 652
+        t(b + 128) = 653
+        t(b + 129) = 658
+        t(b + 130) = 659
+        t(b + 131) = 669
+        t(b + 132) = 670
+        t(b + 133) = 671
+        t(b + 134) = 837
+        t(b + 135) = 838
+        t(b + 136) = 881
+        t(b + 137) = 884
+        t(b + 138) = 887
+        t(b + 139) = 888
+        t(b + 140) = 891
+        t(b + 141) = 894
+        t(b + 142) = 940
+        t(b + 143) = 941
+        t(b + 144) = 944
+        t(b + 145) = 945
+        t(b + 146) = 962
+        t(b + 147) = 963
+        t(b + 148) = 972
+        t(b + 149) = 973
+        t(b + 150) = 975
+        t(b + 151) = 976
+        t(b + 152) = 977
+        t(b + 153) = 978
+        t(b + 154) = 981
+        t(b + 155) = 982
+        t(b + 156) = 983
+        t(b + 157) = 984
+        t(b + 158) = 985
+        t(b + 159) = 1008
+        t(b + 160) = 1009
+        t(b + 161) = 1010
+        t(b + 162) = 1011
+        t(b + 163) = 1012
+        t(b + 164) = 1013
+        t(b + 165) = 1014
+        t(b + 166) = 1016
+        t(b + 167) = 1017
+        t(b + 168) = 1019
+        t(b + 169) = 1020
+        t(b + 170) = 1072
+        t(b + 171) = 1104
+        t(b + 172) = 1120
+        t(b + 173) = 1121
+        t(b + 174) = 1154
+        t(b + 175) = 1163
+        t(b + 176) = 1216
+        t(b + 177) = 1218
+        t(b + 178) = 1231
+        t(b + 179) = 1232
+        t(b + 180) = 1233
+        t(b + 181) = 1328
+        t(b + 182) = 1377
+        t(b + 183) = 1415
+        t(b + 184) = 4304
+        t(b + 185) = 4347
+        t(b + 186) = 4349
+        t(b + 187) = 4352
+        t(b + 188) = 5112
+        t(b + 189) = 5118
+        t(b + 190) = 7296
+        t(b + 191) = 7297
+        t(b + 192) = 7298
+        t(b + 193) = 7299
+        t(b + 194) = 7301
+        t(b + 195) = 7302
+        t(b + 196) = 7303
+        t(b + 197) = 7304
+        t(b + 198) = 7305
+        t(b + 199) = 7545
+        t(b + 200) = 7546
+        t(b + 201) = 7549
+        t(b + 202) = 7550
+        t(b + 203) = 7566
+        t(b + 204) = 7567
+        t(b + 205) = 7681
+        t(b + 206) = 7830
+        t(b + 207) = 7835
+        t(b + 208) = 7836
+        t(b + 209) = 7841
+        t(b + 210) = 7936
+        t(b + 211) = 7944
+        t(b + 212) = 7952
+        t(b + 213) = 7958
+        t(b + 214) = 7968
+        t(b + 215) = 7976
+        t(b + 216) = 7984
+        t(b + 217) = 7992
+        t(b + 218) = 8000
+        t(b + 219) = 8006
+        t(b + 220) = 8017
+        t(b + 221) = 8024
+        t(b + 222) = 8032
+        t(b + 223) = 8040
+        t(b + 224) = 8048
+        t(b + 225) = 8050
+        t(b + 226) = 8054
+        t(b + 227) = 8056
+        t(b + 228) = 8058
+        t(b + 229) = 8060
+        t(b + 230) = 8062
+        t(b + 231) = 8112
+        t(b + 232) = 8114
+        t(b + 233) = 8126
+        t(b + 234) = 8127
+        t(b + 235) = 8144
+        t(b + 236) = 8146
+        t(b + 237) = 8160
+        t(b + 238) = 8162
+        t(b + 239) = 8165
+        t(b + 240) = 8166
+        t(b + 241) = 8526
+        t(b + 242) = 8527
+        t(b + 243) = 8560
+        t(b + 244) = 8576
+        t(b + 245) = 8580
+        t(b + 246) = 8581
+        t(b + 247) = 9424
+        t(b + 248) = 9450
+        t(b + 249) = 11312
+        t(b + 250) = 11359
+        t(b + 251) = 11361
+        t(b + 252) = 11362
+        t(b + 253) = 11365
+        t(b + 254) = 11366
+        t(b + 255) = 11367
+        t(b + 256) = 11368
+        t(b + 257) = 11373
+        t(b + 258) = 11379
+        t(b + 259) = 11380
+        t(b + 260) = 11382
+        t(b + 261) = 11383
+        t(b + 262) = 11393
+        t(b + 263) = 11492
+        t(b + 264) = 11500
+        t(b + 265) = 11503
+        t(b + 266) = 11507
+        t(b + 267) = 11508
+        t(b + 268) = 11520
+        t(b + 269) = 11558
+        t(b + 270) = 11559
+        t(b + 271) = 11560
+        t(b + 272) = 11565
+        t(b + 273) = 11566
+        t(b + 274) = 42561
+        t(b + 275) = 42606
+        t(b + 276) = 42625
+        t(b + 277) = 42652
+        t(b + 278) = 42787
+        t(b + 279) = 42800
+        t(b + 280) = 42803
+        t(b + 281) = 42864
+        t(b + 282) = 42874
+        t(b + 283) = 42877
+        t(b + 284) = 42879
+        t(b + 285) = 42888
+        t(b + 286) = 42892
+        t(b + 287) = 42893
+        t(b + 288) = 42897
+        t(b + 289) = 42900
+        t(b + 290) = 42901
+        t(b + 291) = 42903
+        t(b + 292) = 42922
+        t(b + 293) = 42933
+        t(b + 294) = 42944
+        t(b + 295) = 42947
+        t(b + 296) = 42948
+        t(b + 297) = 43859
+        t(b + 298) = 43860
+        t(b + 299) = 43888
+        t(b + 300) = 43968
+        t(b + 301) = 65345
+        t(b + 302) = 65371
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Sub EmitPredefinedRange( _
     ByRef outBuffer As ArrayBuffer, ByRef source() As Long, ByVal sourceStart As Long, ByVal sourceLength As Long _
 )
-    Dim i As Long, j As Long
-
-    With outBuffer
-        i = .Length
-        AppendUnspecified outBuffer, sourceLength
-        j = sourceStart + sourceLength - 2
-        Do While j >= sourceStart
-            .Buffer(i) = source(j): i = i + 1
-            .Buffer(i) = source(j + 1): i = i + 1
-            j = j - 2
-        Loop
-    End With
+  With stdError.getSentry("stdRegex#EmitPredefinedRange", "_", _, "sourceStart", sourceStart, "sourceLength", sourceLength)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim i As Long, j As Long
+    
+        With outBuffer
+            i = .Length
+            AppendUnspecified outBuffer, sourceLength
+            j = sourceStart + sourceLength - 2
+            Do While j >= sourceStart
+                .Buffer(i) = source(j): i = i + 1
+                .Buffer(i) = source(j + 1): i = i + 1
+                j = j - 2
+            Loop
+        End With
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Sub RegexpGenerateRanges(ByRef outBuffer As ArrayBuffer, _
     ByVal caseInsensitive As Boolean, ByVal r1 As Long, ByVal r2 As Long _
 )
-    Dim a As Long, b As Long, m As Long, d As Long, ub As Long, lastDelta As Long
-    Dim r As Long, rc As Long
-
-    If Not caseInsensitive Then
-        AppendLong outBuffer, r1
-        AppendLong outBuffer, r2
-        Exit Sub
-    End If
-
-    rc = ReCanonicalizeChar(r1)
-    lastDelta = rc - r1
-    AppendLong outBuffer, rc
-
-    a = UNICODE_CANON_RUNS_TABLE_START - 1
-    ub = a + UNICODE_CANON_RUNS_TABLE_LENGTH
-
-    If This.regex.bytecode(ub) > r1 Then
-        ' Find the index of the first element larger than r1.
-        ' The index is guaranteed to be in the interval (a;b].
-        b = ub
-        Do
-            d = b - a
-            If d = 1 Then Exit Do
-            m = a + d \ 2
-            If This.regex.bytecode(m) > r1 Then b = m Else a = m
-        Loop
-
-        ' Now b is the index of the first element larger than r1.
-        Do
-            r = This.regex.bytecode(b)
-            If r > r2 Then Exit Do
-            AppendLong outBuffer, r - 1 + lastDelta
-
-            rc = ReCanonicalizeChar(r)
-            AppendLong outBuffer, rc
-            lastDelta = rc - r
-
-            If b = ub Then Exit Do
-            b = b + 1
-        Loop
-    End If
-
-    AppendLong outBuffer, r2 + lastDelta
+  With stdError.getSentry("stdRegex#RegexpGenerateRanges", "_", _, "r1", r1, "r2", r2)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim a As Long, b As Long, m As Long, d As Long, ub As Long, lastDelta As Long
+        Dim r As Long, rc As Long
+    
+        If Not caseInsensitive Then
+            AppendLong outBuffer, r1
+            AppendLong outBuffer, r2
+            Exit Sub
+        End If
+    
+        rc = ReCanonicalizeChar(r1)
+        lastDelta = rc - r1
+        AppendLong outBuffer, rc
+    
+        a = UNICODE_CANON_RUNS_TABLE_START - 1
+        ub = a + UNICODE_CANON_RUNS_TABLE_LENGTH
+    
+        If This.regex.bytecode(ub) > r1 Then
+            ' Find the index of the first element larger than r1.
+            ' The index is guaranteed to be in the interval (a;b].
+            b = ub
+            Do
+                d = b - a
+                If d = 1 Then Exit Do
+                m = a + d \ 2
+                If This.regex.bytecode(m) > r1 Then b = m Else a = m
+            Loop
+    
+            ' Now b is the index of the first element larger than r1.
+            Do
+                r = This.regex.bytecode(b)
+                If r > r2 Then Exit Do
+                AppendLong outBuffer, r - 1 + lastDelta
+    
+                rc = ReCanonicalizeChar(r)
+                AppendLong outBuffer, rc
+                lastDelta = rc - r
+    
+                If b = ub Then Exit Do
+                b = b + 1
+            Loop
+        End If
+    
+        AppendLong outBuffer, r2 + lastDelta
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Sub RedBlackDumpTree(ByRef target() As Long, ByVal targetStartIdx As Long, ByRef tree As IdentifierTreeTy)
-    Dim targetIdx As Long, currentNode As Long, nextNode As Long
-
-    If tree.nEntries = 0 Then Exit Sub
-
-    targetIdx = targetStartIdx
-
-    currentNode = tree.root
-    Do
-        nextNode = tree.Buffer(currentNode).rbChild(0)
-        If nextNode = -1 Then Exit Do
-        currentNode = nextNode
-    Loop
-
-    Do
-        ' handle current node
-        target(targetIdx) = tree.Buffer(currentNode).reference.start: targetIdx = targetIdx + 1
-        target(targetIdx) = tree.Buffer(currentNode).reference.Length: targetIdx = targetIdx + 1
-        target(targetIdx) = tree.Buffer(currentNode).identifierId: targetIdx = targetIdx + 1
-
-        nextNode = tree.Buffer(currentNode).rbChild(1)
-        If nextNode <> -1 Then
-            ' right-hand child exists
-            ' -> go to leftmost descendant of right-hand child
+  With stdError.getSentry("stdRegex#RedBlackDumpTree", "targetStartIdx", targetStartIdx)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim targetIdx As Long, currentNode As Long, nextNode As Long
+    
+        If tree.nEntries = 0 Then Exit Sub
+    
+        targetIdx = targetStartIdx
+    
+        currentNode = tree.root
+        Do
+            nextNode = tree.Buffer(currentNode).rbChild(0)
+            If nextNode = -1 Then Exit Do
             currentNode = nextNode
-            Do
-                nextNode = tree.Buffer(currentNode).rbChild(0)
-                If nextNode = -1 Then Exit Do
+        Loop
+    
+        Do
+            ' handle current node
+            target(targetIdx) = tree.Buffer(currentNode).reference.start: targetIdx = targetIdx + 1
+            target(targetIdx) = tree.Buffer(currentNode).reference.Length: targetIdx = targetIdx + 1
+            target(targetIdx) = tree.Buffer(currentNode).identifierId: targetIdx = targetIdx + 1
+    
+            nextNode = tree.Buffer(currentNode).rbChild(1)
+            If nextNode <> -1 Then
+                ' right-hand child exists
+                ' -> go to leftmost descendant of right-hand child
                 currentNode = nextNode
-            Loop
-        Else
-            ' right-hand child does not exist
-            ' -> go to first ancestor for which our subtree is the left-hand subtree
-            Do
-                nextNode = tree.Buffer(currentNode).rbParent
-                If nextNode = -1 Then Exit Sub
-                If currentNode = tree.Buffer(nextNode).rbChild(0) Then Exit Do
+                Do
+                    nextNode = tree.Buffer(currentNode).rbChild(0)
+                    If nextNode = -1 Then Exit Do
+                    currentNode = nextNode
+                Loop
+            Else
+                ' right-hand child does not exist
+                ' -> go to first ancestor for which our subtree is the left-hand subtree
+                Do
+                    nextNode = tree.Buffer(currentNode).rbParent
+                    If nextNode = -1 Then Exit Sub
+                    If currentNode = tree.Buffer(nextNode).rbChild(0) Then Exit Do
+                    currentNode = nextNode
+                Loop
                 currentNode = nextNode
-            Loop
-            currentNode = nextNode
-        End If
-    Loop
+            End If
+        Loop
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Function RedBlackFindOrInsert(ByRef lake As String, ByRef tree As IdentifierTreeTy, ByRef vReference As StartLengthPair) As Long
-    Dim parent As Long, found As Long
-    Dim asRightHandChild As Boolean
-
-    found = RedBlackFindPosition(parent, asRightHandChild, lake, tree, vReference)
-    If found = -1 Then
-        If tree.nEntries = tree.bufferCapacity Then
-            tree.bufferCapacity = tree.bufferCapacity + (tree.bufferCapacity + 16) \ 2
-            ReDim Preserve tree.Buffer(0 To tree.bufferCapacity - 1) As IdentifierTreeNode
+  With stdError.getSentry("stdRegex#RedBlackFindOrInsert", "lake", lake)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim parent As Long, found As Long
+        Dim asRightHandChild As Boolean
+    
+        found = RedBlackFindPosition(parent, asRightHandChild, lake, tree, vReference)
+        If found = -1 Then
+            If tree.nEntries = tree.bufferCapacity Then
+                tree.bufferCapacity = tree.bufferCapacity + (tree.bufferCapacity + 16) \ 2
+                ReDim Preserve tree.Buffer(0 To tree.bufferCapacity - 1) As IdentifierTreeNode
+            End If
+            With tree.Buffer(tree.nEntries)
+                .reference = vReference
+                .identifierId = tree.nEntries
+            End With
+            RedBlackInsert tree, tree.nEntries, parent, asRightHandChild
+            RedBlackFindOrInsert = tree.nEntries
+            tree.nEntries = tree.nEntries + 1
+        Else
+            RedBlackFindOrInsert = tree.Buffer(found).identifierId
         End If
-        With tree.Buffer(tree.nEntries)
-            .reference = vReference
-            .identifierId = tree.nEntries
-        End With
-        RedBlackInsert tree, tree.nEntries, parent, asRightHandChild
-        RedBlackFindOrInsert = tree.nEntries
-        tree.nEntries = tree.nEntries + 1
-    Else
-        RedBlackFindOrInsert = tree.Buffer(found).identifierId
-    End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 Private Function RedBlackComparator(ByRef lake As String, ByRef v1 As StartLengthPair, ByRef v2 As StartLengthPair) As Long
-    If v1.Length < v2.Length Then RedBlackComparator = -1: Exit Function
-    If v1.Length > v2.Length Then RedBlackComparator = 1: Exit Function
-    RedBlackComparator = StrComp( _
-        Mid$(lake, v1.start, v1.Length), _
-        Mid$(lake, v2.start, v2.Length), _
-        vbBinaryCompare _
-    )
+  With stdError.getSentry("stdRegex#RedBlackComparator", "lake", lake)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        If v1.Length < v2.Length Then RedBlackComparator = -1: Exit Function
+        If v1.Length > v2.Length Then RedBlackComparator = 1: Exit Function
+        RedBlackComparator = StrComp( _
+            Mid$(lake, v1.start, v1.Length), _
+            Mid$(lake, v2.start, v2.Length), _
+            vbBinaryCompare _
+        )
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 Private Function RedBlackFindPosition( _
@@ -2598,720 +3054,725 @@ Private Function RedBlackFindPosition( _
     ByRef lake As String, ByRef tree As IdentifierTreeTy, _
     ByRef vReference As StartLengthPair _
 ) As Long
-    Dim cmp As Long, cur As Long, p As Long, rhc As Boolean
-
-    cur = tree.root: p = -1: rhc = False
-    Do Until cur = -1
-        cmp = RedBlackComparator(lake, vReference, tree.Buffer(cur).reference)
-        If cmp < 0 Then
-            p = cur: rhc = False
-            cur = tree.Buffer(cur).rbChild(0)
-        ElseIf cmp = 0 Then
-            RedBlackFindPosition = cur
-            Exit Function
-        Else
-            p = cur: rhc = True
-            cur = tree.Buffer(cur).rbChild(1)
-        End If
-    Loop
-    outParent = p: outAsRightHandChild = rhc: RedBlackFindPosition = -1
+  With stdError.getSentry("stdRegex#RedBlackFindPosition", "_", _, "outAsRightHandChild", outAsRightHandChild, "_", _, "_", _)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim cmp As Long, cur As Long, p As Long, rhc As Boolean
+    
+        cur = tree.root: p = -1: rhc = False
+        Do Until cur = -1
+            cmp = RedBlackComparator(lake, vReference, tree.Buffer(cur).reference)
+            If cmp < 0 Then
+                p = cur: rhc = False
+                cur = tree.Buffer(cur).rbChild(0)
+            ElseIf cmp = 0 Then
+                RedBlackFindPosition = cur
+                Exit Function
+            Else
+                p = cur: rhc = True
+                cur = tree.Buffer(cur).rbChild(1)
+            End If
+        Loop
+        outParent = p: outAsRightHandChild = rhc: RedBlackFindPosition = -1
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 Private Sub RedBlackInsert( _
     ByRef tree As IdentifierTreeTy, _
     ByVal newNode As Long, ByVal parent As Long, ByVal asRightHandChild As Boolean _
 )
-    Dim g As Long, u As Long, p As Long, n As Long, pIsRhc As Boolean
-    Dim gg As Long, b As Long, c As Long, x As Long, y As Long, z As Long, nIsRhc As Boolean
-
-    With tree.Buffer(newNode)
-        .rbIsBlack = False
-        .rbChild(0) = -1
-        .rbChild(1) = -1
-        .rbParent = parent
-    End With
-    If parent = -1 Then
-        tree.root = newNode
-        Exit Sub
-    End If
-
-    tree.Buffer(parent).rbChild(-asRightHandChild) = newNode
-
-    n = newNode: p = parent
-    Do
-        If tree.Buffer(p).rbIsBlack Then Exit Sub
-        ' p red
-        g = tree.Buffer(p).rbParent
-        If g = -1 Then ' p red and root
-            tree.Buffer(p).rbIsBlack = True
+  With stdError.getSentry("stdRegex#RedBlackInsert", "_", _, "_", _, "parent", parent, "asRightHandChild", asRightHandChild)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim g As Long, u As Long, p As Long, n As Long, pIsRhc As Boolean
+        Dim gg As Long, b As Long, c As Long, x As Long, y As Long, z As Long, nIsRhc As Boolean
+    
+        With tree.Buffer(newNode)
+            .rbIsBlack = False
+            .rbChild(0) = -1
+            .rbChild(1) = -1
+            .rbParent = parent
+        End With
+        If parent = -1 Then
+            tree.root = newNode
             Exit Sub
         End If
-        ' p red and not root (g exists)
-        ' u is supposed to refer to the brother of p
-        pIsRhc = tree.Buffer(g).rbChild(1) = p
-        u = tree.Buffer(g).rbChild(1 + pIsRhc)
-        If u = -1 Then GoTo ExitWithRotation
-        If tree.Buffer(u).rbIsBlack Then GoTo ExitWithRotation
-
-        ' p and u red, g exists
-        tree.Buffer(p).rbIsBlack = True
-        tree.Buffer(u).rbIsBlack = True
-        tree.Buffer(g).rbIsBlack = False
-        n = g
-        p = tree.Buffer(n).rbParent
-    Loop Until p = -1
+    
+        tree.Buffer(parent).rbChild(-asRightHandChild) = newNode
+    
+        n = newNode: p = parent
+        Do
+            If tree.Buffer(p).rbIsBlack Then Exit Sub
+            ' p red
+            g = tree.Buffer(p).rbParent
+            If g = -1 Then ' p red and root
+                tree.Buffer(p).rbIsBlack = True
+                Exit Sub
+            End If
+            ' p red and not root (g exists)
+            ' u is supposed to refer to the brother of p
+            pIsRhc = tree.Buffer(g).rbChild(1) = p
+            u = tree.Buffer(g).rbChild(1 + pIsRhc)
+            If u = -1 Then GoTo ExitWithRotation
+            If tree.Buffer(u).rbIsBlack Then GoTo ExitWithRotation
+    
+            ' p and u red, g exists
+            tree.Buffer(p).rbIsBlack = True
+            tree.Buffer(u).rbIsBlack = True
+            tree.Buffer(g).rbIsBlack = False
+            n = g
+            p = tree.Buffer(n).rbParent
+        Loop Until p = -1
+        Exit Sub
+    
+    ExitWithRotation: ' p red and u black (or does not exist), g exists
+        ' For an explanation of the following, see
+        '   https://en.wikibooks.org/w/index.php?title=F_Sharp_Programming/Advanced_Data_Structures&oldid=4052491 ,
+        '   Section 3.1 ("Red Black Trees"), second diagram (following the sentence "The center tree is the balanced version.").
+        nIsRhc = tree.Buffer(p).rbChild(1) = n
+        If pIsRhc = nIsRhc Then ' outer child
+            y = p
+            If pIsRhc Then
+                b = tree.Buffer(p).rbChild(0): c = tree.Buffer(n).rbChild(0): x = g: z = n
+            Else
+                b = tree.Buffer(n).rbChild(1): c = tree.Buffer(p).rbChild(1): x = n: z = g
+            End If
+        Else ' inner child
+            y = n: With tree.Buffer(n): b = .rbChild(0): c = .rbChild(1): End With
+            If pIsRhc Then
+                x = g: z = p
+            Else
+                x = p: z = g
+            End If
+        End If
+    
+        gg = tree.Buffer(g).rbParent
+    
+        With tree.Buffer(x): .rbIsBlack = False: .rbParent = y: .rbChild(1) = b: End With
+        With tree.Buffer(y): .rbIsBlack = True: .rbParent = gg: .rbChild(0) = x: .rbChild(1) = z: End With
+        With tree.Buffer(z): .rbIsBlack = False: .rbParent = y: .rbChild(0) = c: End With
+    
+        If b <> -1 Then tree.Buffer(b).rbParent = x
+        If c <> -1 Then tree.Buffer(c).rbParent = z
+    
+        If gg = -1 Then
+            tree.root = y
+        Else
+            With tree.Buffer(gg): .rbChild(-(.rbChild(1) = g)) = y: End With
+        End If
+    
     Exit Sub
-
-ExitWithRotation: ' p red and u black (or does not exist), g exists
-    ' For an explanation of the following, see
-    '   https://en.wikibooks.org/w/index.php?title=F_Sharp_Programming/Advanced_Data_Structures&oldid=4052491 ,
-    '   Section 3.1 ("Red Black Trees"), second diagram (following the sentence "The center tree is the balanced version.").
-    nIsRhc = tree.Buffer(p).rbChild(1) = n
-    If pIsRhc = nIsRhc Then ' outer child
-        y = p
-        If pIsRhc Then
-            b = tree.Buffer(p).rbChild(0): c = tree.Buffer(n).rbChild(0): x = g: z = n
-        Else
-            b = tree.Buffer(n).rbChild(1): c = tree.Buffer(p).rbChild(1): x = n: z = g
-        End If
-    Else ' inner child
-        y = n: With tree.Buffer(n): b = .rbChild(0): c = .rbChild(1): End With
-        If pIsRhc Then
-            x = g: z = p
-        Else
-            x = p: z = g
-        End If
-    End If
-
-    gg = tree.Buffer(g).rbParent
-
-    With tree.Buffer(x): .rbIsBlack = False: .rbParent = y: .rbChild(1) = b: End With
-    With tree.Buffer(y): .rbIsBlack = True: .rbParent = gg: .rbChild(0) = x: .rbChild(1) = z: End With
-    With tree.Buffer(z): .rbIsBlack = False: .rbParent = y: .rbChild(0) = c: End With
-
-    If b <> -1 Then tree.Buffer(b).rbParent = x
-    If c <> -1 Then tree.Buffer(c).rbParent = z
-
-    If gg = -1 Then
-        tree.root = y
-    Else
-        With tree.Buffer(gg): .rbChild(-(.rbChild(1) = g)) = y: End With
-    End If
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Sub Initialize(ByRef lexCtx As LexerContext, ByRef inputStr As String)
-    With lexCtx
-        .inputStr = inputStr
-        .iEnd = Len(.inputStr)
-        .iCurrent = 0
-        .currentCharacter = Not LEXER_ENDOFINPUT ' value does not matter, as long as it does not equal LEXER_ENDOFINPUT
-
-        .identifierTree.nEntries = 0
-        .identifierTree.root = -1
-    End With
-    Advance lexCtx
+  With stdError.getSentry("stdRegex#Initialize", "inputStr", inputStr)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        With lexCtx
+            .inputStr = inputStr
+            .iEnd = Len(.inputStr)
+            .iCurrent = 0
+            .currentCharacter = Not LEXER_ENDOFINPUT ' value does not matter, as long as it does not equal LEXER_ENDOFINPUT
+    
+            .identifierTree.nEntries = 0
+            .identifierTree.root = -1
+        End With
+        Advance lexCtx
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Sub ParseReToken(ByRef lexCtx As LexerContext, ByRef outToken As ReToken)
-    Dim x As Long
-
-    ' used only locally
-    Dim i As Long, val1 As Long, val2 As Long, digits As Long, tmp As Long
-
-    ' Todo: remove
-    Dim slp As StartLengthPair
-
-    Dim emptyReToken As ReToken ' effectively a constant -- zeroed out by default
-    outToken = emptyReToken
-
-    x = Advance(lexCtx)
-    Select Case x
-    Case UNICODE_PIPE
-        outToken.t = RETOK_DISJUNCTION
-    Case UNICODE_CARET
-        outToken.t = RETOK_ASSERT_START
-    Case UNICODE_DOLLAR
-        outToken.t = RETOK_ASSERT_END
-    Case UNICODE_QUESTION
-        With outToken
-            .qmin = 0
-            .qmax = 1
-            If lexCtx.currentCharacter = UNICODE_QUESTION Then
-                Advance lexCtx
-                .t = RETOK_QUANTIFIER
-                .greedy = False
-            Else
-                .t = RETOK_QUANTIFIER
-                .greedy = True
-            End If
-        End With
-    Case UNICODE_STAR
-        With outToken
-            .qmin = 0
-            .qmax = RE_QUANTIFIER_INFINITE
-            If lexCtx.currentCharacter = UNICODE_QUESTION Then
-                Advance lexCtx
-                .t = RETOK_QUANTIFIER
-                .greedy = False
-            Else
-                .t = RETOK_QUANTIFIER
-                .greedy = True
-            End If
-        End With
-    Case UNICODE_PLUS
-        With outToken
-            .qmin = 1
-            .qmax = RE_QUANTIFIER_INFINITE
-            If lexCtx.currentCharacter = UNICODE_QUESTION Then
-                Advance lexCtx
-                .t = RETOK_QUANTIFIER
-                .greedy = False
-            Else
-                .t = RETOK_QUANTIFIER
-                .greedy = True
-            End If
-        End With
-    Case UNICODE_LCURLY
-        ' Production allows 'DecimalDigits', including leading zeroes
-        val1 = 0
-        val2 = RE_QUANTIFIER_INFINITE
-
-        digits = 0
-
-        Do
-            x = Advance(lexCtx)
-            If (x >= UNICODE_0) And (x <= UNICODE_9) Then
-                digits = digits + 1
-                ' Be careful to prevent overflow
-                If val1 > LONG_MAX_DIV_10 Then Err.Raise REGEX_ERR_INVALID_QUANTIFIER
-                val1 = val1 * 10
-                tmp = x - UNICODE_0
-                If LONG_MAX - val1 < tmp Then Err.Raise REGEX_ERR_INVALID_QUANTIFIER
-                val1 = val1 + tmp
-            ElseIf x = UNICODE_COMMA Then
-                If val2 <> RE_QUANTIFIER_INFINITE Then Err.Raise REGEX_ERR_INVALID_QUANTIFIER
-                If lexCtx.currentCharacter = UNICODE_RCURLY Then
-                    ' form: { DecimalDigits , }, val1 = min count
-                    If digits = 0 Then Err.Raise REGEX_ERR_INVALID_QUANTIFIER
-                    outToken.qmin = val1
-                    outToken.qmax = RE_QUANTIFIER_INFINITE
-                    Advance lexCtx
-                    Exit Do
-                End If
-                val2 = val1
-                val1 = 0
-                digits = 0 ' not strictly necessary because of lookahead '}' above
-            ElseIf x = UNICODE_RCURLY Then
-                If digits = 0 Then Err.Raise REGEX_ERR_INVALID_QUANTIFIER
-                If val2 <> RE_QUANTIFIER_INFINITE Then
-                    ' val2 = min count, val1 = max count
-                    outToken.qmin = val2
-                    outToken.qmax = val1
-                Else
-                    ' val1 = count
-                    outToken.qmin = val1
-                    outToken.qmax = val1
-                End If
-                Exit Do
-            Else
-                Err.Raise REGEX_ERR_INVALID_QUANTIFIER
-            End If
-        Loop
-        If lexCtx.currentCharacter = UNICODE_QUESTION Then
-            outToken.greedy = False
-            Advance lexCtx
-        Else
-            outToken.greedy = True
-        End If
-        outToken.t = RETOK_QUANTIFIER
-    Case UNICODE_PERIOD
-        outToken.t = RETOK_ATOM_PERIOD
-    Case UNICODE_BACKSLASH
-        ' The E5.1 specification does not seem to allow IdentifierPart characters
-        ' to be used as identity escapes.  Unfortunately this includes '$', which
-        ' cannot be escaped as '\$'; it needs to be escaped e.g. as '\u0024'.
-        ' Many other implementations (including V8 and Rhino, for instance) do
-        ' accept '\$' as a valid identity escape, which is quite pragmatic, and
-        ' ES2015 Annex B relaxes the rules to allow these (and other) real world forms.
-        '
-        ' Here, we use a Perl-like convention:
-        '   \<character> is an identity escape (= represents the character itself)
-        '   unless the character is within [0-9A-Za-z];
-        '   we hope that this will not require any breaking changes in the future.
+  With stdError.getSentry("stdRegex#ParseReToken")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim x As Long
+    
+        ' used only locally
+        Dim i As Long, val1 As Long, val2 As Long, digits As Long, tmp As Long
+    
+        ' Todo: remove
+        Dim slp As StartLengthPair
+    
+        Dim emptyReToken As ReToken ' effectively a constant -- zeroed out by default
+        outToken = emptyReToken
+    
         x = Advance(lexCtx)
-
-        If x >= UNICODE_UC_A Then
-            If x < UNICODE_LC_A Then
-                If x > UNICODE_UC_Z Then GoTo IdentityEscape Else GoTo EscapeUppercaseLetter
-            Else
-                If x <= UNICODE_LC_Z Then GoTo EscapeLowercaseLetter Else GoTo IdentityEscape
-            End If
-        Else
-            If x < UNICODE_0 Then
-                If x < 0 Then Err.Raise REGEX_ERR_INVALID_REGEXP_ESCAPE Else GoTo IdentityEscape
-            Else
-                If x <= UNICODE_9 Then GoTo EscapeDigit Else GoTo IdentityEscape
-            End If
-        End If
-        Err.Raise REGEX_ERR_INTERNAL_LOGIC_ERR
-        ' unreachable
-
-EscapeUppercaseLetter:
         Select Case x
-        Case UNICODE_UC_B
-            outToken.t = RETOK_ASSERT_NOT_WORD_BOUNDARY
-        Case UNICODE_UC_D
-            outToken.t = RETOK_ATOM_NOT_DIGIT
-        Case UNICODE_UC_S
-            outToken.t = RETOK_ATOM_NOT_WHITE
-        Case UNICODE_UC_W
-            outToken.t = RETOK_ATOM_NOT_WORD_CHAR
-        Case Else
-            Err.Raise REGEX_ERR_INVALID_REGEXP_ESCAPE
-        End Select
-        GoTo EndEscapeHandling
-
-EscapeLowercaseLetter:
-        Select Case x
-        Case UNICODE_LC_B
-            outToken.t = RETOK_ASSERT_WORD_BOUNDARY
-        Case UNICODE_LC_C
+        Case UNICODE_PIPE
+            outToken.t = RETOK_DISJUNCTION
+        Case UNICODE_CARET
+            outToken.t = RETOK_ASSERT_START
+        Case UNICODE_DOLLAR
+            outToken.t = RETOK_ASSERT_END
+        Case UNICODE_QUESTION
+            With outToken
+                .qmin = 0
+                .qmax = 1
+                If lexCtx.currentCharacter = UNICODE_QUESTION Then
+                    Advance lexCtx
+                    .t = RETOK_QUANTIFIER
+                    .greedy = False
+                Else
+                    .t = RETOK_QUANTIFIER
+                    .greedy = True
+                End If
+            End With
+        Case UNICODE_STAR
+            With outToken
+                .qmin = 0
+                .qmax = RE_QUANTIFIER_INFINITE
+                If lexCtx.currentCharacter = UNICODE_QUESTION Then
+                    Advance lexCtx
+                    .t = RETOK_QUANTIFIER
+                    .greedy = False
+                Else
+                    .t = RETOK_QUANTIFIER
+                    .greedy = True
+                End If
+            End With
+        Case UNICODE_PLUS
+            With outToken
+                .qmin = 1
+                .qmax = RE_QUANTIFIER_INFINITE
+                If lexCtx.currentCharacter = UNICODE_QUESTION Then
+                    Advance lexCtx
+                    .t = RETOK_QUANTIFIER
+                    .greedy = False
+                Else
+                    .t = RETOK_QUANTIFIER
+                    .greedy = True
+                End If
+            End With
+        Case UNICODE_LCURLY
+            ' Production allows 'DecimalDigits', including leading zeroes
+            val1 = 0
+            val2 = RE_QUANTIFIER_INFINITE
+    
+            digits = 0
+    
+            Do
+                x = Advance(lexCtx)
+                If (x >= UNICODE_0) And (x <= UNICODE_9) Then
+                    digits = digits + 1
+                    ' Be careful to prevent overflow
+                    If val1 > LONG_MAX_DIV_10 Then Err_Raise REGEX_ERR_INVALID_QUANTIFIER
+                    val1 = val1 * 10
+                    tmp = x - UNICODE_0
+                    If LONG_MAX - val1 < tmp Then Err_Raise REGEX_ERR_INVALID_QUANTIFIER
+                    val1 = val1 + tmp
+                ElseIf x = UNICODE_COMMA Then
+                    If val2 <> RE_QUANTIFIER_INFINITE Then Err_Raise REGEX_ERR_INVALID_QUANTIFIER
+                    If lexCtx.currentCharacter = UNICODE_RCURLY Then
+                        ' form: { DecimalDigits , }, val1 = min count
+                        If digits = 0 Then Err_Raise REGEX_ERR_INVALID_QUANTIFIER
+                        outToken.qmin = val1
+                        outToken.qmax = RE_QUANTIFIER_INFINITE
+                        Advance lexCtx
+                        Exit Do
+                    End If
+                    val2 = val1
+                    val1 = 0
+                    digits = 0 ' not strictly necessary because of lookahead '}' above
+                ElseIf x = UNICODE_RCURLY Then
+                    If digits = 0 Then Err_Raise REGEX_ERR_INVALID_QUANTIFIER
+                    If val2 <> RE_QUANTIFIER_INFINITE Then
+                        ' val2 = min count, val1 = max count
+                        outToken.qmin = val2
+                        outToken.qmax = val1
+                    Else
+                        ' val1 = count
+                        outToken.qmin = val1
+                        outToken.qmax = val1
+                    End If
+                    Exit Do
+                Else
+                    Err_Raise REGEX_ERR_INVALID_QUANTIFIER
+                End If
+            Loop
+            If lexCtx.currentCharacter = UNICODE_QUESTION Then
+                outToken.greedy = False
+                Advance lexCtx
+            Else
+                outToken.greedy = True
+            End If
+            outToken.t = RETOK_QUANTIFIER
+        Case UNICODE_PERIOD
+            outToken.t = RETOK_ATOM_PERIOD
+        Case UNICODE_BACKSLASH
+            ' The E5.1 specification does not seem to allow IdentifierPart characters
+            ' to be used as identity escapes.  Unfortunately this includes '$', which
+            ' cannot be escaped as '\$'; it needs to be escaped e.g. as '\u0024'.
+            ' Many other implementations (including V8 and Rhino, for instance) do
+            ' accept '\$' as a valid identity escape, which is quite pragmatic, and
+            ' ES2015 Annex B relaxes the rules to allow these (and other) real world forms.
+            '
+            ' Here, we use a Perl-like convention:
+            '   \<character> is an identity escape (= represents the character itself)
+            '   unless the character is within [0-9A-Za-z];
+            '   we hope that this will not require any breaking changes in the future.
             x = Advance(lexCtx)
-            If (x >= UNICODE_LC_A And x <= UNICODE_LC_Z) Or (x >= UNICODE_UC_A And x <= UNICODE_UC_Z) Then
-                outToken.num = x Mod 32
+    
+            If x >= UNICODE_UC_A Then
+                If x < UNICODE_LC_A Then
+                    If x > UNICODE_UC_Z Then GoTo IdentityEscape Else GoTo EscapeUppercaseLetter
+                Else
+                    If x <= UNICODE_LC_Z Then GoTo EscapeLowercaseLetter Else GoTo IdentityEscape
+                End If
+            Else
+                If x < UNICODE_0 Then
+                    If x < 0 Then Err_Raise REGEX_ERR_INVALID_REGEXP_ESCAPE Else GoTo IdentityEscape
+                Else
+                    If x <= UNICODE_9 Then GoTo EscapeDigit Else GoTo IdentityEscape
+                End If
+            End If
+            Err_Raise REGEX_ERR_INTERNAL_LOGIC_ERR
+            ' unreachable
+    
+    EscapeUppercaseLetter:
+            Select Case x
+            Case UNICODE_UC_B
+                outToken.t = RETOK_ASSERT_NOT_WORD_BOUNDARY
+            Case UNICODE_UC_D
+                outToken.t = RETOK_ATOM_NOT_DIGIT
+            Case UNICODE_UC_S
+                outToken.t = RETOK_ATOM_NOT_WHITE
+            Case UNICODE_UC_W
+                outToken.t = RETOK_ATOM_NOT_WORD_CHAR
+            Case Else
+                Err_Raise REGEX_ERR_INVALID_REGEXP_ESCAPE
+            End Select
+            GoTo EndEscapeHandling
+    
+    EscapeLowercaseLetter:
+            Select Case x
+            Case UNICODE_LC_B
+                outToken.t = RETOK_ASSERT_WORD_BOUNDARY
+            Case UNICODE_LC_C
+                x = Advance(lexCtx)
+                If (x >= UNICODE_LC_A And x <= UNICODE_LC_Z) Or (x >= UNICODE_UC_A And x <= UNICODE_UC_Z) Then
+                    outToken.num = x Mod 32
+                    outToken.t = RETOK_ATOM_CHAR
+                Else
+                    Err_Raise REGEX_ERR_INVALID_REGEXP_ESCAPE
+                End If
+            Case UNICODE_LC_D
+                outToken.t = RETOK_ATOM_DIGIT
+            Case UNICODE_LC_F
+                outToken.num = &HC&
+                outToken.t = RETOK_ATOM_CHAR
+            Case UNICODE_LC_N
+                outToken.num = &HA&
+                outToken.t = RETOK_ATOM_CHAR
+            Case UNICODE_LC_T
+                outToken.num = &H9&
+                outToken.t = RETOK_ATOM_CHAR
+            Case UNICODE_LC_R
+                outToken.num = &HD&
+                outToken.t = RETOK_ATOM_CHAR
+            Case UNICODE_LC_S
+                outToken.t = RETOK_ATOM_WHITE
+            Case UNICODE_LC_U
+                ' Todo: What does the following mean?
+                ' The token value is the Unicode codepoint without
+                ' it being decode into surrogate pair characters
+                ' here.  The \u{H+} is only allowed in Unicode mode
+                ' which we don't support yet.
+                outToken.num = LexerParseEscapeU(lexCtx)
+                outToken.t = RETOK_ATOM_CHAR
+            Case UNICODE_LC_V
+                outToken.num = &HB&
+                outToken.t = RETOK_ATOM_CHAR
+            Case UNICODE_LC_W
+                outToken.t = RETOK_ATOM_WORD_CHAR
+            Case UNICODE_LC_X
+                outToken.num = LexerParseEscapeX(lexCtx)
+                outToken.t = RETOK_ATOM_CHAR
+            Case Else
+                Err_Raise REGEX_ERR_INVALID_REGEXP_ESCAPE
+            End Select
+            GoTo EndEscapeHandling
+    
+    EscapeDigit:
+            If x = UNICODE_0 Then
+                x = lexCtx.currentCharacter
+                ' Reject a following digit without consuming the next character.
+                If x >= UNICODE_0 And x <= UNICODE_9 Then Err_Raise REGEX_ERR_INVALID_REGEXP_ESCAPE
+                outToken.num = 0
                 outToken.t = RETOK_ATOM_CHAR
             Else
-                Err.Raise REGEX_ERR_INVALID_REGEXP_ESCAPE
+                val1 = 0
+                i = 0
+                Do
+                    ' We have to be careful here to make sure there will be no overflow.
+                    ' 2^31 - 1 backreferences is a bit ridiculous, though.
+                    If val1 > LONG_MAX_DIV_10 Then Err_Raise REGEX_ERR_INVALID_REGEXP_ESCAPE
+                    val1 = val1 * 10
+                    tmp = x - UNICODE_0
+                    If LONG_MAX - val1 < tmp Then Err_Raise REGEX_ERR_INVALID_REGEXP_ESCAPE
+                    val1 = val1 + tmp
+                    x = lexCtx.currentCharacter
+                    If x < UNICODE_0 Or x > UNICODE_9 Then Exit Do
+                    Advance lexCtx
+                    i = i + 1
+                Loop
+                outToken.t = RETOK_ATOM_BACKREFERENCE
+                outToken.num = val1
             End If
-        Case UNICODE_LC_D
-            outToken.t = RETOK_ATOM_DIGIT
-        Case UNICODE_LC_F
-            outToken.num = &HC&
+            GoTo EndEscapeHandling
+    
+    IdentityEscape:
+            outToken.num = x
             outToken.t = RETOK_ATOM_CHAR
-        Case UNICODE_LC_N
-            outToken.num = &HA&
-            outToken.t = RETOK_ATOM_CHAR
-        Case UNICODE_LC_T
-            outToken.num = &H9&
-            outToken.t = RETOK_ATOM_CHAR
-        Case UNICODE_LC_R
-            outToken.num = &HD&
-            outToken.t = RETOK_ATOM_CHAR
-        Case UNICODE_LC_S
-            outToken.t = RETOK_ATOM_WHITE
-        Case UNICODE_LC_U
-            ' Todo: What does the following mean?
-            ' The token value is the Unicode codepoint without
-            ' it being decode into surrogate pair characters
-            ' here.  The \u{H+} is only allowed in Unicode mode
-            ' which we don't support yet.
-            outToken.num = LexerParseEscapeU(lexCtx)
-            outToken.t = RETOK_ATOM_CHAR
-        Case UNICODE_LC_V
-            outToken.num = &HB&
-            outToken.t = RETOK_ATOM_CHAR
-        Case UNICODE_LC_W
-            outToken.t = RETOK_ATOM_WORD_CHAR
-        Case UNICODE_LC_X
-            outToken.num = LexerParseEscapeX(lexCtx)
-            outToken.t = RETOK_ATOM_CHAR
-        Case Else
-            Err.Raise REGEX_ERR_INVALID_REGEXP_ESCAPE
-        End Select
-        GoTo EndEscapeHandling
-
-EscapeDigit:
-        If x = UNICODE_0 Then
-            x = lexCtx.currentCharacter
-            ' Reject a following digit without consuming the next character.
-            If x >= UNICODE_0 And x <= UNICODE_9 Then Err.Raise REGEX_ERR_INVALID_REGEXP_ESCAPE
-            outToken.num = 0
-            outToken.t = RETOK_ATOM_CHAR
-        Else
-            val1 = 0
-            i = 0
-            Do
-                ' We have to be careful here to make sure there will be no overflow.
-                ' 2^31 - 1 backreferences is a bit ridiculous, though.
-                If val1 > LONG_MAX_DIV_10 Then Err.Raise REGEX_ERR_INVALID_REGEXP_ESCAPE
-                val1 = val1 * 10
-                tmp = x - UNICODE_0
-                If LONG_MAX - val1 < tmp Then Err.Raise REGEX_ERR_INVALID_REGEXP_ESCAPE
-                val1 = val1 + tmp
-                x = lexCtx.currentCharacter
-                If x < UNICODE_0 Or x > UNICODE_9 Then Exit Do
+    
+    EndEscapeHandling:
+            ' end case
+    
+        Case UNICODE_LPAREN
+            If lexCtx.currentCharacter = UNICODE_QUESTION Then
                 Advance lexCtx
-                i = i + 1
-            Loop
-            outToken.t = RETOK_ATOM_BACKREFERENCE
-            outToken.num = val1
-        End If
-        GoTo EndEscapeHandling
-
-IdentityEscape:
-        outToken.num = x
-        outToken.t = RETOK_ATOM_CHAR
-
-EndEscapeHandling:
-        ' end case
-
-    Case UNICODE_LPAREN
-        If lexCtx.currentCharacter = UNICODE_QUESTION Then
-            Advance lexCtx
-            x = Advance(lexCtx)
-            Select Case x
-            Case UNICODE_EQUALS
-                ' (?=
-                outToken.t = RETOK_ASSERT_START_POS_LOOKAHEAD
-            Case UNICODE_EXCLAMATION
-                ' (?!
-                outToken.t = RETOK_ASSERT_START_NEG_LOOKAHEAD
-            Case UNICODE_COLON
-                ' (?:
-                outToken.t = RETOK_ATOM_START_NONCAPTURE_GROUP
-                outToken.num = 0 ' no modifiers
-            Case UNICODE_LT
                 x = Advance(lexCtx)
-                If x = UNICODE_EQUALS Then
-                    outToken.t = RETOK_ASSERT_START_POS_LOOKBEHIND
-                ElseIf x = UNICODE_EXCLAMATION Then
-                    outToken.t = RETOK_ASSERT_START_NEG_LOOKBEHIND
-                ElseIf IsIdentifierChar(x) Then
-                    With lexCtx
-                        val1 = .identifierTree.nEntries
-                        val2 = .iCurrent - 1
-                        Do
-                            x = Advance(lexCtx)
-                            If x = UNICODE_GT Then Exit Do
-                            ' Todo: Allow unicode escape sequences
-                            If Not IsIdentifierChar(x) Then Err.Raise REGEX_ERR_INVALID_IDENTIFIER
-                        Loop
-                        outToken.t = RETOK_ATOM_START_CAPTURE_GROUP
-                        With slp
-                            .start = val2: .Length = lexCtx.iCurrent - 1 - val2
+                Select Case x
+                Case UNICODE_EQUALS
+                    ' (?=
+                    outToken.t = RETOK_ASSERT_START_POS_LOOKAHEAD
+                Case UNICODE_EXCLAMATION
+                    ' (?!
+                    outToken.t = RETOK_ASSERT_START_NEG_LOOKAHEAD
+                Case UNICODE_COLON
+                    ' (?:
+                    outToken.t = RETOK_ATOM_START_NONCAPTURE_GROUP
+                    outToken.num = 0 ' no modifiers
+                Case UNICODE_LT
+                    x = Advance(lexCtx)
+                    If x = UNICODE_EQUALS Then
+                        outToken.t = RETOK_ASSERT_START_POS_LOOKBEHIND
+                    ElseIf x = UNICODE_EXCLAMATION Then
+                        outToken.t = RETOK_ASSERT_START_NEG_LOOKBEHIND
+                    ElseIf IsIdentifierChar(x) Then
+                        With lexCtx
+                            val1 = .identifierTree.nEntries
+                            val2 = .iCurrent - 1
+                            Do
+                                x = Advance(lexCtx)
+                                If x = UNICODE_GT Then Exit Do
+                                ' Todo: Allow unicode escape sequences
+                                If Not IsIdentifierChar(x) Then Err_Raise REGEX_ERR_INVALID_IDENTIFIER
+                            Loop
+                            outToken.t = RETOK_ATOM_START_CAPTURE_GROUP
+                            With slp
+                                .start = val2: .Length = lexCtx.iCurrent - 1 - val2
+                            End With
+                            outToken.num = RedBlackFindOrInsert( _
+                                lexCtx.inputStr, _
+                                lexCtx.identifierTree, _
+                                slp _
+                            )
                         End With
-                        outToken.num = RedBlackFindOrInsert( _
-                            lexCtx.inputStr, _
-                            lexCtx.identifierTree, _
-                            slp _
-                        )
-                    End With
-                Else
-                    Err.Raise REGEX_ERR_INVALID_REGEXP_GROUP
-                End If
-            Case Else
-                ' modifier
-
-                tmp = 0
-                Do
-                    If x = UNICODE_LC_I Then
-                        If tmp And MODIFIER_I_WRITE Then Err.Raise REGEX_ERR_INVALID_MODIFIER
-                        tmp = tmp Or (MODIFIER_I_WRITE Or MODIFIER_I_ACTIVE)
-                    ElseIf x = UNICODE_LC_M Then
-                        If tmp And MODIFIER_M_WRITE Then Err.Raise REGEX_ERR_INVALID_MODIFIER
-                        tmp = tmp Or (MODIFIER_M_WRITE Or MODIFIER_M_ACTIVE)
-                    ElseIf x = UNICODE_LC_S Then
-                        If tmp And MODIFIER_S_WRITE Then Err.Raise REGEX_ERR_INVALID_MODIFIER
-                        tmp = tmp Or (MODIFIER_S_WRITE Or MODIFIER_S_ACTIVE)
-                    ElseIf x = UNICODE_MINUS Then
-                        Exit Do
-                    ElseIf x = UNICODE_COLON Then
-                        GoTo EndOfBoundedModifier
-                    ElseIf x = UNICODE_RPAREN Then
-                        GoTo EndOfUnboundedModifier
                     Else
-                        Err.Raise REGEX_ERR_INVALID_MODIFIER
+                        Err_Raise REGEX_ERR_INVALID_REGEXP_GROUP
                     End If
-
-                    x = Advance(lexCtx)
-                Loop
-
-                x = Advance(lexCtx) ' skip dash
-
-                Do
-                    If x = UNICODE_LC_I Then
-                        If tmp And MODIFIER_I_WRITE Then Err.Raise REGEX_ERR_INVALID_MODIFIER
-                        tmp = tmp Or MODIFIER_I_WRITE
-                    ElseIf x = UNICODE_LC_M Then
-                        If tmp And MODIFIER_M_WRITE Then Err.Raise REGEX_ERR_INVALID_MODIFIER
-                        tmp = tmp Or MODIFIER_M_WRITE
-                    ElseIf x = UNICODE_LC_S Then
-                        If tmp And MODIFIER_S_WRITE Then Err.Raise REGEX_ERR_INVALID_MODIFIER
-                        tmp = tmp Or MODIFIER_S_WRITE
-                    ElseIf x = UNICODE_COLON Then
-                        GoTo EndOfBoundedModifier
-                    ElseIf x = UNICODE_RPAREN Then
-                        GoTo EndOfUnboundedModifier
-                    Else
-                        Err.Raise REGEX_ERR_INVALID_MODIFIER
-                    End If
-
-                    x = Advance(lexCtx)
-                Loop
-EndOfBoundedModifier:
-                outToken.t = RETOK_ATOM_START_NONCAPTURE_GROUP
-                outToken.num = tmp ' no modifiers
-                GoTo EndModifierHandling
-EndOfUnboundedModifier:
-                outToken.t = RETOK_UNBOUNDED_MODIFIER
-                outToken.num = tmp
-EndModifierHandling:
-            End Select
-        Else
-            ' (
-            outToken.t = RETOK_ATOM_START_CAPTURE_GROUP
-            outToken.num = -1
-        End If
-    Case UNICODE_RPAREN
-        outToken.t = RETOK_ATOM_END
-    Case UNICODE_LBRACKET
-        ' To avoid creating a heavy intermediate value for the list of ranges,
-        ' only the start token ('[' or '[^') is parsed here.  The regexp
-        ' compiler parses the ranges itself.
-        If lexCtx.currentCharacter = UNICODE_CARET Then
-            Advance lexCtx
-            outToken.t = RETOK_ATOM_START_CHARCLASS_INVERTED
-        Else
-            outToken.t = RETOK_ATOM_START_CHARCLASS
-        End If
-    Case LEXER_ENDOFINPUT
-        ' EOF
-        outToken.t = RETOK_EOF
-    Case Else
-        ' PatternCharacter, all excluded characters are matched by cases above
-        outToken.t = RETOK_ATOM_CHAR
-        outToken.num = x
-    End Select
+                Case Else
+                    ' modifier
+    
+                    tmp = 0
+                    Do
+                        If x = UNICODE_LC_I Then
+                            If tmp And MODIFIER_I_WRITE Then Err_Raise REGEX_ERR_INVALID_MODIFIER
+                            tmp = tmp Or (MODIFIER_I_WRITE Or MODIFIER_I_ACTIVE)
+                        ElseIf x = UNICODE_LC_M Then
+                            If tmp And MODIFIER_M_WRITE Then Err_Raise REGEX_ERR_INVALID_MODIFIER
+                            tmp = tmp Or (MODIFIER_M_WRITE Or MODIFIER_M_ACTIVE)
+                        ElseIf x = UNICODE_LC_S Then
+                            If tmp And MODIFIER_S_WRITE Then Err_Raise REGEX_ERR_INVALID_MODIFIER
+                            tmp = tmp Or (MODIFIER_S_WRITE Or MODIFIER_S_ACTIVE)
+                        ElseIf x = UNICODE_MINUS Then
+                            Exit Do
+                        ElseIf x = UNICODE_COLON Then
+                            GoTo EndOfBoundedModifier
+                        ElseIf x = UNICODE_RPAREN Then
+                            GoTo EndOfUnboundedModifier
+                        Else
+                            Err_Raise REGEX_ERR_INVALID_MODIFIER
+                        End If
+    
+                        x = Advance(lexCtx)
+                    Loop
+    
+                    x = Advance(lexCtx) ' skip dash
+    
+                    Do
+                        If x = UNICODE_LC_I Then
+                            If tmp And MODIFIER_I_WRITE Then Err_Raise REGEX_ERR_INVALID_MODIFIER
+                            tmp = tmp Or MODIFIER_I_WRITE
+                        ElseIf x = UNICODE_LC_M Then
+                            If tmp And MODIFIER_M_WRITE Then Err_Raise REGEX_ERR_INVALID_MODIFIER
+                            tmp = tmp Or MODIFIER_M_WRITE
+                        ElseIf x = UNICODE_LC_S Then
+                            If tmp And MODIFIER_S_WRITE Then Err_Raise REGEX_ERR_INVALID_MODIFIER
+                            tmp = tmp Or MODIFIER_S_WRITE
+                        ElseIf x = UNICODE_COLON Then
+                            GoTo EndOfBoundedModifier
+                        ElseIf x = UNICODE_RPAREN Then
+                            GoTo EndOfUnboundedModifier
+                        Else
+                            Err_Raise REGEX_ERR_INVALID_MODIFIER
+                        End If
+    
+                        x = Advance(lexCtx)
+                    Loop
+    EndOfBoundedModifier:
+                    outToken.t = RETOK_ATOM_START_NONCAPTURE_GROUP
+                    outToken.num = tmp ' no modifiers
+                    GoTo EndModifierHandling
+    EndOfUnboundedModifier:
+                    outToken.t = RETOK_UNBOUNDED_MODIFIER
+                    outToken.num = tmp
+    EndModifierHandling:
+                End Select
+            Else
+                ' (
+                outToken.t = RETOK_ATOM_START_CAPTURE_GROUP
+                outToken.num = -1
+            End If
+        Case UNICODE_RPAREN
+            outToken.t = RETOK_ATOM_END
+        Case UNICODE_LBRACKET
+            ' To avoid creating a heavy intermediate value for the list of ranges,
+            ' only the start token ('[' or '[^') is parsed here.  The regexp
+            ' compiler parses the ranges itself.
+            If lexCtx.currentCharacter = UNICODE_CARET Then
+                Advance lexCtx
+                outToken.t = RETOK_ATOM_START_CHARCLASS_INVERTED
+            Else
+                outToken.t = RETOK_ATOM_START_CHARCLASS
+            End If
+        Case LEXER_ENDOFINPUT
+            ' EOF
+            outToken.t = RETOK_EOF
+        Case Else
+            ' PatternCharacter, all excluded characters are matched by cases above
+            outToken.t = RETOK_ATOM_CHAR
+            outToken.num = x
+        End Select
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Sub ParseReRanges(lexCtx As LexerContext, ByRef outBuffer As ArrayBuffer, ByRef nranges As Long, ByVal ignoreCase As Boolean)
-    Dim start As Long, ch As Long, x As Long, dash As Boolean, y As Long, bufferStart As Long
-
-    bufferStart = outBuffer.Length
-
-    ' start is -2 at the very beginning of the range expression,
-    '   -1 when we have not seen a possible "start" character,
-    '   and it equals the possible start character if we have seen one
-    start = -2
-    dash = False
-
-    Do
-ContinueLoop:
-        x = Advance(lexCtx)
-
-        If x < 0 Then GoTo FailUntermCharclass
-
-        Select Case x
-        Case UNICODE_RBRACKET
-            If start >= 0 Then
-                RegexpGenerateRanges outBuffer, ignoreCase, start, start
-                Exit Do
-            ElseIf start = -1 Then
-                Exit Do
-            Else ' start = -2
-                ' ] at the very beginning of a range expression is interpreted literally,
-                '   since empty ranges are not permitted.
-                '   This corresponds to what RE2 does.
-                ch = x
-            End If
-        Case UNICODE_MINUS
-            If start >= 0 Then
-                If Not dash Then
-                    If lexCtx.currentCharacter <> UNICODE_RBRACKET Then
-                        ' '-' as a range indicator
-                        dash = True
-                        GoTo ContinueLoop
+  With stdError.getSentry("stdRegex#ParseReRanges", "nranges", nranges, "ignoreCase", ignoreCase)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim start As Long, ch As Long, x As Long, dash As Boolean, y As Long, bufferStart As Long
+    
+        bufferStart = outBuffer.Length
+    
+        ' start is -2 at the very beginning of the range expression,
+        '   -1 when we have not seen a possible "start" character,
+        '   and it equals the possible start character if we have seen one
+        start = -2
+        dash = False
+    
+        Do
+    ContinueLoop:
+            x = Advance(lexCtx)
+    
+            If x < 0 Then GoTo FailUntermCharclass
+    
+            Select Case x
+            Case UNICODE_RBRACKET
+                If start >= 0 Then
+                    RegexpGenerateRanges outBuffer, ignoreCase, start, start
+                    Exit Do
+                ElseIf start = -1 Then
+                    Exit Do
+                Else ' start = -2
+                    ' ] at the very beginning of a range expression is interpreted literally,
+                    '   since empty ranges are not permitted.
+                    '   This corresponds to what RE2 does.
+                    ch = x
+                End If
+            Case UNICODE_MINUS
+                If start >= 0 Then
+                    If Not dash Then
+                        If lexCtx.currentCharacter <> UNICODE_RBRACKET Then
+                            ' '-' as a range indicator
+                            dash = True
+                            GoTo ContinueLoop
+                        End If
                     End If
                 End If
-            End If
-            ' '-' verbatim
-            ch = x
-        Case UNICODE_BACKSLASH
-            '
-            '  The escapes are same as outside a character class, except that \b has a
-            '  different meaning, and \B and backreferences are prohibited (see E5
-            '  Section 15.10.2.19).  However, it's difficult to share code because we
-            '  handle e.g. "\n" very differently: here we generate a single character
-            '  range for it.
-            '
-
-            ' XXX: ES2015 surrogate pair handling.
-
-            x = Advance(lexCtx)
-
-            Select Case x
-            Case UNICODE_LC_B
-                ' Note: '\b' in char class is different than outside (assertion),
-                ' '\B' is not allowed and is caught by the duk_unicode_is_identifier_part()
-                ' check below.
+                ' '-' verbatim
+                ch = x
+            Case UNICODE_BACKSLASH
                 '
-                ch = &H8&
-            Case UNICODE_LC_F
-                ch = &HC&
-            Case UNICODE_LC_N
-                ch = &HA&
-            Case UNICODE_LC_T
-                ch = &H9&
-            Case UNICODE_LC_R
-                ch = &HD&
-            Case UNICODE_LC_V
-                ch = &HB&
-            Case UNICODE_LC_C
+                '  The escapes are same as outside a character class, except that \b has a
+                '  different meaning, and \B and backreferences are prohibited (see E5
+                '  Section 15.10.2.19).  However, it's difficult to share code because we
+                '  handle e.g. "\n" very differently: here we generate a single character
+                '  range for it.
+                '
+    
+                ' XXX: ES2015 surrogate pair handling.
+    
                 x = Advance(lexCtx)
-                If ((x >= UNICODE_LC_A And x <= UNICODE_LC_Z) Or (x >= UNICODE_UC_A And x <= UNICODE_UC_Z)) Then
-                    ch = x Mod 32
-                Else
-                    GoTo FailEscape
-                End If
-            Case UNICODE_LC_X
-                ch = LexerParseEscapeX(lexCtx)
-            Case UNICODE_LC_U
-                ch = LexerParseEscapeU(lexCtx)
-            Case UNICODE_LC_D
-                EmitPredefinedRange outBuffer, This.regex.bytecode, RANGE_TABLE_DIGIT_START, RANGE_TABLE_DIGIT_LENGTH
-                ch = -1
-            Case UNICODE_UC_D
-                EmitPredefinedRange outBuffer, This.regex.bytecode, RANGE_TABLE_NOTDIGIT_START, RANGE_TABLE_NOTDIGIT_LENGTH
-                ch = -1
-            Case UNICODE_LC_S
-                EmitPredefinedRange outBuffer, This.regex.bytecode, RANGE_TABLE_WHITE_START, RANGE_TABLE_WHITE_LENGTH
-                ch = -1
-            Case UNICODE_UC_S
-                EmitPredefinedRange outBuffer, This.regex.bytecode, RANGE_TABLE_NOTWHITE_START, RANGE_TABLE_NOTWHITE_LENGTH
-                ch = -1
-            Case UNICODE_LC_W
-                EmitPredefinedRange outBuffer, This.regex.bytecode, RANGE_TABLE_WORDCHAR_START, RANGE_TABLE_WORDCHAR_LENGTH
-                ch = -1
-            Case UNICODE_UC_W
-                EmitPredefinedRange outBuffer, This.regex.bytecode, RANGE_TABLE_NOTWORDCHAR_START, RANGE_TABLE_NOTWORDCHAR_LENGTH
-                ch = -1
-            Case Else
-                If x < 0 Then GoTo FailEscape
-                If x <= UNICODE_7 Then
-                    If x >= UNICODE_0 Then
-                        ' \0 or octal escape from \0 up to \377
-                        ch = LexerParseLegacyOctal(lexCtx, x)
+    
+                Select Case x
+                Case UNICODE_LC_B
+                    ' Note: '\b' in char class is different than outside (assertion),
+                    ' '\B' is not allowed and is caught by the duk_unicode_is_identifier_part()
+                    ' check below.
+                    '
+                    ch = &H8&
+                Case UNICODE_LC_F
+                    ch = &HC&
+                Case UNICODE_LC_N
+                    ch = &HA&
+                Case UNICODE_LC_T
+                    ch = &H9&
+                Case UNICODE_LC_R
+                    ch = &HD&
+                Case UNICODE_LC_V
+                    ch = &HB&
+                Case UNICODE_LC_C
+                    x = Advance(lexCtx)
+                    If ((x >= UNICODE_LC_A And x <= UNICODE_LC_Z) Or (x >= UNICODE_UC_A And x <= UNICODE_UC_Z)) Then
+                        ch = x Mod 32
+                    Else
+                        GoTo FailEscape
+                    End If
+                Case UNICODE_LC_X
+                    ch = LexerParseEscapeX(lexCtx)
+                Case UNICODE_LC_U
+                    ch = LexerParseEscapeU(lexCtx)
+                Case UNICODE_LC_D
+                    EmitPredefinedRange outBuffer, This.regex.bytecode, RANGE_TABLE_DIGIT_START, RANGE_TABLE_DIGIT_LENGTH
+                    ch = -1
+                Case UNICODE_UC_D
+                    EmitPredefinedRange outBuffer, This.regex.bytecode, RANGE_TABLE_NOTDIGIT_START, RANGE_TABLE_NOTDIGIT_LENGTH
+                    ch = -1
+                Case UNICODE_LC_S
+                    EmitPredefinedRange outBuffer, This.regex.bytecode, RANGE_TABLE_WHITE_START, RANGE_TABLE_WHITE_LENGTH
+                    ch = -1
+                Case UNICODE_UC_S
+                    EmitPredefinedRange outBuffer, This.regex.bytecode, RANGE_TABLE_NOTWHITE_START, RANGE_TABLE_NOTWHITE_LENGTH
+                    ch = -1
+                Case UNICODE_LC_W
+                    EmitPredefinedRange outBuffer, This.regex.bytecode, RANGE_TABLE_WORDCHAR_START, RANGE_TABLE_WORDCHAR_LENGTH
+                    ch = -1
+                Case UNICODE_UC_W
+                    EmitPredefinedRange outBuffer, This.regex.bytecode, RANGE_TABLE_NOTWORDCHAR_START, RANGE_TABLE_NOTWORDCHAR_LENGTH
+                    ch = -1
+                Case Else
+                    If x < 0 Then GoTo FailEscape
+                    If x <= UNICODE_7 Then
+                        If x >= UNICODE_0 Then
+                            ' \0 or octal escape from \0 up to \377
+                            ch = LexerParseLegacyOctal(lexCtx, x)
+                        Else
+                            ' IdentityEscape: ES2015 Annex B allows almost all
+                            ' source characters here.  Match anything except
+                            ' EOF here.
+                            ch = x
+                        End If
                     Else
                         ' IdentityEscape: ES2015 Annex B allows almost all
                         ' source characters here.  Match anything except
                         ' EOF here.
                         ch = x
                     End If
-                Else
-                    ' IdentityEscape: ES2015 Annex B allows almost all
-                    ' source characters here.  Match anything except
-                    ' EOF here.
-                    ch = x
-                End If
+                End Select
+            Case Else
+                ' character represents itself
+                ch = x
             End Select
-        Case Else
-            ' character represents itself
-            ch = x
-        End Select
-
-        ' ch is a literal character here or -1 if parsed entity was
-        ' an escape such as "\s".
-        '
-
-        If ch < 0 Then
-            ' multi-character sets not allowed as part of ranges, see
-            ' E5 Section 15.10.2.15, abstract operation CharacterRange.
+    
+            ' ch is a literal character here or -1 if parsed entity was
+            ' an escape such as "\s".
             '
-            If start >= 0 Then
-                If dash Then
-                    GoTo FailRange
-                Else
-                    RegexpGenerateRanges outBuffer, ignoreCase, start, start
+    
+            If ch < 0 Then
+                ' multi-character sets not allowed as part of ranges, see
+                ' E5 Section 15.10.2.15, abstract operation CharacterRange.
+                '
+                If start >= 0 Then
+                    If dash Then
+                        GoTo FailRange
+                    Else
+                        RegexpGenerateRanges outBuffer, ignoreCase, start, start
+                    End If
                 End If
-            End If
-            start = -1
-            ' dash is already 0
-        Else
-            If start >= 0 Then
-                If dash Then
-                    If start > ch Then GoTo FailRange
-                    RegexpGenerateRanges outBuffer, ignoreCase, start, ch
-                    start = -1
-                    dash = 0
-                Else
-                    RegexpGenerateRanges outBuffer, ignoreCase, start, start
-                    start = ch
-                    ' dash is already 0
-                End If
+                start = -1
+                ' dash is already 0
             Else
-                start = ch
+                If start >= 0 Then
+                    If dash Then
+                        If start > ch Then GoTo FailRange
+                        RegexpGenerateRanges outBuffer, ignoreCase, start, ch
+                        start = -1
+                        dash = 0
+                    Else
+                        RegexpGenerateRanges outBuffer, ignoreCase, start, start
+                        start = ch
+                        ' dash is already 0
+                    End If
+                Else
+                    start = ch
+                End If
             End If
+        Loop
+    
+        If outBuffer.Length - 2 > bufferStart Then
+            ' We have at least 2 intervals.
+            HeapsortPairs outBuffer.Buffer, bufferStart, outBuffer.Length - 2
+            outBuffer.Length = 2 + Unionize(outBuffer.Buffer, bufferStart, outBuffer.Length - 2)
         End If
-    Loop
-
-    If outBuffer.Length - 2 > bufferStart Then
-        ' We have at least 2 intervals.
-        HeapsortPairs outBuffer.Buffer, bufferStart, outBuffer.Length - 2
-        outBuffer.Length = 2 + Unionize(outBuffer.Buffer, bufferStart, outBuffer.Length - 2)
-    End If
-
-    nranges = (outBuffer.Length - bufferStart) \ 2
-
+    
+        nranges = (outBuffer.Length - bufferStart) \ 2
+    
+        Exit Sub
+    
+    FailEscape:
+        Err_Raise REGEX_ERR_INVALID_REGEXP_ESCAPE
+    
+    FailRange:
+        Err_Raise REGEX_ERR_INVALID_RANGE
+    
+    FailUntermCharclass:
+        Err_Raise REGEX_ERR_UNTERMINATED_CHARCLASS
+    
     Exit Sub
-
-FailEscape:
-    Err.Raise REGEX_ERR_INVALID_REGEXP_ESCAPE
-
-FailRange:
-    Err.Raise REGEX_ERR_INVALID_RANGE
-
-FailUntermCharclass:
-    Err.Raise REGEX_ERR_UNTERMINATED_CHARCLASS
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Sub HeapsortPairs(ByRef ary() As Long, ByVal b As Long, ByVal t As Long)
-    Dim bb As Long
-    Dim parent As Long, child As Long
-    Dim smallestValueX As Long, smallestValueY As Long, tmpX As Long, tmpY As Long
-
-    ' build heap
-    ' bb marks the next element to be added to the heap
-    bb = t - 2
-    Do Until bb < b
-        child = bb
-        Do Until child = t
-            parent = child + 2 + 2 * ((t - child) \ 4)
-            If ary(parent) <= ary(child) Then Exit Do
-            tmpX = ary(parent): tmpY = ary(parent + 1)
-            ary(parent) = ary(child): ary(parent + 1) = ary(child + 1)
-            ary(child) = tmpX: ary(child + 1) = tmpY
-            child = parent
-        Loop
-        bb = bb - 2
-    Loop
-
-    ' demount heap
-    ' bb marks the lower end of the remaining heap
-    bb = b
-    Do While bb < t
-        smallestValueX = ary(t): smallestValueY = ary(t + 1)
-
-        parent = t
-        Do
-            child = parent - t + parent - 2
-
-            ' if there are no children, we are finished
-            If child < bb Then Exit Do
-
-            ' if there are two children, prefer the one with the smaller value
-            If child > bb Then child = child + 2 * (ary(child - 2) <= ary(child))
-
-            ary(parent) = ary(child): ary(parent + 1) = ary(child + 1)
-            parent = child
-        Loop
-
-        ' now position parent is free
-
-        ' if parent <> bb, free bb rather than parent
-        ' by swapping the values in parent and bb and repairing the heap bottom-up
-        If parent > bb Then
-            ary(parent) = ary(bb): ary(parent + 1) = ary(bb + 1)
-            child = parent
+  With stdError.getSentry("stdRegex#HeapsortPairs", "b", b, "t", t)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim bb As Long
+        Dim parent As Long, child As Long
+        Dim smallestValueX As Long, smallestValueY As Long, tmpX As Long, tmpY As Long
+    
+        ' build heap
+        ' bb marks the next element to be added to the heap
+        bb = t - 2
+        Do Until bb < b
+            child = bb
             Do Until child = t
                 parent = child + 2 + 2 * ((t - child) \ 4)
                 If ary(parent) <= ary(child) Then Exit Do
@@ -3320,178 +3781,293 @@ Private Sub HeapsortPairs(ByRef ary() As Long, ByVal b As Long, ByVal t As Long)
                 ary(child) = tmpX: ary(child + 1) = tmpY
                 child = parent
             Loop
-        End If
-
-        ' now position bb is free
-
-        ary(bb) = smallestValueX: ary(bb + 1) = smallestValueY
-        bb = bb + 2
-    Loop
+            bb = bb - 2
+        Loop
+    
+        ' demount heap
+        ' bb marks the lower end of the remaining heap
+        bb = b
+        Do While bb < t
+            smallestValueX = ary(t): smallestValueY = ary(t + 1)
+    
+            parent = t
+            Do
+                child = parent - t + parent - 2
+    
+                ' if there are no children, we are finished
+                If child < bb Then Exit Do
+    
+                ' if there are two children, prefer the one with the smaller value
+                If child > bb Then child = child + 2 * (ary(child - 2) <= ary(child))
+    
+                ary(parent) = ary(child): ary(parent + 1) = ary(child + 1)
+                parent = child
+            Loop
+    
+            ' now position parent is free
+    
+            ' if parent <> bb, free bb rather than parent
+            ' by swapping the values in parent and bb and repairing the heap bottom-up
+            If parent > bb Then
+                ary(parent) = ary(bb): ary(parent + 1) = ary(bb + 1)
+                child = parent
+                Do Until child = t
+                    parent = child + 2 + 2 * ((t - child) \ 4)
+                    If ary(parent) <= ary(child) Then Exit Do
+                    tmpX = ary(parent): tmpY = ary(parent + 1)
+                    ary(parent) = ary(child): ary(parent + 1) = ary(child + 1)
+                    ary(child) = tmpX: ary(child + 1) = tmpY
+                    child = parent
+                Loop
+            End If
+    
+            ' now position bb is free
+    
+            ary(bb) = smallestValueX: ary(bb + 1) = smallestValueY
+            bb = bb + 2
+        Loop
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Function Unionize(ByRef ary() As Long, ByVal b As Long, ByVal t As Long) As Long
-    Dim i As Long, j As Long, lower As Long, upper As Long, nextLower As Long, nextUpper As Long
-
-    lower = ary(b): upper = ary(b + 1)
-    j = b
-    For i = b + 2 To t Step 2
-        nextLower = ary(i): nextUpper = ary(i + 1)
-        If nextLower <= upper + 1 Then
-            If nextUpper > upper Then upper = nextUpper
-        Else
-            ary(j) = lower: j = j + 1: ary(j) = upper: j = j + 1
-            lower = nextLower: upper = nextUpper
-        End If
-    Next
-    ary(j) = lower: ary(j + 1) = upper
-    Unionize = j
+  With stdError.getSentry("stdRegex#Unionize", "b", b, "t", t)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim i As Long, j As Long, lower As Long, upper As Long, nextLower As Long, nextUpper As Long
+    
+        lower = ary(b): upper = ary(b + 1)
+        j = b
+        For i = b + 2 To t Step 2
+            nextLower = ary(i): nextUpper = ary(i + 1)
+            If nextLower <= upper + 1 Then
+                If nextUpper > upper Then upper = nextUpper
+            Else
+                ary(j) = lower: j = j + 1: ary(j) = upper: j = j + 1
+                lower = nextLower: upper = nextUpper
+            End If
+        Next
+        ary(j) = lower: ary(j + 1) = upper
+        Unionize = j
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 Private Function LexerParseEscapeX(ByRef lexCtx As LexerContext) As Long
-    Dim dig As Long, escval As Long, x As Long
-
-    x = Advance(lexCtx)
-    dig = HexvalValidate(x)
-    If dig < 0 Then GoTo FailEscape
-    escval = dig
-
-    x = Advance(lexCtx)
-    dig = HexvalValidate(x)
-    If dig < 0 Then GoTo FailEscape
-    escval = escval * 16 + dig
-
-    LexerParseEscapeX = escval
+  With stdError.getSentry("stdRegex#LexerParseEscapeX")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim dig As Long, escval As Long, x As Long
+    
+        x = Advance(lexCtx)
+        dig = HexvalValidate(x)
+        If dig < 0 Then GoTo FailEscape
+        escval = dig
+    
+        x = Advance(lexCtx)
+        dig = HexvalValidate(x)
+        If dig < 0 Then GoTo FailEscape
+        escval = escval * 16 + dig
+    
+        LexerParseEscapeX = escval
+        Exit Function
+    
+    FailEscape:
+        Err_Raise REGEX_ERR_INVALID_ESCAPE
+    
     Exit Function
-
-FailEscape:
-    Err.Raise REGEX_ERR_INVALID_ESCAPE
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 Private Function LexerParseEscapeU(ByRef lexCtx As LexerContext) As Long
-    Dim dig As Long, escval As Long, x As Long
-
-    If lexCtx.currentCharacter = UNICODE_LCURLY Then
-        Advance lexCtx
-
-        escval = 0
-        x = Advance(lexCtx)
-        If x = UNICODE_RCURLY Then GoTo FailEscape ' Empty escape \u{}
-        Do
-            dig = HexvalValidate(x)
-            If dig < 0 Then GoTo FailEscape
-            If escval > &H10FFF Then GoTo FailEscape
-            escval = escval * 16 + dig
-
+  With stdError.getSentry("stdRegex#LexerParseEscapeU")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim dig As Long, escval As Long, x As Long
+    
+        If lexCtx.currentCharacter = UNICODE_LCURLY Then
+            Advance lexCtx
+    
+            escval = 0
             x = Advance(lexCtx)
-        Loop Until x = UNICODE_RCURLY
-        LexerParseEscapeU = escval
-    Else
-        dig = HexvalValidate(Advance(lexCtx))
-        If dig < 0 Then GoTo FailEscape
-        escval = dig
-
-        dig = HexvalValidate(Advance(lexCtx))
-        If dig < 0 Then GoTo FailEscape
-        escval = escval * 16 + dig
-
-        dig = HexvalValidate(Advance(lexCtx))
-        If dig < 0 Then GoTo FailEscape
-        escval = escval * 16 + dig
-
-        dig = HexvalValidate(Advance(lexCtx))
-        If dig < 0 Then GoTo FailEscape
-        escval = escval * 16 + dig
-
-        LexerParseEscapeU = escval
-    End If
+            If x = UNICODE_RCURLY Then GoTo FailEscape ' Empty escape \u{}
+            Do
+                dig = HexvalValidate(x)
+                If dig < 0 Then GoTo FailEscape
+                If escval > &H10FFF Then GoTo FailEscape
+                escval = escval * 16 + dig
+    
+                x = Advance(lexCtx)
+            Loop Until x = UNICODE_RCURLY
+            LexerParseEscapeU = escval
+        Else
+            dig = HexvalValidate(Advance(lexCtx))
+            If dig < 0 Then GoTo FailEscape
+            escval = dig
+    
+            dig = HexvalValidate(Advance(lexCtx))
+            If dig < 0 Then GoTo FailEscape
+            escval = escval * 16 + dig
+    
+            dig = HexvalValidate(Advance(lexCtx))
+            If dig < 0 Then GoTo FailEscape
+            escval = escval * 16 + dig
+    
+            dig = HexvalValidate(Advance(lexCtx))
+            If dig < 0 Then GoTo FailEscape
+            escval = escval * 16 + dig
+    
+            LexerParseEscapeU = escval
+        End If
+        Exit Function
+    
+    FailEscape:
+        Err_Raise REGEX_ERR_INVALID_ESCAPE
+    
     Exit Function
-
-FailEscape:
-    Err.Raise REGEX_ERR_INVALID_ESCAPE
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 Private Function HexvalValidate(ByVal ch As Long) As Long
-    Const HEX_DELTA_L As Long = UNICODE_LC_A - 10
-    Const HEX_DELTA_U As Long = UNICODE_UC_A - 10
-
-    HexvalValidate = -1
-    If ch <= UNICODE_UC_F Then
-        If ch <= UNICODE_9 Then
-            If ch >= UNICODE_0 Then HexvalValidate = ch - UNICODE_0
+  With stdError.getSentry("stdRegex#HexvalValidate", "ch", ch)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Const HEX_DELTA_L As Long = UNICODE_LC_A - 10
+        Const HEX_DELTA_U As Long = UNICODE_UC_A - 10
+    
+        HexvalValidate = -1
+        If ch <= UNICODE_UC_F Then
+            If ch <= UNICODE_9 Then
+                If ch >= UNICODE_0 Then HexvalValidate = ch - UNICODE_0
+            Else
+                If ch >= UNICODE_UC_A Then HexvalValidate = ch - HEX_DELTA_U
+            End If
         Else
-            If ch >= UNICODE_UC_A Then HexvalValidate = ch - HEX_DELTA_U
+            If ch <= UNICODE_LC_F Then
+                If ch >= UNICODE_LC_A Then HexvalValidate = ch - HEX_DELTA_L
+            End If
         End If
-    Else
-        If ch <= UNICODE_LC_F Then
-            If ch >= UNICODE_LC_A Then HexvalValidate = ch - HEX_DELTA_L
-        End If
-    End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 Private Function LexerParseLegacyOctal(ByRef lexCtx As LexerContext, ByVal x As Long) As Long
-    Dim cp As Long, tmp As Long, i As Long
-
-    cp = x - UNICODE_0
-
-    tmp = lexCtx.currentCharacter
-    If tmp < UNICODE_0 Then GoTo ExitFunction
-    If tmp > UNICODE_7 Then GoTo ExitFunction
-
-    cp = cp * 8 + (tmp - UNICODE_0)
-    Advance lexCtx
-
-    If cp > 31 Then GoTo ExitFunction
-
-    tmp = lexCtx.currentCharacter
-    If tmp < UNICODE_0 Then GoTo ExitFunction
-    If tmp > UNICODE_7 Then GoTo ExitFunction
-
-    cp = cp * 8 + (tmp - UNICODE_0)
-    Advance lexCtx
-
-ExitFunction:
-    LexerParseLegacyOctal = cp
+  With stdError.getSentry("stdRegex#LexerParseLegacyOctal", "x", x)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim cp As Long, tmp As Long, i As Long
+    
+        cp = x - UNICODE_0
+    
+        tmp = lexCtx.currentCharacter
+        If tmp < UNICODE_0 Then GoTo ExitFunction
+        If tmp > UNICODE_7 Then GoTo ExitFunction
+    
+        cp = cp * 8 + (tmp - UNICODE_0)
+        Advance lexCtx
+    
+        If cp > 31 Then GoTo ExitFunction
+    
+        tmp = lexCtx.currentCharacter
+        If tmp < UNICODE_0 Then GoTo ExitFunction
+        If tmp > UNICODE_7 Then GoTo ExitFunction
+    
+        cp = cp * 8 + (tmp - UNICODE_0)
+        Advance lexCtx
+    
+    ExitFunction:
+        LexerParseLegacyOctal = cp
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 Private Function IsIdentifierChar(ByVal c As Long) As Boolean
-    ' Todo: Temporary Hack.
-    IsIdentifierChar = ((c >= AscW("A")) And (c <= AscW("Z"))) Or ((c >= AscW("a")) And (c <= AscW("z")))
+  With stdError.getSentry("stdRegex#IsIdentifierChar", "c", c)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        ' Todo: Temporary Hack.
+        IsIdentifierChar = ((c >= AscW("A")) And (c <= AscW("Z"))) Or ((c >= AscW("a")) And (c <= AscW("z")))
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 Private Function Advance(ByRef lexCtx As LexerContext) As Long
-    Dim lower As Long, upper As Long
-
-    With lexCtx
-        Advance = .currentCharacter
-        If .currentCharacter = LEXER_ENDOFINPUT Then Exit Function
-        If .iCurrent = .iEnd Then
-            .currentCharacter = LEXER_ENDOFINPUT
-        Else
-            .iCurrent = .iCurrent + 1
-            .currentCharacter = AscW(Mid$(.inputStr, .iCurrent, 1)) And &HFFFF&
-        End If
-    End With
+  With stdError.getSentry("stdRegex#Advance")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim lower As Long, upper As Long
+    
+        With lexCtx
+            Advance = .currentCharacter
+            If .currentCharacter = LEXER_ENDOFINPUT Then Exit Function
+            If .iCurrent = .iEnd Then
+                .currentCharacter = LEXER_ENDOFINPUT
+            Else
+                .iCurrent = .iCurrent + 1
+                .currentCharacter = AscW(Mid$(.inputStr, .iCurrent, 1)) And &HFFFF&
+            End If
+        End With
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 Private Sub Compile(ByRef outBytecode() As Long, ByRef s As String, Optional ByVal caseInsensitive As Boolean = False)
-    Dim lex As LexerContext
-    Dim ast As ArrayBuffer
-
-    Initialize lex, s
-    Parse lex, caseInsensitive, ast
-    AstToBytecode ast.Buffer, lex.identifierTree, caseInsensitive, outBytecode
+  With stdError.getSentry("stdRegex#Compile", "s", s, "caseInsensitive", caseInsensitive)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim lex As LexerContext
+        Dim ast As ArrayBuffer
+    
+        Initialize lex, s
+        Parse lex, caseInsensitive, ast
+        AstToBytecode ast.Buffer, lex.identifierTree, caseInsensitive, outBytecode
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Sub PerformPotentialConcat( _
     ByRef ast As ArrayBuffer, ByRef potentialConcat2 As Long, ByRef potentialConcat1 As Long _
 )
-    Dim tmp As Long
-    If potentialConcat2 <> -1 Then
-        tmp = ast.Length
-        AppendThree ast, AST_CONCAT, potentialConcat2, potentialConcat1
-        potentialConcat2 = -1
-        potentialConcat1 = tmp
-    End If
+  With stdError.getSentry("stdRegex#PerformPotentialConcat", "_", _, "potentialConcat2", potentialConcat2, "potentialConcat1", potentialConcat1)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim tmp As Long
+        If potentialConcat2 <> -1 Then
+            tmp = ast.Length
+            AppendThree ast, AST_CONCAT, potentialConcat2, potentialConcat1
+            potentialConcat2 = -1
+            potentialConcat1 = tmp
+        End If
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Function CloseGroups( _
@@ -3505,445 +4081,461 @@ Private Function CloseGroups( _
     ByRef spilloverWriteMask As Long, _
     ByVal whatToHandle As Long _
 ) As Long
-    Dim currentAstNode As Long ' local helper variable
-    Dim stackFrameType As Long
-    Dim modifierEntry As Long, modifierEntryWriteMask As Long, accumulatedWriteMask As Long
-
-    CloseGroups = PSF_NONE
-    spilloverWriteMask = 0
-
-    Do
-        If potentialConcat1 = -1 Then
-            currentAstNode = ast.Length
-            AppendLong ast, AST_EMPTY
-            potentialConcat1 = currentAstNode
-        Else
-            PerformPotentialConcat ast, potentialConcat2, potentialConcat1
-        End If
-
-        With parseStack
-            If .Length = 0 Then Exit Function
-
-            stackFrameType = .Buffer(.Length - 1)
-            If stackFrameType > whatToHandle Then Exit Function
-            CloseGroups = stackFrameType
-
-            ' Close pending disjunction, if there is one
-            If pendingDisjunction <> -1 Then
-                ast.Buffer(pendingDisjunction + 2) = potentialConcat1
-                potentialConcat1 = currentDisjunction
+  With stdError.getSentry("stdRegex#CloseGroups", "_", _, "_", _, "_", _, "_", _, "_", _, "_", _, "_", _, "_", _, "_", _)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim currentAstNode As Long ' local helper variable
+        Dim stackFrameType As Long
+        Dim modifierEntry As Long, modifierEntryWriteMask As Long, accumulatedWriteMask As Long
+    
+        CloseGroups = PSF_NONE
+        spilloverWriteMask = 0
+    
+        Do
+            If potentialConcat1 = -1 Then
+                currentAstNode = ast.Length
+                AppendLong ast, AST_EMPTY
+                potentialConcat1 = currentAstNode
+            Else
+                PerformPotentialConcat ast, potentialConcat2, potentialConcat1
             End If
-
-            ' Pop stack frame and restore variables
+    
             With parseStack
-                pendingDisjunction = .Buffer(.Length - 4)
-                currentDisjunction = .Buffer(.Length - 3)
-                potentialConcat2 = .Buffer(.Length - 2)
-            End With
-
-            If stackFrameType <= PSF_MAX_WITH_MODIFIERS Then
-                modifierEntry = .Buffer(.Length - 5)
-                If modifierEntry <> 0 Then ' the group has modifiers
-                    modifierEntryWriteMask = modifierEntry And MODIFIER_WRITE_MASK
-                    currentAstNode = ast.Length
-                    AppendThree ast, AST_MODIFIER_SCOPE, potentialConcat1, _
-                        modifierEntryWriteMask _
-                            Or _
-                        modifierEntryWriteMask * 2 And modifierMask
-                    potentialConcat1 = currentAstNode
-                    modifierMask = modifierMask Xor (modifierEntry And MODIFIER_ACTIVE_MASK)
-                    spilloverWriteMask = spilloverWriteMask Or modifierEntryWriteMask
+                If .Length = 0 Then Exit Function
+    
+                stackFrameType = .Buffer(.Length - 1)
+                If stackFrameType > whatToHandle Then Exit Function
+                CloseGroups = stackFrameType
+    
+                ' Close pending disjunction, if there is one
+                If pendingDisjunction <> -1 Then
+                    ast.Buffer(pendingDisjunction + 2) = potentialConcat1
+                    potentialConcat1 = currentDisjunction
                 End If
-            End If
-
-            ' Stop at explicit group; explicit groups are never popped from the stack.
-            ' There is no spillover from explicit groups, hence we can exit the function.
-            If stackFrameType >= PSF_MIN_EXPLICIT Then Exit Function
-
-            .Length = .Length - 5
-        End With
-    Loop
+    
+                ' Pop stack frame and restore variables
+                With parseStack
+                    pendingDisjunction = .Buffer(.Length - 4)
+                    currentDisjunction = .Buffer(.Length - 3)
+                    potentialConcat2 = .Buffer(.Length - 2)
+                End With
+    
+                If stackFrameType <= PSF_MAX_WITH_MODIFIERS Then
+                    modifierEntry = .Buffer(.Length - 5)
+                    If modifierEntry <> 0 Then ' the group has modifiers
+                        modifierEntryWriteMask = modifierEntry And MODIFIER_WRITE_MASK
+                        currentAstNode = ast.Length
+                        AppendThree ast, AST_MODIFIER_SCOPE, potentialConcat1, _
+                            modifierEntryWriteMask _
+                                Or _
+                            modifierEntryWriteMask * 2 And modifierMask
+                        potentialConcat1 = currentAstNode
+                        modifierMask = modifierMask Xor (modifierEntry And MODIFIER_ACTIVE_MASK)
+                        spilloverWriteMask = spilloverWriteMask Or modifierEntryWriteMask
+                    End If
+                End If
+    
+                ' Stop at explicit group; explicit groups are never popped from the stack.
+                ' There is no spillover from explicit groups, hence we can exit the function.
+                If stackFrameType >= PSF_MIN_EXPLICIT Then Exit Function
+    
+                .Length = .Length - 5
+            End With
+        Loop
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 Private Sub Parse(ByRef lex As LexerContext, ByVal caseInsensitive As Boolean, ByRef ast As ArrayBuffer)
-    ' carry information througout the function
-    Dim currToken As ReToken
-    Dim parseStack As ArrayBuffer
-    Dim modifierMask As Long
-    Dim potentialConcat2 As Long, potentialConcat1 As Long, pendingDisjunction As Long, currentDisjunction As Long
-    Dim nCaptures As Long
-
-    ' only locally used
-    Dim currentAstNode As Long, spilloverWriteMask As Long
-    Dim tmp As Long, i As Long, qmin As Long, qmax As Long, n1 As Long, n2 As Long
-
-    nCaptures = 0
-
-    pendingDisjunction = -1
-    potentialConcat2 = -1
-    potentialConcat1 = -1
-    currentDisjunction = -1
-    modifierMask = MODIFIER_I_ACTIVE And caseInsensitive
-
-    AppendLong ast, 0 ' first word will be index of the root node, to be patched in the end
-
-    Do
-ContinueLoop:
-        ParseReToken lex, currToken
-
-        Select Case currToken.t
-        Case RETOK_DISJUNCTION
-            n2 = modifierMask ' save modifier mask for later
-
-            CloseGroups ast, parseStack, pendingDisjunction, currentDisjunction, potentialConcat2, potentialConcat1, _
-                modifierMask, spilloverWriteMask, HANDLE_IMPLICIT_LOCAL
-
-            currentAstNode = ast.Length
-            AppendThree ast, AST_DISJ, potentialConcat1, -1
-            potentialConcat1 = -1
-
-            If pendingDisjunction <> -1 Then
-                ast.Buffer(pendingDisjunction + 2) = currentAstNode
-            Else
-                currentDisjunction = currentAstNode
-            End If
-
-            pendingDisjunction = currentAstNode
-
-            If spilloverWriteMask Then
-                ' Create a modifier scope
-                ' See comment in Case RETOK_ATOM_START_NONCAPTURE_GROUP, RETOK_UNBOUNDED_MODIFIER for a description.
-                ' Remember: n2 is the modifier mask at the end of the last alternative.
-                ' Hence the following n1 is that ACTIVE part of the xor difference between n2 and the new modifierMask
-                '   that spills over.
-                n1 = spilloverWriteMask * 2 And (n2 Xor modifierMask)
-                ' We push this xor difference as well as the WRITE part of the spillover.
+  With stdError.getSentry("stdRegex#Parse", "caseInsensitive", caseInsensitive)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        ' carry information througout the function
+        Dim currToken As ReToken
+        Dim parseStack As ArrayBuffer
+        Dim modifierMask As Long
+        Dim potentialConcat2 As Long, potentialConcat1 As Long, pendingDisjunction As Long, currentDisjunction As Long
+        Dim nCaptures As Long
+    
+        ' only locally used
+        Dim currentAstNode As Long, spilloverWriteMask As Long
+        Dim tmp As Long, i As Long, qmin As Long, qmax As Long, n1 As Long, n2 As Long
+    
+        nCaptures = 0
+    
+        pendingDisjunction = -1
+        potentialConcat2 = -1
+        potentialConcat1 = -1
+        currentDisjunction = -1
+        modifierMask = MODIFIER_I_ACTIVE And caseInsensitive
+    
+        AppendLong ast, 0 ' first word will be index of the root node, to be patched in the end
+    
+        Do
+    ContinueLoop:
+            ParseReToken lex, currToken
+    
+            Select Case currToken.t
+            Case RETOK_DISJUNCTION
+                n2 = modifierMask ' save modifier mask for later
+    
+                CloseGroups ast, parseStack, pendingDisjunction, currentDisjunction, potentialConcat2, potentialConcat1, _
+                    modifierMask, spilloverWriteMask, HANDLE_IMPLICIT_LOCAL
+    
+                currentAstNode = ast.Length
+                AppendThree ast, AST_DISJ, potentialConcat1, -1
+                potentialConcat1 = -1
+    
+                If pendingDisjunction <> -1 Then
+                    ast.Buffer(pendingDisjunction + 2) = currentAstNode
+                Else
+                    currentDisjunction = currentAstNode
+                End If
+    
+                pendingDisjunction = currentAstNode
+    
+                If spilloverWriteMask Then
+                    ' Create a modifier scope
+                    ' See comment in Case RETOK_ATOM_START_NONCAPTURE_GROUP, RETOK_UNBOUNDED_MODIFIER for a description.
+                    ' Remember: n2 is the modifier mask at the end of the last alternative.
+                    ' Hence the following n1 is that ACTIVE part of the xor difference between n2 and the new modifierMask
+                    '   that spills over.
+                    n1 = spilloverWriteMask * 2 And (n2 Xor modifierMask)
+                    ' We push this xor difference as well as the WRITE part of the spillover.
+                    AppendFive parseStack, _
+                        spilloverWriteMask Or n1, _
+                        pendingDisjunction, currentDisjunction, potentialConcat1, _
+                        PSF_MODSCOPE_SPANNING
+    
+                    ' We apply the spillover to the modifierMask.
+                    modifierMask = modifierMask Xor n1
+                    pendingDisjunction = -1
+                    potentialConcat2 = -1
+                    potentialConcat1 = -1
+                    currentDisjunction = -1
+                End If
+    
+            Case RETOK_QUANTIFIER
+                If potentialConcat1 = -1 Then Err_Raise REGEX_ERR_INVALID_QUANTIFIER_NO_ATOM
+    
+                qmin = currToken.qmin
+                qmax = currToken.qmax
+    
+                If qmin > qmax Then
+                    currentAstNode = ast.Length
+                    AppendLong ast, AST_FAIL
+                    potentialConcat1 = currentAstNode
+                    GoTo ContinueLoop
+                End If
+    
+                If qmin = 0 Then
+                    n1 = -1
+                ElseIf qmin = 1 Then
+                    n1 = potentialConcat1
+                ElseIf qmin > 1 Then
+                    currentAstNode = ast.Length
+                    AppendThree ast, AST_REPEAT_EXACTLY, potentialConcat1, qmin
+                    n1 = currentAstNode
+                Else
+                    Err_Raise REGEX_ERR_INTERNAL_LOGIC_ERR
+                End If
+    
+                If qmax = RE_QUANTIFIER_INFINITE Then
+                    If currToken.greedy Then tmp = AST_STAR_GREEDY Else tmp = AST_STAR_HUMBLE
+                    currentAstNode = ast.Length
+                    AppendTwo ast, tmp, potentialConcat1
+                    n2 = currentAstNode
+                ElseIf qmax - qmin = 1 Then
+                    If currToken.greedy Then tmp = AST_ZEROONE_GREEDY Else tmp = AST_ZEROONE_HUMBLE
+                    currentAstNode = ast.Length
+                    AppendTwo ast, tmp, potentialConcat1
+                    n2 = currentAstNode
+                ElseIf qmax - qmin > 1 Then
+                    If currToken.greedy Then tmp = AST_REPEAT_MAX_GREEDY Else tmp = AST_REPEAT_MAX_HUMBLE
+                    currentAstNode = ast.Length
+                    AppendThree ast, tmp, potentialConcat1, qmax - qmin
+                    n2 = currentAstNode
+                ElseIf qmax = qmin Then
+                    n2 = -1
+                Else
+                    Err_Raise REGEX_ERR_INTERNAL_LOGIC_ERR
+                End If
+    
+                If n1 = -1 Then
+                    If n2 = -1 Then
+                        currentAstNode = ast.Length
+                        AppendLong ast, AST_EMPTY
+                        potentialConcat1 = currentAstNode
+                    Else
+                        potentialConcat1 = n2
+                    End If
+                Else
+                    If n2 = -1 Then
+                        potentialConcat1 = n1
+                    Else
+                        currentAstNode = ast.Length
+                        AppendThree ast, AST_CONCAT, n1, n2
+                        potentialConcat1 = currentAstNode
+                    End If
+                End If
+    
+            Case RETOK_ATOM_START_CAPTURE_GROUP
+                PerformPotentialConcat ast, potentialConcat2, potentialConcat1
+    
+                nCaptures = nCaptures + 1
                 AppendFive parseStack, _
-                    spilloverWriteMask Or n1, _
-                    pendingDisjunction, currentDisjunction, potentialConcat1, _
-                    PSF_MODSCOPE_SPANNING
-
-                ' We apply the spillover to the modifierMask.
-                modifierMask = modifierMask Xor n1
+                    currToken.num, pendingDisjunction, currentDisjunction, potentialConcat1, _
+                    nCaptures
+    
                 pendingDisjunction = -1
                 potentialConcat2 = -1
                 potentialConcat1 = -1
                 currentDisjunction = -1
-            End If
-
-        Case RETOK_QUANTIFIER
-            If potentialConcat1 = -1 Then Err.Raise REGEX_ERR_INVALID_QUANTIFIER_NO_ATOM
-
-            qmin = currToken.qmin
-            qmax = currToken.qmax
-
-            If qmin > qmax Then
-                currentAstNode = ast.Length
-                AppendLong ast, AST_FAIL
-                potentialConcat1 = currentAstNode
-                GoTo ContinueLoop
-            End If
-
-            If qmin = 0 Then
-                n1 = -1
-            ElseIf qmin = 1 Then
-                n1 = potentialConcat1
-            ElseIf qmin > 1 Then
-                currentAstNode = ast.Length
-                AppendThree ast, AST_REPEAT_EXACTLY, potentialConcat1, qmin
-                n1 = currentAstNode
-            Else
-                Err.Raise REGEX_ERR_INTERNAL_LOGIC_ERR
-            End If
-
-            If qmax = RE_QUANTIFIER_INFINITE Then
-                If currToken.greedy Then tmp = AST_STAR_GREEDY Else tmp = AST_STAR_HUMBLE
-                currentAstNode = ast.Length
-                AppendTwo ast, tmp, potentialConcat1
-                n2 = currentAstNode
-            ElseIf qmax - qmin = 1 Then
-                If currToken.greedy Then tmp = AST_ZEROONE_GREEDY Else tmp = AST_ZEROONE_HUMBLE
-                currentAstNode = ast.Length
-                AppendTwo ast, tmp, potentialConcat1
-                n2 = currentAstNode
-            ElseIf qmax - qmin > 1 Then
-                If currToken.greedy Then tmp = AST_REPEAT_MAX_GREEDY Else tmp = AST_REPEAT_MAX_HUMBLE
-                currentAstNode = ast.Length
-                AppendThree ast, tmp, potentialConcat1, qmax - qmin
-                n2 = currentAstNode
-            ElseIf qmax = qmin Then
-                n2 = -1
-            Else
-                Err.Raise REGEX_ERR_INTERNAL_LOGIC_ERR
-            End If
-
-            If n1 = -1 Then
-                If n2 = -1 Then
+    
+            Case RETOK_ATOM_START_NONCAPTURE_GROUP, RETOK_UNBOUNDED_MODIFIER
+                PerformPotentialConcat ast, potentialConcat2, potentialConcat1
+    
+                ' n1 is being used to temporarily store the new modifierMask.
+                ' Effectively, we set
+                '   n1[x_ACTIVE] := currentToken.num[x_WRITE] ? currentToken.num[x_ACTIVE] : modifierMask[x_ACTIVE].
+                ' We make use of the fact that for b1, b2, b3 in {0, 1},
+                '   b1 ? b2 : b3   is equivalent to   b3 xor [b1 and (b2 xor b3)].
+                '
+                ' Note that modifierMask[x_WRITE] = 0, i.e. (modifierMask and MODIFIER_WRITE_MASK) = 0, and that
+                ' the same holds for n1 after the assignment.
+                n1 = modifierMask Xor _
+                    (((currToken.num And MODIFIER_WRITE_MASK) * 2) And (currToken.num Xor modifierMask))
+    
+                ' Since modifierMask uses only ACTIVE bit positions (and no WRITE bit positions),
+                '   i.e. since (modifierMask and MODIFIER_WRITE_MASK) = 0,
+                '   the WRITE bit positions are free for storing the WRITE bits of currToken.num on the stack.
+                ' In the ACTIVE bit positions, we store the xor difference between the the old and the new
+                '   modifier mask (i.e. the difference between modifierMask and n1).
+                ' When popping from the stack, we will be able to restore the ACTIVE bits of currToken.num from
+                '   the new modifierMask together with the WRITE bits popped from the stack.
+                AppendFive parseStack, _
+                    (currToken.num And MODIFIER_WRITE_MASK) Or (modifierMask Xor n1), _
+                    pendingDisjunction, currentDisjunction, potentialConcat1, _
+                    IIf(currToken.t = RETOK_ATOM_START_NONCAPTURE_GROUP, PSF_NONCAPTURE, PSF_MODSCOPE_LOCAL)
+    
+                modifierMask = n1
+                pendingDisjunction = -1
+                potentialConcat2 = -1
+                potentialConcat1 = -1
+                currentDisjunction = -1
+    
+             Case RETOK_ASSERT_START_POS_LOOKAHEAD
+                PerformPotentialConcat ast, potentialConcat2, potentialConcat1
+    
+                AppendFive parseStack, _
+                    -1, pendingDisjunction, currentDisjunction, potentialConcat1, _
+                    -AST_ASSERT_POS_LOOKAHEAD
+    
+                pendingDisjunction = -1
+                potentialConcat2 = -1
+                potentialConcat1 = -1
+                currentDisjunction = -1
+    
+            Case RETOK_ASSERT_START_NEG_LOOKAHEAD
+                PerformPotentialConcat ast, potentialConcat2, potentialConcat1
+    
+                AppendFive parseStack, _
+                    -1, pendingDisjunction, currentDisjunction, potentialConcat1, _
+                    -AST_ASSERT_NEG_LOOKAHEAD
+    
+                pendingDisjunction = -1
+                potentialConcat2 = -1
+                potentialConcat1 = -1
+                currentDisjunction = -1
+    
+             Case RETOK_ASSERT_START_POS_LOOKBEHIND
+                PerformPotentialConcat ast, potentialConcat2, potentialConcat1
+    
+                AppendFive parseStack, _
+                    -1, pendingDisjunction, currentDisjunction, potentialConcat1, _
+                    -AST_ASSERT_POS_LOOKBEHIND
+    
+                pendingDisjunction = -1
+                potentialConcat2 = -1
+                potentialConcat1 = -1
+                currentDisjunction = -1
+    
+            Case RETOK_ASSERT_START_NEG_LOOKBEHIND
+                PerformPotentialConcat ast, potentialConcat2, potentialConcat1
+    
+                AppendFive parseStack, _
+                    -1, pendingDisjunction, currentDisjunction, potentialConcat1, _
+                    -AST_ASSERT_NEG_LOOKBEHIND
+    
+                pendingDisjunction = -1
+                potentialConcat2 = -1
+                potentialConcat1 = -1
+                currentDisjunction = -1
+    
+            Case RETOK_ATOM_END
+                tmp = CloseGroups(ast, parseStack, pendingDisjunction, currentDisjunction, _
+                    potentialConcat2, potentialConcat1, modifierMask, 0, HANDLE_UP_TO_EXPLICIT)
+    
+                If tmp < PSF_MIN_EXPLICIT Then
+                    Err_Raise REGEX_ERR_UNEXPECTED_CLOSING_PAREN
+                ElseIf tmp > 0 Then ' capture group
+                    n1 = parseStack.Buffer(parseStack.Length - 5)
+                    If n1 <> -1 Then
+                        currentAstNode = ast.Length
+                        AppendFour ast, AST_NAMED, potentialConcat1, n1, tmp
+                        potentialConcat1 = currentAstNode
+                    End If
                     currentAstNode = ast.Length
-                    AppendLong ast, AST_EMPTY
+                    AppendThree ast, AST_CAPTURE, potentialConcat1, tmp
                     potentialConcat1 = currentAstNode
+                ElseIf tmp = PSF_NONCAPTURE Then ' non-capture group
+                    ' nothing to do
+                Else ' lookahead or lookbehind
+                    currentAstNode = ast.Length
+                    AppendTwo ast, -tmp, potentialConcat1
+                    potentialConcat1 = currentAstNode
+                End If
+                parseStack.Length = parseStack.Length - 5 ' pop stack frame
+    
+            Case RETOK_ATOM_CHAR
+                PerformPotentialConcat ast, potentialConcat2, potentialConcat1
+    
+                currentAstNode = ast.Length
+                tmp = currToken.num
+                If modifierMask And MODIFIER_I_ACTIVE Then
+                    tmp = ReCanonicalizeChar(tmp)
+                End If
+                AppendTwo ast, AST_CHAR, tmp
+    
+                potentialConcat2 = potentialConcat1: potentialConcat1 = currentAstNode
+    
+            Case RETOK_ATOM_PERIOD
+                PerformPotentialConcat ast, potentialConcat2, potentialConcat1
+                currentAstNode = ast.Length
+                AppendLong ast, AST_PERIOD
+                potentialConcat2 = potentialConcat1: potentialConcat1 = currentAstNode
+    
+            Case RETOK_ATOM_BACKREFERENCE
+                PerformPotentialConcat ast, potentialConcat2, potentialConcat1
+                currentAstNode = ast.Length
+                AppendTwo ast, AST_BACKREFERENCE, currToken.num
+                potentialConcat2 = potentialConcat1: potentialConcat1 = currentAstNode
+    
+            Case RETOK_ASSERT_START
+                PerformPotentialConcat ast, potentialConcat2, potentialConcat1
+                currentAstNode = ast.Length
+                AppendLong ast, AST_ASSERT_START
+                potentialConcat2 = potentialConcat1: potentialConcat1 = currentAstNode
+    
+            Case RETOK_ASSERT_END
+                PerformPotentialConcat ast, potentialConcat2, potentialConcat1
+                currentAstNode = ast.Length
+                AppendLong ast, AST_ASSERT_END
+                potentialConcat2 = potentialConcat1: potentialConcat1 = currentAstNode
+    
+            Case RETOK_ATOM_START_CHARCLASS, RETOK_ATOM_START_CHARCLASS_INVERTED
+                PerformPotentialConcat ast, potentialConcat2, potentialConcat1
+                currentAstNode = ast.Length
+                If currToken.t = RETOK_ATOM_START_CHARCLASS Then
+                    AppendTwo ast, AST_RANGES, 0
                 Else
-                    potentialConcat1 = n2
+                    AppendTwo ast, AST_INVRANGES, 0
                 End If
-            Else
-                If n2 = -1 Then
-                    potentialConcat1 = n1
+    
+                tmp = 0 ' unnecessary, tmp is an output parameter indicating the number of ranges
+                ' Todo: Remove that parameter from ParseReRanges -- we can calculate it by comparing
+                '   old and new buffer length.
+                ParseReRanges lex, ast, tmp, (modifierMask And MODIFIER_I_ACTIVE) <> 0
+    
+                ' patch range count
+                ast.Buffer(currentAstNode + 1) = tmp
+    
+                potentialConcat2 = potentialConcat1: potentialConcat1 = currentAstNode
+    
+            Case RETOK_ASSERT_WORD_BOUNDARY
+                PerformPotentialConcat ast, potentialConcat2, potentialConcat1
+                currentAstNode = ast.Length
+                AppendLong ast, AST_ASSERT_WORD_BOUNDARY
+                potentialConcat2 = potentialConcat1: potentialConcat1 = currentAstNode
+    
+            Case RETOK_ASSERT_NOT_WORD_BOUNDARY
+                PerformPotentialConcat ast, potentialConcat2, potentialConcat1
+                currentAstNode = ast.Length
+                AppendLong ast, AST_ASSERT_NOT_WORD_BOUNDARY
+                potentialConcat2 = potentialConcat1: potentialConcat1 = currentAstNode
+    
+            Case RETOK_ATOM_DIGIT
+                PerformPotentialConcat ast, potentialConcat2, potentialConcat1
+                currentAstNode = ast.Length
+                AppendPrefixedPairsArray ast, AST_RANGES, This.regex.bytecode, _
+                    RANGE_TABLE_DIGIT_START, RANGE_TABLE_DIGIT_LENGTH
+                potentialConcat2 = potentialConcat1: potentialConcat1 = currentAstNode
+    
+            Case RETOK_ATOM_NOT_DIGIT
+                PerformPotentialConcat ast, potentialConcat2, potentialConcat1
+                currentAstNode = ast.Length
+                AppendPrefixedPairsArray ast, AST_RANGES, This.regex.bytecode, _
+                    RANGE_TABLE_NOTDIGIT_START, RANGE_TABLE_NOTDIGIT_LENGTH
+                potentialConcat2 = potentialConcat1: potentialConcat1 = currentAstNode
+    
+            Case RETOK_ATOM_WHITE
+                PerformPotentialConcat ast, potentialConcat2, potentialConcat1
+                currentAstNode = ast.Length
+                AppendPrefixedPairsArray ast, AST_RANGES, This.regex.bytecode, _
+                    RANGE_TABLE_WHITE_START, RANGE_TABLE_WHITE_LENGTH
+                potentialConcat2 = potentialConcat1: potentialConcat1 = currentAstNode
+    
+            Case RETOK_ATOM_NOT_WHITE
+                PerformPotentialConcat ast, potentialConcat2, potentialConcat1
+                currentAstNode = ast.Length
+                AppendPrefixedPairsArray ast, AST_RANGES, This.regex.bytecode, _
+                    RANGE_TABLE_NOTWHITE_START, RANGE_TABLE_NOTWHITE_LENGTH
+                potentialConcat2 = potentialConcat1: potentialConcat1 = currentAstNode
+    
+            Case RETOK_ATOM_WORD_CHAR
+                PerformPotentialConcat ast, potentialConcat2, potentialConcat1
+                currentAstNode = ast.Length
+                AppendPrefixedPairsArray ast, AST_RANGES, This.regex.bytecode, _
+                    RANGE_TABLE_WORDCHAR_START, RANGE_TABLE_WORDCHAR_LENGTH
+                potentialConcat2 = potentialConcat1: potentialConcat1 = currentAstNode
+    
+            Case RETOK_ATOM_NOT_WORD_CHAR
+                PerformPotentialConcat ast, potentialConcat2, potentialConcat1
+                currentAstNode = ast.Length
+                AppendPrefixedPairsArray ast, AST_RANGES, This.regex.bytecode, _
+                    RANGE_TABLE_NOTWORDCHAR_START, RANGE_TABLE_NOTWORDCHAR_LENGTH
+                potentialConcat2 = potentialConcat1: potentialConcat1 = currentAstNode
+    
+            Case RETOK_EOF
+                CloseGroups ast, parseStack, pendingDisjunction, currentDisjunction, potentialConcat2, potentialConcat1, _
+                    modifierMask, 0, HANDLE_IMPLICIT
+    
+                If Not parseStack.Length = 0 Then Err_Raise REGEX_ERR_UNEXPECTED_END_OF_PATTERN
+    
+                ' Close disjunction
+                If pendingDisjunction = -1 Then
+                    currentDisjunction = potentialConcat1
                 Else
-                    currentAstNode = ast.Length
-                    AppendThree ast, AST_CONCAT, n1, n2
-                    potentialConcat1 = currentAstNode
+                    ast.Buffer(pendingDisjunction + 2) = potentialConcat1
                 End If
-            End If
-
-        Case RETOK_ATOM_START_CAPTURE_GROUP
-            PerformPotentialConcat ast, potentialConcat2, potentialConcat1
-
-            nCaptures = nCaptures + 1
-            AppendFive parseStack, _
-                currToken.num, pendingDisjunction, currentDisjunction, potentialConcat1, _
-                nCaptures
-
-            pendingDisjunction = -1
-            potentialConcat2 = -1
-            potentialConcat1 = -1
-            currentDisjunction = -1
-
-        Case RETOK_ATOM_START_NONCAPTURE_GROUP, RETOK_UNBOUNDED_MODIFIER
-            PerformPotentialConcat ast, potentialConcat2, potentialConcat1
-
-            ' n1 is being used to temporarily store the new modifierMask.
-            ' Effectively, we set
-            '   n1[x_ACTIVE] := currentToken.num[x_WRITE] ? currentToken.num[x_ACTIVE] : modifierMask[x_ACTIVE].
-            ' We make use of the fact that for b1, b2, b3 in {0, 1},
-            '   b1 ? b2 : b3   is equivalent to   b3 xor [b1 and (b2 xor b3)].
-            '
-            ' Note that modifierMask[x_WRITE] = 0, i.e. (modifierMask and MODIFIER_WRITE_MASK) = 0, and that
-            ' the same holds for n1 after the assignment.
-            n1 = modifierMask Xor _
-                (((currToken.num And MODIFIER_WRITE_MASK) * 2) And (currToken.num Xor modifierMask))
-
-            ' Since modifierMask uses only ACTIVE bit positions (and no WRITE bit positions),
-            '   i.e. since (modifierMask and MODIFIER_WRITE_MASK) = 0,
-            '   the WRITE bit positions are free for storing the WRITE bits of currToken.num on the stack.
-            ' In the ACTIVE bit positions, we store the xor difference between the the old and the new
-            '   modifier mask (i.e. the difference between modifierMask and n1).
-            ' When popping from the stack, we will be able to restore the ACTIVE bits of currToken.num from
-            '   the new modifierMask together with the WRITE bits popped from the stack.
-            AppendFive parseStack, _
-                (currToken.num And MODIFIER_WRITE_MASK) Or (modifierMask Xor n1), _
-                pendingDisjunction, currentDisjunction, potentialConcat1, _
-                IIf(currToken.t = RETOK_ATOM_START_NONCAPTURE_GROUP, PSF_NONCAPTURE, PSF_MODSCOPE_LOCAL)
-
-            modifierMask = n1
-            pendingDisjunction = -1
-            potentialConcat2 = -1
-            potentialConcat1 = -1
-            currentDisjunction = -1
-
-         Case RETOK_ASSERT_START_POS_LOOKAHEAD
-            PerformPotentialConcat ast, potentialConcat2, potentialConcat1
-
-            AppendFive parseStack, _
-                -1, pendingDisjunction, currentDisjunction, potentialConcat1, _
-                -AST_ASSERT_POS_LOOKAHEAD
-
-            pendingDisjunction = -1
-            potentialConcat2 = -1
-            potentialConcat1 = -1
-            currentDisjunction = -1
-
-        Case RETOK_ASSERT_START_NEG_LOOKAHEAD
-            PerformPotentialConcat ast, potentialConcat2, potentialConcat1
-
-            AppendFive parseStack, _
-                -1, pendingDisjunction, currentDisjunction, potentialConcat1, _
-                -AST_ASSERT_NEG_LOOKAHEAD
-
-            pendingDisjunction = -1
-            potentialConcat2 = -1
-            potentialConcat1 = -1
-            currentDisjunction = -1
-
-         Case RETOK_ASSERT_START_POS_LOOKBEHIND
-            PerformPotentialConcat ast, potentialConcat2, potentialConcat1
-
-            AppendFive parseStack, _
-                -1, pendingDisjunction, currentDisjunction, potentialConcat1, _
-                -AST_ASSERT_POS_LOOKBEHIND
-
-            pendingDisjunction = -1
-            potentialConcat2 = -1
-            potentialConcat1 = -1
-            currentDisjunction = -1
-
-        Case RETOK_ASSERT_START_NEG_LOOKBEHIND
-            PerformPotentialConcat ast, potentialConcat2, potentialConcat1
-
-            AppendFive parseStack, _
-                -1, pendingDisjunction, currentDisjunction, potentialConcat1, _
-                -AST_ASSERT_NEG_LOOKBEHIND
-
-            pendingDisjunction = -1
-            potentialConcat2 = -1
-            potentialConcat1 = -1
-            currentDisjunction = -1
-
-        Case RETOK_ATOM_END
-            tmp = CloseGroups(ast, parseStack, pendingDisjunction, currentDisjunction, _
-                potentialConcat2, potentialConcat1, modifierMask, 0, HANDLE_UP_TO_EXPLICIT)
-
-            If tmp < PSF_MIN_EXPLICIT Then
-                Err.Raise REGEX_ERR_UNEXPECTED_CLOSING_PAREN
-            ElseIf tmp > 0 Then ' capture group
-                n1 = parseStack.Buffer(parseStack.Length - 5)
-                If n1 <> -1 Then
-                    currentAstNode = ast.Length
-                    AppendFour ast, AST_NAMED, potentialConcat1, n1, tmp
-                    potentialConcat1 = currentAstNode
-                End If
+    
                 currentAstNode = ast.Length
-                AppendThree ast, AST_CAPTURE, potentialConcat1, tmp
-                potentialConcat1 = currentAstNode
-            ElseIf tmp = PSF_NONCAPTURE Then ' non-capture group
-                ' nothing to do
-            Else ' lookahead or lookbehind
-                currentAstNode = ast.Length
-                AppendTwo ast, -tmp, potentialConcat1
-                potentialConcat1 = currentAstNode
-            End If
-            parseStack.Length = parseStack.Length - 5 ' pop stack frame
-
-        Case RETOK_ATOM_CHAR
-            PerformPotentialConcat ast, potentialConcat2, potentialConcat1
-
-            currentAstNode = ast.Length
-            tmp = currToken.num
-            If modifierMask And MODIFIER_I_ACTIVE Then
-                tmp = ReCanonicalizeChar(tmp)
-            End If
-            AppendTwo ast, AST_CHAR, tmp
-
-            potentialConcat2 = potentialConcat1: potentialConcat1 = currentAstNode
-
-        Case RETOK_ATOM_PERIOD
-            PerformPotentialConcat ast, potentialConcat2, potentialConcat1
-            currentAstNode = ast.Length
-            AppendLong ast, AST_PERIOD
-            potentialConcat2 = potentialConcat1: potentialConcat1 = currentAstNode
-
-        Case RETOK_ATOM_BACKREFERENCE
-            PerformPotentialConcat ast, potentialConcat2, potentialConcat1
-            currentAstNode = ast.Length
-            AppendTwo ast, AST_BACKREFERENCE, currToken.num
-            potentialConcat2 = potentialConcat1: potentialConcat1 = currentAstNode
-
-        Case RETOK_ASSERT_START
-            PerformPotentialConcat ast, potentialConcat2, potentialConcat1
-            currentAstNode = ast.Length
-            AppendLong ast, AST_ASSERT_START
-            potentialConcat2 = potentialConcat1: potentialConcat1 = currentAstNode
-
-        Case RETOK_ASSERT_END
-            PerformPotentialConcat ast, potentialConcat2, potentialConcat1
-            currentAstNode = ast.Length
-            AppendLong ast, AST_ASSERT_END
-            potentialConcat2 = potentialConcat1: potentialConcat1 = currentAstNode
-
-        Case RETOK_ATOM_START_CHARCLASS, RETOK_ATOM_START_CHARCLASS_INVERTED
-            PerformPotentialConcat ast, potentialConcat2, potentialConcat1
-            currentAstNode = ast.Length
-            If currToken.t = RETOK_ATOM_START_CHARCLASS Then
-                AppendTwo ast, AST_RANGES, 0
-            Else
-                AppendTwo ast, AST_INVRANGES, 0
-            End If
-
-            tmp = 0 ' unnecessary, tmp is an output parameter indicating the number of ranges
-            ' Todo: Remove that parameter from ParseReRanges -- we can calculate it by comparing
-            '   old and new buffer length.
-            ParseReRanges lex, ast, tmp, (modifierMask And MODIFIER_I_ACTIVE) <> 0
-
-            ' patch range count
-            ast.Buffer(currentAstNode + 1) = tmp
-
-            potentialConcat2 = potentialConcat1: potentialConcat1 = currentAstNode
-
-        Case RETOK_ASSERT_WORD_BOUNDARY
-            PerformPotentialConcat ast, potentialConcat2, potentialConcat1
-            currentAstNode = ast.Length
-            AppendLong ast, AST_ASSERT_WORD_BOUNDARY
-            potentialConcat2 = potentialConcat1: potentialConcat1 = currentAstNode
-
-        Case RETOK_ASSERT_NOT_WORD_BOUNDARY
-            PerformPotentialConcat ast, potentialConcat2, potentialConcat1
-            currentAstNode = ast.Length
-            AppendLong ast, AST_ASSERT_NOT_WORD_BOUNDARY
-            potentialConcat2 = potentialConcat1: potentialConcat1 = currentAstNode
-
-        Case RETOK_ATOM_DIGIT
-            PerformPotentialConcat ast, potentialConcat2, potentialConcat1
-            currentAstNode = ast.Length
-            AppendPrefixedPairsArray ast, AST_RANGES, This.regex.bytecode, _
-                RANGE_TABLE_DIGIT_START, RANGE_TABLE_DIGIT_LENGTH
-            potentialConcat2 = potentialConcat1: potentialConcat1 = currentAstNode
-
-        Case RETOK_ATOM_NOT_DIGIT
-            PerformPotentialConcat ast, potentialConcat2, potentialConcat1
-            currentAstNode = ast.Length
-            AppendPrefixedPairsArray ast, AST_RANGES, This.regex.bytecode, _
-                RANGE_TABLE_NOTDIGIT_START, RANGE_TABLE_NOTDIGIT_LENGTH
-            potentialConcat2 = potentialConcat1: potentialConcat1 = currentAstNode
-
-        Case RETOK_ATOM_WHITE
-            PerformPotentialConcat ast, potentialConcat2, potentialConcat1
-            currentAstNode = ast.Length
-            AppendPrefixedPairsArray ast, AST_RANGES, This.regex.bytecode, _
-                RANGE_TABLE_WHITE_START, RANGE_TABLE_WHITE_LENGTH
-            potentialConcat2 = potentialConcat1: potentialConcat1 = currentAstNode
-
-        Case RETOK_ATOM_NOT_WHITE
-            PerformPotentialConcat ast, potentialConcat2, potentialConcat1
-            currentAstNode = ast.Length
-            AppendPrefixedPairsArray ast, AST_RANGES, This.regex.bytecode, _
-                RANGE_TABLE_NOTWHITE_START, RANGE_TABLE_NOTWHITE_LENGTH
-            potentialConcat2 = potentialConcat1: potentialConcat1 = currentAstNode
-
-        Case RETOK_ATOM_WORD_CHAR
-            PerformPotentialConcat ast, potentialConcat2, potentialConcat1
-            currentAstNode = ast.Length
-            AppendPrefixedPairsArray ast, AST_RANGES, This.regex.bytecode, _
-                RANGE_TABLE_WORDCHAR_START, RANGE_TABLE_WORDCHAR_LENGTH
-            potentialConcat2 = potentialConcat1: potentialConcat1 = currentAstNode
-
-        Case RETOK_ATOM_NOT_WORD_CHAR
-            PerformPotentialConcat ast, potentialConcat2, potentialConcat1
-            currentAstNode = ast.Length
-            AppendPrefixedPairsArray ast, AST_RANGES, This.regex.bytecode, _
-                RANGE_TABLE_NOTWORDCHAR_START, RANGE_TABLE_NOTWORDCHAR_LENGTH
-            potentialConcat2 = potentialConcat1: potentialConcat1 = currentAstNode
-
-        Case RETOK_EOF
-            CloseGroups ast, parseStack, pendingDisjunction, currentDisjunction, potentialConcat2, potentialConcat1, _
-                modifierMask, 0, HANDLE_IMPLICIT
-
-            If Not parseStack.Length = 0 Then Err.Raise REGEX_ERR_UNEXPECTED_END_OF_PATTERN
-
-            ' Close disjunction
-            If pendingDisjunction = -1 Then
-                currentDisjunction = potentialConcat1
-            Else
-                ast.Buffer(pendingDisjunction + 2) = potentialConcat1
-            End If
-
-            currentAstNode = ast.Length
-            AppendThree ast, AST_CAPTURE, currentDisjunction, 0
-            ast.Buffer(0) = currentAstNode ' patch index of root node into the first word
-
-            Exit Do
-        Case Else
-            Err.Raise REGEX_ERR_UNEXPECTED_REGEXP_TOKEN
-        End Select
-    Loop
+                AppendThree ast, AST_CAPTURE, currentDisjunction, 0
+                ast.Buffer(0) = currentAstNode ' patch index of root node into the first word
+    
+                Exit Do
+            Case Else
+                Err_Raise REGEX_ERR_UNEXPECTED_REGEXP_TOKEN
+            End Select
+        Loop
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Function DfsMatch( _
@@ -3955,11 +4547,19 @@ Private Function DfsMatch( _
     Optional ByVal dotAll As Boolean = False, _
     Optional ByVal useNative As Boolean = False _
 ) As Long
-    Dim context As DfsMatcherContext
-    DfsMatch = DfsMatchFrom( _
-        context, outCaptures, bytecode, inputStr, 0, stepsLimit, _
-        multiline:=multiline, dotAll:=dotAll, useNative:=useNative _
-    )
+  With stdError.getSentry("stdRegex#DfsMatch", "_", _, "_", _, "_", _, "_", _, "_", _, "_", _, "_", _)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim context As DfsMatcherContext
+        DfsMatch = DfsMatchFrom( _
+            context, outCaptures, bytecode, inputStr, 0, stepsLimit, _
+            multiline:=multiline, dotAll:=dotAll, useNative:=useNative _
+        )
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 Private Function DfsMatchFrom( _
@@ -3974,92 +4574,140 @@ Private Function DfsMatchFrom( _
     Optional ByVal raiseOnLimit As Boolean = False, _
     Optional ByVal useNative As Boolean = False _
 ) As Long
-#If VBA7 And Not Mac Then
-    If useNative Then
-        DfsMatchFrom = NativeMatch(outCaptures, bytecode, inputStr, sp, stepsLimit, multiline, dotAll, raiseOnLimit)
-        Exit Function
-    End If
-#End If
-    Dim nNamedCaptures As Long, nProperCapturePoints As Long, res As Long
-
-    nProperCapturePoints = bytecode(0) + 1
-    nNamedCaptures = bytecode(1)
-    ' Todo: can we postpone this until we know that we will definitely need to fill outCaptures?
-    With outCaptures
-        .nNumberedCaptures = nProperCapturePoints \ 2 - 1
-        .nNamedCaptures = bytecode(1)
-        If .nNumberedCaptures > 0 Then ReDim .numberedCaptures(0 To .nNumberedCaptures - 1) As StartLengthPair
-        If .nNamedCaptures > 0 Then ReDim .namedCaptures(0 To .nNamedCaptures - 1) As Long
-    End With
-
-    Do While sp <= Len(inputStr)
-        InitializeMatcherContext context, nProperCapturePoints, nProperCapturePoints + nNamedCaptures
-        res = DfsRunThreads(outCaptures, context, bytecode, inputStr, sp, stepsLimit, multiline, dotAll, raiseOnLimit)
-        If res <> -1 Then
-            DfsMatchFrom = res
+  With stdError.getSentry("stdRegex#DfsMatchFrom", "_", _, "_", _, "_", _, "_", _, "_", _, "_", _, "_", _, "_", _, "_", _, "_", _)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+    #If VBA7 And Not Mac Then
+        If useNative Then
+            DfsMatchFrom = NativeMatch(outCaptures, bytecode, inputStr, sp, stepsLimit, multiline, dotAll, raiseOnLimit)
             Exit Function
         End If
-        sp = sp + 1
-    Loop
-
-    DfsMatchFrom = -1
+    #End If
+        Dim nNamedCaptures As Long, nProperCapturePoints As Long, res As Long
+    
+        nProperCapturePoints = bytecode(0) + 1
+        nNamedCaptures = bytecode(1)
+        ' Todo: can we postpone this until we know that we will definitely need to fill outCaptures?
+        With outCaptures
+            .nNumberedCaptures = nProperCapturePoints \ 2 - 1
+            .nNamedCaptures = bytecode(1)
+            If .nNumberedCaptures > 0 Then ReDim .numberedCaptures(0 To .nNumberedCaptures - 1) As StartLengthPair
+            If .nNamedCaptures > 0 Then ReDim .namedCaptures(0 To .nNamedCaptures - 1) As Long
+        End With
+    
+        Do While sp <= Len(inputStr)
+            InitializeMatcherContext context, nProperCapturePoints, nProperCapturePoints + nNamedCaptures
+            res = DfsRunThreads(outCaptures, context, bytecode, inputStr, sp, stepsLimit, multiline, dotAll, raiseOnLimit)
+            If res <> -1 Then
+                DfsMatchFrom = res
+                Exit Function
+            End If
+            sp = sp + 1
+        Loop
+    
+        DfsMatchFrom = -1
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 Private Function GetBc(ByRef bytecode() As Long, ByRef pc As Long) As Long
-    If pc > UBound(bytecode) Then GetBc = REOP_INVALID_OPCODE: Exit Function
-    GetBc = bytecode(pc)
-    pc = pc + 1
+  With stdError.getSentry("stdRegex#GetBc", "pc", pc)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        If pc > UBound(bytecode) Then GetBc = REOP_INVALID_OPCODE: Exit Function
+        GetBc = bytecode(pc)
+        pc = pc + 1
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 Private Function GetInputCharCode(ByRef inputStr As String, ByRef sp As Long, ByVal spDelta As Long) As Long
-    If sp >= Len(inputStr) Then
-        GetInputCharCode = DFS_ENDOFINPUT
-    ElseIf sp < 0 Then
-        GetInputCharCode = DFS_ENDOFINPUT
-    Else
-        GetInputCharCode = AscW(Mid$(inputStr, sp + 1, 1)) And &HFFFF& ' sp is 0-based and Mid$ is 1-based
-        sp = sp + spDelta
-    End If
+  With stdError.getSentry("stdRegex#GetInputCharCode", "inputStr", inputStr, "sp", sp, "spDelta", spDelta)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        If sp >= Len(inputStr) Then
+            GetInputCharCode = DFS_ENDOFINPUT
+        ElseIf sp < 0 Then
+            GetInputCharCode = DFS_ENDOFINPUT
+        Else
+            GetInputCharCode = AscW(Mid$(inputStr, sp + 1, 1)) And &HFFFF& ' sp is 0-based and Mid$ is 1-based
+            sp = sp + spDelta
+        End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 Private Function PeekInputCharCode(ByRef inputStr As String, ByRef sp As Long) As Long
-    If sp >= Len(inputStr) Then
-        PeekInputCharCode = DFS_ENDOFINPUT
-    ElseIf sp < 0 Then
-        PeekInputCharCode = DFS_ENDOFINPUT
-    Else
-        PeekInputCharCode = AscW(Mid$(inputStr, sp + 1, 1)) And &HFFFF& ' sp is 0-based and Mid$ is 1-based
-    End If
+  With stdError.getSentry("stdRegex#PeekInputCharCode", "inputStr", inputStr, "sp", sp)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        If sp >= Len(inputStr) Then
+            PeekInputCharCode = DFS_ENDOFINPUT
+        ElseIf sp < 0 Then
+            PeekInputCharCode = DFS_ENDOFINPUT
+        Else
+            PeekInputCharCode = AscW(Mid$(inputStr, sp + 1, 1)) And &HFFFF& ' sp is 0-based and Mid$ is 1-based
+        End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 Private Function UnicodeReIsWordchar(c As Long) As Boolean
-    If c <= 90 Then ' Z
-        If c >= 65 Then UnicodeReIsWordchar = True: Exit Function ' A
-        If c > 57 Then UnicodeReIsWordchar = False: Exit Function ' 9
-        If c < 48 Then UnicodeReIsWordchar = False: Exit Function ' 0
-        UnicodeReIsWordchar = True: Exit Function
-    Else
-        If c > 122 Then UnicodeReIsWordchar = False: Exit Function ' z
-        If c < 97 Then UnicodeReIsWordchar = c = 95: Exit Function ' a, underscore
-        UnicodeReIsWordchar = True: Exit Function
-    End If
+  With stdError.getSentry("stdRegex#UnicodeReIsWordchar", "c", c)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        If c <= 90 Then ' Z
+            If c >= 65 Then UnicodeReIsWordchar = True: Exit Function ' A
+            If c > 57 Then UnicodeReIsWordchar = False: Exit Function ' 9
+            If c < 48 Then UnicodeReIsWordchar = False: Exit Function ' 0
+            UnicodeReIsWordchar = True: Exit Function
+        Else
+            If c > 122 Then UnicodeReIsWordchar = False: Exit Function ' z
+            If c < 97 Then UnicodeReIsWordchar = c = 95: Exit Function ' a, underscore
+            UnicodeReIsWordchar = True: Exit Function
+        End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 Private Sub InitializeMatcherContext(ByRef context As DfsMatcherContext, ByVal nProperCapturePoints As Long, ByVal nCapturePoints As Long)
-    With context
-        ' Clear stacks
-        .matcherStack.Length = 0
-        .capturesStack.Length = 0
-        .qstack.Length = 0
-
-        .nProperCapturePoints = nProperCapturePoints
-        .nCapturePoints = nCapturePoints
-        AppendFill .capturesStack, nCapturePoints, -1
-
-        .master = -1
-        .capturesRequireCoW = False
-        .qTop = 0
-    End With
+  With stdError.getSentry("stdRegex#InitializeMatcherContext", "nProperCapturePoints", nProperCapturePoints, "nCapturePoints", nCapturePoints)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        With context
+            ' Clear stacks
+            .matcherStack.Length = 0
+            .capturesStack.Length = 0
+            .qstack.Length = 0
+    
+            .nProperCapturePoints = nProperCapturePoints
+            .nCapturePoints = nCapturePoints
+            AppendFill .capturesStack, nCapturePoints, -1
+    
+            .master = -1
+            .capturesRequireCoW = False
+            .qTop = 0
+        End With
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Sub PushMatcherStackFrame( _
@@ -4070,27 +4718,35 @@ Private Sub PushMatcherStackFrame( _
     ByVal spDelta As Long, _
     ByVal q As Long _
 )
-    With context.matcherStack
-        If .Length = .Capacity Then
-            ' Increase capacity
-            If .Capacity < DFS_MATCHER_STACK_MINIMUM_CAPACITY Then .Capacity = DFS_MATCHER_STACK_MINIMUM_CAPACITY Else .Capacity = .Capacity + .Capacity \ 2
-            ReDim Preserve .Buffer(0 To .Capacity - 1) As DfsMatcherStackFrame
-        End If
-        With .Buffer(.Length)
-           .master = context.master
-           .capturesStackState = context.capturesStack.Length Or (context.capturesRequireCoW And LONG_FIRST_BIT)
-           .qStackLength = context.qstack.Length
-           .pc = pc
-           .sp = sp
-           .pcLandmark = pcLandmark
-           .spDelta = spDelta
-           .q = q
-           .qTop = context.qTop
+  With stdError.getSentry("stdRegex#PushMatcherStackFrame", "_", _, "_", _, "_", _, "_", _, "_", _, "_", _)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        With context.matcherStack
+            If .Length = .Capacity Then
+                ' Increase capacity
+                If .Capacity < DFS_MATCHER_STACK_MINIMUM_CAPACITY Then .Capacity = DFS_MATCHER_STACK_MINIMUM_CAPACITY Else .Capacity = .Capacity + .Capacity \ 2
+                ReDim Preserve .Buffer(0 To .Capacity - 1) As DfsMatcherStackFrame
+            End If
+            With .Buffer(.Length)
+               .master = context.master
+               .capturesStackState = context.capturesStack.Length Or (context.capturesRequireCoW And LONG_FIRST_BIT)
+               .qStackLength = context.qstack.Length
+               .pc = pc
+               .sp = sp
+               .pcLandmark = pcLandmark
+               .spDelta = spDelta
+               .q = q
+               .qTop = context.qTop
+            End With
+            .Length = .Length + 1
         End With
-        .Length = .Length + 1
-    End With
-
-    context.capturesRequireCoW = True
+    
+        context.capturesRequireCoW = True
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Function PopMatcherStackFrame( _
@@ -4101,28 +4757,36 @@ Private Function PopMatcherStackFrame( _
     ByRef spDelta As Long, _
     ByRef q As Long _
 ) As Boolean
-    With context.matcherStack
-        If .Length = 0 Then
-            PopMatcherStackFrame = False
-            Exit Function
-        End If
-
-        .Length = .Length - 1
-        With .Buffer(.Length)
-            context.master = .master
-            context.capturesStack.Length = .capturesStackState And LONG_ALL_BUT_FIRST_BIT
-            context.qstack.Length = .qStackLength
-            context.capturesRequireCoW = (.capturesStackState And LONG_FIRST_BIT) <> 0
-            pc = .pc
-            sp = .sp
-            pcLandmark = .pcLandmark
-            spDelta = .spDelta
-            q = .q
-            context.qTop = .qTop
+  With stdError.getSentry("stdRegex#PopMatcherStackFrame", "_", _, "_", _, "_", _, "_", _, "_", _, "_", _)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        With context.matcherStack
+            If .Length = 0 Then
+                PopMatcherStackFrame = False
+                Exit Function
+            End If
+    
+            .Length = .Length - 1
+            With .Buffer(.Length)
+                context.master = .master
+                context.capturesStack.Length = .capturesStackState And LONG_ALL_BUT_FIRST_BIT
+                context.qstack.Length = .qStackLength
+                context.capturesRequireCoW = (.capturesStackState And LONG_FIRST_BIT) <> 0
+                pc = .pc
+                sp = .sp
+                pcLandmark = .pcLandmark
+                spDelta = .spDelta
+                q = .q
+                context.qTop = .qTop
+            End With
+    
+            PopMatcherStackFrame = True
         End With
-
-        PopMatcherStackFrame = True
-    End With
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 Private Sub ReturnToMasterDiscardCaptures( _
@@ -4133,21 +4797,29 @@ Private Sub ReturnToMasterDiscardCaptures( _
     ByRef spDelta As Long, _
     ByRef q As Long _
 )
-    With context.matcherStack
-        .Length = context.master
-        With .Buffer(.Length)
-            context.master = .master
-            context.capturesStack.Length = .capturesStackState And LONG_ALL_BUT_FIRST_BIT
-            context.qstack.Length = .qStackLength
-            context.capturesRequireCoW = (.capturesStackState And LONG_FIRST_BIT) <> 0
-            pc = .pc
-            sp = .sp
-            pcLandmark = .pcLandmark
-            spDelta = .spDelta
-            q = .q
-            context.qTop = .qTop
+  With stdError.getSentry("stdRegex#ReturnToMasterDiscardCaptures", "_", _, "_", _, "_", _, "_", _, "_", _, "_", _)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        With context.matcherStack
+            .Length = context.master
+            With .Buffer(.Length)
+                context.master = .master
+                context.capturesStack.Length = .capturesStackState And LONG_ALL_BUT_FIRST_BIT
+                context.qstack.Length = .qStackLength
+                context.capturesRequireCoW = (.capturesStackState And LONG_FIRST_BIT) <> 0
+                pc = .pc
+                sp = .sp
+                pcLandmark = .pcLandmark
+                spDelta = .spDelta
+                q = .q
+                context.qTop = .qTop
+            End With
         End With
-    End With
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Sub ReturnToMasterPreserveCaptures( _
@@ -4158,110 +4830,158 @@ Private Sub ReturnToMasterPreserveCaptures( _
     ByRef spDelta As Long, _
     ByRef q As Long _
 )
-    Dim masterCapturesStackLength As Long, i As Long
-
-    With context.matcherStack
-        .Length = context.master
-        With .Buffer(.Length)
-            context.master = .master
-            masterCapturesStackLength = .capturesStackState And LONG_ALL_BUT_FIRST_BIT
-            context.qstack.Length = .qStackLength
-            context.capturesRequireCoW = (.capturesStackState And LONG_FIRST_BIT) <> 0
-            pc = .pc
-            sp = .sp
-            pcLandmark = .pcLandmark
-            spDelta = .spDelta
-            q = .q
-            context.qTop = .qTop
+  With stdError.getSentry("stdRegex#ReturnToMasterPreserveCaptures", "_", _, "_", _, "_", _, "_", _, "_", _, "_", _)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim masterCapturesStackLength As Long, i As Long
+    
+        With context.matcherStack
+            .Length = context.master
+            With .Buffer(.Length)
+                context.master = .master
+                masterCapturesStackLength = .capturesStackState And LONG_ALL_BUT_FIRST_BIT
+                context.qstack.Length = .qStackLength
+                context.capturesRequireCoW = (.capturesStackState And LONG_FIRST_BIT) <> 0
+                pc = .pc
+                sp = .sp
+                pcLandmark = .pcLandmark
+                spDelta = .spDelta
+                q = .q
+                context.qTop = .qTop
+            End With
         End With
-    End With
-
-    With context.capturesStack
-        If .Length = masterCapturesStackLength Then Exit Sub
-
-        If context.capturesRequireCoW Then
-            masterCapturesStackLength = masterCapturesStackLength + context.nCapturePoints
-            context.capturesRequireCoW = False
+    
+        With context.capturesStack
             If .Length = masterCapturesStackLength Then Exit Sub
-        End If
-
-        For i = 1 To context.nCapturePoints
-            .Buffer(masterCapturesStackLength - i) = .Buffer(.Length - i)
-        Next
-        .Length = masterCapturesStackLength
-    End With
+    
+            If context.capturesRequireCoW Then
+                masterCapturesStackLength = masterCapturesStackLength + context.nCapturePoints
+                context.capturesRequireCoW = False
+                If .Length = masterCapturesStackLength Then Exit Sub
+            End If
+    
+            For i = 1 To context.nCapturePoints
+                .Buffer(masterCapturesStackLength - i) = .Buffer(.Length - i)
+            Next
+            .Length = masterCapturesStackLength
+        End With
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Sub CopyCaptures(ByRef context As DfsMatcherContext, ByRef captures As CapturesTy)
-    Dim i As Long, baseIdx As Long, pt1 As Long, pt2 As Long
-
-    With context
-        baseIdx = .capturesStack.Length - .nCapturePoints
-        pt1 = .capturesStack.Buffer(baseIdx)
-        pt2 = .capturesStack.Buffer(baseIdx + 1)
-        If pt1 = -1 Then
-            With captures.entireMatch: .start = 0: .Length = 0: End With
-        ElseIf pt2 < pt1 Then
-            With captures.entireMatch: .start = 0: .Length = 0: End With
-        Else
-            With captures.entireMatch: .start = pt1 + 1: .Length = pt2 - pt1: End With
-        End If
-
-        For i = 1 To captures.nNumberedCaptures
-            pt1 = .capturesStack.Buffer(baseIdx + 2 * i)
-            pt2 = .capturesStack.Buffer(baseIdx + 2 * i + 1)
+  With stdError.getSentry("stdRegex#CopyCaptures")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim i As Long, baseIdx As Long, pt1 As Long, pt2 As Long
+    
+        With context
+            baseIdx = .capturesStack.Length - .nCapturePoints
+            pt1 = .capturesStack.Buffer(baseIdx)
+            pt2 = .capturesStack.Buffer(baseIdx + 1)
             If pt1 = -1 Then
-                With captures.numberedCaptures(i - 1): .start = 0: .Length = 0: End With
+                With captures.entireMatch: .start = 0: .Length = 0: End With
             ElseIf pt2 < pt1 Then
-                With captures.numberedCaptures(i - 1): .start = 0: .Length = 0: End With
+                With captures.entireMatch: .start = 0: .Length = 0: End With
             Else
-                With captures.numberedCaptures(i - 1): .start = pt1 + 1: .Length = pt2 - pt1: End With
+                With captures.entireMatch: .start = pt1 + 1: .Length = pt2 - pt1: End With
             End If
-        Next
-
-        baseIdx = baseIdx + 2 + 2 * captures.nNumberedCaptures
-        For i = 0 To captures.nNamedCaptures - 1
-            captures.namedCaptures(i) = .capturesStack.Buffer(baseIdx + i)
-        Next
-    End With
+    
+            For i = 1 To captures.nNumberedCaptures
+                pt1 = .capturesStack.Buffer(baseIdx + 2 * i)
+                pt2 = .capturesStack.Buffer(baseIdx + 2 * i + 1)
+                If pt1 = -1 Then
+                    With captures.numberedCaptures(i - 1): .start = 0: .Length = 0: End With
+                ElseIf pt2 < pt1 Then
+                    With captures.numberedCaptures(i - 1): .start = 0: .Length = 0: End With
+                Else
+                    With captures.numberedCaptures(i - 1): .start = pt1 + 1: .Length = pt2 - pt1: End With
+                End If
+            Next
+    
+            baseIdx = baseIdx + 2 + 2 * captures.nNumberedCaptures
+            For i = 0 To captures.nNamedCaptures - 1
+                captures.namedCaptures(i) = .capturesStack.Buffer(baseIdx + i)
+            Next
+        End With
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Sub SetCapturePoint(ByRef context As DfsMatcherContext, ByVal idx As Long, ByVal v As Long)
-    With context
-        If .capturesRequireCoW Then
-            AppendSlice .capturesStack, .capturesStack.Length - .nCapturePoints, .nCapturePoints
-            .capturesRequireCoW = False
-        End If
-        .capturesStack.Buffer(.capturesStack.Length - .nCapturePoints + idx) = v
-    End With
+  With stdError.getSentry("stdRegex#SetCapturePoint", "idx", idx, "v", v)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        With context
+            If .capturesRequireCoW Then
+                AppendSlice .capturesStack, .capturesStack.Length - .nCapturePoints, .nCapturePoints
+                .capturesRequireCoW = False
+            End If
+            .capturesStack.Buffer(.capturesStack.Length - .nCapturePoints + idx) = v
+        End With
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Function GetCapturePoint(ByRef context As DfsMatcherContext, ByVal idx As Long) As Long
-    With context
-        GetCapturePoint = .capturesStack.Buffer( _
-            .capturesStack.Length - .nCapturePoints + idx _
-        )
-    End With
+  With stdError.getSentry("stdRegex#GetCapturePoint", "idx", idx)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        With context
+            GetCapturePoint = .capturesStack.Buffer( _
+                .capturesStack.Length - .nCapturePoints + idx _
+            )
+        End With
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 Private Sub QStackPush(ByRef context As DfsMatcherContext, ByVal q As Long)
-    With context
-        AppendThree .qstack, .qTop, .matcherStack.Length, q
-        .qTop = .qstack.Length - 1
-    End With
+  With stdError.getSentry("stdRegex#QStackPush", "q", q)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        With context
+            AppendThree .qstack, .qTop, .matcherStack.Length, q
+            .qTop = .qstack.Length - 1
+        End With
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Function QStackPop(ByRef context As DfsMatcherContext) As Long
-    With context
-        If .qTop = 0 Then
-            QStackPop = Q_NONE
-            Exit Function
-        End If
-
-        QStackPop = .qstack.Buffer(.qTop)
-        If .qstack.Buffer(.qTop - 1) = .matcherStack.Length Then .qstack.Length = .qstack.Length - 3
-        .qTop = .qstack.Buffer(.qTop - 2)
-    End With
+  With stdError.getSentry("stdRegex#QStackPop")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        With context
+            If .qTop = 0 Then
+                QStackPop = Q_NONE
+                Exit Function
+            End If
+    
+            QStackPop = .qstack.Buffer(.qTop)
+            If .qstack.Buffer(.qTop - 1) = .matcherStack.Length Then .qstack.Length = .qstack.Length - 3
+            .qTop = .qstack.Buffer(.qTop - 2)
+        End With
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 Private Function DfsRunThreads( _
@@ -4275,459 +4995,475 @@ Private Function DfsRunThreads( _
     ByVal dotAll As Boolean, _
     Optional ByVal raiseOnLimit As Boolean = False _
 ) As Long
-    Dim pc As Long
-
-    ' To avoid infinite loops
-    Dim pcLandmark As Long
-
-    Dim op As Long
-    Dim c1 As Long, c2 As Long
-    Dim t As Long
-    Dim n As Long
-    Dim successfulMatch As Boolean
-    Dim r1 As Long, r2 As Long
-    Dim b1 As Boolean, b2 As Boolean
-    Dim aa As Long, bb As Long, mm As Long
-    Dim idx As Long, off As Long
-    Dim q As Long, qmin As Long, qmax As Long, qq As Long
-    Dim qexact As Long
-    Dim stepsCount As Long
-    Dim spDelta As Long ' 1 when we walk forwards and -1 when we walk backwards
-
-        pc = 3 + 3 * bytecode(BYTECODE_IDX_N_IDENTIFIERS)
-        pcLandmark = -1
-        stepsCount = 0
-        spDelta = 1
-        q = Q_NONE
-
-        GoTo ContinueLoopSuccess
-
-        ' BEGIN LOOP
-ContinueLoopFail:
-            If Not PopMatcherStackFrame(context, pc, sp, pcLandmark, spDelta, q) Then
-                DfsRunThreads = -1
-                Exit Function
-            End If
-
-ContinueLoopSuccess:
-
-            ' TODO: HACK to prevent infinite loop!!!!
-            stepsCount = stepsCount + 1
-            If stepsCount >= stepsLimit Then
-                If raiseOnLimit Then Err.Raise REGEX_ERR_STEP_LIMIT, "stdRegex", "Regex processing step limit exceeded"
-                DfsRunThreads = -1
-                Exit Function
-            End If
-
-            op = GetBc(bytecode, pc)
-
-            ' #if defined(DUK_USE_DEBUG_LEVEL) && (DUK_USE_DEBUG_LEVEL >= 2)
-            ' duk__regexp_dump_state(re_ctx);
-            ' #End If
-            ' DUK_DDD(DUK_DDDPRINT("match: rec=%ld, steps=%ld, pc (after op)=%ld, sp=%ld, op=%ld",
-            '                     (long) re_ctx->recursion_depth,
-            '                     (long) re_ctx->steps_count,
-            '                     (long) (pc - re_ctx->bytecode),
-            '                     (long) sp,
-            '                     (long) op));
-
-            Select Case op And REOP_OPCODE_MASK
-            Case REOP_MATCH
-                GoTo Match
-            Case REOP_END_LOOKPOS
-                ' Reached if pattern inside a positive lookahead matched.
-                ReturnToMasterPreserveCaptures context, pc, sp, pcLandmark, spDelta, q
-                ' Now we are at the REOP_LOOKPOS opcode.
-                pc = pc + 1
-                n = GetBc(bytecode, pc)
-                pc = pc + n
-                GoTo ContinueLoopSuccess
-            Case REOP_END_LOOKNEG
-                ' Reached if pattern inside a positive lookahead matched.
-                ReturnToMasterDiscardCaptures context, pc, sp, pcLandmark, spDelta, q
-                GoTo ContinueLoopFail
-            Case REOP_CHAR
-                '
-                '  Byte-based matching would be possible for case-sensitive
-                '  matching but not for case-insensitive matching.  So, we
-                '  match by decoding the input and bytecode character normally.
-                '
-                '  Bytecode characters are assumed to be already canonicalized.
-                '  Input characters are canonicalized automatically by
-                '  duk__inp_get_cp() if necessary.
-                '
-                '  There is no opcode for matching multiple characters.  The
-                '  regexp compiler has trouble joining strings efficiently
-                '  during compilation.  See doc/regexp.rst for more discussion.
-
-                pcLandmark = pc - 1
-                c1 = GetBc(bytecode, pc)
-                c2 = GetInputCharCode(inputStr, sp, spDelta)
-                If op And MODIFIER_I_ACTIVE Then
-                    c2 = ReCanonicalizeChar(c2)
+  With stdError.getSentry("stdRegex#DfsRunThreads", "_", _, "_", _, "_", _, "_", _, "_", _, "_", _, "_", _, "_", _, "_", _)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim pc As Long
+    
+        ' To avoid infinite loops
+        Dim pcLandmark As Long
+    
+        Dim op As Long
+        Dim c1 As Long, c2 As Long
+        Dim t As Long
+        Dim n As Long
+        Dim successfulMatch As Boolean
+        Dim r1 As Long, r2 As Long
+        Dim b1 As Boolean, b2 As Boolean
+        Dim aa As Long, bb As Long, mm As Long
+        Dim idx As Long, off As Long
+        Dim q As Long, qmin As Long, qmax As Long, qq As Long
+        Dim qexact As Long
+        Dim stepsCount As Long
+        Dim spDelta As Long ' 1 when we walk forwards and -1 when we walk backwards
+    
+            pc = 3 + 3 * bytecode(BYTECODE_IDX_N_IDENTIFIERS)
+            pcLandmark = -1
+            stepsCount = 0
+            spDelta = 1
+            q = Q_NONE
+    
+            GoTo ContinueLoopSuccess
+    
+            ' BEGIN LOOP
+    ContinueLoopFail:
+                If Not PopMatcherStackFrame(context, pc, sp, pcLandmark, spDelta, q) Then
+                    DfsRunThreads = -1
+                    Exit Function
                 End If
-
-                ' DUK_ASSERT(c1 >= 0);
-
-                ' DUK_DDD(DUK_DDDPRINT("char match, c1=%ld, c2=%ld", (long) c1, (long) c2));
-                If c1 <> c2 Then GoTo ContinueLoopFail
-                GoTo ContinueLoopSuccess
-            Case REOP_DOT
-                pcLandmark = pc - 1
-                c1 = GetInputCharCode(inputStr, sp, spDelta)
-                If c1 < 0 Then GoTo ContinueLoopFail
-                If op - (dotAll And MODIFIER_S_WRITE) And MODIFIER_S_ACTIVE Then GoTo ContinueLoopSuccess
-                If UnicodeIsLineTerminator(c1) Then GoTo ContinueLoopFail
-                GoTo ContinueLoopSuccess
-            Case REOP_RANGES, REOP_INVRANGES
-                pcLandmark = pc - 1
-                n = GetBc(bytecode, pc) ' assert: >= 1
-                c1 = GetInputCharCode(inputStr, sp, spDelta)
-                If c1 < 0 Then GoTo ContinueLoopFail
-                If op And MODIFIER_I_ACTIVE Then
-                    c1 = ReCanonicalizeChar(c1)
+    
+    ContinueLoopSuccess:
+    
+                ' TODO: HACK to prevent infinite loop!!!!
+                stepsCount = stepsCount + 1
+                If stepsCount >= stepsLimit Then
+                    If raiseOnLimit Then Err_Raise REGEX_ERR_STEP_LIMIT, "stdRegex", "Regex processing step limit exceeded"
+                    DfsRunThreads = -1
+                    Exit Function
                 End If
-
-                aa = pc - 1
-                pc = pc + 2 * n
-                bb = pc + 1
-
-                ' We are doing a binary search here.
-                Do
-                    mm = aa + 2 * ((bb - aa) \ 4)
-                    If bytecode(mm) >= c1 Then bb = mm Else aa = mm
-
-                    If bb - aa = 2 Then
-                        ' bb is the first upper bound index s.t. ary(bb)>=v
-                        If bb >= pc Then successfulMatch = False Else successfulMatch = bytecode(bb - 1) <= c1
-                        Exit Do
-                    End If
-                Loop
-
-                If ((op And REOP_OPCODE_MASK) = REOP_RANGES) <> successfulMatch Then GoTo ContinueLoopFail
-
-                GoTo ContinueLoopSuccess
-            Case REOP_ASSERT_START
-                If sp + (1 - spDelta) \ 2 <= 0 Then GoTo ContinueLoopSuccess
-                If 0 = (op - (multiline And MODIFIER_M_WRITE) And MODIFIER_M_ACTIVE) Then GoTo ContinueLoopFail
-                c1 = PeekInputCharCode(inputStr, sp - (spDelta + 1) \ 2)
-                ' E5 Sections 15.10.2.8, 7.3
-                If UnicodeIsLineTerminator(c1) Then GoTo ContinueLoopSuccess
-                GoTo ContinueLoopFail
-            Case REOP_ASSERT_END
-                c1 = PeekInputCharCode(inputStr, sp - (spDelta - 1) \ 2)
-                If c1 = DFS_ENDOFINPUT Then GoTo ContinueLoopSuccess
-                If 0 = (op - (multiline And MODIFIER_M_WRITE) And MODIFIER_M_ACTIVE) Then GoTo ContinueLoopFail
-                If UnicodeIsLineTerminator(c1) Then GoTo ContinueLoopSuccess
-                GoTo ContinueLoopFail
-            Case REOP_ASSERT_WORD_BOUNDARY, REOP_ASSERT_NOT_WORD_BOUNDARY
-                '
-                '  E5 Section 15.10.2.6.  The previous and current character
-                '  should -not- be canonicalized as they are now.  However,
-                '  canonicalization does not affect the result of IsWordChar()
-                '  (which depends on Unicode characters never canonicalizing
-                '  into ASCII characters) so this does not matter.
-                aa = sp + (1 - spDelta) \ 2
-                If aa <= 0 Then
-                    b1 = False  ' not a wordchar
-                Else
-                    b1 = UnicodeReIsWordchar(PeekInputCharCode(inputStr, aa - 1))
-                End If
-                If aa >= Len(inputStr) Then
-                    b2 = False ' not a wordchar
-                Else
-                    b2 = UnicodeReIsWordchar(PeekInputCharCode(inputStr, aa))
-                End If
-
-                If ((op And REOP_OPCODE_MASK) = REOP_ASSERT_WORD_BOUNDARY) = (b1 = b2) Then GoTo ContinueLoopFail
-
-                GoTo ContinueLoopSuccess
-            Case REOP_JUMP
-                n = GetBc(bytecode, pc)
-                If n > 0 Then
-                    ' forward jump (disjunction)
+    
+                op = GetBc(bytecode, pc)
+    
+                ' #if defined(DUK_USE_DEBUG_LEVEL) && (DUK_USE_DEBUG_LEVEL >= 2)
+                ' duk__regexp_dump_state(re_ctx);
+                ' #End If
+                ' DUK_DDD(DUK_DDDPRINT("match: rec=%ld, steps=%ld, pc (after op)=%ld, sp=%ld, op=%ld",
+                '                     (long) re_ctx->recursion_depth,
+                '                     (long) re_ctx->steps_count,
+                '                     (long) (pc - re_ctx->bytecode),
+                '                     (long) sp,
+                '                     (long) op));
+    
+                Select Case op And REOP_OPCODE_MASK
+                Case REOP_MATCH
+                    GoTo Match
+                Case REOP_END_LOOKPOS
+                    ' Reached if pattern inside a positive lookahead matched.
+                    ReturnToMasterPreserveCaptures context, pc, sp, pcLandmark, spDelta, q
+                    ' Now we are at the REOP_LOOKPOS opcode.
+                    pc = pc + 1
+                    n = GetBc(bytecode, pc)
                     pc = pc + n
                     GoTo ContinueLoopSuccess
-                Else
-                    ' backward jump (end of loop)
-                    t = pc + n
-                    If pcLandmark <= t Then GoTo ContinueLoopSuccess ' empty match
-
+                Case REOP_END_LOOKNEG
+                    ' Reached if pattern inside a positive lookahead matched.
+                    ReturnToMasterDiscardCaptures context, pc, sp, pcLandmark, spDelta, q
+                    GoTo ContinueLoopFail
+                Case REOP_CHAR
+                    '
+                    '  Byte-based matching would be possible for case-sensitive
+                    '  matching but not for case-insensitive matching.  So, we
+                    '  match by decoding the input and bytecode character normally.
+                    '
+                    '  Bytecode characters are assumed to be already canonicalized.
+                    '  Input characters are canonicalized automatically by
+                    '  duk__inp_get_cp() if necessary.
+                    '
+                    '  There is no opcode for matching multiple characters.  The
+                    '  regexp compiler has trouble joining strings efficiently
+                    '  during compilation.  See doc/regexp.rst for more discussion.
+    
+                    pcLandmark = pc - 1
+                    c1 = GetBc(bytecode, pc)
+                    c2 = GetInputCharCode(inputStr, sp, spDelta)
+                    If op And MODIFIER_I_ACTIVE Then
+                        c2 = ReCanonicalizeChar(c2)
+                    End If
+    
+                    ' DUK_ASSERT(c1 >= 0);
+    
+                    ' DUK_DDD(DUK_DDDPRINT("char match, c1=%ld, c2=%ld", (long) c1, (long) c2));
+                    If c1 <> c2 Then GoTo ContinueLoopFail
+                    GoTo ContinueLoopSuccess
+                Case REOP_DOT
+                    pcLandmark = pc - 1
+                    c1 = GetInputCharCode(inputStr, sp, spDelta)
+                    If c1 < 0 Then GoTo ContinueLoopFail
+                    If op - (dotAll And MODIFIER_S_WRITE) And MODIFIER_S_ACTIVE Then GoTo ContinueLoopSuccess
+                    If UnicodeIsLineTerminator(c1) Then GoTo ContinueLoopFail
+                    GoTo ContinueLoopSuccess
+                Case REOP_RANGES, REOP_INVRANGES
+                    pcLandmark = pc - 1
+                    n = GetBc(bytecode, pc) ' assert: >= 1
+                    c1 = GetInputCharCode(inputStr, sp, spDelta)
+                    If c1 < 0 Then GoTo ContinueLoopFail
+                    If op And MODIFIER_I_ACTIVE Then
+                        c1 = ReCanonicalizeChar(c1)
+                    End If
+    
+                    aa = pc - 1
+                    pc = pc + 2 * n
+                    bb = pc + 1
+    
+                    ' We are doing a binary search here.
+                    Do
+                        mm = aa + 2 * ((bb - aa) \ 4)
+                        If bytecode(mm) >= c1 Then bb = mm Else aa = mm
+    
+                        If bb - aa = 2 Then
+                            ' bb is the first upper bound index s.t. ary(bb)>=v
+                            If bb >= pc Then successfulMatch = False Else successfulMatch = bytecode(bb - 1) <= c1
+                            Exit Do
+                        End If
+                    Loop
+    
+                    If ((op And REOP_OPCODE_MASK) = REOP_RANGES) <> successfulMatch Then GoTo ContinueLoopFail
+    
+                    GoTo ContinueLoopSuccess
+                Case REOP_ASSERT_START
+                    If sp + (1 - spDelta) \ 2 <= 0 Then GoTo ContinueLoopSuccess
+                    If 0 = (op - (multiline And MODIFIER_M_WRITE) And MODIFIER_M_ACTIVE) Then GoTo ContinueLoopFail
+                    c1 = PeekInputCharCode(inputStr, sp - (spDelta + 1) \ 2)
+                    ' E5 Sections 15.10.2.8, 7.3
+                    If UnicodeIsLineTerminator(c1) Then GoTo ContinueLoopSuccess
+                    GoTo ContinueLoopFail
+                Case REOP_ASSERT_END
+                    c1 = PeekInputCharCode(inputStr, sp - (spDelta - 1) \ 2)
+                    If c1 = DFS_ENDOFINPUT Then GoTo ContinueLoopSuccess
+                    If 0 = (op - (multiline And MODIFIER_M_WRITE) And MODIFIER_M_ACTIVE) Then GoTo ContinueLoopFail
+                    If UnicodeIsLineTerminator(c1) Then GoTo ContinueLoopSuccess
+                    GoTo ContinueLoopFail
+                Case REOP_ASSERT_WORD_BOUNDARY, REOP_ASSERT_NOT_WORD_BOUNDARY
+                    '
+                    '  E5 Section 15.10.2.6.  The previous and current character
+                    '  should -not- be canonicalized as they are now.  However,
+                    '  canonicalization does not affect the result of IsWordChar()
+                    '  (which depends on Unicode characters never canonicalizing
+                    '  into ASCII characters) so this does not matter.
+                    aa = sp + (1 - spDelta) \ 2
+                    If aa <= 0 Then
+                        b1 = False  ' not a wordchar
+                    Else
+                        b1 = UnicodeReIsWordchar(PeekInputCharCode(inputStr, aa - 1))
+                    End If
+                    If aa >= Len(inputStr) Then
+                        b2 = False ' not a wordchar
+                    Else
+                        b2 = UnicodeReIsWordchar(PeekInputCharCode(inputStr, aa))
+                    End If
+    
+                    If ((op And REOP_OPCODE_MASK) = REOP_ASSERT_WORD_BOUNDARY) = (b1 = b2) Then GoTo ContinueLoopFail
+    
+                    GoTo ContinueLoopSuccess
+                Case REOP_JUMP
+                    n = GetBc(bytecode, pc)
+                    If n > 0 Then
+                        ' forward jump (disjunction)
+                        pc = pc + n
+                        GoTo ContinueLoopSuccess
+                    Else
+                        ' backward jump (end of loop)
+                        t = pc + n
+                        If pcLandmark <= t Then GoTo ContinueLoopSuccess ' empty match
+    
+                        pc = t: pcLandmark = t
+                        GoTo ContinueLoopSuccess
+                    End If
+                Case REOP_SPLIT1
+                    ' split1: prefer direct execution (no jump)
+                    n = GetBc(bytecode, pc)
+                    PushMatcherStackFrame context, pc + n, sp, pcLandmark, spDelta, q
+                    '.tsStack(.tsLastIndex - 1).pc = pc + n
+                    GoTo ContinueLoopSuccess
+                Case REOP_SPLIT2
+                    ' split2: prefer jump execution (not direct)
+                    n = GetBc(bytecode, pc)
+                    PushMatcherStackFrame context, pc, sp, pcLandmark, spDelta, q
+                    pc = pc + n
+                    GoTo ContinueLoopSuccess
+                Case REOP_REPEAT_EXACTLY_INIT
+                    QStackPush context, q
+                    q = 0
+                    GoTo ContinueLoopSuccess
+                Case REOP_REPEAT_EXACTLY_START
+                    pc = pc + 2 ' skip arguments
+                    GoTo ContinueLoopSuccess
+                Case REOP_REPEAT_EXACTLY_END
+                    qexact = GetBc(bytecode, pc) ' quantity
+                    n = GetBc(bytecode, pc) ' offset
+                    q = q + 1
+                    If q < qexact Then
+                        t = pc - n - 3
+                        If pcLandmark > t Then pcLandmark = t
+                        pc = t
+                    Else
+                        q = QStackPop(context)
+                    End If
+                    GoTo ContinueLoopSuccess
+                Case REOP_REPEAT_MAX_HUMBLE_INIT, REOP_REPEAT_GREEDY_MAX_INIT
+                    QStackPush context, q
+                    q = -1
+                    GoTo ContinueLoopSuccess
+                Case REOP_REPEAT_MAX_HUMBLE_START
+                    qmax = GetBc(bytecode, pc)
+                    n = GetBc(bytecode, pc)
+    
+                    q = q + 1
+                    If q < qmax Then PushMatcherStackFrame context, pc, sp, pcLandmark, spDelta, q
+    
+                    q = QStackPop(context)
+                    pc = pc + n
+                    GoTo ContinueLoopSuccess
+                Case REOP_REPEAT_MAX_HUMBLE_END
+                    pc = pc + 1  ' skip first argument: quantity
+                    n = GetBc(bytecode, pc) ' offset
+                    t = pc - n - 3
+                    If pcLandmark <= t Then GoTo ContinueLoopFail ' empty match
+    
                     pc = t: pcLandmark = t
                     GoTo ContinueLoopSuccess
-                End If
-            Case REOP_SPLIT1
-                ' split1: prefer direct execution (no jump)
-                n = GetBc(bytecode, pc)
-                PushMatcherStackFrame context, pc + n, sp, pcLandmark, spDelta, q
-                '.tsStack(.tsLastIndex - 1).pc = pc + n
-                GoTo ContinueLoopSuccess
-            Case REOP_SPLIT2
-                ' split2: prefer jump execution (not direct)
-                n = GetBc(bytecode, pc)
-                PushMatcherStackFrame context, pc, sp, pcLandmark, spDelta, q
-                pc = pc + n
-                GoTo ContinueLoopSuccess
-            Case REOP_REPEAT_EXACTLY_INIT
-                QStackPush context, q
-                q = 0
-                GoTo ContinueLoopSuccess
-            Case REOP_REPEAT_EXACTLY_START
-                pc = pc + 2 ' skip arguments
-                GoTo ContinueLoopSuccess
-            Case REOP_REPEAT_EXACTLY_END
-                qexact = GetBc(bytecode, pc) ' quantity
-                n = GetBc(bytecode, pc) ' offset
-                q = q + 1
-                If q < qexact Then
-                    t = pc - n - 3
-                    If pcLandmark > t Then pcLandmark = t
-                    pc = t
-                Else
-                    q = QStackPop(context)
-                End If
-                GoTo ContinueLoopSuccess
-            Case REOP_REPEAT_MAX_HUMBLE_INIT, REOP_REPEAT_GREEDY_MAX_INIT
-                QStackPush context, q
-                q = -1
-                GoTo ContinueLoopSuccess
-            Case REOP_REPEAT_MAX_HUMBLE_START
-                qmax = GetBc(bytecode, pc)
-                n = GetBc(bytecode, pc)
-
-                q = q + 1
-                If q < qmax Then PushMatcherStackFrame context, pc, sp, pcLandmark, spDelta, q
-
-                q = QStackPop(context)
-                pc = pc + n
-                GoTo ContinueLoopSuccess
-            Case REOP_REPEAT_MAX_HUMBLE_END
-                pc = pc + 1  ' skip first argument: quantity
-                n = GetBc(bytecode, pc) ' offset
-                t = pc - n - 3
-                If pcLandmark <= t Then GoTo ContinueLoopFail ' empty match
-
-                pc = t: pcLandmark = t
-                GoTo ContinueLoopSuccess
-            Case REOP_REPEAT_GREEDY_MAX_START
-                qmax = GetBc(bytecode, pc)
-                n = GetBc(bytecode, pc)
-
-                q = q + 1
-                If q < qmax Then
-                    qq = QStackPop(context)
-                    PushMatcherStackFrame context, pc + n, sp, pcLandmark, spDelta, qq
-                    QStackPush context, qq
-                Else
-                    pc = pc + n
-                    q = QStackPop(context)
-                End If
-
-                GoTo ContinueLoopSuccess
-            Case REOP_REPEAT_GREEDY_MAX_END
-                pc = pc + 1 ' Skip first argument: quantity
-                n = GetBc(bytecode, pc) ' offset
-                t = pc - n - 3
-                If pcLandmark <= t Then GoTo ContinueLoopSuccess ' empty match
-
-                pc = t: pcLandmark = t
-                GoTo ContinueLoopSuccess
-            Case REOP_SAVE
-                idx = GetBc(bytecode, pc)
-                If idx >= context.nCapturePoints Then GoTo InternalError
-                    ' idx is unsigned, < 0 check is not necessary
-                SetCapturePoint context, idx, sp
-                GoTo ContinueLoopSuccess
-            Case REOP_SET_NAMED
-                r1 = GetBc(bytecode, pc)
-                If r1 >= context.nCapturePoints Then GoTo InternalError
-                r2 = GetBc(bytecode, pc)
-                SetCapturePoint context, context.nProperCapturePoints + r1, r2
-                GoTo ContinueLoopSuccess
-            Case REOP_CHECK_LOOKAHEAD
-                PushMatcherStackFrame context, pc, sp, pcLandmark, spDelta, q
-                context.master = context.matcherStack.Length - 1
-                pc = pc + 2 ' jump over following REOP_LOOKPOS or REOP_LOOKNEG
-                ' When we're moving forward, we are at the correct position. When we're moving backward, we have to step one towards the end.
-                sp = sp + (1 - spDelta) \ 2
-                spDelta = 1
-                ' We could set pcLandmark to -1 again here, but we can be sure that pcLandmark < beginning of lookahead, so we can skip that
-                GoTo ContinueLoopSuccess
-            Case REOP_CHECK_LOOKBEHIND
-                PushMatcherStackFrame context, pc, sp, pcLandmark, spDelta, q
-                context.master = context.matcherStack.Length - 1
-                pc = pc + 2 ' jump over following REOP_LOOKPOS or REOP_LOOKNEG
-                ' When we're moving backward, we are at the correct position. When we're moving forward, we have to step one towards the beginning.
-                sp = sp - (spDelta + 1) \ 2
-                spDelta = -1
-                ' We could set pcLandmark to -1 again here, but we can be sure that pcLandmark < beginning of lookahead, so we can skip that
-                GoTo ContinueLoopSuccess
-            Case REOP_LOOKPOS
-                ' This point will only be reached if the pattern inside a negative lookahead/back did not match.
-                n = GetBc(bytecode, pc)
-                pc = pc + n
-                GoTo ContinueLoopFail
-            Case REOP_LOOKNEG
-                ' This point will only be reached if the pattern inside a negative lookahead/back did not match.
-                n = GetBc(bytecode, pc)
-                pc = pc + n
-                GoTo ContinueLoopSuccess
-            Case REOP_BACKREFERENCE
-                '
-                '  Byte matching for back-references would be OK in case-
-                '  sensitive matching.  In case-insensitive matching we need
-                '  to canonicalize characters, so back-reference matching needs
-                '  to be done with codepoints instead.  So, we just decode
-                '  everything normally here, too.
-                '
-                '  Note: back-reference index which is 0 or higher than
-                '  NCapturingParens (= number of capturing parens in the
-                '  -entire- regexp) is a compile time error.  However, a
-                '  backreference referring to a valid capture which has
-                '  not matched anything always succeeds!  See E5 Section
-                '  15.10.2.9, step 5, sub-step 3.
-
-                pcLandmark = pc - 1
-                idx = 2 * GetBc(bytecode, pc) ' backref n -> saved indices [n*2, n*2+1]
-                If idx < 2 Then GoTo InternalError
-                If idx + 1 >= context.nCapturePoints Then GoTo InternalError
-                aa = GetCapturePoint(context, idx)
-                bb = GetCapturePoint(context, idx + 1)
-                If (aa >= 0) And (bb >= 0) Then
-                    If spDelta = 1 Then
-                        off = aa
-                        Do While off < bb
-                            c1 = GetInputCharCode(inputStr, off, 1)
-                            c2 = GetInputCharCode(inputStr, sp, 1)
-                            ' No need for an explicit c2 < 0 check: because c1 >= 0,
-                            ' the comparison will always fail if c2 < 0.
-                            If c1 <> c2 Then
-                                If 0 = (op And MODIFIER_I_ACTIVE) Then GoTo ContinueLoopFail
-                                If ReCanonicalizeChar(c1) <> ReCanonicalizeChar(c2) Then GoTo ContinueLoopFail
-                            End If
-                        Loop
+                Case REOP_REPEAT_GREEDY_MAX_START
+                    qmax = GetBc(bytecode, pc)
+                    n = GetBc(bytecode, pc)
+    
+                    q = q + 1
+                    If q < qmax Then
+                        qq = QStackPop(context)
+                        PushMatcherStackFrame context, pc + n, sp, pcLandmark, spDelta, qq
+                        QStackPush context, qq
                     Else
-                        off = bb - 1
-                        Do While off >= aa
-                            c1 = GetInputCharCode(inputStr, off, -1)
-                            c2 = GetInputCharCode(inputStr, sp, -1)
-                            ' No need for an explicit c2 < 0 check: because c1 >= 0,
-                            ' the comparison will always fail if c2 < 0.
-                            If c1 <> c2 Then
-                                If 0 = (op And MODIFIER_I_ACTIVE) Then GoTo ContinueLoopFail
-                                If ReCanonicalizeChar(c1) <> ReCanonicalizeChar(c2) Then GoTo ContinueLoopFail
-                            End If
-                        Loop
+                        pc = pc + n
+                        q = QStackPop(context)
                     End If
-                Else
-                    ' capture is 'undefined', always matches!
-                End If
-                GoTo ContinueLoopSuccess
-            Case Else
-                GoTo InternalError
-            End Select
-        ' END LOOP
-
-Match:
-        CopyCaptures context, outCaptures
-        DfsRunThreads = sp
-        Exit Function
-
-InternalError:
-        ' TODO: Raise correct exception
-        Err.Raise 3000
-        ' DUK_ERROR_INTERNAL(re_ctx->thr);
-        ' DUK_WO_NORETURN(return -1;);
+    
+                    GoTo ContinueLoopSuccess
+                Case REOP_REPEAT_GREEDY_MAX_END
+                    pc = pc + 1 ' Skip first argument: quantity
+                    n = GetBc(bytecode, pc) ' offset
+                    t = pc - n - 3
+                    If pcLandmark <= t Then GoTo ContinueLoopSuccess ' empty match
+    
+                    pc = t: pcLandmark = t
+                    GoTo ContinueLoopSuccess
+                Case REOP_SAVE
+                    idx = GetBc(bytecode, pc)
+                    If idx >= context.nCapturePoints Then GoTo InternalError
+                        ' idx is unsigned, < 0 check is not necessary
+                    SetCapturePoint context, idx, sp
+                    GoTo ContinueLoopSuccess
+                Case REOP_SET_NAMED
+                    r1 = GetBc(bytecode, pc)
+                    If r1 >= context.nCapturePoints Then GoTo InternalError
+                    r2 = GetBc(bytecode, pc)
+                    SetCapturePoint context, context.nProperCapturePoints + r1, r2
+                    GoTo ContinueLoopSuccess
+                Case REOP_CHECK_LOOKAHEAD
+                    PushMatcherStackFrame context, pc, sp, pcLandmark, spDelta, q
+                    context.master = context.matcherStack.Length - 1
+                    pc = pc + 2 ' jump over following REOP_LOOKPOS or REOP_LOOKNEG
+                    ' When we're moving forward, we are at the correct position. When we're moving backward, we have to step one towards the end.
+                    sp = sp + (1 - spDelta) \ 2
+                    spDelta = 1
+                    ' We could set pcLandmark to -1 again here, but we can be sure that pcLandmark < beginning of lookahead, so we can skip that
+                    GoTo ContinueLoopSuccess
+                Case REOP_CHECK_LOOKBEHIND
+                    PushMatcherStackFrame context, pc, sp, pcLandmark, spDelta, q
+                    context.master = context.matcherStack.Length - 1
+                    pc = pc + 2 ' jump over following REOP_LOOKPOS or REOP_LOOKNEG
+                    ' When we're moving backward, we are at the correct position. When we're moving forward, we have to step one towards the beginning.
+                    sp = sp - (spDelta + 1) \ 2
+                    spDelta = -1
+                    ' We could set pcLandmark to -1 again here, but we can be sure that pcLandmark < beginning of lookahead, so we can skip that
+                    GoTo ContinueLoopSuccess
+                Case REOP_LOOKPOS
+                    ' This point will only be reached if the pattern inside a negative lookahead/back did not match.
+                    n = GetBc(bytecode, pc)
+                    pc = pc + n
+                    GoTo ContinueLoopFail
+                Case REOP_LOOKNEG
+                    ' This point will only be reached if the pattern inside a negative lookahead/back did not match.
+                    n = GetBc(bytecode, pc)
+                    pc = pc + n
+                    GoTo ContinueLoopSuccess
+                Case REOP_BACKREFERENCE
+                    '
+                    '  Byte matching for back-references would be OK in case-
+                    '  sensitive matching.  In case-insensitive matching we need
+                    '  to canonicalize characters, so back-reference matching needs
+                    '  to be done with codepoints instead.  So, we just decode
+                    '  everything normally here, too.
+                    '
+                    '  Note: back-reference index which is 0 or higher than
+                    '  NCapturingParens (= number of capturing parens in the
+                    '  -entire- regexp) is a compile time error.  However, a
+                    '  backreference referring to a valid capture which has
+                    '  not matched anything always succeeds!  See E5 Section
+                    '  15.10.2.9, step 5, sub-step 3.
+    
+                    pcLandmark = pc - 1
+                    idx = 2 * GetBc(bytecode, pc) ' backref n -> saved indices [n*2, n*2+1]
+                    If idx < 2 Then GoTo InternalError
+                    If idx + 1 >= context.nCapturePoints Then GoTo InternalError
+                    aa = GetCapturePoint(context, idx)
+                    bb = GetCapturePoint(context, idx + 1)
+                    If (aa >= 0) And (bb >= 0) Then
+                        If spDelta = 1 Then
+                            off = aa
+                            Do While off < bb
+                                c1 = GetInputCharCode(inputStr, off, 1)
+                                c2 = GetInputCharCode(inputStr, sp, 1)
+                                ' No need for an explicit c2 < 0 check: because c1 >= 0,
+                                ' the comparison will always fail if c2 < 0.
+                                If c1 <> c2 Then
+                                    If 0 = (op And MODIFIER_I_ACTIVE) Then GoTo ContinueLoopFail
+                                    If ReCanonicalizeChar(c1) <> ReCanonicalizeChar(c2) Then GoTo ContinueLoopFail
+                                End If
+                            Loop
+                        Else
+                            off = bb - 1
+                            Do While off >= aa
+                                c1 = GetInputCharCode(inputStr, off, -1)
+                                c2 = GetInputCharCode(inputStr, sp, -1)
+                                ' No need for an explicit c2 < 0 check: because c1 >= 0,
+                                ' the comparison will always fail if c2 < 0.
+                                If c1 <> c2 Then
+                                    If 0 = (op And MODIFIER_I_ACTIVE) Then GoTo ContinueLoopFail
+                                    If ReCanonicalizeChar(c1) <> ReCanonicalizeChar(c2) Then GoTo ContinueLoopFail
+                                End If
+                            Loop
+                        End If
+                    Else
+                        ' capture is 'undefined', always matches!
+                    End If
+                    GoTo ContinueLoopSuccess
+                Case Else
+                    GoTo InternalError
+                End Select
+            ' END LOOP
+    
+    Match:
+            CopyCaptures context, outCaptures
+            DfsRunThreads = sp
+            Exit Function
+    
+    InternalError:
+            ' TODO: Raise correct exception
+            Err_Raise 3000
+            ' DUK_ERROR_INTERNAL(re_ctx->thr);
+            ' DUK_WO_NORETURN(return -1;);
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 Private Sub ParseFormatString(ByRef parsedFormat As ArrayBuffer, ByRef formatString As String, ByRef bytecode() As Long, ByRef pattern As String)
-    Dim curPos As Long, lastPos As Long, c As Long, formatStringLen As Long, num As Long, substrLen As Long, identifierId As Long
-
-    Const UNICODE_DOLLAR As Long = 36
-    Const UNICODE_AMP As Long = 38
-    Const UNICODE_SQUOTE As Long = 39
-    Const UNICODE_DIGIT_0 As Long = 48
-    Const UNICODE_DIGIT_9 As Long = 57
-    Const UNICODE_LT As Long = 60
-    Const UNICODE_BACKTICK As Long = 96
-    Const UNICODE_TILDE As Long = 126
-
-    formatStringLen = Len(formatString)
-    curPos = 1
-    lastPos = 1
-    Do
-        curPos = InStr(curPos, formatString, "$", vbBinaryCompare)
-        If curPos = 0 Then Exit Do
-        If curPos = formatStringLen Then GoTo InvalidReplacementString
-        curPos = curPos + 1
-        c = AscW(Mid$(formatString, curPos, 1))
-        If c = UNICODE_DOLLAR Then
-            If curPos - lastPos = 1 Then
-                AppendLong parsedFormat, REPL_DOLLAR
-            Else
-                AppendThree parsedFormat, REPL_SUBSTR, lastPos, curPos - lastPos
-            End If
+  With stdError.getSentry("stdRegex#ParseFormatString", "formatString", formatString, "pattern", pattern)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim curPos As Long, lastPos As Long, c As Long, formatStringLen As Long, num As Long, substrLen As Long, identifierId As Long
+    
+        Const UNICODE_DOLLAR As Long = 36
+        Const UNICODE_AMP As Long = 38
+        Const UNICODE_SQUOTE As Long = 39
+        Const UNICODE_DIGIT_0 As Long = 48
+        Const UNICODE_DIGIT_9 As Long = 57
+        Const UNICODE_LT As Long = 60
+        Const UNICODE_BACKTICK As Long = 96
+        Const UNICODE_TILDE As Long = 126
+    
+        formatStringLen = Len(formatString)
+        curPos = 1
+        lastPos = 1
+        Do
+            curPos = InStr(curPos, formatString, "$", vbBinaryCompare)
+            If curPos = 0 Then Exit Do
+            If curPos = formatStringLen Then GoTo InvalidReplacementString
             curPos = curPos + 1
-        Else
-            substrLen = curPos - lastPos - 1
-            If substrLen > 0 Then AppendThree parsedFormat, REPL_SUBSTR, lastPos, substrLen
-            Select Case c
-            Case UNICODE_AMP
-                AppendLong parsedFormat, REPL_ACTUAL
+            c = AscW(Mid$(formatString, curPos, 1))
+            If c = UNICODE_DOLLAR Then
+                If curPos - lastPos = 1 Then
+                    AppendLong parsedFormat, REPL_DOLLAR
+                Else
+                    AppendThree parsedFormat, REPL_SUBSTR, lastPos, curPos - lastPos
+                End If
                 curPos = curPos + 1
-            Case UNICODE_SQUOTE
-                AppendLong parsedFormat, REPL_SUFFIX
-                curPos = curPos + 1
-            Case UNICODE_LT
-                If curPos = formatStringLen Then GoTo InvalidReplacementString
-                lastPos = curPos + 1
-                curPos = InStr(lastPos, formatString, ">", vbBinaryCompare)
-                If curPos = lastPos Then GoTo InvalidReplacementString ' empty identifier
-
-                identifierId = GetIdentifierId(bytecode, pattern, Mid$(formatString, lastPos, curPos - lastPos))
-                If identifierId >= 0 Then AppendTwo parsedFormat, REPL_NAMED, identifierId
-
-                curPos = curPos + 1
-            Case UNICODE_BACKTICK
-                AppendLong parsedFormat, REPL_PREFIX
-                curPos = curPos + 1
-            Case UNICODE_TILDE
-                ' ignore
-                curPos = curPos + 1
-            Case Else
-                ' Todo: Check whether we can merge this with parsing a number within a regex
-                If c < UNICODE_DIGIT_0 Then GoTo InvalidReplacementString
-                If c > UNICODE_DIGIT_9 Then GoTo InvalidReplacementString
-                num = 0
-                Do
-                    If num > LONG_MAX_DIV_10 Then GoTo InvalidReplacementString
-
-                    num = 10 * num
-                    c = c - UNICODE_DIGIT_0
-
-                    If num > LONG_MAX - c Then GoTo InvalidReplacementString
-
-                    num = num + c
-
+            Else
+                substrLen = curPos - lastPos - 1
+                If substrLen > 0 Then AppendThree parsedFormat, REPL_SUBSTR, lastPos, substrLen
+                Select Case c
+                Case UNICODE_AMP
+                    AppendLong parsedFormat, REPL_ACTUAL
                     curPos = curPos + 1
-                    If curPos > formatStringLen Then Exit Do
-                    c = AscW(Mid$(formatString, curPos, 1))
-                    If c < UNICODE_DIGIT_0 Then Exit Do
-                    If c > UNICODE_DIGIT_9 Then Exit Do
-                Loop
-                AppendTwo parsedFormat, REPL_NUMBERED, num
-            End Select
-        End If
-        lastPos = curPos
-    Loop
-
-    substrLen = formatStringLen + 1 - lastPos
-    If substrLen > 0 Then AppendThree parsedFormat, REPL_SUBSTR, lastPos, substrLen
-    AppendLong parsedFormat, REPL_END
-
+                Case UNICODE_SQUOTE
+                    AppendLong parsedFormat, REPL_SUFFIX
+                    curPos = curPos + 1
+                Case UNICODE_LT
+                    If curPos = formatStringLen Then GoTo InvalidReplacementString
+                    lastPos = curPos + 1
+                    curPos = InStr(lastPos, formatString, ">", vbBinaryCompare)
+                    If curPos = lastPos Then GoTo InvalidReplacementString ' empty identifier
+    
+                    identifierId = GetIdentifierId(bytecode, pattern, Mid$(formatString, lastPos, curPos - lastPos))
+                    If identifierId >= 0 Then AppendTwo parsedFormat, REPL_NAMED, identifierId
+    
+                    curPos = curPos + 1
+                Case UNICODE_BACKTICK
+                    AppendLong parsedFormat, REPL_PREFIX
+                    curPos = curPos + 1
+                Case UNICODE_TILDE
+                    ' ignore
+                    curPos = curPos + 1
+                Case Else
+                    ' Todo: Check whether we can merge this with parsing a number within a regex
+                    If c < UNICODE_DIGIT_0 Then GoTo InvalidReplacementString
+                    If c > UNICODE_DIGIT_9 Then GoTo InvalidReplacementString
+                    num = 0
+                    Do
+                        If num > LONG_MAX_DIV_10 Then GoTo InvalidReplacementString
+    
+                        num = 10 * num
+                        c = c - UNICODE_DIGIT_0
+    
+                        If num > LONG_MAX - c Then GoTo InvalidReplacementString
+    
+                        num = num + c
+    
+                        curPos = curPos + 1
+                        If curPos > formatStringLen Then Exit Do
+                        c = AscW(Mid$(formatString, curPos, 1))
+                        If c < UNICODE_DIGIT_0 Then Exit Do
+                        If c > UNICODE_DIGIT_9 Then Exit Do
+                    Loop
+                    AppendTwo parsedFormat, REPL_NUMBERED, num
+                End Select
+            End If
+            lastPos = curPos
+        Loop
+    
+        substrLen = formatStringLen + 1 - lastPos
+        If substrLen > 0 Then AppendThree parsedFormat, REPL_SUBSTR, lastPos, substrLen
+        AppendLong parsedFormat, REPL_END
+    
+        Exit Sub
+    InvalidReplacementString:
+        Err_Raise REGEX_ERR_INVALID_REPLACEMENT_STRING
+    
     Exit Sub
-InvalidReplacementString:
-    Err.Raise REGEX_ERR_INVALID_REPLACEMENT_STRING
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Sub AppendFormatted( _
@@ -4738,51 +5474,59 @@ Private Sub AppendFormatted( _
     ByRef parsed() As Long, _
     Optional ByVal parsedStartPos As Long = 0 _
 )
-    Dim j As Long, num As Long
-
-    j = parsedStartPos
-    Do
-        Select Case parsed(j)
-        Case REPL_END
-            Exit Do
-        Case REPL_DOLLAR
-            AppendStr sb, "$"
-            j = j + 1
-        Case REPL_SUBSTR
-            AppendStr sb, Mid$(formatString, parsed(j + 1), parsed(j + 2))
-            j = j + 3
-        Case REPL_PREFIX
-            AppendStr sb, Left$(sHaystack, captures.entireMatch.start - 1)
-            j = j + 1
-        Case REPL_SUFFIX
-            AppendStr sb, Mid$(sHaystack, captures.entireMatch.start + captures.entireMatch.Length)
-            j = j + 1
-        Case REPL_ACTUAL
-            AppendStr sb, Mid$(sHaystack, captures.entireMatch.start, captures.entireMatch.Length)
-            j = j + 1
-        Case REPL_NUMBERED
-            num = parsed(j + 1)
-            If num <= captures.nNumberedCaptures Then
-                With captures.numberedCaptures(num - 1)
-                    If .Length > 0 Then AppendStr sb, Mid$(sHaystack, .start, .Length)
-                End With
-            End If
-            j = j + 2
-        Case REPL_NAMED
-            num = captures.namedCaptures(parsed(j + 1))
-            If num >= 0 Then
+  With stdError.getSentry("stdRegex#AppendFormatted", "_", _, "_", _, "_", _, "_", _, "_", _, "_", _)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        Dim j As Long, num As Long
+    
+        j = parsedStartPos
+        Do
+            Select Case parsed(j)
+            Case REPL_END
+                Exit Do
+            Case REPL_DOLLAR
+                AppendStr sb, "$"
+                j = j + 1
+            Case REPL_SUBSTR
+                AppendStr sb, Mid$(formatString, parsed(j + 1), parsed(j + 2))
+                j = j + 3
+            Case REPL_PREFIX
+                AppendStr sb, Left$(sHaystack, captures.entireMatch.start - 1)
+                j = j + 1
+            Case REPL_SUFFIX
+                AppendStr sb, Mid$(sHaystack, captures.entireMatch.start + captures.entireMatch.Length)
+                j = j + 1
+            Case REPL_ACTUAL
+                AppendStr sb, Mid$(sHaystack, captures.entireMatch.start, captures.entireMatch.Length)
+                j = j + 1
+            Case REPL_NUMBERED
+                num = parsed(j + 1)
                 If num <= captures.nNumberedCaptures Then
                     With captures.numberedCaptures(num - 1)
                         If .Length > 0 Then AppendStr sb, Mid$(sHaystack, .start, .Length)
                     End With
                 End If
-            End If
-            j = j + 2
-        Case Else
-            Err.Raise REGEX_ERR_INTERNAL_LOGIC_ERR
-        End Select
-    Loop
-
+                j = j + 2
+            Case REPL_NAMED
+                num = captures.namedCaptures(parsed(j + 1))
+                If num >= 0 Then
+                    If num <= captures.nNumberedCaptures Then
+                        With captures.numberedCaptures(num - 1)
+                            If .Length > 0 Then AppendStr sb, Mid$(sHaystack, .start, .Length)
+                        End With
+                    End If
+                End If
+                j = j + 2
+            Case Else
+                Err_Raise REGEX_ERR_INTERNAL_LOGIC_ERR
+            End Select
+        Loop
+    
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Friend Sub protStaticRegexInitializeRegex( _
@@ -4790,15 +5534,23 @@ Friend Sub protStaticRegexInitializeRegex( _
     ByRef pattern As String, _
     Optional ByVal caseInsensitive As Boolean = False _
 )
-    If Not (Me Is stdRegex) Then
-        Err.Raise 1, "stdRegex", "Method called on object, not on class"
-        Exit Sub
-    End If
-
-    regex.pattern = pattern
-    regex.isCaseInsensitive = caseInsensitive
-    regex.stepsLimit = DEFAULT_STEPS_LIMIT
-    Compile regex.bytecode, pattern, caseInsensitive:=caseInsensitive
+  With stdError.getSentry("stdRegex#protStaticRegexInitializeRegex", "_", _, "_", _, "_", _)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        If Not (Me Is stdRegex) Then
+            Err_Raise 1, "stdRegex", "Method called on object, not on class"
+            Exit Sub
+        End If
+    
+        regex.pattern = pattern
+        regex.isCaseInsensitive = caseInsensitive
+        regex.stepsLimit = DEFAULT_STEPS_LIMIT
+        Compile regex.bytecode, pattern, caseInsensitive:=caseInsensitive
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Friend Function protStaticRegexTest( _
@@ -4806,18 +5558,26 @@ Friend Function protStaticRegexTest( _
     Optional ByVal multiline As Boolean = False, _
     Optional ByVal dotAll As Boolean = False _
 ) As Boolean
-    If Not (Me Is stdRegex) Then
-        Err.Raise 1, "stdRegex", "Method called on object, not on class"
-        Exit Function
-    End If
-
-    Dim captures As CapturesTy
-
-    protStaticRegexTest = DfsMatch( _
-        captures, regex.bytecode, str, stepsLimit:=regex.stepsLimit, useNative:=regex.useNative, _
-        multiline:=multiline, _
-        dotAll:=dotAll _
-    ) <> -1
+  With stdError.getSentry("stdRegex#protStaticRegexTest", "_", _, "str", str, "_", _, "_", _)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        If Not (Me Is stdRegex) Then
+            Err_Raise 1, "stdRegex", "Method called on object, not on class"
+            Exit Function
+        End If
+    
+        Dim captures As CapturesTy
+    
+        protStaticRegexTest = DfsMatch( _
+            captures, regex.bytecode, str, stepsLimit:=regex.stepsLimit, useNative:=regex.useNative, _
+            multiline:=multiline, _
+            dotAll:=dotAll _
+        ) <> -1
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 Friend Function protStaticRegexMatch( _
@@ -4826,72 +5586,104 @@ Friend Function protStaticRegexMatch( _
     Optional ByVal dotAll As Boolean = False, _
     Optional ByVal matchFrom As Long = 1 _
 ) As Boolean
-    If Not (Me Is stdRegex) Then
-        Err.Raise 1, "stdRegex", "Method called on object, not on class"
-        Exit Function
-    End If
-
-    protStaticRegexMatch = DfsMatchFrom( _
-        matcherState.context, matcherState.captures, regex.bytecode, haystack, matchFrom - 1, _
-        stepsLimit:=regex.stepsLimit, useNative:=regex.useNative, _
-        multiline:=multiline, _
-        dotAll:=dotAll _
-    ) <> -1
-    matcherState.current = -1
+  With stdError.getSentry("stdRegex#protStaticRegexMatch", "_", _, "haystack", haystack, "_", _, "_", _, "_", _)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        If Not (Me Is stdRegex) Then
+            Err_Raise 1, "stdRegex", "Method called on object, not on class"
+            Exit Function
+        End If
+    
+        protStaticRegexMatch = DfsMatchFrom( _
+            matcherState.context, matcherState.captures, regex.bytecode, haystack, matchFrom - 1, _
+            stepsLimit:=regex.stepsLimit, useNative:=regex.useNative, _
+            multiline:=multiline, _
+            dotAll:=dotAll _
+        ) <> -1
+        matcherState.current = -1
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 Friend Sub protStaticRegexInitializeFormat(ByRef format As FormatTy, ByRef regex As RegexTy, ByRef text As String)
-    If Not (Me Is stdRegex) Then
-        Err.Raise 1, "stdRegex", "Method called on object, not on class"
-        Exit Sub
-    End If
-
-    Dim parsed As ArrayBuffer
-    ParseFormatString parsed, text, regex.bytecode, regex.pattern
-    format.text = text
-    format.parsed = parsed.Buffer
+  With stdError.getSentry("stdRegex#protStaticRegexInitializeFormat", "text", text)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        If Not (Me Is stdRegex) Then
+            Err_Raise 1, "stdRegex", "Method called on object, not on class"
+            Exit Sub
+        End If
+    
+        Dim parsed As ArrayBuffer
+        ParseFormatString parsed, text, regex.bytecode, regex.pattern
+        format.text = text
+        format.parsed = parsed.Buffer
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Friend Function protStaticRegexFormatMatch(ByRef matcherState As MatcherStateTy, ByRef haystack As String, ByRef format As FormatTy) As String
-    If Not (Me Is stdRegex) Then
-        Err.Raise 1, "stdRegex", "Method called on object, not on class"
-        Exit Function
-    End If
-
-    Dim builder As StaticStringBuilder
-    AppendFormatted builder, haystack, matcherState.captures, format.text, format.parsed
-    protStaticRegexFormatMatch = GetStr(builder)
+  With stdError.getSentry("stdRegex#protStaticRegexFormatMatch", "haystack", haystack)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        If Not (Me Is stdRegex) Then
+            Err_Raise 1, "stdRegex", "Method called on object, not on class"
+            Exit Function
+        End If
+    
+        Dim builder As StaticStringBuilder
+        AppendFormatted builder, haystack, matcherState.captures, format.text, format.parsed
+        protStaticRegexFormatMatch = GetStr(builder)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 Friend Function protStaticRegexMatchNext( _
     ByRef matcherState As MatcherStateTy, ByRef regex As RegexTy, ByRef haystack As String, _
     Optional ByVal raiseOnLimit As Boolean = False _
 ) As Boolean
-    If Not (Me Is stdRegex) Then
-        Err.Raise 1, "stdRegex", "Method called on object, not on class"
-        Exit Function
-    End If
-
-    Dim r As Long
-
-    If matcherState.current = -1 Then Exit Function ' end of string reached, return False
-
-    r = DfsMatchFrom( _
-        matcherState.context, matcherState.captures, regex.bytecode, haystack, matcherState.current, _
-        stepsLimit:=regex.stepsLimit, useNative:=regex.useNative, _
-        multiline:=matcherState.multiline, _
-        dotAll:=matcherState.dotAll, raiseOnLimit:=raiseOnLimit _
-    )
-
-    If r = -1 Then
-        matcherState.current = -1
-    Else
-        matcherState.current = _
-            (r - (matcherState.captures.entireMatch.Length = 0)) _
-            Or matcherState.localMatch
-    End If
-
-    protStaticRegexMatchNext = r <> -1
+  With stdError.getSentry("stdRegex#protStaticRegexMatchNext", "_", _, "haystack", haystack, "_", _)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        If Not (Me Is stdRegex) Then
+            Err_Raise 1, "stdRegex", "Method called on object, not on class"
+            Exit Function
+        End If
+    
+        Dim r As Long
+    
+        If matcherState.current = -1 Then Exit Function ' end of string reached, return False
+    
+        r = DfsMatchFrom( _
+            matcherState.context, matcherState.captures, regex.bytecode, haystack, matcherState.current, _
+            stepsLimit:=regex.stepsLimit, useNative:=regex.useNative, _
+            multiline:=matcherState.multiline, _
+            dotAll:=matcherState.dotAll, raiseOnLimit:=raiseOnLimit _
+        )
+    
+        If r = -1 Then
+            matcherState.current = -1
+        Else
+            matcherState.current = _
+                (r - (matcherState.captures.entireMatch.Length = 0)) _
+                Or matcherState.localMatch
+        End If
+    
+        protStaticRegexMatchNext = r <> -1
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 Friend Function protStaticRegexReplace( _
@@ -4902,29 +5694,37 @@ Friend Function protStaticRegexReplace( _
     Optional ByVal multiline As Boolean = False, _
     Optional ByVal dotAll As Boolean = False _
 ) As String
-    If Not (Me Is stdRegex) Then
-        Err.Raise 1, "stdRegex", "Method called on object, not on class"
-        Exit Function
-    End If
-
-    Dim parsedFormat As ArrayBuffer, matcherState As MatcherStateTy, lastEndPos As Long, resultBuilder As StaticStringBuilder
-
-    ParseFormatString parsedFormat, replacer, regex.bytecode, regex.pattern
-
-    lastEndPos = 1
-    matcherState.localMatch = localMatch
-    matcherState.multiline = multiline
-    matcherState.dotAll = dotAll
-    Do While protStaticRegexMatchNext(matcherState, regex, haystack, raiseOnLimit:=True)
-        AppendStr resultBuilder, Mid$(haystack, lastEndPos, matcherState.captures.entireMatch.start - lastEndPos)
-        AppendFormatted resultBuilder, haystack, matcherState.captures, replacer, parsedFormat.Buffer
-
-        lastEndPos = matcherState.captures.entireMatch.start + matcherState.captures.entireMatch.Length
-    Loop
-
-    AppendStr resultBuilder, Mid$(haystack, lastEndPos)
-
-    protStaticRegexReplace = GetStr(resultBuilder)
+  With stdError.getSentry("stdRegex#protStaticRegexReplace", "_", _, "_", _, "_", _, "_", _, "_", _, "_", _)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        If Not (Me Is stdRegex) Then
+            Err_Raise 1, "stdRegex", "Method called on object, not on class"
+            Exit Function
+        End If
+    
+        Dim parsedFormat As ArrayBuffer, matcherState As MatcherStateTy, lastEndPos As Long, resultBuilder As StaticStringBuilder
+    
+        ParseFormatString parsedFormat, replacer, regex.bytecode, regex.pattern
+    
+        lastEndPos = 1
+        matcherState.localMatch = localMatch
+        matcherState.multiline = multiline
+        matcherState.dotAll = dotAll
+        Do While protStaticRegexMatchNext(matcherState, regex, haystack, raiseOnLimit:=True)
+            AppendStr resultBuilder, Mid$(haystack, lastEndPos, matcherState.captures.entireMatch.start - lastEndPos)
+            AppendFormatted resultBuilder, haystack, matcherState.captures, replacer, parsedFormat.Buffer
+    
+            lastEndPos = matcherState.captures.entireMatch.start + matcherState.captures.entireMatch.Length
+        Loop
+    
+        AppendStr resultBuilder, Mid$(haystack, lastEndPos)
+    
+        protStaticRegexReplace = GetStr(resultBuilder)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 Friend Function protStaticRegexSplitByRegex( _
@@ -4934,38 +5734,46 @@ Friend Function protStaticRegexSplitByRegex( _
     Optional ByVal multiline As Boolean = False, _
     Optional ByVal dotAll As Boolean = False _
 ) As Collection
-    If Not (Me Is stdRegex) Then
-        Err.Raise 1, "stdRegex", "Method called on object, not on class"
-        Exit Function
-    End If
-
-    Dim matcherState As MatcherStateTy, lastEndPos As Long, colStrings As Collection
-    Dim i As Long, u As Long, s As String
-
-    Set colStrings = New Collection
-
-    lastEndPos = 1
-    matcherState.localMatch = localMatch
-    matcherState.multiline = multiline
-    matcherState.dotAll = dotAll
-    Do While protStaticRegexMatchNext(matcherState, regex, haystack, raiseOnLimit:=True)
-        With matcherState.captures.entireMatch
-            colStrings.Add Mid$(haystack, lastEndPos, .start - lastEndPos)
-            lastEndPos = .start + .Length
-        End With
-
-        u = matcherState.captures.nNumberedCaptures - 1
-        For i = 0 To u
-            With matcherState.captures.numberedCaptures(i)
-                s = vbNullString
-                If .Length > 0 Then s = Mid$(haystack, .start, .Length)
-                colStrings.Add s
+  With stdError.getSentry("stdRegex#protStaticRegexSplitByRegex", "_", _, "_", _, "_", _, "_", _, "_", _)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        If Not (Me Is stdRegex) Then
+            Err_Raise 1, "stdRegex", "Method called on object, not on class"
+            Exit Function
+        End If
+    
+        Dim matcherState As MatcherStateTy, lastEndPos As Long, colStrings As Collection
+        Dim i As Long, u As Long, s As String
+    
+        Set colStrings = New Collection
+    
+        lastEndPos = 1
+        matcherState.localMatch = localMatch
+        matcherState.multiline = multiline
+        matcherState.dotAll = dotAll
+        Do While protStaticRegexMatchNext(matcherState, regex, haystack, raiseOnLimit:=True)
+            With matcherState.captures.entireMatch
+                colStrings.Add Mid$(haystack, lastEndPos, .start - lastEndPos)
+                lastEndPos = .start + .Length
             End With
-        Next
-    Loop
-    colStrings.Add Mid$(haystack, lastEndPos)
-
-    Set protStaticRegexSplitByRegex = colStrings
+    
+            u = matcherState.captures.nNumberedCaptures - 1
+            For i = 0 To u
+                With matcherState.captures.numberedCaptures(i)
+                    s = vbNullString
+                    If .Length > 0 Then s = Mid$(haystack, .start, .Length)
+                    colStrings.Add s
+                End With
+            Next
+        Loop
+        colStrings.Add Mid$(haystack, lastEndPos)
+    
+        Set protStaticRegexSplitByRegex = colStrings
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 Friend Function protStaticRegexMatchThenJoin( _
@@ -4977,27 +5785,35 @@ Friend Function protStaticRegexMatchThenJoin( _
     Optional ByVal multiline As Boolean = False, _
     Optional ByVal dotAll As Boolean = False _
 ) As String
-    If Not (Me Is stdRegex) Then
-        Err.Raise 1, "stdRegex", "Method called on object, not on class"
-        Exit Function
-    End If
-
-    Dim parsedFormat As ArrayBuffer, resultBuilder As StaticStringBuilder, matcherState As MatcherStateTy
-
-    ParseFormatString parsedFormat, format, regex.bytecode, regex.pattern
-
-    matcherState.localMatch = localMatch
-    matcherState.multiline = multiline
-    matcherState.dotAll = dotAll
-    If protStaticRegexMatchNext(matcherState, regex, haystack, raiseOnLimit:=True) Then
-        AppendFormatted resultBuilder, haystack, matcherState.captures, format, parsedFormat.Buffer
-        Do While protStaticRegexMatchNext(matcherState, regex, haystack, raiseOnLimit:=True)
-            AppendStr resultBuilder, delimiter
+  With stdError.getSentry("stdRegex#protStaticRegexMatchThenJoin", "_", _, "_", _, "_", _, "_", _, "_", _, "_", _, "_", _)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        If Not (Me Is stdRegex) Then
+            Err_Raise 1, "stdRegex", "Method called on object, not on class"
+            Exit Function
+        End If
+    
+        Dim parsedFormat As ArrayBuffer, resultBuilder As StaticStringBuilder, matcherState As MatcherStateTy
+    
+        ParseFormatString parsedFormat, format, regex.bytecode, regex.pattern
+    
+        matcherState.localMatch = localMatch
+        matcherState.multiline = multiline
+        matcherState.dotAll = dotAll
+        If protStaticRegexMatchNext(matcherState, regex, haystack, raiseOnLimit:=True) Then
             AppendFormatted resultBuilder, haystack, matcherState.captures, format, parsedFormat.Buffer
-        Loop
-    End If
-
-    protStaticRegexMatchThenJoin = GetStr(resultBuilder)
+            Do While protStaticRegexMatchNext(matcherState, regex, haystack, raiseOnLimit:=True)
+                AppendStr resultBuilder, delimiter
+                AppendFormatted resultBuilder, haystack, matcherState.captures, format, parsedFormat.Buffer
+            Loop
+        End If
+    
+        protStaticRegexMatchThenJoin = GetStr(resultBuilder)
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 Friend Sub protStaticRegexMatchThenList( _
@@ -5009,332 +5825,378 @@ Friend Sub protStaticRegexMatchThenList( _
     Optional ByVal multiline As Boolean = False, _
     Optional ByVal dotAll As Boolean = False _
 )
-    If Not (Me Is stdRegex) Then
-        Err.Raise 1, "stdRegex", "Method called on object, not on class"
-        Exit Sub
-    End If
-
-    Dim cola As Long, colb As Long, j As Long, k As Long, m As Long, mm As Long, nMatches As Long
-    Dim parsedFormats As ArrayBuffer
-    Dim matcherState As MatcherStateTy
-    Dim resultBuilder As StaticStringBuilder
-
-    cola = LBound(formatStrings)
-    colb = UBound(formatStrings)
-
-    For j = cola To colb
-        k = parsedFormats.Length
-        AppendLong parsedFormats, 0
-        ParseFormatString parsedFormats, formatStrings(j), regex.bytecode, regex.pattern
-        parsedFormats.Buffer(k) = parsedFormats.Length - k
-    Next
-
-    nMatches = 0
-
-    matcherState.localMatch = localMatch
-    matcherState.multiline = multiline
-    matcherState.dotAll = dotAll
-    Do While protStaticRegexMatchNext(matcherState, regex, haystack, raiseOnLimit:=True)
-        k = 0
+  With stdError.getSentry("stdRegex#protStaticRegexMatchThenList", "_", _, "_", _, "_", _, "_", _, "_", _, "_", _, "_", _)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        If Not (Me Is stdRegex) Then
+            Err_Raise 1, "stdRegex", "Method called on object, not on class"
+            Exit Sub
+        End If
+    
+        Dim cola As Long, colb As Long, j As Long, k As Long, m As Long, mm As Long, nMatches As Long
+        Dim parsedFormats As ArrayBuffer
+        Dim matcherState As MatcherStateTy
+        Dim resultBuilder As StaticStringBuilder
+    
+        cola = LBound(formatStrings)
+        colb = UBound(formatStrings)
+    
         For j = cola To colb
-            m = resultBuilder.Length
-            AppendFormatted resultBuilder, haystack, matcherState.captures, formatStrings(j), parsedFormats.Buffer, k + 1
-            AppendStr resultBuilder, ChrW$(m)
-            k = k + parsedFormats.Buffer(k)
+            k = parsedFormats.Length
+            AppendLong parsedFormats, 0
+            ParseFormatString parsedFormats, formatStrings(j), regex.bytecode, regex.pattern
+            parsedFormats.Buffer(k) = parsedFormats.Length - k
         Next
-
-        nMatches = nMatches + 1
-    Loop
-
-    If nMatches = 0 Then
-        ' hack to create a zero-length array
-        results = Split(vbNullString)
-    Else
-        ReDim results(0 To nMatches - 1, cola To colb) As String
-        m = resultBuilder.Length
-        For j = nMatches - 1 To 0 Step -1
-            For k = colb To cola Step -1
-                mm = AscW(GetSubstr(resultBuilder, m, 1))
-                results(j, k) = GetSubstr(resultBuilder, mm + 1, m - mm - 1)
-                m = mm
+    
+        nMatches = 0
+    
+        matcherState.localMatch = localMatch
+        matcherState.multiline = multiline
+        matcherState.dotAll = dotAll
+        Do While protStaticRegexMatchNext(matcherState, regex, haystack, raiseOnLimit:=True)
+            k = 0
+            For j = cola To colb
+                m = resultBuilder.Length
+                AppendFormatted resultBuilder, haystack, matcherState.captures, formatStrings(j), parsedFormats.Buffer, k + 1
+                AppendStr resultBuilder, ChrW$(m)
+                k = k + parsedFormats.Buffer(k)
             Next
-        Next
-    End If
+    
+            nMatches = nMatches + 1
+        Loop
+    
+        If nMatches = 0 Then
+            ' hack to create a zero-length array
+            results = Split(vbNullString)
+        Else
+            ReDim results(0 To nMatches - 1, cola To colb) As String
+            m = resultBuilder.Length
+            For j = nMatches - 1 To 0 Step -1
+                For k = colb To cola Step -1
+                    mm = AscW(GetSubstr(resultBuilder, m, 1))
+                    results(j, k) = GetSubstr(resultBuilder, mm + 1, m - mm - 1)
+                    m = mm
+                Next
+            Next
+        End If
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Sub Class_Initialize()
-    If Me Is stdRegex Then
-        ' We use the otherwise unused .regex.bytecode field of the class instance to store the static data.
-        ReDim This.regex.bytecode(0 To STATIC_DATA_LENGTH - 1) As Long
-        InitializeUnicodeCanonLookupTable This.regex.bytecode
-        InitializeUnicodeCanonRunsTable This.regex.bytecode
-        InitializeRangeTables This.regex.bytecode
-        InitializeAstTable This.regex.bytecode
-    Else
-        This.regex.stepsLimit = 10000
-    End If
+  With stdError.getSentry("stdRegex#Class_Initialize")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+        If Me Is stdRegex Then
+            ' We use the otherwise unused .regex.bytecode field of the class instance to store the static data.
+            ReDim This.regex.bytecode(0 To STATIC_DATA_LENGTH - 1) As Long
+            InitializeUnicodeCanonLookupTable This.regex.bytecode
+            InitializeUnicodeCanonRunsTable This.regex.bytecode
+            InitializeRangeTables This.regex.bytecode
+            InitializeAstTable This.regex.bytecode
+        Else
+            This.regex.stepsLimit = 10000
+        End If
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 #If VBA7 And Not Mac Then
 
 Private Function NativeCode() As LongPtr
-#If Mac Then
-  Err.Raise 5, "stdRegex", "This experiment requires Windows VBA7"
-#Else
-  If This.nativeCode = 0 Then
-    Dim hexCode As String
-#If Win64 Then
-    hexCode = hexCode & "4157415641554154565755534881ECB80000004C634140488B01448B104889442418448B4804438D3C0AFFC748BACDCCCCCCCCCCCCCC4C89C048F7E2"
-    hexCode = hexCode & "83FF027C1748C1EA034489C629FE0F9CC085D2410F9EC34108C3741B48C7C0FDFFFFFF4881C4B80000005B5D5F5E415C415D415E415FC38B412C4889"
-    hexCode = hexCode & "4424703B41287E0948C7C0FFFFFFFFEBD68974246448895424584C89CA4C8B49184B8D048148894424404A8D04804889442448418D40FD8944245442"
-    hexCode = hexCode & "8D04128944247C48899424A80000004401D283C20289F848FFCA4189C04183E0074189C24181E2F8FFFF7F4C899424B00000004189C24183E2034C89"
-    hexCode = hexCode & "542468488984248000000025FCFFFF7F488984248800000089D083E0034883E2FC4889942498000000488984249000000048F7D848898424A0000000"
-    hexCode = hexCode & "660F76C0897C242431C083FF087230488B9424B0000000666666662E0F1F840000000000F3410F7F0481F3410F7F4481104883C0084839C275EA4D85"
-    hexCode = hexCode & "C07424498D048131D26666666666662E0F1F840000000000C70490FFFFFFFF48FFC24939D075F1837930020F8C97120000488B4424188B4004448D34"
-    hexCode = hexCode & "404183C603C7442404FEFFFFFF48C744241000000000BBFFFFFFFFB801000000488944243041BD01000000C704240000000048C744242800000000C7"
-    hexCode = hexCode & "44240C000000008B44242489442408BFFFFFFFFF488B4424704189C3EB2C29C683C6FD39F30F4DDE0F1F84000000000089F84189DE4489F341FFC541"
-    hexCode = hexCode & "89F689C7443B69300F8D0612000048C7C0FCFFFFFF4585F60F8825FEFFFF448B51444539D60F8D18FEFFFF418D76014489F24C8B642418418B14940F"
-    hexCode = hexCode & "B6EA83FD117E4183FD180F8EE800000083FD1C0F8FE601000083FD1A0F8FCA03000083FD190F84000B000083FD1A0F84FA030000E9CEFDFFFF666666"
-    hexCode = hexCode & "6666662E0F1F84000000000083FD0A0F8FE700000083FD050F8F3D02000083FD030F8F6503000083FD020F84130B000083FD030F85941100004585DB"
-    hexCode = hexCode & "0F887A0E0000443B59280F8D700E0000488B4424304401D8448B51384585D24C89DB41BB00300000450F45D34101D241F7C2002000000F8516110000"
-    hexCode = hexCode & "488B51104189DA420FB71452448D92D8DFFFFF4183FA020F82270E000083FA0A0F841E0E00004189C389F883FA0D0F84100E0000E9D0FEFFFF66662E"
-    hexCode = hexCode & "0F1F84000000000083FD150F8F3A0100008D55EE83FA020F826B03000083FD140F84DF06000083FD150F85E8FCFFFF4489F683C603E98EFEFFFF6666"
-    hexCode = hexCode & "6666662E0F1F84000000000083FD0D0F8E3601000083FD0F0F8FFD01000083FD0E0F841507000083FD0F0F85ABFCFFFF4439D60F83A2FCFFFF4D89DC"
-    hexCode = hexCode & "4189F24C8B5C2418478B14934585D20F8E8AFCFFFF468D1C5501000000443B5C24240F8D77FCFFFF418D76024501D28B4424082B4424244401D04C63"
-    hexCode = hexCode & "D0478B3C91438B6C91044589FA4109EA0F88C80C00008D5DFF488B44243083F801410F44DF4531D239EB410F9CC24531DB4439FB410F9DC383F80145"
-    hexCode = hexCode & "0F44DA4180FB010F85120F00004D89E344897C247848896C2438E9EF0300008D55E383FA020F820403000083FD1F0F840F07000083FD200F85EAFBFF"
-    hexCode = hexCode & "FF85FF0F88E2FBFFFF3B7C241089FA48895424100F8CC20C0000E9CCFBFFFF83FD160F84FB04000083FD170F84E101000083FD180F85B1FBFFFF31C0"
-    hexCode = hexCode & "4439D60F83100A00004183C60289F2488B7424188B14964489F6E9FC09000083FD0B0F84E004000083FD0C0F844205000083FD0D0F84660C0000E970"
-    hexCode = hexCode & "FBFFFF83FD060F849F05000083FD070F84ED07000083FD080F8555FBFFFF31D24439D673114183C60289F0488B5424188B14824489F64C8B7424284C"
-    hexCode = hexCode & "8B542410443B5424580F8D21FBFFFF4963C241FFC24C89542410488D04804C8B54244841893CC28B6C240841896CC2048B6C240C41896CC208458974"
-    hexCode = hexCode & "C20C418974C21045895CC21441895CC2184C8B742430458974C21C8B6C240441896CC2208B2C2441896CC22401F2C744240C01000000E9880A000083"
-    hexCode = hexCode & "FD100F843B05000083FD110F85AEFAFFFF4C8B542430418D42FFC1E81F4101C241FFCA41D1FA4489D84429D00F883EFCFFFF3B41280F8D35FCFFFF4D"
-    hexCode = hexCode & "89DE448B51344585D241BB000C0000450F45D34101D241F7C2000800000F84510B0000488B511089C00FB714428D82D8DFFFFF83F8024D89F30F8344"
-    hexCode = hexCode & "050000E9F0FBFFFF4D89DF4531DB4439D60F83C2020000418D5E024189F3488B742418468B1C9EE9AF02000083FD1B0F846907000083FD1C0F8509FA"
-    hexCode = hexCode & "FFFF418D460231D24439D073114183C60389C0488B5424188B14824489F089C629D683C6FD39F30F4DDE0F4EF0E98AFBFFFF4C8B542428443B542454"
-    hexCode = hexCode & "0F8FC2F9FFFF4963C2488B5424408B2C24892C824C8B74241044897482048B6C2404896C82084489D0418D520383C002890424C7442404FFFFFFFFE9"
-    hexCode = hexCode & "FE090000BA010000002B54243089D0C1E81F01D0D1F84C895C24384401D831D2448B592841BA0000000085C07E4D41BAFFFFFFFF4439D87F0D4C8B51"
-    hexCode = hexCode & "104189C6470FB75472FE4589D64183E6DF4183C6BF4183FE1A410F92C6458D62D04183FC0A410F92C44183FA5F410F94C24508E24508F2450FB6D241"
-    hexCode = hexCode & "83E2014439D80F8DD809000085C00F88A0090000488B511089C00FB70442E9960900004C8B7C2410443B7C24580F8DE1F8FFFF4963C7488D0480488B"
-    hexCode = hexCode & "542448893CC2448B542408448954C204448B54240C448954C2084C8B542428448954C20C8974C21044895CC214895CC2184C8B542430448954C21C8B"
-    hexCode = hexCode & "7424048974C2208B34248974C224418D57014489F683C60383FD1D4C89FF0F8558060000C744240C01000000B8010000004429D04189C241C1EA1F41"
-    hexCode = hexCode & "01C241D1FA4501DA4589D3B801000000E94C0600004539DA4D89FB448B7C24780F853209000031C0488B6C243839EB0F9CC04531D24439FB410F9DC2"
-    hexCode = hexCode & "837C243001440F44D04584D20F84DF0B0000BDFFFFFFFF85DB78223B59287D1D4C8B51104C89D84189DB470FB7245A4989C3035C24304585DB790DEB"
-    hexCode = hexCode & "2841BCFFFFFFFF4585DB781D443B59287D174C8B51104C89D84189C3430FB72C5A4989C344035C24304139EC7480F7C2000200000F84A60800004D89"
-    hexCode = hexCode & "DF41BBFFFFFFFF41BAFFFFFFFF4181FCFFFF0000770F4C8B51084489E045032482450FB7D481FDFFFF00000F8730FFFFFF488B41084189EB42032C98"
-    hexCode = hexCode & "440FB7DDE91CFFFFFF89F34D89FC4585E40F8851080000443B61280F8D47080000488B71104589E4460FB72466F7C200020000740F488B51084489E6"
-    hexCode = hexCode & "440324B2450FB7E44585DB0F8E2AF7FFFF428D345B4439D60F8F1DF7FFFF44037C24304C897C2438FFCB8D4601EB1C666666662E0F1F840000000000"
-    hexCode = hexCode & "89D089C229DA83FA020F84FB04000089C229DA448D520385D2440F49D241C1FA02428D14534C63D24C8B5C2418473924937DCD89D3EBCB31C04439D6"
-    hexCode = hexCode & "0F83F30400004183C60289F2488B7424188B14964489F6E9DF04000031D24439D673124183C60289F24C8B542418418B14924489F62B5424240F8384"
-    hexCode = hexCode & "F6FFFF837C240C000F84F0070000448B542408443B5424644C8B7424680F8F5DF6FFFF4C895C24384489D0448B5C24244429D84C63F84D63D24183FB"
-    hexCode = hexCode & "040F83CD0700004531DBE91B0800004531E44439D60F83780500004183C6024D89DF4189F3488B542418428B2C9A4D89FB4489F6E95C0500004C8B54"
-    hexCode = hexCode & "2428443B5424540F8FFBF5FFFF4963C2488B5424408B2C24892C824C8B74241044897482048B6C2404896C82084489D0418D520383C002890424C744"
-    hexCode = hexCode & "240400000000E93706000031D24439D60F83760500004183C60289F0488B5424188B148285D20F8E630500004401F2E96705000031C04439D60F83D5"
-    hexCode = hexCode & "0400004183C60289F0488B5424188B04824489F601C6E92DF7FFFFB8010000002B4424304189C241C1EA1F4101C241D1FA4501DA4585D20F8E0BF7FF"
-    hexCode = hexCode & "FF8B413485C041BA000C0000410F45C201D0A9000800000F842F060000488B5424308D4201C1E81F01C2FFC2D1FA4489D829D00F88130600003B4128"
-    hexCode = hexCode & "0F8D0A060000488B511089C00FB714428D82D8DFFFFF83F8020F82B1F6FFFF83FA0A0F84A8F6FFFF89F84189DE83FA0D0F849FF6FFFFE9D505000085"
-    hexCode = hexCode & "FF0F88DCF4FFFF3B7C24100F8DD2F4FFFF89F84C8D1C80488B5C2448428B04DB468B54DB04428B6CDB08428B54DB0C4889542428428B54DB10428B74"
-    hexCode = hexCode & "DB144889742438468B74DB18428B74DB1C4889742430428B74DB2089742404468B5CDB2444891C24448B5C24084539D30F84C900000085ED0F456C24"
-    hexCode = hexCode & "244401D54D63E34189EF4863F541BB01000000837C247C03726D4D8D51FC498D1CB24C896424104F8D24A249C7C3FFFFFFFF4C8B9424980000006690"
-    hexCode = hexCode & "438B6C9C0442896C9B04438B2C9C42892C9B438B6C9CFC42896C9BFC438B6C9CF842896C9BF84B8D2C1A4883C5FC4983C3FC4883FDFF75C84883BC24"
-    hexCode = hexCode & "9000000000743D49F7DB4C8B64241049C1E302498D34B14C29DE4F8D14A14D29DA4531DB4C8BA424A00000000F1F840000000000438B1C9A42891C9E"
-    hexCode = hexCode & "49FFCB4D39DC75F044897C240831ED4531D289D6FFC64C8B5C2438896C240C7C163B71447D1183C2024189F2488B742418468B149689D64401D689FA"
-    hexCode = hexCode & "4889542410E927F5FFFF31C04439D673114183C60289F0488B5424188B04824489F64C8B7424284C8B542410443B5424580F8D3DF3FFFF01F04963D2"
-    hexCode = hexCode & "41FFC24C89542410488D14924C8B54244841893CD28B6C240841896CD2048B6C240C41896CD208458974D20C418944D21045895CD21441895CD21848"
-    hexCode = hexCode & "8B442430418944D21C8B442404418944D2208B0424418944D224C744240C01000000E98DF4FFFF418D760231C04439D673114183C60389F0488B5424"
-    hexCode = hexCode & "188B04824489F629C683C6FD89F84189F639F30F8F64F4FFFFE99A03000031C04439D60F83720200004183C60289F2488B7424188B14964489F6E95E"
-    hexCode = hexCode & "02000031DB4439D6731189F0458D5602488B7424188B1C864489D641BAFFFFFFFF4585DB782E443B59287D28488B41104589DA460FB7145044035C24"
-    hexCode = hexCode & "30F7C200020000740F488B41084489D244031490450FB7D289F84439D30F84E2F3FFFFE9180300004489D041FFC241C1EA1F4401D0FFC0D1F84129C3"
-    hexCode = hexCode & "C744240C01000000B8FFFFFFFF488944243089F84889542410E9A8F3FFFF31D239F07D11489831D24C8B54241845396482FC0F9EC24531D283FD0441"
-    hexCode = hexCode & "0F94C289F84439D2E9A602000031D24C8B7424284439D6730D89F0FFC64C8B542418418B0482448B54240441FFC244895424044139D20F8C3AF3FFFF"
-    hexCode = hexCode & "E9D501000031D24439D6730D89F0FFC64C8B542418418B0482448B54240441FFC24139D27D774589D74C8B542410443B5424584C8B7424280F8D56F1"
-    hexCode = hexCode & "FFFF4963D241FFC24C89542410488D14924C8B54244841893CD28B6C240841896CD2048B6C240C41896CD208458974D20C418974D21045895CD21441"
-    hexCode = hexCode & "895CD2184C8B742430458974D21C45897CD2208B2C2441896CD224C744240C01000000EB038B2C2485ED0F84540200004863D54C8B542440418B2C92"
-    hexCode = hexCode & "896C2404418B6C92F8892C244C8B74241045397492FC4C8B542428418D52FD410F45D2488954242801C6E969F2FFFF31ED4439D6730D89F2FFC64C8B"
-    hexCode = hexCode & "542418458B249285ED0F889CF0FFFF2BAC24A80000000F8D8FF0FFFF837C240C000F84040200008B5424083B5424640F8F6FF0FFFF4C895C243889D0"
-    hexCode = hexCode & "448B5C24244429D84C63F04C63D24183FB040F838F0200004D89F74531DB4C8B742468E9E60200004189F64401F239D30F4DDA410F4ED689F84189DE"
-    hexCode = hexCode & "89D6E9E2F1FFFF31D24C8B7424284439D6730D89F0FFC64C8B542418418B0482448B54240441FFC244895424044139D27D3E4C895C24388B142485D2"
-    hexCode = hexCode & "0F84F30200004C63DA4D89F74C8B742440438B149E478B549EF84C8B6424104739649EFC458D5FFD450F45DF4589DEE9D202000001C68B042485C074"
-    hexCode = hexCode & "3F48984C8B542440418B148289542404418D56FD4C8B7C241045397C82FC410F45D6418B4482F889042489F84889542428E938F1FFFF4D89E389F8E9"
-    hexCode = hexCode & "31F1FFFFC7042400000000C7442404FEFFFFFFE918F1FFFFB8FFFFFFFF89C283E2DF83C2BF83FA1A0F92C2448D58D04183FB0A410F92C383F85F0F94"
-    hexCode = hexCode & "C04408D808D00FB6D083E20183FD120F94C04139D20F95C230C289F84189DE4C8B5C24380F84CFF0FFFF662E0F1F840000000000488B44241085C00F"
-    hexCode = hexCode & "84D9020000FFC848894424104898488D14804C8B542448418B04D2458B5CD20444895C2408458B5CD20844895C240C458B5CD20C4C895C2428418B74"
-    hexCode = hexCode & "D210458B5CD214458B74D218418B7CD21C48897C2430418B7CD220897C2404418B54D224891424E955F0FFFFC7042400000000C7442404FEFFFFFF01"
-    hexCode = hexCode & "C6E93AF0FFFF8B442408E99E0000008B442408E955010000498D410C4E8D34B84E8D24904531DB488B84248800000090438B6C9EF443896C9CF4438B"
-    hexCode = hexCode & "6C9EF843896C9CF8438B6C9EFC43896C9CFC438B2C9E43892C9C4983C3044C39D875D1F6842480000000034C8B742468743249C1E2024F8D149A4D01"
-    hexCode = hexCode & "CA49C1E7024B8D049F4C01C84531DB660F1F840000000000428B2C9843892C9A49FFC34D39DE75F08B442408034424244C8B5C24388944240801C248"
-    hexCode = hexCode & "63C245891C81C744240C00000000E979EFFFFF448964240C498D410C4D89F74E8D34B04E8D24904531DB488B842488000000662E0F1F840000000000"
-    hexCode = hexCode & "438B549EF44389549CF4438B549EF84389549CF8438B549EFC4389549CFC438B149E4389149C4983C3044C39D875D14C8B7424684D85F6448B64240C"
-    hexCode = hexCode & "743249C1E2024F8D149A4D01CA49C1E7024B8D049F4C01C84531DB660F1F840000000000428B14984389149A49FFC34D39DE75F08B44240803442424"
-    hexCode = hexCode & "4C8B5C24388944240801C54863C545892481C744240C00000000E9B9EEFFFF89F84D89E3E9B4EEFFFFBAFEFFFFFF4531D24C8B642410443B6424580F"
-    hexCode = hexCode & "8DDFECFFFF01F04D63DC4F8D1C9B4D89F74C8B74244843893CDE8B6C240843896CDE048B6C240C43896CDE0847897CDE0C438944DE10488B44243843"
-    hexCode = hexCode & "8944DE1443895CDE18488B442430438944DE1C438954DE20478954DE244D89FE443B7424540F8F7DECFFFF41FFC44963C64C8B5C2440458914834C89"
-    hexCode = hexCode & "642410458964830441895483084489F0418D560383C002890424C744240C0100000089F848895424284189DE4C8B5C2438E9F3EDFFFF4189C389F8E9"
-    hexCode = hexCode & "E9EDFFFF0F1F400083793C00751F488B4424703B41288D400148894424708B7C24240F8CE4ECFFFFE92BECFFFF48C7C0FEFFFFFFE9FEEBFFFF83FD01"
-    hexCode = hexCode & "0F85F5EBFFFF8B442408448B4424244429C0488B51204863C8488BB4248000000089F083E0034183F80473054531C0EB4B4C89DF81E6FCFFFF7F4D8D"
-    hexCode = hexCode & "14894983C20C4531C0478B5C82F446891C82478B5C82F846895C8204478B5C82FC46895C8208478B1C8246895C820C4983C0044C39C675D14885C049"
-    hexCode = hexCode & "89FB741F4A8D14824F8D0481498D0C884531C0468B0C8146890C8249FFC04C39C075F04963C3E958EBFFFF"
-#Else
-    hexCode = hexCode & "5553575681EC900000008BAC24A40000008B7D2C8B5D008B33B9CDCCCCCC89F8F7E1895C24208B43048D0C064183F9027C1D8944247489F8894C2434"
-    hexCode = hexCode & "29C8894424700F9CC083FF0A0F92C108C17412B8FDFFFFFF81C4900000005E5F5B5DC210008B4518894424643B45147E07B8FFFFFFFFEBE089D18B55"
-    hexCode = hexCode & "0C8D46018D1CBA895C243C8D1CBB895C2440C1E903894C244C8D04828984248400000083C7FD037424748B44243489C183E107898C248C00000089C1"
-    hexCode = hexCode & "81E1F8FFFF7F898C248800000089C183E103894C244825FCFFFF7F894424548D04B50000000089D329C3895C245889442478F7D801D083C0FC894424"
-    hexCode = hexCode & "6CF7D9898C2480000000660F76C08D420C894424688D42FC8944247C8954243889742450897C246031C0B90000000083FE078BB4248C0000008B9C24"
-    hexCode = hexCode & "88000000722431C96666662E0F1F840000000000F30F7F048AF30F7F448A1083C10839CB75EE85F674168D0C8A0F1F8000000000C70481FFFFFFFF40"
-    hexCode = hexCode & "39C675F4837D1C020F8C0A1200008B4424208B40048D0C4083C103C7442430FEFFFFFFC744241800000000C70424FFFFFFFFBE01000000C744242400"
-    hexCode = hexCode & "000000C744242C00000000C744241C000000008B44243489442414BBFFFFFFFFC7442428010000008B442464894424106666662E0F1F840000000000"
-    hexCode = hexCode & "B8FCFFFFFF85C90F8867FEFFFF8B7D3039F90F8D5CFEFFFF895C24048D51018954240C8B5424208B148A0FB6DA83FB11897424087E3A83FB180F8ED1"
-    hexCode = hexCode & "00000083FB1C0F8FB801000083FB1A8D71010F8F0005000083FB190F84F80B000083FB1A0F8437050000E909FEFFFF0F1F44000083FB0A0F8FD70000"
-    hexCode = hexCode & "0083FB050F8FCB02000083FB030F8FF103000083FB020F846B0C000083FB030F853B1100008B5C241085DB0F88E70E00003B5D140F8DDE0E00008B44"
-    hexCode = hexCode & "242801D88B752485F6BF003000000F45F701D6F7C6002000000F85A21000008B55080FB7145A8DB2D8DFFFFF83FE020F82A70E000083FA0A0F849E0E"
-    hexCode = hexCode & "0000894424108B44240483FA0D8B5424080F84890E0000E9550F00000F1F400083FB150F8F260100008D53EE83FA020F82BA04000083FB140F84F008"
-    hexCode = hexCode & "000083FB158B5424080F8539FDFFFF83C103894C240C8B4424048B0C24E9130F0000669083FB0D0F8ED101000083FB0F0F8F9502000083FB0E0F8431"
-    hexCode = hexCode & "09000083FB0F8D71010F85FDFCFFFF39FE0F83F5FCFFFF8B7424208B748E0485F60F8EE5FCFFFF8D3C75010000003B7C24340F8DD4FCFFFF01F68B44"
-    hexCode = hexCode & "24142B4424348B7C24388D04878B2CB08B74B00489E809F08D41028944240C0F88C50B000089F08D7EFF8B74242883FE010F44FD31DB89042439C70F"
-    hexCode = hexCode & "9CC331C039EF0F9DC083FE010F44C33C010F85970B0000896C245CE9320500008D53E383FA020F825304000083FB1F8B4C24180F843A09000083FB20"
-    hexCode = hexCode & "0F8552FCFFFF8B54240485D20F8846FCFFFF39CA895424180F8C560D0000E935FCFFFF83FB160F849905000083FB170F844C03000083FB180F851AFC"
-    hexCode = hexCode & "FFFF31C0BA000000008D690139FD730D8B5424208B548A0483C10289CD39FD73088B4424208B04A8458B7C24188B4C24304139D18B7424247D623B7C"
-    hexCode = hexCode & "244C0F8DD3FBFFFF89CB8D0CBF8B5424408B7424048934CA8B7424148974CA048B74241C8974CA088B74242C8974CA0C896CCA108B7424108974CA14"
-    hexCode = hexCode & "8B34248974CA188B7424288974CA1C8B742424895CCA20478974CA24C744241C0100000085F6897C24180F84F10C00008B4C243C8B14B18954243039"
-    hexCode = hexCode & "7CB1FC8B4CB1F88B74242C8D56FD0F44F28974242C894C2424E9D70C000083FB0B0F840405000083FB0C8D51010F84DB05000083FB0D0F84480C0000"
-    hexCode = hexCode & "E927FBFFFF83FB060F841207000083FB070F846508000083FB080F850CFBFFFF31C08D590139FB730D8B4424208B44880483C10289CB8B7C24183B7C"
-    hexCode = hexCode & "244C0F8DE3FAFFFF8D0CBF8B5424408B6C2404892CCA8B7424148974CA048B74241C8974CA088B74242C8974CA0C895CCA108B7424108974CA148B34"
-    hexCode = hexCode & "248974CA188B7424288974CA1C8B7424308974CA208B7424248974CA2447897C241801C3895C240CC744241C0100000089E8E9630C000083FB100F84"
-    hexCode = hexCode & "BD06000083FB110F856BFAFFFF8B4C24288D41FFC1E81F01C149D1F98B44241029C80F88320C00008BB424A40000003B46148B5C24040F8D010B0000"
-    hexCode = hexCode & "8B4E2085C9BF000C00000F45CF01D1F7C1000800000F843D0B00008B4E080FB714418D82D8DFFFFF83F8020F82D00A000083FA0A8B0C2489D80F85CA"
-    hexCode = hexCode & "060000E9E10B0000C70424000000008D710189F539FE730E8D69028B7424208B748E04893424837C2410000F88EB0A00008954240C8BB424A4000000"
-    hexCode = hexCode & "8B5424103B56140F8DD30A00008B76088B5424100FB73456F744240C0002000074108B9424A40000008B52040334B20FB7F68B142485D20F8E87F9FF"
-    hexCode = hexCode & "FF8D14550000000001EA8954240C39FA0F8F72F9FFFF8B442428014424104D8B44240C40EB1D66666666662E0F1F84000000000089D089C229EA83FA"
-    hexCode = hexCode & "020F846808000089C229EA8D7A0385D20F49FAC1FF028D147D0000000001EA8B7C24203934977DD089D5EBCE83FB1B0F842F07000083FB1C0F850EF9"
-    hexCode = hexCode & "FFFF8D410231D239F8730D8B4424208B54880883C10389C889C129D183C1FD8B142439CA0F4DD10F4EC8894C240C8B44240489D1E9C00A00008B4C24"
-    hexCode = hexCode & "2C3B4C24600F8FC4F8FFFF8B44243C8B5424248914888B542418895488048B5424308954880889C883C10383C00289442424C7442430FFFFFFFFE97C"
-    hexCode = hexCode & "040000B9010000002B4C242889C8C1E81F01C8D1F80344241031C98B7514BA0000000085C07E40BAFFFFFFFF39F07F088B55080FB75442FE89D783E7"
-    hexCode = hexCode & "DF83C7BF83FF1A0F9244245C8D7AD083FF0A0F9244244783FA5F0F94C20A5424470A54245C0FB6D283E20139F00F8D2109000085C00F88ED0800008B"
-    hexCode = hexCode & "4D080FB70441E9E60800008B6C24183B6C244C0F8D02F8FFFF8D04AD0000000001E88B5424408B7424048934C28B7424148974C2048B74241C8974C2"
-    hexCode = hexCode & "088B74242C8974C20C8D71018974C2108B7424108974C2148B3C24897CC2188B7C2428897CC21C8B7C2430897CC2208B7C2424897CC2248D550183C1"
-    hexCode = hexCode & "03894C240C83FB1D0F8584060000C744241C01000000B8010000002B44242889C1C1E91F01C1D1F901CE89742410C744242801000000E97C06000039"
-    hexCode = hexCode & "D80F858108000031C03B3C240F9CC031DB8B6C245C39EF0F9DC3837C2428010F44D884DB0F845C060000BDFFFFFFFF85FF78198B8424A40000003B78"
-    hexCode = hexCode & "147D0D8B40080FB73478037C2428EB05BEFFFFFFFF8B44241085C0781B89C38B8424A40000003B58147D0B8B40080FB72C58035C242889D839EE8944"
-    hexCode = hexCode & "2410748BF7C2000200000F8400080000BBFFFFFFFFB8FFFFFFFF81FEFFFF0000760E81FDFFFF00000F8759FFFFFFEB1C8B8424A40000008B40040334"
-    hexCode = hexCode & "B00FB7C681FDFFFF00000F873BFFFFFF8BB424A40000008B7604032CAE0FB7DDE926FFFFFF31C0BA000000008D590139FB730D8B5424208B548A0483"
-    hexCode = hexCode & "C10289CB39FB73088B4424208B0498438B7424248B4C243041894C243039D10F8DB105000029C383C3FD8B0C2439D9895C240C0F4DCB8B442404E926"
-    hexCode = hexCode & "08000031D28D710139FE730D8B5424208B548A0483C10289CE8974240C3B5424340F8319F6FFFF837C241C000F84A90700008B4424143B4424708B5C"
-    hexCode = hexCode & "24480F8FF7F5FFFF31C0B900000000837C2450038B6C2438725A8B4C24588B7C24148D34B98B4C24688D3CB931C98B6C245466666666662E0F1F8400"
-    hexCode = hexCode & "000000008B5C8EFC895C8FF48B1C8E895C8FF88B5C8E04895C8FFC8B5C8E08891C8F83C10439CD75DBF6442434038B5C24488B6C243874278B742414"
-    hexCode = hexCode & "8D34B5000000008D0C8E8D3429034C246C0F1F80000000008B3C81893C864039C375F58B4C24348B44241401C8E90107000031EDBB0000000039FA73"
-    hexCode = hexCode & "1A8B7424208B5C8E0483C10289CA39FA720D85DB7919E935F5FFFF39FA73F38B4C24208B2C914285DB0F8821F5FFFF8954240C3B5C24740F8D13F5FF"
-    hexCode = hexCode & "FF837C241C000F84C70600008B4424143B4424700F8FF5F4FFFF896C241C31C0B900000000837C2450038B6C2448724D8B4C24588B5424148D34918B"
-    hexCode = hexCode & "4C24688D3C9131C98B5424540F1F8400000000008B6C8EFC896C8FF48B2C8E896C8FF88B6C8E04896C8FFC8B6C8E08892C8F83C10439CA75DB8B6C24"
-    hexCode = hexCode & "4885ED742E8B5424148D3495000000008D0C8E8B74243801CE034C246C66662E0F1F8400000000008B3C81893C864039C575F58B4C24348B44241401"
-    hexCode = hexCode & "C88B6C241CE91D0600008B4C242C3B4C24600F8F43F4FFFF8B44243C8B5424248914888B542418895488048B5424308954880889C883C10383C00289"
-    hexCode = hexCode & "442424C7442430000000008B442404894C242CE9F205000031D28D410139F88B7424040F831D0600008B4424208B54880483C10285D20F8E08060000"
-    hexCode = hexCode & "01CA89F08B0C248954240CE9C105000031C08D510139FA730D8B4424208B44880483C10289CA01C28954240CE999050000B8010000002B44242889C1"
-    hexCode = hexCode & "C1E91F01C1D1F9034C241085C90F8E7B0500008B452085C0B9000C00000F45C101D0A9000800008B7424040F84970400008B4C24288D4101C1E81F01"
-    hexCode = hexCode & "C141D1F98B44241029C80F887C0400003B45140F8D730400008B4D080FB714418D82D8DFFFFF83F8020F825C06000083FA0A8B0C240F846805000089"
-    hexCode = hexCode & "F083FA0D8B5424080F8413050000E93D0400008B54240485D20F8815F3FFFF39CA0F8D0DF3FFFF8B4424048D34808B5424408B04F28B5CF2048B6CF2"
-    hexCode = hexCode & "088B4CF20C894C242C8B4CF210894C240C8B4CF214894C24108B4CF2188B7CF21C897C24288B7CF220897C24308B54F22489542424395C24140F8582"
-    hexCode = hexCode & "020000896C241CE93E03000031C08D590139FB730D8B4424208B44880483C10289CB8B7C24183B7C244C0F8D87F2FFFF8D0CBF8B5424408B6C240489"
-    hexCode = hexCode & "2CCA8B7424148974CA048B74241C8974CA08895C240C01D88B74242C8974CA0C8944CA1047897C24188B4424108944CA148B34248974CA188B442428"
-    hexCode = hexCode & "8944CA1C8B4424308944CA208B4424248944CA24C744241C0100000089E889F1E9080400008D510231C039FA730D8B4424208B44880883C10389CA29"
-    hexCode = hexCode & "C283C2FD8B44240489D18954240C3914248B5424080F8E09030000E9D503000031C0BA0000000039FE730D8B5424208B548A0483C10289CE39FE8B7C"
-    hexCode = hexCode & "240473088B4424208B04B0468974240C8B6C24188B7424248B4C243041894C243039D10F8D3401000085F60F84D20300008B7C243C8B0CB78B54B7F8"
-    hexCode = hexCode & "895424188B5C242C8D53FD396CB7FC0F44DA895C242CE9B903000031F68D410139F8730F8D41028944240C8B4424208B748804BFFFFFFFFF8B5C2410"
-    hexCode = hexCode & "85DB78253B5D147D208B45080FB73C58035C2428895C2410F7C20002000074098B4504033CB80FB7FF8B44240439FE8B5424080F8408030000E93202"
-    hexCode = hexCode & "00008B4C24288D4101C1E81F01C840D1F829C689742410C744241C01000000C7442428FFFFFFFF89E889542418E9CC0200008B442404E9C602000031"
-    hexCode = hexCode & "FF3B44240C7D128B542420397482FCB8000000000F9EC089C731D283FB040F94C28B44240439D78B5424080F8498020000E9C2010000895C240C85F6"
-    hexCode = hexCode & "8B4424180F84A40200008B4C243C3944B1FC8B54242C8D42FD0F44D08954242C8B04B1894424308B4CB1F88B442404EB2F0144240C85F60F844D0300"
-    hexCode = hexCode & "008B4C243C396CB1FC8B54242C8D42FD0F44D08954242C8B04B1894424308B4CB1F889F8894C2424E91D02000089DE85ED0F456C24348D142B891424"
-    hexCode = hexCode & "BB01000000837C245003726A89742418896C241C8B54247C8B34248D2CB28B7424148D34B2BBFFFFFFFF8B7C2454660F1F4400008B549E0489549D04"
-    hexCode = hexCode & "8B149E89549D008B549EFC89549DFC8B549EF889549DF88D141F83C2FC83C3FC83FAFF75D3F6442434030F84CA020000F7DB8B6C241C8B74241801F5"
-    hexCode = hexCode & "29DD8B5424388D34AAC1E3028B7C24148D3CBA29DFC744241C0000000031DB8BAC2480000000660F1F4400008B149F89149E4B39DD75F58B14248954"
-    hexCode = hexCode & "24148B9424A40000008B5C240431F68B6C240C89EF477C123B7A307D0D8B5424208B74AA0483C50289EF01F7897C240C895C2418E92401000089D8E9"
-    hexCode = hexCode & "1A010000B8FFFFFFFF89C183E1DF83C1BF83F91A0F92C18D70D083FE0A0F92C583F85F0F94C008E808C80FB6C883E10183FB120F94C039CA0F95C130"
-    hexCode = hexCode & "C18B4424048B0C248B5424080F84D7000000660F1F4400008B44241885C00F840A02000048894424188D14808B7424408B04D68B4CD604894C24148B"
-    hexCode = hexCode & "4CD608894C241C8B4CD60C894C242C8B4CD610894C240C8B4CD614894C24108B4CD6188B7CD61C897C24288B7CD620897C24308B54D62489542424EB"
-    hexCode = hexCode & "6CC744242400000000C7442430FEFFFFFF8B4C240401C5896C240C89C8EB4B8B6C24388B4C24348B4424148944241429C88D04850000000001E88B4C"
-    hexCode = hexCode & "2410890C90EB1B8B4C24348B4424148944241429C88B8C24840000008D0481892C98C744241C000000008B4424048B0C248B542408890C24428B4C24"
-    hexCode = hexCode & "0C89C38BAC24A40000003B551C89D60F8C83EFFFFFE91E010000C744242400000000C7442430FEFFFFFFEBC289C801C28B0C2439D10F4DCA0F4FC289"
-    hexCode = hexCode & "44240C89F0EBB2B9FEFFFFFFC7442418000000003B6C244C0F8DADEDFFFF8D34AD0000000001EE8B5C24408B5424048914F389EF8B6C2414896CF304"
-    hexCode = hexCode & "8B6C241C896CF3080344240C8B6C242C896CF30C8944F3108B4424108944F3148B14248954F3188B4424288944F31C894CF3208B4424188944F3243B"
-    hexCode = hexCode & "6C24600F8F4AEDFFFF89C6478B44243C8934A8897C2418897CA804894CA80889E88D750383C00289442424C744241C010000008B4424048974242C89"
-    hexCode = hexCode & "D1E9FFFEFFFFC744242400000000C7442430FEFFFFFF89F8E9E5FEFFFF894424108B442404E9DBFEFFFFC744241C00000000E96CFDFFFF89F0E9C4FE"
-    hexCode = hexCode & "FFFF662E0F1F840000000000837D280075288BAC24A40000008B4424643B45148D4001894424648B5424388B7424500F8C6FEDFFFFE9BFECFFFFB8FE"
-    hexCode = hexCode & "FFFFFFE99CECFFFF83FB010F8593ECFFFF8B8424A40000008B481031C0BA00000000837C2450038B5C2438723D8B5424588B7424148D34B231D28B6C"
-    hexCode = hexCode & "24548B7C96FC893C918B3C96897C91048B7C9604897C91088B7C9608897C910C83C20439D575DB837C24480074238D0C918D14932B5424788B742414"
-    hexCode = hexCode & "8D14B283C2FC8B7C24488B34828934814039C775F58B442410E90EECFFFF"
-#End If
-    Dim bytes() As Byte, i As Long, oldProtection As Long, p As LongPtr
-    ReDim bytes(0 To Len(hexCode) \ 2 - 1)
-    For i = 0 To UBound(bytes)
-      bytes(i) = CByte("&H" & Mid$(hexCode, 2 * i + 1, 2))
-    Next
-    p = VirtualAlloc(0, UBound(bytes) + 1, &H3000, &H4)
-    If p = 0 Then Err.Raise 7, "stdRegex", "Cannot allocate native matcher"
-    CopyMemory p, VarPtr(bytes(0)), UBound(bytes) + 1
-    If VirtualProtect(p, UBound(bytes) + 1, &H20, oldProtection) = 0 Then
-      VirtualFree p, 0, &H8000
-      Err.Raise 5, "stdRegex", "Cannot make native matcher executable"
-    End If
-    If FlushInstructionCache(-1, p, UBound(bytes) + 1) = 0 Then
-      VirtualFree p, 0, &H8000
-      Err.Raise 5, "stdRegex", "Cannot flush native matcher instruction cache"
-    End If
-    This.nativeCode = p
-  End If
-  NativeCode = This.nativeCode
-#End If
+  With stdError.getSentry("stdRegex#NativeCode")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+    #If Mac Then
+      Err_Raise 5, "stdRegex", "This experiment requires Windows VBA7"
+    #Else
+      If This.nativeCode = 0 Then
+        Dim hexCode As String
+    #If Win64 Then
+        hexCode = hexCode & "4157415641554154565755534881ECB80000004C634140488B01448B104889442418448B4804438D3C0AFFC748BACDCCCCCCCCCCCCCC4C89C048F7E2"
+        hexCode = hexCode & "83FF027C1748C1EA034489C629FE0F9CC085D2410F9EC34108C3741B48C7C0FDFFFFFF4881C4B80000005B5D5F5E415C415D415E415FC38B412C4889"
+        hexCode = hexCode & "4424703B41287E0948C7C0FFFFFFFFEBD68974246448895424584C89CA4C8B49184B8D048148894424404A8D04804889442448418D40FD8944245442"
+        hexCode = hexCode & "8D04128944247C48899424A80000004401D283C20289F848FFCA4189C04183E0074189C24181E2F8FFFF7F4C899424B00000004189C24183E2034C89"
+        hexCode = hexCode & "542468488984248000000025FCFFFF7F488984248800000089D083E0034883E2FC4889942498000000488984249000000048F7D848898424A0000000"
+        hexCode = hexCode & "660F76C0897C242431C083FF087230488B9424B0000000666666662E0F1F840000000000F3410F7F0481F3410F7F4481104883C0084839C275EA4D85"
+        hexCode = hexCode & "C07424498D048131D26666666666662E0F1F840000000000C70490FFFFFFFF48FFC24939D075F1837930020F8C97120000488B4424188B4004448D34"
+        hexCode = hexCode & "404183C603C7442404FEFFFFFF48C744241000000000BBFFFFFFFFB801000000488944243041BD01000000C704240000000048C744242800000000C7"
+        hexCode = hexCode & "44240C000000008B44242489442408BFFFFFFFFF488B4424704189C3EB2C29C683C6FD39F30F4DDE0F1F84000000000089F84189DE4489F341FFC541"
+        hexCode = hexCode & "89F689C7443B69300F8D0612000048C7C0FCFFFFFF4585F60F8825FEFFFF448B51444539D60F8D18FEFFFF418D76014489F24C8B642418418B14940F"
+        hexCode = hexCode & "B6EA83FD117E4183FD180F8EE800000083FD1C0F8FE601000083FD1A0F8FCA03000083FD190F84000B000083FD1A0F84FA030000E9CEFDFFFF666666"
+        hexCode = hexCode & "6666662E0F1F84000000000083FD0A0F8FE700000083FD050F8F3D02000083FD030F8F6503000083FD020F84130B000083FD030F85941100004585DB"
+        hexCode = hexCode & "0F887A0E0000443B59280F8D700E0000488B4424304401D8448B51384585D24C89DB41BB00300000450F45D34101D241F7C2002000000F8516110000"
+        hexCode = hexCode & "488B51104189DA420FB71452448D92D8DFFFFF4183FA020F82270E000083FA0A0F841E0E00004189C389F883FA0D0F84100E0000E9D0FEFFFF66662E"
+        hexCode = hexCode & "0F1F84000000000083FD150F8F3A0100008D55EE83FA020F826B03000083FD140F84DF06000083FD150F85E8FCFFFF4489F683C603E98EFEFFFF6666"
+        hexCode = hexCode & "6666662E0F1F84000000000083FD0D0F8E3601000083FD0F0F8FFD01000083FD0E0F841507000083FD0F0F85ABFCFFFF4439D60F83A2FCFFFF4D89DC"
+        hexCode = hexCode & "4189F24C8B5C2418478B14934585D20F8E8AFCFFFF468D1C5501000000443B5C24240F8D77FCFFFF418D76024501D28B4424082B4424244401D04C63"
+        hexCode = hexCode & "D0478B3C91438B6C91044589FA4109EA0F88C80C00008D5DFF488B44243083F801410F44DF4531D239EB410F9CC24531DB4439FB410F9DC383F80145"
+        hexCode = hexCode & "0F44DA4180FB010F85120F00004D89E344897C247848896C2438E9EF0300008D55E383FA020F820403000083FD1F0F840F07000083FD200F85EAFBFF"
+        hexCode = hexCode & "FF85FF0F88E2FBFFFF3B7C241089FA48895424100F8CC20C0000E9CCFBFFFF83FD160F84FB04000083FD170F84E101000083FD180F85B1FBFFFF31C0"
+        hexCode = hexCode & "4439D60F83100A00004183C60289F2488B7424188B14964489F6E9FC09000083FD0B0F84E004000083FD0C0F844205000083FD0D0F84660C0000E970"
+        hexCode = hexCode & "FBFFFF83FD060F849F05000083FD070F84ED07000083FD080F8555FBFFFF31D24439D673114183C60289F0488B5424188B14824489F64C8B7424284C"
+        hexCode = hexCode & "8B542410443B5424580F8D21FBFFFF4963C241FFC24C89542410488D04804C8B54244841893CC28B6C240841896CC2048B6C240C41896CC208458974"
+        hexCode = hexCode & "C20C418974C21045895CC21441895CC2184C8B742430458974C21C8B6C240441896CC2208B2C2441896CC22401F2C744240C01000000E9880A000083"
+        hexCode = hexCode & "FD100F843B05000083FD110F85AEFAFFFF4C8B542430418D42FFC1E81F4101C241FFCA41D1FA4489D84429D00F883EFCFFFF3B41280F8D35FCFFFF4D"
+        hexCode = hexCode & "89DE448B51344585D241BB000C0000450F45D34101D241F7C2000800000F84510B0000488B511089C00FB714428D82D8DFFFFF83F8024D89F30F8344"
+        hexCode = hexCode & "050000E9F0FBFFFF4D89DF4531DB4439D60F83C2020000418D5E024189F3488B742418468B1C9EE9AF02000083FD1B0F846907000083FD1C0F8509FA"
+        hexCode = hexCode & "FFFF418D460231D24439D073114183C60389C0488B5424188B14824489F089C629D683C6FD39F30F4DDE0F4EF0E98AFBFFFF4C8B542428443B542454"
+        hexCode = hexCode & "0F8FC2F9FFFF4963C2488B5424408B2C24892C824C8B74241044897482048B6C2404896C82084489D0418D520383C002890424C7442404FFFFFFFFE9"
+        hexCode = hexCode & "FE090000BA010000002B54243089D0C1E81F01D0D1F84C895C24384401D831D2448B592841BA0000000085C07E4D41BAFFFFFFFF4439D87F0D4C8B51"
+        hexCode = hexCode & "104189C6470FB75472FE4589D64183E6DF4183C6BF4183FE1A410F92C6458D62D04183FC0A410F92C44183FA5F410F94C24508E24508F2450FB6D241"
+        hexCode = hexCode & "83E2014439D80F8DD809000085C00F88A0090000488B511089C00FB70442E9960900004C8B7C2410443B7C24580F8DE1F8FFFF4963C7488D0480488B"
+        hexCode = hexCode & "542448893CC2448B542408448954C204448B54240C448954C2084C8B542428448954C20C8974C21044895CC214895CC2184C8B542430448954C21C8B"
+        hexCode = hexCode & "7424048974C2208B34248974C224418D57014489F683C60383FD1D4C89FF0F8558060000C744240C01000000B8010000004429D04189C241C1EA1F41"
+        hexCode = hexCode & "01C241D1FA4501DA4589D3B801000000E94C0600004539DA4D89FB448B7C24780F853209000031C0488B6C243839EB0F9CC04531D24439FB410F9DC2"
+        hexCode = hexCode & "837C243001440F44D04584D20F84DF0B0000BDFFFFFFFF85DB78223B59287D1D4C8B51104C89D84189DB470FB7245A4989C3035C24304585DB790DEB"
+        hexCode = hexCode & "2841BCFFFFFFFF4585DB781D443B59287D174C8B51104C89D84189C3430FB72C5A4989C344035C24304139EC7480F7C2000200000F84A60800004D89"
+        hexCode = hexCode & "DF41BBFFFFFFFF41BAFFFFFFFF4181FCFFFF0000770F4C8B51084489E045032482450FB7D481FDFFFF00000F8730FFFFFF488B41084189EB42032C98"
+        hexCode = hexCode & "440FB7DDE91CFFFFFF89F34D89FC4585E40F8851080000443B61280F8D47080000488B71104589E4460FB72466F7C200020000740F488B51084489E6"
+        hexCode = hexCode & "440324B2450FB7E44585DB0F8E2AF7FFFF428D345B4439D60F8F1DF7FFFF44037C24304C897C2438FFCB8D4601EB1C666666662E0F1F840000000000"
+        hexCode = hexCode & "89D089C229DA83FA020F84FB04000089C229DA448D520385D2440F49D241C1FA02428D14534C63D24C8B5C2418473924937DCD89D3EBCB31C04439D6"
+        hexCode = hexCode & "0F83F30400004183C60289F2488B7424188B14964489F6E9DF04000031D24439D673124183C60289F24C8B542418418B14924489F62B5424240F8384"
+        hexCode = hexCode & "F6FFFF837C240C000F84F0070000448B542408443B5424644C8B7424680F8F5DF6FFFF4C895C24384489D0448B5C24244429D84C63F84D63D24183FB"
+        hexCode = hexCode & "040F83CD0700004531DBE91B0800004531E44439D60F83780500004183C6024D89DF4189F3488B542418428B2C9A4D89FB4489F6E95C0500004C8B54"
+        hexCode = hexCode & "2428443B5424540F8FFBF5FFFF4963C2488B5424408B2C24892C824C8B74241044897482048B6C2404896C82084489D0418D520383C002890424C744"
+        hexCode = hexCode & "240400000000E93706000031D24439D60F83760500004183C60289F0488B5424188B148285D20F8E630500004401F2E96705000031C04439D60F83D5"
+        hexCode = hexCode & "0400004183C60289F0488B5424188B04824489F601C6E92DF7FFFFB8010000002B4424304189C241C1EA1F4101C241D1FA4501DA4585D20F8E0BF7FF"
+        hexCode = hexCode & "FF8B413485C041BA000C0000410F45C201D0A9000800000F842F060000488B5424308D4201C1E81F01C2FFC2D1FA4489D829D00F88130600003B4128"
+        hexCode = hexCode & "0F8D0A060000488B511089C00FB714428D82D8DFFFFF83F8020F82B1F6FFFF83FA0A0F84A8F6FFFF89F84189DE83FA0D0F849FF6FFFFE9D505000085"
+        hexCode = hexCode & "FF0F88DCF4FFFF3B7C24100F8DD2F4FFFF89F84C8D1C80488B5C2448428B04DB468B54DB04428B6CDB08428B54DB0C4889542428428B54DB10428B74"
+        hexCode = hexCode & "DB144889742438468B74DB18428B74DB1C4889742430428B74DB2089742404468B5CDB2444891C24448B5C24084539D30F84C900000085ED0F456C24"
+        hexCode = hexCode & "244401D54D63E34189EF4863F541BB01000000837C247C03726D4D8D51FC498D1CB24C896424104F8D24A249C7C3FFFFFFFF4C8B9424980000006690"
+        hexCode = hexCode & "438B6C9C0442896C9B04438B2C9C42892C9B438B6C9CFC42896C9BFC438B6C9CF842896C9BF84B8D2C1A4883C5FC4983C3FC4883FDFF75C84883BC24"
+        hexCode = hexCode & "9000000000743D49F7DB4C8B64241049C1E302498D34B14C29DE4F8D14A14D29DA4531DB4C8BA424A00000000F1F840000000000438B1C9A42891C9E"
+        hexCode = hexCode & "49FFCB4D39DC75F044897C240831ED4531D289D6FFC64C8B5C2438896C240C7C163B71447D1183C2024189F2488B742418468B149689D64401D689FA"
+        hexCode = hexCode & "4889542410E927F5FFFF31C04439D673114183C60289F0488B5424188B04824489F64C8B7424284C8B542410443B5424580F8D3DF3FFFF01F04963D2"
+        hexCode = hexCode & "41FFC24C89542410488D14924C8B54244841893CD28B6C240841896CD2048B6C240C41896CD208458974D20C418944D21045895CD21441895CD21848"
+        hexCode = hexCode & "8B442430418944D21C8B442404418944D2208B0424418944D224C744240C01000000E98DF4FFFF418D760231C04439D673114183C60389F0488B5424"
+        hexCode = hexCode & "188B04824489F629C683C6FD89F84189F639F30F8F64F4FFFFE99A03000031C04439D60F83720200004183C60289F2488B7424188B14964489F6E95E"
+        hexCode = hexCode & "02000031DB4439D6731189F0458D5602488B7424188B1C864489D641BAFFFFFFFF4585DB782E443B59287D28488B41104589DA460FB7145044035C24"
+        hexCode = hexCode & "30F7C200020000740F488B41084489D244031490450FB7D289F84439D30F84E2F3FFFFE9180300004489D041FFC241C1EA1F4401D0FFC0D1F84129C3"
+        hexCode = hexCode & "C744240C01000000B8FFFFFFFF488944243089F84889542410E9A8F3FFFF31D239F07D11489831D24C8B54241845396482FC0F9EC24531D283FD0441"
+        hexCode = hexCode & "0F94C289F84439D2E9A602000031D24C8B7424284439D6730D89F0FFC64C8B542418418B0482448B54240441FFC244895424044139D20F8C3AF3FFFF"
+        hexCode = hexCode & "E9D501000031D24439D6730D89F0FFC64C8B542418418B0482448B54240441FFC24139D27D774589D74C8B542410443B5424584C8B7424280F8D56F1"
+        hexCode = hexCode & "FFFF4963D241FFC24C89542410488D14924C8B54244841893CD28B6C240841896CD2048B6C240C41896CD208458974D20C418974D21045895CD21441"
+        hexCode = hexCode & "895CD2184C8B742430458974D21C45897CD2208B2C2441896CD224C744240C01000000EB038B2C2485ED0F84540200004863D54C8B542440418B2C92"
+        hexCode = hexCode & "896C2404418B6C92F8892C244C8B74241045397492FC4C8B542428418D52FD410F45D2488954242801C6E969F2FFFF31ED4439D6730D89F2FFC64C8B"
+        hexCode = hexCode & "542418458B249285ED0F889CF0FFFF2BAC24A80000000F8D8FF0FFFF837C240C000F84040200008B5424083B5424640F8F6FF0FFFF4C895C243889D0"
+        hexCode = hexCode & "448B5C24244429D84C63F04C63D24183FB040F838F0200004D89F74531DB4C8B742468E9E60200004189F64401F239D30F4DDA410F4ED689F84189DE"
+        hexCode = hexCode & "89D6E9E2F1FFFF31D24C8B7424284439D6730D89F0FFC64C8B542418418B0482448B54240441FFC244895424044139D27D3E4C895C24388B142485D2"
+        hexCode = hexCode & "0F84F30200004C63DA4D89F74C8B742440438B149E478B549EF84C8B6424104739649EFC458D5FFD450F45DF4589DEE9D202000001C68B042485C074"
+        hexCode = hexCode & "3F48984C8B542440418B148289542404418D56FD4C8B7C241045397C82FC410F45D6418B4482F889042489F84889542428E938F1FFFF4D89E389F8E9"
+        hexCode = hexCode & "31F1FFFFC7042400000000C7442404FEFFFFFFE918F1FFFFB8FFFFFFFF89C283E2DF83C2BF83FA1A0F92C2448D58D04183FB0A410F92C383F85F0F94"
+        hexCode = hexCode & "C04408D808D00FB6D083E20183FD120F94C04139D20F95C230C289F84189DE4C8B5C24380F84CFF0FFFF662E0F1F840000000000488B44241085C00F"
+        hexCode = hexCode & "84D9020000FFC848894424104898488D14804C8B542448418B04D2458B5CD20444895C2408458B5CD20844895C240C458B5CD20C4C895C2428418B74"
+        hexCode = hexCode & "D210458B5CD214458B74D218418B7CD21C48897C2430418B7CD220897C2404418B54D224891424E955F0FFFFC7042400000000C7442404FEFFFFFF01"
+        hexCode = hexCode & "C6E93AF0FFFF8B442408E99E0000008B442408E955010000498D410C4E8D34B84E8D24904531DB488B84248800000090438B6C9EF443896C9CF4438B"
+        hexCode = hexCode & "6C9EF843896C9CF8438B6C9EFC43896C9CFC438B2C9E43892C9C4983C3044C39D875D1F6842480000000034C8B742468743249C1E2024F8D149A4D01"
+        hexCode = hexCode & "CA49C1E7024B8D049F4C01C84531DB660F1F840000000000428B2C9843892C9A49FFC34D39DE75F08B442408034424244C8B5C24388944240801C248"
+        hexCode = hexCode & "63C245891C81C744240C00000000E979EFFFFF448964240C498D410C4D89F74E8D34B04E8D24904531DB488B842488000000662E0F1F840000000000"
+        hexCode = hexCode & "438B549EF44389549CF4438B549EF84389549CF8438B549EFC4389549CFC438B149E4389149C4983C3044C39D875D14C8B7424684D85F6448B64240C"
+        hexCode = hexCode & "743249C1E2024F8D149A4D01CA49C1E7024B8D049F4C01C84531DB660F1F840000000000428B14984389149A49FFC34D39DE75F08B44240803442424"
+        hexCode = hexCode & "4C8B5C24388944240801C54863C545892481C744240C00000000E9B9EEFFFF89F84D89E3E9B4EEFFFFBAFEFFFFFF4531D24C8B642410443B6424580F"
+        hexCode = hexCode & "8DDFECFFFF01F04D63DC4F8D1C9B4D89F74C8B74244843893CDE8B6C240843896CDE048B6C240C43896CDE0847897CDE0C438944DE10488B44243843"
+        hexCode = hexCode & "8944DE1443895CDE18488B442430438944DE1C438954DE20478954DE244D89FE443B7424540F8F7DECFFFF41FFC44963C64C8B5C2440458914834C89"
+        hexCode = hexCode & "642410458964830441895483084489F0418D560383C002890424C744240C0100000089F848895424284189DE4C8B5C2438E9F3EDFFFF4189C389F8E9"
+        hexCode = hexCode & "E9EDFFFF0F1F400083793C00751F488B4424703B41288D400148894424708B7C24240F8CE4ECFFFFE92BECFFFF48C7C0FEFFFFFFE9FEEBFFFF83FD01"
+        hexCode = hexCode & "0F85F5EBFFFF8B442408448B4424244429C0488B51204863C8488BB4248000000089F083E0034183F80473054531C0EB4B4C89DF81E6FCFFFF7F4D8D"
+        hexCode = hexCode & "14894983C20C4531C0478B5C82F446891C82478B5C82F846895C8204478B5C82FC46895C8208478B1C8246895C820C4983C0044C39C675D14885C049"
+        hexCode = hexCode & "89FB741F4A8D14824F8D0481498D0C884531C0468B0C8146890C8249FFC04C39C075F04963C3E958EBFFFF"
+    #Else
+        hexCode = hexCode & "5553575681EC900000008BAC24A40000008B7D2C8B5D008B33B9CDCCCCCC89F8F7E1895C24208B43048D0C064183F9027C1D8944247489F8894C2434"
+        hexCode = hexCode & "29C8894424700F9CC083FF0A0F92C108C17412B8FDFFFFFF81C4900000005E5F5B5DC210008B4518894424643B45147E07B8FFFFFFFFEBE089D18B55"
+        hexCode = hexCode & "0C8D46018D1CBA895C243C8D1CBB895C2440C1E903894C244C8D04828984248400000083C7FD037424748B44243489C183E107898C248C00000089C1"
+        hexCode = hexCode & "81E1F8FFFF7F898C248800000089C183E103894C244825FCFFFF7F894424548D04B50000000089D329C3895C245889442478F7D801D083C0FC894424"
+        hexCode = hexCode & "6CF7D9898C2480000000660F76C08D420C894424688D42FC8944247C8954243889742450897C246031C0B90000000083FE078BB4248C0000008B9C24"
+        hexCode = hexCode & "88000000722431C96666662E0F1F840000000000F30F7F048AF30F7F448A1083C10839CB75EE85F674168D0C8A0F1F8000000000C70481FFFFFFFF40"
+        hexCode = hexCode & "39C675F4837D1C020F8C0A1200008B4424208B40048D0C4083C103C7442430FEFFFFFFC744241800000000C70424FFFFFFFFBE01000000C744242400"
+        hexCode = hexCode & "000000C744242C00000000C744241C000000008B44243489442414BBFFFFFFFFC7442428010000008B442464894424106666662E0F1F840000000000"
+        hexCode = hexCode & "B8FCFFFFFF85C90F8867FEFFFF8B7D3039F90F8D5CFEFFFF895C24048D51018954240C8B5424208B148A0FB6DA83FB11897424087E3A83FB180F8ED1"
+        hexCode = hexCode & "00000083FB1C0F8FB801000083FB1A8D71010F8F0005000083FB190F84F80B000083FB1A0F8437050000E909FEFFFF0F1F44000083FB0A0F8FD70000"
+        hexCode = hexCode & "0083FB050F8FCB02000083FB030F8FF103000083FB020F846B0C000083FB030F853B1100008B5C241085DB0F88E70E00003B5D140F8DDE0E00008B44"
+        hexCode = hexCode & "242801D88B752485F6BF003000000F45F701D6F7C6002000000F85A21000008B55080FB7145A8DB2D8DFFFFF83FE020F82A70E000083FA0A0F849E0E"
+        hexCode = hexCode & "0000894424108B44240483FA0D8B5424080F84890E0000E9550F00000F1F400083FB150F8F260100008D53EE83FA020F82BA04000083FB140F84F008"
+        hexCode = hexCode & "000083FB158B5424080F8539FDFFFF83C103894C240C8B4424048B0C24E9130F0000669083FB0D0F8ED101000083FB0F0F8F9502000083FB0E0F8431"
+        hexCode = hexCode & "09000083FB0F8D71010F85FDFCFFFF39FE0F83F5FCFFFF8B7424208B748E0485F60F8EE5FCFFFF8D3C75010000003B7C24340F8DD4FCFFFF01F68B44"
+        hexCode = hexCode & "24142B4424348B7C24388D04878B2CB08B74B00489E809F08D41028944240C0F88C50B000089F08D7EFF8B74242883FE010F44FD31DB89042439C70F"
+        hexCode = hexCode & "9CC331C039EF0F9DC083FE010F44C33C010F85970B0000896C245CE9320500008D53E383FA020F825304000083FB1F8B4C24180F843A09000083FB20"
+        hexCode = hexCode & "0F8552FCFFFF8B54240485D20F8846FCFFFF39CA895424180F8C560D0000E935FCFFFF83FB160F849905000083FB170F844C03000083FB180F851AFC"
+        hexCode = hexCode & "FFFF31C0BA000000008D690139FD730D8B5424208B548A0483C10289CD39FD73088B4424208B04A8458B7C24188B4C24304139D18B7424247D623B7C"
+        hexCode = hexCode & "244C0F8DD3FBFFFF89CB8D0CBF8B5424408B7424048934CA8B7424148974CA048B74241C8974CA088B74242C8974CA0C896CCA108B7424108974CA14"
+        hexCode = hexCode & "8B34248974CA188B7424288974CA1C8B742424895CCA20478974CA24C744241C0100000085F6897C24180F84F10C00008B4C243C8B14B18954243039"
+        hexCode = hexCode & "7CB1FC8B4CB1F88B74242C8D56FD0F44F28974242C894C2424E9D70C000083FB0B0F840405000083FB0C8D51010F84DB05000083FB0D0F84480C0000"
+        hexCode = hexCode & "E927FBFFFF83FB060F841207000083FB070F846508000083FB080F850CFBFFFF31C08D590139FB730D8B4424208B44880483C10289CB8B7C24183B7C"
+        hexCode = hexCode & "244C0F8DE3FAFFFF8D0CBF8B5424408B6C2404892CCA8B7424148974CA048B74241C8974CA088B74242C8974CA0C895CCA108B7424108974CA148B34"
+        hexCode = hexCode & "248974CA188B7424288974CA1C8B7424308974CA208B7424248974CA2447897C241801C3895C240CC744241C0100000089E8E9630C000083FB100F84"
+        hexCode = hexCode & "BD06000083FB110F856BFAFFFF8B4C24288D41FFC1E81F01C149D1F98B44241029C80F88320C00008BB424A40000003B46148B5C24040F8D010B0000"
+        hexCode = hexCode & "8B4E2085C9BF000C00000F45CF01D1F7C1000800000F843D0B00008B4E080FB714418D82D8DFFFFF83F8020F82D00A000083FA0A8B0C2489D80F85CA"
+        hexCode = hexCode & "060000E9E10B0000C70424000000008D710189F539FE730E8D69028B7424208B748E04893424837C2410000F88EB0A00008954240C8BB424A4000000"
+        hexCode = hexCode & "8B5424103B56140F8DD30A00008B76088B5424100FB73456F744240C0002000074108B9424A40000008B52040334B20FB7F68B142485D20F8E87F9FF"
+        hexCode = hexCode & "FF8D14550000000001EA8954240C39FA0F8F72F9FFFF8B442428014424104D8B44240C40EB1D66666666662E0F1F84000000000089D089C229EA83FA"
+        hexCode = hexCode & "020F846808000089C229EA8D7A0385D20F49FAC1FF028D147D0000000001EA8B7C24203934977DD089D5EBCE83FB1B0F842F07000083FB1C0F850EF9"
+        hexCode = hexCode & "FFFF8D410231D239F8730D8B4424208B54880883C10389C889C129D183C1FD8B142439CA0F4DD10F4EC8894C240C8B44240489D1E9C00A00008B4C24"
+        hexCode = hexCode & "2C3B4C24600F8FC4F8FFFF8B44243C8B5424248914888B542418895488048B5424308954880889C883C10383C00289442424C7442430FFFFFFFFE97C"
+        hexCode = hexCode & "040000B9010000002B4C242889C8C1E81F01C8D1F80344241031C98B7514BA0000000085C07E40BAFFFFFFFF39F07F088B55080FB75442FE89D783E7"
+        hexCode = hexCode & "DF83C7BF83FF1A0F9244245C8D7AD083FF0A0F9244244783FA5F0F94C20A5424470A54245C0FB6D283E20139F00F8D2109000085C00F88ED0800008B"
+        hexCode = hexCode & "4D080FB70441E9E60800008B6C24183B6C244C0F8D02F8FFFF8D04AD0000000001E88B5424408B7424048934C28B7424148974C2048B74241C8974C2"
+        hexCode = hexCode & "088B74242C8974C20C8D71018974C2108B7424108974C2148B3C24897CC2188B7C2428897CC21C8B7C2430897CC2208B7C2424897CC2248D550183C1"
+        hexCode = hexCode & "03894C240C83FB1D0F8584060000C744241C01000000B8010000002B44242889C1C1E91F01C1D1F901CE89742410C744242801000000E97C06000039"
+        hexCode = hexCode & "D80F858108000031C03B3C240F9CC031DB8B6C245C39EF0F9DC3837C2428010F44D884DB0F845C060000BDFFFFFFFF85FF78198B8424A40000003B78"
+        hexCode = hexCode & "147D0D8B40080FB73478037C2428EB05BEFFFFFFFF8B44241085C0781B89C38B8424A40000003B58147D0B8B40080FB72C58035C242889D839EE8944"
+        hexCode = hexCode & "2410748BF7C2000200000F8400080000BBFFFFFFFFB8FFFFFFFF81FEFFFF0000760E81FDFFFF00000F8759FFFFFFEB1C8B8424A40000008B40040334"
+        hexCode = hexCode & "B00FB7C681FDFFFF00000F873BFFFFFF8BB424A40000008B7604032CAE0FB7DDE926FFFFFF31C0BA000000008D590139FB730D8B5424208B548A0483"
+        hexCode = hexCode & "C10289CB39FB73088B4424208B0498438B7424248B4C243041894C243039D10F8DB105000029C383C3FD8B0C2439D9895C240C0F4DCB8B442404E926"
+        hexCode = hexCode & "08000031D28D710139FE730D8B5424208B548A0483C10289CE8974240C3B5424340F8319F6FFFF837C241C000F84A90700008B4424143B4424708B5C"
+        hexCode = hexCode & "24480F8FF7F5FFFF31C0B900000000837C2450038B6C2438725A8B4C24588B7C24148D34B98B4C24688D3CB931C98B6C245466666666662E0F1F8400"
+        hexCode = hexCode & "000000008B5C8EFC895C8FF48B1C8E895C8FF88B5C8E04895C8FFC8B5C8E08891C8F83C10439CD75DBF6442434038B5C24488B6C243874278B742414"
+        hexCode = hexCode & "8D34B5000000008D0C8E8D3429034C246C0F1F80000000008B3C81893C864039C375F58B4C24348B44241401C8E90107000031EDBB0000000039FA73"
+        hexCode = hexCode & "1A8B7424208B5C8E0483C10289CA39FA720D85DB7919E935F5FFFF39FA73F38B4C24208B2C914285DB0F8821F5FFFF8954240C3B5C24740F8D13F5FF"
+        hexCode = hexCode & "FF837C241C000F84C70600008B4424143B4424700F8FF5F4FFFF896C241C31C0B900000000837C2450038B6C2448724D8B4C24588B5424148D34918B"
+        hexCode = hexCode & "4C24688D3C9131C98B5424540F1F8400000000008B6C8EFC896C8FF48B2C8E896C8FF88B6C8E04896C8FFC8B6C8E08892C8F83C10439CA75DB8B6C24"
+        hexCode = hexCode & "4885ED742E8B5424148D3495000000008D0C8E8B74243801CE034C246C66662E0F1F8400000000008B3C81893C864039C575F58B4C24348B44241401"
+        hexCode = hexCode & "C88B6C241CE91D0600008B4C242C3B4C24600F8F43F4FFFF8B44243C8B5424248914888B542418895488048B5424308954880889C883C10383C00289"
+        hexCode = hexCode & "442424C7442430000000008B442404894C242CE9F205000031D28D410139F88B7424040F831D0600008B4424208B54880483C10285D20F8E08060000"
+        hexCode = hexCode & "01CA89F08B0C248954240CE9C105000031C08D510139FA730D8B4424208B44880483C10289CA01C28954240CE999050000B8010000002B44242889C1"
+        hexCode = hexCode & "C1E91F01C1D1F9034C241085C90F8E7B0500008B452085C0B9000C00000F45C101D0A9000800008B7424040F84970400008B4C24288D4101C1E81F01"
+        hexCode = hexCode & "C141D1F98B44241029C80F887C0400003B45140F8D730400008B4D080FB714418D82D8DFFFFF83F8020F825C06000083FA0A8B0C240F846805000089"
+        hexCode = hexCode & "F083FA0D8B5424080F8413050000E93D0400008B54240485D20F8815F3FFFF39CA0F8D0DF3FFFF8B4424048D34808B5424408B04F28B5CF2048B6CF2"
+        hexCode = hexCode & "088B4CF20C894C242C8B4CF210894C240C8B4CF214894C24108B4CF2188B7CF21C897C24288B7CF220897C24308B54F22489542424395C24140F8582"
+        hexCode = hexCode & "020000896C241CE93E03000031C08D590139FB730D8B4424208B44880483C10289CB8B7C24183B7C244C0F8D87F2FFFF8D0CBF8B5424408B6C240489"
+        hexCode = hexCode & "2CCA8B7424148974CA048B74241C8974CA08895C240C01D88B74242C8974CA0C8944CA1047897C24188B4424108944CA148B34248974CA188B442428"
+        hexCode = hexCode & "8944CA1C8B4424308944CA208B4424248944CA24C744241C0100000089E889F1E9080400008D510231C039FA730D8B4424208B44880883C10389CA29"
+        hexCode = hexCode & "C283C2FD8B44240489D18954240C3914248B5424080F8E09030000E9D503000031C0BA0000000039FE730D8B5424208B548A0483C10289CE39FE8B7C"
+        hexCode = hexCode & "240473088B4424208B04B0468974240C8B6C24188B7424248B4C243041894C243039D10F8D3401000085F60F84D20300008B7C243C8B0CB78B54B7F8"
+        hexCode = hexCode & "895424188B5C242C8D53FD396CB7FC0F44DA895C242CE9B903000031F68D410139F8730F8D41028944240C8B4424208B748804BFFFFFFFFF8B5C2410"
+        hexCode = hexCode & "85DB78253B5D147D208B45080FB73C58035C2428895C2410F7C20002000074098B4504033CB80FB7FF8B44240439FE8B5424080F8408030000E93202"
+        hexCode = hexCode & "00008B4C24288D4101C1E81F01C840D1F829C689742410C744241C01000000C7442428FFFFFFFF89E889542418E9CC0200008B442404E9C602000031"
+        hexCode = hexCode & "FF3B44240C7D128B542420397482FCB8000000000F9EC089C731D283FB040F94C28B44240439D78B5424080F8498020000E9C2010000895C240C85F6"
+        hexCode = hexCode & "8B4424180F84A40200008B4C243C3944B1FC8B54242C8D42FD0F44D08954242C8B04B1894424308B4CB1F88B442404EB2F0144240C85F60F844D0300"
+        hexCode = hexCode & "008B4C243C396CB1FC8B54242C8D42FD0F44D08954242C8B04B1894424308B4CB1F889F8894C2424E91D02000089DE85ED0F456C24348D142B891424"
+        hexCode = hexCode & "BB01000000837C245003726A89742418896C241C8B54247C8B34248D2CB28B7424148D34B2BBFFFFFFFF8B7C2454660F1F4400008B549E0489549D04"
+        hexCode = hexCode & "8B149E89549D008B549EFC89549DFC8B549EF889549DF88D141F83C2FC83C3FC83FAFF75D3F6442434030F84CA020000F7DB8B6C241C8B74241801F5"
+        hexCode = hexCode & "29DD8B5424388D34AAC1E3028B7C24148D3CBA29DFC744241C0000000031DB8BAC2480000000660F1F4400008B149F89149E4B39DD75F58B14248954"
+        hexCode = hexCode & "24148B9424A40000008B5C240431F68B6C240C89EF477C123B7A307D0D8B5424208B74AA0483C50289EF01F7897C240C895C2418E92401000089D8E9"
+        hexCode = hexCode & "1A010000B8FFFFFFFF89C183E1DF83C1BF83F91A0F92C18D70D083FE0A0F92C583F85F0F94C008E808C80FB6C883E10183FB120F94C039CA0F95C130"
+        hexCode = hexCode & "C18B4424048B0C248B5424080F84D7000000660F1F4400008B44241885C00F840A02000048894424188D14808B7424408B04D68B4CD604894C24148B"
+        hexCode = hexCode & "4CD608894C241C8B4CD60C894C242C8B4CD610894C240C8B4CD614894C24108B4CD6188B7CD61C897C24288B7CD620897C24308B54D62489542424EB"
+        hexCode = hexCode & "6CC744242400000000C7442430FEFFFFFF8B4C240401C5896C240C89C8EB4B8B6C24388B4C24348B4424148944241429C88D04850000000001E88B4C"
+        hexCode = hexCode & "2410890C90EB1B8B4C24348B4424148944241429C88B8C24840000008D0481892C98C744241C000000008B4424048B0C248B542408890C24428B4C24"
+        hexCode = hexCode & "0C89C38BAC24A40000003B551C89D60F8C83EFFFFFE91E010000C744242400000000C7442430FEFFFFFFEBC289C801C28B0C2439D10F4DCA0F4FC289"
+        hexCode = hexCode & "44240C89F0EBB2B9FEFFFFFFC7442418000000003B6C244C0F8DADEDFFFF8D34AD0000000001EE8B5C24408B5424048914F389EF8B6C2414896CF304"
+        hexCode = hexCode & "8B6C241C896CF3080344240C8B6C242C896CF30C8944F3108B4424108944F3148B14248954F3188B4424288944F31C894CF3208B4424188944F3243B"
+        hexCode = hexCode & "6C24600F8F4AEDFFFF89C6478B44243C8934A8897C2418897CA804894CA80889E88D750383C00289442424C744241C010000008B4424048974242C89"
+        hexCode = hexCode & "D1E9FFFEFFFFC744242400000000C7442430FEFFFFFF89F8E9E5FEFFFF894424108B442404E9DBFEFFFFC744241C00000000E96CFDFFFF89F0E9C4FE"
+        hexCode = hexCode & "FFFF662E0F1F840000000000837D280075288BAC24A40000008B4424643B45148D4001894424648B5424388B7424500F8C6FEDFFFFE9BFECFFFFB8FE"
+        hexCode = hexCode & "FFFFFFE99CECFFFF83FB010F8593ECFFFF8B8424A40000008B481031C0BA00000000837C2450038B5C2438723D8B5424588B7424148D34B231D28B6C"
+        hexCode = hexCode & "24548B7C96FC893C918B3C96897C91048B7C9604897C91088B7C9608897C910C83C20439D575DB837C24480074238D0C918D14932B5424788B742414"
+        hexCode = hexCode & "8D14B283C2FC8B7C24488B34828934814039C775F58B442410E90EECFFFF"
+    #End If
+        Dim bytes() As Byte, i As Long, oldProtection As Long, p As LongPtr
+        ReDim bytes(0 To Len(hexCode) \ 2 - 1)
+        For i = 0 To UBound(bytes)
+          bytes(i) = CByte("&H" & Mid$(hexCode, 2 * i + 1, 2))
+        Next
+        p = VirtualAlloc(0, UBound(bytes) + 1, &H3000, &H4)
+        If p = 0 Then Err_Raise 7, "stdRegex", "Cannot allocate native matcher"
+        CopyMemory p, VarPtr(bytes(0)), UBound(bytes) + 1
+        If VirtualProtect(p, UBound(bytes) + 1, &H20, oldProtection) = 0 Then
+          VirtualFree p, 0, &H8000
+          Err_Raise 5, "stdRegex", "Cannot make native matcher executable"
+        End If
+        If FlushInstructionCache(-1, p, UBound(bytes) + 1) = 0 Then
+          VirtualFree p, 0, &H8000
+          Err_Raise 5, "stdRegex", "Cannot flush native matcher instruction cache"
+        End If
+        This.nativeCode = p
+      End If
+      NativeCode = This.nativeCode
+    #End If
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Function
 
 Private Sub Class_Terminate()
-  If This.nativeCode <> 0 Then VirtualFree This.nativeCode, 0, &H8000
+  With stdError.getSentry("stdRegex#Class_Terminate")
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      If This.nativeCode <> 0 Then VirtualFree This.nativeCode, 0, &H8000
+    
+    Exit Sub
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
+  End With
 End Sub
 
 Private Function NativeMatch(ByRef outCaptures As CapturesTy, ByRef bytecode() As Long, ByRef inputStr As String, ByVal sp As Long, ByVal stepsLimit As Long, ByVal multiline As Boolean, ByVal dotAll As Boolean, ByVal raiseOnLimit As Boolean) As Long
-  Dim a As NativeArgs, points() As Long, n As Long, i As Long, result As Long, p As LongPtr
-  p = NativeCode()
-  n = bytecode(0) + 1
-  ReDim points(0 To n + bytecode(1) - 1)
-  a.bytecode = VarPtr(bytecode(0))
-  a.bytecodeLength = UBound(bytecode) + 1
-  a.canon = VarPtr(This.regex.bytecode(UNICODE_CANON_LOOKUP_TABLE_START))
-  a.text = StrPtr(inputStr)
-  a.captures = VarPtr(points(0))
-  a.length = Len(inputStr): a.start = sp: a.limit = stepsLimit
-  a.multiline = Abs(CLng(multiline)): a.dotall = Abs(CLng(dotAll)): a.raiseLimit = Abs(CLng(raiseOnLimit))
-  If This.nativeCapacity = 0 Then
-    This.nativeCapacity = 4096
-    ReDim This.nativeWork(0 To 3 * This.nativeCapacity - 1)
-  End If
-  Do
-    a.work = VarPtr(This.nativeWork(0)): a.capacity = This.nativeCapacity
-    result = CLng(CallWindowProc(p, a, 0, 0, 0))
-    If result <> -3 Then Exit Do
-    If This.nativeCapacity > 16777216 Then Err.Raise 7, "stdRegex", "Native matcher workspace exhausted"
-    This.nativeCapacity = This.nativeCapacity * 2
-    ReDim This.nativeWork(0 To 3 * This.nativeCapacity - 1)
-  Loop
-  If result = -2 Then Err.Raise REGEX_ERR_STEP_LIMIT, "stdRegex", "Regex processing step limit exceeded"
-  If result = -4 Then Err.Raise 3000, "stdRegex", "Invalid native matcher bytecode"
-  NativeMatch = result
-  If result < 0 Then Exit Function
-  With outCaptures
-    .nNumberedCaptures = n \ 2 - 1: .nNamedCaptures = bytecode(1)
-    If .nNumberedCaptures > 0 Then ReDim .numberedCaptures(0 To .nNumberedCaptures - 1)
-    If .nNamedCaptures > 0 Then ReDim .namedCaptures(0 To .nNamedCaptures - 1)
-    .entireMatch.start = 0: .entireMatch.length = 0
-    If points(0) >= 0 And points(1) >= points(0) Then
-      .entireMatch.start = points(0) + 1: .entireMatch.length = points(1) - points(0)
-    End If
-    For i = 1 To .nNumberedCaptures
-      If points(2 * i) >= 0 And points(2 * i + 1) >= points(2 * i) Then
-        .numberedCaptures(i - 1).start = points(2 * i) + 1
-        .numberedCaptures(i - 1).length = points(2 * i + 1) - points(2 * i)
+  With stdError.getSentry("stdRegex#NativeMatch", "inputStr", inputStr, "sp", sp, "stepsLimit", stepsLimit, "multiline", multiline, "dotAll", dotAll, "raiseOnLimit", raiseOnLimit)
+    On Error GoTo stdErrorWrapper_ErrorOccurred
+    
+      Dim a As NativeArgs, points() As Long, n As Long, i As Long, result As Long, p As LongPtr
+      p = NativeCode()
+      n = bytecode(0) + 1
+      ReDim points(0 To n + bytecode(1) - 1)
+      a.bytecode = VarPtr(bytecode(0))
+      a.bytecodeLength = UBound(bytecode) + 1
+      a.canon = VarPtr(This.regex.bytecode(UNICODE_CANON_LOOKUP_TABLE_START))
+      a.text = StrPtr(inputStr)
+      a.captures = VarPtr(points(0))
+      a.length = Len(inputStr): a.start = sp: a.limit = stepsLimit
+      a.multiline = Abs(CLng(multiline)): a.dotall = Abs(CLng(dotAll)): a.raiseLimit = Abs(CLng(raiseOnLimit))
+      If This.nativeCapacity = 0 Then
+        This.nativeCapacity = 4096
+        ReDim This.nativeWork(0 To 3 * This.nativeCapacity - 1)
       End If
-    Next
-    For i = 0 To .nNamedCaptures - 1
-      .namedCaptures(i) = points(n + i)
-    Next
+      Do
+        a.work = VarPtr(This.nativeWork(0)): a.capacity = This.nativeCapacity
+        result = CLng(CallWindowProc(p, a, 0, 0, 0))
+        If result <> -3 Then Exit Do
+        If This.nativeCapacity > 16777216 Then Err_Raise 7, "stdRegex", "Native matcher workspace exhausted"
+        This.nativeCapacity = This.nativeCapacity * 2
+        ReDim This.nativeWork(0 To 3 * This.nativeCapacity - 1)
+      Loop
+      If result = -2 Then Err_Raise REGEX_ERR_STEP_LIMIT, "stdRegex", "Regex processing step limit exceeded"
+      If result = -4 Then Err_Raise 3000, "stdRegex", "Invalid native matcher bytecode"
+      NativeMatch = result
+      If result < 0 Then Exit Function
+      With outCaptures
+        .nNumberedCaptures = n \ 2 - 1: .nNamedCaptures = bytecode(1)
+        If .nNumberedCaptures > 0 Then ReDim .numberedCaptures(0 To .nNumberedCaptures - 1)
+        If .nNamedCaptures > 0 Then ReDim .namedCaptures(0 To .nNamedCaptures - 1)
+        .entireMatch.start = 0: .entireMatch.length = 0
+        If points(0) >= 0 And points(1) >= points(0) Then
+          .entireMatch.start = points(0) + 1: .entireMatch.length = points(1) - points(0)
+        End If
+        For i = 1 To .nNumberedCaptures
+          If points(2 * i) >= 0 And points(2 * i + 1) >= points(2 * i) Then
+            .numberedCaptures(i - 1).start = points(2 * i) + 1
+            .numberedCaptures(i - 1).length = points(2 * i + 1) - points(2 * i)
+          End If
+        Next
+        For i = 0 To .nNamedCaptures - 1
+          .namedCaptures(i) = points(n + i)
+        Next
+      End With
+    
+    Exit Function
+    stdErrorWrapper_ErrorOccurred:
+      Call Err_Raise(Err.Number, Err.Source, Err.Description)
   End With
 End Function
 
 #End If
+
+
+
+Private Sub Err_Raise(ByVal number as Long, Optional ByVal source as string = "", Optional ByVal description as string = "")
+  Call stdError.Raise(description)
+End Sub
