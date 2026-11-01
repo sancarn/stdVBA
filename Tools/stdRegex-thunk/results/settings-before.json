@@ -1,0 +1,26 @@
+[
+  {
+    "path": "Software\\Microsoft\\Office\\16.0\\Word\\Security",
+    "name": "AccessVBOM",
+    "key_existed": true,
+    "present": true,
+    "value": 1,
+    "kind": 4
+  },
+  {
+    "path": "Software\\Microsoft\\VBA\\7.1\\Common",
+    "name": "BreakOnAllErrors",
+    "key_existed": true,
+    "present": true,
+    "value": 0,
+    "kind": 4
+  },
+  {
+    "path": "Software\\Microsoft\\VBA\\7.1\\Common",
+    "name": "BreakOnServerErrors",
+    "key_existed": true,
+    "present": true,
+    "value": 0,
+    "kind": 4
+  }
+]

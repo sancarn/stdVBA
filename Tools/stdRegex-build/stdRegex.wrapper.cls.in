@@ -49,11 +49,12 @@ Private This As TThis
 '@param pattern - The pattern to match
 '@param flags   - Optional flags to apply
 '@param stepsLimit - Maximum engine steps per candidate match (default 10000); exhaustion raises vbObjectError + 3051.
+'@param useNative - Opt into the experimental Windows x86/x64 native matcher. True (default) selects native; False keeps the debuggable VBA matcher.
 '@returns - Regular expression object
 '@example ```vb
 'stdRegex.Create("A\d+","i")
 '```
-Public Function Create(ByVal pattern As String, Optional ByVal flags As String = "", Optional ByVal stepsLimit As Long = 10000) As stdRegex
+Public Function Create(ByVal pattern As String, Optional ByVal flags As String = "", Optional ByVal stepsLimit As Long = 10000, Optional ByVal useNative As Boolean = True) As stdRegex
   If Not Me Is stdRegex Then
     Call CriticalRaise("Constructor called on object not class")
     Exit Function
@@ -61,12 +62,12 @@ Public Function Create(ByVal pattern As String, Optional ByVal flags As String =
 
   'Cache regex objects for faster speed
   Static cache As Object: If cache Is Nothing Then Set cache = CreateObject("Scripting.Dictionary")
-  Dim sKey As String: sKey = Len(pattern) & ":" & pattern & Len(flags) & ":" & flags & ":" & stepsLimit
+  Dim sKey As String: sKey = Len(pattern) & ":" & pattern & Len(flags) & ":" & flags & ":" & stepsLimit & ":" & CStr(useNative)
   If Not cache.exists(sKey) Then
     'Call to [friend] init requires type information, can't use dict directly
     Dim r As stdRegex
     Set r = New stdRegex
-    Call r.protInit(pattern, flags, stepsLimit)
+    Call r.protInit(pattern, flags, stepsLimit, useNative)
 
     'Set cache
     Set cache(sKey) = r
@@ -82,15 +83,20 @@ End Function
 '@protected
 '@param pattern - The pattern to match
 '@param flags - Optional flags to apply
+'@param stepsLimit - Maximum steps per candidate match.
+'@param useNative - Select the experimental Windows native matcher (default True).
 '@example
 '```vb
 'obj.protInit("A\d+","i")
 '```
-Friend Sub protInit(ByVal pattern As String, ByVal flags As String, Optional ByVal stepsLimit As Long = 10000)
+Friend Sub protInit(ByVal pattern As String, ByVal flags As String, Optional ByVal stepsLimit As Long = 10000, Optional ByVal useNative As Boolean = True)
   If Me Is stdRegex Then
     CriticalRaise "Cannot run init on class"
     Exit Sub
   End If
+#If Mac Or (VBA7 = 0) Then
+  If useNative Then Err.Raise 5, "stdRegex", "Native matching requires Windows VBA7"
+#End If
   If stepsLimit <= 0 Then Err.Raise 5, "stdRegex", "stepsLimit must be positive"
 
   'Compile before updating instance state, so a syntax error preserves the old regex.
@@ -98,6 +104,7 @@ Friend Sub protInit(ByVal pattern As String, ByVal flags As String, Optional ByV
   compiledPattern = PreparePattern(pattern, flags)
   stdRegex.protStaticRegexInitializeRegex compiled, compiledPattern, InStr(flags, "i") > 0
   compiled.stepsLimit = stepsLimit
+  compiled.useNative = useNative
   This.regex = compiled
   This.pattern = pattern
   This.flags = flags
@@ -129,7 +136,7 @@ Public Property Let pattern(val As String)
     Exit Property
   End If
 
-  Call protInit(val, This.flags, This.regex.stepsLimit)
+  Call protInit(val, This.flags, This.regex.stepsLimit, This.regex.useNative)
 End Property
 
 
@@ -150,7 +157,7 @@ Public Property Let flags(val As String)
     Exit Property
   End If
 
-  Call protInit(This.pattern, val, This.regex.stepsLimit)
+  Call protInit(This.pattern, val, This.regex.stepsLimit, This.regex.useNative)
 End Property
 
 

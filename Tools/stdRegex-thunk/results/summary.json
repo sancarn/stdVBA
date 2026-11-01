@@ -1,0 +1,362 @@
+[
+  {
+    "case": "No matches, 1,000 characters",
+    "operation": "Test",
+    "VBA": {
+      "median_ms": 2.6028124993899837,
+      "min_ms": 2.569759377365699,
+      "max_ms": 2.6531843723205384
+    },
+    "native": {
+      "median_ms": 0.02636040039760701,
+      "min_ms": 0.026167578141667036,
+      "max_ms": 0.027055419934640668
+    },
+    "speedup": 98.73949030099962
+  },
+  {
+    "case": "No matches, 1,000 characters",
+    "operation": "List",
+    "VBA": {
+      "median_ms": 2.6363593715359457,
+      "min_ms": 2.605078123451676,
+      "max_ms": 2.697671872738283
+    },
+    "native": {
+      "median_ms": 0.034209521516004315,
+      "min_ms": 0.032493505841557635,
+      "max_ms": 0.03481806641048024
+    },
+    "speedup": 77.06507588253089
+  },
+  {
+    "case": "No matches, 1,000 characters",
+    "operation": "ListArr",
+    "VBA": {
+      "median_ms": 2.629731250635814,
+      "min_ms": 2.5829312507994473,
+      "max_ms": 2.747815626207739
+    },
+    "native": {
+      "median_ms": 0.03625996095024675,
+      "min_ms": 0.033768408172818454,
+      "max_ms": 0.03726489256905552
+    },
+    "speedup": 72.5243817621353
+  },
+  {
+    "case": "No matches, 1,000 characters",
+    "operation": "MatchAllArr",
+    "VBA": {
+      "median_ms": 3.75676249677781,
+      "min_ms": 3.7015999987488613,
+      "max_ms": 4.014481251942925
+    },
+    "native": {
+      "median_ms": 1.0772890636872035,
+      "min_ms": 1.029754686896922,
+      "max_ms": 1.0959265637211502
+    },
+    "speedup": 3.487237198825408
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "operation": "Test",
+    "VBA": {
+      "median_ms": 0.034894042983069085,
+      "min_ms": 0.03358886721116505,
+      "max_ms": 0.040167236306842824
+    },
+    "native": {
+      "median_ms": 0.00403148803940212,
+      "min_ms": 0.0038184326172086003,
+      "max_ms": 0.005146069334216463
+    },
+    "speedup": 8.65537554422311
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "operation": "List",
+    "VBA": {
+      "median_ms": 0.06821474607932032,
+      "min_ms": 0.06385273434261762,
+      "max_ms": 0.07887158210451162
+    },
+    "native": {
+      "median_ms": 0.02445415043439425,
+      "min_ms": 0.023570898463276535,
+      "max_ms": 0.03915131833309715
+    },
+    "speedup": 2.7894956425628963
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "operation": "ListArr",
+    "VBA": {
+      "median_ms": 0.07475000006706978,
+      "min_ms": 0.0722814453411047,
+      "max_ms": 0.08763935545630375
+    },
+    "native": {
+      "median_ms": 0.032615136717595306,
+      "min_ms": 0.02949130862361926,
+      "max_ms": 0.034700292928846466
+    },
+    "speedup": 2.2918806293626064
+  },
+  {
+    "case": "1 match, 3 named captures",
+    "operation": "MatchAllArr",
+    "VBA": {
+      "median_ms": 1.22164062486263,
+      "min_ms": 1.092304688427248,
+      "max_ms": 1.4592843745049322
+    },
+    "native": {
+      "median_ms": 1.1260437495366205,
+      "min_ms": 1.0593671886454104,
+      "max_ms": 1.2814671881642425
+    },
+    "speedup": 1.0848962354840552
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "operation": "Test",
+    "VBA": {
+      "median_ms": 0.036108349604546675,
+      "min_ms": 0.03513564450940976,
+      "max_ms": 0.037746142595551646
+    },
+    "native": {
+      "median_ms": 0.004250457763532722,
+      "min_ms": 0.004147601316617511,
+      "max_ms": 0.004526043703378946
+    },
+    "speedup": 8.49516725335852
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "operation": "List",
+    "VBA": {
+      "median_ms": 4.840518748096656,
+      "min_ms": 4.710175002401229,
+      "max_ms": 5.3834687496419065
+    },
+    "native": {
+      "median_ms": 1.0594171872071456,
+      "min_ms": 1.0384781253378605,
+      "max_ms": 1.0932687491731485
+    },
+    "speedup": 4.569039285512554
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "operation": "ListArr",
+    "VBA": {
+      "median_ms": 5.464081245008856,
+      "min_ms": 5.318612500559539,
+      "max_ms": 5.889324995223433
+    },
+    "native": {
+      "median_ms": 1.5424906268890481,
+      "min_ms": 1.5151218758546747,
+      "max_ms": 1.6638593770039733
+    },
+    "speedup": 3.5423756551629855
+  },
+  {
+    "case": "100 matches, 3 named captures",
+    "operation": "MatchAllArr",
+    "VBA": {
+      "median_ms": 5.288125001243316,
+      "min_ms": 5.163424997590482,
+      "max_ms": 5.504125001607463
+    },
+    "native": {
+      "median_ms": 1.694440627034055,
+      "min_ms": 1.5928406246530358,
+      "max_ms": 1.8063000024994835
+    },
+    "speedup": 3.1208676874678325
+  },
+  {
+    "case": "1,000 matches, 3 named captures",
+    "operation": "Test",
+    "VBA": {
+      "median_ms": 0.036874218722005025,
+      "min_ms": 0.03598925781034268,
+      "max_ms": 0.043991455072500685
+    },
+    "native": {
+      "median_ms": 0.005887609859200893,
+      "min_ms": 0.005701696778714904,
+      "max_ms": 0.006225390634995165
+    },
+    "speedup": 6.263020071613551
+  },
+  {
+    "case": "1,000 matches, 3 named captures",
+    "operation": "List",
+    "VBA": {
+      "median_ms": 46.79069999838248,
+      "min_ms": 46.16359999636188,
+      "max_ms": 75.52890002261847
+    },
+    "native": {
+      "median_ms": 10.010362500906922,
+      "min_ms": 9.87173750763759,
+      "max_ms": 11.562962507014163
+    },
+    "speedup": 4.674226332377406
+  },
+  {
+    "case": "1,000 matches, 3 named captures",
+    "operation": "ListArr",
+    "VBA": {
+      "median_ms": 52.404899965040386,
+      "min_ms": 51.85779999010265,
+      "max_ms": 57.08779999986291
+    },
+    "native": {
+      "median_ms": 15.104749996680766,
+      "min_ms": 14.639950008131564,
+      "max_ms": 15.749875019537285
+    },
+    "speedup": 3.4694317997024937
+  },
+  {
+    "case": "1,000 matches, 3 named captures",
+    "operation": "MatchAllArr",
+    "VBA": {
+      "median_ms": 40.59375001816079,
+      "min_ms": 40.10174999712035,
+      "max_ms": 44.04144996078685
+    },
+    "native": {
+      "median_ms": 5.782749998616055,
+      "min_ms": 5.625925012282096,
+      "max_ms": 6.7044499883195385
+    },
+    "speedup": 7.019800272859074
+  },
+  {
+    "case": "100 matches, no captures",
+    "operation": "Test",
+    "VBA": {
+      "median_ms": 0.012582617188172662,
+      "min_ms": 0.012476782217163418,
+      "max_ms": 0.013068530279269908
+    },
+    "native": {
+      "median_ms": 0.0032646362342347857,
+      "min_ms": 0.003219561769185475,
+      "max_ms": 0.0033134094294950955
+    },
+    "speedup": 3.8542172191267015
+  },
+  {
+    "case": "100 matches, no captures",
+    "operation": "List",
+    "VBA": {
+      "median_ms": 6.8245750007918105,
+      "min_ms": 6.683112500468269,
+      "max_ms": 6.933199998456985
+    },
+    "native": {
+      "median_ms": 0.7139468752939138,
+      "min_ms": 0.6901820315761142,
+      "max_ms": 0.7269257812367869
+    },
+    "speedup": 9.558939519109607
+  },
+  {
+    "case": "100 matches, no captures",
+    "operation": "ListArr",
+    "VBA": {
+      "median_ms": 7.283087499672547,
+      "min_ms": 7.194674995844252,
+      "max_ms": 7.384212498436682
+    },
+    "native": {
+      "median_ms": 1.1543812506715767,
+      "min_ms": 1.135178124968661,
+      "max_ms": 1.201860937726451
+    },
+    "speedup": 6.309083325318662
+  },
+  {
+    "case": "100 matches, no captures",
+    "operation": "MatchAllArr",
+    "VBA": {
+      "median_ms": 6.349362505716272,
+      "min_ms": 6.286212505074218,
+      "max_ms": 6.781162504921667
+    },
+    "native": {
+      "median_ms": 0.35698710917131393,
+      "min_ms": 0.34888007803601795,
+      "max_ms": 0.40369023463426856
+    },
+    "speedup": 17.78597137710451
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "operation": "Test",
+    "VBA": {
+      "median_ms": 0.5745812504756032,
+      "min_ms": 0.5537164061024669,
+      "max_ms": 0.5921765623497777
+    },
+    "native": {
+      "median_ms": 0.010658239744998355,
+      "min_ms": 0.010512646497318201,
+      "max_ms": 0.012124999997809027
+    },
+    "speedup": 53.90958209072373
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "operation": "List",
+    "VBA": {
+      "median_ms": 57.943199994042516,
+      "min_ms": 56.28190003335476,
+      "max_ms": 59.32040000334382
+    },
+    "native": {
+      "median_ms": 1.4772484373679617,
+      "min_ms": 1.4551406238751952,
+      "max_ms": 1.5333062492572935
+    },
+    "speedup": 39.22373415894816
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "operation": "ListArr",
+    "VBA": {
+      "median_ms": 57.2134000249207,
+      "min_ms": 56.639299960806966,
+      "max_ms": 58.562600053846836
+    },
+    "native": {
+      "median_ms": 1.9683812497532926,
+      "min_ms": 1.9313687516842037,
+      "max_ms": 2.078340625303099
+    },
+    "speedup": 29.066218768387248
+  },
+  {
+    "case": "100 sparse matches, 3 named captures",
+    "operation": "MatchAllArr",
+    "VBA": {
+      "median_ms": 56.55249999836087,
+      "min_ms": 55.71899993810803,
+      "max_ms": 59.50119998306036
+    },
+    "native": {
+      "median_ms": 1.5084093756740913,
+      "min_ms": 1.3768374992650934,
+      "max_ms": 2.0540562509268057
+    },
+    "speedup": 37.491480038758176
+  }
+]

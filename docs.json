@@ -13660,6 +13660,15 @@
             "defaultValue": "10000",
             "paramArray": false,
             "referenceType": "ByVal"
+          },
+          {
+            "name": "useNative",
+            "type": "Boolean",
+            "description": "Opt into the experimental Windows x86/x64 native matcher. True (default) selects native; False keeps the debuggable VBA matcher.",
+            "optional": true,
+            "defaultValue": "True",
+            "paramArray": false,
+            "referenceType": "ByVal"
           }
         ],
         "returns": {

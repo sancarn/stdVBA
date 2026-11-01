@@ -1,0 +1,18 @@
+{
+  "measured_at_utc": "2026-11-01T02:30:50.517814+00:00",
+  "office_version": "16.0",
+  "office_build": "16.0.20618",
+  "cpu": "Intel64 Family 6 Model 158 Stepping 13, GenuineIntel",
+  "windows": "Windows-11-10.0.26200-SP0",
+  "ThunkBenchmark.Differential": 2251,
+  "StdRegexTestRunner.RunTests": 328,
+  "ThunkTestRunner.RunTests": 328,
+  "samples": [],
+  "status": "passed",
+  "dialogs": [],
+  "elapsed_seconds": 4.1334052085876465,
+  "baseline_commit": "e917c8a16e80768d6e8efe7fb9611ebc0480290b",
+  "native_class_sha256": "d6002d4e591e2f5eb80c6dcc05cd2b456b9f68be348e312fc0b056c9ab2a2894",
+  "architecture": "Windows x64",
+  "methodology": "QPC; 7 rotated samples; warmed cached patterns; calibrated >=50ms batches; allocation/release included; output equality checked"
+}
