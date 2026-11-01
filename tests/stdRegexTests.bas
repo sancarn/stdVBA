@@ -1,8 +1,14 @@
 Attribute VB_Name = "stdRegexTests"
 '@lang VBA
 
-Sub testAll()
+Public Sub testAll()
+    testContract
     TestMatchAllCol
+    testNativeEngine
+    testCaptureArraysAndLists
+End Sub
+
+Public Sub testContract()
     test.Topic "stdRegex"
     
     Dim sHaystack as string
@@ -82,11 +88,9 @@ Sub testAll()
     Test.Assert "Check data 1,2", vResult(1,2) = "123"
     Test.Assert "Check data 2,1", vResult(2,1) = "12323-STB9-01/01/2005"
     Test.Assert "Check data 2,2", vResult(2,2) = "2123"
-    testNativeEngine
-    testCaptureArraysAndLists
 End Sub
 
-Private Sub testNativeEngine()
+Public Sub testNativeEngine()
     Dim rx As stdRegex, match As Object, matches As Collection, values As Variant
 
     'Issue 141: backreferences within lookahead must never enter the Office regex engine.
@@ -198,7 +202,7 @@ Sub performanceTest2()
     
 End Sub
 
-Private Sub testCaptureArraysAndLists()
+Public Sub testCaptureArraysAndLists()
     Dim rx As stdRegex, values As Variant, names As Object, matches As Collection
     Dim row As Long, col As Long, formats As Variant, otherFormats(3 To 4) As Variant
 
@@ -339,7 +343,7 @@ Private Function LegacyListFormat(ByVal match As Object, ByVal format As String)
     LegacyListFormat = VBA.Replace(format, "bfde0637-8207-418d-9d34-68ba974e8110", "$")
 End Function
 
-Private Sub TestMatchAllCol()
+Public Sub TestMatchAllCol()
     Test.Assert "MatchAllCol budget exhaustion raises", stepLimitRaises("MatchAllCol")
     Dim native As Variant, rx As stdRegex, matches As Collection, row As Collection
     For Each native In Array(False, True)

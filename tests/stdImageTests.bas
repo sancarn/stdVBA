@@ -12,7 +12,7 @@ Option Explicit
 #End If
 Private checks As Long
 
-'Run using Tools/stdImage-tests/run.py, which supplies disposable fixtures and hosts.
+'Run using Tools/Testing/run.py --suite stdImage, which supplies disposable fixtures and hosts.
 Public Function RunTests(ByVal folder As String, ByVal baseURL As String) As String
   On Error GoTo Failed
   checks = 0

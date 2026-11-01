@@ -19,7 +19,7 @@ import winreg
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 sys.dont_write_bytecode = True
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 USER = ctypes.WinDLL("user32", use_last_error=True)
 USER.GetWindowThreadProcessId.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.DWORD)]
 USER.ShowWindow.argtypes = [wintypes.HWND, ctypes.c_int]

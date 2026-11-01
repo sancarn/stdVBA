@@ -1,6 +1,6 @@
 param([string]$PidFile)
 $ErrorActionPreference = 'Stop'
-$root = (Resolve-Path "$PSScriptRoot/../..").Path
+$root = (Resolve-Path "$PSScriptRoot/../../..").Path
 Add-Type @"
 using System;
 using System.Runtime.InteropServices;

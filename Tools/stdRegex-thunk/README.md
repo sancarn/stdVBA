@@ -104,7 +104,7 @@ zero code relocations. This checks executable code, not just cross-compilation.
 
 `test-native.c` contains 18 fixture checks repeated 1,000 times per architecture.
 Build with the same Clang using `--target=i686-w64-windows-gnu -O2 -static
-Tools/stdRegex-thunk/test-native.c -luser32 -o <scratch>/test-x86.exe`, then pass
+tests/harnesses/stdRegex-thunk/test-native.c -luser32 -o <scratch>/test-x86.exe`, then pass
 `Tools/stdRegex-thunk/matcher-x86.bin` to that executable. Repeat with
 `--target=x86_64-w64-windows-gnu` and `matcher.bin` for 64-bit.
 

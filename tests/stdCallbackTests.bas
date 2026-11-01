@@ -11,7 +11,12 @@ Private mTest As String
 
 Public Sub testAll()
   Test.Topic "stdCallback"
+  TestModuleCalls
+  TestBind
+  TestPointerCalls
+End Sub
 
+Public Sub TestModuleCalls()
   With stdCallback.CreateFromModule("stdCallbackTests", "stdCallbackTest")
     'Run tests
     Dim v As Variant
@@ -29,6 +34,10 @@ Public Sub testAll()
     End If
   End With
 
+
+End Sub
+
+Public Sub TestBind()
   'Test stdLambda::bind()
   With stdCallback.CreateFromModule("stdCallbackTests", "stdCallbackTest").Bind(1)
     Test.Assert "stdCallback::Bind() 1 Example", Join(.Run(2, 3), "|") = "1|2|3"
@@ -49,6 +58,10 @@ Public Sub testAll()
     End With
   End With
   
+
+End Sub
+
+Public Sub TestPointerCalls()
   mTest = ""
   With stdCallback.CreateFromPointer(AddressOf stdCallbackTest_Sub)
     Call .Run

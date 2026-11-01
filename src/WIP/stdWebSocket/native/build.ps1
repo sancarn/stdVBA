@@ -29,7 +29,7 @@ foreach ($architecture in @('x86','x64')) {
   $installer = Split-Path $vswhere
   $commands = "@echo off`r`nset `"PATH=$installer;%PATH%`"`r`ncall `"$dev`" -no_logo -arch=$architecture`r`nif errorlevel 1 exit /b 1`r`ncl /nologo /W4 /WX /O2 /LD /MT /Fo`"$obj`" `"$source`" /link winhttp.lib user32.lib oleaut32.lib uuid.lib /DEF:`"$definition`" /OUT:`"$dll`" /IMPLIB:`"$lib`"`r`nif errorlevel 1 exit /b 1`r`n"
   if ($WithTests) {
-    $test = (Resolve-Path (Join-Path $PSScriptRoot '../../../../Tools/stdWebSocket-tests/native_tests.c')).Path
+    $test = (Resolve-Path (Join-Path $PSScriptRoot '../../../../tests/harnesses/stdWebSocket-tests/native_tests.c')).Path
     $testObj = Join-Path $out 'native_tests.obj'
     $testExe = Join-Path $out 'native_tests.exe'
     $commands += "cl /nologo /W4 /WX /O2 /MT /Fo`"$testObj`" /Fe`"$testExe`" `"$test`" /link winhttp.lib user32.lib oleaut32.lib uuid.lib`r`n"

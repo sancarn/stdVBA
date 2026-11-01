@@ -10954,22 +10954,7 @@
     "todos": [
       "Case \"callbyname\": evaluateFunc = CallByName(args(iArgStart))",
       "Switch caching and use of dictionary would be good here",
-      "Better error handling",
-      "iAccess_General",
-      "iSet_General",
-      "Test other functions",
-      "iReturn_WithValue - this is a utility used for returning values from functions, need to think how to test it properly",
-      "iReturn_NoValue - as above.",
-      "iObject_MethodCall",
-      "iObject_MethodCall_WithArgs",
-      "iObject_FieldCall           as method",
-      "iObject_FieldCall_WithArgs  as method",
-      "iObject_FieldCall           as property",
-      "iObject_FieldCall_WithArgs  as property",
-      "iObject_PropLet",
-      "iObject_PropLet_WithArgs",
-      "iObject_PropSet",
-      "iObject_PropSet_WithArgs"
+      "Better error handling"
     ],
     "requires": [],
     "methods": [
@@ -11168,25 +11153,6 @@
           "type": "stdLambda",
           "description": "The lambda existing lambda"
         },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "protRunVMTests",
-        "description": "Runs tests on the class",
-        "remarks": [],
-        "examples": [],
-        "params": [],
-        "returns": null,
         "deprecation": {
           "status": false,
           "message": ""

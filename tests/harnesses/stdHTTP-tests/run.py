@@ -15,7 +15,7 @@ import time
 from http.server import ThreadingHTTPServer
 from fixture import Handler
 
-root = Path(__file__).resolve().parents[2]
+root = Path(__file__).resolve().parents[3]
 for name in ('src/stdICallable.cls', 'src/stdHTTP.cls', 'tests/stdHTTPLocalTests.bas'):
     raw = (root / name).read_bytes().replace(b'\r\n', b'')
     if b'\n' in raw or b'\r' in raw:

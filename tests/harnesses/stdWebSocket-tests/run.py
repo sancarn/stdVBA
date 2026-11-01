@@ -18,8 +18,8 @@ import shutil
 from contextlib import contextmanager
 from fixture import start
 
-root = Path(__file__).resolve().parents[2]
-for name in ('src/stdWebSocket.cls', 'src/WIP/stdWebSocket/stdWebSocketNew.cls', 'src/stdICallable.cls', 'Tools/stdWebSocket-tests/WebSocketRecorder.cls', 'tests/stdWebSocketLocalTests.bas', 'Tools/stdWebSocket-tests/WebSocketAsyncRecorder.cls', 'tests/stdWebSocketAsyncTests.bas'):
+root = Path(__file__).resolve().parents[3]
+for name in ('src/stdWebSocket.cls', 'src/WIP/stdWebSocket/stdWebSocketNew.cls', 'src/stdICallable.cls', 'tests/harnesses/stdWebSocket-tests/WebSocketRecorder.cls', 'tests/stdWebSocketLocalTests.bas', 'tests/harnesses/stdWebSocket-tests/WebSocketAsyncRecorder.cls', 'tests/stdWebSocketAsyncTests.bas'):
     raw = (root / name).read_bytes().replace(b'\r\n', b'')
     if b'\n' in raw or b'\r' in raw:
         raise SystemExit('Source must use CRLF before import: ' + name)

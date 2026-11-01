@@ -3,8 +3,8 @@
 Run from the repository root on Windows with Microsoft Office, Python, pywin32 and Pillow installed:
 
 ```powershell
-python Tools/stdImage-tests/run.py
-python Tools/stdImage-tests/run.py --hosts Excel
+python tests/harnesses/stdImage-tests/run.py
+python tests/harnesses/stdImage-tests/run.py --hosts Excel
 ```
 
 The runner creates disposable, hidden Excel and Word instances and refuses to use a process that already existed. It imports only stdImage and the standalone stdImageTests module, checking actual CRLF bytes before each import. An independent parent watches the owned process for modal dialogs, captures their text, dismisses them and minimises its Office/VBE windows; any dialog, timeout or failed assertion fails the run.

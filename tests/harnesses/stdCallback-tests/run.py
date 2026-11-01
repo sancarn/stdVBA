@@ -6,8 +6,8 @@ import sys
 import threading
 import winreg
 
-ROOT = Path(__file__).resolve().parents[2]
-FILES = ['src/stdICallable.cls', 'src/stdCallback.cls', 'Tools/stdCallback-tests/Probe.bas']
+ROOT = Path(__file__).resolve().parents[3]
+FILES = ['src/stdICallable.cls', 'src/stdCallback.cls', 'tests/harnesses/stdCallback-tests/Probe.bas']
 NAMES = ['Object ByVal inferred', 'Object ByVal explicit', 'Object ByRef inferred',
          'Object ByRef explicit', 'Object ByRef VarPtr', 'Variant ByVal explicit',
          'Collection ByVal inferred', 'Object ByVal RunEx', 'Nothing ByVal', 'Dictionary ByVal']

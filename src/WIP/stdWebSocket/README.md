@@ -86,4 +86,4 @@ Send and close have a native operation deadline. Connection send/response phases
 
 ## Verification
 
-See [the local test runner](../../../Tools/stdWebSocket-tests/README.md). It uses disposable local servers and a separate hidden Excel instance. A native helper is necessary at runtime; no built DLL is committed. The x86 and x64 builds are both checked. Office runtime testing depends on the architecture installed on the test machine.
+See [the local test runner](../../../tests/harnesses/stdWebSocket-tests/README.md). It uses disposable local servers and a separate hidden Excel instance. A native helper is necessary at runtime; no built DLL is committed. The x86 and x64 builds are both checked. Office runtime testing depends on the architecture installed on the test machine.
