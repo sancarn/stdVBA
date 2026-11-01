@@ -4840,8 +4840,7 @@
     "todos": [
       "Implement the following methods:",
       "Things we can't do (yet)",
-      "LongPtr?",
-      "Implement raw API for working with IEnumVARIANT:"
+      "LongPtr?"
     ],
     "requires": [],
     "methods": [
@@ -4929,7 +4928,9 @@
       {
         "name": "enumRefresh",
         "description": "Refresh the dataset to the beginning",
-        "remarks": [],
+        "remarks": [
+          "For Windows IEnumVARIANT sources, release the procedural cursor; the next enumNext starts a new source traversal."
+        ],
         "examples": [],
         "params": [],
         "returns": null,
@@ -5548,7 +5549,9 @@
       {
         "name": "countBy",
         "description": "Count the number of times a condition is met",
-        "remarks": [],
+        "remarks": [
+          "Windows IEnumVARIANT sources are read one item at a time during counting, without retaining consumed values."
+        ],
         "examples": [],
         "params": [
           {
@@ -5855,7 +5858,7 @@
           {
             "name": "iCount",
             "type": "Long",
-            "description": "The number of elements to retrieve",
+            "description": "The number of elements to retrieve. Non-positive counts return an empty enumerator.",
             "optional": false,
             "defaultValue": null,
             "paramArray": false,
@@ -5884,7 +5887,9 @@
         "name": "NewEnum",
         "access": "ReadOnly",
         "description": "For-each compatibility",
-        "remarks": [],
+        "remarks": [
+          "Windows IEnumVARIANT sources return a fresh source cursor directly. Other modes retain the Collection fallback."
+        ],
         "examples": [
           "```vb\r\nDim v as variant\r\nFor each v in myEnum\r\n  Debug.Pring v\r\nnext\r\n```"
         ],
@@ -5951,7 +5956,9 @@
         "name": "Length",
         "access": "ReadOnly",
         "description": "Get the length of the enumerator",
-        "remarks": [],
+        "remarks": [
+          "Windows IEnumVARIANT sources are fully traversed on every call without caching their values."
+        ],
         "examples": [],
         "params": [],
         "returns": {
@@ -6098,7 +6105,10 @@
       {
         "name": "CreateFromIEnumVariant",
         "description": "Create an enumerator from an object which supports IEnumVARIANT.",
-        "remarks": [],
+        "remarks": [
+          "On Windows, each traversal acquires its own source cursor and reads one item at a time without caching. Construction does not read items. Mac retains eager enumeration.",
+          "Each operation enumerates the source again, so mutations may affect later traversals and source errors occur during consumption. For an immediate snapshot use CreateFromArray(CreateFromIEnumVariant(o).AsArray()). Native For Each streams Windows IEnumVARIANT sources directly; result-producing operations such as Map, Filter and Sort still materialise their results."
+        ],
         "examples": [],
         "params": [
           {

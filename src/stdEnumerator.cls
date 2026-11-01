@@ -182,7 +182,6 @@ Attribute VB_Exposed = False
 '    [1,2].zip([2,3]).map(e=>e[0]*e[1]) ==> [2,6]
 
 'TODO: Things we can't do (yet)
-'    take <-- can't do this unless we implement IEnumVARIANT and call Next() method
 '    tally <-- Would like to do this but can't until we have stdDictionary     ["a","b","c","b","a","b"].tally ==> {a:2, b:3, c:1}
 '    to_dict <-- requires stdDictioanry                                        ["a",1,"b",2].to_dict ==> {a:1, b:2}
 '    groupBy <-- requires stdDictionary
@@ -216,6 +215,35 @@ Attribute VB_Exposed = False
         Private Declare Function createEmptyArrayVariant     Lib "oleaut32" Alias "SafeArrayCreateVector" (Optional ByVal vt As VbVarType = vbVariant  , Optional ByVal lLow As Long = 0, Optional ByVal lCount As Long = 0) as Variant()
     #End If
 #End If
+
+#If Not Mac Then
+#If VBA7 Then
+Private Declare PtrSafe Function DispCallFunc Lib "oleaut32" (ByVal instance As LongPtr, ByVal offset As LongPtr, ByVal convention As Long, ByVal returnType As Integer, ByVal count As Long, ByVal types As LongPtr, ByVal values As LongPtr, ByRef result As Variant) As Long
+#Else
+Private Declare Function DispCallFunc Lib "oleaut32" (ByVal instance As Long, ByVal offset As Long, ByVal convention As Long, ByVal returnType As Integer, ByVal count As Long, ByVal types As Long, ByVal values As Long, ByRef result As Variant) As Long
+#End If
+#End If
+'Zero-based COM vtable slots, including the inherited IUnknown members.
+Private Enum EIUnknown
+    unkQueryInterface = 0
+    unkAddRef = 1
+    unkRelease = 2
+End Enum
+Private Enum EIDispatch
+    dispInvoke = 6
+End Enum
+Private Enum EIEnumVariant
+    evNext = 3
+    evSkip = 4
+    evReset = 5
+    evClone = 6
+End Enum
+Private Type TEnumGUID
+    Data1 As Long
+    Data2 As Long
+    Data3 As Long
+    Data4 As Long
+End Type
 Private Enum EnumeratorType
     FromCallable
     FromCallableVerbose
@@ -231,10 +259,18 @@ Private Type SortStruct
     iPrev As Long
 End Type
 
+'Each traversal owns its cursor; consumed source values are never retained here.
+Private Type TSourceIteration
+    Cursor As IUnknown
+    Started As Boolean
+    Finished As Boolean
+    ErrorNumber As Long
+End Type
 Private Type TCurrentIteration
     Value As Variant
     Key As Variant
     Index As Long
+    Source As TSourceIteration
 End Type
 Private Type TThis
     mode As EnumeratorType
@@ -287,6 +323,8 @@ Public Function CreateFromArray(ByVal v As Variant, Optional ByVal iMaxLength As
 End Function
 
 'Create an enumerator from an object which supports IEnumVARIANT.
+'@remark On Windows, each traversal acquires its own source cursor and reads one item at a time without caching. Construction does not read items. Mac retains eager enumeration.
+'@remark Each operation enumerates the source again, so mutations may affect later traversals and source errors occur during consumption. For an immediate snapshot use CreateFromArray(CreateFromIEnumVariant(o).AsArray()). Native For Each streams Windows IEnumVARIANT sources directly; result-producing operations such as Map, Filter and Sort still materialise their results.
 '@constructor
 '@param o - the object to create the enumerator from. This object should support IEnumVARIANT
 '@param iMaxLength - Maximum length of enumerator. The enumerator will refuse to go beyond this number of items. Used in order to prevent runaway processes.
@@ -413,14 +451,13 @@ End Function
 '@param iMaxLength - Maximum length of enumerator. The enumerator will refuse to go beyond this number of items. Used in order to prevent runaway processes.
 '@param v - The data to create the enumerator from. This is either an array, a callable, or an IEnumVARIANT object.
 Public Sub protInit(ByVal iEnumeratorType As Long, ByVal iMaxLength As Long, ParamArray v() As Variant)
+    enumRefresh
     This.mode = iEnumeratorType
     This.MaxLength = iMaxLength
     Select Case This.mode
         Case EnumeratorType.FromIEnumVariant
-            'HACK: This is a real work around for the fact that we can't access IEnumVARIANT methods (getNewEnum,getNextVariant,skipNextVariant,cloneEnumVariant,resetEnumVariant)
-            'directly. Realistically this may sometimes not even work. A more long term solution would be to call getNewEnum() and then getNextVariant() until we reach the end of the
-            'object. This may be implementable after stdCOM is fully implemented.
-
+            #If Mac Then
+            'Mac retains the eager fallback; the COM invocation path is Windows-only.
             Set This.EnumObject = v(0)
             
             'Calculate total length
@@ -446,6 +483,9 @@ Public Sub protInit(ByVal iEnumeratorType As Long, ByVal iMaxLength As Long, Par
             Else
                 This.BaseArray = Array()
             End If
+            #Else
+                Set This.EnumObject = v(0)
+            #End If
         Case EnumeratorType.FromArray
             This.BaseArray = v(0)
         Case EnumeratorType.FromCallable
@@ -466,9 +506,16 @@ End Sub
 '  Debug.Pring v
 'next
 '```
-'@TODO: Use custom IEnumVARIANT instead of casting to Collection
+'@remark Windows IEnumVARIANT sources return a fresh source cursor directly. Other modes retain the Collection fallback.
+'@TODO: Use custom IEnumVARIANT instead of casting other source modes to Collection
 Public Property Get NewEnum() As IUnknown
 Attribute NewEnum.VB_UserMemId = -4
+    #If Not Mac Then
+        If This.mode = FromIEnumVariant Then
+            Set NewEnum = getNewEnum(This.EnumObject)
+            Exit Property
+        End If
+    #End If
     Static oEnumCol As Collection: If oEnumCol Is Nothing Then Set oEnumCol = AsCollection()
     Set NewEnum = oEnumCol.[_NewEnum]
 End Property
@@ -486,7 +533,7 @@ End Property
 '```
 Public Function enumNext(ByRef nextValue As Variant) As Boolean
     With This.Current
-        If NextItem(.Key, .Value, .Index) Then
+        If NextItem(.Key, .Value, .Index, This.Current.Source) Then
             If IsObject(.Value) Then
                 Set nextValue = .Value
             Else
@@ -500,9 +547,14 @@ Public Function enumNext(ByRef nextValue As Variant) As Boolean
 End Function
 
 'Refresh the dataset to the beginning
+'@remark For Windows IEnumVARIANT sources, release the procedural cursor; the next enumNext starts a new source traversal.
 Public Sub enumRefresh()
     With This.Current
-        .Value = Null
+        CopyVariant .Value, Null
+        Set .Source.Cursor = Nothing
+        .Source.Started = False
+        .Source.Finished = False
+        .Source.ErrorNumber = 0
         .Index = 0
         .Key = Null
     End With
@@ -511,11 +563,12 @@ End Sub
 'Get this enumerator as a collection
 '@returns - The enumerator's data as a collection
 Public Function AsCollection() As Collection
+    Dim sourceIteration As TSourceIteration
     Dim i As Long: i = 0
     Dim v As Variant: v = Null
     Dim kv As String: kv = ""
     Dim retCol As Collection: Set retCol = New Collection
-    While NextItem(kv, v, i)
+    While NextItem(kv, v, i, sourceIteration)
         retCol.Add v, kv
     Wend
 
@@ -526,6 +579,7 @@ End Function
 '@param iType - The vartype of the array generated 
 '@returns Array<T> - The enumerator's data as an array
 Public Function AsArray(Optional ByVal iType As VbVarType = vbVarType.vbVariant) As Variant
+    Dim sourceIteration As TSourceIteration
     Dim arrLen As Long: arrLen = Length()
     If arrLen = 0 Then
         AsArray = CreateEmptyVBArray(iType)
@@ -576,11 +630,11 @@ Public Function AsArray(Optional ByVal iType As VbVarType = vbVarType.vbVariant)
     Dim i As Long: i = 0
     Select Case iType
         Case VbVarType.vbObject
-            While NextItem(kv, v, i)
+            While NextItem(kv, v, i, sourceIteration)
                 Set vRet(i) = v
             Wend
         Case VbVarType.vbVariant
-            While NextItem(kv, v, i)
+            While NextItem(kv, v, i, sourceIteration)
                 If IsObject(v) Then
                     Set vRet(i) = v
                 Else
@@ -588,7 +642,7 @@ Public Function AsArray(Optional ByVal iType As VbVarType = vbVarType.vbVariant)
                 End If
             Wend
         Case Else
-            While NextItem(kv, v, i)
+            While NextItem(kv, v, i, sourceIteration)
                 vRet(i) = v
             Wend
     End Select
@@ -599,6 +653,7 @@ End Function
 'Converts an enumerator of dictionaries to a 2D array
 '@returns Array2d<Variant> - 2D Array of data including headers. Number of rows is equal to the length of the enumerator, number of columns is equal to the number of keys in the first item.
 Public Function AsArray2D(Optional ByVal includeObjects As Boolean = True)
+    Dim sourceIteration As TSourceIteration
     Dim vItem
     Call CopyVariant(vItem, Item(1, True))
 
@@ -621,7 +676,7 @@ Public Function AsArray2D(Optional ByVal includeObjects As Boolean = True)
         Dim v As Variant: v = Null
         Dim kv As Variant: kv = Null
         i = 0
-        While NextItem(kv, v, i)
+        While NextItem(kv, v, i, sourceIteration)
             Dim j As Long
             For j = iKeysLb To iKeysUb
                 If IsObject(v(vKeys(j))) Then
@@ -646,13 +701,14 @@ End Function
 'Returns the stored enumerator as a dictionary
 '@returns Object<Dictionary> - Dictionary containing enumerator data
 Public Function AsDictionary() As Object
+    Dim sourceIteration As TSourceIteration
   Dim oRet As Object
   Set oRet = CreateObject("Scripting.Dictionary")
   
   Dim v As Variant: v = Null
   Dim kv As Variant: kv = Null
   Dim i As Long: i = 0
-  While NextItem(kv, v, i)
+  While NextItem(kv, v, i, sourceIteration)
     If IsObject(v) Then
       Set oRet(kv) = v
     Else
@@ -667,10 +723,11 @@ End Function
 '@param cb as stdICallable<(element: Variant)=>Void> - Callback to call for each item
 '@returns - This is the enumerator itself for chaining
 Public Function ForEach(ByVal cb As stdICallable) As stdEnumerator
+    Dim sourceIteration As TSourceIteration
   Dim v As Variant: v = Null
   Dim i As Long: i = 0
   Dim kv As Variant: kv = Null
-  While NextItem(kv, v, i)
+  While NextItem(kv, v, i, sourceIteration)
     Call cb.Run(v, kv)
   Wend
   Set ForEach = Me
@@ -680,11 +737,12 @@ End Function
 '@param cb as stdICallable<(element: Variant)=>Variant> - Callback to map values to.
 '@returns - Enumerator containing mapped values
 Public Function Map(ByVal cb As stdICallable) As stdEnumerator
+    Dim sourceIteration As TSourceIteration
   Dim oRet As Collection: Set oRet = New Collection
   Dim v As Variant: v = Null
   Dim i As Long: i = 0
   Dim kv As Variant: kv = Null
-  While NextItem(kv, v, i)
+  While NextItem(kv, v, i, sourceIteration)
     Call oRet.Add(cb.Run(v, kv))
   Wend
 
@@ -695,12 +753,13 @@ End Function
 '@param cb as stdICallable<(element: Variant)=>Boolean> - callback to test condition for
 '@returns - Enumerator containing all elements of `Me` for which the given callback returns `true`.
 Public Function Filter(ByVal cb As stdICallable) As stdEnumerator
+    Dim sourceIteration As TSourceIteration
   Dim oRet As Collection: Set oRet = New Collection
   Dim v As Variant: v = Null
   Dim i As Long: i = 0
   Dim kv As Variant: kv = Null
 
-  While NextItem(kv, v, i)
+  While NextItem(kv, v, i, sourceIteration)
     If cb.Run(v, kv) Then Call oRet.Add(v)
   Wend
 
@@ -711,13 +770,14 @@ End Function
 '@param cb as stdICallable<(element: Variant)=>Variant> - If a callback provided, sorts items based on values returned by the callback. Otherwise sorts items based on values in enumerator
 '@returns - enumerator of sorted values
 Public Function Sort(Optional ByVal cb As stdICallable = Nothing) As stdEnumerator
+    Dim sourceIteration As TSourceIteration
     If Length > 0 Then
         Dim arr() As SortStruct
         Dim iIndex As Long: iIndex = 0
         Dim iFirstItem As Long: iFirstItem = 1
         Dim val As Variant: val = Null
         Dim keyVal As Variant: keyVal = Null
-        While NextItem(keyVal, val, iIndex)
+        While NextItem(keyVal, val, iIndex, sourceIteration)
             'Increment index
             ReDim Preserve arr(1 To iIndex)
 
@@ -810,16 +870,25 @@ End Function
 '@param cb as stdICallable<(element: Variant)=>Variant> - If a callback provided, filters out duplicate items based on values returned by the callback. Otherwise filters duplicate item based on their value.
 '@returns - enumerator of unique values
 Public Function Unique(Optional ByVal cb As stdICallable = Nothing) As stdEnumerator
+    Dim sourceIteration As TSourceIteration
+    Dim innerIteration As TSourceIteration
   Dim oRet As Collection: Set oRet = New Collection
   Dim v As Variant: v = Null
   Dim i As Long: i = 0
   Dim kv As Variant: kv = Null
   Dim comp1 As Variant, comp2 As Variant
 
-  While NextItem(kv, v, i)
+  While NextItem(kv, v, i, sourceIteration)
     Dim tv As Variant: tv = Null
     Dim ktv As Variant: ktv = Null
     Dim ti As Long: ti = i
+    #If Not Mac Then
+      If This.mode = FromIEnumVariant Then ti = 0
+    #End If
+    Set innerIteration.Cursor = Nothing
+    innerIteration.Started = False
+    innerIteration.Finished = False
+    innerIteration.ErrorNumber = 0
     Dim matchFound As Boolean: matchFound = False
     
     'Obtain comparison token
@@ -829,7 +898,8 @@ Public Function Unique(Optional ByVal cb As stdICallable = Nothing) As stdEnumer
       Call CopyVariant(comp1, cb.Run(v, kv))
     End If
 
-    Do While NextItem(ktv, tv, ti)
+    Do While NextItem(ktv, tv, ti, innerIteration)
+      If ti > i Then
         'Obtain 2nd comparison token
         If cb Is Nothing Then
           Call CopyVariant(comp2, tv)
@@ -839,7 +909,9 @@ Public Function Unique(Optional ByVal cb As stdICallable = Nothing) As stdEnumer
         
         matchFound = areVariantsEqual(comp1, comp2)
         If matchFound Then Exit Do
+      End If
     Loop
+    Set innerIteration.Cursor = Nothing
     
     'If a match isn't found return v
     If Not matchFound Then Call oRet.Add(v)
@@ -865,11 +937,12 @@ End Function
 '@param obj - Enumerator to concat with that of `me`.
 '@returns - A concatenated array of values.
 Public Function Concat(ByVal obj As stdEnumerator) As stdEnumerator
+    Dim sourceIteration As TSourceIteration
     Dim oRet As Collection: Set oRet = New Collection
     Dim v As Variant: v = Null
     Dim i As Long: i = 0
     Dim kv As Variant: v = Null
-    While NextItem(kv, v, i)
+    While NextItem(kv, v, i, sourceIteration)
         Call oRet.Add(v)
     Wend
     For Each v In obj.AsCollection
@@ -883,6 +956,7 @@ End Function
 '@param sDelimiter - Enumerator to concat with that of `me`.
 '@returns - A concatenated array of values.
 Public Function Join(Optional ByVal sDelimiter As String = ",") As String
+    Dim sourceIteration As TSourceIteration
     Dim sRet As String
     sRet = ""
 
@@ -891,7 +965,7 @@ Public Function Join(Optional ByVal sDelimiter As String = ",") As String
     Dim i As Long: i = 0
     Dim kv As Variant: kv = Null
     
-    While NextItem(kv, v, i)
+    While NextItem(kv, v, i, sourceIteration)
         sRet = sRet & sDelimiter & v
     Wend
 
@@ -902,12 +976,13 @@ End Function
 '@param tv - Element to find.
 '@returns - Index of element.
 Public Function indexOf(ByVal tv As Variant) As Long
+    Dim sourceIteration As TSourceIteration
     Dim oRet As Collection: Set oRet = New Collection
     Dim v As Variant: v = Null
     Dim i As Long: i = 0
     Dim kv As Variant: kv = Null
     
-    While NextItem(kv, v, i)
+    While NextItem(kv, v, i, sourceIteration)
         If areVariantsEqual(tv, v) Then
             indexOf = i
             Exit Function
@@ -921,12 +996,13 @@ End Function
 '@param tv - Element to find
 '@returns - Last index of element.
 Public Function lastIndexOf(ByVal tv As Variant) As Long
+    Dim sourceIteration As TSourceIteration
     Dim oRet As Collection: Set oRet = New Collection
     Dim v As Variant: v = Null
     Dim i As Long: i = 0
     Dim kv As Variant: kv = Null
     
-    While NextItem(kv, v, i)
+    While NextItem(kv, v, i, sourceIteration)
         If areVariantsEqual(tv, v) Then
             lastIndexOf = i
         End If
@@ -944,13 +1020,14 @@ End Function
 '@param cb as stdICallable<(element: Variant)=>Boolean> - condition to check.
 '@returns - `True` if all elements satisfy the condition, else `false`.
 Public Function checkAll(ByVal cb As stdICallable) As Boolean
+    Dim sourceIteration As TSourceIteration
     Dim oRet As Collection: Set oRet = New Collection
     Dim v As Variant: v = Null
     Dim i As Long: i = 0
     Dim kv As Variant: kv = Null
 
     checkAll = True
-    While NextItem(kv, v, i)
+    While NextItem(kv, v, i, sourceIteration)
         If Not cb.Run(v, kv) Then
             checkAll = False
             Exit Function
@@ -962,12 +1039,13 @@ End Function
 '@param cb as stdICallable<(element: Variant)=>Boolean> - condition to check.
 '@returns - `True` if any element satisfies the condition, else `false`.
 Public Function checkAny(ByVal cb As stdICallable) As Boolean
+    Dim sourceIteration As TSourceIteration
     Dim oRet As Collection: Set oRet = New Collection
     Dim v As Variant: v = Null
     Dim i As Long: i = 0
     Dim kv As Variant: kv = Null
     
-    While NextItem(kv, v, i)
+    While NextItem(kv, v, i, sourceIteration)
         If cb.Run(v, kv) Then
             checkAny = True
             Exit Function
@@ -980,12 +1058,13 @@ End Function
 '@param cb as stdICallable<(element: Variant)=>Boolean> - condition to check.
 '@returns - `True` if none of the elements satisfy the condition, else `false`.
 Public Function checkNone(ByVal cb As stdICallable) As Boolean
+    Dim sourceIteration As TSourceIteration
     Dim oRet As Collection: Set oRet = New Collection
     Dim v As Variant: v = Null
     Dim i As Long: i = 0
     Dim kv As Variant: kv = Null
 
-    While NextItem(kv, v, i)
+    While NextItem(kv, v, i, sourceIteration)
         If cb.Run(v, kv) Then
             checkNone = False
             Exit Function
@@ -998,12 +1077,13 @@ End Function
 '@param cb as stdICallable<(element: Variant)=>Boolean> - condition to check.
 '@returns - `True` if only one of the elements satisfy the condition, else `false`.
 Public Function checkOnlyOne(ByVal cb As stdICallable) As Boolean
+    Dim sourceIteration As TSourceIteration
     Dim oRet As Collection: Set oRet = New Collection
     Dim v As Variant: v = Null
     Dim i As Long: i = 0
     Dim kv As Variant: kv = Null
     Dim iMatched As Long: iMatched = 0
-    While NextItem(kv, v, i)
+    While NextItem(kv, v, i, sourceIteration)
         If cb.Run(v, kv) Then
             iMatched = iMatched + 1
             If iMatched > 1 Then
@@ -1032,6 +1112,7 @@ End Function
 '@param vInitialValue - initial value to use in reducer.
 '@returns - The reduced value.
 Public Function reduce(ByVal cb As stdICallable, Optional ByVal initialValue As Variant = 0) As Variant
+    Dim sourceIteration As TSourceIteration
     Dim v As Variant: v = Null
     Dim i As Long: i = 0
     Dim kv As Variant: kv = Null
@@ -1039,29 +1120,31 @@ Public Function reduce(ByVal cb As stdICallable, Optional ByVal initialValue As 
     'Obtain initial value
     Dim vRet As Variant
     If IsMissing(initialValue) Then
-        Call NextItem(kv, v, i)
+        Call NextItem(kv, v, i, sourceIteration)
         Call CopyVariant(vRet, v)
     Else
         Call CopyVariant(vRet, initialValue)
     End If
     
     'Reduce
-    While NextItem(kv, v, i)
+    While NextItem(kv, v, i, sourceIteration)
         Call CopyVariant(vRet, cb.Run(vRet, v, kv))
     Wend
     Call CopyVariant(reduce, vRet)
 End Function
 
 'Count the number of times a condition is met
+'@remark Windows IEnumVARIANT sources are read one item at a time during counting, without retaining consumed values.
 '@param cb as stdICallable<(element: Variant)=>Boolean> - The callable to test for
 '@returns - The number of times a condition is met
 Public Function countBy(ByVal cb As stdICallable) As Long
+    Dim sourceIteration As TSourceIteration
     Dim iRet As Long: iRet = 0
     Dim v As Variant: v = Null
     Dim i As Long: i = 0
     Dim kv As Variant: kv = Null
 
-    While NextItem(kv, v, i)
+    While NextItem(kv, v, i, sourceIteration)
         If cb.Run(v, kv) Then iRet = iRet + 1
     Wend
     countBy = iRet
@@ -1071,6 +1154,7 @@ End Function
 '@param cb as stdICallable<(element: Variant)=>Boolean> - The callable which when run on an element returns the key to group by
 '@returns - Creates a dictionary, who's keys lead to `stdEnumerator`'s of elements matching that grouping.
 Public Function groupBy(ByVal cb As stdICallable) As Object
+    Dim sourceIteration As TSourceIteration
     Dim oRet As Object: Set oRet = CreateObject("Scripting.Dictionary")
     Dim key As Variant
     
@@ -1078,7 +1162,7 @@ Public Function groupBy(ByVal cb As stdICallable) As Object
     Dim i As Long: i = 0
     Dim kv As Variant: kv = Null
     
-    While NextItem(kv, v, i)
+    While NextItem(kv, v, i, sourceIteration)
         Call CopyVariant(key, cb.Run(v, kv))
         If Not oRet.exists(key) Then Set oRet(key) = New Collection
         Call oRet(key).add(v)
@@ -1112,13 +1196,14 @@ End Function
 '@param cb as stdICallable<(element: Variant)=>Variant> - If callback given, callback to obtain max value of. Else max of the elements values are found.
 '@returns - Value containing max data
 Public Function max(Optional ByVal cb As stdICallable = Nothing) As Variant
+    Dim sourceIteration As TSourceIteration
     Dim vRet As Variant
     Dim vMaxValue As Variant
     Dim v As Variant: v = Null
     Dim i As Long: i = 0
     Dim kv As Variant: kv = Null
 
-    While NextItem(kv, v, i)
+    While NextItem(kv, v, i, sourceIteration)
         'Get value to test
         Dim vtValue As Variant
         If cb Is Nothing Then
@@ -1144,13 +1229,14 @@ End Function
 '@param cb as stdICallable<(element: Variant)=>Variant> -  If callback given, callback to obtain min value of. Else min of the elements values are found.
 '@returns - Value containing min data
 Public Function min(Optional ByVal cb As stdICallable = Nothing) As Variant
+    Dim sourceIteration As TSourceIteration
     Dim vRet As Variant
     Dim vMaxValue As Variant
     Dim v As Variant: v = Null
     Dim i As Long: i = 0
     Dim kv As Variant: kv = Null
 
-    While NextItem(kv, v, i)
+    While NextItem(kv, v, i, sourceIteration)
         'Get value to test
         Dim vtValue As Variant
         If cb Is Nothing Then
@@ -1176,13 +1262,14 @@ End Function
 '@param cb as stdICallable<(element: Variant)=>Variant> -  A callback returning an item to sum. If no callback supplied then the elements themselves will be summed
 '@returns - The sum value
 Public Function sum(Optional ByVal cb As stdICallable = Nothing) As Variant
+    Dim sourceIteration As TSourceIteration
     Dim vRet As Variant
     Dim oRet As Collection: Set oRet = New Collection
     Dim v As Variant: v = Null
     Dim i As Long: i = 0
     Dim kv As Variant: kv = Null
     
-    While NextItem(kv, v, i)
+    While NextItem(kv, v, i, sourceIteration)
         'Get value to test
         Dim vtValue As Variant
         If cb Is Nothing Then
@@ -1207,6 +1294,7 @@ End Function
 '@param cb as stdICallable<(element: variant, key: variant)=>Void> - Callback to execute on each item
 '@returns  - This object.
 Public Function Cycle(ByVal iTimes As Long, ByVal cb As stdICallable) As stdEnumerator
+    Dim sourceIteration As TSourceIteration
     Dim i As Long
     For i = 1 To iTimes
         Dim oRet As Collection: Set oRet = New Collection
@@ -1214,7 +1302,7 @@ Public Function Cycle(ByVal iTimes As Long, ByVal cb As stdICallable) As stdEnum
         Dim ti As Long: ti = 0
         Dim kv As Variant: kv = Null
         
-        While NextItem(kv, v, ti)
+        While NextItem(kv, v, ti, sourceIteration)
             Call cb.Run(v, kv)
         Wend
     Next
@@ -1226,12 +1314,13 @@ End Function
 '@param ifMissing - Value to return if missing
 '@returns - Value found or value of isMissing if missing
 Public Function FindFirst(ByVal cb As stdICallable, Optional ByVal ifMissing As Variant = Null) As Variant
+    Dim sourceIteration As TSourceIteration
     Dim oRet As Collection: Set oRet = New Collection
     Dim v As Variant: v = Null
     Dim i As Long: i = 0
     Dim kv As Variant: kv = Null
 
-    While NextItem(kv, v, i)
+    While NextItem(kv, v, i, sourceIteration)
         If cb.Run(v, kv) Then
             Call CopyVariant(FindFirst, v)
             Exit Function
@@ -1246,13 +1335,14 @@ End Function
 '@param byIndex - If true, then index of item is used, instead of potentially key.
 '@returns       - Item returned at index/key
 Public Property Get Item(ByVal index As Variant, Optional ByVal byIndex As Boolean = False) As Variant
+    Dim sourceIteration As TSourceIteration
     Dim oRet As Collection: Set oRet = New Collection
     Dim v As Variant: v = Null
     Dim ti As Long: ti = 0
     Dim kv As Variant: kv = Null
 
     'Loop through items until 
-    While NextItem(kv, v, ti)
+    While NextItem(kv, v, ti, sourceIteration)
         Dim bMeetsRequirements As Boolean
         If byIndex Then
           bMeetsRequirements = ti = index
@@ -1270,8 +1360,10 @@ Public Property Get Item(ByVal index As Variant, Optional ByVal byIndex As Boole
 End Property
 
 'Get the length of the enumerator
+'@remark Windows IEnumVARIANT sources are fully traversed on every call without caching their values.
 '@returns - Length of enumerator.
 Public Property Get Length() As Long
+    Dim sourceIteration As TSourceIteration
     Dim oRet As Collection: Set oRet = New Collection
     Dim v As Variant: v = Null
     Dim i As Long: i = 0
@@ -1280,7 +1372,7 @@ Public Property Get Length() As Long
         Length = UBound(This.BaseArray) - LBound(This.BaseArray) + 1
     Else
         Dim kv As Variant: kv = Null
-        While NextItem(kv, v, i)
+        While NextItem(kv, v, i, sourceIteration)
             If i > iMaxLength Then
                 Err.Raise 1, "stdEnumerator", "Error: In order to prevent freezes stdEnumerator's Length() has a maxLength parameter. If the length of your collection is greater than this figure the program will error. Either Potential freeze detected."
             End If
@@ -1291,18 +1383,20 @@ Public Property Get Length() As Long
 End Property
 
 'Get the first `iCount` elements of the collection. Useful for testing
-'@param iCount - The number of elements to retrieve
+'@param iCount - The number of elements to retrieve. Non-positive counts return an empty enumerator.
 '@returns - Enumerator containing the first `iCount` elements.
 '@example ```vb
 'stdEnumerator.CreateFromArray(Array(1,2,3,4,5,6,7,8,9)).First(3).Join(",") '=>1,2,3
 '```
 Public Function First(ByVal iCount As Long) As stdEnumerator
+    Dim sourceIteration As TSourceIteration
     Dim oRet As Collection: Set oRet = New Collection
     Dim v As Variant: v = Null
     Dim ti As Long: ti = 0
     Dim kv As Variant: kv = Null
     
-    While NextItem(kv, v, ti)
+    If iCount <= 0 Then GoTo Jump
+    While NextItem(kv, v, ti, sourceIteration)
         oRet.Add v
         
         'Reduce and check counter
@@ -1391,10 +1485,46 @@ End Function
 '@param vNextKey      - Previous/Next Key
 '@param vNextItem     - Previous/Next Item
 '@param iCurrentIndex - Previous/Next Index
+'@param sourceIteration - Cursor state owned by this traversal, independent of other operations.
 '@returns             - Whether a new item was succesfully obtained or not.
-'@TODO: Use DispCallFunc to call IEnumVariant::Next instead of converting to array
-Private Function NextItem(ByRef vNextKey As Variant, ByRef vNextItem As Variant, ByRef iCurrentIndex As Long) As Boolean
+Private Function NextItem(ByRef vNextKey As Variant, ByRef vNextItem As Variant, ByRef iCurrentIndex As Long, ByRef sourceIteration As TSourceIteration) As Boolean
   iCurrentIndex = iCurrentIndex + 1
+  Select Case This.mode
+    Case FromIEnumVariant
+      #If Not Mac Then
+        With sourceIteration
+          If iCurrentIndex = 1 Then
+            Set .Cursor = Nothing
+            .Started = False
+            .Finished = False
+            .ErrorNumber = 0
+          End If
+          If .ErrorNumber <> 0 Then Err.Raise .ErrorNumber, "stdEnumerator", "Source enumeration failed."
+          If .Finished Then Exit Function
+          If Not .Started Then
+            Set .Cursor = getNewEnum(This.EnumObject)
+            .Started = True
+          End If
+          Dim value As Variant, fetched As Long, hr As Long
+          hr = enumCall(ObjPtr(.Cursor), EIEnumVariant.evNext, 1&, VarPtr(value), VarPtr(fetched))
+          If hr < 0 Then
+            .ErrorNumber = hr
+            Set .Cursor = Nothing
+            Err.Raise hr, "stdEnumerator", "IEnumVARIANT::Next failed."
+          End If
+          If hr = 1 Or fetched = 0 Then
+            .Finished = True
+            Set .Cursor = Nothing
+          End If
+          If fetched = 1 Then
+            CopyVariant vNextItem, value
+            vNextKey = iCurrentIndex
+            NextItem = True
+          End If
+        End With
+        Exit Function
+      #End If
+  End Select
   Select Case This.mode
     Case FromIEnumVariant, FromArray
       Dim lb As Long: lb = LBound(This.BaseArray, 1)
@@ -1484,20 +1614,64 @@ Private Function CreateEmptyVBArray(Optional ByVal varType As VbVarType = vbVari
 End Function
 
 
-'TODO: Implement raw API for working with IEnumVARIANT:
-Private Function getNewEnum(ByRef o As Object) As IEnumVARIANT
-
+#If Not Mac Then
+'Invoke a COM vtable member. The caller must retain the interface reference.
+#If VBA7 Then
+Private Function enumCall(ByVal target As LongPtr, ByVal slot As Long, ParamArray args() As Variant) As Long
+#Else
+Private Function enumCall(ByVal target As Long, ByVal slot As Long, ParamArray args() As Variant) As Long
+#End If
+    #If VBA7 Then
+        Dim pointers() As LongPtr
+    #Else
+        Dim pointers() As Long
+    #End If
+    Dim types() As Integer
+    Dim i As Long, result As Variant, hr As Long
+    ReDim pointers(0 To UBound(args))
+    ReDim types(0 To UBound(args))
+    For i = 0 To UBound(args)
+        types(i) = VarType(args(i))
+        pointers(i) = VarPtr(args(i))
+    Next
+    #If Win64 Then
+        hr = DispCallFunc(target, slot * 8, 4, vbLong, UBound(args) + 1, VarPtr(types(0)), VarPtr(pointers(0)), result)
+    #Else
+        hr = DispCallFunc(target, slot * 4, 4, vbLong, UBound(args) + 1, VarPtr(types(0)), VarPtr(pointers(0)), result)
+    #End If
+    If hr < 0 Then Err.Raise hr, "stdEnumerator", "COM invocation failed."
+    enumCall = result
 End Function
-Private Function getNextVariant(ByRef o As IEnumVARIANT) As Variant
 
+'Obtain DISPID_NEWENUM and query its result for IEnumVARIANT.
+Private Function getNewEnum(ByVal source As Object) As IUnknown
+    On Error GoTo Failed
+    Dim stage As String: stage = "Invoke _NewEnum"
+    Dim iid As TEnumGUID
+    #If VBA7 Then
+        Dim params(0 To 2) As LongPtr
+        Dim zero As LongPtr
+    #Else
+        Dim params(0 To 3) As Long
+        Dim zero As Long
+    #End If
+    Dim result As Variant, hr As Long
+    hr = enumCall(ObjPtr(source), EIDispatch.dispInvoke, -4&, VarPtr(iid), 0&, CInt(3), VarPtr(params(0)), VarPtr(result), zero, zero)
+    If hr < 0 Then Err.Raise hr, "stdEnumerator", "Cannot obtain _NewEnum."
+    stage = "Read _NewEnum result"
+    Dim unknown As IUnknown
+    Set unknown = result
+    stage = "Build IID"
+    iid.Data1 = &H20404
+    iid.Data3 = &HC0
+    iid.Data4 = &H46000000
+    stage = "Query IEnumVARIANT"
+    Dim cursor As IUnknown
+    hr = enumCall(ObjPtr(unknown), EIUnknown.unkQueryInterface, VarPtr(iid), VarPtr(cursor))
+    If hr < 0 Then Err.Raise hr, "stdEnumerator", "Source does not expose IEnumVARIANT."
+    Set getNewEnum = cursor
+    Exit Function
+Failed:
+    Err.Raise Err.Number, "stdEnumerator::getNewEnum", stage & ": " & Err.Description
 End Function
-Private Sub skipNextVariant(ByRef o As IEnumVARIANT)
-
-End Sub
-Private Function cloneEnumVariant(ByRef o As IEnumVARIANT) As IEnumVARIANT
-
-End Function
-Private Sub resetEnumVariant(ByRef o As IEnumVARIANT)
-    
-End Sub
-
+#End If
