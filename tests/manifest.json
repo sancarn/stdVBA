@@ -642,6 +642,26 @@
       ],
       "default": false,
       "requirements": "Excel, pywin32; instrumented IEnumVARIANT source"
+    },
+    {
+      "id": "stdOutlook",
+      "kind": "command",
+      "command": "tests/harnesses/stdOutlook-tests/run.py",
+      "files": [
+        "src/stdOutlook.cls",
+        "tests/stdOutlookTests.bas",
+        "tests/harnesses/stdOutlook-tests/stdOutlookSendCalendarTests.bas",
+        "tests/harnesses/stdOutlook-tests/stdOutlookSyncFake.cls",
+        "tests/support/Test.cls"
+      ],
+      "cases": {
+        "regressions": "regressions"
+      },
+      "hosts": [
+        "Excel"
+      ],
+      "default": false,
+      "requirements": "Windows VBA7, Excel, pywin32 and classic Outlook native MAPI; isolated synthetic transports only; no real sending or synchronization"
     }
   ]
 }

@@ -11324,6 +11324,772 @@
     "implements": []
   },
   {
+    "name": "stdOutlook",
+    "fileName": "stdOutlook.cls",
+    "description": "Access classic Outlook profiles through native Extended MAPI from a single VBA7 class.",
+    "remarks": [
+      "Experimental: 64-bit Excel tested; 32-bit runtime and live synchronization remain unverified.",
+      "Data access and submission avoid guarded Outlook automation. Send/Receive uses late-bound automation."
+    ],
+    "examples": [
+      "Set client = stdOutlook.Create()"
+    ],
+    "devNotes": [],
+    "todos": [],
+    "requires": [
+      "Windows VBA7 and classic Outlook with matching Office bitness and a configured profile."
+    ],
+    "methods": [
+      {
+        "name": "OpenProfile",
+        "description": "Release the current native handles and open another profile without logging off Outlook.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "profileName",
+            "type": "String",
+            "description": "Profile name; empty shares the current session or uses the default. Explicit names request a separate MAPI session. No native logon UI.",
+            "optional": true,
+            "defaultValue": "\"\"",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "protInit",
+        "description": "Initialize an instance with a native MAPI profile; prefer Create or OpenProfile.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "profileName",
+            "type": "String",
+            "description": "Profile name; empty shares the current session or uses the default. Explicit names request a separate MAPI session. No native logon UI.",
+            "optional": true,
+            "defaultValue": "\"\"",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "Disconnect",
+        "description": "Release owned native handles and balance MAPI initialization; safe to call repeatedly. Does not quit Outlook.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "CurrentUser",
+        "description": "Primary profile identity, not every account's sending address.\r\nProviders without an identity (for example some PST/IMAP profiles) can fail.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Collection",
+          "description": "Keyed identity properties including Email, DisplayName, EntryID and PropertyErrors; not all account identities."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "AddressBooks",
+        "description": "Return all address-book containers, including nested Outlook Contacts books.\r\nOnly folders enabled as an Outlook Address Book are visible through this API.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Collection",
+          "description": "One keyed Collection per container: EntryID, DisplayName, Flags, Depth and PropertyErrors."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "SearchContacts",
+        "description": "Provider-side ambiguous-name resolution (ANR), usually name/alias prefixes.\r\nNot arbitrary substring matching: email matching depends on the provider.\r\ncontainerEntryID optionally limits the search to one AddressBooks() entry.\r\nWarnings and SearchTruncated describe partial results; always inspect them.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "query",
+            "type": "String",
+            "description": "Search text; matching rules are described by this method.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "maxResults",
+            "type": "Long",
+            "description": "Maximum returned records, from 1 to 10000.",
+            "optional": true,
+            "defaultValue": "100",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "containerEntryID",
+            "type": "String",
+            "description": "Hexadecimal AddressBooks entry ID; empty searches all recipient containers.",
+            "optional": true,
+            "defaultValue": "\"\"",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "Collection",
+          "description": "Copied keyed contact records with Email, EntryID, AddressBook and PropertyErrors; inspect SearchWarnings and SearchTruncated."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "ReadContact",
+        "description": "Read copied properties of an address-book entry without guarded Outlook automation.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "entryID",
+            "type": "String",
+            "description": "Nonempty, even-length hexadecimal MAPI entry ID in the current profile.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "Collection",
+          "description": "Copied person fields including Email and PropertyErrors. Missing values are Empty."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "Inbox",
+        "description": "Optional mail access: newest messages in the default store's Inbox.\r\nDoes not mark messages read. Times are UTC. No bodies in the table result.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "maxResults",
+            "type": "Long",
+            "description": "Maximum returned records, from 1 to 10000.",
+            "optional": true,
+            "defaultValue": "50",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "Collection",
+          "description": "Newest message metadata records, without bodies; times are UTC and entries are not marked read."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "ReadMessage",
+        "description": "Entry ID must belong to the default store (e.g. from Inbox).\r\nLarge/unavailable bodies remain Empty with the HRESULT in PropertyErrors.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "entryID",
+            "type": "String",
+            "description": "Nonempty, even-length hexadecimal MAPI entry ID in the current profile.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "Collection",
+          "description": "Message metadata and plain-text Body. Missing or oversized values are Empty with HRESULTs in PropertyErrors."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "SendEmail",
+        "description": "Submit a plain-text message. Lists contain semicolon-separated bare SMTP\r\naddresses (not display names/aliases). Success means queued, not delivered.",
+        "remarks": [
+          "Success means submitted. Inspect LastSendSyncError; never resend a queued message after a sync error."
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "toAddresses",
+            "type": "String",
+            "description": "Semicolon-separated bare SMTP addresses. At least one To, CC, or BCC recipient is required.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "subject",
+            "type": "String",
+            "description": "Subject text; empty is allowed, embedded null characters are rejected.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "body",
+            "type": "String",
+            "description": "Plain-text Unicode body; empty is allowed, embedded null characters are rejected.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "ccAddresses",
+            "type": "String",
+            "description": "Optional semicolon-separated bare SMTP CC addresses.",
+            "optional": true,
+            "defaultValue": "\"\"",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "bccAddresses",
+            "type": "String",
+            "description": "Optional semicolon-separated bare SMTP BCC addresses.",
+            "optional": true,
+            "defaultValue": "\"\"",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "flushQueue",
+            "type": "Boolean",
+            "description": "True requests synchronization after successful submission; False queues only. Defaults to True.",
+            "optional": true,
+            "defaultValue": "True",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "SendEmailHTML",
+        "description": "Submit an HTML message. HTML is written as UTF-8 PR_HTML, with CPID 65001.\r\nNo attachments, account override, or plain-text alternative is synthesized.",
+        "remarks": [
+          "Success means submitted. Inspect LastSendSyncError; never resend a queued message after a sync error."
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "toAddresses",
+            "type": "String",
+            "description": "Semicolon-separated bare SMTP addresses. At least one To, CC, or BCC recipient is required.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "subject",
+            "type": "String",
+            "description": "Subject text; empty is allowed, embedded null characters are rejected.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "htmlBody",
+            "type": "String",
+            "description": "HTML fragment or document stored as UTF-8 PR_HTML; no plain-text alternative is synthesized.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "ccAddresses",
+            "type": "String",
+            "description": "Optional semicolon-separated bare SMTP CC addresses.",
+            "optional": true,
+            "defaultValue": "\"\"",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "bccAddresses",
+            "type": "String",
+            "description": "Optional semicolon-separated bare SMTP BCC addresses.",
+            "optional": true,
+            "defaultValue": "\"\"",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "flushQueue",
+            "type": "Boolean",
+            "description": "True requests synchronization after successful submission; False queues only. Defaults to True.",
+            "optional": true,
+            "defaultValue": "True",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "SendAndReceive",
+        "description": "The documented equivalent of Outlook's Send/Receive All button. This is the\r\nonly production path using Outlook automation; no guarded data or Send calls.\r\nStarts classic Outlook if needed, and leaves a window open so asynchronous\r\ntransfer can continue after this class is released. Never calls Outlook.Quit.\r\nAll accounts in that Outlook profile participate. Return is NOT delivery.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "showProgress",
+            "type": "Boolean",
+            "description": "Whether to show Outlook Send/Receive progress; defaults to False.",
+            "optional": true,
+            "defaultValue": "False",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "FlushQueues",
+        "description": "Request immediate transfer of pending mail in this profile, including mail\r\nqueued by other callers. Not equivalent to synchronizing every Outlook folder.\r\nReturns the number of status objects that accepted the request; raises on\r\nunsupported providers or failure (possibly after some queues were flushed).\r\nSpooler requests may be asynchronous; direct transport calls can block.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "includeReceive",
+            "type": "Boolean",
+            "description": "True flushes incoming and outgoing queues; False requests outgoing only. Defaults to False.",
+            "optional": true,
+            "defaultValue": "False",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "Long",
+          "description": "Number of status objects accepting the request, not messages delivered; raises on unsupported providers or failure."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "SearchCalendar",
+        "description": "Search stored calendar items by case-insensitive subject/location/organizer\r\nsubstring. Empty query lists items. Recurring masters are NOT expanded.",
+        "remarks": [
+          "Empty query lists appointments; nonempty text matches Subject, Location or OrganizerName. Stored masters only."
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "query",
+            "type": "String",
+            "description": "Search text; matching rules are described by this method.",
+            "optional": true,
+            "defaultValue": "\"\"",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "maxResults",
+            "type": "Long",
+            "description": "Maximum returned records, from 1 to 10000.",
+            "optional": true,
+            "defaultValue": "100",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "Collection",
+          "description": "Stored appointment records with Subject, Location, OrganizerName, StartUtc, EndUtc, IsRecurring, RecurrenceExpanded and PropertyErrors. Recurrences are not expanded."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      }
+    ],
+    "properties": [
+      {
+        "name": "IsOpen",
+        "access": "ReadOnly",
+        "description": "Whether this instance owns an open MAPI session.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Boolean",
+          "description": "True if a native session is open."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "CurrentUserEmail",
+        "access": "ReadOnly",
+        "description": "Resolve the profile identity SMTP address; raise if none is supplied by the provider.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "String",
+          "description": "The resolved primary SMTP address, never an Exchange legacy DN."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "SearchTruncated",
+        "access": "ReadOnly",
+        "description": "Whether the latest contact search may have omitted matching records.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Boolean",
+          "description": "True if results may be incomplete; conservative when the result limit is reached."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "SearchWarnings",
+        "access": "ReadOnly",
+        "description": "Return an independent copy of warnings from the latest contact search.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Collection",
+          "description": "Warning strings; mutating this copy cannot change diagnostic state."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "LastSendSyncRequested",
+        "access": "ReadOnly",
+        "description": "These describe only the latest SendEmail/SendEmailHTML call. A successful\r\nflush request is not a delivery receipt. False + empty error means skipped.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Boolean",
+          "description": "True if the latest send synchronization request was accepted; not confirmation of delivery."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "LastSendSyncError",
+        "access": "ReadOnly",
+        "description": "Immediate synchronization error from the latest send, or an empty string; never a delivery receipt.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "String",
+          "description": "Error description after a successful submission but failed synchronization; empty if skipped or no immediate error."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "UseOutlookSendReceive",
+        "access": "ReadWrite",
+        "description": "True by default: use Outlook's Send/Receive All after submission. False keeps\r\nthe older native FlushQueues path, which some cached transports do not drain.\r\nThe per-send flushQueue:=False option skips either synchronization path.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Boolean",
+          "description": "True for Outlook automation, False for native queue flushing."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "CalendarSearchTruncated",
+        "access": "ReadOnly",
+        "description": "Whether the latest calendar search found additional records beyond its result limit.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Boolean",
+          "description": "True when more records exist than the requested maximum."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      }
+    ],
+    "constructors": [
+      {
+        "name": "Create",
+        "description": "Empty profile: share the current MAPI session, or use the default profile.\r\nExplicit profile: request a separate session so MAPI cannot ignore its name.\r\nNever enables logon UI. Credentials/profile setup remain Outlook's job.",
+        "remarks": [],
+        "examples": [
+          "Set client = stdOutlook.Create()"
+        ],
+        "params": [
+          {
+            "name": "profileName",
+            "type": "String",
+            "description": "Profile name; empty shares the current session or uses the default. Explicit names request a separate MAPI session. No native logon UI.",
+            "optional": true,
+            "defaultValue": "\"\"",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "stdOutlook",
+          "description": "An initialized stdOutlook instance owning its MAPI handles."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      }
+    ],
+    "events": [],
+    "implements": []
+  },
+  {
     "name": "stdPerformance",
     "fileName": "stdPerformance.cls",
     "description": "A class which implements a performance testing and optimisation library.\r\nUse this class to measure performance and optimise your code.",
