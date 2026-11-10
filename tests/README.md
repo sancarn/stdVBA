@@ -22,3 +22,9 @@ Some legacy suites remain aggregate cases; split those as they are maintained. C
 Access host automation is not implemented. The old Clipboard suite requires a workbook-specific worksheet builder, contains hard-coded paths and documents known failures; it is explicitly unavailable in the automated inventory. The old WebSocket module is commented-out placeholder code; use `stdWebSocket.local`. The historical Regex thunk comparison also requires removed experimental CreateVBA/CreateNative APIs and is explicitly unavailable; current Regex cases cover the distributed class. These are visible skips under `--all`, not passing coverage. Existing WIP prototype classes can contain exploratory test methods; they are not production regression coverage.
 
 Run the runner's own contract tests without Office with `python -B tests/tooling/test_runner.py`.
+
+Outlook tests are opt-in: `python Tools/Testing/run.py --suite stdOutlook`. The
+standalone harness uses the shared Office host in its own bounded settings
+transaction, stages private probes and fake Outlook acquisition, and imports the
+shared assertion reporter. It never submits or synchronizes real mail. See
+[stdOutlook](../docs/stdOutlook.md) for separate read-only live and ABI checks.
