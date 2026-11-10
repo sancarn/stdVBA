@@ -487,8 +487,9 @@ The 2025-2026 entries were audited retrospectively against commits through `1bcb
 
 - 2026-11-10 `stdOutlook` FEATURE - Add a standalone Windows VBA7 class for classic Outlook identity, contacts, mail and calendar access through Extended MAPI, with plain-text/HTML email submission and Outlook Send/Receive synchronization. (#189)
 - 2026-11-10 `contribution.md` DEV - Document module-level `@ai` disclosures using the 0rwx AI:0, AI:R, AI:W and AI:X marks, including evidence and human-scrutiny requirements for retrospective annotations.
-- 2026-11-10 `src` NOTE - Add retrospective module-level AI disclosures to 20 classes, with mixed-provenance notes for stdRegex and explicit uncertainty for historical estimates; record all 94 source-module scan outcomes in docs/ai-provenance.json.
+- 2026-11-10 `src` NOTE - Add retrospective module-level AI disclosures to 21 classes, with mixed-provenance notes for stdRegex and explicit uncertainty for historical estimates; record all 94 source-module scan outcomes in docs/ai-provenance.json.
 - 2026-11-10 `Tools/VBDocsGen` DEV - Parse and validate @ai marks and expose optional module ai metadata in docs.json; preserve existing API documentation.
 - 2026-11-10 `stdShell` NOTE - Record AI:W historical involvement established from a local Cursor refactor dated 2025-09-20; subsequent revisions mean current-line retention is uncertain.
 - 2026-11-10 `stdJSON/stdEnumerator` NOTE - Replace date-only AI-authorship estimates with direct local Codex implementation and commit evidence; retain the distinction between confirmed authorship and maintainer-reported scrutiny.
 - 2026-11-10 `docs/ai-provenance.json` DEV - Search all 43 indexed local session logs for every source class/module name and VB_Name alias; record per-module mention coverage and follow-up findings without treating references, test setup or documentation as implementation authorship (#191).
+- 2026-11-10 `stdHTML` NOTE - Add AI:W based on completed Cursor parser/Boolean-attribute edits retained in the current class; extend provenance coverage to all 53 Cursor workspace records and 40 available transcripts (#191).

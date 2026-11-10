@@ -1,7 +1,7 @@
 {
   "date": "2026-11-10",
   "scope": "All VBA source modules under src, including WIP; tests and templates excluded.",
-  "method": "Source annotations, reachable Git history and merged PR provenance. Codex/T3 branch names and explicit AI co-authors establish involvement, not scrutiny. No style-based detection. Targeted read-only inspection of local Cursor history established a GPT-5 stdShell refactor dated 2025-09-20; private transcripts are not published. Reviewed the supplied index of 43 local Codex session logs; stdJSON and stdEnumerator implementation/commit records replace their previous date-only estimates. Excluded disclosure work itself as evidence and did not attribute unmerged experiments to current master.",
+  "method": "Source annotations, reachable Git history and merged PR provenance. Codex/T3 branch names and explicit AI co-authors establish involvement, not scrutiny. No style-based detection. Targeted read-only inspection of local Cursor history established a GPT-5 stdShell refactor dated 2025-09-20; private transcripts are not published. Reviewed the supplied index of 43 local Codex session logs; stdJSON and stdEnumerator implementation/commit records replace their previous date-only estimates. Excluded disclosure work itself as evidence and did not attribute unmerged experiments to current master. Cursor follow-up searched all 53 workspace records and all 40 available transcript files; completed edits plus retained code establish stdHTML AI:W.",
   "policy": "Maintainer reports early Copilot/Cursor adoption, Cursor-era AI:W, and GPT-6.1 Sol-era AI:X in approximately the last five to six months. Explicit attribution and PR provenance take precedence; recent date-based assignments are estimates. Unmarked modules need provenance confirmation.",
   "modules": [
     {
@@ -14,6 +14,12 @@
         "matchingNonDisclosureLogs": 38,
         "matchingRecords": 268,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 25,
+        "matchingBubbleThreads": 31,
+        "matchingTranscriptFiles": 1,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -29,6 +35,12 @@
         "matchingNonDisclosureLogs": 38,
         "matchingRecords": 507,
         "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 17,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -43,6 +55,12 @@
         "matchingNonDisclosureLogs": 29,
         "matchingRecords": 521,
         "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 17,
+        "matchingBubbleThreads": 30,
+        "matchingTranscriptFiles": 7,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -55,6 +73,12 @@
         "matchingNonDisclosureLogs": 38,
         "matchingRecords": 220,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 7,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -67,6 +91,12 @@
         "matchingNonDisclosureLogs": 38,
         "matchingRecords": 335,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 27,
+        "matchingBubbleThreads": 30,
+        "matchingTranscriptFiles": 5,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -81,6 +111,12 @@
         "matchingNonDisclosureLogs": 26,
         "matchingRecords": 374,
         "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 1,
+        "matchingBubbleThreads": 9,
+        "matchingTranscriptFiles": 1,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -93,18 +129,30 @@
         "matchingNonDisclosureLogs": 38,
         "matchingRecords": 193,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 10,
+        "matchingBubbleThreads": 15,
+        "matchingTranscriptFiles": 1,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
       "file": "src/stdHTML.cls",
       "lastCommitDate": "2026-04-07",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:W",
+      "basis": "Completed Cursor edits dated 2026-04-03 and 2026-04-07 introduced CreateFromHTML, parser helpers and Boolean-attribute behavior in the former WIP/stdHTML.cls. Retained code and Git history (ec38735, 3fb2739, b796585) confirm the implementation reached current src/stdHTML.cls. AI:W uses the maintainer account of Cursor-era scrutiny.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 21,
         "matchingRecords": 113,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 22,
+        "matchingBubbleThreads": 25,
+        "matchingTranscriptFiles": 15,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -119,6 +167,12 @@
         "matchingNonDisclosureLogs": 38,
         "matchingRecords": 425,
         "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 10,
+        "matchingBubbleThreads": 23,
+        "matchingTranscriptFiles": 6,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -131,6 +185,12 @@
         "matchingNonDisclosureLogs": 38,
         "matchingRecords": 186,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 2,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -143,6 +203,12 @@
         "matchingNonDisclosureLogs": 38,
         "matchingRecords": 708,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 36,
+        "matchingBubbleThreads": 47,
+        "matchingTranscriptFiles": 10,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -157,6 +223,12 @@
         "matchingNonDisclosureLogs": 24,
         "matchingRecords": 506,
         "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 1,
+        "matchingBubbleThreads": 11,
+        "matchingTranscriptFiles": 1,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -171,6 +243,12 @@
         "matchingNonDisclosureLogs": 24,
         "matchingRecords": 313,
         "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 19,
+        "matchingBubbleThreads": 25,
+        "matchingTranscriptFiles": 5,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -186,6 +264,12 @@
         "matchingNonDisclosureLogs": 38,
         "matchingRecords": 1511,
         "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 14,
+        "matchingBubbleThreads": 29,
+        "matchingTranscriptFiles": 8,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -200,6 +284,12 @@
         "matchingNonDisclosureLogs": 0,
         "matchingRecords": 0,
         "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 0,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -215,6 +305,12 @@
         "matchingNonDisclosureLogs": 24,
         "matchingRecords": 264,
         "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 6,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -227,6 +323,12 @@
         "matchingNonDisclosureLogs": 38,
         "matchingRecords": 230,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 1,
+        "matchingBubbleThreads": 10,
+        "matchingTranscriptFiles": 1,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -239,6 +341,12 @@
         "matchingNonDisclosureLogs": 21,
         "matchingRecords": 86,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 5,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -253,6 +361,12 @@
         "matchingNonDisclosureLogs": 23,
         "matchingRecords": 181,
         "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 5,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -267,6 +381,12 @@
         "matchingNonDisclosureLogs": 23,
         "matchingRecords": 155,
         "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 5,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -282,6 +402,12 @@
         "matchingNonDisclosureLogs": 37,
         "matchingRecords": 856,
         "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 7,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -294,6 +420,12 @@
         "matchingNonDisclosureLogs": 21,
         "matchingRecords": 98,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 6,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -308,6 +440,12 @@
         "matchingNonDisclosureLogs": 22,
         "matchingRecords": 164,
         "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 8,
+        "matchingTranscriptFiles": 1,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -322,6 +460,12 @@
         "matchingNonDisclosureLogs": 23,
         "matchingRecords": 176,
         "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 8,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -334,6 +478,12 @@
         "matchingNonDisclosureLogs": 22,
         "matchingRecords": 111,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 9,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -348,6 +498,12 @@
         "matchingNonDisclosureLogs": 30,
         "matchingRecords": 349,
         "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 10,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -362,6 +518,12 @@
         "matchingNonDisclosureLogs": 24,
         "matchingRecords": 197,
         "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 34,
+        "matchingBubbleThreads": 35,
+        "matchingTranscriptFiles": 23,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -376,6 +538,12 @@
         "matchingNonDisclosureLogs": 38,
         "matchingRecords": 777,
         "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 28,
+        "matchingBubbleThreads": 36,
+        "matchingTranscriptFiles": 5,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -388,6 +556,12 @@
         "matchingNonDisclosureLogs": 1,
         "matchingRecords": 2,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 2,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -400,6 +574,12 @@
         "matchingNonDisclosureLogs": 4,
         "matchingRecords": 12,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 4,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -412,6 +592,12 @@
         "matchingNonDisclosureLogs": 4,
         "matchingRecords": 12,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 4,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -424,6 +610,12 @@
         "matchingNonDisclosureLogs": 1,
         "matchingRecords": 2,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 2,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -436,6 +628,12 @@
         "matchingNonDisclosureLogs": 3,
         "matchingRecords": 15,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 1,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -448,6 +646,12 @@
         "matchingNonDisclosureLogs": 3,
         "matchingRecords": 8,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 7,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -460,6 +664,12 @@
         "matchingNonDisclosureLogs": 3,
         "matchingRecords": 25,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 3,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -472,6 +682,12 @@
         "matchingNonDisclosureLogs": 4,
         "matchingRecords": 10,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 5,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -484,6 +700,12 @@
         "matchingNonDisclosureLogs": 3,
         "matchingRecords": 8,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 8,
+        "matchingBubbleThreads": 10,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -496,6 +718,12 @@
         "matchingNonDisclosureLogs": 2,
         "matchingRecords": 4,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 2,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -508,6 +736,12 @@
         "matchingNonDisclosureLogs": 4,
         "matchingRecords": 15,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 2,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -520,6 +754,12 @@
         "matchingNonDisclosureLogs": 4,
         "matchingRecords": 20,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 8,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -534,6 +774,12 @@
         "matchingNonDisclosureLogs": 16,
         "matchingRecords": 205,
         "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 6,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -546,6 +792,12 @@
         "matchingNonDisclosureLogs": 4,
         "matchingRecords": 29,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 1,
+        "matchingBubbleThreads": 6,
+        "matchingTranscriptFiles": 2,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -558,6 +810,12 @@
         "matchingNonDisclosureLogs": 4,
         "matchingRecords": 29,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 1,
+        "matchingBubbleThreads": 6,
+        "matchingTranscriptFiles": 2,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -570,6 +828,12 @@
         "matchingNonDisclosureLogs": 1,
         "matchingRecords": 2,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 0,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -582,6 +846,12 @@
         "matchingNonDisclosureLogs": 4,
         "matchingRecords": 29,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 1,
+        "matchingBubbleThreads": 6,
+        "matchingTranscriptFiles": 2,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -594,6 +864,12 @@
         "matchingNonDisclosureLogs": 3,
         "matchingRecords": 7,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 4,
+        "matchingTranscriptFiles": 1,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -606,6 +882,12 @@
         "matchingNonDisclosureLogs": 4,
         "matchingRecords": 17,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 1,
+        "matchingBubbleThreads": 8,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -618,6 +900,12 @@
         "matchingNonDisclosureLogs": 2,
         "matchingRecords": 4,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 1,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -630,6 +918,12 @@
         "matchingNonDisclosureLogs": 2,
         "matchingRecords": 4,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 0,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -642,6 +936,12 @@
         "matchingNonDisclosureLogs": 2,
         "matchingRecords": 6,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 1,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -654,6 +954,12 @@
         "matchingNonDisclosureLogs": 2,
         "matchingRecords": 4,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 0,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -666,6 +972,12 @@
         "matchingNonDisclosureLogs": 13,
         "matchingRecords": 108,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 10,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -678,6 +990,12 @@
         "matchingNonDisclosureLogs": 13,
         "matchingRecords": 108,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 10,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -690,6 +1008,12 @@
         "matchingNonDisclosureLogs": 13,
         "matchingRecords": 108,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 10,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -702,6 +1026,12 @@
         "matchingNonDisclosureLogs": 1,
         "matchingRecords": 2,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 0,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -714,6 +1044,12 @@
         "matchingNonDisclosureLogs": 1,
         "matchingRecords": 2,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 0,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -726,6 +1062,12 @@
         "matchingNonDisclosureLogs": 1,
         "matchingRecords": 2,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 2,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -738,6 +1080,12 @@
         "matchingNonDisclosureLogs": 1,
         "matchingRecords": 2,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 1,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -750,6 +1098,12 @@
         "matchingNonDisclosureLogs": 1,
         "matchingRecords": 2,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 1,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -762,6 +1116,12 @@
         "matchingNonDisclosureLogs": 4,
         "matchingRecords": 19,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 2,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -774,6 +1134,12 @@
         "matchingNonDisclosureLogs": 3,
         "matchingRecords": 15,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 2,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -786,6 +1152,12 @@
         "matchingNonDisclosureLogs": 2,
         "matchingRecords": 6,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 1,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -798,6 +1170,12 @@
         "matchingNonDisclosureLogs": 1,
         "matchingRecords": 2,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 2,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -810,6 +1188,12 @@
         "matchingNonDisclosureLogs": 2,
         "matchingRecords": 16,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 5,
+        "matchingBubbleThreads": 9,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -822,6 +1206,12 @@
         "matchingNonDisclosureLogs": 2,
         "matchingRecords": 8,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 1,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -834,6 +1224,12 @@
         "matchingNonDisclosureLogs": 3,
         "matchingRecords": 5,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 3,
+        "matchingTranscriptFiles": 1,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -846,6 +1242,12 @@
         "matchingNonDisclosureLogs": 3,
         "matchingRecords": 7,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 5,
+        "matchingTranscriptFiles": 1,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -858,6 +1260,12 @@
         "matchingNonDisclosureLogs": 2,
         "matchingRecords": 3,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 2,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -870,6 +1278,12 @@
         "matchingNonDisclosureLogs": 4,
         "matchingRecords": 21,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 3,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -882,6 +1296,12 @@
         "matchingNonDisclosureLogs": 6,
         "matchingRecords": 12,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 3,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -894,6 +1314,12 @@
         "matchingNonDisclosureLogs": 1,
         "matchingRecords": 2,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 2,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -906,6 +1332,12 @@
         "matchingNonDisclosureLogs": 21,
         "matchingRecords": 98,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 6,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -918,6 +1350,12 @@
         "matchingNonDisclosureLogs": 3,
         "matchingRecords": 23,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 2,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -930,6 +1368,12 @@
         "matchingNonDisclosureLogs": 1,
         "matchingRecords": 4,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 0,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -942,6 +1386,12 @@
         "matchingNonDisclosureLogs": 1,
         "matchingRecords": 2,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 1,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -954,6 +1404,12 @@
         "matchingNonDisclosureLogs": 4,
         "matchingRecords": 47,
         "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 11,
+        "matchingBubbleThreads": 24,
+        "matchingTranscriptFiles": 1,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -966,6 +1422,12 @@
         "matchingNonDisclosureLogs": 3,
         "matchingRecords": 15,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 7,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -978,6 +1440,12 @@
         "matchingNonDisclosureLogs": 3,
         "matchingRecords": 11,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 2,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -990,6 +1458,12 @@
         "matchingNonDisclosureLogs": 2,
         "matchingRecords": 13,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 5,
+        "matchingTranscriptFiles": 2,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -1002,6 +1476,12 @@
         "matchingNonDisclosureLogs": 1,
         "matchingRecords": 2,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 1,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -1014,6 +1494,12 @@
         "matchingNonDisclosureLogs": 1,
         "matchingRecords": 2,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 0,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -1026,6 +1512,12 @@
         "matchingNonDisclosureLogs": 1,
         "matchingRecords": 2,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 0,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -1038,6 +1530,12 @@
         "matchingNonDisclosureLogs": 1,
         "matchingRecords": 2,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 0,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -1050,6 +1548,12 @@
         "matchingNonDisclosureLogs": 6,
         "matchingRecords": 12,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 5,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -1062,6 +1566,12 @@
         "matchingNonDisclosureLogs": 1,
         "matchingRecords": 2,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 1,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -1074,6 +1584,12 @@
         "matchingNonDisclosureLogs": 1,
         "matchingRecords": 2,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 0,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -1086,6 +1602,12 @@
         "matchingNonDisclosureLogs": 1,
         "matchingRecords": 2,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 0,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -1098,6 +1620,12 @@
         "matchingNonDisclosureLogs": 23,
         "matchingRecords": 176,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 8,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -1110,6 +1638,12 @@
         "matchingNonDisclosureLogs": 4,
         "matchingRecords": 8,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 2,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -1122,6 +1656,12 @@
         "matchingNonDisclosureLogs": 2,
         "matchingRecords": 8,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 5,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -1134,6 +1674,12 @@
         "matchingNonDisclosureLogs": 30,
         "matchingRecords": 349,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 10,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -1148,6 +1694,12 @@
         "matchingNonDisclosureLogs": 6,
         "matchingRecords": 54,
         "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 1,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -1160,6 +1712,12 @@
         "matchingNonDisclosureLogs": 1,
         "matchingRecords": 2,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 1,
+        "matchingTranscriptFiles": 1,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     },
     {
@@ -1172,6 +1730,12 @@
         "matchingNonDisclosureLogs": 1,
         "matchingRecords": 2,
         "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 1,
+        "matchingTranscriptFiles": 1,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       }
     }
   ],
@@ -1182,6 +1746,19 @@
     "matching": "Case-insensitive whole-name search of every JSONL line for every source filename stem and Attribute VB_Name; includes standard modules and WIP.",
     "interpretation": "Mentions include copied source, tool output, directory listings, dependencies and changelog text. They are discovery evidence, not proof of AI writing. Duplicate class names across source paths share name hits and require path disambiguation.",
     "followUp": "Inspected mutation-shaped tool calls and associated discussion for currently unmarked classes. Hits concerned dependency/test setup, documentation, historical changelog work or unmerged experiments; no additional merged implementation-writing evidence was established. The later stdCallback changes documented calling conventions and added tests; its implementation mark remains AI:W.",
-    "privacy": "Only coverage counts and conclusions are published; local paths, conversation identifiers and transcript text are omitted."
+    "privacy": "Only coverage counts and conclusions are published; local paths, conversation identifiers and transcript text are omitted.",
+    "source": "The 43 indexed Codex session logs; Cursor coverage is recorded separately."
+  },
+  "cursorHistorySearch": {
+    "workspaceHeaderRecords": 53,
+    "chatRecords": 46,
+    "exploreSubagentRecords": 7,
+    "composerBodiesSearched": 53,
+    "storedBubblesSearched": 3162,
+    "transcriptFilesSearched": 40,
+    "transcriptRecordsSearched": 976,
+    "method": "Read-only global database queries selected the exact workspace headers, composerData bodies and bubbleId messages. Every available matching transcript JSONL line was also searched for source filename stems and VB_Name aliases. Source-write tool arguments were inspected by exact destination path and completion status; current code/Git history were checked for retained changes.",
+    "limits": "One untitled September 2025 record has no stored bubble messages. The current project-usage-analysis conversation was searched but excluded as implementation-authorship evidence. Missing messages cannot establish absence of AI use. Name collisions between classes require path disambiguation. Private transcripts and local identifiers are not published.",
+    "finding": "Additional implementation evidence establishes AI:W for stdHTML. Existing AI:X marks on JSON, HTTP and Lambda are retained despite earlier Cursor activity; exploration or unmerged Lambda experiments do not establish new current APIs."
   }
 }

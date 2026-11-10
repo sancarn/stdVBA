@@ -9,6 +9,8 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 '@module
+'@ai AI:W
+'@remark Completed Cursor edits in April 2026 introduced retained parsing and Boolean-attribute behavior, initially under WIP/stdHTML.cls. AI:W follows the maintainer account of Cursor-era scrutiny; this does not attribute every line to AI.
 '@description `stdHTML` provides a fluent, object-based API for building, querying, and transforming HTML in VBA.
 '`stdHTML.Create()` creates a new document root (`<html>`), and child nodes can be composed via `CreateChild`.
 'Use `CreateLiteral` for escaped text content and `Raw` for unescaped content when embedding trusted markup or script.
