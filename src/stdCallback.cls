@@ -11,6 +11,8 @@ Attribute VB_Exposed = False
 Implements stdICallable
 
 '@module
+'@ai AI:W
+'@remark AI-written changes: #154. AI:W based on Cursor attribution and the maintainer account of human scrutiny in that period.
 '@description A class which implements a callback object. Use this class to create a 
 'callback object which can be called at a later stage. These callbacks are used extensively
 'across the stdVBA library.

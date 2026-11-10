@@ -9,6 +9,8 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 '@module
+'@ai AI:X
+'@remark Retrospective estimate: recent development (#186) falls in the maintainer-reported AI:X period. AI authorship and scrutiny are inferred from that context, not explicitly attested in the PR.
 '@description A class which implements an enumerator object. Use this class to
 'iterate over a collection of data.
 '@example ```vb

@@ -143,6 +143,7 @@ function groupBy<T>(
 
 type IDocs = (IModule | IClass)[];
 type IModule = {
+  ai?: string;
   name: string;
   fileName: string;
   description: string;
@@ -224,6 +225,7 @@ type ITagTypes =
   | "TODO"
   | "throws"
   | "requires"
+  | "ai"
   | "static";
 
 type ITagLine = {
@@ -245,6 +247,7 @@ type ICommentRecord =
   | IDataTODO
   | IDataThrows
   | IDataRequires
+  | IDataAI
   | IDataStatic;
 
 type IDataConstructor = {
@@ -307,6 +310,11 @@ type IDataRequires = {
   tag: "requires";
   data: string;
 };
+type IDataAI = {
+  tag: "ai";
+  data: string;
+};
+
 type IDataStatic = {
   tag: "static";
 };
@@ -415,6 +423,12 @@ function parseComment(comment: string): ICommentStore {
             description: groups?.description.trim(),
           },
         });
+        break;
+      case "ai":
+        if (!/^AI:[0RWX]$/.test(tagLine.content.trim())) {
+          throw new Error(`Invalid @ai mark: ${tagLine.content.trim()}`);
+        }
+        commentStore.push({ tag, data: tagLine.content.trim() });
         break;
       case "example":
         commentStore.push({ tag, data: tagLine.content.trim() });
@@ -744,6 +758,9 @@ function parseModuleOrClass(
 
   //Build base module
   let mod: IModule = {
+    ...(moduleDocsByTag["ai"]?.length
+      ? { ai: (moduleDocsByTag["ai"][0] as IDataAI).data }
+      : {}),
     name: moduleName,
     fileName,
     description:

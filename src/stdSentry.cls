@@ -8,6 +8,12 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
+'@module
+'@description Scoped guards and cleanup actions.
+'@ai AI:X
+'@remark AI-written changes: #166. Conservative AI:X disclosure; historical human scrutiny is unverified and may vary by change.
+
+
 '@description
 'In numerous cases using excel we like to set standard options to optimise performance:
 '```vb

@@ -8,6 +8,9 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
+'@module
+'@ai AI:W
+'@remark AI-written changes: #154. AI:W based on Cursor attribution and the maintainer account of human scrutiny in that period.
 '@class stdWebView
 '@description Standalone WebView2 host for Excel UserForms (primary). Requires WebView2Loader.dll,
 ' Microsoft Edge WebView2 Runtime. Handler vtables use executable thunks (see AddressOfThunkForComProc/VBA7/CMonitors.cls).

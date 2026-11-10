@@ -9,6 +9,8 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 '@module
+'@ai AI:X
+'@remark AI-written changes: #174. Conservative AI:X disclosure; historical human scrutiny is unverified and may vary by change.
 '@description A class which wraps a VBA array by reference. Use this class to
 'efficiently pass large arrays around without copying them.
 'Borrowed storage: the source variable must outlive this wrapper and every alias

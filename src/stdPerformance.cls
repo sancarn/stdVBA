@@ -9,6 +9,8 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 '@module
+'@ai AI:X
+'@remark AI-written changes: #167, #174. Conservative AI:X disclosure; historical human scrutiny is unverified and may vary by change.
 '@description A class which implements a performance testing and optimisation library.
 'Use this class to measure performance and optimise your code.
 '@example Simple example of measuring performance:

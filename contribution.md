@@ -132,6 +132,27 @@ End Type
 Private This as TThis
 ```
 
+## Module-level AI disclosure
+
+Declare AI involvement using the [0rwx framework](https://0rwx.com/) in the module-level documentation of every new class or standard module. Update the declaration when contributing AI-assisted changes to an existing module:
+
+```vb
+'@module
+'@description Describe the class or module here.
+'@ai AI:W
+```
+
+Use exactly one `@ai` tag per module, in its existing module documentation block (before member documentation), with one of these marks:
+
+- `AI:0`: handmade; AI has neither read nor written the work.
+- `AI:R`: AI-inspired; AI has read-only access and a human writes the code.
+- `AI:W`: AI collaboration; AI writes code that a human reads and scrutinises.
+- `AI:X`: AI-made; a human curates output without being able to scrutinise all generated work.
+
+These describe involvement and scrutiny, not percentages of generated code or a quality rating. Use the most permissive involvement present in the module's retained implementation; do not reset a historical declaration merely because the latest edit was manual. Include AI-written fixes in otherwise human-written classes. Explain evidence and uncertainty in a separate `@remark` or `@devRemark`, keeping the `@ai` value machine-readable. Preserve existing descriptions, examples and member documentation.
+
+For retrospective disclosures, inspect source comments, commit history and PR provenance. Use maintainer-supplied adoption dates only as explicitly labelled estimates. Do not classify code by writing style, treat a CI bot as an AI author, or infer `AI:0` from the absence of an AI attribution. Use `AI:W` when the author or maintainer can establish human scrutiny. For confirmed AI-written work whose scrutiny cannot be reconstructed, conservatively disclose `AI:X` and explicitly record the uncertainty; this does not claim that no human review occurred. Dates and commit frequency can guide investigation but cannot establish AI authorship or scrutiny. Mixed modules inherit `AI:X` when a retained component is `AI:X`; explain component provenance rather than assigning percentages. Leave unverified modules unmarked and record that gap rather than inventing a fifth mark or a claim of handmade authorship. A disclosure-only edit does not itself establish AI authorship of the implementation. Regenerate `docs.json` after changing documented source.
+
 ## Function-level documentation
 
 A critical area which I am developing is the documentation. All methods should be documented using a `JSDoc`-like equivalent. Docs are analysed by `./Tools/VBDocsGen` (which later will be run on a github action).

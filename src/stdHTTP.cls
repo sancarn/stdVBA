@@ -9,6 +9,8 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 '@module
+'@ai AI:X
+'@remark AI-written changes: #173. Conservative AI:X disclosure; historical human scrutiny is unverified and may vary by change.
 '@description A class used to make HTTP requests.
 '@example A simple synchronous HTTP request:
 '```vb

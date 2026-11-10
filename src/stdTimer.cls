@@ -8,6 +8,12 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
+'@module
+'@description Scheduled callbacks using an owned timer host.
+'@ai AI:X
+'@remark AI-written changes: #176. Conservative AI:X disclosure; historical human scrutiny is unverified and may vary by change.
+
+
 'Module greatly inspired by Cristian Buse's SafeTimers:
 '  https://github.com/cristianbuse/Excel-VBA-SafeTimers
 '

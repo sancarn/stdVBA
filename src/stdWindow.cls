@@ -7,6 +7,12 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+
+'@module
+'@description Window discovery, inspection and automation.
+'@ai AI:X
+'@remark AI-written changes: #182. Conservative AI:X disclosure; historical human scrutiny is unverified and may vary by change.
+
 Implements stdICallable
  
 '@class stdWindow

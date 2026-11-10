@@ -8,6 +8,12 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
+'@module
+'@description Date and time utilities (experimental).
+'@ai AI:X
+'@remark AI-written changes: #175. Conservative AI:X disclosure; historical human scrutiny is unverified and may vary by change.
+
+
 'Class that wraps standard VBA DateTime functionality:
 '* Create from double
 '* Create from Year, Month, Day, Hour, Min, Second

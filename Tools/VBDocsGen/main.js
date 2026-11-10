@@ -106,6 +106,12 @@ function parseComment(comment) {
           }
         });
         break;
+      case "ai":
+        if (!/^AI:[0RWX]$/.test(tagLine.content.trim())) {
+          throw new Error(`Invalid @ai mark: ${tagLine.content.trim()}`);
+        }
+        commentStore.push({ tag, data: tagLine.content.trim() });
+        break;
       case "example":
         commentStore.push({ tag, data: tagLine.content.trim() });
         break;
@@ -330,6 +336,7 @@ function parseModuleOrClass(content, fileName) {
     }
   });
   let mod = {
+    ...moduleDocsByTag["ai"]?.length ? { ai: moduleDocsByTag["ai"][0].data } : {},
     name: moduleName,
     fileName,
     description: moduleDocsByTag["description"]?.[0]?.data ?? "",

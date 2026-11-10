@@ -10,6 +10,8 @@ Attribute VB_Exposed = False
 Option Explicit
 
 '@module
+'@ai AI:X
+'@remark AI-written changes: #189. Conservative AI:X disclosure; historical human scrutiny is unverified and may vary by change.
 '@description Access classic Outlook profiles through native Extended MAPI from a single VBA7 class.
 '@remark Experimental: 64-bit Excel tested; 32-bit runtime and live synchronization remain unverified.
 '@remark Data access and submission avoid guarded Outlook automation. Send/Receive uses late-bound automation.

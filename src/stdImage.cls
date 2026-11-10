@@ -9,6 +9,8 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 '@module
+'@ai AI:X
+'@remark AI-written changes: #183. Conservative AI:X disclosure; historical human scrutiny is unverified and may vary by change.
 '@description A class which implements a wrapper around an image. Use this class to
 'read image data to and from files, clipboard, sheets, UI controls, and more. Additionally
 'this class allows the manipulation of images in memory, and perform analytical operations on them.

@@ -9,6 +9,8 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 '@module
+'@ai AI:X
+'@remark AI-written changes: #172, #187. Conservative AI:X disclosure; historical human scrutiny is unverified and may vary by change.
 '@description A class which implements a syntax for creating lambda functions from string expressions
 'within VBA. Use this class to create sandboxed lambda functions, and call them with arguments.
 '

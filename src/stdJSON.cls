@@ -9,6 +9,8 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 '@module
+'@ai AI:X
+'@remark Retrospective estimate: recent development (#179) falls in the maintainer-reported AI:X period. AI authorship and scrutiny are inferred from that context, not explicitly attested in the PR.
 '@description A class which implements a JSON object. Use this class to
 'create JSON objects, manipulate them, and convert them to and from JSON strings.
 '@example Simple example of creating a JSON object and converting it to a string:
