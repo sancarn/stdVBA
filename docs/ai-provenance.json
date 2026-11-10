@@ -1,7 +1,7 @@
 {
   "date": "2026-11-10",
   "scope": "All VBA source modules under src, including WIP; tests and templates excluded.",
-  "method": "Source annotations, reachable Git history and merged PR provenance. Codex/T3 branch names and explicit AI co-authors establish involvement, not scrutiny. No style-based detection. Targeted read-only inspection of local Cursor history established a GPT-5 stdShell refactor dated 2025-09-20; private transcripts are not published.",
+  "method": "Source annotations, reachable Git history and merged PR provenance. Codex/T3 branch names and explicit AI co-authors establish involvement, not scrutiny. No style-based detection. Targeted read-only inspection of local Cursor history established a GPT-5 stdShell refactor dated 2025-09-20; private transcripts are not published. Reviewed the supplied index of 43 local Codex session logs; stdJSON and stdEnumerator implementation/commit records replace their previous date-only estimates. Excluded disclosure work itself as evidence and did not attribute unmerged experiments to current master.",
   "policy": "Maintainer reports early Copilot/Cursor adoption, Cursor-era AI:W, and GPT-6.1 Sol-era AI:X in approximately the last five to six months. Explicit attribution and PR provenance take precedence; recent date-based assignments are estimates. Unmarked modules need provenance confirmation.",
   "modules": [
     {
@@ -48,7 +48,7 @@
       "file": "src/stdEnumerator.cls",
       "lastCommitDate": "2026-11-01",
       "mark": "AI:X",
-      "basis": "Estimated from October-November 2026 development and maintainer account of the recent AI:X period; PR does not explicitly identify AI authorship.",
+      "basis": "Local Codex session history dated 2026-11-01 confirms GPT-6.1 Sol implemented uncached streaming and pushed PR #186. AI:X uses the maintainer account of this period; human scrutiny is not independently established by logs.",
       "pullRequests": [
         "https://github.com/sancarn/stdVBA/pull/186"
       ]
@@ -103,7 +103,7 @@
       "file": "src/stdJSON.cls",
       "lastCommitDate": "2026-10-31",
       "mark": "AI:X",
-      "basis": "Estimated from October-November 2026 development and maintainer account of the recent AI:X period; PR does not explicitly identify AI authorship.",
+      "basis": "Local Codex session history dated 2026-10-31 confirms GPT-6.1 Sol implemented the #137 callbacks and committed 1bcbfc5. AI:X uses the maintainer account of this period; human scrutiny is not independently established by logs.",
       "pullRequests": [
         "https://github.com/sancarn/stdVBA/pull/179"
       ]

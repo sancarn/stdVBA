@@ -4836,7 +4836,7 @@
     "fileName": "stdEnumerator.cls",
     "description": "A class which implements an enumerator object. Use this class to\r\niterate over a collection of data.",
     "remarks": [
-      "Retrospective estimate: recent development (#186) falls in the maintainer-reported AI:X period. AI authorship and scrutiny are inferred from that context, not explicitly attested in the PR."
+      "Local Codex history confirms AI-written changes on 2026-11-01: GPT-6.1 Sol implemented uncached streaming and pushed PR #186. AI:X follows the maintainer account of scrutiny during this period; the history confirms authorship, not human review."
     ],
     "examples": [
       "```vb\r\n'Find the longest worksheet name\r\nDim ws as stdEnumerator: set ws = stdEnumerator.CreateFromIEnumVariant(ThisWorkbook.Worksheets)\r\nDim sht as Worksheet: set sht = ws.Max(stdLambda.Create(\"len($1.Name)\"))\r\nDebug.Print sht.Name\r\n```",
@@ -10304,7 +10304,7 @@
     "fileName": "stdJSON.cls",
     "description": "A class which implements a JSON object. Use this class to\r\ncreate JSON objects, manipulate them, and convert them to and from JSON strings.",
     "remarks": [
-      "Retrospective estimate: recent development (#179) falls in the maintainer-reported AI:X period. AI authorship and scrutiny are inferred from that context, not explicitly attested in the PR."
+      "Local Codex history confirms AI-written changes on 2026-10-31: GPT-6.1 Sol implemented the #137 callbacks and committed 1bcbfc5. AI:X follows the maintainer account of scrutiny during this period; the history confirms authorship, not human review."
     ],
     "examples": [
       "Simple example of creating a JSON object and converting it to a string:\r\n```vb\r\nDim o as stdJSON: set o = stdJSON.Create()\r\no.Add \"a\", 1\r\no.Add \"b\", \"hello\"\r\no.AddArray(\"val\", Array(1,2,3))\r\no.add \"serialized\", stdJSON.CreateFromString(\"{\"\"a\"\":1,\"\"b\"\":\"\"hello\"\"}\")\r\nDebug.Print o.ToString()\r\n```\r\nThis will output:\r\n```json\r\n{\r\n  \"a\": 1,\r\n  \"b\": \"hello\",\r\n  \"val\": [\r\n    1,\r\n    \"hello\"\r\n  ],\r\n  \"serialized\": {\r\n    \"a\": 1,\r\n    \"b\": \"hello\"\r\n  }\r\n}\r\n```",

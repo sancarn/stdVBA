@@ -10,7 +10,7 @@ Attribute VB_Exposed = False
 
 '@module
 '@ai AI:X
-'@remark Retrospective estimate: recent development (#186) falls in the maintainer-reported AI:X period. AI authorship and scrutiny are inferred from that context, not explicitly attested in the PR.
+'@remark Local Codex history confirms AI-written changes on 2026-11-01: GPT-6.1 Sol implemented uncached streaming and pushed PR #186. AI:X follows the maintainer account of scrutiny during this period; the history confirms authorship, not human review.
 '@description A class which implements an enumerator object. Use this class to
 'iterate over a collection of data.
 '@example ```vb
