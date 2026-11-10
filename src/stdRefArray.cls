@@ -9,8 +9,8 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 '@module
-'@ai AI:X
-'@remark AI-written changes: #174. Conservative AI:X disclosure; historical human scrutiny is unverified and may vary by change.
+'@aidate 2026-10-31
+'@aidesc AI corrected owned-Variant SAFEARRAY-slot pointer handling (#174). The borrowed-array implementation credited to Cristian Buse predates that fix; it is not claimed to be AI-authored. Historical human scrutiny of the fix is unverified; W/X remains unresolved.
 '@description A class which wraps a VBA array by reference. Use this class to
 'efficiently pass large arrays around without copying them.
 'Borrowed storage: the source variable must outlive this wrapper and every alias

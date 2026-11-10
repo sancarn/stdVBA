@@ -9,9 +9,9 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 '@module
+'@aidate 2026-10-31
+'@aidesc AI fixed weekday semantics and regex-cache publication (#175). The original date/time wrapper predates those fixes and is not attributed to AI by this evidence. Historical human scrutiny is unverified; W/X remains unresolved.
 '@description Date and time utilities (experimental).
-'@ai AI:X
-'@remark AI-written changes: #175. Conservative AI:X disclosure; historical human scrutiny is unverified and may vary by change.
 
 
 'Class that wraps standard VBA DateTime functionality:

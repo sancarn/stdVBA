@@ -9,8 +9,8 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 '@module
-'@ai AI:X
-'@remark AI-written changes: #172, #187. Conservative AI:X disclosure; historical human scrutiny is unverified and may vary by change.
+'@aidate 2026-10-31
+'@aidesc The confirmed retained AI change is the object-local copy fix during stack growth (#172). The existing VBA compiler/evaluator predates that fix. May 2026 and later native-thunk experiments were not merged into this baseline and are not attributed to current code. Historical human scrutiny of the retained fix is unverified; W/X remains unresolved.
 '@description A class which implements a syntax for creating lambda functions from string expressions
 'within VBA. Use this class to create sandboxed lambda functions, and call them with arguments.
 '

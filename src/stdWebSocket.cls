@@ -8,8 +8,8 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 '@module
-'@ai AI:X
-'@remark AI-written changes: #180. Conservative AI:X disclosure; historical human scrutiny is unverified and may vary by change.
+'@aidate 2026-10-31
+'@aidesc AI work replaced the legacy IE transport with native WinHTTP synchronous/asynchronous transport (#180). The earlier API and legacy implementation predate that rewrite. The conversation establishes implementation work but not sufficient human scrutiny to distinguish W from X.
 '@description Native Windows WebSocket client using WinHTTP, replacing Internet Explorer (#139, #35).
 '@requires Windows 8 or later, stdICallable, and stdWebSocketNative.dll built for the Office process architecture.
 '@remark StartListening delivers to a typed callable through an owner-thread message window. Pump/Receive provide synchronous events when no async listener owns reads. No VBA runs on WinHTTP or receive worker threads.

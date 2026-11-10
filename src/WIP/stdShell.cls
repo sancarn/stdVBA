@@ -9,9 +9,10 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 '@module
-'@description Windows Shell files, folders and extended properties (experimental).
 '@ai AI:W
-'@remark Local Cursor history confirms a GPT-5 refactor on 2025-09-20. AI:W follows the maintainer account of Cursor-era scrutiny; later revisions replaced parts of that refactor, so this records historical involvement rather than attributing every current line to AI.
+'@aidate 2025-09-20
+'@aidesc Cursor refactored constructors/path handling and added Shell helpers in September 2025. Retained additions match commits bb5eb26 and 9db792c; other early refactors were later replaced. This does not attribute every prior or later Shell feature to AI. AI:W follows the maintainer account of that period.
+'@description Windows Shell files, folders and extended properties (experimental).
 
 'Issues:
 'FILE ENUMERATION

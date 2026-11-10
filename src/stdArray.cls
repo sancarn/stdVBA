@@ -9,8 +9,8 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 '@module
-'@ai AI:X
-'@remark AI-written changes: #165, #161. Conservative AI:X disclosure; historical human scrutiny is unverified and may vary by change.
+'@aidate 2026-10-27
+'@aidesc AI-written changes include arr-assignment fixes (#161) and configurable index bases (#165). The existing list implementation predates these changes and is not attributed to AI by this evidence. Human API/design and documentation review is visible; W/X for the retained implementation changes is unresolved.
 '@description A class which implements a simple array list. Use this class to
 'accumulate data in a list, and then use the methods to manipulate the data.
 '@example ```vb

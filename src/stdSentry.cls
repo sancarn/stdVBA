@@ -9,9 +9,9 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 '@module
+'@aidate 2026-10-31
+'@aidesc AI added scoped worksheet unlocking (#166). The prior scoped-guard and cleanup implementation predates this addition and is not attributed to AI by this evidence. Historical human scrutiny is unverified; W/X remains unresolved.
 '@description Scoped guards and cleanup actions.
-'@ai AI:X
-'@remark AI-written changes: #166. Conservative AI:X disclosure; historical human scrutiny is unverified and may vary by change.
 
 
 '@description

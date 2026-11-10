@@ -134,24 +134,31 @@ Private This as TThis
 
 ## Module-level AI disclosure
 
-Declare AI involvement using the [0rwx framework](https://0rwx.com/) in the module-level documentation of every new class or standard module. Update the declaration when contributing AI-assisted changes to an existing module:
+Document AI involvement using the [0rwx framework](https://0rwx.com/) in the existing module-level documentation block of each new or changed class/module:
 
 ```vb
 '@module
 '@description Describe the class or module here.
 '@ai AI:W
+'@aidate 2026-10-31
+'@aidesc AI contributed timeout handling, reviewed by the maintainer. The existing transport implementation predates that change and is not attributed to AI by this evidence.
 ```
 
-Use exactly one `@ai` tag per module, in its existing module documentation block (before member documentation), with one of these marks:
+Use one `@ai` mark when its classification is established:
 
 - `AI:0`: handmade; AI has neither read nor written the work.
 - `AI:R`: AI-inspired; AI has read-only access and a human writes the code.
 - `AI:W`: AI collaboration; AI writes code that a human reads and scrutinises.
 - `AI:X`: AI-made; a human curates output without being able to scrutinise all generated work.
 
-These describe involvement and scrutiny, not percentages of generated code or a quality rating. Use the most permissive involvement present in the module's retained implementation; do not reset a historical declaration merely because the latest edit was manual. Include AI-written fixes in otherwise human-written classes. Explain evidence and uncertainty in a separate `@remark` or `@devRemark`, keeping the `@ai` value machine-readable. Preserve existing descriptions, examples and member documentation.
+These marks describe involvement and scrutiny, not percentages or a quality rating. A small AI-written fix does not make the entire class AI-made. For mixed provenance, describe the affected component and the older/upstream work in `@aidesc`; an `AI:X` component must not silently attribute the rest of the class to AI. Do not reset known involvement simply because the latest edit was manual.
 
-For retrospective disclosures, inspect source comments, commit history and PR provenance. Use maintainer-supplied adoption dates only as explicitly labelled estimates. Do not classify code by writing style, treat a CI bot as an AI author, or infer `AI:0` from the absence of an AI attribution. Use `AI:W` when the author or maintainer can establish human scrutiny. For confirmed AI-written work whose scrutiny cannot be reconstructed, conservatively disclose `AI:X` and explicitly record the uncertainty; this does not claim that no human review occurred. Dates and commit frequency can guide investigation but cannot establish AI authorship or scrutiny. Mixed modules inherit `AI:X` when a retained component is `AI:X`; explain component provenance rather than assigning percentages. Leave unverified modules unmarked and record that gap rather than inventing a fifth mark or a claim of handmade authorship. A disclosure-only edit does not itself establish AI authorship of the implementation. Regenerate `docs.json` after changing documented source.
+- `@aidate YYYY-MM-DD` records the earliest evidenced AI involvement in the retained work described by `@aidesc`. Use an actual edit timestamp where available, otherwise a matched commit date; record the basis and uncertainty in a remark or provenance audit. This is a first known date, not proof that no earlier AI use occurred. Do not advance it for follow-up changes. Omit it for `AI:0` or when no date can be established.
+- `@aidesc <description>` explains what AI wrote or changed, what predates those contributions or comes from credited upstream authors, what is not attributed to AI by the evidence, and uncertainty about human scrutiny. Preserve existing descriptions, examples, attributions and member documentation.
+
+For retrospective disclosures, cross-check source comments, `git blame`, dated commit diffs and conversation records. Check deletions as well as surviving lines; a deleted line will not appear in blame. Copied upstream code and unmerged experiments must not be counted as AI-generated current implementation. Dates, model names and commit frequency can guide investigation but cannot establish human scrutiny. A CI bot or the absence of an AI co-author is not evidence of authorship either way.
+
+Do not use `AI:X` as a fallback for unknown review history, or infer `AI:W` merely because a fix is small. Where AI authorship is established but W/X is unresolved, retain `@aidate` and `@aidesc` and leave `@ai` absent until the classification can be supported. Leave modules without sufficient provenance unmarked; do not invent a fifth mark or claim `AI:0`. A disclosure-only edit does not itself establish AI authorship of the implementation. Use each tag at most once per module and regenerate `docs.json` after changing documented source. The generator exposes these as optional `ai`, `aiDate` and `aiDescription` module fields.
 
 ## Function-level documentation
 

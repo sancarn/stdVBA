@@ -9,8 +9,8 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 '@module
-'@ai AI:X
-'@remark AI-written changes: #173. Conservative AI:X disclosure; historical human scrutiny is unverified and may vary by change.
+'@aidate 2026-10-31
+'@aidesc AI provenance identifies the asynchronous timeout and terminal-completion fix (#173). Most request/transport code predates that fix and is not attributed to AI by this evidence. Historical human scrutiny is unverified, so AI:W versus AI:X remains unresolved.
 '@description A class used to make HTTP requests.
 '@example A simple synchronous HTTP request:
 '```vb

@@ -9,9 +9,9 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 '@module
+'@aidate 2026-10-31
+'@aidesc AI fixed owned-host lifecycle, partial startup and shutdown cleanup (#176). The original timer implementation dates from 2023 and is not attributed to AI by this evidence. Historical human scrutiny is unverified; W/X remains unresolved.
 '@description Scheduled callbacks using an owned timer host.
-'@ai AI:X
-'@remark AI-written changes: #176. Conservative AI:X disclosure; historical human scrutiny is unverified and may vary by change.
 
 
 'Module greatly inspired by Cristian Buse's SafeTimers:

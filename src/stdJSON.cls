@@ -9,8 +9,8 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 '@module
-'@ai AI:X
-'@remark Local Codex history confirms AI-written changes on 2026-10-31: GPT-6.1 Sol implemented the #137 callbacks and committed 1bcbfc5. AI:X follows the maintainer account of scrutiny during this period; the history confirms authorship, not human review.
+'@aidate 2026-04-14
+'@aidesc Cursor fixed key comparison in April 2026; Codex later added preprocessing/postprocessing callbacks (#137, #179). The existing parser/object implementation predates those contributions. Human callback-contract design is visible, but implementation scrutiny is unverified; W/X remains unresolved.
 '@description A class which implements a JSON object. Use this class to
 'create JSON objects, manipulate them, and convert them to and from JSON strings.
 '@example Simple example of creating a JSON object and converting it to a string:

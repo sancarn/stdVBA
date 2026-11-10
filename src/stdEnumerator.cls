@@ -9,8 +9,9 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 '@module
-'@ai AI:X
-'@remark Local Codex history confirms AI-written changes on 2026-11-01: GPT-6.1 Sol implemented uncached streaming and pushed PR #186. AI:X follows the maintainer account of scrutiny during this period; the history confirms authorship, not human review.
+'@ai AI:W
+'@aidate 2026-11-01
+'@aidesc AI implemented Windows streaming IEnumVARIANT traversal (#186). The prior enumeration implementation and other collection operations predate that work. The human questioned NextItem looping and caching/memory behavior, requested uncached traversal, and reviewed enumCall names; this supports AI:W for the changed implementation.
 '@description A class which implements an enumerator object. Use this class to
 'iterate over a collection of data.
 '@example ```vb
