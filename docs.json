@@ -12462,6 +12462,504 @@
     "implements": []
   },
   {
+    "name": "stdPowerQuery",
+    "fileName": "stdPowerQuery.cls",
+    "description": "Execute Power Query M and stream results through a positioned VBA record reader.",
+    "remarks": [
+      "WIP: tested with 64-bit Excel runtime 2.161.8230.1; external connectors are not configured.",
+      "Contains the CLR bootstrap and native reflection calls; no helper DLL, compiler, PowerShell process, or worksheet load is used.",
+      "The Mashup API is internal; see docs/stdPowerQuery.md for tested Office versions."
+    ],
+    "examples": [],
+    "devNotes": [],
+    "todos": [],
+    "requires": [
+      "Windows VBA7, .NET Framework 4, and an installed Excel Mashup runtime matching host bitness."
+    ],
+    "methods": [
+      {
+        "name": "MoveNext",
+        "description": "MoveNext pulls one item and materializes its children into VBA values.\r\nThe previous Current remains valid if the caller keeps a reference to it.\r\nAdvance the lazy result iterator and materialize one item.",
+        "remarks": [
+          "Evaluation errors close the iterator and raise a VBA error."
+        ],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Boolean",
+          "description": "True when another current item is available; False at exhaustion."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "CloseStream",
+        "description": "CloseStream is idempotent. Early close does not claim successful completion.\r\nRelease the iterator and current value.",
+        "remarks": [
+          "Safe to call repeatedly. Early close does not report successful completion."
+        ],
+        "examples": [],
+        "params": [],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "MText",
+        "description": "Use when binding text parameters or constructing quoted identifiers (# + MText).\r\nQuote VBA text as an M string literal.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "value",
+            "type": "String",
+            "description": "Text to quote, including quotes, control characters, and Unicode.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "String",
+          "description": "An escaped M string expression."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "protInit",
+        "description": "Initialize a positioned query. Internal constructor hook.",
+        "remarks": [
+          "Called by Create; an instance may only be initialized once."
+        ],
+        "examples": [],
+        "params": [
+          {
+            "name": "mashup",
+            "type": "String",
+            "description": "M source expression.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "EnginePath",
+            "type": "String",
+            "description": "Optional engine DLL path.",
+            "optional": true,
+            "defaultValue": "\"\"",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": null,
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": true,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      }
+    ],
+    "properties": [
+      {
+        "name": "RuntimePath",
+        "access": "ReadOnly",
+        "description": "Return the path of the loaded Microsoft Mashup engine assembly.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "String",
+          "description": "Absolute runtime DLL path."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "MaxDepth",
+        "access": "ReadWrite",
+        "description": "Get or set the maximum nesting depth used when converting M values.",
+        "remarks": [
+          "Allowed values are 1 through 64; the default is 32."
+        ],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Long",
+          "description": ""
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "EOF",
+        "access": "ReadOnly",
+        "description": "Return whether there is no current record.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Boolean",
+          "description": "True for empty, exhausted, closed, or failed queries."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "FieldValue",
+        "access": "ReadOnly",
+        "description": "Default member: query!Column is equivalent to query.FieldValue(\"Column\").\r\nRead a current field through its name or the query!Column default syntax.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "Name",
+            "type": "String",
+            "description": "Field name; exact matches take precedence over a unique case-insensitive match.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "Variant<Dictionary|Collection|Scalar>",
+          "description": "Converted field value."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "FieldType",
+        "access": "ReadOnly",
+        "description": "Declared non-Any types win; otherwise infer from the current M value.\r\nAt EOF an untyped column reports Any. Missing fields always raise an error.\r\nReturn the declared column type or infer the current M value type.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "Name",
+            "type": "String",
+            "description": "Field name.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "String",
+          "description": "Type name without .Type; an untyped field reports Any at EOF."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "Current",
+        "access": "ReadOnly",
+        "description": "Return the current record as a mutable dictionary snapshot.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Variant<Dictionary>",
+          "description": "Record whose lifetime is independent of subsequent iteration."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "Kind",
+        "access": "ReadOnly",
+        "description": "Return the root M value kind.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "String",
+          "description": "Lowercase kind name such as table, list, record, or number."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "Columns",
+        "access": "ReadOnly",
+        "description": "Return a copy of the ordered column names.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Collection<String>",
+          "description": "One-based column names, including for an empty table."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "Count",
+        "access": "ReadOnly",
+        "description": "Return the number of records fetched, including the prefetched current record.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Double",
+          "description": "Fetched record count, not the total result size."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "Completed",
+        "access": "ReadOnly",
+        "description": "Return whether iteration reached normal exhaustion.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Boolean",
+          "description": "False after early close or evaluation failure."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "IsClosed",
+        "access": "ReadOnly",
+        "description": "Return whether the result iterator has been closed.",
+        "remarks": [],
+        "examples": [],
+        "params": [],
+        "returns": {
+          "type": "Boolean",
+          "description": "True after exhaustion, early close, or evaluation failure."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      }
+    ],
+    "constructors": [
+      {
+        "name": "Create",
+        "description": "Create a query positioned on its first record or EOF.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "mashup",
+            "type": "String",
+            "description": "M source expression.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "EnginePath",
+            "type": "String",
+            "description": "Optional engine DLL path; empty enables discovery.",
+            "optional": true,
+            "defaultValue": "\"\"",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "stdPowerQuery",
+          "description": "Query with its first record already available."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      },
+      {
+        "name": "CreateFromFile",
+        "description": "Create a positioned query from a UTF-8 M expression file.",
+        "remarks": [],
+        "examples": [],
+        "params": [
+          {
+            "name": "mFile",
+            "type": "String",
+            "description": "UTF-8 file path; an optional UTF-8 BOM is accepted.",
+            "optional": false,
+            "defaultValue": null,
+            "paramArray": false,
+            "referenceType": "ByVal"
+          },
+          {
+            "name": "EnginePath",
+            "type": "String",
+            "description": "Optional engine DLL path.",
+            "optional": true,
+            "defaultValue": "\"\"",
+            "paramArray": false,
+            "referenceType": "ByVal"
+          }
+        ],
+        "returns": {
+          "type": "stdPowerQuery",
+          "description": "Query with its first record already available."
+        },
+        "deprecation": {
+          "status": false,
+          "message": ""
+        },
+        "isDefaultMember": false,
+        "devNotes": [],
+        "todos": [],
+        "isProtected": false,
+        "throws": [],
+        "requires": [],
+        "isStatic": false
+      }
+    ],
+    "events": [],
+    "implements": []
+  },
+  {
     "name": "stdProcess",
     "fileName": "stdProcess.cls",
     "description": "A class which implements a wrapper around a process. Use this class to\r\nquery process information, manipulate them and to forcefully terminate a process.",
@@ -20228,504 +20726,6 @@
         "returns": {
           "type": "Collection<stdWindow>",
           "description": "Collection of shell windows"
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      }
-    ],
-    "events": [],
-    "implements": []
-  },
-  {
-    "name": "stdPowerQuery",
-    "fileName": "stdPowerQuery.cls",
-    "description": "Execute Power Query M and stream results through a positioned VBA record reader.",
-    "remarks": [
-      "WIP: tested with 64-bit Excel runtime 2.161.8230.1; external connectors are not configured.",
-      "Contains the CLR bootstrap and native reflection calls; no helper DLL, compiler, PowerShell process, or worksheet load is used.",
-      "The Mashup API is internal; see docs/stdPowerQuery.md for tested Office versions."
-    ],
-    "examples": [],
-    "devNotes": [],
-    "todos": [],
-    "requires": [
-      "Windows VBA7, .NET Framework 4, and an installed Excel Mashup runtime matching host bitness."
-    ],
-    "methods": [
-      {
-        "name": "MoveNext",
-        "description": "MoveNext pulls one item and materializes its children into VBA values.\r\nThe previous Current remains valid if the caller keeps a reference to it.\r\nAdvance the lazy result iterator and materialize one item.",
-        "remarks": [
-          "Evaluation errors close the iterator and raise a VBA error."
-        ],
-        "examples": [],
-        "params": [],
-        "returns": {
-          "type": "Boolean",
-          "description": "True when another current item is available; False at exhaustion."
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "CloseStream",
-        "description": "CloseStream is idempotent. Early close does not claim successful completion.\r\nRelease the iterator and current value.",
-        "remarks": [
-          "Safe to call repeatedly. Early close does not report successful completion."
-        ],
-        "examples": [],
-        "params": [],
-        "returns": null,
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "MText",
-        "description": "Use when binding text parameters or constructing quoted identifiers (# + MText).\r\nQuote VBA text as an M string literal.",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "value",
-            "type": "String",
-            "description": "Text to quote, including quotes, control characters, and Unicode.",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          }
-        ],
-        "returns": {
-          "type": "String",
-          "description": "An escaped M string expression."
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "protInit",
-        "description": "Initialize a positioned query. Internal constructor hook.",
-        "remarks": [
-          "Called by Create; an instance may only be initialized once."
-        ],
-        "examples": [],
-        "params": [
-          {
-            "name": "mashup",
-            "type": "String",
-            "description": "M source expression.",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          },
-          {
-            "name": "EnginePath",
-            "type": "String",
-            "description": "Optional engine DLL path.",
-            "optional": true,
-            "defaultValue": "\"\"",
-            "paramArray": false,
-            "referenceType": "ByVal"
-          }
-        ],
-        "returns": null,
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": true,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      }
-    ],
-    "properties": [
-      {
-        "name": "RuntimePath",
-        "access": "ReadOnly",
-        "description": "Return the path of the loaded Microsoft Mashup engine assembly.",
-        "remarks": [],
-        "examples": [],
-        "params": [],
-        "returns": {
-          "type": "String",
-          "description": "Absolute runtime DLL path."
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "MaxDepth",
-        "access": "ReadWrite",
-        "description": "Get or set the maximum nesting depth used when converting M values.",
-        "remarks": [
-          "Allowed values are 1 through 64; the default is 32."
-        ],
-        "examples": [],
-        "params": [],
-        "returns": {
-          "type": "Long",
-          "description": ""
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "EOF",
-        "access": "ReadOnly",
-        "description": "Return whether there is no current record.",
-        "remarks": [],
-        "examples": [],
-        "params": [],
-        "returns": {
-          "type": "Boolean",
-          "description": "True for empty, exhausted, closed, or failed queries."
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "FieldValue",
-        "access": "ReadOnly",
-        "description": "Default member: query!Column is equivalent to query.FieldValue(\"Column\").\r\nRead a current field through its name or the query!Column default syntax.",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "Name",
-            "type": "String",
-            "description": "Field name; exact matches take precedence over a unique case-insensitive match.",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          }
-        ],
-        "returns": {
-          "type": "Variant<Dictionary|Collection|Scalar>",
-          "description": "Converted field value."
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "FieldType",
-        "access": "ReadOnly",
-        "description": "Declared non-Any types win; otherwise infer from the current M value.\r\nAt EOF an untyped column reports Any. Missing fields always raise an error.\r\nReturn the declared column type or infer the current M value type.",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "Name",
-            "type": "String",
-            "description": "Field name.",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          }
-        ],
-        "returns": {
-          "type": "String",
-          "description": "Type name without .Type; an untyped field reports Any at EOF."
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "Current",
-        "access": "ReadOnly",
-        "description": "Return the current record as a mutable dictionary snapshot.",
-        "remarks": [],
-        "examples": [],
-        "params": [],
-        "returns": {
-          "type": "Variant<Dictionary>",
-          "description": "Record whose lifetime is independent of subsequent iteration."
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "Kind",
-        "access": "ReadOnly",
-        "description": "Return the root M value kind.",
-        "remarks": [],
-        "examples": [],
-        "params": [],
-        "returns": {
-          "type": "String",
-          "description": "Lowercase kind name such as table, list, record, or number."
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "Columns",
-        "access": "ReadOnly",
-        "description": "Return a copy of the ordered column names.",
-        "remarks": [],
-        "examples": [],
-        "params": [],
-        "returns": {
-          "type": "Collection<String>",
-          "description": "One-based column names, including for an empty table."
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "Count",
-        "access": "ReadOnly",
-        "description": "Return the number of records fetched, including the prefetched current record.",
-        "remarks": [],
-        "examples": [],
-        "params": [],
-        "returns": {
-          "type": "Double",
-          "description": "Fetched record count, not the total result size."
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "Completed",
-        "access": "ReadOnly",
-        "description": "Return whether iteration reached normal exhaustion.",
-        "remarks": [],
-        "examples": [],
-        "params": [],
-        "returns": {
-          "type": "Boolean",
-          "description": "False after early close or evaluation failure."
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "IsClosed",
-        "access": "ReadOnly",
-        "description": "Return whether the result iterator has been closed.",
-        "remarks": [],
-        "examples": [],
-        "params": [],
-        "returns": {
-          "type": "Boolean",
-          "description": "True after exhaustion, early close, or evaluation failure."
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      }
-    ],
-    "constructors": [
-      {
-        "name": "Create",
-        "description": "Create a query positioned on its first record or EOF.",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "mashup",
-            "type": "String",
-            "description": "M source expression.",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          },
-          {
-            "name": "EnginePath",
-            "type": "String",
-            "description": "Optional engine DLL path; empty enables discovery.",
-            "optional": true,
-            "defaultValue": "\"\"",
-            "paramArray": false,
-            "referenceType": "ByVal"
-          }
-        ],
-        "returns": {
-          "type": "stdPowerQuery",
-          "description": "Query with its first record already available."
-        },
-        "deprecation": {
-          "status": false,
-          "message": ""
-        },
-        "isDefaultMember": false,
-        "devNotes": [],
-        "todos": [],
-        "isProtected": false,
-        "throws": [],
-        "requires": [],
-        "isStatic": false
-      },
-      {
-        "name": "CreateFromFile",
-        "description": "Create a positioned query from a UTF-8 M expression file.",
-        "remarks": [],
-        "examples": [],
-        "params": [
-          {
-            "name": "mFile",
-            "type": "String",
-            "description": "UTF-8 file path; an optional UTF-8 BOM is accepted.",
-            "optional": false,
-            "defaultValue": null,
-            "paramArray": false,
-            "referenceType": "ByVal"
-          },
-          {
-            "name": "EnginePath",
-            "type": "String",
-            "description": "Optional engine DLL path.",
-            "optional": true,
-            "defaultValue": "\"\"",
-            "paramArray": false,
-            "referenceType": "ByVal"
-          }
-        ],
-        "returns": {
-          "type": "stdPowerQuery",
-          "description": "Query with its first record already available."
         },
         "deprecation": {
           "status": false,
