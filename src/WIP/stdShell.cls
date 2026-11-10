@@ -9,9 +9,9 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 '@module
-'@ai AI:W
+'@ai AI:X
 '@aidate 2025-09-20
-'@aidesc Cursor refactored constructors/path handling and added Shell helpers in September 2025. Retained additions match commits bb5eb26 and 9db792c; other early refactors were later replaced. This does not attribute every prior or later Shell feature to AI. AI:W follows the maintainer account of that period.
+'@aidesc AI:X, confirmed by the maintainer. Cursor refactored constructors/path handling and added Shell helpers in September 2025. Retained additions match bb5eb26 and 9db792c; some early refactors were later replaced. This does not attribute every prior or later Shell feature to the same generation event.
 '@description Windows Shell files, folders and extended properties (experimental).
 
 'Issues:

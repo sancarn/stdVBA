@@ -2,7 +2,7 @@
   "date": "2026-11-10",
   "scope": "All VBA source modules under src, including WIP; tests and templates excluded.",
   "method": "Source annotations, reachable Git history and merged PR provenance. Codex/T3 branch names and explicit AI co-authors establish involvement, not scrutiny. No style-based detection. Targeted read-only inspection of local Cursor history established a GPT-5 stdShell refactor dated 2025-09-20; private transcripts are not published. Reviewed the supplied index of 43 local Codex session logs; stdJSON and stdEnumerator implementation/commit records replace their previous date-only estimates. Excluded disclosure work itself as evidence and did not attribute unmerged experiments to current master. Cursor follow-up searched all 53 workspace records and all 40 available transcript files; completed edits plus retained code establish stdHTML AI:W.",
-  "policy": "Use evidence of human scrutiny for AI:W and explicit evidence of AI:X for AI:X. Unknown scrutiny is not AI:X. Dates and model names guide investigation but do not establish scrutiny. Record the earliest evidenced retained AI contribution with @aidate and its limited scope with @aidesc; an absent @ai means classification unresolved, not handmade. Dates use a matched edit timestamp or commit date, documented per module.",
+  "policy": "The maintainer explicitly classifies the previously reviewed source classes. Module classifications and named component classifications may differ: Regex, Lambda, Reg and Window are AI:W overall with specified AI:X components. Explicit maintainer statements supersede earlier W/X inferences. Other previously reviewed classes are AI:W unless explicitly listed AI:X. Unreviewed modules remain unclassified. @aidate records first evidenced AI involvement, including historical experiments when described; it does not assert that all current code dates from that event.",
   "modules": [
     {
       "file": "src/stdAcc.cls",
@@ -26,8 +26,8 @@
     {
       "file": "src/stdArray.cls",
       "lastCommitDate": "2026-10-31",
-      "mark": null,
-      "basis": "AI-written changes include arr-assignment fixes (#161) and configurable index bases (#165). The existing list implementation predates these changes and is not attributed to AI by this evidence. Human API/design and documentation review is visible; W/X for the retained implementation changes is unresolved.",
+      "mark": "AI:W",
+      "basis": "AI:W, confirmed by the maintainer. AI-written changes include arr-assignment fixes (#161) and configurable index bases (#165). The existing list implementation predates these changes and is not attributed to AI by this evidence.",
       "pullRequests": [
         "https://github.com/sancarn/stdVBA/pull/165",
         "https://github.com/sancarn/stdVBA/pull/161"
@@ -45,7 +45,7 @@
       },
       "firstAIContributionDate": "2026-10-27",
       "dateEvidence": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established.",
-      "aiDescription": "AI-written changes include arr-assignment fixes (#161) and configurable index bases (#165). The existing list implementation predates these changes and is not attributed to AI by this evidence. Human API/design and documentation review is visible; W/X for the retained implementation changes is unresolved.",
+      "aiDescription": "AI:W, confirmed by the maintainer. AI-written changes include arr-assignment fixes (#161) and configurable index bases (#165). The existing list implementation predates these changes and is not attributed to AI by this evidence.",
       "blameReview": {
         "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
         "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
@@ -65,17 +65,18 @@
             "sampleBaselineLine": 91
           }
         ],
-        "classificationAssessment": "AI-written changes include arr-assignment fixes (#161) and configurable index bases (#165). The existing list implementation predates these changes and is not attributed to AI by this evidence. Human API/design and documentation review is visible; W/X for the retained implementation changes is unresolved.",
+        "classificationAssessment": "AI:W, confirmed by the maintainer. AI-written changes include arr-assignment fixes (#161) and configurable index bases (#165). The existing list implementation predates these changes and is not attributed to AI by this evidence.",
         "conversationConfirmation": "Direct conversation source edits/implementation records correlated with retained commit changes.",
-        "conversationCrossCheck": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established. AI-written changes include arr-assignment fixes (#161) and configurable index bases (#165). The existing list implementation predates these changes and is not attributed to AI by this evidence. Human API/design and documentation review is visible; W/X for the retained implementation changes is unresolved."
+        "conversationCrossCheck": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established. Authorship evidence is described in conversationConfirmation; the explicit maintainer classification supersedes earlier review-history inferences."
       },
-      "classificationStatus": "AI-authorship-established-W/X-unresolved"
+      "classificationStatus": "maintainer-confirmed",
+      "classificationEvidence": "Explicit maintainer classification supplied in this conversation; overrides previous inferred/uncertain W/X labels."
     },
     {
       "file": "src/stdCallback.cls",
       "lastCommitDate": "2026-10-31",
       "mark": "AI:W",
-      "basis": "Cursor-coauthored #154 removed an invalid RunEx error-handler line; blame of surviving lines cannot show that deletion. Later Codex work documented calling conventions and added tests, without rewriting the implementation. The remaining callback implementation is not attributed to AI by these records. AI:W follows the maintainer account of the Cursor period.",
+      "basis": "AI:W, confirmed by the maintainer. Cursor-coauthored #154 removed an invalid RunEx error-handler line; blame of surviving lines cannot show that deletion. Later Codex work documented calling conventions and added tests, without rewriting the implementation. The remaining callback implementation is not attributed to AI by these records. AI:W follows the maintainer account of the Cursor period.",
       "pullRequests": [
         "https://github.com/sancarn/stdVBA/pull/154"
       ],
@@ -92,7 +93,7 @@
       },
       "firstAIContributionDate": "2026-03-23",
       "dateEvidence": "Commit c996881 (2026-03-23), whose deletion-only fix was inspected.",
-      "aiDescription": "Cursor-coauthored #154 removed an invalid RunEx error-handler line; blame of surviving lines cannot show that deletion. Later Codex work documented calling conventions and added tests, without rewriting the implementation. The remaining callback implementation is not attributed to AI by these records. AI:W follows the maintainer account of the Cursor period.",
+      "aiDescription": "AI:W, confirmed by the maintainer. Cursor-coauthored #154 removed an invalid RunEx error-handler line; blame of surviving lines cannot show that deletion. Later Codex work documented calling conventions and added tests, without rewriting the implementation. The remaining callback implementation is not attributed to AI by these records. AI:W follows the maintainer account of the Cursor period.",
       "blameReview": {
         "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
         "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
@@ -102,11 +103,12 @@
             "change": "Deletion-only RunEx fix; surviving-line blame cannot attribute a removed error-handler line. Commit diff was inspected."
           }
         ],
-        "classificationAssessment": "Cursor-coauthored #154 removed an invalid RunEx error-handler line; blame of surviving lines cannot show that deletion. Later Codex work documented calling conventions and added tests, without rewriting the implementation. The remaining callback implementation is not attributed to AI by these records. AI:W follows the maintainer account of the Cursor period.",
+        "classificationAssessment": "AI:W, confirmed by the maintainer. Cursor-coauthored #154 removed an invalid RunEx error-handler line; blame of surviving lines cannot show that deletion. Later Codex work documented calling conventions and added tests, without rewriting the implementation. The remaining callback implementation is not attributed to AI by these records. AI:W follows the maintainer account of the Cursor period.",
         "conversationConfirmation": "Cursor-coauthored PR and inspected deletion-only diff; later conversation covers documentation/tests, not a new implementation.",
-        "conversationCrossCheck": "Commit c996881 (2026-03-23), whose deletion-only fix was inspected. Cursor-coauthored #154 removed an invalid RunEx error-handler line; blame of surviving lines cannot show that deletion. Later Codex work documented calling conventions and added tests, without rewriting the implementation. The remaining callback implementation is not attributed to AI by these records. AI:W follows the maintainer account of the Cursor period."
+        "conversationCrossCheck": "Commit c996881 (2026-03-23), whose deletion-only fix was inspected. Authorship evidence is described in conversationConfirmation; the explicit maintainer classification supersedes earlier review-history inferences."
       },
-      "classificationStatus": "classified"
+      "classificationStatus": "maintainer-confirmed",
+      "classificationEvidence": "Explicit maintainer classification supplied in this conversation; overrides previous inferred/uncertain W/X labels."
     },
     {
       "file": "src/stdClipboard.cls",
@@ -150,7 +152,7 @@
       "file": "src/stdEnumerator.cls",
       "lastCommitDate": "2026-11-01",
       "mark": "AI:W",
-      "basis": "AI implemented Windows streaming IEnumVARIANT traversal (#186). The prior enumeration implementation and other collection operations predate that work. The human questioned NextItem looping and caching/memory behavior, requested uncached traversal, and reviewed enumCall names; this supports AI:W for the changed implementation.",
+      "basis": "AI:W, confirmed by the maintainer. The lazy IEnumVARIANT implementation (#186) was written by AI and reviewed manually, including iteration, caching/memory behavior and enumCall naming. Earlier enumeration and other collection operations predate that contribution.",
       "pullRequests": [
         "https://github.com/sancarn/stdVBA/pull/186"
       ],
@@ -167,7 +169,7 @@
       },
       "firstAIContributionDate": "2026-11-01",
       "dateEvidence": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established.",
-      "aiDescription": "AI implemented Windows streaming IEnumVARIANT traversal (#186). The prior enumeration implementation and other collection operations predate that work. The human questioned NextItem looping and caching/memory behavior, requested uncached traversal, and reviewed enumCall names; this supports AI:W for the changed implementation.",
+      "aiDescription": "AI:W, confirmed by the maintainer. The lazy IEnumVARIANT implementation (#186) was written by AI and reviewed manually, including iteration, caching/memory behavior and enumCall naming. Earlier enumeration and other collection operations predate that contribution.",
       "blameReview": {
         "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
         "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
@@ -180,11 +182,20 @@
             "sampleBaselineLine": 219
           }
         ],
-        "classificationAssessment": "AI implemented Windows streaming IEnumVARIANT traversal (#186). The prior enumeration implementation and other collection operations predate that work. The human questioned NextItem looping and caching/memory behavior, requested uncached traversal, and reviewed enumCall names; this supports AI:W for the changed implementation.",
+        "classificationAssessment": "AI:W, confirmed by the maintainer. The lazy IEnumVARIANT implementation (#186) was written by AI and reviewed manually, including iteration, caching/memory behavior and enumCall naming. Earlier enumeration and other collection operations predate that contribution.",
         "conversationConfirmation": "Direct conversation source edits/implementation records correlated with retained commit changes.",
-        "conversationCrossCheck": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established. AI implemented Windows streaming IEnumVARIANT traversal (#186). The prior enumeration implementation and other collection operations predate that work. The human questioned NextItem looping and caching/memory behavior, requested uncached traversal, and reviewed enumCall names; this supports AI:W for the changed implementation."
+        "conversationCrossCheck": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established. Authorship evidence is described in conversationConfirmation; the explicit maintainer classification supersedes earlier review-history inferences."
       },
-      "classificationStatus": "classified"
+      "classificationStatus": "maintainer-confirmed",
+      "classificationEvidence": "Explicit maintainer classification supplied in this conversation; overrides previous inferred/uncertain W/X labels.",
+      "componentClassifications": [
+        {
+          "component": "Lazy IEnumVARIANT implementation",
+          "mark": "AI:W",
+          "basis": "Maintainer confirms AI-written and manually reviewed.",
+          "inCurrentBaseline": true
+        }
+      ]
     },
     {
       "file": "src/stdFiber.cls",
@@ -208,8 +219,8 @@
     {
       "file": "src/stdHTML.cls",
       "lastCommitDate": "2026-04-07",
-      "mark": "AI:W",
-      "basis": "Cursor edits introduced retained selectors, parsing, replacement and Boolean-attribute behavior in April 2026, initially under WIP/stdHTML.cls. The original node model predates these contributions; the whole class is not claimed to be AI-written. AI:W follows the maintainer account of Cursor-era scrutiny.",
+      "mark": "AI:X",
+      "basis": "AI:X, confirmed by the maintainer. Cursor introduced retained selectors, parsing, replacement and Boolean-attribute behavior in April 2026, initially under WIP/stdHTML.cls. The original node model predates these changes; the first-evidenced date does not claim that the whole class was created then.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 21,
@@ -224,7 +235,7 @@
       },
       "firstAIContributionDate": "2026-04-03",
       "dateEvidence": "Completed Cursor source edits on 2026-04-03, retained in April commits.",
-      "aiDescription": "Cursor edits introduced retained selectors, parsing, replacement and Boolean-attribute behavior in April 2026, initially under WIP/stdHTML.cls. The original node model predates these contributions; the whole class is not claimed to be AI-written. AI:W follows the maintainer account of Cursor-era scrutiny.",
+      "aiDescription": "AI:X, confirmed by the maintainer. Cursor introduced retained selectors, parsing, replacement and Boolean-attribute behavior in April 2026, initially under WIP/stdHTML.cls. The original node model predates these changes; the first-evidenced date does not claim that the whole class was created then.",
       "blameReview": {
         "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
         "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
@@ -286,17 +297,18 @@
             "sampleBaselineLine": 1266
           }
         ],
-        "classificationAssessment": "Cursor edits introduced retained selectors, parsing, replacement and Boolean-attribute behavior in April 2026, initially under WIP/stdHTML.cls. The original node model predates these contributions; the whole class is not claimed to be AI-written. AI:W follows the maintainer account of Cursor-era scrutiny.",
+        "classificationAssessment": "AI:X, confirmed by the maintainer. Cursor introduced retained selectors, parsing, replacement and Boolean-attribute behavior in April 2026, initially under WIP/stdHTML.cls. The original node model predates these changes; the first-evidenced date does not claim that the whole class was created then.",
         "conversationConfirmation": "Direct conversation source edits/implementation records correlated with retained commit changes.",
-        "conversationCrossCheck": "Completed Cursor source edits on 2026-04-03, retained in April commits. Cursor edits introduced retained selectors, parsing, replacement and Boolean-attribute behavior in April 2026, initially under WIP/stdHTML.cls. The original node model predates these contributions; the whole class is not claimed to be AI-written. AI:W follows the maintainer account of Cursor-era scrutiny."
+        "conversationCrossCheck": "Completed Cursor source edits on 2026-04-03, retained in April commits. Authorship evidence is described in conversationConfirmation; the explicit maintainer classification supersedes earlier review-history inferences."
       },
-      "classificationStatus": "classified"
+      "classificationStatus": "maintainer-confirmed",
+      "classificationEvidence": "Explicit maintainer classification supplied in this conversation; overrides previous inferred/uncertain W/X labels."
     },
     {
       "file": "src/stdHTTP.cls",
       "lastCommitDate": "2026-10-31",
-      "mark": null,
-      "basis": "AI provenance identifies the asynchronous timeout and terminal-completion fix (#173). Most request/transport code predates that fix and is not attributed to AI by this evidence. Historical human scrutiny is unverified, so AI:W versus AI:X remains unresolved.",
+      "mark": "AI:W",
+      "basis": "AI:W, confirmed by the maintainer. AI provenance identifies the asynchronous timeout and terminal-completion fix (#173). Most request/transport code predates that fix and is not attributed to AI by this evidence.",
       "pullRequests": [
         "https://github.com/sancarn/stdVBA/pull/173"
       ],
@@ -313,7 +325,7 @@
       },
       "firstAIContributionDate": "2026-10-31",
       "dateEvidence": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established.",
-      "aiDescription": "AI provenance identifies the asynchronous timeout and terminal-completion fix (#173). Most request/transport code predates that fix and is not attributed to AI by this evidence. Historical human scrutiny is unverified, so AI:W versus AI:X remains unresolved.",
+      "aiDescription": "AI:W, confirmed by the maintainer. AI provenance identifies the asynchronous timeout and terminal-completion fix (#173). Most request/transport code predates that fix and is not attributed to AI by this evidence.",
       "blameReview": {
         "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
         "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
@@ -326,11 +338,12 @@
             "sampleBaselineLine": 307
           }
         ],
-        "classificationAssessment": "AI provenance identifies the asynchronous timeout and terminal-completion fix (#173). Most request/transport code predates that fix and is not attributed to AI by this evidence. Historical human scrutiny is unverified, so AI:W versus AI:X remains unresolved.",
+        "classificationAssessment": "AI:W, confirmed by the maintainer. AI provenance identifies the asynchronous timeout and terminal-completion fix (#173). Most request/transport code predates that fix and is not attributed to AI by this evidence.",
         "conversationConfirmation": "Codex PR/branch provenance and retained dated fix; original source-writing step is not independently recorded in supplied conversations.",
-        "conversationCrossCheck": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established. AI provenance identifies the asynchronous timeout and terminal-completion fix (#173). Most request/transport code predates that fix and is not attributed to AI by this evidence. Historical human scrutiny is unverified, so AI:W versus AI:X remains unresolved."
+        "conversationCrossCheck": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established. Authorship evidence is described in conversationConfirmation; the explicit maintainer classification supersedes earlier review-history inferences."
       },
-      "classificationStatus": "AI-authorship-established-W/X-unresolved"
+      "classificationStatus": "maintainer-confirmed",
+      "classificationEvidence": "Explicit maintainer classification supplied in this conversation; overrides previous inferred/uncertain W/X labels."
     },
     {
       "file": "src/stdHTTPAuthenticators.bas",
@@ -373,8 +386,8 @@
     {
       "file": "src/stdImage.cls",
       "lastCommitDate": "2026-10-31",
-      "mark": null,
-      "basis": "AI work addressed export, clipboard ownership and conversion cleanup (#183). Existing image operations and earlier upstream contributions predate that work and are not attributed to AI here. Historical human scrutiny is unverified; W/X remains unresolved.",
+      "mark": "AI:X",
+      "basis": "AI:X, confirmed by the maintainer. The reviewed implementation history identifies export, clipboard-ownership and conversion-cleanup work (#183). Older image operations and upstream contributions predate that work; the recorded date is the first evidenced AI contribution in the reviewed sources.",
       "pullRequests": [
         "https://github.com/sancarn/stdVBA/pull/183"
       ],
@@ -391,7 +404,7 @@
       },
       "firstAIContributionDate": "2026-10-31",
       "dateEvidence": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established.",
-      "aiDescription": "AI work addressed export, clipboard ownership and conversion cleanup (#183). Existing image operations and earlier upstream contributions predate that work and are not attributed to AI here. Historical human scrutiny is unverified; W/X remains unresolved.",
+      "aiDescription": "AI:X, confirmed by the maintainer. The reviewed implementation history identifies export, clipboard-ownership and conversion-cleanup work (#183). Older image operations and upstream contributions predate that work; the recorded date is the first evidenced AI contribution in the reviewed sources.",
       "blameReview": {
         "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
         "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
@@ -404,17 +417,18 @@
             "sampleBaselineLine": 154
           }
         ],
-        "classificationAssessment": "AI work addressed export, clipboard ownership and conversion cleanup (#183). Existing image operations and earlier upstream contributions predate that work and are not attributed to AI here. Historical human scrutiny is unverified; W/X remains unresolved.",
+        "classificationAssessment": "AI:X, confirmed by the maintainer. The reviewed implementation history identifies export, clipboard-ownership and conversion-cleanup work (#183). Older image operations and upstream contributions predate that work; the recorded date is the first evidenced AI contribution in the reviewed sources.",
         "conversationConfirmation": "Conversation implementation workflow correlated with matching PR/commit; some implementation was delegated or imported upstream.",
-        "conversationCrossCheck": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established. AI work addressed export, clipboard ownership and conversion cleanup (#183). Existing image operations and earlier upstream contributions predate that work and are not attributed to AI here. Historical human scrutiny is unverified; W/X remains unresolved."
+        "conversationCrossCheck": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established. Authorship evidence is described in conversationConfirmation; the explicit maintainer classification supersedes earlier review-history inferences."
       },
-      "classificationStatus": "AI-authorship-established-W/X-unresolved"
+      "classificationStatus": "maintainer-confirmed",
+      "classificationEvidence": "Explicit maintainer classification supplied in this conversation; overrides previous inferred/uncertain W/X labels."
     },
     {
       "file": "src/stdJSON.cls",
       "lastCommitDate": "2026-10-31",
-      "mark": null,
-      "basis": "Cursor fixed key comparison in April 2026; Codex later added preprocessing/postprocessing callbacks (#137, #179). The existing parser/object implementation predates those contributions. Human callback-contract design is visible, but implementation scrutiny is unverified; W/X remains unresolved.",
+      "mark": "AI:W",
+      "basis": "AI:W, confirmed by the maintainer. Cursor fixed key comparison in April 2026; Codex later added preprocessing/postprocessing callbacks (#137, #179). The existing parser/object implementation predates those contributions.",
       "pullRequests": [
         "https://github.com/sancarn/stdVBA/pull/179"
       ],
@@ -431,7 +445,7 @@
       },
       "firstAIContributionDate": "2026-04-14",
       "dateEvidence": "Completed Cursor source edit timestamp 2026-04-14T17:36:03.685Z, retained in e837820.",
-      "aiDescription": "Cursor fixed key comparison in April 2026; Codex later added preprocessing/postprocessing callbacks (#137, #179). The existing parser/object implementation predates those contributions. Human callback-contract design is visible, but implementation scrutiny is unverified; W/X remains unresolved.",
+      "aiDescription": "AI:W, confirmed by the maintainer. Cursor fixed key comparison in April 2026; Codex later added preprocessing/postprocessing callbacks (#137, #179). The existing parser/object implementation predates those contributions.",
       "blameReview": {
         "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
         "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
@@ -444,17 +458,18 @@
             "sampleBaselineLine": 129
           }
         ],
-        "classificationAssessment": "Cursor fixed key comparison in April 2026; Codex later added preprocessing/postprocessing callbacks (#137, #179). The existing parser/object implementation predates those contributions. Human callback-contract design is visible, but implementation scrutiny is unverified; W/X remains unresolved.",
+        "classificationAssessment": "AI:W, confirmed by the maintainer. Cursor fixed key comparison in April 2026; Codex later added preprocessing/postprocessing callbacks (#137, #179). The existing parser/object implementation predates those contributions.",
         "conversationConfirmation": "Direct conversation source edits/implementation records correlated with retained commit changes.",
-        "conversationCrossCheck": "Completed Cursor source edit timestamp 2026-04-14T17:36:03.685Z, retained in e837820. Cursor fixed key comparison in April 2026; Codex later added preprocessing/postprocessing callbacks (#137, #179). The existing parser/object implementation predates those contributions. Human callback-contract design is visible, but implementation scrutiny is unverified; W/X remains unresolved."
+        "conversationCrossCheck": "Completed Cursor source edit timestamp 2026-04-14T17:36:03.685Z, retained in e837820. Authorship evidence is described in conversationConfirmation; the explicit maintainer classification supersedes earlier review-history inferences."
       },
-      "classificationStatus": "AI-authorship-established-W/X-unresolved"
+      "classificationStatus": "maintainer-confirmed",
+      "classificationEvidence": "Explicit maintainer classification supplied in this conversation; overrides previous inferred/uncertain W/X labels."
     },
     {
       "file": "src/stdLambda.cls",
       "lastCommitDate": "2026-11-01",
-      "mark": null,
-      "basis": "The confirmed retained AI change is the object-local copy fix during stack growth (#172). The existing VBA compiler/evaluator predates that fix. May 2026 and later native-thunk experiments were not merged into this baseline and are not attributed to current code. Historical human scrutiny of the retained fix is unverified; W/X remains unresolved.",
+      "mark": "AI:W",
+      "basis": "Overall AI:W, as classified by the maintainer; thunk-engine work is purely AI:X. Cursor first worked on native-thunk experiments in May 2026, but those engines are on other branches and are not part of this baseline. The retained October AI contribution fixes object-local copying during stack growth (#172); the existing VBA compiler/evaluator predates that fix.",
       "pullRequests": [
         "https://github.com/sancarn/stdVBA/pull/172",
         "https://github.com/sancarn/stdVBA/pull/187"
@@ -470,9 +485,9 @@
         "matchingTranscriptFiles": 8,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "firstAIContributionDate": "2026-10-31",
-      "dateEvidence": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established.",
-      "aiDescription": "The confirmed retained AI change is the object-local copy fix during stack growth (#172). The existing VBA compiler/evaluator predates that fix. May 2026 and later native-thunk experiments were not merged into this baseline and are not attributed to current code. Historical human scrutiny of the retained fix is unverified; W/X remains unresolved.",
+      "firstAIContributionDate": "2026-05-07",
+      "dateEvidence": "First completed Cursor thunk-experiment edits in May 2026; those experimental engines are not retained in the current baseline. The current stack-copy fix is dated 2026-10-31.",
+      "aiDescription": "Overall AI:W, as classified by the maintainer; thunk-engine work is purely AI:X. Cursor first worked on native-thunk experiments in May 2026, but those engines are on other branches and are not part of this baseline. The retained October AI contribution fixes object-local copying during stack growth (#172); the existing VBA compiler/evaluator predates that fix.",
       "blameReview": {
         "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
         "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
@@ -485,17 +500,26 @@
             "sampleBaselineLine": 1366
           }
         ],
-        "classificationAssessment": "The confirmed retained AI change is the object-local copy fix during stack growth (#172). The existing VBA compiler/evaluator predates that fix. May 2026 and later native-thunk experiments were not merged into this baseline and are not attributed to current code. Historical human scrutiny of the retained fix is unverified; W/X remains unresolved.",
+        "classificationAssessment": "Overall AI:W, as classified by the maintainer; thunk-engine work is purely AI:X. Cursor first worked on native-thunk experiments in May 2026, but those engines are on other branches and are not part of this baseline. The retained October AI contribution fixes object-local copying during stack growth (#172); the existing VBA compiler/evaluator predates that fix.",
         "conversationConfirmation": "Codex PR/branch provenance and retained dated fix; original source-writing step is not independently recorded in supplied conversations.",
-        "conversationCrossCheck": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established. The confirmed retained AI change is the object-local copy fix during stack growth (#172). The existing VBA compiler/evaluator predates that fix. May 2026 and later native-thunk experiments were not merged into this baseline and are not attributed to current code. Historical human scrutiny of the retained fix is unverified; W/X remains unresolved."
+        "conversationCrossCheck": "First completed Cursor thunk-experiment edits in May 2026; those experimental engines are not retained in the current baseline. The current stack-copy fix is dated 2026-10-31. Authorship evidence is described in conversationConfirmation; the explicit maintainer classification supersedes earlier review-history inferences."
       },
-      "classificationStatus": "AI-authorship-established-W/X-unresolved"
+      "classificationStatus": "maintainer-confirmed",
+      "classificationEvidence": "Explicit maintainer classification supplied in this conversation; overrides previous inferred/uncertain W/X labels.",
+      "componentClassifications": [
+        {
+          "component": "Native thunk engine",
+          "mark": "AI:X",
+          "basis": "Explicit maintainer confirmation.",
+          "inCurrentBaseline": false
+        }
+      ]
     },
     {
       "file": "src/stdOutlook.cls",
       "lastCommitDate": "2026-11-10",
-      "mark": null,
-      "basis": "PR #189 explicitly attributes creation of this Extended MAPI class to gpt-6-astra. There was no previous stdOutlook class in the repository. This establishes AI implementation authorship, but does not establish the degree of human scrutiny; W/X remains unresolved.",
+      "mark": "AI:X",
+      "basis": "AI:X, confirmed by the maintainer. PR #189 explicitly attributes creation of this Extended MAPI class to gpt-6-astra; there was no earlier stdOutlook class in the repository.",
       "pullRequests": [
         "https://github.com/sancarn/stdVBA/pull/189"
       ],
@@ -512,7 +536,7 @@
       },
       "firstAIContributionDate": "2026-11-10",
       "dateEvidence": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established.",
-      "aiDescription": "PR #189 explicitly attributes creation of this Extended MAPI class to gpt-6-astra. There was no previous stdOutlook class in the repository. This establishes AI implementation authorship, but does not establish the degree of human scrutiny; W/X remains unresolved.",
+      "aiDescription": "AI:X, confirmed by the maintainer. PR #189 explicitly attributes creation of this Extended MAPI class to gpt-6-astra; there was no earlier stdOutlook class in the repository.",
       "blameReview": {
         "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
         "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
@@ -525,17 +549,18 @@
             "sampleBaselineLine": 3
           }
         ],
-        "classificationAssessment": "PR #189 explicitly attributes creation of this Extended MAPI class to gpt-6-astra. There was no previous stdOutlook class in the repository. This establishes AI implementation authorship, but does not establish the degree of human scrutiny; W/X remains unresolved.",
+        "classificationAssessment": "AI:X, confirmed by the maintainer. PR #189 explicitly attributes creation of this Extended MAPI class to gpt-6-astra; there was no earlier stdOutlook class in the repository.",
         "conversationConfirmation": "PR explicitly names AI implementation model; original implementation conversation is absent from supplied index.",
-        "conversationCrossCheck": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established. PR #189 explicitly attributes creation of this Extended MAPI class to gpt-6-astra. There was no previous stdOutlook class in the repository. This establishes AI implementation authorship, but does not establish the degree of human scrutiny; W/X remains unresolved."
+        "conversationCrossCheck": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established. Authorship evidence is described in conversationConfirmation; the explicit maintainer classification supersedes earlier review-history inferences."
       },
-      "classificationStatus": "AI-authorship-established-W/X-unresolved"
+      "classificationStatus": "maintainer-confirmed",
+      "classificationEvidence": "Explicit maintainer classification supplied in this conversation; overrides previous inferred/uncertain W/X labels."
     },
     {
       "file": "src/stdPerformance.cls",
       "lastCommitDate": "2026-10-31",
-      "mark": null,
-      "basis": "AI changes added Access/Word optimization handling (#167) and improved timer precision (#177). Older optimizer and benchmark APIs predate these changes and are not attributed to AI by this evidence. Human discussion of host settings is visible; implementation scrutiny is unverified, so W/X remains unresolved.",
+      "mark": "AI:W",
+      "basis": "AI:W, confirmed by the maintainer. AI changes added Access/Word optimization handling (#167) and improved timer precision (#177). Older optimizer and benchmark APIs predate these changes and are not attributed to AI by this evidence.",
       "pullRequests": [
         "https://github.com/sancarn/stdVBA/pull/167",
         "https://github.com/sancarn/stdVBA/pull/177"
@@ -553,7 +578,7 @@
       },
       "firstAIContributionDate": "2026-10-31",
       "dateEvidence": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established.",
-      "aiDescription": "AI changes added Access/Word optimization handling (#167) and improved timer precision (#177). Older optimizer and benchmark APIs predate these changes and are not attributed to AI by this evidence. Human discussion of host settings is visible; implementation scrutiny is unverified, so W/X remains unresolved.",
+      "aiDescription": "AI:W, confirmed by the maintainer. AI changes added Access/Word optimization handling (#167) and improved timer precision (#177). Older optimizer and benchmark APIs predate these changes and are not attributed to AI by this evidence.",
       "blameReview": {
         "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
         "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
@@ -573,11 +598,12 @@
             "sampleBaselineLine": 33
           }
         ],
-        "classificationAssessment": "AI changes added Access/Word optimization handling (#167) and improved timer precision (#177). Older optimizer and benchmark APIs predate these changes and are not attributed to AI by this evidence. Human discussion of host settings is visible; implementation scrutiny is unverified, so W/X remains unresolved.",
+        "classificationAssessment": "AI:W, confirmed by the maintainer. AI changes added Access/Word optimization handling (#167) and improved timer precision (#177). Older optimizer and benchmark APIs predate these changes and are not attributed to AI by this evidence.",
         "conversationConfirmation": "Direct conversation source edits/implementation records correlated with retained commit changes.",
-        "conversationCrossCheck": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established. AI changes added Access/Word optimization handling (#167) and improved timer precision (#177). Older optimizer and benchmark APIs predate these changes and are not attributed to AI by this evidence. Human discussion of host settings is visible; implementation scrutiny is unverified, so W/X remains unresolved."
+        "conversationCrossCheck": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established. Authorship evidence is described in conversationConfirmation; the explicit maintainer classification supersedes earlier review-history inferences."
       },
-      "classificationStatus": "AI-authorship-established-W/X-unresolved"
+      "classificationStatus": "maintainer-confirmed",
+      "classificationEvidence": "Explicit maintainer classification supplied in this conversation; overrides previous inferred/uncertain W/X labels."
     },
     {
       "file": "src/stdProcess.cls",
@@ -620,8 +646,8 @@
     {
       "file": "src/stdRefArray.cls",
       "lastCommitDate": "2026-10-31",
-      "mark": null,
-      "basis": "AI corrected owned-Variant SAFEARRAY-slot pointer handling (#174). The borrowed-array implementation credited to Cristian Buse predates that fix; it is not claimed to be AI-authored. Historical human scrutiny of the fix is unverified; W/X remains unresolved.",
+      "mark": "AI:W",
+      "basis": "AI:W, confirmed by the maintainer. AI corrected owned-Variant SAFEARRAY-slot pointer handling (#174). The borrowed-array implementation credited to Cristian Buse predates that fix; it is not claimed to be AI-authored.",
       "pullRequests": [
         "https://github.com/sancarn/stdVBA/pull/174"
       ],
@@ -638,7 +664,7 @@
       },
       "firstAIContributionDate": "2026-10-31",
       "dateEvidence": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established.",
-      "aiDescription": "AI corrected owned-Variant SAFEARRAY-slot pointer handling (#174). The borrowed-array implementation credited to Cristian Buse predates that fix; it is not claimed to be AI-authored. Historical human scrutiny of the fix is unverified; W/X remains unresolved.",
+      "aiDescription": "AI:W, confirmed by the maintainer. AI corrected owned-Variant SAFEARRAY-slot pointer handling (#174). The borrowed-array implementation credited to Cristian Buse predates that fix; it is not claimed to be AI-authored.",
       "blameReview": {
         "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
         "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
@@ -651,17 +677,18 @@
             "sampleBaselineLine": 56
           }
         ],
-        "classificationAssessment": "AI corrected owned-Variant SAFEARRAY-slot pointer handling (#174). The borrowed-array implementation credited to Cristian Buse predates that fix; it is not claimed to be AI-authored. Historical human scrutiny of the fix is unverified; W/X remains unresolved.",
+        "classificationAssessment": "AI:W, confirmed by the maintainer. AI corrected owned-Variant SAFEARRAY-slot pointer handling (#174). The borrowed-array implementation credited to Cristian Buse predates that fix; it is not claimed to be AI-authored.",
         "conversationConfirmation": "Codex PR/branch provenance and retained dated fix; original source-writing step is not independently recorded in supplied conversations.",
-        "conversationCrossCheck": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established. AI corrected owned-Variant SAFEARRAY-slot pointer handling (#174). The borrowed-array implementation credited to Cristian Buse predates that fix; it is not claimed to be AI-authored. Historical human scrutiny of the fix is unverified; W/X remains unresolved."
+        "conversationCrossCheck": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established. Authorship evidence is described in conversationConfirmation; the explicit maintainer classification supersedes earlier review-history inferences."
       },
-      "classificationStatus": "AI-authorship-established-W/X-unresolved"
+      "classificationStatus": "maintainer-confirmed",
+      "classificationEvidence": "Explicit maintainer classification supplied in this conversation; overrides previous inferred/uncertain W/X labels."
     },
     {
       "file": "src/stdReg.cls",
       "lastCommitDate": "2026-10-30",
-      "mark": null,
-      "basis": "AI added fluent registry key/value creation (#168). The earlier registry-reading/writing implementation predates those additions and is not attributed to AI by this evidence. Historical implementation scrutiny is unverified; W/X remains unresolved.",
+      "mark": "AI:W",
+      "basis": "Overall AI:W, as classified by the maintainer. Some small additions, including the key/value-creation work (#168), are AI:X. The earlier registry-reading/writing implementation predates those additions; the component note does not attribute the entire class to AI.",
       "pullRequests": [
         "https://github.com/sancarn/stdVBA/pull/168"
       ],
@@ -678,7 +705,7 @@
       },
       "firstAIContributionDate": "2026-10-30",
       "dateEvidence": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established.",
-      "aiDescription": "AI added fluent registry key/value creation (#168). The earlier registry-reading/writing implementation predates those additions and is not attributed to AI by this evidence. Historical implementation scrutiny is unverified; W/X remains unresolved.",
+      "aiDescription": "Overall AI:W, as classified by the maintainer. Some small additions, including the key/value-creation work (#168), are AI:X. The earlier registry-reading/writing implementation predates those additions; the component note does not attribute the entire class to AI.",
       "blameReview": {
         "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
         "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
@@ -691,17 +718,26 @@
             "sampleBaselineLine": 131
           }
         ],
-        "classificationAssessment": "AI added fluent registry key/value creation (#168). The earlier registry-reading/writing implementation predates those additions and is not attributed to AI by this evidence. Historical implementation scrutiny is unverified; W/X remains unresolved.",
+        "classificationAssessment": "Overall AI:W, as classified by the maintainer. Some small additions, including the key/value-creation work (#168), are AI:X. The earlier registry-reading/writing implementation predates those additions; the component note does not attribute the entire class to AI.",
         "conversationConfirmation": "Direct conversation source edits/implementation records correlated with retained commit changes.",
-        "conversationCrossCheck": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established. AI added fluent registry key/value creation (#168). The earlier registry-reading/writing implementation predates those additions and is not attributed to AI by this evidence. Historical implementation scrutiny is unverified; W/X remains unresolved."
+        "conversationCrossCheck": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established. Authorship evidence is described in conversationConfirmation; the explicit maintainer classification supersedes earlier review-history inferences."
       },
-      "classificationStatus": "AI-authorship-established-W/X-unresolved"
+      "classificationStatus": "maintainer-confirmed",
+      "classificationEvidence": "Explicit maintainer classification supplied in this conversation; overrides previous inferred/uncertain W/X labels.",
+      "componentClassifications": [
+        {
+          "component": "Small key/value-creation additions",
+          "mark": "AI:X",
+          "basis": "Explicit maintainer confirmation.",
+          "inCurrentBaseline": true
+        }
+      ]
     },
     {
       "file": "src/stdRegex.cls",
       "lastCommitDate": "2026-11-01",
-      "mark": "AI:X",
-      "basis": "The pure VBA engine is upstream work credited to sihlfall, not code generated by the native-thunk task. Earlier AI-assisted integration (#164) dates the first identified involvement. The x86/x64 native thunk engine (#184) was generated by GPT-6.1 Sol and is explicitly confirmed AI:X by the maintainer. The module mark covers that component, not the entire upstream engine.",
+      "mark": "AI:W",
+      "basis": "Overall AI:W, as classified by the maintainer. The pure VBA engine is upstream work credited to sihlfall; earlier AI-assisted integration is recorded in #164. The native x86/x64 thunk engine (#184) is purely AI:X. That component classification does not attribute the upstream engine to AI.",
       "pullRequests": [
         "https://github.com/sancarn/stdVBA/pull/164",
         "https://github.com/sancarn/stdVBA/pull/184"
@@ -719,7 +755,7 @@
       },
       "firstAIContributionDate": "2026-10-27",
       "dateEvidence": "Commit c02d86f (2026-10-27) identifies earlier AI-assisted integration; the explicitly AI:X native thunk followed in 4a2bb49 on 2026-11-01.",
-      "aiDescription": "The pure VBA engine is upstream work credited to sihlfall, not code generated by the native-thunk task. Earlier AI-assisted integration (#164) dates the first identified involvement. The x86/x64 native thunk engine (#184) was generated by GPT-6.1 Sol and is explicitly confirmed AI:X by the maintainer. The module mark covers that component, not the entire upstream engine.",
+      "aiDescription": "Overall AI:W, as classified by the maintainer. The pure VBA engine is upstream work credited to sihlfall; earlier AI-assisted integration is recorded in #164. The native x86/x64 thunk engine (#184) is purely AI:X. That component classification does not attribute the upstream engine to AI.",
       "blameReview": {
         "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
         "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
@@ -739,11 +775,20 @@
             "sampleBaselineLine": 12
           }
         ],
-        "classificationAssessment": "The pure VBA engine is upstream work credited to sihlfall, not code generated by the native-thunk task. Earlier AI-assisted integration (#164) dates the first identified involvement. The x86/x64 native thunk engine (#184) was generated by GPT-6.1 Sol and is explicitly confirmed AI:X by the maintainer. The module mark covers that component, not the entire upstream engine.",
+        "classificationAssessment": "Overall AI:W, as classified by the maintainer. The pure VBA engine is upstream work credited to sihlfall; earlier AI-assisted integration is recorded in #164. The native x86/x64 thunk engine (#184) is purely AI:X. That component classification does not attribute the upstream engine to AI.",
         "conversationConfirmation": "Conversation implementation workflow correlated with matching PR/commit; some implementation was delegated or imported upstream.",
-        "conversationCrossCheck": "Commit c02d86f (2026-10-27) identifies earlier AI-assisted integration; the explicitly AI:X native thunk followed in 4a2bb49 on 2026-11-01. The pure VBA engine is upstream work credited to sihlfall, not code generated by the native-thunk task. Earlier AI-assisted integration (#164) dates the first identified involvement. The x86/x64 native thunk engine (#184) was generated by GPT-6.1 Sol and is explicitly confirmed AI:X by the maintainer. The module mark covers that component, not the entire upstream engine."
+        "conversationCrossCheck": "Commit c02d86f (2026-10-27) identifies earlier AI-assisted integration; the explicitly AI:X native thunk followed in 4a2bb49 on 2026-11-01. Authorship evidence is described in conversationConfirmation; the explicit maintainer classification supersedes earlier review-history inferences."
       },
-      "classificationStatus": "classified"
+      "classificationStatus": "maintainer-confirmed",
+      "classificationEvidence": "Explicit maintainer classification supplied in this conversation; overrides previous inferred/uncertain W/X labels.",
+      "componentClassifications": [
+        {
+          "component": "Native thunk engine",
+          "mark": "AI:X",
+          "basis": "Explicit maintainer confirmation.",
+          "inCurrentBaseline": true
+        }
+      ]
     },
     {
       "file": "src/stdRibbon.cls",
@@ -767,8 +812,8 @@
     {
       "file": "src/stdSentry.cls",
       "lastCommitDate": "2026-10-31",
-      "mark": null,
-      "basis": "AI added scoped worksheet unlocking (#166). The prior scoped-guard and cleanup implementation predates this addition and is not attributed to AI by this evidence. Historical human scrutiny is unverified; W/X remains unresolved.",
+      "mark": "AI:W",
+      "basis": "AI:W, confirmed by the maintainer. AI added scoped worksheet unlocking (#166). The prior scoped-guard and cleanup implementation predates this addition and is not attributed to AI by this evidence.",
       "pullRequests": [
         "https://github.com/sancarn/stdVBA/pull/166"
       ],
@@ -785,7 +830,7 @@
       },
       "firstAIContributionDate": "2026-10-31",
       "dateEvidence": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established.",
-      "aiDescription": "AI added scoped worksheet unlocking (#166). The prior scoped-guard and cleanup implementation predates this addition and is not attributed to AI by this evidence. Historical human scrutiny is unverified; W/X remains unresolved.",
+      "aiDescription": "AI:W, confirmed by the maintainer. AI added scoped worksheet unlocking (#166). The prior scoped-guard and cleanup implementation predates this addition and is not attributed to AI by this evidence.",
       "blameReview": {
         "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
         "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
@@ -798,17 +843,18 @@
             "sampleBaselineLine": 99
           }
         ],
-        "classificationAssessment": "AI added scoped worksheet unlocking (#166). The prior scoped-guard and cleanup implementation predates this addition and is not attributed to AI by this evidence. Historical human scrutiny is unverified; W/X remains unresolved.",
+        "classificationAssessment": "AI:W, confirmed by the maintainer. AI added scoped worksheet unlocking (#166). The prior scoped-guard and cleanup implementation predates this addition and is not attributed to AI by this evidence.",
         "conversationConfirmation": "Direct conversation source edits/implementation records correlated with retained commit changes.",
-        "conversationCrossCheck": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established. AI added scoped worksheet unlocking (#166). The prior scoped-guard and cleanup implementation predates this addition and is not attributed to AI by this evidence. Historical human scrutiny is unverified; W/X remains unresolved."
+        "conversationCrossCheck": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established. Authorship evidence is described in conversationConfirmation; the explicit maintainer classification supersedes earlier review-history inferences."
       },
-      "classificationStatus": "AI-authorship-established-W/X-unresolved"
+      "classificationStatus": "maintainer-confirmed",
+      "classificationEvidence": "Explicit maintainer classification supplied in this conversation; overrides previous inferred/uncertain W/X labels."
     },
     {
       "file": "src/stdTimer.cls",
       "lastCommitDate": "2026-10-31",
-      "mark": null,
-      "basis": "AI fixed owned-host lifecycle, partial startup and shutdown cleanup (#176). The original timer implementation dates from 2023 and is not attributed to AI by this evidence. Historical human scrutiny is unverified; W/X remains unresolved.",
+      "mark": "AI:W",
+      "basis": "AI:W, confirmed by the maintainer. AI fixed owned-host lifecycle, partial startup and shutdown cleanup (#176). The original timer implementation dates from 2023 and is not attributed to AI by this evidence.",
       "pullRequests": [
         "https://github.com/sancarn/stdVBA/pull/176"
       ],
@@ -825,7 +871,7 @@
       },
       "firstAIContributionDate": "2026-10-31",
       "dateEvidence": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established.",
-      "aiDescription": "AI fixed owned-host lifecycle, partial startup and shutdown cleanup (#176). The original timer implementation dates from 2023 and is not attributed to AI by this evidence. Historical human scrutiny is unverified; W/X remains unresolved.",
+      "aiDescription": "AI:W, confirmed by the maintainer. AI fixed owned-host lifecycle, partial startup and shutdown cleanup (#176). The original timer implementation dates from 2023 and is not attributed to AI by this evidence.",
       "blameReview": {
         "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
         "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
@@ -838,11 +884,12 @@
             "sampleBaselineLine": 50
           }
         ],
-        "classificationAssessment": "AI fixed owned-host lifecycle, partial startup and shutdown cleanup (#176). The original timer implementation dates from 2023 and is not attributed to AI by this evidence. Historical human scrutiny is unverified; W/X remains unresolved.",
+        "classificationAssessment": "AI:W, confirmed by the maintainer. AI fixed owned-host lifecycle, partial startup and shutdown cleanup (#176). The original timer implementation dates from 2023 and is not attributed to AI by this evidence.",
         "conversationConfirmation": "Codex PR/branch provenance and retained dated fix; original source-writing step is not independently recorded in supplied conversations.",
-        "conversationCrossCheck": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established. AI fixed owned-host lifecycle, partial startup and shutdown cleanup (#176). The original timer implementation dates from 2023 and is not attributed to AI by this evidence. Historical human scrutiny is unverified; W/X remains unresolved."
+        "conversationCrossCheck": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established. Authorship evidence is described in conversationConfirmation; the explicit maintainer classification supersedes earlier review-history inferences."
       },
-      "classificationStatus": "AI-authorship-established-W/X-unresolved"
+      "classificationStatus": "maintainer-confirmed",
+      "classificationEvidence": "Explicit maintainer classification supplied in this conversation; overrides previous inferred/uncertain W/X labels."
     },
     {
       "file": "src/stdUIElement.cls",
@@ -866,8 +913,8 @@
     {
       "file": "src/stdWebSocket.cls",
       "lastCommitDate": "2026-10-31",
-      "mark": null,
-      "basis": "AI work replaced the legacy IE transport with native WinHTTP synchronous/asynchronous transport (#180). The earlier API and legacy implementation predate that rewrite. The conversation establishes implementation work but not sufficient human scrutiny to distinguish W from X.",
+      "mark": "AI:X",
+      "basis": "AI:X, confirmed by the maintainer. AI work replaced the legacy IE transport with native WinHTTP synchronous/asynchronous transport (#180). The prior API and legacy implementation predate that rewrite.",
       "pullRequests": [
         "https://github.com/sancarn/stdVBA/pull/180"
       ],
@@ -884,7 +931,7 @@
       },
       "firstAIContributionDate": "2026-10-31",
       "dateEvidence": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established.",
-      "aiDescription": "AI work replaced the legacy IE transport with native WinHTTP synchronous/asynchronous transport (#180). The earlier API and legacy implementation predate that rewrite. The conversation establishes implementation work but not sufficient human scrutiny to distinguish W from X.",
+      "aiDescription": "AI:X, confirmed by the maintainer. AI work replaced the legacy IE transport with native WinHTTP synchronous/asynchronous transport (#180). The prior API and legacy implementation predate that rewrite.",
       "blameReview": {
         "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
         "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
@@ -897,17 +944,18 @@
             "sampleBaselineLine": 16
           }
         ],
-        "classificationAssessment": "AI work replaced the legacy IE transport with native WinHTTP synchronous/asynchronous transport (#180). The earlier API and legacy implementation predate that rewrite. The conversation establishes implementation work but not sufficient human scrutiny to distinguish W from X.",
+        "classificationAssessment": "AI:X, confirmed by the maintainer. AI work replaced the legacy IE transport with native WinHTTP synchronous/asynchronous transport (#180). The prior API and legacy implementation predate that rewrite.",
         "conversationConfirmation": "Conversation implementation workflow correlated with matching PR/commit; some implementation was delegated or imported upstream.",
-        "conversationCrossCheck": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established. AI work replaced the legacy IE transport with native WinHTTP synchronous/asynchronous transport (#180). The earlier API and legacy implementation predate that rewrite. The conversation establishes implementation work but not sufficient human scrutiny to distinguish W from X."
+        "conversationCrossCheck": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established. Authorship evidence is described in conversationConfirmation; the explicit maintainer classification supersedes earlier review-history inferences."
       },
-      "classificationStatus": "AI-authorship-established-W/X-unresolved"
+      "classificationStatus": "maintainer-confirmed",
+      "classificationEvidence": "Explicit maintainer classification supplied in this conversation; overrides previous inferred/uncertain W/X labels."
     },
     {
       "file": "src/stdWebView.cls",
       "lastCommitDate": "2026-05-15",
-      "mark": "AI:W",
-      "basis": "Cursor authored the standalone WebView2 class and subsequent March-May APIs/refactors. The design draws on the upstream project credited by the existing attribution tag; this does not transfer AI authorship to that upstream project. AI:W follows the maintainer account of Cursor-era scrutiny.",
+      "mark": "AI:X",
+      "basis": "AI:X, confirmed by the maintainer. Cursor authored the standalone WebView2 class and subsequent March-May APIs/refactors. Its design draws on the upstream project credited by the existing attribution tag; this does not attribute that upstream project to AI.",
       "pullRequests": [
         "https://github.com/sancarn/stdVBA/pull/154"
       ],
@@ -924,7 +972,7 @@
       },
       "firstAIContributionDate": "2026-03-18",
       "dateEvidence": "Completed Cursor source edit timestamp 2026-03-18T21:39:40.369Z.",
-      "aiDescription": "Cursor authored the standalone WebView2 class and subsequent March-May APIs/refactors. The design draws on the upstream project credited by the existing attribution tag; this does not transfer AI authorship to that upstream project. AI:W follows the maintainer account of Cursor-era scrutiny.",
+      "aiDescription": "AI:X, confirmed by the maintainer. Cursor authored the standalone WebView2 class and subsequent March-May APIs/refactors. Its design draws on the upstream project credited by the existing attribution tag; this does not attribute that upstream project to AI.",
       "blameReview": {
         "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
         "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
@@ -1021,17 +1069,18 @@
             "sampleBaselineLine": 985
           }
         ],
-        "classificationAssessment": "Cursor authored the standalone WebView2 class and subsequent March-May APIs/refactors. The design draws on the upstream project credited by the existing attribution tag; this does not transfer AI authorship to that upstream project. AI:W follows the maintainer account of Cursor-era scrutiny.",
+        "classificationAssessment": "AI:X, confirmed by the maintainer. Cursor authored the standalone WebView2 class and subsequent March-May APIs/refactors. Its design draws on the upstream project credited by the existing attribution tag; this does not attribute that upstream project to AI.",
         "conversationConfirmation": "Direct conversation source edits/implementation records correlated with retained commit changes.",
-        "conversationCrossCheck": "Completed Cursor source edit timestamp 2026-03-18T21:39:40.369Z. Cursor authored the standalone WebView2 class and subsequent March-May APIs/refactors. The design draws on the upstream project credited by the existing attribution tag; this does not transfer AI authorship to that upstream project. AI:W follows the maintainer account of Cursor-era scrutiny."
+        "conversationCrossCheck": "Completed Cursor source edit timestamp 2026-03-18T21:39:40.369Z. Authorship evidence is described in conversationConfirmation; the explicit maintainer classification supersedes earlier review-history inferences."
       },
-      "classificationStatus": "classified"
+      "classificationStatus": "maintainer-confirmed",
+      "classificationEvidence": "Explicit maintainer classification supplied in this conversation; overrides previous inferred/uncertain W/X labels."
     },
     {
       "file": "src/stdWindow.cls",
       "lastCommitDate": "2026-10-31",
       "mark": "AI:W",
-      "basis": "AI added guarded callable subclassing and native callback thunks (#182). Existing window discovery/manipulation APIs predate that feature. The human challenged reset handling, ebMode lookup and PDB assumptions and supplied implementation references; that technical scrutiny supports AI:W for the changed work.",
+      "basis": "Overall AI:W, as classified by the maintainer. The subclassing/native callback thunks (#182) are AI:X. Existing window discovery/manipulation APIs predate that feature; the accompanying guard/reset behavior received human technical scrutiny.",
       "pullRequests": [
         "https://github.com/sancarn/stdVBA/pull/182"
       ],
@@ -1048,7 +1097,7 @@
       },
       "firstAIContributionDate": "2026-10-31",
       "dateEvidence": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established.",
-      "aiDescription": "AI added guarded callable subclassing and native callback thunks (#182). Existing window discovery/manipulation APIs predate that feature. The human challenged reset handling, ebMode lookup and PDB assumptions and supplied implementation references; that technical scrutiny supports AI:W for the changed work.",
+      "aiDescription": "Overall AI:W, as classified by the maintainer. The subclassing/native callback thunks (#182) are AI:X. Existing window discovery/manipulation APIs predate that feature; the accompanying guard/reset behavior received human technical scrutiny.",
       "blameReview": {
         "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
         "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
@@ -1061,11 +1110,20 @@
             "sampleBaselineLine": 10
           }
         ],
-        "classificationAssessment": "AI added guarded callable subclassing and native callback thunks (#182). Existing window discovery/manipulation APIs predate that feature. The human challenged reset handling, ebMode lookup and PDB assumptions and supplied implementation references; that technical scrutiny supports AI:W for the changed work.",
+        "classificationAssessment": "Overall AI:W, as classified by the maintainer. The subclassing/native callback thunks (#182) are AI:X. Existing window discovery/manipulation APIs predate that feature; the accompanying guard/reset behavior received human technical scrutiny.",
         "conversationConfirmation": "Direct conversation source edits/implementation records correlated with retained commit changes.",
-        "conversationCrossCheck": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established. AI added guarded callable subclassing and native callback thunks (#182). Existing window discovery/manipulation APIs predate that feature. The human challenged reset handling, ebMode lookup and PDB assumptions and supplied implementation references; that technical scrutiny supports AI:W for the changed work."
+        "conversationCrossCheck": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established. Authorship evidence is described in conversationConfirmation; the explicit maintainer classification supersedes earlier review-history inferences."
       },
-      "classificationStatus": "classified"
+      "classificationStatus": "maintainer-confirmed",
+      "classificationEvidence": "Explicit maintainer classification supplied in this conversation; overrides previous inferred/uncertain W/X labels.",
+      "componentClassifications": [
+        {
+          "component": "Subclassing/native callback thunks",
+          "mark": "AI:X",
+          "basis": "Explicit maintainer confirmation.",
+          "inCurrentBaseline": true
+        }
+      ]
     },
     {
       "file": "src/WIP/JSONLogic.cls",
@@ -1298,8 +1356,8 @@
     {
       "file": "src/WIP/stdDate.cls",
       "lastCommitDate": "2026-10-31",
-      "mark": null,
-      "basis": "AI fixed weekday semantics and regex-cache publication (#175). The original date/time wrapper predates those fixes and is not attributed to AI by this evidence. Historical human scrutiny is unverified; W/X remains unresolved.",
+      "mark": "AI:W",
+      "basis": "AI:W, confirmed by the maintainer. AI fixed weekday semantics and regex-cache publication (#175). The original date/time wrapper predates those fixes and is not attributed to AI by this evidence.",
       "pullRequests": [
         "https://github.com/sancarn/stdVBA/pull/175"
       ],
@@ -1316,7 +1374,7 @@
       },
       "firstAIContributionDate": "2026-10-31",
       "dateEvidence": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established.",
-      "aiDescription": "AI fixed weekday semantics and regex-cache publication (#175). The original date/time wrapper predates those fixes and is not attributed to AI by this evidence. Historical human scrutiny is unverified; W/X remains unresolved.",
+      "aiDescription": "AI:W, confirmed by the maintainer. AI fixed weekday semantics and regex-cache publication (#175). The original date/time wrapper predates those fixes and is not attributed to AI by this evidence.",
       "blameReview": {
         "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
         "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
@@ -1329,11 +1387,12 @@
             "sampleBaselineLine": 322
           }
         ],
-        "classificationAssessment": "AI fixed weekday semantics and regex-cache publication (#175). The original date/time wrapper predates those fixes and is not attributed to AI by this evidence. Historical human scrutiny is unverified; W/X remains unresolved.",
+        "classificationAssessment": "AI:W, confirmed by the maintainer. AI fixed weekday semantics and regex-cache publication (#175). The original date/time wrapper predates those fixes and is not attributed to AI by this evidence.",
         "conversationConfirmation": "Codex PR/branch provenance and retained dated fix; original source-writing step is not independently recorded in supplied conversations.",
-        "conversationCrossCheck": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established. AI fixed weekday semantics and regex-cache publication (#175). The original date/time wrapper predates those fixes and is not attributed to AI by this evidence. Historical human scrutiny is unverified; W/X remains unresolved."
+        "conversationCrossCheck": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established. Authorship evidence is described in conversationConfirmation; the explicit maintainer classification supersedes earlier review-history inferences."
       },
-      "classificationStatus": "AI-authorship-established-W/X-unresolved"
+      "classificationStatus": "maintainer-confirmed",
+      "classificationEvidence": "Explicit maintainer classification supplied in this conversation; overrides previous inferred/uncertain W/X labels."
     },
     {
       "file": "src/WIP/stdDictionary/SS/stdDictionary2.cls",
@@ -1984,8 +2043,8 @@
     {
       "file": "src/WIP/stdShell.cls",
       "lastCommitDate": "2025-11-21",
-      "mark": "AI:W",
-      "basis": "Cursor refactored constructors/path handling and added Shell helpers in September 2025. Retained additions match commits bb5eb26 and 9db792c; other early refactors were later replaced. This does not attribute every prior or later Shell feature to AI. AI:W follows the maintainer account of that period.",
+      "mark": "AI:X",
+      "basis": "AI:X, confirmed by the maintainer. Cursor refactored constructors/path handling and added Shell helpers in September 2025. Retained additions match bb5eb26 and 9db792c; some early refactors were later replaced. This does not attribute every prior or later Shell feature to the same generation event.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 4,
@@ -2000,7 +2059,7 @@
       },
       "firstAIContributionDate": "2025-09-20",
       "dateEvidence": "Completed Cursor edits on 2025-09-20/21 match retained September commits.",
-      "aiDescription": "Cursor refactored constructors/path handling and added Shell helpers in September 2025. Retained additions match commits bb5eb26 and 9db792c; other early refactors were later replaced. This does not attribute every prior or later Shell feature to AI. AI:W follows the maintainer account of that period.",
+      "aiDescription": "AI:X, confirmed by the maintainer. Cursor refactored constructors/path handling and added Shell helpers in September 2025. Retained additions match bb5eb26 and 9db792c; some early refactors were later replaced. This does not attribute every prior or later Shell feature to the same generation event.",
       "blameReview": {
         "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
         "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
@@ -2020,11 +2079,12 @@
             "sampleBaselineLine": 1291
           }
         ],
-        "classificationAssessment": "Cursor refactored constructors/path handling and added Shell helpers in September 2025. Retained additions match commits bb5eb26 and 9db792c; other early refactors were later replaced. This does not attribute every prior or later Shell feature to AI. AI:W follows the maintainer account of that period.",
+        "classificationAssessment": "AI:X, confirmed by the maintainer. Cursor refactored constructors/path handling and added Shell helpers in September 2025. Retained additions match bb5eb26 and 9db792c; some early refactors were later replaced. This does not attribute every prior or later Shell feature to the same generation event.",
         "conversationConfirmation": "Direct conversation source edits/implementation records correlated with retained commit changes.",
-        "conversationCrossCheck": "Completed Cursor edits on 2025-09-20/21 match retained September commits. Cursor refactored constructors/path handling and added Shell helpers in September 2025. Retained additions match commits bb5eb26 and 9db792c; other early refactors were later replaced. This does not attribute every prior or later Shell feature to AI. AI:W follows the maintainer account of that period."
+        "conversationCrossCheck": "Completed Cursor edits on 2025-09-20/21 match retained September commits. Authorship evidence is described in conversationConfirmation; the explicit maintainer classification supersedes earlier review-history inferences."
       },
-      "classificationStatus": "classified"
+      "classificationStatus": "maintainer-confirmed",
+      "classificationEvidence": "Explicit maintainer classification supplied in this conversation; overrides previous inferred/uncertain W/X labels."
     },
     {
       "file": "src/WIP/stdShellMTP.cls",
@@ -2314,8 +2374,8 @@
     {
       "file": "src/WIP/stdWebSocket/stdWebSocketNew.cls",
       "lastCommitDate": "2026-10-31",
-      "mark": null,
-      "basis": "This WIP file mirrors the same AI-assisted native transport implementation as stdWebSocket (#180); it is not a separate authorship event. The preceding WebSocket design predates that rewrite. Human scrutiny of the retained rewrite is unverified; W/X remains unresolved.",
+      "mark": "AI:X",
+      "basis": "AI:X as the WIP mirror of the maintainer-classified stdWebSocket implementation. Both files contain the same AI-assisted native transport rewrite (#180), rather than separate authorship events; the preceding legacy design predates that rewrite.",
       "pullRequests": [
         "https://github.com/sancarn/stdVBA/pull/180"
       ],
@@ -2332,7 +2392,7 @@
       },
       "firstAIContributionDate": "2026-10-31",
       "dateEvidence": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established.",
-      "aiDescription": "This WIP file mirrors the same AI-assisted native transport implementation as stdWebSocket (#180); it is not a separate authorship event. The preceding WebSocket design predates that rewrite. Human scrutiny of the retained rewrite is unverified; W/X remains unresolved.",
+      "aiDescription": "AI:X as the WIP mirror of the maintainer-classified stdWebSocket implementation. Both files contain the same AI-assisted native transport rewrite (#180), rather than separate authorship events; the preceding legacy design predates that rewrite.",
       "blameReview": {
         "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
         "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
@@ -2345,11 +2405,12 @@
             "sampleBaselineLine": 16
           }
         ],
-        "classificationAssessment": "This WIP file mirrors the same AI-assisted native transport implementation as stdWebSocket (#180); it is not a separate authorship event. The preceding WebSocket design predates that rewrite. Human scrutiny of the retained rewrite is unverified; W/X remains unresolved.",
+        "classificationAssessment": "AI:X as the WIP mirror of the maintainer-classified stdWebSocket implementation. Both files contain the same AI-assisted native transport rewrite (#180), rather than separate authorship events; the preceding legacy design predates that rewrite.",
         "conversationConfirmation": "Conversation implementation workflow correlated with matching PR/commit; some implementation was delegated or imported upstream.",
-        "conversationCrossCheck": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established. This WIP file mirrors the same AI-assisted native transport implementation as stdWebSocket (#180); it is not a separate authorship event. The preceding WebSocket design predates that rewrite. Human scrutiny of the retained rewrite is unverified; W/X remains unresolved."
+        "conversationCrossCheck": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established. Authorship evidence is described in conversationConfirmation; the explicit maintainer classification supersedes earlier review-history inferences."
       },
-      "classificationStatus": "AI-authorship-established-W/X-unresolved"
+      "classificationStatus": "maintainer-confirmed",
+      "classificationEvidence": "Explicit maintainer classification supplied in this conversation; overrides previous inferred/uncertain W/X labels."
     },
     {
       "file": "src/WIP/stdWordLibraries/stdWordDocument.cls",
@@ -2410,7 +2471,20 @@
     "transcriptRecordsSearched": 976,
     "method": "Read-only global database queries selected the exact workspace headers, composerData bodies and bubbleId messages. Every available matching transcript JSONL line was also searched for source filename stems and VB_Name aliases. Source-write tool arguments were inspected by exact destination path and completion status; current code/Git history were checked for retained changes.",
     "limits": "One untitled September 2025 record has no stored bubble messages. The current project-usage-analysis conversation was searched but excluded as implementation-authorship evidence. Missing messages cannot establish absence of AI use. Name collisions between classes require path disambiguation. Private transcripts and local identifiers are not published.",
-    "finding": "Retained Cursor changes establish AI involvement in HTML, WebView, Shell and an earlier JSON fix. Maintainer-described Cursor-era scrutiny supports W for the first three; JSON has later AI changes whose scrutiny remains unverified. Unmerged Lambda experiments do not establish current APIs."
+    "finding": "Retained Cursor changes establish AI involvement in HTML, WebView, Shell and an earlier JSON fix. The maintainer explicitly classifies HTML/WebView/Shell AI:X and JSON AI:W. Lambda native-thunk experiments are AI:X components outside the current baseline; their first dated Cursor work is included as historical involvement."
   },
-  "classificationReview": "Blame and dated commit diffs were cross-checked against supplied conversations for all 21 previously annotated classes. Retain AI:X only for the explicitly confirmed Regex thunk. Enumerator and Window conversations show human scrutiny; other disputed W/X assignments remain unresolved. Small patches do not establish an AI-made class, and patch size alone does not establish human review."
+  "classificationReview": "Updated to the maintainer explicit classifications: AI:X for WebView, HTML, Shell, Image, Outlook and WebSocket (including its WIP mirror); AI:W for the other previously reviewed current-source classes. Regex/Lambda native engines, Reg small additions and Window subclassing thunks have separate AI:X component notes. Enumerator lazy traversal is confirmed manually reviewed. The missing stdRuntime class is recorded separately because it lives on an unmerged local branch.",
+  "otherBranchModules": [
+    {
+      "file": "src/WIP/stdRuntime.cls",
+      "branch": "codex/std-runtime-locals",
+      "commit": "5a6c9bcd4f6838e54a2e4233e85c3fbc78ecae17",
+      "mark": "AI:X",
+      "firstAIContributionDate": "2026-10-25",
+      "dateEvidence": "Introducing local commit author/committer date.",
+      "aiDescription": "AI:X, confirmed by the maintainer. Experimental stdRuntime.GetVars inspects caller VBA stack frames and returns local names, type names and formatted values. Frame-discovery research is credited to Ariche2/VBAStack. This prototype is restricted to its documented Windows x64 VBE7 profile.",
+      "inCurrentBaseline": false,
+      "locationExplanation": "Present on the local codex/std-runtime-locals branch; introducing commit is not an ancestor of master. The implementation is not added to this disclosure PR. An annotated recovered source copy and its original guide are supplied separately."
+    }
+  ]
 }

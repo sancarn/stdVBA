@@ -9,9 +9,9 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 '@module
-'@ai AI:W
+'@ai AI:X
 '@aidate 2026-03-18
-'@aidesc Cursor authored the standalone WebView2 class and subsequent March-May APIs/refactors. The design draws on the upstream project credited by the existing attribution tag; this does not transfer AI authorship to that upstream project. AI:W follows the maintainer account of Cursor-era scrutiny.
+'@aidesc AI:X, confirmed by the maintainer. Cursor authored the standalone WebView2 class and subsequent March-May APIs/refactors. Its design draws on the upstream project credited by the existing attribution tag; this does not attribute that upstream project to AI.
 '@class stdWebView
 '@description Standalone WebView2 host for Excel UserForms (primary). Requires WebView2Loader.dll,
 ' Microsoft Edge WebView2 Runtime. Handler vtables use executable thunks (see AddressOfThunkForComProc/VBA7/CMonitors.cls).

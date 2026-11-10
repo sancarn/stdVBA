@@ -9,8 +9,9 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 '@module
+'@ai AI:X
 '@aidate 2026-10-31
-'@aidesc AI work addressed export, clipboard ownership and conversion cleanup (#183). Existing image operations and earlier upstream contributions predate that work and are not attributed to AI here. Historical human scrutiny is unverified; W/X remains unresolved.
+'@aidesc AI:X, confirmed by the maintainer. The reviewed implementation history identifies export, clipboard-ownership and conversion-cleanup work (#183). Older image operations and upstream contributions predate that work; the recorded date is the first evidenced AI contribution in the reviewed sources.
 '@description A class which implements a wrapper around an image. Use this class to
 'read image data to and from files, clipboard, sheets, UI controls, and more. Additionally
 'this class allows the manipulation of images in memory, and perform analytical operations on them.

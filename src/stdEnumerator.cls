@@ -11,7 +11,7 @@ Attribute VB_Exposed = False
 '@module
 '@ai AI:W
 '@aidate 2026-11-01
-'@aidesc AI implemented Windows streaming IEnumVARIANT traversal (#186). The prior enumeration implementation and other collection operations predate that work. The human questioned NextItem looping and caching/memory behavior, requested uncached traversal, and reviewed enumCall names; this supports AI:W for the changed implementation.
+'@aidesc AI:W, confirmed by the maintainer. The lazy IEnumVARIANT implementation (#186) was written by AI and reviewed manually, including iteration, caching/memory behavior and enumCall naming. Earlier enumeration and other collection operations predate that contribution.
 '@description A class which implements an enumerator object. Use this class to
 'iterate over a collection of data.
 '@example ```vb

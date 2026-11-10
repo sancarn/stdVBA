@@ -9,8 +9,9 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 '@module
+'@ai AI:W
 '@aidate 2026-10-31
-'@aidesc AI changes added Access/Word optimization handling (#167) and improved timer precision (#177). Older optimizer and benchmark APIs predate these changes and are not attributed to AI by this evidence. Human discussion of host settings is visible; implementation scrutiny is unverified, so W/X remains unresolved.
+'@aidesc AI:W, confirmed by the maintainer. AI changes added Access/Word optimization handling (#167) and improved timer precision (#177). Older optimizer and benchmark APIs predate these changes and are not attributed to AI by this evidence.
 '@description A class which implements a performance testing and optimisation library.
 'Use this class to measure performance and optimise your code.
 '@example Simple example of measuring performance:

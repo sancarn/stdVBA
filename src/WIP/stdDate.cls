@@ -9,8 +9,9 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 '@module
+'@ai AI:W
 '@aidate 2026-10-31
-'@aidesc AI fixed weekday semantics and regex-cache publication (#175). The original date/time wrapper predates those fixes and is not attributed to AI by this evidence. Historical human scrutiny is unverified; W/X remains unresolved.
+'@aidesc AI:W, confirmed by the maintainer. AI fixed weekday semantics and regex-cache publication (#175). The original date/time wrapper predates those fixes and is not attributed to AI by this evidence.
 '@description Date and time utilities (experimental).
 
 

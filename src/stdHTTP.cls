@@ -9,8 +9,9 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 '@module
+'@ai AI:W
 '@aidate 2026-10-31
-'@aidesc AI provenance identifies the asynchronous timeout and terminal-completion fix (#173). Most request/transport code predates that fix and is not attributed to AI by this evidence. Historical human scrutiny is unverified, so AI:W versus AI:X remains unresolved.
+'@aidesc AI:W, confirmed by the maintainer. AI provenance identifies the asynchronous timeout and terminal-completion fix (#173). Most request/transport code predates that fix and is not attributed to AI by this evidence.
 '@description A class used to make HTTP requests.
 '@example A simple synchronous HTTP request:
 '```vb

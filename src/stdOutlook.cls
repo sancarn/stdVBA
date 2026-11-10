@@ -10,8 +10,9 @@ Attribute VB_Exposed = False
 Option Explicit
 
 '@module
+'@ai AI:X
 '@aidate 2026-11-10
-'@aidesc PR #189 explicitly attributes creation of this Extended MAPI class to gpt-6-astra. There was no previous stdOutlook class in the repository. This establishes AI implementation authorship, but does not establish the degree of human scrutiny; W/X remains unresolved.
+'@aidesc AI:X, confirmed by the maintainer. PR #189 explicitly attributes creation of this Extended MAPI class to gpt-6-astra; there was no earlier stdOutlook class in the repository.
 '@description Access classic Outlook profiles through native Extended MAPI from a single VBA7 class.
 '@remark Experimental: 64-bit Excel tested; 32-bit runtime and live synchronization remain unverified.
 '@remark Data access and submission avoid guarded Outlook automation. Send/Receive uses late-bound automation.
