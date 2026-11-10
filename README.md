@@ -156,6 +156,7 @@ As an indicator of where my focuses have been in the past year, take a look at t
 |![l](docs/assets/Status_G.png) | READY  | Automation  |stdAcc          | [docs](docs/stdAcc.md) | Use Microsoft Active Accessibility framework within VBA - Very useful for automation.
 |![l](docs/assets/Status_G.png) | READY  | Automation  |stdWebSocket    | None | WebSocket automation. Currently uses IE, need to move to more stable runtime. Will be useful for modern automation e.g. chrome
 |![l](docs/assets/Status_Y.png) | WIP    | Automation  |stdOutlook      | [docs](docs/stdOutlook.md) | Classic Outlook identity, contacts, mail and calendar through native MAPI; plain-text/HTML submission with Outlook Send/Receive. Windows VBA7 only.
+|![l](docs/assets/Status_Y.png) | WIP    | Automation  |stdPowerQuery   | [docs](docs/stdPowerQuery.md) | Stream Power Query M into VBA records using the installed Excel Mashup runtime. Windows VBA7; external connectors not configured.
 |![l](docs/assets/Status_Y.png) | WIP    | Excel       |xlTable         | None | Better tables for VBA, e.g. Map rows etc.
 |![l](docs/assets/Status_G.png) | READY  | DevTools    |stdPerformance  | None | Performance testing
 
