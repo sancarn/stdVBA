@@ -2,13 +2,13 @@
   "date": "2026-11-10",
   "scope": "All VBA source modules under src, including WIP; tests and templates excluded.",
   "method": "Source annotations, reachable Git history and merged PR provenance. Codex/T3 branch names and explicit AI co-authors establish involvement, not scrutiny. No style-based detection. Targeted read-only inspection of local Cursor history established a GPT-5 stdShell refactor dated 2025-09-20; private transcripts are not published. Reviewed the supplied index of 43 local Codex session logs; stdJSON and stdEnumerator implementation/commit records replace their previous date-only estimates. Excluded disclosure work itself as evidence and did not attribute unmerged experiments to current master. Cursor follow-up searched all 53 workspace records and all 40 available transcript files; completed edits plus retained code establish stdHTML AI:W.",
-  "policy": "The maintainer explicitly classifies the previously reviewed source classes. Module classifications and named component classifications may differ: Regex, Lambda, Reg and Window are AI:W overall with specified AI:X components. Explicit maintainer statements supersede earlier W/X inferences. Other previously reviewed classes are AI:W unless explicitly listed AI:X. Unreviewed modules remain unclassified. @aidate records first evidenced AI involvement, including historical experiments when described; it does not assert that all current code dates from that event.",
+  "policy": "The maintainer explicitly classifies the previously reviewed source classes. Module classifications and named component classifications may differ: Regex, Lambda, Reg and Window are AI:W overall with specified AI:X components. Explicit maintainer statements supersede earlier W/X inferences. Other previously reviewed classes are AI:W unless explicitly listed AI:X. Unreviewed modules remain unclassified. @aidate records first evidenced AI involvement, including historical experiments when described; it does not assert that all current code dates from that event. The maintainer explicitly declares all remaining previously unclassified source modules AI:0 with the supplied description. This declaration, rather than an absence-of-evidence inference, establishes their mark. Disclosure-only metadata edits do not change the implementation classification.",
   "modules": [
     {
       "file": "src/stdAcc.cls",
       "lastCommitDate": "2025-07-05",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 38,
@@ -21,7 +21,9 @@
         "matchingTranscriptFiles": 1,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/stdArray.cls",
@@ -113,8 +115,8 @@
     {
       "file": "src/stdClipboard.cls",
       "lastCommitDate": "2025-06-11",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 38,
@@ -127,13 +129,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/stdCOM.cls",
       "lastCommitDate": "2025-06-11",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 38,
@@ -146,7 +150,9 @@
         "matchingTranscriptFiles": 5,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/stdEnumerator.cls",
@@ -200,8 +206,8 @@
     {
       "file": "src/stdFiber.cls",
       "lastCommitDate": "2025-06-18",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 38,
@@ -214,7 +220,9 @@
         "matchingTranscriptFiles": 1,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/stdHTML.cls",
@@ -348,8 +356,8 @@
     {
       "file": "src/stdHTTPAuthenticators.bas",
       "lastCommitDate": "2025-06-10",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 38,
@@ -362,13 +370,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/stdICallable.cls",
       "lastCommitDate": "2025-06-18",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 38,
@@ -381,7 +391,9 @@
         "matchingTranscriptFiles": 10,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/stdImage.cls",
@@ -608,8 +620,8 @@
     {
       "file": "src/stdProcess.cls",
       "lastCommitDate": "2025-06-18",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 38,
@@ -622,13 +634,15 @@
         "matchingTranscriptFiles": 1,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/stdQuadTree.cls",
       "lastCommitDate": "2025-06-18",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 21,
@@ -641,7 +655,9 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/stdRefArray.cls",
@@ -793,8 +809,8 @@
     {
       "file": "src/stdRibbon.cls",
       "lastCommitDate": "2025-09-30",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 21,
@@ -807,7 +823,9 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/stdSentry.cls",
@@ -894,8 +912,8 @@
     {
       "file": "src/stdUIElement.cls",
       "lastCommitDate": "2025-06-09",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 22,
@@ -908,7 +926,9 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/stdWebSocket.cls",
@@ -1128,8 +1148,8 @@
     {
       "file": "src/WIP/JSONLogic.cls",
       "lastCommitDate": "2024-02-22",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 1,
@@ -1142,13 +1162,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/Pointers/stdPointer v2.cls",
       "lastCommitDate": "2024-02-22",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 4,
@@ -1161,13 +1183,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/Pointers/stdPointer.cls",
       "lastCommitDate": "2024-02-22",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 4,
@@ -1180,13 +1204,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/STD_Runtimes_CLR.cls",
       "lastCommitDate": "2020-04-13",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 1,
@@ -1199,13 +1225,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdCallableScheduler.bas",
       "lastCommitDate": "2025-10-14",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 3,
@@ -1218,13 +1246,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdCallback2.cls",
       "lastCommitDate": "2023-12-31",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 3,
@@ -1237,13 +1267,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdCanvas.cls",
       "lastCommitDate": "2025-06-01",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 3,
@@ -1256,13 +1288,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdCOMDispatch.cls",
       "lastCommitDate": "2021-07-12",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 4,
@@ -1275,13 +1309,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdCrypto/MD5.cls",
       "lastCommitDate": "2021-03-23",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 3,
@@ -1294,13 +1330,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdCrypto/stdCrypt.cls",
       "lastCommitDate": "2024-02-22",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 2,
@@ -1313,13 +1351,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdCSV/CSVinterface.cls",
       "lastCommitDate": "2026-01-18",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 4,
@@ -1332,13 +1372,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdCSV/stdCSV.cls",
       "lastCommitDate": "2026-01-18",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 4,
@@ -1351,7 +1393,9 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdDate.cls",
@@ -1397,8 +1441,8 @@
     {
       "file": "src/WIP/stdDictionary/SS/stdDictionary2.cls",
       "lastCommitDate": "2023-10-01",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 4,
@@ -1411,13 +1455,15 @@
         "matchingTranscriptFiles": 2,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdDictionary/stdDictionary.cls",
       "lastCommitDate": "2021-05-26",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 4,
@@ -1430,13 +1476,15 @@
         "matchingTranscriptFiles": 2,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdDictionary/stdIHashable.cls",
       "lastCommitDate": "2023-10-01",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 1,
@@ -1449,13 +1497,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdDictionary/trick/stdDictionary.cls",
       "lastCommitDate": "2023-10-01",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 4,
@@ -1468,13 +1518,15 @@
         "matchingTranscriptFiles": 2,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdDLL/inspiration/cUniversalDLLCalls.cls",
       "lastCommitDate": "2024-02-22",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 3,
@@ -1487,13 +1539,15 @@
         "matchingTranscriptFiles": 1,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdDLL/stdDLLFunc.cls",
       "lastCommitDate": "2025-09-25",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 4,
@@ -1506,13 +1560,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdEndpoint.cls",
       "lastCommitDate": "2024-06-27",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 2,
@@ -1525,13 +1581,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdEnumProvider/FibonacciIteratorExample.cls",
       "lastCommitDate": "2024-02-22",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 2,
@@ -1544,13 +1602,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdEnumProvider/STD_Types_IniVariantEnum.bas",
       "lastCommitDate": "2024-02-22",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 2,
@@ -1563,13 +1623,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdError/stdDebug.cls",
       "lastCommitDate": "2023-10-04",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 2,
@@ -1582,13 +1644,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdError/stdError.cls",
       "lastCommitDate": "2023-10-04",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 13,
@@ -1601,13 +1665,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdError.cls",
       "lastCommitDate": "2025-07-05",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 13,
@@ -1620,13 +1686,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdErrorWIP.cls",
       "lastCommitDate": "2020-08-17",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 13,
@@ -1639,13 +1707,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdExcelLibraries/stdExcelWorkbook.cls",
       "lastCommitDate": "2020-05-07",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 1,
@@ -1658,13 +1728,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdExcelLibraries/stdExcelWorksheet.cls",
       "lastCommitDate": "2020-05-07",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 1,
@@ -1677,13 +1749,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdExcelLibraries/stdShapeEvents.cls",
       "lastCommitDate": "2020-05-31",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 1,
@@ -1696,13 +1770,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdExcelLibraries/stdXLEvents.cls",
       "lastCommitDate": "2023-10-01",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 1,
@@ -1715,13 +1791,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdGithub.cls",
       "lastCommitDate": "2024-02-22",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 1,
@@ -1734,13 +1812,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdHTTPServer.cls",
       "lastCommitDate": "2026-04-03",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 4,
@@ -1753,13 +1833,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdICallableScheduler.bas",
       "lastCommitDate": "2025-09-14",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 3,
@@ -1772,13 +1854,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdIni.cls",
       "lastCommitDate": "2024-02-22",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 2,
@@ -1791,13 +1875,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdIResource.cls",
       "lastCommitDate": "2024-06-28",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 1,
@@ -1810,13 +1896,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdIShellExtension.cls",
       "lastCommitDate": "2025-09-22",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 2,
@@ -1829,13 +1917,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdMath.cls",
       "lastCommitDate": "2025-04-15",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 2,
@@ -1848,13 +1938,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdObject/IFauxInterface.cls",
       "lastCommitDate": "2023-10-04",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 3,
@@ -1867,13 +1959,15 @@
         "matchingTranscriptFiles": 1,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdObject/stdObject.cls",
       "lastCommitDate": "2024-02-22",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 3,
@@ -1886,13 +1980,15 @@
         "matchingTranscriptFiles": 1,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdOpenCL/stdOpenCL.cls",
       "lastCommitDate": "2024-02-22",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 2,
@@ -1905,13 +2001,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdPowerPointLibraries/ShapeHook.cls",
       "lastCommitDate": "2026-01-02",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 4,
@@ -1924,13 +2022,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdRegex2.cls",
       "lastCommitDate": "2024-01-10",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 6,
@@ -1943,13 +2043,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdResource.cls",
       "lastCommitDate": "2023-12-31",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 1,
@@ -1962,13 +2064,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdRibbon.cls",
       "lastCommitDate": "2024-02-22",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 21,
@@ -1981,13 +2085,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdRuntimeJS.cls",
       "lastCommitDate": "2023-10-26",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 3,
@@ -2000,13 +2106,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdSettings.cls",
       "lastCommitDate": "2023-10-01",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 1,
@@ -2019,13 +2127,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdSharepointSite.cls",
       "lastCommitDate": "2024-02-17",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 1,
@@ -2038,7 +2148,9 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdShell.cls",
@@ -2089,8 +2201,8 @@
     {
       "file": "src/WIP/stdShellMTP.cls",
       "lastCommitDate": "2025-09-22",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 3,
@@ -2103,13 +2215,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdString.cls",
       "lastCommitDate": "2023-10-04",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 3,
@@ -2122,13 +2236,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdStringBuilder.cls",
       "lastCommitDate": "2023-05-24",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 2,
@@ -2141,13 +2257,15 @@
         "matchingTranscriptFiles": 2,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdStruct.cls",
       "lastCommitDate": "2022-01-03",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 1,
@@ -2160,13 +2278,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdTable/stdITable.cls",
       "lastCommitDate": "2023-10-01",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 1,
@@ -2179,13 +2299,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdTable/stdITableRow.cls",
       "lastCommitDate": "2023-10-01",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 1,
@@ -2198,13 +2320,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdTable/stdRow v0.0.1.cls",
       "lastCommitDate": "2023-10-01",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 1,
@@ -2217,13 +2341,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdTable/stdTable.cls",
       "lastCommitDate": "2023-10-01",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 6,
@@ -2236,13 +2362,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdTable/stdXLEvents.cls",
       "lastCommitDate": "2023-10-01",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 1,
@@ -2255,13 +2383,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdTable/stdXLTable.cls",
       "lastCommitDate": "2023-10-01",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 1,
@@ -2274,13 +2404,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdTable/stdXLTableRow.cls",
       "lastCommitDate": "2023-10-01",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 1,
@@ -2293,13 +2425,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdTimer.cls",
       "lastCommitDate": "2024-01-23",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 23,
@@ -2312,13 +2446,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdTimerServerWIP.bas",
       "lastCommitDate": "2023-10-04",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 4,
@@ -2331,13 +2467,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdUIAutomationElement.cls",
       "lastCommitDate": "2024-02-22",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 2,
@@ -2350,13 +2488,15 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdWebSocket/stdWebSocket.cls",
       "lastCommitDate": "2023-10-04",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 30,
@@ -2369,7 +2509,9 @@
         "matchingTranscriptFiles": 0,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdWebSocket/stdWebSocketNew.cls",
@@ -2415,8 +2557,8 @@
     {
       "file": "src/WIP/stdWordLibraries/stdWordDocument.cls",
       "lastCommitDate": "2024-02-22",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 1,
@@ -2429,13 +2571,15 @@
         "matchingTranscriptFiles": 1,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     },
     {
       "file": "src/WIP/stdXML.cls",
       "lastCommitDate": "2021-03-23",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
       "pullRequests": [],
       "historyNameSearch": {
         "matchingNonDisclosureLogs": 1,
@@ -2448,7 +2592,9 @@
         "matchingTranscriptFiles": 1,
         "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
       },
-      "classificationStatus": "authorship-unverified"
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
     }
   ],
   "localHistoryNameSearch": {
@@ -2473,7 +2619,7 @@
     "limits": "One untitled September 2025 record has no stored bubble messages. The current project-usage-analysis conversation was searched but excluded as implementation-authorship evidence. Missing messages cannot establish absence of AI use. Name collisions between classes require path disambiguation. Private transcripts and local identifiers are not published.",
     "finding": "Retained Cursor changes establish AI involvement in HTML, WebView, Shell and an earlier JSON fix. The maintainer explicitly classifies HTML/WebView/Shell AI:X and JSON AI:W. Lambda native-thunk experiments are AI:X components outside the current baseline; their first dated Cursor work is included as historical involvement."
   },
-  "classificationReview": "Updated to the maintainer explicit classifications: AI:X for WebView, HTML, Shell, Image, Outlook and WebSocket (including its WIP mirror); AI:W for the other previously reviewed current-source classes. Regex/Lambda native engines, Reg small additions and Window subclassing thunks have separate AI:X component notes. Enumerator lazy traversal is confirmed manually reviewed. The missing stdRuntime class is recorded separately because it lives on an unmerged local branch.",
+  "classificationReview": "Updated to the maintainer explicit classifications: AI:X for WebView, HTML, Shell, Image, Outlook and WebSocket (including its WIP mirror); AI:W for the other previously reviewed current-source classes. Regex/Lambda native engines, Reg small additions and Window subclassing thunks have separate AI:X component notes. Enumerator lazy traversal is confirmed manually reviewed. The missing stdRuntime class is recorded separately because it lives on an unmerged local branch. The remaining 73 source modules now carry the maintainer-supplied AI:0 declaration and description, without an invented AI date.",
   "otherBranchModules": [
     {
       "file": "src/WIP/stdRuntime.cls",

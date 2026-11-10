@@ -11,6 +11,12 @@ Attribute VB_Creatable = True
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 
+'@module
+'@description
+'@ai AI:0
+'@aidesc AI has not touched this code yet. This may change to AI:W when AI edits this file.
+
+
 'SRC: http://www.vbforums.com/showthread.php?785939-VB6-Creating-Using-COM-Interfaces-without-TLBs
 ' --------------------------------------------------------------------------------------------------------
 ' This class is a replication of COM objects and the object returned from this class can

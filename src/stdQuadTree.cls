@@ -10,6 +10,8 @@ Attribute VB_Exposed = False
 
 
 '@module
+'@ai AI:0
+'@aidesc AI has not touched this code yet. This may change to AI:W when AI edits this file.
 '@description A strict quadtree implementation in VBA. Use this class to store points in a 2D space
 'and query them efficiently.
 '@example A simple quadtree example:

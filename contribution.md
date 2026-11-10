@@ -158,7 +158,16 @@ These marks describe involvement and scrutiny, not percentages or a quality rati
 
 For retrospective disclosures, cross-check source comments, `git blame`, dated commit diffs and conversation records. Check deletions as well as surviving lines; a deleted line will not appear in blame. Copied upstream code and unmerged experiments must not be counted as AI-generated current implementation. Dates, model names and commit frequency can guide investigation but cannot establish human scrutiny. A CI bot or the absence of an AI co-author is not evidence of authorship either way.
 
-Do not use `AI:X` as a fallback for unknown review history, or infer `AI:W` merely because a fix is small. Where AI authorship is established but W/X is unresolved, retain `@aidate` and `@aidesc` and leave `@ai` absent until the classification can be supported. Leave modules without sufficient provenance unmarked; do not invent a fifth mark or claim `AI:0`. A disclosure-only edit does not itself establish AI authorship of the implementation. Use each tag at most once per module and regenerate `docs.json` after changing documented source. The generator exposes these as optional `ai`, `aiDate` and `aiDescription` module fields.
+Do not use `AI:X` as a fallback for unknown review history, or infer `AI:W` merely because a fix is small. Where AI authorship is established but W/X is unresolved, retain `@aidate` and `@aidesc` and leave `@ai` absent until the classification can be supported. Do not invent a fifth mark or infer `AI:0` merely from missing attribution. An explicit maintainer declaration can establish the classification.
+
+The maintainer has declared the remaining source modules `AI:0`. Their module documentation uses this wording, without an invented `@aidate`:
+
+```vb
+'@ai AI:0
+'@aidesc AI has not touched this code yet. This may change to AI:W when AI edits this file.
+```
+
+When AI changes an implementation, update its mark, first-evidenced date and scoped description to reflect the contribution and human scrutiny. A disclosure-only edit does not itself establish AI authorship of the implementation. Use each tag at most once per module and regenerate `docs.json` after changing documented source. The generator exposes these as optional `ai`, `aiDate` and `aiDescription` module fields.
 
 ## Function-level documentation
 

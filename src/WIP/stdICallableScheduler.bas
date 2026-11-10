@@ -1,5 +1,11 @@
 Attribute VB_Name = "stdCallableScheduler"
 
+'@module
+'@description
+'@ai AI:0
+'@aidesc AI has not touched this code yet. This may change to AI:W when AI edits this file.
+
+
 Private scheduledCallbacks As Collection
 
 'Schedule a callback after a number of seconds

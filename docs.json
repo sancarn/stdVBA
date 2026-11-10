@@ -1,5 +1,7 @@
 [
   {
+    "ai": "AI:0",
+    "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
     "name": "stdAcc",
     "fileName": "stdAcc.cls",
     "description": "A class used to automate objects which implement `IAccessible`.\r\nAll windows implement IAccessible, and many of their controls do as well. This class can be \r\nused to obtain information about these controls, and to automate them.",
@@ -2873,6 +2875,8 @@
     "implements": []
   },
   {
+    "ai": "AI:0",
+    "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
     "name": "stdCOM",
     "fileName": "stdCOM.cls",
     "description": "A class which wraps a COM object. All objects in VBA are COM objects, and this class allows \r\nyou to access low level COM functionality. As such this class is recommended only to advanced users.",
@@ -4214,6 +4218,8 @@
     "implements": []
   },
   {
+    "ai": "AI:0",
+    "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
     "name": "stdClipboard",
     "fileName": "stdClipboard.cls",
     "description": "A class which implements a clipboard object. Use this class to\r\nread from and write data to the clipboard.",
@@ -6308,6 +6314,8 @@
     "implements": []
   },
   {
+    "ai": "AI:0",
+    "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
     "name": "stdFiber",
     "fileName": "stdFiber.cls",
     "description": "`stdFiber` allows production of partitioned asynchronous procedures which can be run within a fiber runtime.\r\n`stdFiber.Create()` is used to create our fiber procedures\r\n`stdFiber.runFibers()` is used to run our fiber procedures within a fiber runtime.\r\nFibers can be useful especially when dealing with asynchronous functions",
@@ -8462,6 +8470,8 @@
     "implements": []
   },
   {
+    "ai": "AI:0",
+    "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
     "name": "stdHTTPAuthenticators",
     "fileName": "stdHTTPAuthenticators.bas",
     "description": "",
@@ -8808,6 +8818,8 @@
     "properties": []
   },
   {
+    "ai": "AI:0",
+    "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
     "name": "stdICallable",
     "fileName": "stdICallable.cls",
     "description": "An interface which allows a class to be called as if it were a function.",
@@ -12492,6 +12504,8 @@
     "implements": []
   },
   {
+    "ai": "AI:0",
+    "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
     "name": "stdProcess",
     "fileName": "stdProcess.cls",
     "description": "A class which implements a wrapper around a process. Use this class to\r\nquery process information, manipulate them and to forcefully terminate a process.",
@@ -13022,6 +13036,8 @@
     "implements": []
   },
   {
+    "ai": "AI:0",
+    "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
     "name": "stdQuadTree",
     "fileName": "stdQuadTree.cls",
     "description": "A strict quadtree implementation in VBA. Use this class to store points in a 2D space\r\nand query them efficiently.",
@@ -14509,6 +14525,8 @@
     "implements": []
   },
   {
+    "ai": "AI:0",
+    "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
     "name": "stdRibbon",
     "fileName": "stdRibbon.cls",
     "description": "",
@@ -15428,6 +15446,8 @@
     "implements": []
   },
   {
+    "ai": "AI:0",
+    "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
     "name": "stdUIElement",
     "fileName": "stdUIElement.cls",
     "description": "",

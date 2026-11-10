@@ -8,6 +8,12 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
+'@module
+'@description
+'@ai AI:0
+'@aidesc AI has not touched this code yet. This may change to AI:W when AI edits this file.
+
+
 
 'A really handy function to return all ranges
 Public Function FindAll(ByVal sPattern As String, ByVal rHaystack As Range, Optional ByVal MatchCase As Boolean, Optional ByVal MatchWholeWord As Boolean, Optional ByVal MatchWildcards As Boolean, Optional ByVal IgnoreSpace As Boolean) As Collection

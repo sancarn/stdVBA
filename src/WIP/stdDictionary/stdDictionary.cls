@@ -8,6 +8,12 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
+'@module
+'@description
+'@ai AI:0
+'@aidesc AI has not touched this code yet. This may change to AI:W when AI edits this file.
+
+
 'Hash size typically we are anticipating only 10 hashes being required. In reality the larger this number is the better in terms of
 'performance, however the more memory is consumed. If you're generating hundreds of dictionaries you want to keep this number as low as possible.
 'on the other hand if you are making 1 huge hash, then this number should likely be a lot larger.

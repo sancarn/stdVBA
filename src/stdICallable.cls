@@ -9,6 +9,8 @@ Attribute VB_PredeclaredId = false
 Attribute VB_Exposed = False
 
 '@module
+'@ai AI:0
+'@aidesc AI has not touched this code yet. This may change to AI:W when AI edits this file.
 '@moduleType Interface
 '@description An interface which allows a class to be called as if it were a function.
 '@example Say we have a class which implements `stdICallable`:
