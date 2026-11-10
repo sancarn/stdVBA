@@ -1,7 +1,7 @@
 {
   "date": "2026-11-10",
   "scope": "All VBA source modules under src, including WIP; tests and templates excluded.",
-  "method": "Source annotations, reachable Git history and merged PR provenance. Codex/T3 branch names and explicit AI co-authors establish involvement, not scrutiny. No style-based detection.",
+  "method": "Source annotations, reachable Git history and merged PR provenance. Codex/T3 branch names and explicit AI co-authors establish involvement, not scrutiny. No style-based detection. Targeted read-only inspection of local Cursor history established a GPT-5 stdShell refactor dated 2025-09-20; private transcripts are not published.",
   "policy": "Maintainer reports early Copilot/Cursor adoption, Cursor-era AI:W, and GPT-6.1 Sol-era AI:X in approximately the last five to six months. Explicit attribution and PR provenance take precedence; recent date-based assignments are estimates. Unmarked modules need provenance confirmation.",
   "modules": [
     {
@@ -572,8 +572,8 @@
     {
       "file": "src/WIP/stdShell.cls",
       "lastCommitDate": "2025-11-21",
-      "mark": null,
-      "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
+      "mark": "AI:W",
+      "basis": "Local Cursor record dated 2025-09-20 confirms a GPT-5 refactor of stdShell. AI:W uses the maintainer account of Cursor-era scrutiny. Subsequent revisions replaced parts of the refactor; current-line retention is uncertain.",
       "pullRequests": []
     },
     {

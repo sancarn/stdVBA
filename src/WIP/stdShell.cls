@@ -8,6 +8,11 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
+'@module
+'@description Windows Shell files, folders and extended properties (experimental).
+'@ai AI:W
+'@remark Local Cursor history confirms a GPT-5 refactor on 2025-09-20. AI:W follows the maintainer account of Cursor-era scrutiny; later revisions replaced parts of that refactor, so this records historical involvement rather than attributing every current line to AI.
+
 'Issues:
 'FILE ENUMERATION
 ' - [ ] No binary read/write methods; no large-file chunking helpers.
