@@ -9,7 +9,12 @@
       "lastCommitDate": "2025-07-05",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 38,
+        "matchingRecords": 268,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/stdArray.cls",
@@ -19,7 +24,12 @@
       "pullRequests": [
         "https://github.com/sancarn/stdVBA/pull/165",
         "https://github.com/sancarn/stdVBA/pull/161"
-      ]
+      ],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 38,
+        "matchingRecords": 507,
+        "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      }
     },
     {
       "file": "src/stdCallback.cls",
@@ -28,21 +38,36 @@
       "basis": "Cursor co-author in PR #154 (March 2026), combined with maintainer confirmation of Cursor-era AI:W.",
       "pullRequests": [
         "https://github.com/sancarn/stdVBA/pull/154"
-      ]
+      ],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 29,
+        "matchingRecords": 521,
+        "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      }
     },
     {
       "file": "src/stdClipboard.cls",
       "lastCommitDate": "2025-06-11",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 38,
+        "matchingRecords": 220,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/stdCOM.cls",
       "lastCommitDate": "2025-06-11",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 38,
+        "matchingRecords": 335,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/stdEnumerator.cls",
@@ -51,21 +76,36 @@
       "basis": "Local Codex session history dated 2026-11-01 confirms GPT-6.1 Sol implemented uncached streaming and pushed PR #186. AI:X uses the maintainer account of this period; human scrutiny is not independently established by logs.",
       "pullRequests": [
         "https://github.com/sancarn/stdVBA/pull/186"
-      ]
+      ],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 26,
+        "matchingRecords": 374,
+        "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      }
     },
     {
       "file": "src/stdFiber.cls",
       "lastCommitDate": "2025-06-18",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 38,
+        "matchingRecords": 193,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/stdHTML.cls",
       "lastCommitDate": "2026-04-07",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 21,
+        "matchingRecords": 113,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/stdHTTP.cls",
@@ -74,21 +114,36 @@
       "basis": "confirmed AI contribution; conservative disclosure, human scrutiny unverified",
       "pullRequests": [
         "https://github.com/sancarn/stdVBA/pull/173"
-      ]
+      ],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 38,
+        "matchingRecords": 425,
+        "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      }
     },
     {
       "file": "src/stdHTTPAuthenticators.bas",
       "lastCommitDate": "2025-06-10",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 38,
+        "matchingRecords": 186,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/stdICallable.cls",
       "lastCommitDate": "2025-06-18",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 38,
+        "matchingRecords": 708,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/stdImage.cls",
@@ -97,7 +152,12 @@
       "basis": "confirmed AI contribution; conservative disclosure, human scrutiny unverified",
       "pullRequests": [
         "https://github.com/sancarn/stdVBA/pull/183"
-      ]
+      ],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 24,
+        "matchingRecords": 506,
+        "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      }
     },
     {
       "file": "src/stdJSON.cls",
@@ -106,7 +166,12 @@
       "basis": "Local Codex session history dated 2026-10-31 confirms GPT-6.1 Sol implemented the #137 callbacks and committed 1bcbfc5. AI:X uses the maintainer account of this period; human scrutiny is not independently established by logs.",
       "pullRequests": [
         "https://github.com/sancarn/stdVBA/pull/179"
-      ]
+      ],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 24,
+        "matchingRecords": 313,
+        "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      }
     },
     {
       "file": "src/stdLambda.cls",
@@ -116,7 +181,12 @@
       "pullRequests": [
         "https://github.com/sancarn/stdVBA/pull/172",
         "https://github.com/sancarn/stdVBA/pull/187"
-      ]
+      ],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 38,
+        "matchingRecords": 1511,
+        "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      }
     },
     {
       "file": "src/stdOutlook.cls",
@@ -125,7 +195,12 @@
       "basis": "confirmed AI contribution; conservative disclosure, human scrutiny unverified",
       "pullRequests": [
         "https://github.com/sancarn/stdVBA/pull/189"
-      ]
+      ],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 0,
+        "matchingRecords": 0,
+        "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      }
     },
     {
       "file": "src/stdPerformance.cls",
@@ -135,21 +210,36 @@
       "pullRequests": [
         "https://github.com/sancarn/stdVBA/pull/167",
         "https://github.com/sancarn/stdVBA/pull/174"
-      ]
+      ],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 24,
+        "matchingRecords": 264,
+        "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      }
     },
     {
       "file": "src/stdProcess.cls",
       "lastCommitDate": "2025-06-18",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 38,
+        "matchingRecords": 230,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/stdQuadTree.cls",
       "lastCommitDate": "2025-06-18",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 21,
+        "matchingRecords": 86,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/stdRefArray.cls",
@@ -158,7 +248,12 @@
       "basis": "confirmed AI contribution; conservative disclosure, human scrutiny unverified",
       "pullRequests": [
         "https://github.com/sancarn/stdVBA/pull/174"
-      ]
+      ],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 23,
+        "matchingRecords": 181,
+        "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      }
     },
     {
       "file": "src/stdReg.cls",
@@ -167,7 +262,12 @@
       "basis": "confirmed AI contribution; conservative disclosure, human scrutiny unverified",
       "pullRequests": [
         "https://github.com/sancarn/stdVBA/pull/168"
-      ]
+      ],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 23,
+        "matchingRecords": 155,
+        "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      }
     },
     {
       "file": "src/stdRegex.cls",
@@ -177,14 +277,24 @@
       "pullRequests": [
         "https://github.com/sancarn/stdVBA/pull/164",
         "https://github.com/sancarn/stdVBA/pull/184"
-      ]
+      ],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 37,
+        "matchingRecords": 856,
+        "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      }
     },
     {
       "file": "src/stdRibbon.cls",
       "lastCommitDate": "2025-09-30",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 21,
+        "matchingRecords": 98,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/stdSentry.cls",
@@ -193,7 +303,12 @@
       "basis": "confirmed AI contribution; conservative disclosure, human scrutiny unverified",
       "pullRequests": [
         "https://github.com/sancarn/stdVBA/pull/166"
-      ]
+      ],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 22,
+        "matchingRecords": 164,
+        "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      }
     },
     {
       "file": "src/stdTimer.cls",
@@ -202,14 +317,24 @@
       "basis": "confirmed AI contribution; conservative disclosure, human scrutiny unverified",
       "pullRequests": [
         "https://github.com/sancarn/stdVBA/pull/176"
-      ]
+      ],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 23,
+        "matchingRecords": 176,
+        "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      }
     },
     {
       "file": "src/stdUIElement.cls",
       "lastCommitDate": "2025-06-09",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 22,
+        "matchingRecords": 111,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/stdWebSocket.cls",
@@ -218,7 +343,12 @@
       "basis": "confirmed AI contribution; conservative disclosure, human scrutiny unverified",
       "pullRequests": [
         "https://github.com/sancarn/stdVBA/pull/180"
-      ]
+      ],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 30,
+        "matchingRecords": 349,
+        "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      }
     },
     {
       "file": "src/stdWebView.cls",
@@ -227,7 +357,12 @@
       "basis": "Cursor co-author in PR #154 (March 2026), combined with maintainer confirmation of Cursor-era AI:W.",
       "pullRequests": [
         "https://github.com/sancarn/stdVBA/pull/154"
-      ]
+      ],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 24,
+        "matchingRecords": 197,
+        "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      }
     },
     {
       "file": "src/stdWindow.cls",
@@ -236,91 +371,156 @@
       "basis": "confirmed AI contribution; conservative disclosure, human scrutiny unverified",
       "pullRequests": [
         "https://github.com/sancarn/stdVBA/pull/182"
-      ]
+      ],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 38,
+        "matchingRecords": 777,
+        "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      }
     },
     {
       "file": "src/WIP/JSONLogic.cls",
       "lastCommitDate": "2024-02-22",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 1,
+        "matchingRecords": 2,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/Pointers/stdPointer v2.cls",
       "lastCommitDate": "2024-02-22",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 4,
+        "matchingRecords": 12,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/Pointers/stdPointer.cls",
       "lastCommitDate": "2024-02-22",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 4,
+        "matchingRecords": 12,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/STD_Runtimes_CLR.cls",
       "lastCommitDate": "2020-04-13",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 1,
+        "matchingRecords": 2,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdCallableScheduler.bas",
       "lastCommitDate": "2025-10-14",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 3,
+        "matchingRecords": 15,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdCallback2.cls",
       "lastCommitDate": "2023-12-31",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 3,
+        "matchingRecords": 8,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdCanvas.cls",
       "lastCommitDate": "2025-06-01",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 3,
+        "matchingRecords": 25,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdCOMDispatch.cls",
       "lastCommitDate": "2021-07-12",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 4,
+        "matchingRecords": 10,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdCrypto/MD5.cls",
       "lastCommitDate": "2021-03-23",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 3,
+        "matchingRecords": 8,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdCrypto/stdCrypt.cls",
       "lastCommitDate": "2024-02-22",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 2,
+        "matchingRecords": 4,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdCSV/CSVinterface.cls",
       "lastCommitDate": "2026-01-18",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 4,
+        "matchingRecords": 15,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdCSV/stdCSV.cls",
       "lastCommitDate": "2026-01-18",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 4,
+        "matchingRecords": 20,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdDate.cls",
@@ -329,357 +529,612 @@
       "basis": "confirmed AI contribution; conservative disclosure, human scrutiny unverified",
       "pullRequests": [
         "https://github.com/sancarn/stdVBA/pull/175"
-      ]
+      ],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 16,
+        "matchingRecords": 205,
+        "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      }
     },
     {
       "file": "src/WIP/stdDictionary/SS/stdDictionary2.cls",
       "lastCommitDate": "2023-10-01",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 4,
+        "matchingRecords": 29,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdDictionary/stdDictionary.cls",
       "lastCommitDate": "2021-05-26",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 4,
+        "matchingRecords": 29,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdDictionary/stdIHashable.cls",
       "lastCommitDate": "2023-10-01",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 1,
+        "matchingRecords": 2,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdDictionary/trick/stdDictionary.cls",
       "lastCommitDate": "2023-10-01",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 4,
+        "matchingRecords": 29,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdDLL/inspiration/cUniversalDLLCalls.cls",
       "lastCommitDate": "2024-02-22",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 3,
+        "matchingRecords": 7,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdDLL/stdDLLFunc.cls",
       "lastCommitDate": "2025-09-25",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 4,
+        "matchingRecords": 17,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdEndpoint.cls",
       "lastCommitDate": "2024-06-27",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 2,
+        "matchingRecords": 4,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdEnumProvider/FibonacciIteratorExample.cls",
       "lastCommitDate": "2024-02-22",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 2,
+        "matchingRecords": 4,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdEnumProvider/STD_Types_IniVariantEnum.bas",
       "lastCommitDate": "2024-02-22",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 2,
+        "matchingRecords": 6,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdError/stdDebug.cls",
       "lastCommitDate": "2023-10-04",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 2,
+        "matchingRecords": 4,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdError/stdError.cls",
       "lastCommitDate": "2023-10-04",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 13,
+        "matchingRecords": 108,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdError.cls",
       "lastCommitDate": "2025-07-05",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 13,
+        "matchingRecords": 108,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdErrorWIP.cls",
       "lastCommitDate": "2020-08-17",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 13,
+        "matchingRecords": 108,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdExcelLibraries/stdExcelWorkbook.cls",
       "lastCommitDate": "2020-05-07",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 1,
+        "matchingRecords": 2,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdExcelLibraries/stdExcelWorksheet.cls",
       "lastCommitDate": "2020-05-07",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 1,
+        "matchingRecords": 2,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdExcelLibraries/stdShapeEvents.cls",
       "lastCommitDate": "2020-05-31",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 1,
+        "matchingRecords": 2,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdExcelLibraries/stdXLEvents.cls",
       "lastCommitDate": "2023-10-01",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 1,
+        "matchingRecords": 2,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdGithub.cls",
       "lastCommitDate": "2024-02-22",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 1,
+        "matchingRecords": 2,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdHTTPServer.cls",
       "lastCommitDate": "2026-04-03",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 4,
+        "matchingRecords": 19,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdICallableScheduler.bas",
       "lastCommitDate": "2025-09-14",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 3,
+        "matchingRecords": 15,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdIni.cls",
       "lastCommitDate": "2024-02-22",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 2,
+        "matchingRecords": 6,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdIResource.cls",
       "lastCommitDate": "2024-06-28",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 1,
+        "matchingRecords": 2,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdIShellExtension.cls",
       "lastCommitDate": "2025-09-22",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 2,
+        "matchingRecords": 16,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdMath.cls",
       "lastCommitDate": "2025-04-15",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 2,
+        "matchingRecords": 8,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdObject/IFauxInterface.cls",
       "lastCommitDate": "2023-10-04",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 3,
+        "matchingRecords": 5,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdObject/stdObject.cls",
       "lastCommitDate": "2024-02-22",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 3,
+        "matchingRecords": 7,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdOpenCL/stdOpenCL.cls",
       "lastCommitDate": "2024-02-22",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 2,
+        "matchingRecords": 3,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdPowerPointLibraries/ShapeHook.cls",
       "lastCommitDate": "2026-01-02",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 4,
+        "matchingRecords": 21,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdRegex2.cls",
       "lastCommitDate": "2024-01-10",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 6,
+        "matchingRecords": 12,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdResource.cls",
       "lastCommitDate": "2023-12-31",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 1,
+        "matchingRecords": 2,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdRibbon.cls",
       "lastCommitDate": "2024-02-22",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 21,
+        "matchingRecords": 98,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdRuntimeJS.cls",
       "lastCommitDate": "2023-10-26",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 3,
+        "matchingRecords": 23,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdSettings.cls",
       "lastCommitDate": "2023-10-01",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 1,
+        "matchingRecords": 4,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdSharepointSite.cls",
       "lastCommitDate": "2024-02-17",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 1,
+        "matchingRecords": 2,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdShell.cls",
       "lastCommitDate": "2025-11-21",
       "mark": "AI:W",
       "basis": "Local Cursor record dated 2025-09-20 confirms a GPT-5 refactor of stdShell. AI:W uses the maintainer account of Cursor-era scrutiny. Subsequent revisions replaced parts of the refactor; current-line retention is uncertain.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 4,
+        "matchingRecords": 47,
+        "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      }
     },
     {
       "file": "src/WIP/stdShellMTP.cls",
       "lastCommitDate": "2025-09-22",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 3,
+        "matchingRecords": 15,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdString.cls",
       "lastCommitDate": "2023-10-04",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 3,
+        "matchingRecords": 11,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdStringBuilder.cls",
       "lastCommitDate": "2023-05-24",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 2,
+        "matchingRecords": 13,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdStruct.cls",
       "lastCommitDate": "2022-01-03",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 1,
+        "matchingRecords": 2,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdTable/stdITable.cls",
       "lastCommitDate": "2023-10-01",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 1,
+        "matchingRecords": 2,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdTable/stdITableRow.cls",
       "lastCommitDate": "2023-10-01",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 1,
+        "matchingRecords": 2,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdTable/stdRow v0.0.1.cls",
       "lastCommitDate": "2023-10-01",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 1,
+        "matchingRecords": 2,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdTable/stdTable.cls",
       "lastCommitDate": "2023-10-01",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 6,
+        "matchingRecords": 12,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdTable/stdXLEvents.cls",
       "lastCommitDate": "2023-10-01",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 1,
+        "matchingRecords": 2,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdTable/stdXLTable.cls",
       "lastCommitDate": "2023-10-01",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 1,
+        "matchingRecords": 2,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdTable/stdXLTableRow.cls",
       "lastCommitDate": "2023-10-01",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 1,
+        "matchingRecords": 2,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdTimer.cls",
       "lastCommitDate": "2024-01-23",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 23,
+        "matchingRecords": 176,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdTimerServerWIP.bas",
       "lastCommitDate": "2023-10-04",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 4,
+        "matchingRecords": 8,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdUIAutomationElement.cls",
       "lastCommitDate": "2024-02-22",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 2,
+        "matchingRecords": 8,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdWebSocket/stdWebSocket.cls",
       "lastCommitDate": "2023-10-04",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 30,
+        "matchingRecords": 349,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdWebSocket/stdWebSocketNew.cls",
@@ -688,21 +1143,45 @@
       "basis": "confirmed AI contribution; conservative disclosure, human scrutiny unverified",
       "pullRequests": [
         "https://github.com/sancarn/stdVBA/pull/180"
-      ]
+      ],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 6,
+        "matchingRecords": 54,
+        "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      }
     },
     {
       "file": "src/WIP/stdWordLibraries/stdWordDocument.cls",
       "lastCommitDate": "2024-02-22",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 1,
+        "matchingRecords": 2,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     },
     {
       "file": "src/WIP/stdXML.cls",
       "lastCommitDate": "2021-03-23",
       "mark": null,
       "basis": "Insufficient provenance; no AI:0 claim. Commit frequency alone is inconclusive.",
-      "pullRequests": []
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 1,
+        "matchingRecords": 2,
+        "assessment": "No additional implementation-writing evidence established."
+      }
     }
-  ]
+  ],
+  "localHistoryNameSearch": {
+    "indexedLogsSearched": 43,
+    "recordsWithNameMatches": 3591,
+    "disclosureAndHistoryLookupLogsExcludedAsAuthorshipEvidence": 3,
+    "matching": "Case-insensitive whole-name search of every JSONL line for every source filename stem and Attribute VB_Name; includes standard modules and WIP.",
+    "interpretation": "Mentions include copied source, tool output, directory listings, dependencies and changelog text. They are discovery evidence, not proof of AI writing. Duplicate class names across source paths share name hits and require path disambiguation.",
+    "followUp": "Inspected mutation-shaped tool calls and associated discussion for currently unmarked classes. Hits concerned dependency/test setup, documentation, historical changelog work or unmerged experiments; no additional merged implementation-writing evidence was established. The later stdCallback changes documented calling conventions and added tests; its implementation mark remains AI:W.",
+    "privacy": "Only coverage counts and conclusions are published; local paths, conversation identifiers and transcript text are omitted."
+  }
 }

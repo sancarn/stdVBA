@@ -491,3 +491,4 @@ The 2025-2026 entries were audited retrospectively against commits through `1bcb
 - 2026-11-10 `Tools/VBDocsGen` DEV - Parse and validate @ai marks and expose optional module ai metadata in docs.json; preserve existing API documentation.
 - 2026-11-10 `stdShell` NOTE - Record AI:W historical involvement established from a local Cursor refactor dated 2025-09-20; subsequent revisions mean current-line retention is uncertain.
 - 2026-11-10 `stdJSON/stdEnumerator` NOTE - Replace date-only AI-authorship estimates with direct local Codex implementation and commit evidence; retain the distinction between confirmed authorship and maintainer-reported scrutiny.
+- 2026-11-10 `docs/ai-provenance.json` DEV - Search all 43 indexed local session logs for every source class/module name and VB_Name alias; record per-module mention coverage and follow-up findings without treating references, test setup or documentation as implementation authorship (#191).
