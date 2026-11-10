@@ -662,6 +662,26 @@
       ],
       "default": false,
       "requirements": "Windows VBA7, Excel, pywin32 and classic Outlook native MAPI; isolated synthetic transports only; no real sending or synchronization"
+    },
+    {
+      "id": "stdPowerQuery",
+      "kind": "vba",
+      "files": [
+        "src/stdPowerQuery.cls",
+        "tests/stdPowerQueryTests.bas"
+      ],
+      "cases": {
+        "RecordAccess": "stdPowerQueryTests.RecordAccess",
+        "SchemaAndValues": "stdPowerQueryTests.SchemaAndValues",
+        "StreamingAndErrors": "stdPowerQueryTests.StreamingAndErrors",
+        "FileFactories": "stdPowerQueryTests.FileFactories"
+      },
+      "hosts": [
+        "Excel"
+      ],
+      "default": false,
+      "result": "assertions",
+      "requirements": "Windows VBA7, .NET Framework 4 and installed Excel Mashup runtime matching host bitness; opt-in internal API host, verified on x64 runtime 2.161.8230.1 only"
     }
   ]
 }
