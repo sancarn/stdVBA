@@ -7,6 +7,12 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
+
+'@module
+'@description
+'@ai AI:0
+'@aidesc AI has not touched this code yet. This may change to AI:W when AI edits this file.
+
 'Attribute Item.VB_UserMemId = 0
 
 Enum ETableRowSubject

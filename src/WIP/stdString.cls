@@ -8,6 +8,12 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
+'@module
+'@description
+'@ai AI:0
+'@aidesc AI has not touched this code yet. This may change to AI:W when AI edits this file.
+
+
 
 Private Declare Function SafeArrayRedim Lib "oleaut32" (ByVal saPtr As Long, saBound As Long) As Long
 

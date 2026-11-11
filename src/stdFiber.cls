@@ -9,6 +9,8 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 '@module
+'@ai AI:0
+'@aidesc AI has not touched this code yet. This may change to AI:W when AI edits this file.
 '@description `stdFiber` allows production of partitioned asynchronous procedures which can be run within a fiber runtime.
 '`stdFiber.Create()` is used to create our fiber procedures
 '`stdFiber.runFibers()` is used to run our fiber procedures within a fiber runtime.

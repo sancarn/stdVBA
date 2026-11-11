@@ -9,6 +9,9 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 '@module
+'@ai AI:W
+'@aidate 2026-10-27
+'@aidesc AI was used for array-assignment fixes (#161) and configurable index bases (#165). These changes extend the existing array-list implementation.
 '@description A class which implements a simple array list. Use this class to
 'accumulate data in a list, and then use the methods to manipulate the data.
 '@example ```vb

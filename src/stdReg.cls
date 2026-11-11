@@ -9,6 +9,9 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
 
 '@module
+'@ai AI:W
+'@aidate 2026-10-30
+'@aidesc The class is AI:W overall. Small additions, including key/value creation (#168), are AI:X. The original registry-reading and writing implementation predates those additions.
 '@description A class which provides a simple interface to the Windows Registry.
 'The structure of a simple registry tree looks like the following:
 '```

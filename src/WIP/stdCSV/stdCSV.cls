@@ -9,6 +9,8 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 '@module
+'@ai AI:0
+'@aidesc AI has not touched this code yet. This may change to AI:W when AI edits this file.
 '@description A class for parsing, manipulating, and exporting CSV data. Supports lazy loading
 'and streaming for efficient memory usage with large files. Can work with files, strings, or arrays.
 '@example Simple example of creating a CSV from file and converting to array:

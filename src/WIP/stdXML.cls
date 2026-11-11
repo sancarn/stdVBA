@@ -1,3 +1,9 @@
+
+'@module
+'@description
+'@ai AI:0
+'@aidesc AI has not touched this code yet. This may change to AI:W when AI edits this file.
+
 'Simple interface to create XML:
   ''Example usage
   'Dim sXML as string

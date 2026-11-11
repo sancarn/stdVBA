@@ -1,0 +1,2636 @@
+{
+  "date": "2026-11-10",
+  "scope": "All VBA source modules under src, including WIP; tests and templates excluded.",
+  "method": "Source annotations, reachable Git history and merged PR provenance. Codex/T3 branch names and explicit AI co-authors establish involvement, not scrutiny. No style-based detection. Targeted read-only inspection of local Cursor history established a GPT-5 stdShell refactor dated 2025-09-20; private transcripts are not published. Reviewed the supplied index of 43 local Codex session logs; stdJSON and stdEnumerator implementation/commit records replace their previous date-only estimates. Excluded disclosure work itself as evidence and did not attribute unmerged experiments to current master. Cursor follow-up searched all 53 workspace records and all 40 available transcript files; completed edits plus retained code establish stdHTML AI:W.",
+  "policy": "The maintainer explicitly classifies the previously reviewed source classes. Module classifications and named component classifications may differ: Regex, Lambda, Reg and Window are AI:W overall with specified AI:X components. Explicit maintainer statements supersede earlier W/X inferences. Other previously reviewed classes are AI:W unless explicitly listed AI:X. Unreviewed modules remain unclassified. @aidate records first evidenced AI involvement, including historical experiments when described; it does not assert that all current code dates from that event. The maintainer explicitly declares all remaining previously unclassified source modules AI:0 with the supplied description. This declaration, rather than an absence-of-evidence inference, establishes their mark. Disclosure-only metadata edits do not change the implementation classification.",
+  "modules": [
+    {
+      "file": "src/stdAcc.cls",
+      "lastCommitDate": "2025-07-05",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 38,
+        "matchingRecords": 268,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 25,
+        "matchingBubbleThreads": 31,
+        "matchingTranscriptFiles": 1,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/stdArray.cls",
+      "lastCommitDate": "2026-10-31",
+      "mark": "AI:W",
+      "basis": "AI:W, confirmed by the maintainer. AI-written changes include arr-assignment fixes (#161) and configurable index bases (#165). The existing list implementation predates these changes and is not attributed to AI by this evidence.",
+      "pullRequests": [
+        "https://github.com/sancarn/stdVBA/pull/165",
+        "https://github.com/sancarn/stdVBA/pull/161"
+      ],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 38,
+        "matchingRecords": 507,
+        "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 17,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "firstAIContributionDate": "2026-10-27",
+      "dateEvidence": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established.",
+      "aiDescription": "AI was used for array-assignment fixes (#161) and configurable index bases (#165). These changes extend the existing array-list implementation.",
+      "blameReview": {
+        "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
+        "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
+        "evidence": [
+          {
+            "commit": "https://github.com/sancarn/stdVBA/commit/4d0ebb32a7161376cf54f0cf84013ee711a718e8",
+            "authorDate": "2026-10-27T02:55:35+00:00",
+            "committerDate": "2026-10-27T02:55:35+00:00",
+            "retainedNonblankNoncommentLines": 4,
+            "sampleBaselineLine": 448
+          },
+          {
+            "commit": "https://github.com/sancarn/stdVBA/commit/67ac6ae02095646cf7fa682acc03609fee8c543b",
+            "authorDate": "2026-10-31T16:17:27+00:00",
+            "committerDate": "2026-10-31T16:17:27+00:00",
+            "retainedNonblankNoncommentLines": 116,
+            "sampleBaselineLine": 91
+          }
+        ],
+        "classificationAssessment": "AI:W, confirmed by the maintainer. AI-written changes include arr-assignment fixes (#161) and configurable index bases (#165). The existing list implementation predates these changes and is not attributed to AI by this evidence.",
+        "conversationConfirmation": "Direct conversation source edits/implementation records correlated with retained commit changes.",
+        "conversationCrossCheck": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established. Authorship evidence is described in conversationConfirmation; the explicit maintainer classification supersedes earlier review-history inferences."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "classificationEvidence": "Explicit maintainer classification supplied in this conversation; overrides previous inferred/uncertain W/X labels."
+    },
+    {
+      "file": "src/stdCallback.cls",
+      "lastCommitDate": "2026-10-31",
+      "mark": "AI:W",
+      "basis": "AI:W, confirmed by the maintainer. Cursor-coauthored #154 removed an invalid RunEx error-handler line; blame of surviving lines cannot show that deletion. Later Codex work documented calling conventions and added tests, without rewriting the implementation. The remaining callback implementation is not attributed to AI by these records. AI:W follows the maintainer account of the Cursor period.",
+      "pullRequests": [
+        "https://github.com/sancarn/stdVBA/pull/154"
+      ],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 29,
+        "matchingRecords": 521,
+        "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 17,
+        "matchingBubbleThreads": 30,
+        "matchingTranscriptFiles": 7,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "firstAIContributionDate": "2026-03-23",
+      "dateEvidence": "Commit c996881 (2026-03-23), whose deletion-only fix was inspected.",
+      "aiDescription": "AI was used to remove an invalid RunEx error-handler line (#154). Later Codex work documented calling conventions and added tests without rewriting the original callback implementation.",
+      "blameReview": {
+        "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
+        "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
+        "evidence": [
+          {
+            "commit": "https://github.com/sancarn/stdVBA/commit/c9968819bac99503bbffbc6edd3139c406fd98d7",
+            "change": "Deletion-only RunEx fix; surviving-line blame cannot attribute a removed error-handler line. Commit diff was inspected."
+          }
+        ],
+        "classificationAssessment": "AI:W, confirmed by the maintainer. Cursor-coauthored #154 removed an invalid RunEx error-handler line; blame of surviving lines cannot show that deletion. Later Codex work documented calling conventions and added tests, without rewriting the implementation. The remaining callback implementation is not attributed to AI by these records. AI:W follows the maintainer account of the Cursor period.",
+        "conversationConfirmation": "Cursor-coauthored PR and inspected deletion-only diff; later conversation covers documentation/tests, not a new implementation.",
+        "conversationCrossCheck": "Commit c996881 (2026-03-23), whose deletion-only fix was inspected. Authorship evidence is described in conversationConfirmation; the explicit maintainer classification supersedes earlier review-history inferences."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "classificationEvidence": "Explicit maintainer classification supplied in this conversation; overrides previous inferred/uncertain W/X labels."
+    },
+    {
+      "file": "src/stdClipboard.cls",
+      "lastCommitDate": "2025-06-11",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 38,
+        "matchingRecords": 220,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 7,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/stdCOM.cls",
+      "lastCommitDate": "2025-06-11",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 38,
+        "matchingRecords": 335,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 27,
+        "matchingBubbleThreads": 30,
+        "matchingTranscriptFiles": 5,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/stdEnumerator.cls",
+      "lastCommitDate": "2026-11-01",
+      "mark": "AI:W",
+      "basis": "AI:W, confirmed by the maintainer. The lazy IEnumVARIANT implementation (#186) was written by AI and reviewed manually, including iteration, caching/memory behavior and enumCall naming. Earlier enumeration and other collection operations predate that contribution.",
+      "pullRequests": [
+        "https://github.com/sancarn/stdVBA/pull/186"
+      ],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 26,
+        "matchingRecords": 374,
+        "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 1,
+        "matchingBubbleThreads": 9,
+        "matchingTranscriptFiles": 1,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "firstAIContributionDate": "2026-11-01",
+      "dateEvidence": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established.",
+      "aiDescription": "The lazy IEnumVARIANT implementation (#186) was written by AI and reviewed manually, including iteration, caching/memory behavior and enumCall naming. Other collection operations predate that contribution.",
+      "blameReview": {
+        "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
+        "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
+        "evidence": [
+          {
+            "commit": "https://github.com/sancarn/stdVBA/commit/b72002740f81265b36b78b150f6898b1249773c1",
+            "authorDate": "2026-11-01T14:06:54+00:00",
+            "committerDate": "2026-11-01T14:06:54+00:00",
+            "retainedNonblankNoncommentLines": 216,
+            "sampleBaselineLine": 219
+          }
+        ],
+        "classificationAssessment": "AI:W, confirmed by the maintainer. The lazy IEnumVARIANT implementation (#186) was written by AI and reviewed manually, including iteration, caching/memory behavior and enumCall naming. Earlier enumeration and other collection operations predate that contribution.",
+        "conversationConfirmation": "Direct conversation source edits/implementation records correlated with retained commit changes.",
+        "conversationCrossCheck": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established. Authorship evidence is described in conversationConfirmation; the explicit maintainer classification supersedes earlier review-history inferences."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "classificationEvidence": "Explicit maintainer classification supplied in this conversation; overrides previous inferred/uncertain W/X labels.",
+      "componentClassifications": [
+        {
+          "component": "Lazy IEnumVARIANT implementation",
+          "mark": "AI:W",
+          "basis": "Maintainer confirms AI-written and manually reviewed.",
+          "inCurrentBaseline": true
+        }
+      ]
+    },
+    {
+      "file": "src/stdFiber.cls",
+      "lastCommitDate": "2025-06-18",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 38,
+        "matchingRecords": 193,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 10,
+        "matchingBubbleThreads": 15,
+        "matchingTranscriptFiles": 1,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/stdHTML.cls",
+      "lastCommitDate": "2026-04-07",
+      "mark": "AI:X",
+      "basis": "AI:X, confirmed by the maintainer. Cursor introduced retained selectors, parsing, replacement and Boolean-attribute behavior in April 2026, initially under WIP/stdHTML.cls. The original node model predates these changes; the first-evidenced date does not claim that the whole class was created then.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 21,
+        "matchingRecords": 113,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 22,
+        "matchingBubbleThreads": 25,
+        "matchingTranscriptFiles": 15,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "firstAIContributionDate": "2026-04-03",
+      "dateEvidence": "Completed Cursor source edits on 2026-04-03, retained in April commits.",
+      "aiDescription": "AI was used for selectors, parsing, replacement and Boolean-attribute handling in April 2026, initially under WIP/stdHTML.cls. These features extend the original node model.",
+      "blameReview": {
+        "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
+        "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
+        "evidence": [
+          {
+            "commit": "https://github.com/sancarn/stdVBA/commit/fe37a67427f109a94b8a89d05c7822562fa6bae7",
+            "authorDate": "2026-04-03T02:02:19+01:00",
+            "committerDate": "2026-04-03T02:02:19+01:00",
+            "retainedNonblankNoncommentLines": 229,
+            "sampleBaselineLine": 97
+          },
+          {
+            "commit": "https://github.com/sancarn/stdVBA/commit/835ae48369f577346b3b606e76509d0a5dbd4371",
+            "authorDate": "2026-04-03T02:45:21+01:00",
+            "committerDate": "2026-04-03T02:45:21+01:00",
+            "retainedNonblankNoncommentLines": 37,
+            "sampleBaselineLine": 72
+          },
+          {
+            "commit": "https://github.com/sancarn/stdVBA/commit/526ae6bbe1818245737f52a379e1c750b179ed31",
+            "authorDate": "2026-04-03T02:25:38+01:00",
+            "committerDate": "2026-04-03T02:25:38+01:00",
+            "retainedNonblankNoncommentLines": 483,
+            "sampleBaselineLine": 111
+          },
+          {
+            "commit": "https://github.com/sancarn/stdVBA/commit/77b3cd75e844f616a2d71f29e4ecde6dfc5d3a5f",
+            "authorDate": "2026-04-03T02:41:13+01:00",
+            "committerDate": "2026-04-03T02:41:13+01:00",
+            "retainedNonblankNoncommentLines": 59,
+            "sampleBaselineLine": 575
+          },
+          {
+            "commit": "https://github.com/sancarn/stdVBA/commit/c3e42ea7067ffc9af95f29276411e1fa38395091",
+            "authorDate": "2026-04-03T02:48:49+01:00",
+            "committerDate": "2026-04-03T02:48:49+01:00",
+            "retainedNonblankNoncommentLines": 5,
+            "sampleBaselineLine": 442
+          },
+          {
+            "commit": "https://github.com/sancarn/stdVBA/commit/ec3873512fdfaa6f4f771fcc51bf50ddd1424250",
+            "authorDate": "2026-04-05T00:43:03+01:00",
+            "committerDate": "2026-04-05T00:43:03+01:00",
+            "retainedNonblankNoncommentLines": 311,
+            "sampleBaselineLine": 135
+          },
+          {
+            "commit": "https://github.com/sancarn/stdVBA/commit/3fb2739dbfa50de5173a22d5d649ba3e658156ec",
+            "authorDate": "2026-04-07T02:23:48+01:00",
+            "committerDate": "2026-04-07T02:23:48+01:00",
+            "retainedNonblankNoncommentLines": 108,
+            "sampleBaselineLine": 117
+          },
+          {
+            "commit": "https://github.com/sancarn/stdVBA/commit/819007634b9ddf81301344b14ddbb9dd55bb0956",
+            "authorDate": "2026-04-07T01:52:35+01:00",
+            "committerDate": "2026-04-07T01:52:35+01:00",
+            "retainedNonblankNoncommentLines": 69,
+            "sampleBaselineLine": 1266
+          }
+        ],
+        "classificationAssessment": "AI:X, confirmed by the maintainer. Cursor introduced retained selectors, parsing, replacement and Boolean-attribute behavior in April 2026, initially under WIP/stdHTML.cls. The original node model predates these changes; the first-evidenced date does not claim that the whole class was created then.",
+        "conversationConfirmation": "Direct conversation source edits/implementation records correlated with retained commit changes.",
+        "conversationCrossCheck": "Completed Cursor source edits on 2026-04-03, retained in April commits. Authorship evidence is described in conversationConfirmation; the explicit maintainer classification supersedes earlier review-history inferences."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "classificationEvidence": "Explicit maintainer classification supplied in this conversation; overrides previous inferred/uncertain W/X labels."
+    },
+    {
+      "file": "src/stdHTTP.cls",
+      "lastCommitDate": "2026-10-31",
+      "mark": "AI:W",
+      "basis": "AI:W, confirmed by the maintainer. AI provenance identifies the asynchronous timeout and terminal-completion fix (#173). Most request/transport code predates that fix and is not attributed to AI by this evidence.",
+      "pullRequests": [
+        "https://github.com/sancarn/stdVBA/pull/173"
+      ],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 38,
+        "matchingRecords": 425,
+        "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 10,
+        "matchingBubbleThreads": 23,
+        "matchingTranscriptFiles": 6,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "firstAIContributionDate": "2026-10-31",
+      "dateEvidence": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established.",
+      "aiDescription": "AI was used to fix asynchronous timeout handling and terminal completion (#173). The original request and transport implementation predates these fixes.",
+      "blameReview": {
+        "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
+        "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
+        "evidence": [
+          {
+            "commit": "https://github.com/sancarn/stdVBA/commit/84e72664661ce4ae09963f5ed6263bc52b4d66a0",
+            "authorDate": "2026-10-31T16:59:02+00:00",
+            "committerDate": "2026-10-31T16:59:02+00:00",
+            "retainedNonblankNoncommentLines": 29,
+            "sampleBaselineLine": 307
+          }
+        ],
+        "classificationAssessment": "AI:W, confirmed by the maintainer. AI provenance identifies the asynchronous timeout and terminal-completion fix (#173). Most request/transport code predates that fix and is not attributed to AI by this evidence.",
+        "conversationConfirmation": "Codex PR/branch provenance and retained dated fix; original source-writing step is not independently recorded in supplied conversations.",
+        "conversationCrossCheck": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established. Authorship evidence is described in conversationConfirmation; the explicit maintainer classification supersedes earlier review-history inferences."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "classificationEvidence": "Explicit maintainer classification supplied in this conversation; overrides previous inferred/uncertain W/X labels."
+    },
+    {
+      "file": "src/stdHTTPAuthenticators.bas",
+      "lastCommitDate": "2025-06-10",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 38,
+        "matchingRecords": 186,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 2,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/stdICallable.cls",
+      "lastCommitDate": "2025-06-18",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 38,
+        "matchingRecords": 708,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 36,
+        "matchingBubbleThreads": 47,
+        "matchingTranscriptFiles": 10,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/stdImage.cls",
+      "lastCommitDate": "2026-10-31",
+      "mark": "AI:X",
+      "basis": "AI:X, confirmed by the maintainer. The reviewed implementation history identifies export, clipboard-ownership and conversion-cleanup work (#183). Older image operations and upstream contributions predate that work; the recorded date is the first evidenced AI contribution in the reviewed sources.",
+      "pullRequests": [
+        "https://github.com/sancarn/stdVBA/pull/183"
+      ],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 24,
+        "matchingRecords": 506,
+        "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 1,
+        "matchingBubbleThreads": 11,
+        "matchingTranscriptFiles": 1,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "firstAIContributionDate": "2026-10-31",
+      "dateEvidence": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established.",
+      "aiDescription": "AI was used for export, clipboard ownership and conversion cleanup (#183). These changes build on the existing image operations and upstream contributions.",
+      "blameReview": {
+        "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
+        "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
+        "evidence": [
+          {
+            "commit": "https://github.com/sancarn/stdVBA/commit/3709ee4395d040b9f48f0ac69184a8269fb53631",
+            "authorDate": "2026-10-31T18:06:09+00:00",
+            "committerDate": "2026-10-31T18:06:09+00:00",
+            "retainedNonblankNoncommentLines": 379,
+            "sampleBaselineLine": 154
+          }
+        ],
+        "classificationAssessment": "AI:X, confirmed by the maintainer. The reviewed implementation history identifies export, clipboard-ownership and conversion-cleanup work (#183). Older image operations and upstream contributions predate that work; the recorded date is the first evidenced AI contribution in the reviewed sources.",
+        "conversationConfirmation": "Conversation implementation workflow correlated with matching PR/commit; some implementation was delegated or imported upstream.",
+        "conversationCrossCheck": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established. Authorship evidence is described in conversationConfirmation; the explicit maintainer classification supersedes earlier review-history inferences."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "classificationEvidence": "Explicit maintainer classification supplied in this conversation; overrides previous inferred/uncertain W/X labels."
+    },
+    {
+      "file": "src/stdJSON.cls",
+      "lastCommitDate": "2026-10-31",
+      "mark": "AI:W",
+      "basis": "AI:W, confirmed by the maintainer. Cursor fixed key comparison in April 2026; Codex later added preprocessing/postprocessing callbacks (#137, #179). The existing parser/object implementation predates those contributions.",
+      "pullRequests": [
+        "https://github.com/sancarn/stdVBA/pull/179"
+      ],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 24,
+        "matchingRecords": 313,
+        "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 19,
+        "matchingBubbleThreads": 25,
+        "matchingTranscriptFiles": 5,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "firstAIContributionDate": "2026-04-14",
+      "dateEvidence": "Completed Cursor source edit timestamp 2026-04-14T17:36:03.685Z, retained in e837820.",
+      "aiDescription": "Cursor was used to fix key comparison in April 2026. Codex was used to add preprocessing and postprocessing callbacks (#137, #179) to the existing parser and object implementation.",
+      "blameReview": {
+        "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
+        "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
+        "evidence": [
+          {
+            "commit": "https://github.com/sancarn/stdVBA/commit/1bcbfc54657cad0c02628f418d5a81b18eae4517",
+            "authorDate": "2026-10-31T17:49:59+00:00",
+            "committerDate": "2026-10-31T17:49:59+00:00",
+            "retainedNonblankNoncommentLines": 51,
+            "sampleBaselineLine": 129
+          }
+        ],
+        "classificationAssessment": "AI:W, confirmed by the maintainer. Cursor fixed key comparison in April 2026; Codex later added preprocessing/postprocessing callbacks (#137, #179). The existing parser/object implementation predates those contributions.",
+        "conversationConfirmation": "Direct conversation source edits/implementation records correlated with retained commit changes.",
+        "conversationCrossCheck": "Completed Cursor source edit timestamp 2026-04-14T17:36:03.685Z, retained in e837820. Authorship evidence is described in conversationConfirmation; the explicit maintainer classification supersedes earlier review-history inferences."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "classificationEvidence": "Explicit maintainer classification supplied in this conversation; overrides previous inferred/uncertain W/X labels."
+    },
+    {
+      "file": "src/stdLambda.cls",
+      "lastCommitDate": "2026-11-01",
+      "mark": "AI:W",
+      "basis": "Overall AI:W, as classified by the maintainer; thunk-engine work is purely AI:X. Cursor first worked on native-thunk experiments in May 2026, but those engines are on other branches and are not part of this baseline. The retained October AI contribution fixes object-local copying during stack growth (#172); the existing VBA compiler/evaluator predates that fix.",
+      "pullRequests": [
+        "https://github.com/sancarn/stdVBA/pull/172",
+        "https://github.com/sancarn/stdVBA/pull/187"
+      ],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 38,
+        "matchingRecords": 1511,
+        "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 14,
+        "matchingBubbleThreads": 29,
+        "matchingTranscriptFiles": 8,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "firstAIContributionDate": "2026-05-07",
+      "dateEvidence": "First completed Cursor thunk-experiment edits in May 2026; those experimental engines are not retained in the current baseline. The current stack-copy fix is dated 2026-10-31.",
+      "aiDescription": "AI was used to fix object-local copying during stack growth (#172) in the existing VBA compiler/evaluator. The native thunk engines are purely AI:X; those experiments began in May 2026 and remain on separate branches.",
+      "blameReview": {
+        "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
+        "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
+        "evidence": [
+          {
+            "commit": "https://github.com/sancarn/stdVBA/commit/ecac6ee50838b6e8daa3f36f0788c31eaf763cc3",
+            "authorDate": "2026-10-31T16:59:03+00:00",
+            "committerDate": "2026-10-31T16:59:03+00:00",
+            "retainedNonblankNoncommentLines": 1,
+            "sampleBaselineLine": 1366
+          }
+        ],
+        "classificationAssessment": "Overall AI:W, as classified by the maintainer; thunk-engine work is purely AI:X. Cursor first worked on native-thunk experiments in May 2026, but those engines are on other branches and are not part of this baseline. The retained October AI contribution fixes object-local copying during stack growth (#172); the existing VBA compiler/evaluator predates that fix.",
+        "conversationConfirmation": "Codex PR/branch provenance and retained dated fix; original source-writing step is not independently recorded in supplied conversations.",
+        "conversationCrossCheck": "First completed Cursor thunk-experiment edits in May 2026; those experimental engines are not retained in the current baseline. The current stack-copy fix is dated 2026-10-31. Authorship evidence is described in conversationConfirmation; the explicit maintainer classification supersedes earlier review-history inferences."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "classificationEvidence": "Explicit maintainer classification supplied in this conversation; overrides previous inferred/uncertain W/X labels.",
+      "componentClassifications": [
+        {
+          "component": "Native thunk engine",
+          "mark": "AI:X",
+          "basis": "Explicit maintainer confirmation.",
+          "inCurrentBaseline": false
+        }
+      ]
+    },
+    {
+      "file": "src/stdOutlook.cls",
+      "lastCommitDate": "2026-11-10",
+      "mark": "AI:X",
+      "basis": "AI:X, confirmed by the maintainer. PR #189 explicitly attributes creation of this Extended MAPI class to gpt-6-astra; there was no earlier stdOutlook class in the repository.",
+      "pullRequests": [
+        "https://github.com/sancarn/stdVBA/pull/189"
+      ],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 0,
+        "matchingRecords": 0,
+        "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 0,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "firstAIContributionDate": "2026-11-10",
+      "dateEvidence": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established.",
+      "aiDescription": "This Extended MAPI class was written with gpt-6-astra (#189).",
+      "blameReview": {
+        "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
+        "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
+        "evidence": [
+          {
+            "commit": "https://github.com/sancarn/stdVBA/commit/8ec0a13ba517991a3010df9a8551c35b3552a01c",
+            "authorDate": "2026-11-10T22:10:02+00:00",
+            "committerDate": "2026-11-10T22:10:02+00:00",
+            "retainedNonblankNoncommentLines": 1149,
+            "sampleBaselineLine": 3
+          }
+        ],
+        "classificationAssessment": "AI:X, confirmed by the maintainer. PR #189 explicitly attributes creation of this Extended MAPI class to gpt-6-astra; there was no earlier stdOutlook class in the repository.",
+        "conversationConfirmation": "PR explicitly names AI implementation model; original implementation conversation is absent from supplied index.",
+        "conversationCrossCheck": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established. Authorship evidence is described in conversationConfirmation; the explicit maintainer classification supersedes earlier review-history inferences."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "classificationEvidence": "Explicit maintainer classification supplied in this conversation; overrides previous inferred/uncertain W/X labels."
+    },
+    {
+      "file": "src/stdPerformance.cls",
+      "lastCommitDate": "2026-10-31",
+      "mark": "AI:W",
+      "basis": "AI:W, confirmed by the maintainer. AI changes added Access/Word optimization handling (#167) and improved timer precision (#177). Older optimizer and benchmark APIs predate these changes and are not attributed to AI by this evidence.",
+      "pullRequests": [
+        "https://github.com/sancarn/stdVBA/pull/167",
+        "https://github.com/sancarn/stdVBA/pull/177"
+      ],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 24,
+        "matchingRecords": 264,
+        "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 6,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "firstAIContributionDate": "2026-10-31",
+      "dateEvidence": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established.",
+      "aiDescription": "AI was used for Access/Word optimization handling (#167) and timer-precision improvements (#177). The existing optimizer and benchmark APIs predate these changes.",
+      "blameReview": {
+        "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
+        "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
+        "evidence": [
+          {
+            "commit": "https://github.com/sancarn/stdVBA/commit/aec754829d7ca2817c0405b339895038793144d9",
+            "authorDate": "2026-10-31T16:27:10+00:00",
+            "committerDate": "2026-10-31T16:27:10+00:00",
+            "retainedNonblankNoncommentLines": 65,
+            "sampleBaselineLine": 62
+          },
+          {
+            "commit": "https://github.com/sancarn/stdVBA/commit/f3264d13faddf002f2aeadcbec7e2eccaf80544e",
+            "authorDate": "2026-10-31T17:33:52+00:00",
+            "committerDate": "2026-10-31T17:33:52+00:00",
+            "retainedNonblankNoncommentLines": 81,
+            "sampleBaselineLine": 33
+          }
+        ],
+        "classificationAssessment": "AI:W, confirmed by the maintainer. AI changes added Access/Word optimization handling (#167) and improved timer precision (#177). Older optimizer and benchmark APIs predate these changes and are not attributed to AI by this evidence.",
+        "conversationConfirmation": "Direct conversation source edits/implementation records correlated with retained commit changes.",
+        "conversationCrossCheck": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established. Authorship evidence is described in conversationConfirmation; the explicit maintainer classification supersedes earlier review-history inferences."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "classificationEvidence": "Explicit maintainer classification supplied in this conversation; overrides previous inferred/uncertain W/X labels."
+    },
+    {
+      "file": "src/stdProcess.cls",
+      "lastCommitDate": "2025-06-18",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 38,
+        "matchingRecords": 230,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 1,
+        "matchingBubbleThreads": 10,
+        "matchingTranscriptFiles": 1,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/stdQuadTree.cls",
+      "lastCommitDate": "2025-06-18",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 21,
+        "matchingRecords": 86,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 5,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/stdRefArray.cls",
+      "lastCommitDate": "2026-10-31",
+      "mark": "AI:W",
+      "basis": "AI:W, confirmed by the maintainer. AI corrected owned-Variant SAFEARRAY-slot pointer handling (#174). The borrowed-array implementation credited to Cristian Buse predates that fix; it is not claimed to be AI-authored.",
+      "pullRequests": [
+        "https://github.com/sancarn/stdVBA/pull/174"
+      ],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 23,
+        "matchingRecords": 181,
+        "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 5,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "firstAIContributionDate": "2026-10-31",
+      "dateEvidence": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established.",
+      "aiDescription": "AI was used to correct owned-Variant SAFEARRAY-slot pointer handling (#174). The borrowed-array code is based on Cristian Buse's implementation.",
+      "blameReview": {
+        "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
+        "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
+        "evidence": [
+          {
+            "commit": "https://github.com/sancarn/stdVBA/commit/35bd353bef1ca4fed355c4b9389e98d6b1b615ca",
+            "authorDate": "2026-10-31T16:28:25+00:00",
+            "committerDate": "2026-10-31T16:28:25+00:00",
+            "retainedNonblankNoncommentLines": 3,
+            "sampleBaselineLine": 56
+          }
+        ],
+        "classificationAssessment": "AI:W, confirmed by the maintainer. AI corrected owned-Variant SAFEARRAY-slot pointer handling (#174). The borrowed-array implementation credited to Cristian Buse predates that fix; it is not claimed to be AI-authored.",
+        "conversationConfirmation": "Codex PR/branch provenance and retained dated fix; original source-writing step is not independently recorded in supplied conversations.",
+        "conversationCrossCheck": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established. Authorship evidence is described in conversationConfirmation; the explicit maintainer classification supersedes earlier review-history inferences."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "classificationEvidence": "Explicit maintainer classification supplied in this conversation; overrides previous inferred/uncertain W/X labels."
+    },
+    {
+      "file": "src/stdReg.cls",
+      "lastCommitDate": "2026-10-30",
+      "mark": "AI:W",
+      "basis": "Overall AI:W, as classified by the maintainer. Some small additions, including the key/value-creation work (#168), are AI:X. The earlier registry-reading/writing implementation predates those additions; the component note does not attribute the entire class to AI.",
+      "pullRequests": [
+        "https://github.com/sancarn/stdVBA/pull/168"
+      ],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 23,
+        "matchingRecords": 155,
+        "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 5,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "firstAIContributionDate": "2026-10-30",
+      "dateEvidence": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established.",
+      "aiDescription": "The class is AI:W overall. Small additions, including key/value creation (#168), are AI:X. The original registry-reading and writing implementation predates those additions.",
+      "blameReview": {
+        "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
+        "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
+        "evidence": [
+          {
+            "commit": "https://github.com/sancarn/stdVBA/commit/cec9a68fc336e10dc980520bbd7252d188525390",
+            "authorDate": "2026-10-30T12:59:34+00:00",
+            "committerDate": "2026-10-30T12:59:34+00:00",
+            "retainedNonblankNoncommentLines": 75,
+            "sampleBaselineLine": 131
+          }
+        ],
+        "classificationAssessment": "Overall AI:W, as classified by the maintainer. Some small additions, including the key/value-creation work (#168), are AI:X. The earlier registry-reading/writing implementation predates those additions; the component note does not attribute the entire class to AI.",
+        "conversationConfirmation": "Direct conversation source edits/implementation records correlated with retained commit changes.",
+        "conversationCrossCheck": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established. Authorship evidence is described in conversationConfirmation; the explicit maintainer classification supersedes earlier review-history inferences."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "classificationEvidence": "Explicit maintainer classification supplied in this conversation; overrides previous inferred/uncertain W/X labels.",
+      "componentClassifications": [
+        {
+          "component": "Small key/value-creation additions",
+          "mark": "AI:X",
+          "basis": "Explicit maintainer confirmation.",
+          "inCurrentBaseline": true
+        }
+      ]
+    },
+    {
+      "file": "src/stdRegex.cls",
+      "lastCommitDate": "2026-11-01",
+      "mark": "AI:W",
+      "basis": "Overall AI:W, as classified by the maintainer. The pure VBA engine is upstream work credited to sihlfall; earlier AI-assisted integration is recorded in #164. The native x86/x64 thunk engine (#184) is purely AI:X. That component classification does not attribute the upstream engine to AI.",
+      "pullRequests": [
+        "https://github.com/sancarn/stdVBA/pull/164",
+        "https://github.com/sancarn/stdVBA/pull/184"
+      ],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 37,
+        "matchingRecords": 856,
+        "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 7,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "firstAIContributionDate": "2026-10-27",
+      "dateEvidence": "Commit c02d86f (2026-10-27) identifies earlier AI-assisted integration; the explicitly AI:X native thunk followed in 4a2bb49 on 2026-11-01.",
+      "aiDescription": "The pure VBA engine was written by sihlfall. AI was used for integration (#164). The native x86/x64 thunk engine (#184) was generated entirely by AI and is AI:X; the class is AI:W overall.",
+      "blameReview": {
+        "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
+        "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
+        "evidence": [
+          {
+            "commit": "https://github.com/sancarn/stdVBA/commit/c02d86fd7e5c99b648f9729d7a0c6160d492a642",
+            "authorDate": "2026-10-27T19:35:24+00:00",
+            "committerDate": "2026-10-27T19:35:24+00:00",
+            "retainedNonblankNoncommentLines": 3822,
+            "sampleBaselineLine": 11
+          },
+          {
+            "commit": "https://github.com/sancarn/stdVBA/commit/4a2bb495ef5603b5afcd5a953f63fef35e5bd67e",
+            "authorDate": "2026-11-01T12:36:42+00:00",
+            "committerDate": "2026-11-01T12:36:42+00:00",
+            "retainedNonblankNoncommentLines": 312,
+            "sampleBaselineLine": 12
+          }
+        ],
+        "classificationAssessment": "Overall AI:W, as classified by the maintainer. The pure VBA engine is upstream work credited to sihlfall; earlier AI-assisted integration is recorded in #164. The native x86/x64 thunk engine (#184) is purely AI:X. That component classification does not attribute the upstream engine to AI.",
+        "conversationConfirmation": "Conversation implementation workflow correlated with matching PR/commit; some implementation was delegated or imported upstream.",
+        "conversationCrossCheck": "Commit c02d86f (2026-10-27) identifies earlier AI-assisted integration; the explicitly AI:X native thunk followed in 4a2bb49 on 2026-11-01. Authorship evidence is described in conversationConfirmation; the explicit maintainer classification supersedes earlier review-history inferences."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "classificationEvidence": "Explicit maintainer classification supplied in this conversation; overrides previous inferred/uncertain W/X labels.",
+      "componentClassifications": [
+        {
+          "component": "Native thunk engine",
+          "mark": "AI:X",
+          "basis": "Explicit maintainer confirmation.",
+          "inCurrentBaseline": true
+        }
+      ]
+    },
+    {
+      "file": "src/stdRibbon.cls",
+      "lastCommitDate": "2025-09-30",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 21,
+        "matchingRecords": 98,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 6,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/stdSentry.cls",
+      "lastCommitDate": "2026-10-31",
+      "mark": "AI:W",
+      "basis": "AI:W, confirmed by the maintainer. AI added scoped worksheet unlocking (#166). The prior scoped-guard and cleanup implementation predates this addition and is not attributed to AI by this evidence.",
+      "pullRequests": [
+        "https://github.com/sancarn/stdVBA/pull/166"
+      ],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 22,
+        "matchingRecords": 164,
+        "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 8,
+        "matchingTranscriptFiles": 1,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "firstAIContributionDate": "2026-10-31",
+      "dateEvidence": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established.",
+      "aiDescription": "AI was used to add scoped worksheet unlocking (#166) to the existing guard and cleanup implementation.",
+      "blameReview": {
+        "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
+        "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
+        "evidence": [
+          {
+            "commit": "https://github.com/sancarn/stdVBA/commit/2297705290ded488d5a850dc75801e9c3d10fc76",
+            "authorDate": "2026-10-31T16:21:48+00:00",
+            "committerDate": "2026-10-31T16:21:48+00:00",
+            "retainedNonblankNoncommentLines": 32,
+            "sampleBaselineLine": 99
+          }
+        ],
+        "classificationAssessment": "AI:W, confirmed by the maintainer. AI added scoped worksheet unlocking (#166). The prior scoped-guard and cleanup implementation predates this addition and is not attributed to AI by this evidence.",
+        "conversationConfirmation": "Direct conversation source edits/implementation records correlated with retained commit changes.",
+        "conversationCrossCheck": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established. Authorship evidence is described in conversationConfirmation; the explicit maintainer classification supersedes earlier review-history inferences."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "classificationEvidence": "Explicit maintainer classification supplied in this conversation; overrides previous inferred/uncertain W/X labels."
+    },
+    {
+      "file": "src/stdTimer.cls",
+      "lastCommitDate": "2026-10-31",
+      "mark": "AI:W",
+      "basis": "AI:W, confirmed by the maintainer. AI fixed owned-host lifecycle, partial startup and shutdown cleanup (#176). The original timer implementation dates from 2023 and is not attributed to AI by this evidence.",
+      "pullRequests": [
+        "https://github.com/sancarn/stdVBA/pull/176"
+      ],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 23,
+        "matchingRecords": 176,
+        "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 8,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "firstAIContributionDate": "2026-10-31",
+      "dateEvidence": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established.",
+      "aiDescription": "AI was used to fix owned-host lifecycle, partial startup and shutdown cleanup (#176). The original timer implementation dates from 2023.",
+      "blameReview": {
+        "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
+        "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
+        "evidence": [
+          {
+            "commit": "https://github.com/sancarn/stdVBA/commit/f9d500b3ff8a84004e812021788e98c220903a71",
+            "authorDate": "2026-10-31T16:39:39+00:00",
+            "committerDate": "2026-10-31T16:39:39+00:00",
+            "retainedNonblankNoncommentLines": 70,
+            "sampleBaselineLine": 50
+          }
+        ],
+        "classificationAssessment": "AI:W, confirmed by the maintainer. AI fixed owned-host lifecycle, partial startup and shutdown cleanup (#176). The original timer implementation dates from 2023 and is not attributed to AI by this evidence.",
+        "conversationConfirmation": "Codex PR/branch provenance and retained dated fix; original source-writing step is not independently recorded in supplied conversations.",
+        "conversationCrossCheck": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established. Authorship evidence is described in conversationConfirmation; the explicit maintainer classification supersedes earlier review-history inferences."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "classificationEvidence": "Explicit maintainer classification supplied in this conversation; overrides previous inferred/uncertain W/X labels."
+    },
+    {
+      "file": "src/stdUIElement.cls",
+      "lastCommitDate": "2025-06-09",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 22,
+        "matchingRecords": 111,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 9,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/stdWebSocket.cls",
+      "lastCommitDate": "2026-10-31",
+      "mark": "AI:X",
+      "basis": "AI:X, confirmed by the maintainer. AI work replaced the legacy IE transport with native WinHTTP synchronous/asynchronous transport (#180). The prior API and legacy implementation predate that rewrite.",
+      "pullRequests": [
+        "https://github.com/sancarn/stdVBA/pull/180"
+      ],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 30,
+        "matchingRecords": 349,
+        "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 10,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "firstAIContributionDate": "2026-10-31",
+      "dateEvidence": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established.",
+      "aiDescription": "AI was used to replace the legacy IE transport with native WinHTTP synchronous/asynchronous transport (#180). The original WebSocket API predates this rewrite.",
+      "blameReview": {
+        "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
+        "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
+        "evidence": [
+          {
+            "commit": "https://github.com/sancarn/stdVBA/commit/116817ad65e4e33e611e34f0259ec7d4fa4d817f",
+            "authorDate": "2026-10-31T18:20:40+00:00",
+            "committerDate": "2026-10-31T18:20:40+00:00",
+            "retainedNonblankNoncommentLines": 445,
+            "sampleBaselineLine": 16
+          }
+        ],
+        "classificationAssessment": "AI:X, confirmed by the maintainer. AI work replaced the legacy IE transport with native WinHTTP synchronous/asynchronous transport (#180). The prior API and legacy implementation predate that rewrite.",
+        "conversationConfirmation": "Conversation implementation workflow correlated with matching PR/commit; some implementation was delegated or imported upstream.",
+        "conversationCrossCheck": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established. Authorship evidence is described in conversationConfirmation; the explicit maintainer classification supersedes earlier review-history inferences."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "classificationEvidence": "Explicit maintainer classification supplied in this conversation; overrides previous inferred/uncertain W/X labels."
+    },
+    {
+      "file": "src/stdWebView.cls",
+      "lastCommitDate": "2026-05-15",
+      "mark": "AI:X",
+      "basis": "AI:X, confirmed by the maintainer. Cursor authored the standalone WebView2 class and subsequent March-May APIs/refactors. Its design draws on the upstream project credited by the existing attribution tag; this does not attribute that upstream project to AI.",
+      "pullRequests": [
+        "https://github.com/sancarn/stdVBA/pull/154"
+      ],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 24,
+        "matchingRecords": 197,
+        "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 34,
+        "matchingBubbleThreads": 35,
+        "matchingTranscriptFiles": 23,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "firstAIContributionDate": "2026-03-18",
+      "dateEvidence": "Completed Cursor source edit timestamp 2026-03-18T21:39:40.369Z.",
+      "aiDescription": "Cursor was used to write the standalone WebView2 class and its March-May APIs/refactors. The design is based on the upstream project credited by the attribution tag.",
+      "blameReview": {
+        "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
+        "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
+        "evidence": [
+          {
+            "commit": "https://github.com/sancarn/stdVBA/commit/c9968819bac99503bbffbc6edd3139c406fd98d7",
+            "authorDate": "2026-03-23T00:47:56+00:00",
+            "committerDate": "2026-03-23T00:47:56+00:00",
+            "retainedNonblankNoncommentLines": 820,
+            "sampleBaselineLine": 3
+          },
+          {
+            "commit": "https://github.com/sancarn/stdVBA/commit/8718f665cf473ed2e4598934ee05e068c83187f9",
+            "authorDate": "2026-03-23T18:45:46+00:00",
+            "committerDate": "2026-03-23T18:45:46+00:00",
+            "retainedNonblankNoncommentLines": 7,
+            "sampleBaselineLine": 1231
+          },
+          {
+            "commit": "https://github.com/sancarn/stdVBA/commit/6c4680aa760e2cf34a9f9c26b5000f0d044e9260",
+            "authorDate": "2026-03-23T17:34:52+00:00",
+            "committerDate": "2026-03-23T17:34:52+00:00",
+            "retainedNonblankNoncommentLines": 174,
+            "sampleBaselineLine": 73
+          },
+          {
+            "commit": "https://github.com/sancarn/stdVBA/commit/38bea852615dbd88b2f133b3691112c9fd245039",
+            "authorDate": "2026-03-23T18:12:48+00:00",
+            "committerDate": "2026-03-23T18:12:48+00:00",
+            "retainedNonblankNoncommentLines": 48,
+            "sampleBaselineLine": 106
+          },
+          {
+            "commit": "https://github.com/sancarn/stdVBA/commit/fbd15c073abde606d80dfd584fd5cdfdd44773a6",
+            "authorDate": "2026-03-23T18:38:16+00:00",
+            "committerDate": "2026-03-23T18:38:16+00:00",
+            "retainedNonblankNoncommentLines": 18,
+            "sampleBaselineLine": 745
+          },
+          {
+            "commit": "https://github.com/sancarn/stdVBA/commit/2f6465d03063b6f2411de1a2b984e571902f8199",
+            "authorDate": "2026-03-25T13:26:06+00:00",
+            "committerDate": "2026-03-25T13:26:06+00:00",
+            "retainedNonblankNoncommentLines": 403,
+            "sampleBaselineLine": 110
+          },
+          {
+            "commit": "https://github.com/sancarn/stdVBA/commit/ebcdbba902aa66036bcacb077562d17da33cd017",
+            "authorDate": "2026-03-25T10:36:13+00:00",
+            "committerDate": "2026-03-25T10:36:13+00:00",
+            "retainedNonblankNoncommentLines": 24,
+            "sampleBaselineLine": 277
+          },
+          {
+            "commit": "https://github.com/sancarn/stdVBA/commit/9b0715977f8e8c188c28ba703458ea904b3b723f",
+            "authorDate": "2026-03-25T14:57:48+00:00",
+            "committerDate": "2026-03-25T14:57:48+00:00",
+            "retainedNonblankNoncommentLines": 140,
+            "sampleBaselineLine": 209
+          },
+          {
+            "commit": "https://github.com/sancarn/stdVBA/commit/8a44620c23337ad84841953ab80ad637e9f95649",
+            "authorDate": "2026-04-02T01:17:29+01:00",
+            "committerDate": "2026-04-02T01:17:29+01:00",
+            "retainedNonblankNoncommentLines": 149,
+            "sampleBaselineLine": 121
+          },
+          {
+            "commit": "https://github.com/sancarn/stdVBA/commit/ec8352a01edd3ed0d5be898cbc8a565469eb4005",
+            "authorDate": "2026-04-09T01:35:12+01:00",
+            "committerDate": "2026-04-09T01:35:12+01:00",
+            "retainedNonblankNoncommentLines": 175,
+            "sampleBaselineLine": 94
+          },
+          {
+            "commit": "https://github.com/sancarn/stdVBA/commit/b1e69ff16f78949386cb20aec765249259408dd7",
+            "authorDate": "2026-04-13T17:30:04+01:00",
+            "committerDate": "2026-04-13T17:30:04+01:00",
+            "retainedNonblankNoncommentLines": 364,
+            "sampleBaselineLine": 134
+          },
+          {
+            "commit": "https://github.com/sancarn/stdVBA/commit/f2df31198692ea0a4a1ea7953e8863f44553ebad",
+            "authorDate": "2026-04-13T17:54:28+01:00",
+            "committerDate": "2026-04-13T17:54:28+01:00",
+            "retainedNonblankNoncommentLines": 1,
+            "sampleBaselineLine": 802
+          },
+          {
+            "commit": "https://github.com/sancarn/stdVBA/commit/064e638c9919187cb41ff0bc29e4e6f4599c5090",
+            "authorDate": "2026-04-18T13:01:55+01:00",
+            "committerDate": "2026-04-18T13:01:55+01:00",
+            "retainedNonblankNoncommentLines": 16,
+            "sampleBaselineLine": 985
+          }
+        ],
+        "classificationAssessment": "AI:X, confirmed by the maintainer. Cursor authored the standalone WebView2 class and subsequent March-May APIs/refactors. Its design draws on the upstream project credited by the existing attribution tag; this does not attribute that upstream project to AI.",
+        "conversationConfirmation": "Direct conversation source edits/implementation records correlated with retained commit changes.",
+        "conversationCrossCheck": "Completed Cursor source edit timestamp 2026-03-18T21:39:40.369Z. Authorship evidence is described in conversationConfirmation; the explicit maintainer classification supersedes earlier review-history inferences."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "classificationEvidence": "Explicit maintainer classification supplied in this conversation; overrides previous inferred/uncertain W/X labels."
+    },
+    {
+      "file": "src/stdWindow.cls",
+      "lastCommitDate": "2026-10-31",
+      "mark": "AI:W",
+      "basis": "Overall AI:W, as classified by the maintainer. The subclassing/native callback thunks (#182) are AI:X. Existing window discovery/manipulation APIs predate that feature; the accompanying guard/reset behavior received human technical scrutiny.",
+      "pullRequests": [
+        "https://github.com/sancarn/stdVBA/pull/182"
+      ],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 38,
+        "matchingRecords": 777,
+        "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 28,
+        "matchingBubbleThreads": 36,
+        "matchingTranscriptFiles": 5,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "firstAIContributionDate": "2026-10-31",
+      "dateEvidence": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established.",
+      "aiDescription": "The class is AI:W overall. The subclassing/native callback thunks (#182) are AI:X. The guard/reset behavior was reviewed manually; the existing window discovery and manipulation APIs predate that feature.",
+      "blameReview": {
+        "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
+        "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
+        "evidence": [
+          {
+            "commit": "https://github.com/sancarn/stdVBA/commit/ec9d93eb02501af4c88177f7e73ab8f17b2ce68c",
+            "authorDate": "2026-10-31T19:47:28+00:00",
+            "committerDate": "2026-10-31T19:47:28+00:00",
+            "retainedNonblankNoncommentLines": 471,
+            "sampleBaselineLine": 10
+          }
+        ],
+        "classificationAssessment": "Overall AI:W, as classified by the maintainer. The subclassing/native callback thunks (#182) are AI:X. Existing window discovery/manipulation APIs predate that feature; the accompanying guard/reset behavior received human technical scrutiny.",
+        "conversationConfirmation": "Direct conversation source edits/implementation records correlated with retained commit changes.",
+        "conversationCrossCheck": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established. Authorship evidence is described in conversationConfirmation; the explicit maintainer classification supersedes earlier review-history inferences."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "classificationEvidence": "Explicit maintainer classification supplied in this conversation; overrides previous inferred/uncertain W/X labels.",
+      "componentClassifications": [
+        {
+          "component": "Subclassing/native callback thunks",
+          "mark": "AI:X",
+          "basis": "Explicit maintainer confirmation.",
+          "inCurrentBaseline": true
+        }
+      ]
+    },
+    {
+      "file": "src/WIP/JSONLogic.cls",
+      "lastCommitDate": "2024-02-22",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 1,
+        "matchingRecords": 2,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 2,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/Pointers/stdPointer v2.cls",
+      "lastCommitDate": "2024-02-22",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 4,
+        "matchingRecords": 12,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 4,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/Pointers/stdPointer.cls",
+      "lastCommitDate": "2024-02-22",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 4,
+        "matchingRecords": 12,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 4,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/STD_Runtimes_CLR.cls",
+      "lastCommitDate": "2020-04-13",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 1,
+        "matchingRecords": 2,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 2,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdCallableScheduler.bas",
+      "lastCommitDate": "2025-10-14",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 3,
+        "matchingRecords": 15,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 1,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdCallback2.cls",
+      "lastCommitDate": "2023-12-31",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 3,
+        "matchingRecords": 8,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 7,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdCanvas.cls",
+      "lastCommitDate": "2025-06-01",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 3,
+        "matchingRecords": 25,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 3,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdCOMDispatch.cls",
+      "lastCommitDate": "2021-07-12",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 4,
+        "matchingRecords": 10,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 5,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdCrypto/MD5.cls",
+      "lastCommitDate": "2021-03-23",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 3,
+        "matchingRecords": 8,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 8,
+        "matchingBubbleThreads": 10,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdCrypto/stdCrypt.cls",
+      "lastCommitDate": "2024-02-22",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 2,
+        "matchingRecords": 4,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 2,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdCSV/CSVinterface.cls",
+      "lastCommitDate": "2026-01-18",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 4,
+        "matchingRecords": 15,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 2,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdCSV/stdCSV.cls",
+      "lastCommitDate": "2026-01-18",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 4,
+        "matchingRecords": 20,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 8,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdDate.cls",
+      "lastCommitDate": "2026-10-31",
+      "mark": "AI:W",
+      "basis": "AI:W, confirmed by the maintainer. AI fixed weekday semantics and regex-cache publication (#175). The original date/time wrapper predates those fixes and is not attributed to AI by this evidence.",
+      "pullRequests": [
+        "https://github.com/sancarn/stdVBA/pull/175"
+      ],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 16,
+        "matchingRecords": 205,
+        "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 6,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "firstAIContributionDate": "2026-10-31",
+      "dateEvidence": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established.",
+      "aiDescription": "AI was used to fix weekday semantics and regex-cache publication (#175) in the existing date/time wrapper.",
+      "blameReview": {
+        "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
+        "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
+        "evidence": [
+          {
+            "commit": "https://github.com/sancarn/stdVBA/commit/803077f88a973c039dac58818a4939f06a113539",
+            "authorDate": "2026-10-31T16:28:44+00:00",
+            "committerDate": "2026-10-31T16:28:44+00:00",
+            "retainedNonblankNoncommentLines": 16,
+            "sampleBaselineLine": 322
+          }
+        ],
+        "classificationAssessment": "AI:W, confirmed by the maintainer. AI fixed weekday semantics and regex-cache publication (#175). The original date/time wrapper predates those fixes and is not attributed to AI by this evidence.",
+        "conversationConfirmation": "Codex PR/branch provenance and retained dated fix; original source-writing step is not independently recorded in supplied conversations.",
+        "conversationCrossCheck": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established. Authorship evidence is described in conversationConfirmation; the explicit maintainer classification supersedes earlier review-history inferences."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "classificationEvidence": "Explicit maintainer classification supplied in this conversation; overrides previous inferred/uncertain W/X labels."
+    },
+    {
+      "file": "src/WIP/stdDictionary/SS/stdDictionary2.cls",
+      "lastCommitDate": "2023-10-01",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 4,
+        "matchingRecords": 29,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 1,
+        "matchingBubbleThreads": 6,
+        "matchingTranscriptFiles": 2,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdDictionary/stdDictionary.cls",
+      "lastCommitDate": "2021-05-26",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 4,
+        "matchingRecords": 29,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 1,
+        "matchingBubbleThreads": 6,
+        "matchingTranscriptFiles": 2,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdDictionary/stdIHashable.cls",
+      "lastCommitDate": "2023-10-01",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 1,
+        "matchingRecords": 2,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 0,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdDictionary/trick/stdDictionary.cls",
+      "lastCommitDate": "2023-10-01",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 4,
+        "matchingRecords": 29,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 1,
+        "matchingBubbleThreads": 6,
+        "matchingTranscriptFiles": 2,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdDLL/inspiration/cUniversalDLLCalls.cls",
+      "lastCommitDate": "2024-02-22",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 3,
+        "matchingRecords": 7,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 4,
+        "matchingTranscriptFiles": 1,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdDLL/stdDLLFunc.cls",
+      "lastCommitDate": "2025-09-25",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 4,
+        "matchingRecords": 17,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 1,
+        "matchingBubbleThreads": 8,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdEndpoint.cls",
+      "lastCommitDate": "2024-06-27",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 2,
+        "matchingRecords": 4,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 1,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdEnumProvider/FibonacciIteratorExample.cls",
+      "lastCommitDate": "2024-02-22",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 2,
+        "matchingRecords": 4,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 0,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdEnumProvider/STD_Types_IniVariantEnum.bas",
+      "lastCommitDate": "2024-02-22",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 2,
+        "matchingRecords": 6,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 1,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdError/stdDebug.cls",
+      "lastCommitDate": "2023-10-04",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 2,
+        "matchingRecords": 4,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 0,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdError/stdError.cls",
+      "lastCommitDate": "2023-10-04",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 13,
+        "matchingRecords": 108,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 10,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdError.cls",
+      "lastCommitDate": "2025-07-05",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 13,
+        "matchingRecords": 108,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 10,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdErrorWIP.cls",
+      "lastCommitDate": "2020-08-17",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 13,
+        "matchingRecords": 108,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 10,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdExcelLibraries/stdExcelWorkbook.cls",
+      "lastCommitDate": "2020-05-07",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 1,
+        "matchingRecords": 2,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 0,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdExcelLibraries/stdExcelWorksheet.cls",
+      "lastCommitDate": "2020-05-07",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 1,
+        "matchingRecords": 2,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 0,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdExcelLibraries/stdShapeEvents.cls",
+      "lastCommitDate": "2020-05-31",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 1,
+        "matchingRecords": 2,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 2,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdExcelLibraries/stdXLEvents.cls",
+      "lastCommitDate": "2023-10-01",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 1,
+        "matchingRecords": 2,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 1,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdGithub.cls",
+      "lastCommitDate": "2024-02-22",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 1,
+        "matchingRecords": 2,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 1,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdHTTPServer.cls",
+      "lastCommitDate": "2026-04-03",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 4,
+        "matchingRecords": 19,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 2,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdICallableScheduler.bas",
+      "lastCommitDate": "2025-09-14",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 3,
+        "matchingRecords": 15,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 2,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdIni.cls",
+      "lastCommitDate": "2024-02-22",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 2,
+        "matchingRecords": 6,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 1,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdIResource.cls",
+      "lastCommitDate": "2024-06-28",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 1,
+        "matchingRecords": 2,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 2,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdIShellExtension.cls",
+      "lastCommitDate": "2025-09-22",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 2,
+        "matchingRecords": 16,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 5,
+        "matchingBubbleThreads": 9,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdMath.cls",
+      "lastCommitDate": "2025-04-15",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 2,
+        "matchingRecords": 8,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 1,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdObject/IFauxInterface.cls",
+      "lastCommitDate": "2023-10-04",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 3,
+        "matchingRecords": 5,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 3,
+        "matchingTranscriptFiles": 1,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdObject/stdObject.cls",
+      "lastCommitDate": "2024-02-22",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 3,
+        "matchingRecords": 7,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 5,
+        "matchingTranscriptFiles": 1,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdOpenCL/stdOpenCL.cls",
+      "lastCommitDate": "2024-02-22",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 2,
+        "matchingRecords": 3,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 2,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdPowerPointLibraries/ShapeHook.cls",
+      "lastCommitDate": "2026-01-02",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 4,
+        "matchingRecords": 21,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 3,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdRegex2.cls",
+      "lastCommitDate": "2024-01-10",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 6,
+        "matchingRecords": 12,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 3,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdResource.cls",
+      "lastCommitDate": "2023-12-31",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 1,
+        "matchingRecords": 2,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 2,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdRibbon.cls",
+      "lastCommitDate": "2024-02-22",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 21,
+        "matchingRecords": 98,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 6,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdRuntimeJS.cls",
+      "lastCommitDate": "2023-10-26",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 3,
+        "matchingRecords": 23,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 2,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdSettings.cls",
+      "lastCommitDate": "2023-10-01",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 1,
+        "matchingRecords": 4,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 0,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdSharepointSite.cls",
+      "lastCommitDate": "2024-02-17",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 1,
+        "matchingRecords": 2,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 1,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdShell.cls",
+      "lastCommitDate": "2025-11-21",
+      "mark": "AI:X",
+      "basis": "AI:X, confirmed by the maintainer. Cursor refactored constructors/path handling and added Shell helpers in September 2025. Retained additions match bb5eb26 and 9db792c; some early refactors were later replaced. This does not attribute every prior or later Shell feature to the same generation event.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 4,
+        "matchingRecords": 47,
+        "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 11,
+        "matchingBubbleThreads": 24,
+        "matchingTranscriptFiles": 1,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "firstAIContributionDate": "2025-09-20",
+      "dateEvidence": "Completed Cursor edits on 2025-09-20/21 match retained September commits.",
+      "aiDescription": "Cursor was used to refactor constructors and path handling and add Shell helpers in September 2025. Some early refactors were later replaced.",
+      "blameReview": {
+        "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
+        "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
+        "evidence": [
+          {
+            "commit": "https://github.com/sancarn/stdVBA/commit/bb5eb26eacf734d96de154212b18c3cfc798a96a",
+            "authorDate": "2025-09-22T00:00:14+01:00",
+            "committerDate": "2025-09-22T00:00:14+01:00",
+            "retainedNonblankNoncommentLines": 401,
+            "sampleBaselineLine": 22
+          },
+          {
+            "commit": "https://github.com/sancarn/stdVBA/commit/9db792c3554afe9af960d876d3e23f34611ed7c2",
+            "authorDate": "2025-09-22T00:29:48+01:00",
+            "committerDate": "2025-09-22T00:29:48+01:00",
+            "retainedNonblankNoncommentLines": 80,
+            "sampleBaselineLine": 1291
+          }
+        ],
+        "classificationAssessment": "AI:X, confirmed by the maintainer. Cursor refactored constructors/path handling and added Shell helpers in September 2025. Retained additions match bb5eb26 and 9db792c; some early refactors were later replaced. This does not attribute every prior or later Shell feature to the same generation event.",
+        "conversationConfirmation": "Direct conversation source edits/implementation records correlated with retained commit changes.",
+        "conversationCrossCheck": "Completed Cursor edits on 2025-09-20/21 match retained September commits. Authorship evidence is described in conversationConfirmation; the explicit maintainer classification supersedes earlier review-history inferences."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "classificationEvidence": "Explicit maintainer classification supplied in this conversation; overrides previous inferred/uncertain W/X labels."
+    },
+    {
+      "file": "src/WIP/stdShellMTP.cls",
+      "lastCommitDate": "2025-09-22",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 3,
+        "matchingRecords": 15,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 7,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdString.cls",
+      "lastCommitDate": "2023-10-04",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 3,
+        "matchingRecords": 11,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 2,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdStringBuilder.cls",
+      "lastCommitDate": "2023-05-24",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 2,
+        "matchingRecords": 13,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 5,
+        "matchingTranscriptFiles": 2,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdStruct.cls",
+      "lastCommitDate": "2022-01-03",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 1,
+        "matchingRecords": 2,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 1,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdTable/stdITable.cls",
+      "lastCommitDate": "2023-10-01",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 1,
+        "matchingRecords": 2,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 0,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdTable/stdITableRow.cls",
+      "lastCommitDate": "2023-10-01",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 1,
+        "matchingRecords": 2,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 0,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdTable/stdRow v0.0.1.cls",
+      "lastCommitDate": "2023-10-01",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 1,
+        "matchingRecords": 2,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 0,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdTable/stdTable.cls",
+      "lastCommitDate": "2023-10-01",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 6,
+        "matchingRecords": 12,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 5,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdTable/stdXLEvents.cls",
+      "lastCommitDate": "2023-10-01",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 1,
+        "matchingRecords": 2,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 1,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdTable/stdXLTable.cls",
+      "lastCommitDate": "2023-10-01",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 1,
+        "matchingRecords": 2,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 0,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdTable/stdXLTableRow.cls",
+      "lastCommitDate": "2023-10-01",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 1,
+        "matchingRecords": 2,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 0,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdTimer.cls",
+      "lastCommitDate": "2024-01-23",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 23,
+        "matchingRecords": 176,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 8,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdTimerServerWIP.bas",
+      "lastCommitDate": "2023-10-04",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 4,
+        "matchingRecords": 8,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 2,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdUIAutomationElement.cls",
+      "lastCommitDate": "2024-02-22",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 2,
+        "matchingRecords": 8,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 5,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdWebSocket/stdWebSocket.cls",
+      "lastCommitDate": "2023-10-04",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 30,
+        "matchingRecords": 349,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 10,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdWebSocket/stdWebSocketNew.cls",
+      "lastCommitDate": "2026-10-31",
+      "mark": "AI:X",
+      "basis": "AI:X as the WIP mirror of the maintainer-classified stdWebSocket implementation. Both files contain the same AI-assisted native transport rewrite (#180), rather than separate authorship events; the preceding legacy design predates that rewrite.",
+      "pullRequests": [
+        "https://github.com/sancarn/stdVBA/pull/180"
+      ],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 6,
+        "matchingRecords": 54,
+        "assessment": "Retain existing provenance assessment; mentions alone do not change the mark."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 1,
+        "matchingTranscriptFiles": 0,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "firstAIContributionDate": "2026-10-31",
+      "dateEvidence": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established.",
+      "aiDescription": "This WIP file mirrors the AI-written native transport implementation in stdWebSocket (#180). Both copies replace the earlier legacy transport.",
+      "blameReview": {
+        "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
+        "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
+        "evidence": [
+          {
+            "commit": "https://github.com/sancarn/stdVBA/commit/116817ad65e4e33e611e34f0259ec7d4fa4d817f",
+            "authorDate": "2026-10-31T18:20:40+00:00",
+            "committerDate": "2026-10-31T18:20:40+00:00",
+            "retainedNonblankNoncommentLines": 444,
+            "sampleBaselineLine": 16
+          }
+        ],
+        "classificationAssessment": "AI:X as the WIP mirror of the maintainer-classified stdWebSocket implementation. Both files contain the same AI-assisted native transport rewrite (#180), rather than separate authorship events; the preceding legacy design predates that rewrite.",
+        "conversationConfirmation": "Conversation implementation workflow correlated with matching PR/commit; some implementation was delegated or imported upstream.",
+        "conversationCrossCheck": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established. Authorship evidence is described in conversationConfirmation; the explicit maintainer classification supersedes earlier review-history inferences."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "classificationEvidence": "Explicit maintainer classification supplied in this conversation; overrides previous inferred/uncertain W/X labels."
+    },
+    {
+      "file": "src/WIP/stdWordLibraries/stdWordDocument.cls",
+      "lastCommitDate": "2024-02-22",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 1,
+        "matchingRecords": 2,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 1,
+        "matchingTranscriptFiles": 1,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    },
+    {
+      "file": "src/WIP/stdXML.cls",
+      "lastCommitDate": "2021-03-23",
+      "mark": "AI:0",
+      "basis": "Explicit maintainer AI:0 declaration for the remaining source modules; not inferred automatically from missing attribution.",
+      "pullRequests": [],
+      "historyNameSearch": {
+        "matchingNonDisclosureLogs": 1,
+        "matchingRecords": 2,
+        "assessment": "No additional implementation-writing evidence established."
+      },
+      "cursorHistoryNameSearch": {
+        "matchingComposerBodies": 0,
+        "matchingBubbleThreads": 1,
+        "matchingTranscriptFiles": 1,
+        "assessment": "Mentions alone do not establish implementation authorship; later provenance assessments take precedence."
+      },
+      "classificationStatus": "maintainer-confirmed",
+      "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
+      "classificationEvidence": "The maintainer explicitly supplied the AI:0 mark and description for these remaining source modules."
+    }
+  ],
+  "localHistoryNameSearch": {
+    "indexedLogsSearched": 43,
+    "recordsWithNameMatches": 3591,
+    "disclosureAndHistoryLookupLogsExcludedAsAuthorshipEvidence": 3,
+    "matching": "Case-insensitive whole-name search of every JSONL line for every source filename stem and Attribute VB_Name; includes standard modules and WIP.",
+    "interpretation": "Mentions include copied source, tool output, directory listings, dependencies and changelog text. They are discovery evidence, not proof of AI writing. Duplicate class names across source paths share name hits and require path disambiguation.",
+    "followUp": "Inspected mutation-shaped tool calls and associated discussion for currently unmarked classes. Hits concerned dependency/test setup, documentation, historical changelog work or unmerged experiments; no additional merged implementation-writing evidence was established. The later stdCallback changes documented calling conventions and added tests; its implementation mark remains AI:W.",
+    "privacy": "Only coverage counts and conclusions are published; local paths, conversation identifiers and transcript text are omitted.",
+    "source": "The 43 indexed Codex session logs; Cursor coverage is recorded separately."
+  },
+  "cursorHistorySearch": {
+    "workspaceHeaderRecords": 53,
+    "chatRecords": 46,
+    "exploreSubagentRecords": 7,
+    "composerBodiesSearched": 53,
+    "storedBubblesSearched": 3162,
+    "transcriptFilesSearched": 40,
+    "transcriptRecordsSearched": 976,
+    "method": "Read-only global database queries selected the exact workspace headers, composerData bodies and bubbleId messages. Every available matching transcript JSONL line was also searched for source filename stems and VB_Name aliases. Source-write tool arguments were inspected by exact destination path and completion status; current code/Git history were checked for retained changes.",
+    "limits": "One untitled September 2025 record has no stored bubble messages. The current project-usage-analysis conversation was searched but excluded as implementation-authorship evidence. Missing messages cannot establish absence of AI use. Name collisions between classes require path disambiguation. Private transcripts and local identifiers are not published.",
+    "finding": "Retained Cursor changes establish AI involvement in HTML, WebView, Shell and an earlier JSON fix. The maintainer explicitly classifies HTML/WebView/Shell AI:X and JSON AI:W. Lambda native-thunk experiments are AI:X components outside the current baseline; their first dated Cursor work is included as historical involvement."
+  },
+  "classificationReview": "Updated to the maintainer explicit classifications: AI:X for WebView, HTML, Shell, Image, Outlook and WebSocket (including its WIP mirror); AI:W for the other previously reviewed current-source classes. Regex/Lambda native engines, Reg small additions and Window subclassing thunks have separate AI:X component notes. Enumerator lazy traversal is confirmed manually reviewed. The missing stdRuntime class is recorded separately because it lives on an unmerged local branch. The remaining 73 source modules now carry the maintainer-supplied AI:0 declaration and description, without an invented AI date.",
+  "otherBranchModules": [
+    {
+      "file": "src/WIP/stdRuntime.cls",
+      "branch": "codex/std-runtime-locals",
+      "commit": "5a6c9bcd4f6838e54a2e4233e85c3fbc78ecae17",
+      "mark": "AI:X",
+      "firstAIContributionDate": "2026-10-25",
+      "dateEvidence": "Introducing local commit author/committer date.",
+      "aiDescription": "AI was used to write stdRuntime.GetVars, which reads local names, type names and formatted values from caller VBA stack frames. Frame discovery builds on Ariche2/VBAStack. The class supports only its documented Windows x64 VBE7 profile.",
+      "inCurrentBaseline": false,
+      "locationExplanation": "Present on the local codex/std-runtime-locals branch; introducing commit is not an ancestor of master. The implementation is not added to this disclosure PR. An annotated recovered source copy and its original guide are supplied separately."
+    }
+  ]
+}

@@ -143,6 +143,9 @@ function groupBy<T>(
 
 type IDocs = (IModule | IClass)[];
 type IModule = {
+  ai?: string;
+  aiDate?: string;
+  aiDescription?: string;
   name: string;
   fileName: string;
   description: string;
@@ -224,6 +227,9 @@ type ITagTypes =
   | "TODO"
   | "throws"
   | "requires"
+  | "ai"
+  | "aidate"
+  | "aidesc"
   | "static";
 
 type ITagLine = {
@@ -245,6 +251,9 @@ type ICommentRecord =
   | IDataTODO
   | IDataThrows
   | IDataRequires
+  | IDataAI
+  | IDataAIDate
+  | IDataAIDesc
   | IDataStatic;
 
 type IDataConstructor = {
@@ -307,6 +316,20 @@ type IDataRequires = {
   tag: "requires";
   data: string;
 };
+type IDataAI = {
+  tag: "ai";
+  data: string;
+};
+
+type IDataAIDate = {
+  tag: "aidate";
+  data: string;
+};
+type IDataAIDesc = {
+  tag: "aidesc";
+  data: string;
+};
+
 type IDataStatic = {
   tag: "static";
 };
@@ -415,6 +438,26 @@ function parseComment(comment: string): ICommentStore {
             description: groups?.description.trim(),
           },
         });
+        break;
+      case "ai":
+        if (!/^AI:[0RWX]$/.test(tagLine.content.trim())) {
+          throw new Error(`Invalid @ai mark: ${tagLine.content.trim()}`);
+        }
+        commentStore.push({ tag, data: tagLine.content.trim() });
+        break;
+      case "aidate": {
+        const value = tagLine.content.trim();
+        const date = new Date(value + "T00:00:00.000Z");
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(value) ||
+            Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== value) {
+          throw new Error(`Invalid @aidate: ${value}`);
+        }
+        commentStore.push({ tag, data: value });
+        break;
+      }
+      case "aidesc":
+        if (!tagLine.content.trim()) throw new Error("Empty @aidesc");
+        commentStore.push({ tag, data: tagLine.content.trim() });
         break;
       case "example":
         commentStore.push({ tag, data: tagLine.content.trim() });
@@ -742,8 +785,23 @@ function parseModuleOrClass(
     }
   });
 
+  for (const tag of ["ai", "aidate", "aidesc"]) {
+    if (moduleDocsByTag[tag]?.length > 1) {
+      throw new Error(`Duplicate @${tag} in ${fileName}`);
+    }
+  }
+
   //Build base module
   let mod: IModule = {
+    ...(moduleDocsByTag["ai"]?.length
+      ? { ai: (moduleDocsByTag["ai"][0] as IDataAI).data }
+      : {}),
+    ...(moduleDocsByTag["aidate"]?.length
+      ? { aiDate: (moduleDocsByTag["aidate"][0] as IDataAIDate).data }
+      : {}),
+    ...(moduleDocsByTag["aidesc"]?.length
+      ? { aiDescription: (moduleDocsByTag["aidesc"][0] as IDataAIDesc).data }
+      : {}),
     name: moduleName,
     fileName,
     description:

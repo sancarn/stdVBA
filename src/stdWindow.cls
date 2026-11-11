@@ -7,6 +7,13 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+
+'@module
+'@ai AI:W
+'@aidate 2026-10-31
+'@aidesc The class is AI:W overall. The subclassing/native callback thunks (#182) are AI:X. The guard/reset behavior was reviewed manually; the existing window discovery and manipulation APIs predate that feature.
+'@description Window discovery, inspection and automation.
+
 Implements stdICallable
  
 '@class stdWindow

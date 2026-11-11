@@ -1,5 +1,7 @@
 [
   {
+    "ai": "AI:0",
+    "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
     "name": "stdAcc",
     "fileName": "stdAcc.cls",
     "description": "A class used to automate objects which implement `IAccessible`.\r\nAll windows implement IAccessible, and many of their controls do as well. This class can be \r\nused to obtain information about these controls, and to automate them.",
@@ -1130,6 +1132,9 @@
     "implements": []
   },
   {
+    "ai": "AI:W",
+    "aiDate": "2026-10-27",
+    "aiDescription": "AI was used for array-assignment fixes (#161) and configurable index bases (#165). These changes extend the existing array-list implementation.",
     "name": "stdArray",
     "fileName": "stdArray.cls",
     "description": "A class which implements a simple array list. Use this class to\r\naccumulate data in a list, and then use the methods to manipulate the data.",
@@ -2870,6 +2875,8 @@
     "implements": []
   },
   {
+    "ai": "AI:0",
+    "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
     "name": "stdCOM",
     "fileName": "stdCOM.cls",
     "description": "A class which wraps a COM object. All objects in VBA are COM objects, and this class allows \r\nyou to access low level COM functionality. As such this class is recommended only to advanced users.",
@@ -3703,6 +3710,9 @@
     "implements": []
   },
   {
+    "ai": "AI:W",
+    "aiDate": "2026-03-23",
+    "aiDescription": "AI was used to remove an invalid RunEx error-handler line (#154). Later Codex work documented calling conventions and added tests without rewriting the original callback implementation.",
     "name": "stdCallback",
     "fileName": "stdCallback.cls",
     "description": "A class which implements a callback object. Use this class to create a \r\ncallback object which can be called at a later stage. These callbacks are used extensively\r\nacross the stdVBA library.\r\n\r\nWithin a class we can create a simple callback object like so:\r\n```vb\r\nDim cb as stdCallback: set cb = stdCallback.CreateFromObjectMethod(Me, \"myFunction\")\r\n```\r\nWith an example function declaration as follows:\r\n```vb\r\nPublic Function myFunction(ByVal x as long, ByVal y as long, ByVal z as long) as long\r\n  myFunction = x + y + z\r\nEnd Function\r\n```\r\n\r\n> Note it's important to note that the function must be public.\r\n\r\nThe callback can then be called as follows:\r\n```vb\r\nDebug.Print cb(1,2,3)   '=> 6\r\n```\r\nOr with an array of parameters:\r\n```vb\r\nDebug.Print cb.Run(Array(1,2,3))   '=> 6\r\n```\r\nYou can also bind arguments to the callback. This is useful when you want to prepare a callback with some\r\narguments before final execution. For example:\r\n```vb\r\nDim cb as stdCallback: set cb = stdCallback.CreateFromObjectMethod(Me, \"myFunction\").Bind(1,2,3)\r\n'...later...\r\nDebug.Print cb() '=> 6\r\n```",
@@ -4208,6 +4218,8 @@
     "implements": []
   },
   {
+    "ai": "AI:0",
+    "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
     "name": "stdClipboard",
     "fileName": "stdClipboard.cls",
     "description": "A class which implements a clipboard object. Use this class to\r\nread from and write data to the clipboard.",
@@ -4825,6 +4837,9 @@
     "implements": []
   },
   {
+    "ai": "AI:W",
+    "aiDate": "2026-11-01",
+    "aiDescription": "The lazy IEnumVARIANT implementation (#186) was written by AI and reviewed manually, including iteration, caching/memory behavior and enumCall naming. Other collection operations predate that contribution.",
     "name": "stdEnumerator",
     "fileName": "stdEnumerator.cls",
     "description": "A class which implements an enumerator object. Use this class to\r\niterate over a collection of data.",
@@ -6299,6 +6314,8 @@
     "implements": []
   },
   {
+    "ai": "AI:0",
+    "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
     "name": "stdFiber",
     "fileName": "stdFiber.cls",
     "description": "`stdFiber` allows production of partitioned asynchronous procedures which can be run within a fiber runtime.\r\n`stdFiber.Create()` is used to create our fiber procedures\r\n`stdFiber.runFibers()` is used to run our fiber procedures within a fiber runtime.\r\nFibers can be useful especially when dealing with asynchronous functions",
@@ -6866,6 +6883,9 @@
     "implements": []
   },
   {
+    "ai": "AI:X",
+    "aiDate": "2026-04-03",
+    "aiDescription": "AI was used for selectors, parsing, replacement and Boolean-attribute handling in April 2026, initially under WIP/stdHTML.cls. These features extend the original node model.",
     "name": "stdHTML",
     "fileName": "stdHTML.cls",
     "description": "`stdHTML` provides a fluent, object-based API for building, querying, and transforming HTML in VBA.\r\n`stdHTML.Create()` creates a new document root (`<html>`), and child nodes can be composed via `CreateChild`.\r\nUse `CreateLiteral` for escaped text content and `Raw` for unescaped content when embedding trusted markup or script.\r\nThe selector APIs (`QuerySelector`/`QuerySelectorAll`) support CSS-style traversal for reading or mutating node trees.",
@@ -7742,6 +7762,9 @@
     "implements": []
   },
   {
+    "ai": "AI:W",
+    "aiDate": "2026-10-31",
+    "aiDescription": "AI was used to fix asynchronous timeout handling and terminal completion (#173). The original request and transport implementation predates these fixes.",
     "name": "stdHTTP",
     "fileName": "stdHTTP.cls",
     "description": "A class used to make HTTP requests.",
@@ -8447,6 +8470,8 @@
     "implements": []
   },
   {
+    "ai": "AI:0",
+    "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
     "name": "stdHTTPAuthenticators",
     "fileName": "stdHTTPAuthenticators.bas",
     "description": "",
@@ -8793,6 +8818,8 @@
     "properties": []
   },
   {
+    "ai": "AI:0",
+    "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
     "name": "stdICallable",
     "fileName": "stdICallable.cls",
     "description": "An interface which allows a class to be called as if it were a function.",
@@ -8957,6 +8984,9 @@
     "implements": []
   },
   {
+    "ai": "AI:X",
+    "aiDate": "2026-10-31",
+    "aiDescription": "AI was used for export, clipboard ownership and conversion cleanup (#183). These changes build on the existing image operations and upstream contributions.",
     "name": "stdImage",
     "fileName": "stdImage.cls",
     "description": "A class which implements a wrapper around an image. Use this class to\r\nread image data to and from files, clipboard, sheets, UI controls, and more. Additionally\r\nthis class allows the manipulation of images in memory, and perform analytical operations on them.",
@@ -10284,6 +10314,9 @@
     "implements": []
   },
   {
+    "ai": "AI:W",
+    "aiDate": "2026-04-14",
+    "aiDescription": "Cursor was used to fix key comparison in April 2026. Codex was used to add preprocessing and postprocessing callbacks (#137, #179) to the existing parser and object implementation.",
     "name": "stdJSON",
     "fileName": "stdJSON.cls",
     "description": "A class which implements a JSON object. Use this class to\r\ncreate JSON objects, manipulate them, and convert them to and from JSON strings.",
@@ -10940,6 +10973,9 @@
     "implements": []
   },
   {
+    "ai": "AI:W",
+    "aiDate": "2026-05-07",
+    "aiDescription": "AI was used to fix object-local copying during stack growth (#172) in the existing VBA compiler/evaluator. The native thunk engines are purely AI:X; those experiments began in May 2026 and remain on separate branches.",
     "name": "stdLambda",
     "fileName": "stdLambda.cls",
     "description": "A class which implements a syntax for creating lambda functions from string expressions\r\nwithin VBA. Use this class to create sandboxed lambda functions, and call them with arguments.\r\n\r\nBelow shows a trivial use case of `stdLambda` and `stdArray`. \r\n\r\n```vb\r\nDim arr as stdArray: Set arr = stdArray.Create(1,2,3,4,5,6,7,8,9,10)\r\n'Filter to include only even numbers:\r\nset arr = arr.filter(stdLambda.Create(\"$1 mod 2 = 0\"))  '=> Array(2,4,6,8,10)\r\n'Take every element and multiply it by 10\r\nset arr = arr.map(stdLambda.Create(\"$1*10\"))            '=> Array(20,40,60,80,100)\r\n'And calculate the sum:\r\nset arr = arr.reduce(stdLambda.Create(\"$1+$2\"), 0)      '=> 300\r\n```\r\n\r\nAs you can see, within 3 lines of code (excluding the comments), we have achieved the equivalent of this code: \r\n\r\n```vb\r\nDim element as variant, totalSum as Long\r\nFor each element in Array(1,2,3,4,5,6,7,8,9,10)\r\n  if element mod 2 = 0 then\r\n    totalSum = totalSum + element * 10\r\n  end if\r\nnext\r\n```\r\n\r\nThis is a very powerful feature of the `stdLambda` class, and one of the main reasons why it was created.\r\nIt allows you to write code in a more natural way, and achieve the same result in a much shorter amount of\r\ncode and improving maintainability. \r\n\r\nFor a more detailed breakdown of syntax and use cases see the [stdLambda guide](https://github.com/sancarn/stdVBA/blob/master/docs/stdLambda.md)",
@@ -11324,6 +11360,9 @@
     "implements": []
   },
   {
+    "ai": "AI:X",
+    "aiDate": "2026-11-10",
+    "aiDescription": "This Extended MAPI class was written with gpt-6-astra (#189).",
     "name": "stdOutlook",
     "fileName": "stdOutlook.cls",
     "description": "Access classic Outlook profiles through native Extended MAPI from a single VBA7 class.",
@@ -12090,6 +12129,9 @@
     "implements": []
   },
   {
+    "ai": "AI:W",
+    "aiDate": "2026-10-31",
+    "aiDescription": "AI was used for Access/Word optimization handling (#167) and timer-precision improvements (#177). The existing optimizer and benchmark APIs predate these changes.",
     "name": "stdPerformance",
     "fileName": "stdPerformance.cls",
     "description": "A class which implements a performance testing and optimisation library.\r\nUse this class to measure performance and optimise your code.",
@@ -12462,6 +12504,8 @@
     "implements": []
   },
   {
+    "ai": "AI:0",
+    "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
     "name": "stdProcess",
     "fileName": "stdProcess.cls",
     "description": "A class which implements a wrapper around a process. Use this class to\r\nquery process information, manipulate them and to forcefully terminate a process.",
@@ -12992,6 +13036,8 @@
     "implements": []
   },
   {
+    "ai": "AI:0",
+    "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
     "name": "stdQuadTree",
     "fileName": "stdQuadTree.cls",
     "description": "A strict quadtree implementation in VBA. Use this class to store points in a 2D space\r\nand query them efficiently.",
@@ -13385,6 +13431,9 @@
     "implements": []
   },
   {
+    "ai": "AI:W",
+    "aiDate": "2026-10-31",
+    "aiDescription": "AI was used to correct owned-Variant SAFEARRAY-slot pointer handling (#174). The borrowed-array code is based on Cristian Buse's implementation.",
     "name": "stdRefArray",
     "fileName": "stdRefArray.cls",
     "description": "A class which wraps a VBA array by reference. Use this class to\r\nefficiently pass large arrays around without copying them.\r\nBorrowed storage: the source variable must outlive this wrapper and every alias\r\nreturned by GetData. Temporaries, expired locals and object owners released while\r\nan alias survives are unsupported. Do not Erase, ReDim or replace the source, or\r\nassign to public Data, while aliases exist. No ownership is transferred.",
@@ -13488,6 +13537,9 @@
     "implements": []
   },
   {
+    "ai": "AI:W",
+    "aiDate": "2026-10-30",
+    "aiDescription": "The class is AI:W overall. Small additions, including key/value creation (#168), are AI:X. The original registry-reading and writing implementation predates those additions.",
     "name": "stdReg",
     "fileName": "stdReg.cls",
     "description": "A class which provides a simple interface to the Windows Registry.\r\nThe structure of a simple registry tree looks like the following:\r\n```\r\nstdReg<Key>\r\n|- Keys()\r\n|  |- stdReg<Key>\r\n|  |- |- Keys()\r\n|  |  |- Items()\r\n|  |  |  |- stdReg<Item>\r\n|  |  |  |- stdReg<Item>\r\n|  |  |  |- stdReg<Item>\r\n|  |  |  |- stdReg<Item>\r\n|  |- stdReg<Key>\r\n|  |- |- Keys()\r\n|  |  |- Items()\r\n|  |  |  |- stdReg<Item>\r\n|  |- stdReg<Key>\r\n|  |- |- Keys()\r\n|  |  |- Items()\r\n|  |  |  |- stdReg<Item>\r\n|  |  |  |- stdReg<Item>\r\n|- Items()\r\n|  |- stdReg<Item>\r\n|  |- stdReg<Item>\r\n|  |- stdReg<Item>\r\n|  |- stdReg<Item>\r\n```",
@@ -14037,6 +14089,9 @@
     "implements": []
   },
   {
+    "ai": "AI:W",
+    "aiDate": "2026-10-27",
+    "aiDescription": "The pure VBA engine was written by sihlfall. AI was used for integration (#164). The native x86/x64 thunk engine (#184) was generated entirely by AI and is AI:X; the class is AI:W overall.",
     "name": "stdRegex",
     "fileName": "stdRegex.cls",
     "description": "A class which uses sihlfall's pure VBA regex engine. Use this class to\r\ncreate regex objects with additional features like named captures, and use them to analyse text.",
@@ -14470,6 +14525,8 @@
     "implements": []
   },
   {
+    "ai": "AI:0",
+    "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
     "name": "stdRibbon",
     "fileName": "stdRibbon.cls",
     "description": "",
@@ -14509,9 +14566,12 @@
     "implements": []
   },
   {
+    "ai": "AI:W",
+    "aiDate": "2026-10-31",
+    "aiDescription": "AI was used to add scoped worksheet unlocking (#166) to the existing guard and cleanup implementation.",
     "name": "stdSentry",
     "fileName": "stdSentry.cls",
-    "description": "",
+    "description": "Scoped guards and cleanup actions.",
     "remarks": [],
     "examples": [],
     "devNotes": [],
@@ -15183,9 +15243,12 @@
     "implements": []
   },
   {
+    "ai": "AI:W",
+    "aiDate": "2026-10-31",
+    "aiDescription": "AI was used to fix owned-host lifecycle, partial startup and shutdown cleanup (#176). The original timer implementation dates from 2023.",
     "name": "stdTimer",
     "fileName": "stdTimer.cls",
-    "description": "",
+    "description": "Scheduled callbacks using an owned timer host.",
     "remarks": [],
     "examples": [],
     "devNotes": [],
@@ -15383,6 +15446,8 @@
     "implements": []
   },
   {
+    "ai": "AI:0",
+    "aiDescription": "AI has not touched this code yet. This may change to AI:W when AI edits this file.",
     "name": "stdUIElement",
     "fileName": "stdUIElement.cls",
     "description": "",
@@ -15780,6 +15845,9 @@
     "implements": []
   },
   {
+    "ai": "AI:X",
+    "aiDate": "2026-10-31",
+    "aiDescription": "AI was used to replace the legacy IE transport with native WinHTTP synchronous/asynchronous transport (#180). The original WebSocket API predates this rewrite.",
     "name": "stdWebSocket",
     "fileName": "stdWebSocket.cls",
     "description": "Native Windows WebSocket client using WinHTTP, replacing Internet Explorer (#139, #35).",
@@ -16525,11 +16593,16 @@
     "implements": []
   },
   {
+    "ai": "AI:X",
+    "aiDate": "2026-03-18",
+    "aiDescription": "Cursor was used to write the standalone WebView2 class and its March-May APIs/refactors. The design is based on the upstream project credited by the attribution tag.",
     "name": "stdWebView",
     "fileName": "stdWebView.cls",
-    "description": "",
+    "description": "Standalone WebView2 host for Excel UserForms (primary). Requires WebView2Loader.dll,\r\n Microsoft Edge WebView2 Runtime. Handler vtables use executable thunks (see AddressOfThunkForComProc/VBA7/CMonitors.cls).",
     "remarks": [],
-    "examples": [],
+    "examples": [
+      ":\r\n   Dim wv As stdWebView\r\n   Sub UserForm_Initialize()\r\n     Set wv = stdWebView.CreateFromFrame(UserForm1.Frame1, stdLambda.Create(\"$1.Navigate \"\"https://example.com\"\"\"))\r\n     wv.Navigate \"https://example.com\"\r\n     Debug.Print wv.JavaScriptRunSync(\"document.title\")\r\n   End Sub\r\n\r\nSpec:\r\n CONSTRUCTORS\r\n   [X] CreateFromHwnd(hwnd, OnReady?) as stdWebView\r\n   [X] CreateFromFrame(frm as MSForms.Frame, OnReady?) as stdWebView\r\n   [X] CreateFromUserform(uf as Object, OnReady?) as stdWebView\r\n INSTANCE METHODS / PROPERTIES\r\n   [X] IsReady() as Boolean\r\n   [X] Quit()\r\n   [X] Navigate(url)\r\n   [X] Back()\r\n   [X] Forward()\r\n   [X] Get/Let Html() as String\r\n   [X] JavaScriptRunSync(script) as String\r\n   [X] JavaScriptRun(script, callback?)\r\n   [X] SetVirtualHostNameToFolderMapping(hostName, folderPath, accessKind?)\r\n   [X] ClearVirtualHostNameToFolderMapping(hostName)"
+    ],
     "devNotes": [],
     "todos": [],
     "requires": [],
@@ -17561,9 +17634,12 @@
     "implements": []
   },
   {
+    "ai": "AI:W",
+    "aiDate": "2026-10-31",
+    "aiDescription": "The class is AI:W overall. The subclassing/native callback thunks (#182) are AI:X. The guard/reset behavior was reviewed manually; the existing window discovery and manipulation APIs predate that feature.",
     "name": "stdWindow",
     "fileName": "stdWindow.cls",
-    "description": "",
+    "description": "Window discovery, inspection and automation.",
     "remarks": [],
     "examples": [],
     "devNotes": [],

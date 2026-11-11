@@ -8,6 +8,12 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
+'@module
+'@description
+'@ai AI:0
+'@aidesc AI has not touched this code yet. This may change to AI:W when AI edits this file.
+
+
 'Based on: https://docs.github.com/en/rest
 'Core docs: https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#create-or-update-file-contents
 

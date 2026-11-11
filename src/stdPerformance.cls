@@ -9,6 +9,9 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 '@module
+'@ai AI:W
+'@aidate 2026-10-31
+'@aidesc AI was used for Access/Word optimization handling (#167) and timer-precision improvements (#177). The existing optimizer and benchmark APIs predate these changes.
 '@description A class which implements a performance testing and optimisation library.
 'Use this class to measure performance and optimise your code.
 '@example Simple example of measuring performance:

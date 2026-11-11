@@ -8,6 +8,12 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
+'@module
+'@description
+'@ai AI:0
+'@aidesc AI has not touched this code yet. This may change to AI:W when AI edits this file.
+
+
 'This is a test library for JSON Logic.
 'JSON Logic is being used as a placeholder for Lambdas at the moment, until a proper lamda syntax is released.
 'Lambda syntax will likely be converted to JSONLogic objects where they'll be parsed by this algorithm.

@@ -8,6 +8,13 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
+'@module
+'@ai AI:W
+'@aidate 2026-10-31
+'@aidesc AI was used to add scoped worksheet unlocking (#166) to the existing guard and cleanup implementation.
+'@description Scoped guards and cleanup actions.
+
+
 '@description
 'In numerous cases using excel we like to set standard options to optimise performance:
 '```vb

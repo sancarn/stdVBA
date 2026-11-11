@@ -9,6 +9,8 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 '@module
+'@ai AI:0
+'@aidesc AI has not touched this code yet. This may change to AI:W when AI edits this file.
 '@description A class which implements a wrapper around a process. Use this class to
 'query process information, manipulate them and to forcefully terminate a process.
 '@example Simple example of creating a process:

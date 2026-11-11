@@ -8,6 +8,12 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
+'@module
+'@ai AI:X
+'@aidate 2025-09-20
+'@aidesc Cursor was used to refactor constructors and path handling and add Shell helpers in September 2025. Some early refactors were later replaced.
+'@description Windows Shell files, folders and extended properties (experimental).
+
 'Issues:
 'FILE ENUMERATION
 ' - [ ] No binary read/write methods; no large-file chunking helpers.

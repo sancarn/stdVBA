@@ -8,6 +8,10 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
+'@module
+'@ai AI:X
+'@aidate 2026-03-18
+'@aidesc Cursor was used to write the standalone WebView2 class and its March-May APIs/refactors. The design is based on the upstream project credited by the attribution tag.
 '@class stdWebView
 '@description Standalone WebView2 host for Excel UserForms (primary). Requires WebView2Loader.dll,
 ' Microsoft Edge WebView2 Runtime. Handler vtables use executable thunks (see AddressOfThunkForComProc/VBA7/CMonitors.cls).

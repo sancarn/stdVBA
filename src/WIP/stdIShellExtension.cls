@@ -8,6 +8,12 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 
+'@module
+'@description
+'@ai AI:0
+'@aidesc AI has not touched this code yet. This may change to AI:W when AI edits this file.
+
+
 'Checks if the extension is of the given item
 '@param item - The item to check if the extension is of
 '@returns - True if the extension is of the given item, false otherwise

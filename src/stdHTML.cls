@@ -9,6 +9,9 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 '@module
+'@ai AI:X
+'@aidate 2026-04-03
+'@aidesc AI was used for selectors, parsing, replacement and Boolean-attribute handling in April 2026, initially under WIP/stdHTML.cls. These features extend the original node model.
 '@description `stdHTML` provides a fluent, object-based API for building, querying, and transforming HTML in VBA.
 '`stdHTML.Create()` creates a new document root (`<html>`), and child nodes can be composed via `CreateChild`.
 'Use `CreateLiteral` for escaped text content and `Raw` for unescaped content when embedding trusted markup or script.

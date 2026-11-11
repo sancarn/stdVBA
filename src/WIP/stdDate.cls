@@ -8,6 +8,13 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
+'@module
+'@ai AI:W
+'@aidate 2026-10-31
+'@aidesc AI was used to fix weekday semantics and regex-cache publication (#175) in the existing date/time wrapper.
+'@description Date and time utilities (experimental).
+
+
 'Class that wraps standard VBA DateTime functionality:
 '* Create from double
 '* Create from Year, Month, Day, Hour, Min, Second
