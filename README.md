@@ -2,7 +2,13 @@
 
 A Collection of libraries to form a common standard layer for modern VBA applications.
 
-[AI:0/W](https://0rwx.com/)
+## [AI Attribution](https://0rwx.com/)
+
+* AI:0 - Most modules have been hand crafted by humans.
+* AI:W - Some modules have been reviewed by humans
+* AI:X - Most new modules are generated, and the code isn't reviewed.
+
+Generally speaking, `AI:0` and `AI:W` modules are transitioning to `AI:X`.
 
 ## Benefits
 
