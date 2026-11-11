@@ -11,7 +11,7 @@ Attribute VB_Exposed = False
 '@module
 '@ai AI:W
 '@aidate 2026-10-31
-'@aidesc AI:W, confirmed by the maintainer. AI corrected owned-Variant SAFEARRAY-slot pointer handling (#174). The borrowed-array implementation credited to Cristian Buse predates that fix; it is not claimed to be AI-authored.
+'@aidesc AI was used to correct owned-Variant SAFEARRAY-slot pointer handling (#174). The borrowed-array code is based on Cristian Buse's implementation.
 '@description A class which wraps a VBA array by reference. Use this class to
 'efficiently pass large arrays around without copying them.
 'Borrowed storage: the source variable must outlive this wrapper and every alias

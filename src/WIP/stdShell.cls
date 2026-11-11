@@ -11,7 +11,7 @@ Attribute VB_Exposed = False
 '@module
 '@ai AI:X
 '@aidate 2025-09-20
-'@aidesc AI:X, confirmed by the maintainer. Cursor refactored constructors/path handling and added Shell helpers in September 2025. Retained additions match bb5eb26 and 9db792c; some early refactors were later replaced. This does not attribute every prior or later Shell feature to the same generation event.
+'@aidesc Cursor was used to refactor constructors and path handling and add Shell helpers in September 2025. Some early refactors were later replaced.
 '@description Windows Shell files, folders and extended properties (experimental).
 
 'Issues:

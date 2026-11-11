@@ -11,7 +11,7 @@ Attribute VB_Exposed = False
 '@module
 '@ai AI:W
 '@aidate 2026-05-07
-'@aidesc Overall AI:W, as classified by the maintainer; thunk-engine work is purely AI:X. Cursor first worked on native-thunk experiments in May 2026, but those engines are on other branches and are not part of this baseline. The retained October AI contribution fixes object-local copying during stack growth (#172); the existing VBA compiler/evaluator predates that fix.
+'@aidesc AI was used to fix object-local copying during stack growth (#172) in the existing VBA compiler/evaluator. The native thunk engines are purely AI:X; those experiments began in May 2026 and remain on separate branches.
 '@description A class which implements a syntax for creating lambda functions from string expressions
 'within VBA. Use this class to create sandboxed lambda functions, and call them with arguments.
 '

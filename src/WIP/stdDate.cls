@@ -11,7 +11,7 @@ Attribute VB_Exposed = False
 '@module
 '@ai AI:W
 '@aidate 2026-10-31
-'@aidesc AI:W, confirmed by the maintainer. AI fixed weekday semantics and regex-cache publication (#175). The original date/time wrapper predates those fixes and is not attributed to AI by this evidence.
+'@aidesc AI was used to fix weekday semantics and regex-cache publication (#175) in the existing date/time wrapper.
 '@description Date and time utilities (experimental).
 
 

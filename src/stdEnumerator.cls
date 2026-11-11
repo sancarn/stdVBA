@@ -11,7 +11,7 @@ Attribute VB_Exposed = False
 '@module
 '@ai AI:W
 '@aidate 2026-11-01
-'@aidesc AI:W, confirmed by the maintainer. The lazy IEnumVARIANT implementation (#186) was written by AI and reviewed manually, including iteration, caching/memory behavior and enumCall naming. Earlier enumeration and other collection operations predate that contribution.
+'@aidesc The lazy IEnumVARIANT implementation (#186) was written by AI and reviewed manually, including iteration, caching/memory behavior and enumCall naming. Other collection operations predate that contribution.
 '@description A class which implements an enumerator object. Use this class to
 'iterate over a collection of data.
 '@example ```vb

@@ -11,7 +11,7 @@ Attribute VB_Exposed = False
 '@module
 '@ai AI:W
 '@aidate 2026-10-31
-'@aidesc Overall AI:W, as classified by the maintainer. The subclassing/native callback thunks (#182) are AI:X. Existing window discovery/manipulation APIs predate that feature; the accompanying guard/reset behavior received human technical scrutiny.
+'@aidesc The class is AI:W overall. The subclassing/native callback thunks (#182) are AI:X. The guard/reset behavior was reviewed manually; the existing window discovery and manipulation APIs predate that feature.
 '@description Window discovery, inspection and automation.
 
 Implements stdICallable

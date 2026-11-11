@@ -11,7 +11,7 @@ Attribute VB_Exposed = False
 '@module
 '@ai AI:W
 '@aidate 2026-10-27
-'@aidesc AI:W, confirmed by the maintainer. AI-written changes include arr-assignment fixes (#161) and configurable index bases (#165). The existing list implementation predates these changes and is not attributed to AI by this evidence.
+'@aidesc AI was used for array-assignment fixes (#161) and configurable index bases (#165). These changes extend the existing array-list implementation.
 '@description A class which implements a simple array list. Use this class to
 'accumulate data in a list, and then use the methods to manipulate the data.
 '@example ```vb

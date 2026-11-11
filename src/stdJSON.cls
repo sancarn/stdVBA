@@ -11,7 +11,7 @@ Attribute VB_Exposed = False
 '@module
 '@ai AI:W
 '@aidate 2026-04-14
-'@aidesc AI:W, confirmed by the maintainer. Cursor fixed key comparison in April 2026; Codex later added preprocessing/postprocessing callbacks (#137, #179). The existing parser/object implementation predates those contributions.
+'@aidesc Cursor was used to fix key comparison in April 2026. Codex was used to add preprocessing and postprocessing callbacks (#137, #179) to the existing parser and object implementation.
 '@description A class which implements a JSON object. Use this class to
 'create JSON objects, manipulate them, and convert them to and from JSON strings.
 '@example Simple example of creating a JSON object and converting it to a string:

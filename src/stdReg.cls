@@ -11,7 +11,7 @@ Attribute VB_Exposed = True
 '@module
 '@ai AI:W
 '@aidate 2026-10-30
-'@aidesc Overall AI:W, as classified by the maintainer. Some small additions, including the key/value-creation work (#168), are AI:X. The earlier registry-reading/writing implementation predates those additions; the component note does not attribute the entire class to AI.
+'@aidesc The class is AI:W overall. Small additions, including key/value creation (#168), are AI:X. The original registry-reading and writing implementation predates those additions.
 '@description A class which provides a simple interface to the Windows Registry.
 'The structure of a simple registry tree looks like the following:
 '```

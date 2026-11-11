@@ -11,7 +11,7 @@ Attribute VB_Exposed = False
 '@module
 '@ai AI:W
 '@aidate 2026-10-31
-'@aidesc AI:W, confirmed by the maintainer. AI provenance identifies the asynchronous timeout and terminal-completion fix (#173). Most request/transport code predates that fix and is not attributed to AI by this evidence.
+'@aidesc AI was used to fix asynchronous timeout handling and terminal completion (#173). The original request and transport implementation predates these fixes.
 '@description A class used to make HTTP requests.
 '@example A simple synchronous HTTP request:
 '```vb

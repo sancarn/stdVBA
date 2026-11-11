@@ -47,7 +47,7 @@
       },
       "firstAIContributionDate": "2026-10-27",
       "dateEvidence": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established.",
-      "aiDescription": "AI:W, confirmed by the maintainer. AI-written changes include arr-assignment fixes (#161) and configurable index bases (#165). The existing list implementation predates these changes and is not attributed to AI by this evidence.",
+      "aiDescription": "AI was used for array-assignment fixes (#161) and configurable index bases (#165). These changes extend the existing array-list implementation.",
       "blameReview": {
         "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
         "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
@@ -95,7 +95,7 @@
       },
       "firstAIContributionDate": "2026-03-23",
       "dateEvidence": "Commit c996881 (2026-03-23), whose deletion-only fix was inspected.",
-      "aiDescription": "AI:W, confirmed by the maintainer. Cursor-coauthored #154 removed an invalid RunEx error-handler line; blame of surviving lines cannot show that deletion. Later Codex work documented calling conventions and added tests, without rewriting the implementation. The remaining callback implementation is not attributed to AI by these records. AI:W follows the maintainer account of the Cursor period.",
+      "aiDescription": "AI was used to remove an invalid RunEx error-handler line (#154). Later Codex work documented calling conventions and added tests without rewriting the original callback implementation.",
       "blameReview": {
         "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
         "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
@@ -175,7 +175,7 @@
       },
       "firstAIContributionDate": "2026-11-01",
       "dateEvidence": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established.",
-      "aiDescription": "AI:W, confirmed by the maintainer. The lazy IEnumVARIANT implementation (#186) was written by AI and reviewed manually, including iteration, caching/memory behavior and enumCall naming. Earlier enumeration and other collection operations predate that contribution.",
+      "aiDescription": "The lazy IEnumVARIANT implementation (#186) was written by AI and reviewed manually, including iteration, caching/memory behavior and enumCall naming. Other collection operations predate that contribution.",
       "blameReview": {
         "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
         "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
@@ -243,7 +243,7 @@
       },
       "firstAIContributionDate": "2026-04-03",
       "dateEvidence": "Completed Cursor source edits on 2026-04-03, retained in April commits.",
-      "aiDescription": "AI:X, confirmed by the maintainer. Cursor introduced retained selectors, parsing, replacement and Boolean-attribute behavior in April 2026, initially under WIP/stdHTML.cls. The original node model predates these changes; the first-evidenced date does not claim that the whole class was created then.",
+      "aiDescription": "AI was used for selectors, parsing, replacement and Boolean-attribute handling in April 2026, initially under WIP/stdHTML.cls. These features extend the original node model.",
       "blameReview": {
         "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
         "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
@@ -333,7 +333,7 @@
       },
       "firstAIContributionDate": "2026-10-31",
       "dateEvidence": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established.",
-      "aiDescription": "AI:W, confirmed by the maintainer. AI provenance identifies the asynchronous timeout and terminal-completion fix (#173). Most request/transport code predates that fix and is not attributed to AI by this evidence.",
+      "aiDescription": "AI was used to fix asynchronous timeout handling and terminal completion (#173). The original request and transport implementation predates these fixes.",
       "blameReview": {
         "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
         "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
@@ -416,7 +416,7 @@
       },
       "firstAIContributionDate": "2026-10-31",
       "dateEvidence": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established.",
-      "aiDescription": "AI:X, confirmed by the maintainer. The reviewed implementation history identifies export, clipboard-ownership and conversion-cleanup work (#183). Older image operations and upstream contributions predate that work; the recorded date is the first evidenced AI contribution in the reviewed sources.",
+      "aiDescription": "AI was used for export, clipboard ownership and conversion cleanup (#183). These changes build on the existing image operations and upstream contributions.",
       "blameReview": {
         "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
         "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
@@ -457,7 +457,7 @@
       },
       "firstAIContributionDate": "2026-04-14",
       "dateEvidence": "Completed Cursor source edit timestamp 2026-04-14T17:36:03.685Z, retained in e837820.",
-      "aiDescription": "AI:W, confirmed by the maintainer. Cursor fixed key comparison in April 2026; Codex later added preprocessing/postprocessing callbacks (#137, #179). The existing parser/object implementation predates those contributions.",
+      "aiDescription": "Cursor was used to fix key comparison in April 2026. Codex was used to add preprocessing and postprocessing callbacks (#137, #179) to the existing parser and object implementation.",
       "blameReview": {
         "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
         "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
@@ -499,7 +499,7 @@
       },
       "firstAIContributionDate": "2026-05-07",
       "dateEvidence": "First completed Cursor thunk-experiment edits in May 2026; those experimental engines are not retained in the current baseline. The current stack-copy fix is dated 2026-10-31.",
-      "aiDescription": "Overall AI:W, as classified by the maintainer; thunk-engine work is purely AI:X. Cursor first worked on native-thunk experiments in May 2026, but those engines are on other branches and are not part of this baseline. The retained October AI contribution fixes object-local copying during stack growth (#172); the existing VBA compiler/evaluator predates that fix.",
+      "aiDescription": "AI was used to fix object-local copying during stack growth (#172) in the existing VBA compiler/evaluator. The native thunk engines are purely AI:X; those experiments began in May 2026 and remain on separate branches.",
       "blameReview": {
         "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
         "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
@@ -548,7 +548,7 @@
       },
       "firstAIContributionDate": "2026-11-10",
       "dateEvidence": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established.",
-      "aiDescription": "AI:X, confirmed by the maintainer. PR #189 explicitly attributes creation of this Extended MAPI class to gpt-6-astra; there was no earlier stdOutlook class in the repository.",
+      "aiDescription": "This Extended MAPI class was written with gpt-6-astra (#189).",
       "blameReview": {
         "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
         "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
@@ -590,7 +590,7 @@
       },
       "firstAIContributionDate": "2026-10-31",
       "dateEvidence": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established.",
-      "aiDescription": "AI:W, confirmed by the maintainer. AI changes added Access/Word optimization handling (#167) and improved timer precision (#177). Older optimizer and benchmark APIs predate these changes and are not attributed to AI by this evidence.",
+      "aiDescription": "AI was used for Access/Word optimization handling (#167) and timer-precision improvements (#177). The existing optimizer and benchmark APIs predate these changes.",
       "blameReview": {
         "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
         "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
@@ -680,7 +680,7 @@
       },
       "firstAIContributionDate": "2026-10-31",
       "dateEvidence": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established.",
-      "aiDescription": "AI:W, confirmed by the maintainer. AI corrected owned-Variant SAFEARRAY-slot pointer handling (#174). The borrowed-array implementation credited to Cristian Buse predates that fix; it is not claimed to be AI-authored.",
+      "aiDescription": "AI was used to correct owned-Variant SAFEARRAY-slot pointer handling (#174). The borrowed-array code is based on Cristian Buse's implementation.",
       "blameReview": {
         "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
         "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
@@ -721,7 +721,7 @@
       },
       "firstAIContributionDate": "2026-10-30",
       "dateEvidence": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established.",
-      "aiDescription": "Overall AI:W, as classified by the maintainer. Some small additions, including the key/value-creation work (#168), are AI:X. The earlier registry-reading/writing implementation predates those additions; the component note does not attribute the entire class to AI.",
+      "aiDescription": "The class is AI:W overall. Small additions, including key/value creation (#168), are AI:X. The original registry-reading and writing implementation predates those additions.",
       "blameReview": {
         "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
         "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
@@ -771,7 +771,7 @@
       },
       "firstAIContributionDate": "2026-10-27",
       "dateEvidence": "Commit c02d86f (2026-10-27) identifies earlier AI-assisted integration; the explicitly AI:X native thunk followed in 4a2bb49 on 2026-11-01.",
-      "aiDescription": "Overall AI:W, as classified by the maintainer. The pure VBA engine is upstream work credited to sihlfall; earlier AI-assisted integration is recorded in #164. The native x86/x64 thunk engine (#184) is purely AI:X. That component classification does not attribute the upstream engine to AI.",
+      "aiDescription": "The pure VBA engine was written by sihlfall. AI was used for integration (#164). The native x86/x64 thunk engine (#184) was generated entirely by AI and is AI:X; the class is AI:W overall.",
       "blameReview": {
         "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
         "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
@@ -848,7 +848,7 @@
       },
       "firstAIContributionDate": "2026-10-31",
       "dateEvidence": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established.",
-      "aiDescription": "AI:W, confirmed by the maintainer. AI added scoped worksheet unlocking (#166). The prior scoped-guard and cleanup implementation predates this addition and is not attributed to AI by this evidence.",
+      "aiDescription": "AI was used to add scoped worksheet unlocking (#166) to the existing guard and cleanup implementation.",
       "blameReview": {
         "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
         "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
@@ -889,7 +889,7 @@
       },
       "firstAIContributionDate": "2026-10-31",
       "dateEvidence": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established.",
-      "aiDescription": "AI:W, confirmed by the maintainer. AI fixed owned-host lifecycle, partial startup and shutdown cleanup (#176). The original timer implementation dates from 2023 and is not attributed to AI by this evidence.",
+      "aiDescription": "AI was used to fix owned-host lifecycle, partial startup and shutdown cleanup (#176). The original timer implementation dates from 2023.",
       "blameReview": {
         "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
         "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
@@ -951,7 +951,7 @@
       },
       "firstAIContributionDate": "2026-10-31",
       "dateEvidence": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established.",
-      "aiDescription": "AI:X, confirmed by the maintainer. AI work replaced the legacy IE transport with native WinHTTP synchronous/asynchronous transport (#180). The prior API and legacy implementation predate that rewrite.",
+      "aiDescription": "AI was used to replace the legacy IE transport with native WinHTTP synchronous/asynchronous transport (#180). The original WebSocket API predates this rewrite.",
       "blameReview": {
         "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
         "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
@@ -992,7 +992,7 @@
       },
       "firstAIContributionDate": "2026-03-18",
       "dateEvidence": "Completed Cursor source edit timestamp 2026-03-18T21:39:40.369Z.",
-      "aiDescription": "AI:X, confirmed by the maintainer. Cursor authored the standalone WebView2 class and subsequent March-May APIs/refactors. Its design draws on the upstream project credited by the existing attribution tag; this does not attribute that upstream project to AI.",
+      "aiDescription": "Cursor was used to write the standalone WebView2 class and its March-May APIs/refactors. The design is based on the upstream project credited by the attribution tag.",
       "blameReview": {
         "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
         "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
@@ -1117,7 +1117,7 @@
       },
       "firstAIContributionDate": "2026-10-31",
       "dateEvidence": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established.",
-      "aiDescription": "Overall AI:W, as classified by the maintainer. The subclassing/native callback thunks (#182) are AI:X. Existing window discovery/manipulation APIs predate that feature; the accompanying guard/reset behavior received human technical scrutiny.",
+      "aiDescription": "The class is AI:W overall. The subclassing/native callback thunks (#182) are AI:X. The guard/reset behavior was reviewed manually; the existing window discovery and manipulation APIs predate that feature.",
       "blameReview": {
         "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
         "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
@@ -1418,7 +1418,7 @@
       },
       "firstAIContributionDate": "2026-10-31",
       "dateEvidence": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established.",
-      "aiDescription": "AI:W, confirmed by the maintainer. AI fixed weekday semantics and regex-cache publication (#175). The original date/time wrapper predates those fixes and is not attributed to AI by this evidence.",
+      "aiDescription": "AI was used to fix weekday semantics and regex-cache publication (#175) in the existing date/time wrapper.",
       "blameReview": {
         "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
         "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
@@ -2171,7 +2171,7 @@
       },
       "firstAIContributionDate": "2025-09-20",
       "dateEvidence": "Completed Cursor edits on 2025-09-20/21 match retained September commits.",
-      "aiDescription": "AI:X, confirmed by the maintainer. Cursor refactored constructors/path handling and added Shell helpers in September 2025. Retained additions match bb5eb26 and 9db792c; some early refactors were later replaced. This does not attribute every prior or later Shell feature to the same generation event.",
+      "aiDescription": "Cursor was used to refactor constructors and path handling and add Shell helpers in September 2025. Some early refactors were later replaced.",
       "blameReview": {
         "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
         "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
@@ -2534,7 +2534,7 @@
       },
       "firstAIContributionDate": "2026-10-31",
       "dateEvidence": "Earliest matched retained AI-change commit date in the blame evidence; exact earlier edit time is not established.",
-      "aiDescription": "AI:X as the WIP mirror of the maintainer-classified stdWebSocket implementation. Both files contain the same AI-assisted native transport rewrite (#180), rather than separate authorship events; the preceding legacy design predates that rewrite.",
+      "aiDescription": "This WIP file mirrors the AI-written native transport implementation in stdWebSocket (#180). Both copies replace the earlier legacy transport.",
       "blameReview": {
         "baseline": "8ec0a13ba517991a3010df9a8551c35b3552a01c",
         "method": "git blame -w --line-porcelain, excluding blank/comment/export-metadata lines. Commit diffs checked for deletions; upstream imports are not treated as AI-generated code. Counts describe retained changed lines, not scrutiny or AI-authorship percentages.",
@@ -2628,7 +2628,7 @@
       "mark": "AI:X",
       "firstAIContributionDate": "2026-10-25",
       "dateEvidence": "Introducing local commit author/committer date.",
-      "aiDescription": "AI:X, confirmed by the maintainer. Experimental stdRuntime.GetVars inspects caller VBA stack frames and returns local names, type names and formatted values. Frame-discovery research is credited to Ariche2/VBAStack. This prototype is restricted to its documented Windows x64 VBE7 profile.",
+      "aiDescription": "AI was used to write stdRuntime.GetVars, which reads local names, type names and formatted values from caller VBA stack frames. Frame discovery builds on Ariche2/VBAStack. The class supports only its documented Windows x64 VBE7 profile.",
       "inCurrentBaseline": false,
       "locationExplanation": "Present on the local codex/std-runtime-locals branch; introducing commit is not an ancestor of master. The implementation is not added to this disclosure PR. An annotated recovered source copy and its original guide are supplied separately."
     }

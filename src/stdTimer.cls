@@ -11,7 +11,7 @@ Attribute VB_Exposed = False
 '@module
 '@ai AI:W
 '@aidate 2026-10-31
-'@aidesc AI:W, confirmed by the maintainer. AI fixed owned-host lifecycle, partial startup and shutdown cleanup (#176). The original timer implementation dates from 2023 and is not attributed to AI by this evidence.
+'@aidesc AI was used to fix owned-host lifecycle, partial startup and shutdown cleanup (#176). The original timer implementation dates from 2023.
 '@description Scheduled callbacks using an owned timer host.
 
 

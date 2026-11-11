@@ -13,7 +13,7 @@ Implements stdICallable
 '@module
 '@ai AI:W
 '@aidate 2026-03-23
-'@aidesc AI:W, confirmed by the maintainer. Cursor-coauthored #154 removed an invalid RunEx error-handler line; blame of surviving lines cannot show that deletion. Later Codex work documented calling conventions and added tests, without rewriting the implementation. The remaining callback implementation is not attributed to AI by these records. AI:W follows the maintainer account of the Cursor period.
+'@aidesc AI was used to remove an invalid RunEx error-handler line (#154). Later Codex work documented calling conventions and added tests without rewriting the original callback implementation.
 '@description A class which implements a callback object. Use this class to create a 
 'callback object which can be called at a later stage. These callbacks are used extensively
 'across the stdVBA library.

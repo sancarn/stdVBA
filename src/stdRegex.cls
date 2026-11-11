@@ -484,7 +484,7 @@ End Type
 '@module
 '@ai AI:W
 '@aidate 2026-10-27
-'@aidesc Overall AI:W, as classified by the maintainer. The pure VBA engine is upstream work credited to sihlfall; earlier AI-assisted integration is recorded in #164. The native x86/x64 thunk engine (#184) is purely AI:X. That component classification does not attribute the upstream engine to AI.
+'@aidesc The pure VBA engine was written by sihlfall. AI was used for integration (#164). The native x86/x64 thunk engine (#184) was generated entirely by AI and is AI:X; the class is AI:W overall.
 '@description A class which uses sihlfall's pure VBA regex engine. Use this class to
 'create regex objects with additional features like named captures, and use them to analyse text.
 '@example A simple example of using the class:

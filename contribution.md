@@ -141,7 +141,7 @@ Document AI involvement using the [0rwx framework](https://0rwx.com/) in the exi
 '@description Describe the class or module here.
 '@ai AI:W
 '@aidate 2026-10-31
-'@aidesc AI contributed timeout handling, reviewed by the maintainer. The existing transport implementation predates that change and is not attributed to AI by this evidence.
+'@aidesc AI was used to add timeout handling, which was reviewed manually. The original transport implementation was written without AI.
 ```
 
 Use one `@ai` mark when its classification is established:
@@ -154,7 +154,7 @@ Use one `@ai` mark when its classification is established:
 These marks describe involvement and scrutiny, not percentages or a quality rating. A small AI-written fix does not make the entire class AI-made. For mixed provenance, describe the affected component and the older/upstream work in `@aidesc`. A maintainer may classify a module `AI:W` overall while identifying a specific component as `AI:X`; do not automatically elevate the entire module or attribute its older/upstream code to AI. Do not reset known involvement simply because the latest edit was manual.
 
 - `@aidate YYYY-MM-DD` records the earliest evidenced AI involvement in the class/module described by `@aidesc`, including historical experimental versions when relevant. State when that work is absent from the current implementation. Use an actual edit timestamp where available, otherwise a matched commit date; record the basis and uncertainty in a remark or provenance audit. This is a first known date, not proof that no earlier AI use occurred. Do not advance it for follow-up changes. Omit it for `AI:0` or when no date can be established.
-- `@aidesc <description>` explains what AI wrote or changed, what predates those contributions or comes from credited upstream authors, what is not attributed to AI by the evidence, and uncertainty about human scrutiny. Preserve existing descriptions, examples, attributions and member documentation.
+- `@aidesc <description>` declares where AI was used, which parts were written without AI or come from upstream authors, and whether the work was reviewed manually. Write direct statements such as "AI was used to add timeout handling" or "The thunk engine was generated entirely by AI (AI:X)." Keep retrospective research methods, commit tracing and uncertainty in the provenance audit rather than phrases such as "by this evidence" or "confirmed by the maintainer" in module descriptions. Preserve existing descriptions, examples, attributions and member documentation.
 
 For retrospective disclosures, cross-check source comments, `git blame`, dated commit diffs and conversation records. Check deletions as well as surviving lines; a deleted line will not appear in blame. Copied upstream code and unmerged experiments must not be counted as AI-generated current implementation. Dates, model names and commit frequency can guide investigation but cannot establish human scrutiny. A CI bot or the absence of an AI co-author is not evidence of authorship either way.
 

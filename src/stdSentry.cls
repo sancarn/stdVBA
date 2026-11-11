@@ -11,7 +11,7 @@ Attribute VB_Exposed = False
 '@module
 '@ai AI:W
 '@aidate 2026-10-31
-'@aidesc AI:W, confirmed by the maintainer. AI added scoped worksheet unlocking (#166). The prior scoped-guard and cleanup implementation predates this addition and is not attributed to AI by this evidence.
+'@aidesc AI was used to add scoped worksheet unlocking (#166) to the existing guard and cleanup implementation.
 '@description Scoped guards and cleanup actions.
 
 
