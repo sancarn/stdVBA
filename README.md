@@ -2,6 +2,8 @@
 
 A Collection of libraries to form a common standard layer for modern VBA applications.
 
+[AI:0/W/X](https://0rwx.com/)
+
 ## [AI Attribution](https://0rwx.com/)
 
 * AI:0 - Most modules have been hand crafted by humans.
@@ -23,6 +25,8 @@ Generally speaking, `AI:0` and `AI:W` modules are transitioning to `AI:X`.
 ## Getting started
 
 [A video series](https://www.youtube.com/watch?v=IJ8PNiqnuMU&list=PLfpJqtusLMmotZqzFtZ6FCPRin5N_BjPA) is being created to demonstrate how to get started with stdVBA. Alternatively there is a small getting started document [in the discussions](https://github.com/sancarn/stdVBA/discussions/30)
+
+Browse the [generated API documentation](https://sancarn.github.io/stdVBA-docs/) for class and module references, examples, and dependencies. Documentation is generated from the source comments.
 
 ## Short example
 
@@ -58,7 +62,7 @@ sub Main()
                  .Map(stdLambda.Create("$1.Name")).join(",")            'Sheet1,Sheet2,Sheet3,...,Sheet10
   
   'Execute methods with lambdas and enumerate over enumeratable collections:
-  Call stdEnumerator.Create(Application.Workbooks).forEach(stdLambda.Create("$1.Save")
+  Call stdEnumerator.CreateFromIEnumVariant(Application.Workbooks).forEach(stdLambda.Create("$1.Save"))
   
   'We even have if statement!
   With stdLambda.Create("if $1 then ""lisa"" else ""bart""")
@@ -86,7 +90,7 @@ sub Main()
   '   D,040,040-1425
   '   D,029,029-0055
   '   A,100,100-1351
-  Range("A3:C6").value = oRegex.ListArr(sHaystack, Array("$county","$city","$city-$street"))
+  Range("A3:C5").value = oRegex.ListArr(sHaystack, Array("$county","$city","$city-$street"))
   
   'Copy some data to the clipboard:
   Range("A1").value = "Hello there"
@@ -103,8 +107,7 @@ sub Main()
   set stdClipboard.files = files
 
   'Save a chart as a file
-  Sheets("Sheet1").ChartObjects(1).copy
-  Call stdClipboard.Picture.saveAsFile("C:\test.bmp",false,null) 'Use IPicture interface to save to disk as image
+  Call stdImage.CreateFromChart(Sheets("Sheet1").ChartObjects(1).Chart).ToFile("C:\test.bmp", stdImgFormatBMP)
 End Sub
 
 Public Function CalcArea(ByVal radius as Double) as Double
@@ -147,23 +150,37 @@ As an indicator of where my focuses have been in the past year, take a look at t
 |Color                                                     | Status | Type       |Name             |Docs | Description  |
 |----------------------------------------------------------|--------|------------|-----------------|-----|--------------|
 |![l](docs/assets/Status_R.png) | HOLD   | Debug       |stdError        | None | Better error handling, including stack trace and error handling diversion and events.
-|![l](docs/assets/Status_G.png) | READY  | Type        |stdArray        | None | A library designed to re-create the Javascript dynamic array object.
-|![l](docs/assets/Status_G.png) | READY  | Type        |stdEnumerator   | [docs](docs/stdEnumerator.md) | A library designed to wrap enumerable objects providing additional functionality.
+|![l](docs/assets/Status_G.png) | READY  | Type        |stdArray        | [docs](https://sancarn.github.io/stdVBA-docs/?q=stdArray) | A library designed to re-create the Javascript dynamic array object.
+|![l](docs/assets/Status_G.png) | READY  | Type        |stdEnumerator   | [docs](https://sancarn.github.io/stdVBA-docs/?q=stdEnumerator) | A library designed to wrap enumerable objects providing additional functionality.
 |![l](docs/assets/Status_Y.png) | WIP    | Type        |stdDictionary   | None | A drop in replacement for VBScript's dictionary.
-|![l](docs/assets/Status_G.png) | READY  | Type        |stdDate         | None | A standard date parsing library. No more will you have to rely on Excel's interpreter. State the format, get the data.
-|![l](docs/assets/Status_G.png) | READY  | Type        |stdRegex        | None | A regex library with more features than standard e.g. named capture groups and free-spaces.
-|![l](docs/assets/Status_G.png) | READY  | Type        |stdLambda       | [docs](docs/stdLambda.md) | Build and create in-line functions. Execute them at a later stage.
-|![l](docs/assets/Status_G.png) | READY  | Type        |stdCallback     | None | Link to existing functions defined in VBA code, call them at a later stage.
-|![l](docs/assets/Status_G.png) | READY  | Type        |stdCOM          | None | A wrapper around a COM object which provides Reflection (through ITypeInfo), Interface querying, Calling interface methods (via DispID) and more. 
-|![l](docs/assets/Status_G.png) | READY  | Automation  |stdClipboard    | None | Clipboard management library. Set text, files, images and more to the clipboard.
-|![l](docs/assets/Status_R.png) | HOLD   | Automation  |stdHTTP         | None | A wrapper around Win HTTP libraries.
-|![l](docs/assets/Status_G.png) | READY  | Automation  |stdWindow       | [docs](docs/stdWindow.md) | A handy wrapper around Win32 Window management APIs.
-|![l](docs/assets/Status_G.png) | READY  | Automation  |stdProcess      | None | Create and manage processes.
-|![l](docs/assets/Status_G.png) | READY  | Automation  |stdAcc          | [docs](docs/stdAcc.md) | Use Microsoft Active Accessibility framework within VBA - Very useful for automation.
-|![l](docs/assets/Status_G.png) | READY  | Automation  |stdWebSocket    | None | WebSocket automation. Currently uses IE, need to move to more stable runtime. Will be useful for modern automation e.g. chrome
-|![l](docs/assets/Status_Y.png) | WIP    | Automation  |stdOutlook      | [docs](docs/stdOutlook.md) | Classic Outlook identity, contacts, mail and calendar through native MAPI; plain-text/HTML submission with Outlook Send/Receive. Windows VBA7 only.
+|![l](docs/assets/Status_Y.png) | WIP    | Type        |stdDate         | None | Experimental date/time parsing and formatting library in `src/WIP/stdDate.cls`.
+|![l](docs/assets/Status_G.png) | READY  | Type        |stdRegex        | [docs](https://sancarn.github.io/stdVBA-docs/?q=stdRegex) | A regex library with more features than standard e.g. named capture groups and free-spaces.
+|![l](docs/assets/Status_G.png) | READY  | Type        |stdLambda       | [docs](https://sancarn.github.io/stdVBA-docs/?q=stdLambda) | Build and create in-line functions. Execute them at a later stage.
+|![l](docs/assets/Status_G.png) | READY  | Type        |stdCallback     | [docs](https://sancarn.github.io/stdVBA-docs/?q=stdCallback) | Link to existing functions defined in VBA code, call them at a later stage.
+|![l](docs/assets/Status_G.png) | READY  | Type        |stdCOM          | [docs](https://sancarn.github.io/stdVBA-docs/?q=stdCOM) | A wrapper around a COM object which provides Reflection (through ITypeInfo), Interface querying, Calling interface methods (via DispID) and more.
+|![l](docs/assets/Status_G.png) | READY  | Automation  |stdClipboard    | [docs](https://sancarn.github.io/stdVBA-docs/?q=stdClipboard) | Clipboard management library. Set text, files, images and more to the clipboard.
+|![l](docs/assets/Status_G.png) | READY  | Automation  |stdHTTP         | [docs](https://sancarn.github.io/stdVBA-docs/?q=stdHTTP) | HTTP requests using Windows transports or curl on Mac; Mac authenticator callbacks are not implemented.
+|![l](docs/assets/Status_G.png) | READY  | Automation  |stdWindow       | [docs](https://sancarn.github.io/stdVBA-docs/?q=stdWindow) | A handy wrapper around Win32 Window management APIs.
+|![l](docs/assets/Status_G.png) | READY  | Automation  |stdProcess      | [docs](https://sancarn.github.io/stdVBA-docs/?q=stdProcess) | Create and manage processes.
+|![l](docs/assets/Status_G.png) | READY  | Automation  |stdAcc          | [docs](https://sancarn.github.io/stdVBA-docs/?q=stdAcc) | Use Microsoft Active Accessibility framework within VBA - Very useful for automation.
+|![l](docs/assets/Status_G.png) | READY  | Automation  |stdWebSocket    | [docs](https://sancarn.github.io/stdVBA-docs/?q=stdWebSocket) | Native WinHTTP WebSocket client. Requires Windows 8+, `stdICallable`, and `stdWebSocketNative.dll` matching Office bitness. Supports synchronous reads and owner-thread async listeners.
+|![l](docs/assets/Status_Y.png) | WIP    | Automation  |stdOutlook      | [docs](https://sancarn.github.io/stdVBA-docs/?q=stdOutlook) | Classic Outlook identity, contacts, mail and calendar through native MAPI; plain-text/HTML submission with Outlook Send/Receive. Windows VBA7 only.
 |![l](docs/assets/Status_Y.png) | WIP    | Excel       |xlTable         | None | Better tables for VBA, e.g. Map rows etc.
-|![l](docs/assets/Status_G.png) | READY  | DevTools    |stdPerformance  | None | Performance testing
+|![l](docs/assets/Status_G.png) | READY  | DevTools    |stdPerformance  | [docs](https://sancarn.github.io/stdVBA-docs/?q=stdPerformance) | Performance testing
+|![l](docs/assets/Status_G.png) | READY  | Type        |stdICallable    | [docs](https://sancarn.github.io/stdVBA-docs/?q=stdICallable) | Shared callback interface implemented by callable classes such as `stdLambda` and `stdCallback`.
+|![l](docs/assets/Status_G.png) | READY  | Type        |stdJSON         | [docs](https://sancarn.github.io/stdVBA-docs/?q=stdJSON) | Parse, build, query, and serialize JSON objects and arrays.
+|![l](docs/assets/Status_G.png) | READY  | Type        |stdHTML         | [docs](https://sancarn.github.io/stdVBA-docs/?q=stdHTML) | Build, parse, query, and transform HTML documents.
+|![l](docs/assets/Status_G.png) | READY  | Type        |stdRefArray     | [docs](https://sancarn.github.io/stdVBA-docs/?q=stdRefArray) | Pass VBA arrays by reference without copying; the source must outlive every borrowed alias.
+|![l](docs/assets/Status_G.png) | READY  | Type        |stdQuadTree     | [docs](https://sancarn.github.io/stdVBA-docs/?q=stdQuadTree) | Store and query points using a quadtree spatial index.
+|![l](docs/assets/Status_G.png) | READY  | Automation  |stdHTTPAuthenticators| [docs](https://sancarn.github.io/stdVBA-docs/?q=stdHTTPAuthenticators) | Optional authentication helpers for `stdHTTP`.
+|![l](docs/assets/Status_G.png) | READY  | Automation  |stdImage        | [docs](https://sancarn.github.io/stdVBA-docs/?q=stdImage) | Load, capture, transform, and export images on Windows.
+|![l](docs/assets/Status_G.png) | READY  | Automation  |stdReg          | [docs](https://sancarn.github.io/stdVBA-docs/?q=stdReg) | Read and edit the Windows Registry.
+|![l](docs/assets/Status_G.png) | READY  | Automation  |stdFiber        | [docs](https://sancarn.github.io/stdVBA-docs/?q=stdFiber) | Run partitioned procedures cooperatively with shared runtime agents.
+|![l](docs/assets/Status_G.png) | READY  | Automation  |stdTimer        | [docs](https://sancarn.github.io/stdVBA-docs/?q=stdTimer) | Schedule callbacks using an owned Excel instance; requires trusted VBA project access.
+|![l](docs/assets/Status_Y.png) | WIP    | Automation  |stdWebView      | [docs](https://sancarn.github.io/stdVBA-docs/?q=stdWebView) | Windows WebView2 host, primarily for Excel UserForms. Requires `WebView2Loader.dll` and the Microsoft Edge WebView2 Runtime.
+|![l](docs/assets/Status_Y.png) | WIP    | UI          |stdUIElement    | [docs](https://sancarn.github.io/stdVBA-docs/?q=stdUIElement) | Create and manage MSForms controls and their callbacks; APIs may change.
+|![l](docs/assets/Status_G.png) | READY  | UI          |stdRibbon       | [docs](https://sancarn.github.io/stdVBA-docs/?q=stdRibbon) | Inspect and change Office ribbon visibility and display modes.
+|![l](docs/assets/Status_G.png) | READY  | DevTools    |stdSentry       | [docs](https://sancarn.github.io/stdVBA-docs/?q=stdSentry) | Scoped guards that restore settings or run cleanup when released.
 
 [The full roadmap](https://github.com/sancarn/stdVBA/projects/1) has more detailed information than here.
 
@@ -195,8 +212,6 @@ APIs which have been indefinitely halted. We aren't sure whether we need these o
 ## Structure
 
 All modules or classes will be prefixed by `std` if they are generic libraries.
-
-Application specific libraries to be prefixed with `xl`, `wd`, `pp`, `ax` representing their specific application.
 
 Commonly implementations will use the factory class design pattern:
 
@@ -259,15 +274,7 @@ There are several ways to contribute code to the project:
 * Opening pull requests is the easiest way to get code intergrated with the standard library.
 * Create a new issue and providing the code in a code block - Bare in mind, it will take us a lot longer to pick this up than a standard pull request.
 
-Please make sure code contributions follow the following guidelines:
-
-* `stdMyClass.cls` should have `Attribute VB_PredeclaredId = True`. 
-* `Attribute VB_Name` should follow the STD convention e.g. `"stdMyClass"`
-* Follow the STD constructor convention `stdMyClass.Create(...)`.
-* Ensure there are plenty of comments where required.
-* Ensure lines end in `\r\n` and not `\n` only. You can enable the Git filter in charge of making this automatic conversion by running `git config include.path ../.gitconfig`
-
-As long as these standard conventions are met, the rest is up to you! Just try to be as general as possible! We're not necessarily looking for optimised code, at the moment we're just looking for code that works!
+Please read the [contribution guide](contribution.md) and [repository guidance](AGENTS.md) before submitting changes. These cover class conventions, structured documentation, AI disclosures, testing, and line endings. Every PR must include an update to [changelog.md](changelog.md).
 
 > Note: Ensure that all code is written by you. If the code is not written by you, you will be responsible for any repercussions!
 
